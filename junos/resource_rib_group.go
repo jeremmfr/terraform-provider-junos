@@ -1,0 +1,335 @@
+package junos
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/hashicorp/terraform/helper/schema"
+)
+
+type ribGroupOptions struct {
+	name         string
+	importPolicy []string
+	importRib    []string
+	exportRib    []string
+}
+
+func resourceRibGroup() *schema.Resource {
+	return &schema.Resource{
+		Create: resourceRibGroupCreate,
+		Read:   resourceRibGroupRead,
+		Update: resourceRibGroupUpdate,
+		Delete: resourceRibGroupDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceRibGroupImport,
+		},
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:         schema.TypeString,
+				ForceNew:     true,
+				Required:     true,
+				ValidateFunc: validateNameObjectJunos(),
+			},
+			"import_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"import_rib": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"export_rib": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+		},
+	}
+}
+
+func resourceRibGroupCreate(d *schema.ResourceData, m interface{}) error {
+	err := validateRibGroup(d)
+	if err != nil {
+		return err
+	}
+	sess := m.(*Session)
+	jnprSess, err := sess.startNewSession()
+	if err != nil {
+		return err
+	}
+	err = sess.configLock(jnprSess)
+	if err != nil {
+		return err
+	}
+	defer sess.closeSession(jnprSess)
+	ribGroupExists, err := checkRibGroupExists(d.Get("name").(string), m, jnprSess)
+	if err != nil {
+		sess.configClear(jnprSess)
+		return err
+	}
+	if ribGroupExists {
+		sess.configClear(jnprSess)
+		return fmt.Errorf("rib-group %v already exists", d.Get("name").(string))
+	}
+	err = setRibGroup(d, m, jnprSess)
+	if err != nil {
+		sess.configClear(jnprSess)
+		return err
+	}
+	err = sess.commitConf(jnprSess)
+	if err != nil {
+		sess.configClear(jnprSess)
+		return err
+	}
+	ribGroupExists, err = checkRibGroupExists(d.Get("name").(string), m, jnprSess)
+	if err != nil {
+		return err
+	}
+	if ribGroupExists {
+		d.SetId(d.Get("name").(string))
+	} else {
+		return fmt.Errorf("rib-group %v not exists after commit => check your config", d.Get("name").(string))
+	}
+	return resourceRibGroupRead(d, m)
+}
+func resourceRibGroupRead(d *schema.ResourceData, m interface{}) error {
+	sess := m.(*Session)
+	mutex.Lock()
+	jnprSess, err := sess.startNewSession()
+	if err != nil {
+		mutex.Unlock()
+		return err
+	}
+	defer sess.closeSession(jnprSess)
+	ribGroupOptions, err := readRibGroup(d.Get("name").(string), m, jnprSess)
+	mutex.Unlock()
+	if err != nil {
+		return err
+	}
+	if ribGroupOptions.name == "" {
+		d.SetId("")
+	} else {
+		fillRibGroupData(d, ribGroupOptions)
+	}
+	return nil
+}
+func resourceRibGroupUpdate(d *schema.ResourceData, m interface{}) error {
+	d.Partial(true)
+	err := validateRibGroup(d)
+	if err != nil {
+		return err
+	}
+	sess := m.(*Session)
+	jnprSess, err := sess.startNewSession()
+	if err != nil {
+		return err
+	}
+	defer sess.closeSession(jnprSess)
+	err = sess.configLock(jnprSess)
+	if err != nil {
+		return err
+	}
+	if d.HasChange("import_policy") {
+		err = delRibGroupElement("import-policy", d.Get("name").(string), m, jnprSess)
+		if err != nil {
+			sess.configClear(jnprSess)
+			return err
+		}
+	}
+	if d.HasChange("import_rib") {
+		err = delRibGroupElement("import-rib", d.Get("name").(string), m, jnprSess)
+		if err != nil {
+			sess.configClear(jnprSess)
+			return err
+		}
+	}
+	if d.HasChange("export_rib") {
+		err = delRibGroupElement("export-rib", d.Get("name").(string), m, jnprSess)
+		if err != nil {
+			sess.configClear(jnprSess)
+			return err
+		}
+	}
+	err = setRibGroup(d, m, jnprSess)
+	if err != nil {
+		sess.configClear(jnprSess)
+		return err
+	}
+	err = sess.commitConf(jnprSess)
+	if err != nil {
+		sess.configClear(jnprSess)
+		return err
+	}
+	d.Partial(false)
+	return resourceRibGroupRead(d, m)
+}
+func resourceRibGroupDelete(d *schema.ResourceData, m interface{}) error {
+	sess := m.(*Session)
+	jnprSess, err := sess.startNewSession()
+	if err != nil {
+		return err
+	}
+	defer sess.closeSession(jnprSess)
+	err = sess.configLock(jnprSess)
+	if err != nil {
+		return err
+	}
+	err = delRibGroup(d, m, jnprSess)
+	if err != nil {
+		sess.configClear(jnprSess)
+		return err
+	}
+	err = sess.commitConf(jnprSess)
+	if err != nil {
+		sess.configClear(jnprSess)
+		return err
+	}
+	return nil
+}
+func resourceRibGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	sess := m.(*Session)
+	jnprSess, err := sess.startNewSession()
+	if err != nil {
+		return nil, err
+	}
+	defer sess.closeSession(jnprSess)
+	result := make([]*schema.ResourceData, 1)
+	ribGroupExists, err := checkRibGroupExists(d.Id(), m, jnprSess)
+	if err != nil {
+		return nil, err
+	}
+	if !ribGroupExists {
+		return nil, fmt.Errorf("don't find rib group with id '%v' (id must be <name>)", d.Id())
+	}
+	rigGroupOptions, err := readRibGroup(d.Id(), m, jnprSess)
+	if err != nil {
+		return nil, err
+	}
+	fillRibGroupData(d, rigGroupOptions)
+	result[0] = d
+	return result, nil
+}
+
+func checkRibGroupExists(group string, m interface{}, jnprSess *NetconfObject) (bool, error) {
+	sess := m.(*Session)
+	rigGroupConfig, err := sess.command("show configuration routing-options rib-groups "+group+" | display set", jnprSess)
+	if err != nil {
+		return false, err
+	}
+	if rigGroupConfig == emptyWord {
+		return false, nil
+	}
+	return true, nil
+}
+func setRibGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
+	sess := m.(*Session)
+	configSet := make([]string, 0)
+
+	setPrefix := "set routing-options rib-groups " + d.Get("name").(string) + " "
+	for _, v := range d.Get("import_policy").([]interface{}) {
+		configSet = append(configSet, setPrefix+"import-policy "+v.(string)+"\n")
+	}
+	for _, v := range d.Get("import_rib").([]interface{}) {
+		configSet = append(configSet, setPrefix+"import-rib "+v.(string)+"\n")
+	}
+	for _, v := range d.Get("export_rib").([]interface{}) {
+		configSet = append(configSet, setPrefix+"export-rib "+v.(string)+"\n")
+	}
+	err := sess.configSet(configSet, jnprSess)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func readRibGroup(group string, m interface{}, jnprSess *NetconfObject) (ribGroupOptions, error) {
+	sess := m.(*Session)
+	var confRead ribGroupOptions
+
+	ribGroupConfig, err := sess.command("show configuration"+
+		" routing-options rib-groups "+group+" | display set relative", jnprSess)
+	if err != nil {
+		return confRead, err
+	}
+	if ribGroupConfig != emptyWord {
+		confRead.name = group
+		for _, item := range strings.Split(ribGroupConfig, "\n") {
+			if strings.Contains(item, "<configuration-output>") {
+				continue
+			}
+			if strings.Contains(item, "</configuration-output>") {
+				break
+			}
+			itemTrim := strings.TrimPrefix(item, "set ")
+			switch {
+			case strings.HasPrefix(itemTrim, "import-policy "):
+				confRead.importPolicy = append(confRead.importPolicy, strings.TrimPrefix(itemTrim, "import-policy "))
+			case strings.HasPrefix(itemTrim, "import-rib "):
+				confRead.importRib = append(confRead.importRib, strings.TrimPrefix(itemTrim, "import-rib "))
+			case strings.HasPrefix(itemTrim, "export-rib "):
+				confRead.exportRib = append(confRead.exportRib, strings.TrimPrefix(itemTrim, "export-rib "))
+			}
+		}
+	} else {
+		confRead.name = ""
+		return confRead, nil
+	}
+	return confRead, nil
+}
+func delRibGroupElement(element string, group string, m interface{}, jnprSess *NetconfObject) error {
+	sess := m.(*Session)
+	configSet := make([]string, 0, 1)
+	configSet = append(configSet, "delete routing-options rib-groups "+group+" "+element+"\n")
+	err := sess.configSet(configSet, jnprSess)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func delRibGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
+	sess := m.(*Session)
+	configSet := make([]string, 0, 1)
+	configSet = append(configSet, "delete routing-options rib-groups "+d.Get("name").(string)+"\n")
+	err := sess.configSet(configSet, jnprSess)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func validateRibGroup(d *schema.ResourceData) error {
+	var errors string
+	for _, v := range d.Get("import_rib").([]interface{}) {
+		if !strings.HasSuffix(v.(string), ".inet.0") && !strings.HasSuffix(v.(string), ".inet6.0") {
+			errors = errors + "rib-group " + v.(string) + " invalid name (missing .inet.0 or .inet6.0),"
+		}
+	}
+	for _, v := range d.Get("export_rib").([]interface{}) {
+		if !strings.HasSuffix(v.(string), ".inet.0") && !strings.HasSuffix(v.(string), ".inet6.0") {
+			errors = errors + "rib-group " + v.(string) + " invalid name (missing .inet.0 or .inet6.0),"
+		}
+	}
+	if errors != "" {
+		return fmt.Errorf(errors)
+	}
+	return nil
+}
+func fillRibGroupData(d *schema.ResourceData, ribGroupOptions ribGroupOptions) {
+	tfErr := d.Set("name", ribGroupOptions.name)
+	if tfErr != nil {
+		panic(tfErr)
+	}
+	tfErr = d.Set("import_policy", ribGroupOptions.importPolicy)
+	if tfErr != nil {
+		panic(tfErr)
+	}
+	tfErr = d.Set("import_rib", ribGroupOptions.importRib)
+	if tfErr != nil {
+		panic(tfErr)
+	}
+	tfErr = d.Set("export_rib", ribGroupOptions.exportRib)
+	if tfErr != nil {
+		panic(tfErr)
+	}
+}
