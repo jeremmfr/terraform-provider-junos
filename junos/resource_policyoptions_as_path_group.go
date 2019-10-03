@@ -125,7 +125,6 @@ func resourcePolicyoptionsAsPathGroupUpdate(d *schema.ResourceData, m interface{
 	if err != nil {
 		return err
 	}
-
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
@@ -249,7 +248,7 @@ func readPolicyoptionsAsPathGroup(asPathGroup string,
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, "set ")
+			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
 			case strings.HasPrefix(itemTrim, "dynamic-db"):
 				confRead.dynamicDb = true

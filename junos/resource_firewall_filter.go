@@ -324,7 +324,6 @@ func resourceFirewallFilterUpdate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return err
 	}
-
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
@@ -464,7 +463,7 @@ func readFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfO
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, "set ")
+			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
 			case strings.HasPrefix(itemTrim, "interface-specific"):
 				confRead.interfaceSpecific = true
@@ -537,148 +536,148 @@ func setFirewallFilterOptsFrom(setPrefixTermFrom string,
 		if err != nil {
 			return nil, err
 		}
-		configSet = append(configSet, setPrefixTermFrom+" address "+address.(string)+"\n")
+		configSet = append(configSet, setPrefixTermFrom+"address "+address.(string)+"\n")
 	}
 	for _, address := range fromMap["address_except"].([]interface{}) {
 		err := validateNetwork(address.(string))
 		if err != nil {
 			return nil, err
 		}
-		configSet = append(configSet, setPrefixTermFrom+" address "+address.(string)+" except\n")
+		configSet = append(configSet, setPrefixTermFrom+"address "+address.(string)+" except\n")
 	}
 	if len(fromMap["port"].([]interface{})) > 0 && len(fromMap["port_except"].([]interface{})) > 0 {
 		return configSet, fmt.Errorf("conflict between port and port_except")
 	}
 	for _, port := range fromMap["port"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+" port "+port.(string)+"\n")
+		configSet = append(configSet, setPrefixTermFrom+"port "+port.(string)+"\n")
 	}
 	for _, port := range fromMap["port_except"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+" port-except "+port.(string)+"\n")
+		configSet = append(configSet, setPrefixTermFrom+"port-except "+port.(string)+"\n")
 	}
 	for _, prefixList := range fromMap["prefix_list"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+" prefix-list "+prefixList.(string)+"\n")
+		configSet = append(configSet, setPrefixTermFrom+"prefix-list "+prefixList.(string)+"\n")
 	}
 	for _, prefixList := range fromMap["prefix_list_except"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+" prefix-list "+prefixList.(string)+" except\n")
+		configSet = append(configSet, setPrefixTermFrom+"prefix-list "+prefixList.(string)+" except\n")
 	}
 	for _, address := range fromMap["destination_address"].([]interface{}) {
 		err := validateNetwork(address.(string))
 		if err != nil {
 			return nil, err
 		}
-		configSet = append(configSet, setPrefixTermFrom+" destination-address "+address.(string)+"\n")
+		configSet = append(configSet, setPrefixTermFrom+"destination-address "+address.(string)+"\n")
 	}
 	for _, address := range fromMap["destination_address_except"].([]interface{}) {
 		err := validateNetwork(address.(string))
 		if err != nil {
 			return nil, err
 		}
-		configSet = append(configSet, setPrefixTermFrom+" destination-address "+address.(string)+" except\n")
+		configSet = append(configSet, setPrefixTermFrom+"destination-address "+address.(string)+" except\n")
 	}
 	if len(fromMap["destination_port"].([]interface{})) > 0 &&
 		len(fromMap["destination_port_except"].([]interface{})) > 0 {
 		return configSet, fmt.Errorf("conflict between destination_port and destination_port_except")
 	}
 	for _, port := range fromMap["destination_port"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+" destination-port "+port.(string)+"\n")
+		configSet = append(configSet, setPrefixTermFrom+"destination-port "+port.(string)+"\n")
 	}
 	for _, port := range fromMap["destination_port_except"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+" destination-port-except "+port.(string)+"\n")
+		configSet = append(configSet, setPrefixTermFrom+"destination-port-except "+port.(string)+"\n")
 	}
 	for _, prefixList := range fromMap["destination_prefix_list"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+" destination-prefix-list "+prefixList.(string)+"\n")
+		configSet = append(configSet, setPrefixTermFrom+"destination-prefix-list "+prefixList.(string)+"\n")
 	}
 	for _, prefixList := range fromMap["destination_prefix_list_except"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+" destination-prefix-list "+prefixList.(string)+" except\n")
+		configSet = append(configSet, setPrefixTermFrom+"destination-prefix-list "+prefixList.(string)+" except\n")
 	}
 	for _, address := range fromMap["source_address"].([]interface{}) {
 		err := validateNetwork(address.(string))
 		if err != nil {
 			return nil, err
 		}
-		configSet = append(configSet, setPrefixTermFrom+" source-address "+address.(string)+"\n")
+		configSet = append(configSet, setPrefixTermFrom+"source-address "+address.(string)+"\n")
 	}
 	for _, address := range fromMap["source_address_except"].([]interface{}) {
 		err := validateNetwork(address.(string))
 		if err != nil {
 			return nil, err
 		}
-		configSet = append(configSet, setPrefixTermFrom+" source-address "+address.(string)+" except\n")
+		configSet = append(configSet, setPrefixTermFrom+"source-address "+address.(string)+" except\n")
 	}
 	if len(fromMap["source_port"].([]interface{})) > 0 && len(fromMap["source_port_except"].([]interface{})) > 0 {
 		return configSet, fmt.Errorf("conflict between source_port and source_port_except")
 	}
 	for _, port := range fromMap["source_port"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+" source-port "+port.(string)+"\n")
+		configSet = append(configSet, setPrefixTermFrom+"source-port "+port.(string)+"\n")
 	}
 	for _, port := range fromMap["source_port_except"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+" source-port-except "+port.(string)+"\n")
+		configSet = append(configSet, setPrefixTermFrom+"source-port-except "+port.(string)+"\n")
 	}
 	for _, prefixList := range fromMap["source_prefix_list"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+" source-prefix-list "+prefixList.(string)+"\n")
+		configSet = append(configSet, setPrefixTermFrom+"source-prefix-list "+prefixList.(string)+"\n")
 	}
 	for _, prefixList := range fromMap["source_prefix_list_except"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+" source-prefix-list "+prefixList.(string)+" except\n")
+		configSet = append(configSet, setPrefixTermFrom+"source-prefix-list "+prefixList.(string)+" except\n")
 	}
 	if len(fromMap["protocol"].([]interface{})) > 0 && len(fromMap["protocol_except"].([]interface{})) > 0 {
 		return nil, fmt.Errorf("conflict between protocol and protocol_except")
 	}
 	for _, protocol := range fromMap["protocol"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+" protocol "+protocol.(string)+"\n")
+		configSet = append(configSet, setPrefixTermFrom+"protocol "+protocol.(string)+"\n")
 	}
 	for _, protocol := range fromMap["protocol_except"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+" protocol-except "+protocol.(string)+"\n")
+		configSet = append(configSet, setPrefixTermFrom+"protocol-except "+protocol.(string)+"\n")
 	}
 	if fromMap["tcp_flags"].(string) != "" && (fromMap["tcp_initial"].(bool) || fromMap["tcp_established"].(bool)) {
 		return configSet, fmt.Errorf("conflict between tcp_flags and tcp_initial|tcp_established")
 	}
 	if fromMap["tcp_flags"].(string) != "" {
-		configSet = append(configSet, setPrefixTermFrom+" tcp-flags \""+fromMap["tcp_flags"].(string)+"\"\n")
+		configSet = append(configSet, setPrefixTermFrom+"tcp-flags \""+fromMap["tcp_flags"].(string)+"\"\n")
 	}
 	if fromMap["tcp_initial"].(bool) {
-		configSet = append(configSet, setPrefixTermFrom+" tcp-initial\n")
+		configSet = append(configSet, setPrefixTermFrom+"tcp-initial\n")
 	}
 	if fromMap["tcp_established"].(bool) {
-		configSet = append(configSet, setPrefixTermFrom+" tcp-established\n")
+		configSet = append(configSet, setPrefixTermFrom+"tcp-established\n")
 	}
 	if len(fromMap["icmp_type"].([]interface{})) > 0 && len(fromMap["icmp_type_except"].([]interface{})) > 0 {
 		return nil, fmt.Errorf("conflict between icmp_type and icmp_type_except")
 	}
 	for _, icmp := range fromMap["icmp_type"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+" icmp-type "+icmp.(string)+"\n")
+		configSet = append(configSet, setPrefixTermFrom+"icmp-type "+icmp.(string)+"\n")
 	}
 	for _, icmp := range fromMap["icmp_type_except"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+" icmp-type-except "+icmp.(string)+"\n")
+		configSet = append(configSet, setPrefixTermFrom+"icmp-type-except "+icmp.(string)+"\n")
 	}
 	return configSet, nil
 }
 func setFirewallFilterOptsThen(setPrefixTermThen string, configSet []string, thenMap map[string]interface{}) []string {
 	if thenMap["action"].(string) != "" {
-		configSet = append(configSet, setPrefixTermThen+" "+thenMap["action"].(string)+"\n")
+		configSet = append(configSet, setPrefixTermThen+thenMap["action"].(string)+"\n")
 	}
 	if thenMap["count"].(string) != "" {
-		configSet = append(configSet, setPrefixTermThen+" count "+thenMap["count"].(string)+"\n")
+		configSet = append(configSet, setPrefixTermThen+"count "+thenMap["count"].(string)+"\n")
 	}
 	if thenMap["routing_instance"].(string) != "" {
-		configSet = append(configSet, setPrefixTermThen+" routing-instance "+thenMap["routing_instance"].(string)+"\n")
+		configSet = append(configSet, setPrefixTermThen+"routing-instance "+thenMap["routing_instance"].(string)+"\n")
 	}
 	if thenMap["policer"].(string) != "" {
-		configSet = append(configSet, setPrefixTermThen+" policer "+thenMap["policer"].(string)+"\n")
+		configSet = append(configSet, setPrefixTermThen+"policer "+thenMap["policer"].(string)+"\n")
 	}
 	if thenMap["log"].(bool) {
-		configSet = append(configSet, setPrefixTermThen+" log\n")
+		configSet = append(configSet, setPrefixTermThen+"log\n")
 	}
 	if thenMap["syslog"].(bool) {
-		configSet = append(configSet, setPrefixTermThen+" syslog\n")
+		configSet = append(configSet, setPrefixTermThen+"syslog\n")
 	}
 	if thenMap["port_mirror"].(bool) {
-		configSet = append(configSet, setPrefixTermThen+" port-mirror\n")
+		configSet = append(configSet, setPrefixTermThen+"port-mirror\n")
 	}
 	if thenMap["sample"].(bool) {
-		configSet = append(configSet, setPrefixTermThen+" sample\n")
+		configSet = append(configSet, setPrefixTermThen+"sample\n")
 	}
 	if thenMap["service_accounting"].(bool) {
-		configSet = append(configSet, setPrefixTermThen+" service-accounting\n")
+		configSet = append(configSet, setPrefixTermThen+"service-accounting\n")
 	}
 	return configSet
 }

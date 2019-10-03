@@ -58,6 +58,10 @@ func resourceSecurityPolicyTunnelPairPolicyCreate(d *schema.ResourceData, m inte
 		return err
 	}
 	defer sess.closeSession(jnprSess)
+	if !checkCompatibilitySecurity(jnprSess) {
+		return fmt.Errorf("security policy tunnel pair policy not compatible with Junos device %s",
+			jnprSess.Platform[0].Model)
+	}
 	err = sess.configLock(jnprSess)
 	if err != nil {
 		return err

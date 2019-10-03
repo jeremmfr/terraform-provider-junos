@@ -137,11 +137,14 @@ func resourceIpsecVpnCreate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return err
 	}
+	defer sess.closeSession(jnprSess)
+	if !checkCompatibilitySecurity(jnprSess) {
+		return fmt.Errorf("security ipsec vpn not compatible with Junos device %s", jnprSess.Platform[0].Model)
+	}
 	err = sess.configLock(jnprSess)
 	if err != nil {
 		return err
 	}
-	defer sess.closeSession(jnprSess)
 	ipsecVpnExists, err := checkIpsecVpnExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -377,7 +380,7 @@ func readIpsecVpn(ipsecVpn string, m interface{}, jnprSess *NetconfObject) (ipse
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, "set ")
+			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
 			case strings.HasPrefix(itemTrim, "bind-interface "):
 				confRead.bindInterface = strings.TrimPrefix(itemTrim, "bind-interface ")

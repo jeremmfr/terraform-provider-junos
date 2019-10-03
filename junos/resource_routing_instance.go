@@ -51,11 +51,11 @@ func resourceRoutingInstanceCreate(d *schema.ResourceData, m interface{}) error 
 	if err != nil {
 		return err
 	}
+	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
 		return err
 	}
-	defer sess.closeSession(jnprSess)
 	routingInstanceExists, err := checkRoutingInstanceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -234,7 +234,7 @@ func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, "set ")
+			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
 			case strings.HasPrefix(itemTrim, "instance-type "):
 				confRead.instanceType = strings.TrimPrefix(itemTrim, "instance-type ")

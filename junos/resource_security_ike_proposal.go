@@ -64,11 +64,14 @@ func resourceIkeProposalCreate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return err
 	}
+	defer sess.closeSession(jnprSess)
+	if !checkCompatibilitySecurity(jnprSess) {
+		return fmt.Errorf("security ike proposal not compatible with Junos device %s", jnprSess.Platform[0].Model)
+	}
 	err = sess.configLock(jnprSess)
 	if err != nil {
 		return err
 	}
-	defer sess.closeSession(jnprSess)
 	ikeProposalExists, err := checkIkeProposalExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -255,7 +258,7 @@ func readIkeProposal(ikeProposal string, m interface{}, jnprSess *NetconfObject)
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, "set ")
+			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
 			case strings.HasPrefix(itemTrim, "authentication-algorithm "):
 				confRead.authenticationAlgorithm = strings.TrimPrefix(itemTrim, "authentication-algorithm ")

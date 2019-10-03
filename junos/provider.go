@@ -17,6 +17,8 @@ const (
 	thenWord       = "then"
 	prefixWord     = "prefix"
 	actionNoneWord = "none"
+	setLineStart   = "set "
+	st0Word        = "st0"
 )
 
 var (
@@ -51,6 +53,11 @@ func Provider() terraform.ResourceProvider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JUNOS_KEYPASS", nil),
+			},
+			"group_interface_delete": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("JUNOS_GROUP_INTERFACE_DELETE", nil),
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -90,11 +97,12 @@ func Provider() terraform.ResourceProvider {
 
 func configureProvider(d *schema.ResourceData) (interface{}, error) {
 	config := Config{
-		junosIP:         d.Get("ip").(string),
-		junosPort:       d.Get("port").(int),
-		junosUserName:   d.Get("username").(string),
-		junosSSHKeyFile: d.Get("sshkeyfile").(string),
-		junosKeyPass:    d.Get("keypass").(string),
+		junosIP:          d.Get("ip").(string),
+		junosPort:        d.Get("port").(int),
+		junosUserName:    d.Get("username").(string),
+		junosSSHKeyFile:  d.Get("sshkeyfile").(string),
+		junosKeyPass:     d.Get("keypass").(string),
+		junosGroupIntDel: d.Get("group_interface_delete").(string),
 	}
 	return config.Session()
 }

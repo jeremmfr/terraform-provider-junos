@@ -160,3 +160,16 @@ func copyAndRemoveItemMapList(identifier string, integer bool,
 	}
 	return m, list
 }
+
+func checkCompatibilitySecurity(jnprSess *NetconfObject) bool {
+	if strings.HasPrefix(strings.ToLower(jnprSess.Platform[0].Model), "srx") {
+		return true
+	}
+	if strings.HasPrefix(strings.ToLower(jnprSess.Platform[0].Model), "vsrx") {
+		return true
+	}
+	if strings.HasPrefix(strings.ToLower(jnprSess.Platform[0].Model), "j") {
+		return true
+	}
+	return false
+}

@@ -229,7 +229,7 @@ func readPolicyoptionsPrefixList(prefixList string, m interface{}, jnprSess *Net
 				break
 			}
 			if strings.Contains(item, "/") {
-				confRead.prefix = append(confRead.prefix, strings.TrimPrefix(item, "set "))
+				confRead.prefix = append(confRead.prefix, strings.TrimPrefix(item, setLineStart))
 			}
 		}
 	} else {

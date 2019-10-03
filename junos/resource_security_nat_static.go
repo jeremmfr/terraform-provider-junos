@@ -115,6 +115,9 @@ func resourceSecurityNatStaticCreate(d *schema.ResourceData, m interface{}) erro
 		return err
 	}
 	defer sess.closeSession(jnprSess)
+	if !checkCompatibilitySecurity(jnprSess) {
+		return fmt.Errorf("security nat static not compatible with Junos device %s", jnprSess.Platform[0].Model)
+	}
 	err = sess.configLock(jnprSess)
 	if err != nil {
 		return err
@@ -178,7 +181,6 @@ func resourceSecurityNatStaticUpdate(d *schema.ResourceData, m interface{}) erro
 	if err != nil {
 		return err
 	}
-
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
@@ -326,7 +328,7 @@ func readSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObj
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, "set ")
+			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
 			case strings.HasPrefix(itemTrim, "from "):
 				fromOptions := map[string]interface{}{

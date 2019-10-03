@@ -112,7 +112,6 @@ func resourcePolicyoptionsCommunityUpdate(d *schema.ResourceData, m interface{})
 	if err != nil {
 		return err
 	}
-
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
@@ -231,7 +230,7 @@ func readPolicyoptionsCommunity(community string, m interface{}, jnprSess *Netco
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, "set ")
+			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
 			case strings.HasPrefix(itemTrim, "members "):
 				confRead.members = append(confRead.members, strings.TrimPrefix(itemTrim, "members "))

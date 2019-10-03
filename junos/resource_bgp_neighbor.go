@@ -487,11 +487,11 @@ func resourceBgpNeighborCreate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return err
 	}
+	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
 		return err
 	}
-	defer sess.closeSession(jnprSess)
 	if d.Get("routing_instance").(string) != defaultWord {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
@@ -676,7 +676,7 @@ func checkBgpNeighborExists(ip, instance, group string, m interface{}, jnprSess 
 	return true, nil
 }
 func setBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	setPrefix := "set "
+	setPrefix := setLineStart
 	if d.Get("routing_instance").(string) == defaultWord {
 		setPrefix += "protocols bgp group " + d.Get("group").(string) +
 			" neighbor " + d.Get("ip").(string) + " "
@@ -745,7 +745,7 @@ func readBgpNeighbor(ip, instance, group string, m interface{}, jnprSess *Netcon
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, "set ")
+			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
 			case strings.HasPrefix(itemTrim, "family inet "):
 				confRead.familyInet, err = readBgpOptsFamily(itemTrim, inetWord, confRead.familyInet)

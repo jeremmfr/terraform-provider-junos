@@ -43,11 +43,11 @@ func resourceApplicationSetCreate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return err
 	}
+	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
 		return err
 	}
-	defer sess.closeSession(jnprSess)
 	appSetExists, err := checkApplicationSetExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -222,7 +222,7 @@ func readApplicationSet(applicationSet string, m interface{}, jnprSess *NetconfO
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, "set ")
+			itemTrim := strings.TrimPrefix(item, setLineStart)
 			if strings.HasPrefix(itemTrim, "application ") {
 				confRead.applications = append(confRead.applications, strings.TrimPrefix(itemTrim, "application "))
 			}

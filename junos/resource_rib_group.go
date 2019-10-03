@@ -9,9 +9,9 @@ import (
 
 type ribGroupOptions struct {
 	name         string
+	exportRib    string
 	importPolicy []string
 	importRib    []string
-	exportRib    []string
 }
 
 func resourceRibGroup() *schema.Resource {
@@ -41,9 +41,8 @@ func resourceRibGroup() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"export_rib": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeString,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}
@@ -59,11 +58,11 @@ func resourceRibGroupCreate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return err
 	}
+	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
 		return err
 	}
-	defer sess.closeSession(jnprSess)
 	ribGroupExists, err := checkRibGroupExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -234,8 +233,8 @@ func setRibGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	for _, v := range d.Get("import_rib").([]interface{}) {
 		configSet = append(configSet, setPrefix+"import-rib "+v.(string)+"\n")
 	}
-	for _, v := range d.Get("export_rib").([]interface{}) {
-		configSet = append(configSet, setPrefix+"export-rib "+v.(string)+"\n")
+	if d.Get("export_rib").(string) != "" {
+		configSet = append(configSet, setPrefix+"export-rib "+d.Get("export_rib").(string)+"\n")
 	}
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
@@ -261,14 +260,14 @@ func readRibGroup(group string, m interface{}, jnprSess *NetconfObject) (ribGrou
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, "set ")
+			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
 			case strings.HasPrefix(itemTrim, "import-policy "):
 				confRead.importPolicy = append(confRead.importPolicy, strings.TrimPrefix(itemTrim, "import-policy "))
 			case strings.HasPrefix(itemTrim, "import-rib "):
 				confRead.importRib = append(confRead.importRib, strings.TrimPrefix(itemTrim, "import-rib "))
 			case strings.HasPrefix(itemTrim, "export-rib "):
-				confRead.exportRib = append(confRead.exportRib, strings.TrimPrefix(itemTrim, "export-rib "))
+				confRead.exportRib = strings.TrimPrefix(itemTrim, "export-rib ")
 			}
 		}
 	} else {
@@ -305,9 +304,10 @@ func validateRibGroup(d *schema.ResourceData) error {
 			errors = errors + "rib-group " + v.(string) + " invalid name (missing .inet.0 or .inet6.0),"
 		}
 	}
-	for _, v := range d.Get("export_rib").([]interface{}) {
-		if !strings.HasSuffix(v.(string), ".inet.0") && !strings.HasSuffix(v.(string), ".inet6.0") {
-			errors = errors + "rib-group " + v.(string) + " invalid name (missing .inet.0 or .inet6.0),"
+	if d.Get("export_rib").(string) != "" {
+		if !strings.HasSuffix(d.Get("export_rib").(string), ".inet.0") &&
+			!strings.HasSuffix(d.Get("export_rib").(string), ".inet6.0") {
+			errors = errors + "rib-group " + d.Get("export_rib").(string) + " invalid name (missing .inet.0 or .inet6.0),"
 		}
 	}
 	if errors != "" {

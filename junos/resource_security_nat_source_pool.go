@@ -71,6 +71,9 @@ func resourceSecurityNatSourcePoolCreate(d *schema.ResourceData, m interface{}) 
 		return err
 	}
 	defer sess.closeSession(jnprSess)
+	if !checkCompatibilitySecurity(jnprSess) {
+		return fmt.Errorf("security nat source pool not compatible with Junos device %s", jnprSess.Platform[0].Model)
+	}
 	err = sess.configLock(jnprSess)
 	if err != nil {
 		return err
@@ -134,7 +137,6 @@ func resourceSecurityNatSourcePoolUpdate(d *schema.ResourceData, m interface{}) 
 	if err != nil {
 		return err
 	}
-
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
@@ -272,7 +274,7 @@ func readSecurityNatSourcePool(natSourcePool string,
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, "set ")
+			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
 			case strings.HasPrefix(itemTrim, "address "):
 				confRead.address = append(confRead.address, strings.TrimPrefix(itemTrim, "address "))

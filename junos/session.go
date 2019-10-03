@@ -7,12 +7,13 @@ import (
 )
 
 type Session struct {
-	junosPort       int
-	junosIP         string
-	junosUserName   string
-	junosSSHKeyFile string
-	junosKeyPass    string
-	junosLogFile    string
+	junosPort        int
+	junosIP          string
+	junosUserName    string
+	junosSSHKeyFile  string
+	junosKeyPass     string
+	junosGroupIntDel string
+	junosLogFile     string
 }
 
 func (sess *Session) startNewSession() (*NetconfObject, error) {
@@ -25,6 +26,9 @@ func (sess *Session) startNewSession() (*NetconfObject, error) {
 	jnpr, err := netconfNewSession(sess.junosIP+":"+strconv.Itoa(sess.junosPort), &auth)
 	if err != nil {
 		return nil, err
+	}
+	if len(jnpr.Platform) == 0 {
+		return jnpr, fmt.Errorf("can't read Platform Junos with <get-software-information/>")
 	}
 	return jnpr, nil
 }

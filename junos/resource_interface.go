@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/jeremmfr/junosdecode/jdecode"
 )
 
 type interfaceOptions struct {
@@ -227,23 +228,7 @@ func resourceInterface() *schema.Resource {
 									"advertise_interval": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(1, 255),
-									},
-									"authentication_key": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"authentication_type": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-											value := v.(string)
-											if !stringInSlice(value, []string{"md5", "simple"}) {
-												errors = append(errors, fmt.Errorf(
-													"%q for %q is not' md5' or 'simple'", value, k))
-											}
-											return
-										},
+										ValidateFunc: validateIntRange(100, 40000),
 									},
 									"no_accept_data": {
 										Type:     schema.TypeBool,
@@ -448,14 +433,19 @@ func resourceInterfaceCreate(d *schema.ResourceData, m interface{}) error {
 			sess.configClear(jnprSess)
 			return err
 		}
-		err = delInterfaceElement("apply-groups interface-NC", d, m, jnprSess)
-		if err != nil {
-			sess.configClear(jnprSess)
-			return err
+		if sess.junosGroupIntDel != "" {
+			err = delInterfaceElement("apply-groups "+sess.junosGroupIntDel, d, m, jnprSess)
+			if err != nil {
+				sess.configClear(jnprSess)
+				return err
+			}
 		}
 
 	}
 	if d.Get("security_zone").(string) != "" {
+		if !checkCompatibilitySecurity(jnprSess) {
+			return fmt.Errorf("security zone not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		}
 		zonesExists, err := checkSecurityZonesExists(d.Get("security_zone").(string), m, jnprSess)
 		if err != nil {
 			return err
@@ -541,11 +531,16 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 	if d.HasChange("ether802_3ad") {
 		oAE, nAE := d.GetChange("ether802_3ad")
 		if oAE.(string) != "" {
-			var newAE string
-			if nAE.(string) == "" {
-				newAE = "ae-1"
-			} else {
+			newAE := "ae-1"
+			if nAE.(string) != "" {
 				newAE = nAE.(string)
+			}
+			oAEintNC := checkInterfaceNC(oAE.(string), m, jnprSess)
+			if oAEintNC == nil {
+				err = sess.configSet([]string{"delete interfaces " + oAE.(string) + "\n"}, jnprSess)
+				if err != nil {
+					return err
+				}
 			}
 			aggregatedCount, err := aggregatedCountSearchMax(newAE, oAE.(string), m, jnprSess)
 			if err != nil {
@@ -558,19 +553,15 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 					sess.configClear(jnprSess)
 					return err
 				}
-			} else {
-				err = sess.configSet([]string{"set chassis aggregated-devices ethernet device-count " +
-					aggregatedCount + "\n"}, jnprSess)
-				if err != nil {
-					sess.configClear(jnprSess)
-					return err
-				}
 			}
 		}
 	}
 	if d.HasChange("security_zone") {
 		oSecurityZone, nSecurityZone := d.GetChange("security_zone")
 		if nSecurityZone.(string) != "" {
+			if !checkCompatibilitySecurity(jnprSess) {
+				return fmt.Errorf("security zone not compatible with Junos device %s", jnprSess.Platform[0].Model)
+			}
 			zonesExists, err := checkSecurityZonesExists(nSecurityZone.(string), m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
@@ -671,7 +662,7 @@ func resourceInterfaceImport(d *schema.ResourceData, m interface{}) ([]*schema.R
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-	intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
+	intExists, err := checkInterfaceExists(d.Id(), m, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -703,7 +694,7 @@ func checkInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) 
 	// remove unused lines
 	for _, item := range strings.Split(intConfig, "\n") {
 		// show parameters root on interface exclude unit parameters (except ethernet-switching)
-		if !strings.Contains(interFace, ".") && strings.Contains(item, "unit") &&
+		if !strings.Contains(interFace, ".") && strings.HasPrefix(item, "set unit") &&
 			!strings.Contains(item, "ethernet-switching") {
 			continue
 		}
@@ -713,17 +704,23 @@ func checkInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) 
 		if strings.Contains(item, "</configuration-output>") {
 			break
 		}
+		if item == "" {
+			continue
+		}
 		intConfigLines = append(intConfigLines, item)
 	}
-	intConfig = strings.Join(intConfigLines, "\n")
-	if sess.junosLogFile != "" {
-		logFile(fmt.Sprintf("[intConfig] '%s'", intConfig), sess.junosLogFile)
+	if len(intConfigLines) == 0 {
+		return nil
 	}
-	if strings.Contains(intConfig, "set apply-groups interface-NC") ||
-		strings.Contains(intConfig, "set disable\nset description NC") ||
+	intConfig = strings.Join(intConfigLines, "\n")
+	if sess.junosGroupIntDel != "" {
+		if intConfig == "set apply-groups "+sess.junosGroupIntDel {
+			return nil
+		}
+	}
+	if intConfig == "set description NC\nset disable" ||
 		intConfig == emptyWord ||
-		strings.Count(intConfig, "") <= 2 ||
-		intConfig == "\nset \n" {
+		intConfig == setLineStart {
 		return nil
 	}
 	return fmt.Errorf("interface %s already configured", interFace)
@@ -746,10 +743,11 @@ func addInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) er
 	default:
 		return fmt.Errorf("the name %s contains too dot", interFace)
 	}
-	if intCut[0] == "st0" {
+	if intCut[0] == st0Word || sess.junosGroupIntDel == "" {
 		err = sess.configSet([]string{"set interfaces " + setName + " disable description NC\n"}, jnprSess)
 	} else {
-		err = sess.configSet([]string{"set interfaces " + setName + " apply-groups interface-NC\n"}, jnprSess)
+		err = sess.configSet([]string{"set interfaces " + setName +
+			" apply-groups " + sess.junosGroupIntDel + "\n"}, jnprSess)
 	}
 	if err != nil {
 		return err
@@ -792,20 +790,21 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 	if err != nil {
 		return err
 	}
+	setPrefix := "set interfaces " + setName + " "
 	if d.Get("description").(string) != "" {
-		configSet = append(configSet, "set interfaces "+setName+" description \""+d.Get("description").(string)+"\"\n")
+		configSet = append(configSet, setPrefix+"description \""+d.Get("description").(string)+"\"\n")
 	}
 	if d.Get("vlan_tagging").(bool) {
-		configSet = append(configSet, "set interfaces "+setName+" vlan-tagging\n")
+		configSet = append(configSet, setPrefix+"vlan-tagging\n")
 	}
-	if len(intCut) == 2 && intCut[0] != "st0" && intCut[1] != "0" {
-		configSet = append(configSet, "set interfaces "+setName+" vlan-id "+intCut[1]+"\n")
+	if len(intCut) == 2 && intCut[0] != st0Word && intCut[1] != "0" {
+		configSet = append(configSet, setPrefix+"vlan-id "+intCut[1]+"\n")
 	}
 	if d.Get("inet").(bool) {
-		configSet = append(configSet, "set interfaces "+setName+" family inet\n")
+		configSet = append(configSet, setPrefix+"family inet\n")
 	}
 	if d.Get("inet6").(bool) {
-		configSet = append(configSet, "set interfaces "+setName+" family inet6\n")
+		configSet = append(configSet, setPrefix+"family inet6\n")
 	}
 	for _, address := range d.Get("inet_address").([]interface{}) {
 		configSet, err = setFamilyAddress(address, intCut, configSet, setName, inetWord)
@@ -820,33 +819,33 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 		}
 	}
 	if d.Get("inet_mtu").(int) > 0 {
-		configSet = append(configSet, "set interfaces "+setName+" family inet mtu "+
+		configSet = append(configSet, setPrefix+"family inet mtu "+
 			strconv.Itoa(d.Get("inet_mtu").(int))+"\n")
 	}
 	if d.Get("inet6_mtu").(int) > 0 {
-		configSet = append(configSet, "set interfaces "+setName+" family inet6 mtu "+
+		configSet = append(configSet, setPrefix+"family inet6 mtu "+
 			strconv.Itoa(d.Get("inet6_mtu").(int))+"\n")
 	}
 	if d.Get("inet_filter_input").(string) != "" {
-		configSet = append(configSet, "set interfaces "+setName+" family inet filter input "+
+		configSet = append(configSet, setPrefix+"family inet filter input "+
 			d.Get("inet_filter_input").(string)+"\n")
 	}
 	if d.Get("inet_filter_output").(string) != "" {
-		configSet = append(configSet, "set interfaces "+setName+" family inet filter output "+
+		configSet = append(configSet, setPrefix+"family inet filter output "+
 			d.Get("inet_filter_output").(string)+"\n")
 	}
 	if d.Get("inet6_filter_input").(string) != "" {
-		configSet = append(configSet, "set interfaces "+setName+" family inet6 filter input "+
+		configSet = append(configSet, setPrefix+"family inet6 filter input "+
 			d.Get("inet6_filter_input").(string)+"\n")
 	}
 	if d.Get("inet6_filter_output").(string) != "" {
-		configSet = append(configSet, "set interfaces "+setName+" family inet6 filter output "+
+		configSet = append(configSet, setPrefix+"family inet6 filter output "+
 			d.Get("inet6_filter_output").(string)+"\n")
 	}
 	if d.Get("ether802_3ad").(string) != "" {
-		configSet = append(configSet, "set interfaces "+setName+" ether-options 802.3ad "+
+		configSet = append(configSet, setPrefix+"ether-options 802.3ad "+
 			d.Get("ether802_3ad").(string)+"\n")
-		configSet = append(configSet, "set interfaces "+setName+" gigether-options 802.3ad "+
+		configSet = append(configSet, setPrefix+"gigether-options 802.3ad "+
 			d.Get("ether802_3ad").(string)+"\n")
 		oldAE := "ae-1"
 		if d.HasChange("ether802_3ad") {
@@ -862,39 +861,39 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 		configSet = append(configSet, "set chassis aggregated-devices ethernet device-count "+aggregatedCount+"\n")
 	}
 	if d.Get("trunk").(bool) {
-		configSet = append(configSet, "set interfaces "+setName+" unit 0 family ethernet-switching interface-mode trunk\n")
+		configSet = append(configSet, setPrefix+"unit 0 family ethernet-switching interface-mode trunk\n")
 	}
 	if len(d.Get("vlan_members").([]interface{})) > 0 {
 		for _, v := range d.Get("vlan_members").([]interface{}) {
-			configSet = append(configSet, "set interfaces "+setName+
-				" unit 0 family ethernet-switching vlan members "+v.(string)+"\n")
+			configSet = append(configSet, setPrefix+
+				"unit 0 family ethernet-switching vlan members "+v.(string)+"\n")
 		}
 	}
 	if d.Get("vlan_native").(int) != 0 {
-		configSet = append(configSet, "set interfaces  native-vlan-id "+strconv.Itoa(d.Get("vlan_native").(int))+"\n")
+		configSet = append(configSet, setPrefix+"native-vlan-id "+strconv.Itoa(d.Get("vlan_native").(int))+"\n")
 	}
 	if d.Get("ae_lacp").(string) != "" {
 		if !strings.Contains(intCut[0], "ae") {
 			return fmt.Errorf("ae_lacp invalid for this interface")
 		}
-		configSet = append(configSet, "set interfaces "+setName+
-			" aggregated-ether-options lacp "+d.Get("ae_lacp").(string)+"\n")
+		configSet = append(configSet, setPrefix+
+			"aggregated-ether-options lacp "+d.Get("ae_lacp").(string)+"\n")
 	}
 	if d.Get("ae_link_speed").(string) != "" {
 		if !strings.Contains(intCut[0], "ae") {
 			return fmt.Errorf("ae_link_speed invalid for this interface")
 		}
-		configSet = append(configSet, "set interfaces "+setName+
-			" aggregated-ether-options link-speed "+d.Get("ae_link_speed").(string)+"\n")
+		configSet = append(configSet, setPrefix+
+			"aggregated-ether-options link-speed "+d.Get("ae_link_speed").(string)+"\n")
 	}
 	if d.Get("ae_minimum_links").(int) > 0 {
 		if !strings.Contains(intCut[0], "ae") {
 			return fmt.Errorf("ae_minimum_links invalid for this interface")
 		}
-		configSet = append(configSet, "set interfaces "+setName+
-			" aggregated-ether-options minimum-links "+strconv.Itoa(d.Get("ae_minimum_links").(int))+"\n")
+		configSet = append(configSet, setPrefix+
+			"aggregated-ether-options minimum-links "+strconv.Itoa(d.Get("ae_minimum_links").(int))+"\n")
 	}
-	if d.Get("security_zone").(string) != "" {
+	if checkCompatibilitySecurity(jnprSess) && d.Get("security_zone").(string) != "" {
 		configSet = append(configSet, "set security zones security-zone "+
 			d.Get("security_zone").(string)+" interfaces "+d.Get("name").(string)+"\n")
 	}
@@ -932,7 +931,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, "set ")
+			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
@@ -948,7 +947,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 						return confRead, err
 					}
 				case strings.HasPrefix(itemTrim, "family inet6 mtu"):
-					confRead.inetMtu, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "family inet6 mtu "))
+					confRead.inet6Mtu, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "family inet6 mtu "))
 					if err != nil {
 						return confRead, err
 					}
@@ -1006,29 +1005,33 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 		confRead.inetAddress = inetAddress
 		confRead.inet6Address = inet6Address
 	}
-	zonesConfig, err := sess.command("show configuration security zones | display set", jnprSess)
-	if err != nil {
-		return confRead, err
-	}
-	regexpInts := regexp.MustCompile(`.*interfaces ` + interFace + `$`)
-	for _, item := range strings.Split(zonesConfig, "\n") {
-		intMatch := regexpInts.MatchString(item)
-		if intMatch {
-			confRead.securityZones = strings.TrimPrefix(strings.TrimSuffix(item, " interfaces "+interFace),
-				"set security zones security-zone ")
-			break
+	if checkCompatibilitySecurity(jnprSess) {
+		zonesConfig, err := sess.command("show configuration security zones | display set relative", jnprSess)
+		if err != nil {
+			return confRead, err
 		}
+		regexpInts := regexp.MustCompile(`set security-zone .* interfaces ` + interFace + `$`)
+		for _, item := range strings.Split(zonesConfig, "\n") {
+			intMatch := regexpInts.MatchString(item)
+			if intMatch {
+				confRead.securityZones = strings.TrimPrefix(strings.TrimSuffix(item, " interfaces "+interFace),
+					"set security-zone ")
+				break
+			}
+		}
+	} else {
+		confRead.securityZones = ""
 	}
-	routingConfig, err := sess.command("show configuration routing-instances | display set", jnprSess)
+	routingConfig, err := sess.command("show configuration routing-instances | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	regexpInt := regexp.MustCompile(`.*interface ` + interFace + `$`)
+	regexpInt := regexp.MustCompile(`set .* interface ` + interFace + `$`)
 	for _, item := range strings.Split(routingConfig, "\n") {
 		intMatch := regexpInt.MatchString(item)
 		if intMatch {
 			confRead.routingInstances = strings.TrimPrefix(strings.TrimSuffix(item, " interface "+interFace),
-				"set routing-instances ")
+				"set ")
 			break
 		}
 	}
@@ -1048,9 +1051,14 @@ func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 		setName = intCut[0] + " unit " + intCut[1]
 	case 1:
 		setName = intCut[0]
+		err := checkInterfaceContainsUnit(setName, m, jnprSess)
+		if err != nil {
+			return err
+		}
 	default:
 		return fmt.Errorf("the name %s contains too dot", d.Get("name").(string))
 	}
+
 	err := sess.configSet([]string{"delete interfaces " + setName + "\n"}, jnprSess)
 	if err != nil {
 		return err
@@ -1064,6 +1072,13 @@ func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 		}
 	}
 	if d.Get("ether802_3ad").(string) != "" {
+		oAEintNC := checkInterfaceNC(d.Get("ether802_3ad").(string), m, jnprSess)
+		if oAEintNC == nil {
+			err = sess.configSet([]string{"delete interfaces " + d.Get("ether802_3ad").(string) + "\n"}, jnprSess)
+			if err != nil {
+				return err
+			}
+		}
 		aggregatedCount, err := aggregatedCountSearchMax("ae-1", d.Get("ether802_3ad").(string), m, jnprSess)
 		if err != nil {
 			return err
@@ -1081,7 +1096,7 @@ func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 			}
 		}
 	}
-	if d.Get("security_zone").(string) != "" {
+	if checkCompatibilitySecurity(jnprSess) && d.Get("security_zone").(string) != "" {
 		err = delZoneInterface(d.Get("security_zone").(string), d, m, jnprSess)
 		if err != nil {
 			return err
@@ -1097,6 +1112,28 @@ func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 	return nil
 }
 
+func checkInterfaceContainsUnit(interFace string, m interface{}, jnprSess *NetconfObject) error {
+	sess := m.(*Session)
+	intConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
+	if err != nil {
+		return err
+	}
+	for _, item := range strings.Split(intConfig, "\n") {
+		if strings.Contains(item, "<configuration-output>") {
+			continue
+		}
+		if strings.Contains(item, "</configuration-output>") {
+			break
+		}
+		if strings.HasPrefix(item, "set unit") {
+			if strings.Contains(item, "ethernet-switching") {
+				continue
+			}
+			return fmt.Errorf("interface %s is used for other son unit interface", interFace)
+		}
+	}
+	return nil
+}
 func delInterfaceElement(element string, d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	intCut := make([]string, 0, 2)
@@ -1319,14 +1356,19 @@ func fillFamilyInetAddress(item string, inetAddress []map[string]interface{},
 				return inetAddress, err
 			}
 		case strings.HasPrefix(itemTrimVrrp, "advertisements-threshold "):
-			vrrpGroup["advertisements_threshold"] = strings.TrimPrefix(itemTrimVrrp,
-				"advertisements-threshold ")
+			vrrpGroup["advertisements_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVrrp,
+				"advertisements-threshold "))
+			if err != nil {
+				return inetAddress, err
+			}
 		case strings.HasPrefix(itemTrimVrrp, "authentication-key "):
-			vrrpGroup["authentication_key"] = strings.TrimPrefix(itemTrimVrrp,
-				"authentication-key ")
+			vrrpGroup["authentication_key"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrimVrrp,
+				"authentication-key "), "\""))
+			if err != nil {
+				return inetAddress, err
+			}
 		case strings.HasPrefix(itemTrimVrrp, "authentication-type "):
-			vrrpGroup["authentication_type"] = strings.TrimPrefix(itemTrimVrrp,
-				"authentication-type ")
+			vrrpGroup["authentication_type"] = strings.TrimPrefix(itemTrimVrrp, "authentication-type ")
 		case strings.HasPrefix(itemTrimVrrp, "no-accept-data"):
 			vrrpGroup["no_accept_data"] = true
 		case strings.HasPrefix(itemTrimVrrp, "no-preempt"):
@@ -1334,8 +1376,10 @@ func fillFamilyInetAddress(item string, inetAddress []map[string]interface{},
 		case strings.HasPrefix(itemTrimVrrp, "preempt"):
 			vrrpGroup["preempt"] = true
 		case strings.HasPrefix(itemTrimVrrp, "priority"):
-			vrrpGroup["priority"] = strings.TrimPrefix(itemTrimVrrp,
-				"priority ")
+			vrrpGroup["priority"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVrrp, "priority "))
+			if err != nil {
+				return inetAddress, err
+			}
 		case strings.HasPrefix(itemTrimVrrp, "track interface "):
 			vrrpSlit := strings.Split(itemTrimVrrp, " ")
 			cost, err := strconv.Atoi(vrrpSlit[len(vrrpSlit)-1])
@@ -1343,7 +1387,7 @@ func fillFamilyInetAddress(item string, inetAddress []map[string]interface{},
 				return inetAddress, err
 			}
 			trackInt := map[string]interface{}{
-				"interface":     vrrpSlit[3],
+				"interface":     vrrpSlit[2],
 				"priority_cost": cost,
 			}
 			vrrpGroup["track_interface"] = append(vrrpGroup["track_interface"].([]map[string]interface{}), trackInt)
@@ -1354,8 +1398,8 @@ func fillFamilyInetAddress(item string, inetAddress []map[string]interface{},
 				return inetAddress, err
 			}
 			trackRoute := map[string]interface{}{
-				"route":            vrrpSlit[3],
-				"routing_instance": vrrpSlit[5],
+				"route":            vrrpSlit[2],
+				"routing_instance": vrrpSlit[4],
 				"priority_cost":    cost,
 			}
 			vrrpGroup["track_route"] = append(vrrpGroup["track_route"].([]map[string]interface{}), trackRoute)
@@ -1374,7 +1418,7 @@ func setFamilyAddress(inetAddress interface{}, intCut []string, configSet []stri
 	configSet = append(configSet, "set interfaces "+setName+" family "+family+
 		" address "+inetAddressMap["address"].(string)+"\n")
 	for _, vrrpGroup := range inetAddressMap["vrrp_group"].([]interface{}) {
-		if intCut[0] == "st0" {
+		if intCut[0] == st0Word {
 			return configSet, fmt.Errorf("vrrp not available on st0")
 		}
 		vrrpGroupMap := vrrpGroup.(map[string]interface{})
@@ -1404,6 +1448,14 @@ func setFamilyAddress(inetAddress interface{}, intCut []string, configSet []stri
 				configSet = append(configSet, setNameAddVrrp+" advertisements-threshold "+
 					strconv.Itoa(vrrpGroupMap["advertisements_threshold"].(int))+"\n")
 			}
+			if vrrpGroupMap["authentication_key"].(string) != "" {
+				configSet = append(configSet, setNameAddVrrp+" authentication-key \""+
+					vrrpGroupMap["authentication_key"].(string)+"\"\n")
+			}
+			if vrrpGroupMap["authentication_type"].(string) != "" {
+				configSet = append(configSet, setNameAddVrrp+" authentication-type "+
+					vrrpGroupMap["authentication_type"].(string)+"\n")
+			}
 		case inet6Word:
 			setNameAddVrrp = "set interfaces " + setName + " family inet6 address " + inetAddressMap["address"].(string) +
 				" vrrp-inet6-group " + strconv.Itoa(vrrpGroupMap["identifier"].(int))
@@ -1423,14 +1475,6 @@ func setFamilyAddress(inetAddress interface{}, intCut []string, configSet []stri
 		}
 		if vrrpGroupMap["accept_data"].(bool) {
 			configSet = append(configSet, setNameAddVrrp+" accept-data"+"\n")
-		}
-		if vrrpGroupMap["authentication_key"].(string) != "" {
-			configSet = append(configSet, setNameAddVrrp+" authentication-key "+
-				vrrpGroupMap["authentication_key"].(string)+"\n")
-		}
-		if vrrpGroupMap["authentication_type"].(string) != "" {
-			configSet = append(configSet, setNameAddVrrp+" authentication-type "+
-				vrrpGroupMap["authentication_type"].(string)+"\n")
 		}
 		if vrrpGroupMap["no_accept_data"].(bool) {
 			configSet = append(configSet, setNameAddVrrp+" no-accept-data"+"\n")
@@ -1485,11 +1529,11 @@ func aggregatedCountSearchMax(newAE string, oldAE string, m interface{}, jnprSes
 			}
 		}
 	}
-	showConf, err := sess.command("show configuration interfaces | display set", jnprSess)
+	showConf, err := sess.command("show configuration interfaces | display set relative", jnprSess)
 	if err != nil {
 		return "", err
 	}
-	if strings.Count(showConf, " "+oldAE+"\n") > 1 {
+	if strings.Contains(showConf, "ether-options 802.3ad "+oldAE+"\n") {
 		intShowAE = append(intShowAE, oldAE)
 	}
 	if len(intShowAE) > 0 {
@@ -1512,21 +1556,21 @@ func genFamilyInetAddress(address string) map[string]interface{} {
 }
 func genVRRPGroup(family string) map[string]interface{} {
 	m := map[string]interface{}{
-		"identifier":          0,
-		"virtual_address":     make([]string, 0),
-		"accept_data":         false,
-		"advertise_interval":  0,
-		"authentication_key":  "",
-		"authentication_type": "",
-		"no_accept_data":      false,
-		"no_preempt":          false,
-		"preempt":             false,
-		"priority":            0,
-		"track_interface":     make([]map[string]interface{}, 0),
-		"track_route":         make([]map[string]interface{}, 0),
+		"identifier":         0,
+		"virtual_address":    make([]string, 0),
+		"accept_data":        false,
+		"advertise_interval": 0,
+		"no_accept_data":     false,
+		"no_preempt":         false,
+		"preempt":            false,
+		"priority":           0,
+		"track_interface":    make([]map[string]interface{}, 0),
+		"track_route":        make([]map[string]interface{}, 0),
 	}
 	if family == inetWord {
 		m["advertisements_threshold"] = 0
+		m["authentication_key"] = ""
+		m["authentication_type"] = ""
 	}
 	if family == inet6Word {
 		m["virtual_link_local_address"] = ""

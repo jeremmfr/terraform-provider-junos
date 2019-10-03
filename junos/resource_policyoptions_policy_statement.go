@@ -925,7 +925,6 @@ func resourcePolicyoptionsPolicyStatementUpdate(d *schema.ResourceData, m interf
 	if err != nil {
 		return err
 	}
-
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
@@ -1073,7 +1072,7 @@ func readPolicyStatement(policyStatement string,
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, "set ")
+			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
 			case strings.HasPrefix(itemTrim, "term "):
 				itemTermList := strings.Split(strings.TrimPrefix(itemTrim, "term "), " ")
