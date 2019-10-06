@@ -2,38 +2,41 @@ package junos
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
 func TestAccJunosApplication_basic(t *testing.T) {
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccJunosApplicationConfigCreate(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("junos_application.testacc_app", "protocol", "tcp"),
-					resource.TestCheckResourceAttr("junos_application.testacc_app", "destination_port", "22"),
-				),
+	if os.Getenv("TESTACC_SWITCH") == "" {
+		resource.ParallelTest(t, resource.TestCase{
+			PreCheck:  func() { testAccPreCheck(t) },
+			Providers: testAccProviders,
+			Steps: []resource.TestStep{
+				{
+					Config: testAccJunosApplicationConfigCreate(),
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("junos_application.testacc_app", "protocol", "tcp"),
+						resource.TestCheckResourceAttr("junos_application.testacc_app", "destination_port", "22"),
+					),
+				},
+				{
+					Config: testAccJunosApplicationConfigUpdate(),
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("junos_application.testacc_app", "protocol", "tcp"),
+						resource.TestCheckResourceAttr("junos_application.testacc_app", "destination_port", "22"),
+						resource.TestCheckResourceAttr("junos_application.testacc_app", "source_port", "1024-65535"),
+					),
+				},
+				{
+					ResourceName:      "junos_application.testacc_app",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
 			},
-			{
-				Config: testAccJunosApplicationConfigUpdate(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("junos_application.testacc_app", "protocol", "tcp"),
-					resource.TestCheckResourceAttr("junos_application.testacc_app", "destination_port", "22"),
-					resource.TestCheckResourceAttr("junos_application.testacc_app", "source_port", "1024-65535"),
-				),
-			},
-			{
-				ResourceName:      "junos_application.testacc_app",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
+		})
+	}
 }
 
 func testAccJunosApplicationConfigCreate() string {

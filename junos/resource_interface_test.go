@@ -10,8 +10,6 @@ import (
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3
 // export TESTACC_INTERFACE_AE=ae<num> for choose interface aggregate test else it's ae0
-// export TESTACC_INTERFACE_SW for test switch options (mode trunk, vlan native/members),
-//        else it's test for others parameters (inet address, 802.3ad, routing_instance, etc )
 func TestAccJunosInterface_basic(t *testing.T) {
 	var testaccInterface string
 	var testaccInterfaceAE string
@@ -25,7 +23,7 @@ func TestAccJunosInterface_basic(t *testing.T) {
 	} else {
 		testaccInterfaceAE = "ae0"
 	}
-	if os.Getenv("TESTACC_INTERFACE_SW") != "" {
+	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.ParallelTest(t, resource.TestCase{
 			PreCheck:  func() { testAccPreCheck(t) },
 			Providers: testAccProviders,

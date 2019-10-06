@@ -2,59 +2,62 @@ package junos
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
 func TestAccJunosSecurityPolicy_basic(t *testing.T) {
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccJunosSecurityPolicyConfigCreate(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
-						"policy.#", "1"),
-					resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
-						"policy.0.match_source_address.#", "1"),
-					resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
-						"policy.0.match_source_address.0", "testacc_address1"),
-					resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
-						"policy.0.match_destination_address.#", "1"),
-					resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
-						"policy.0.match_destination_address.0", "any"),
-					resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
-						"policy.0.match_application.#", "1"),
-					resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
-						"policy.0.match_application.0", "junos-ssh"),
-					resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
-						"policy.0.log_init", "true"),
-					resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
-						"policy.0.log_close", "true"),
-					resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
-						"policy.0.count", "true"),
-				),
+	if os.Getenv("TESTACC_SWITCH") == "" {
+		resource.ParallelTest(t, resource.TestCase{
+			PreCheck:  func() { testAccPreCheck(t) },
+			Providers: testAccProviders,
+			Steps: []resource.TestStep{
+				{
+					Config: testAccJunosSecurityPolicyConfigCreate(),
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
+							"policy.#", "1"),
+						resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
+							"policy.0.match_source_address.#", "1"),
+						resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
+							"policy.0.match_source_address.0", "testacc_address1"),
+						resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
+							"policy.0.match_destination_address.#", "1"),
+						resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
+							"policy.0.match_destination_address.0", "any"),
+						resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
+							"policy.0.match_application.#", "1"),
+						resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
+							"policy.0.match_application.0", "junos-ssh"),
+						resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
+							"policy.0.log_init", "true"),
+						resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
+							"policy.0.log_close", "true"),
+						resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
+							"policy.0.count", "true"),
+					),
+				},
+				{
+					Config: testAccJunosSecurityPolicyConfigUpdate(),
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
+							"policy.#", "2"),
+						resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
+							"policy.1.then", "reject"),
+						resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
+							"policy.1.match_source_address.0", "testacc_address1"),
+					),
+				},
+				{
+					ResourceName:      "junos_security_policy.testacc_securityPolicy",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
 			},
-			{
-				Config: testAccJunosSecurityPolicyConfigUpdate(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
-						"policy.#", "2"),
-					resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
-						"policy.1.then", "reject"),
-					resource.TestCheckResourceAttr("junos_security_policy.testacc_securityPolicy",
-						"policy.1.match_source_address.0", "testacc_address1"),
-				),
-			},
-			{
-				ResourceName:      "junos_security_policy.testacc_securityPolicy",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
+		})
+	}
 }
 
 func testAccJunosSecurityPolicyConfigCreate() string {

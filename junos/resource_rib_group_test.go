@@ -2,49 +2,52 @@ package junos
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
 func TestAccJunosRibGroup_basic(t *testing.T) {
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccJunosRibGroupConfigCreate(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("junos_rib_group.testacc_ribGroup",
-						"import_policy.#", "1"),
-					resource.TestCheckResourceAttr("junos_rib_group.testacc_ribGroup",
-						"import_policy.0", "testacc_ribGroup"),
-					resource.TestCheckResourceAttr("junos_rib_group.testacc_ribGroup",
-						"import_rib.#", "1"),
-					resource.TestCheckResourceAttr("junos_rib_group.testacc_ribGroup",
-						"import_rib.0", "testacc_ribGroup1.inet.0"),
-					resource.TestCheckResourceAttr("junos_rib_group.testacc_ribGroup",
-						"export_rib", "testacc_ribGroup1.inet.0"),
-				),
+	if os.Getenv("TESTACC_SWITCH") == "" {
+		resource.ParallelTest(t, resource.TestCase{
+			PreCheck:  func() { testAccPreCheck(t) },
+			Providers: testAccProviders,
+			Steps: []resource.TestStep{
+				{
+					Config: testAccJunosRibGroupConfigCreate(),
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("junos_rib_group.testacc_ribGroup",
+							"import_policy.#", "1"),
+						resource.TestCheckResourceAttr("junos_rib_group.testacc_ribGroup",
+							"import_policy.0", "testacc_ribGroup"),
+						resource.TestCheckResourceAttr("junos_rib_group.testacc_ribGroup",
+							"import_rib.#", "1"),
+						resource.TestCheckResourceAttr("junos_rib_group.testacc_ribGroup",
+							"import_rib.0", "testacc_ribGroup1.inet.0"),
+						resource.TestCheckResourceAttr("junos_rib_group.testacc_ribGroup",
+							"export_rib", "testacc_ribGroup1.inet.0"),
+					),
+				},
+				{
+					Config: testAccJunosRibGroupConfigUpdate(),
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("junos_rib_group.testacc_ribGroup",
+							"import_rib.#", "2"),
+						resource.TestCheckResourceAttr("junos_rib_group.testacc_ribGroup",
+							"import_rib.1", "testacc_ribGroup2.inet.0"),
+						resource.TestCheckResourceAttr("junos_rib_group.testacc_ribGroup",
+							"export_rib", "testacc_ribGroup2.inet.0"),
+					),
+				},
+				{
+					ResourceName:      "junos_rib_group.testacc_ribGroup",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
 			},
-			{
-				Config: testAccJunosRibGroupConfigUpdate(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("junos_rib_group.testacc_ribGroup",
-						"import_rib.#", "2"),
-					resource.TestCheckResourceAttr("junos_rib_group.testacc_ribGroup",
-						"import_rib.1", "testacc_ribGroup2.inet.0"),
-					resource.TestCheckResourceAttr("junos_rib_group.testacc_ribGroup",
-						"export_rib", "testacc_ribGroup2.inet.0"),
-				),
-			},
-			{
-				ResourceName:      "junos_rib_group.testacc_ribGroup",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
+		})
+	}
 }
 
 func testAccJunosRibGroupConfigCreate() string {
