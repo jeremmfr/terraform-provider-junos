@@ -249,7 +249,6 @@ func resourceSecurityPolicyImport(d *schema.ResourceData, m interface{}) ([]*sch
 
 	result[0] = d
 	return result, nil
-
 }
 
 func checkSecurityPolicyExists(fromZone, toZone string, m interface{}, jnprSess *NetconfObject) (bool, error) {

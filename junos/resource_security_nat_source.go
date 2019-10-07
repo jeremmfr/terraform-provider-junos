@@ -468,7 +468,6 @@ func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObj
 						ruleThenOptions["type"] = thenSplit[0]
 						ruleThenOptions["pool"] = thenSplit[1]
 					} else {
-
 						ruleThenOptions["type"] = itemTrimThen
 					}
 					// override (maxItem = 1)

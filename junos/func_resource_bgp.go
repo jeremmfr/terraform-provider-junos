@@ -605,7 +605,6 @@ func setBgpOptsFamilyPrefixLimit(configSet []string,
 		configSet = append(configSet, setPrefix+"teardown idle-timeout forever\n")
 	}
 	return configSet, nil
-
 }
 func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) ([]map[string]interface{}, error) {
 	readOpts := map[string]interface{}{

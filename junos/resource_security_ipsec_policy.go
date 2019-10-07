@@ -136,7 +136,6 @@ func resourceIpsecPolicyUpdate(d *schema.ResourceData, m interface{}) error {
 	}
 	d.Partial(false)
 	return resourceIpsecPolicyRead(d, m)
-
 }
 func resourceIpsecPolicyDelete(d *schema.ResourceData, m interface{}) error {
 	sess := m.(*Session)
