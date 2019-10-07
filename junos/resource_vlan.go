@@ -291,7 +291,6 @@ func resourceVlanImport(d *schema.ResourceData, m interface{}) ([]*schema.Resour
 
 	result[0] = d
 	return result, nil
-
 }
 
 func checkVlansExists(vlan string, m interface{}, jnprSess *NetconfObject) (bool, error) {
