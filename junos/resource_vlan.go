@@ -102,7 +102,7 @@ func resourceVlan() *schema.Resource {
 			},
 			"community_vlans": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeInt},
 			},
 			"isolated_vlan": {
@@ -313,26 +313,29 @@ func setVlan(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	if d.Get("description").(string) != "" {
 		configSet = append(configSet, setPrefix+"description \""+d.Get("description").(string)+"\"\n")
 	}
-	if d.Get("vland_id").(int) != 0 {
+	if d.Get("vlan_id").(int) != 0 {
 		configSet = append(configSet, setPrefix+"vlan-id "+strconv.Itoa(d.Get("vlan_id").(int))+"\n")
 	}
-	for _, v := range d.Get("vland_id_list").([]interface{}) {
+	for _, v := range d.Get("vlan_id_list").([]interface{}) {
 		configSet = append(configSet, setPrefix+"vlan-id-list "+v.(string)+"\n")
 	}
 	if d.Get("service_id").(int) != 0 {
-		configSet = append(configSet, setPrefix+"service_id "+strconv.Itoa(d.Get("service_id").(int))+"\n")
+		configSet = append(configSet, setPrefix+"service-id "+strconv.Itoa(d.Get("service_id").(int))+"\n")
 	}
 	if d.Get("l3_interface").(string) != "" {
 		configSet = append(configSet, setPrefix+"l3-interface "+d.Get("l3_interface").(string)+"\n")
 	}
 	if d.Get("forward_filter_input").(string) != "" {
-		configSet = append(configSet, setPrefix+"forwarding-options filter input "+d.Get("forward_filter_input").(string)+"\n")
+		configSet = append(configSet, setPrefix+
+			"forwarding-options filter input "+d.Get("forward_filter_input").(string)+"\n")
 	}
 	if d.Get("forward_filter_output").(string) != "" {
-		configSet = append(configSet, setPrefix+"forwarding-options filter output "+d.Get("forward_filter_output").(string)+"\n")
+		configSet = append(configSet, setPrefix+
+			"forwarding-options filter output "+d.Get("forward_filter_output").(string)+"\n")
 	}
 	if d.Get("forward_flood_input").(string) != "" {
-		configSet = append(configSet, setPrefix+"forwarding-options flood input "+d.Get("forward_flood_input").(string)+"\n")
+		configSet = append(configSet, setPrefix+
+			"forwarding-options flood input "+d.Get("forward_flood_input").(string)+"\n")
 	}
 	if d.Get("private_vlan").(string) != "" {
 		configSet = append(configSet, setPrefix+"private-vlan "+d.Get("private_vlan").(string)+"\n")
@@ -360,7 +363,8 @@ func setVlan(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 			configSet = append(configSet, setPrefix+"vxlan ovsdb-managed\n")
 		}
 		if vxlan["unreachable_vtep_aging_timer"].(int) != 0 {
-			configSet = append(configSet, setPrefix+"vxlan unreachable-vtep-aging-timer"+strconv.Itoa(vxlan["unreachable_vtep_aging_timer"].(int))+"\n")
+			configSet = append(configSet, setPrefix+
+				"vxlan unreachable-vtep-aging-timer "+strconv.Itoa(vxlan["unreachable_vtep_aging_timer"].(int))+"\n")
 		}
 	}
 
@@ -390,6 +394,8 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
+			case strings.HasPrefix(itemTrim, "description "):
+				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
 			case strings.HasPrefix(itemTrim, "vlan-id "):
 				confRead.vlanID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vlan-id "))
 				if err != nil {
@@ -432,6 +438,11 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 					"ovsdb_managed":                false,
 					"unreachable_vtep_aging_timer": 0,
 				}
+				if len(confRead.vxlan) > 0 {
+					for k, v := range confRead.vxlan[0] {
+						vxlan[k] = v
+					}
+				}
 				switch {
 				case strings.HasPrefix(itemTrim, "vxlan vni "):
 					vxlan["vni"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vxlan vni "))
@@ -447,7 +458,8 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 				case strings.HasPrefix(itemTrim, "vxlan ovsdb-managed"):
 					vxlan["ovsdb_managed"] = true
 				case strings.HasPrefix(itemTrim, "vxlan unreachable-vtep-aging-timer "):
-					vxlan["unreachable_vtep_aging_timer"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vxlan unreachable-vtep-aging-timer "))
+					vxlan["unreachable_vtep_aging_timer"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
+						"vxlan unreachable-vtep-aging-timer "))
 					if err != nil {
 						return confRead, err
 					}
