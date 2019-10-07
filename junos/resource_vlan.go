@@ -414,7 +414,35 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 					return confRead, err
 				}
 			case strings.HasPrefix(itemTrim, "vxlan "):
-				// TODO
+				vxlan := map[string]interface{}{
+					"vni":                          -1,
+					"encapsulate_inner_vlan":       false,
+					"ingress_node_replication":     false,
+					"multicast_group":              "",
+					"ovsdb_managed":                false,
+					"unreachable_vtep_aging_timer": 0,
+				}
+				switch {
+				case strings.HasPrefix(itemTrim, "vxlan vni "):
+					vxlan["vni"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vxlan vni "))
+					if err != nil {
+						return confRead, err
+					}
+				case strings.HasPrefix(itemTrim, "vxlan encapsulate-inner-vlan"):
+					vxlan["encapsulate_inner_vlan"] = true
+				case strings.HasPrefix(itemTrim, "vxlan ingress-node-replication"):
+					vxlan["ingress_node_replication"] = true
+				case strings.HasPrefix(itemTrim, "vxlan multicast-group "):
+					vxlan["multicast_group"] = strings.TrimPrefix(itemTrim, "vxlan multicast-group ")
+				case strings.HasPrefix(itemTrim, "vxlan ovsdb-managed"):
+					vxlan["ovsdb_managed"] = true
+				case strings.HasPrefix(itemTrim, "vxlan unreachable-vtep-aging-timer "):
+					vxlan["unreachable_vtep_aging_timer"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vxlan unreachable-vtep-aging-timer "))
+					if err != nil {
+						return confRead, err
+					}
+				}
+				confRead.vxlan = []map[string]interface{}{vxlan}
 			}
 		}
 	} else {
