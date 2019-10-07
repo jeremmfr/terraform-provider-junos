@@ -45,14 +45,16 @@ func resourceVlan() *schema.Resource {
 				Optional: true,
 			},
 			"vlan_id": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ValidateFunc: validateIntRange(1, 4094),
+				Type:          schema.TypeInt,
+				Optional:      true,
+				ValidateFunc:  validateIntRange(1, 4094),
+				ConflictsWith: []string{"vlan_id_list"},
 			},
 			"vlan_id_list": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:          schema.TypeList,
+				Optional:      true,
+				Elem:          &schema.Schema{Type: schema.TypeString},
+				ConflictsWith: []string{"vlan_id"},
 			},
 			"service_id": {
 				Type:         schema.TypeInt,
@@ -62,6 +64,14 @@ func resourceVlan() *schema.Resource {
 			"l3_interface": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
+					value := v.(string)
+					if !strings.HasPrefix(value, "irb.") {
+						errors = append(errors, fmt.Errorf(
+							"%q for %q is not start with 'irb.'", value, k))
+					}
+					return
+				},
 			},
 			"forward_filter_input": {
 				Type:         schema.TypeString,
@@ -85,7 +95,7 @@ func resourceVlan() *schema.Resource {
 					value := v.(string)
 					if value != "community" && value != "isolated" {
 						errors = append(errors, fmt.Errorf(
-							"%q for %q is not' community' or 'isolated'", value, k))
+							"%q for %q is not 'community' or 'isolated'", value, k))
 					}
 					return
 				},
