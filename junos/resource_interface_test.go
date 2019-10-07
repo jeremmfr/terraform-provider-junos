@@ -451,5 +451,3 @@ resource junos_interface testacc_interfaceAEunit {
 }
 `)
 }
-
-//TODO
