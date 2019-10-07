@@ -161,7 +161,6 @@ func resourceIpsecProposalUpdate(d *schema.ResourceData, m interface{}) error {
 	}
 	d.Partial(false)
 	return resourceIpsecProposalRead(d, m)
-
 }
 func resourceIpsecProposalDelete(d *schema.ResourceData, m interface{}) error {
 	sess := m.(*Session)

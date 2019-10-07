@@ -599,7 +599,6 @@ func resourceBgpGroupUpdate(d *schema.ResourceData, m interface{}) error {
 	}
 	d.Partial(false)
 	return resourceBgpGroupRead(d, m)
-
 }
 func resourceBgpGroupDelete(d *schema.ResourceData, m interface{}) error {
 	sess := m.(*Session)

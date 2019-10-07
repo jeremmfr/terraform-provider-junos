@@ -360,7 +360,6 @@ func readSecurityNatDestination(natDestination string,
 						ruleThenOptions["type"] = thenSplit[0]
 						ruleThenOptions["pool"] = thenSplit[1]
 					} else {
-
 						ruleThenOptions["type"] = itemTrimThen
 					}
 					ruleOptions[thenWord] = []map[string]interface{}{ruleThenOptions}

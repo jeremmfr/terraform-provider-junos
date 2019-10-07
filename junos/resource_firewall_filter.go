@@ -526,7 +526,6 @@ func fillFirewallFilterData(d *schema.ResourceData, filterOptions filterOptions)
 	if tfErr != nil {
 		panic(tfErr)
 	}
-
 }
 
 func setFirewallFilterOptsFrom(setPrefixTermFrom string,

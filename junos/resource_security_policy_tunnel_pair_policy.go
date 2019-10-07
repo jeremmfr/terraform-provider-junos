@@ -197,7 +197,6 @@ func resourceSecurityPolicyTunnelPairPolicyImport(d *schema.ResourceData,
 
 	result[0] = d
 	return result, nil
-
 }
 
 func checkSecurityPolicyPairExists(zoneA, policyAtoB, zoneB, policyBtoA string,

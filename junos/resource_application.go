@@ -137,7 +137,6 @@ func resourceApplicationUpdate(d *schema.ResourceData, m interface{}) error {
 	}
 	d.Partial(false)
 	return resourceApplicationRead(d, m)
-
 }
 func resourceApplicationDelete(d *schema.ResourceData, m interface{}) error {
 	sess := m.(*Session)

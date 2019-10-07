@@ -26,7 +26,6 @@ func logFile(message string, file string) {
 	log.SetPrefix(time.Now().Format("2006-01-02 15:04:05"))
 
 	log.Printf("%s", message)
-
 }
 func validateIPMaskFunc() schema.SchemaValidateFunc {
 	return func(i interface{}, k string) (s []string, es []error) {

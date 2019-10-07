@@ -440,7 +440,6 @@ func resourceInterfaceCreate(d *schema.ResourceData, m interface{}) error {
 				return err
 			}
 		}
-
 	}
 	if d.Get("security_zone").(string) != "" {
 		if !checkCompatibilitySecurity(jnprSess) {
@@ -681,7 +680,6 @@ func resourceInterfaceImport(d *schema.ResourceData, m interface{}) ([]*schema.R
 
 	result[0] = d
 	return result, nil
-
 }
 
 func checkInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) error {

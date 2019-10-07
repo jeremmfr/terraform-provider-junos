@@ -245,7 +245,6 @@ func resourceIpsecVpnUpdate(d *schema.ResourceData, m interface{}) error {
 	}
 	d.Partial(false)
 	return resourceIpsecVpnRead(d, m)
-
 }
 func resourceIpsecVpnDelete(d *schema.ResourceData, m interface{}) error {
 	sess := m.(*Session)

@@ -160,7 +160,6 @@ func resourceIkePolicyUpdate(d *schema.ResourceData, m interface{}) error {
 	}
 	d.Partial(false)
 	return resourceIkePolicyRead(d, m)
-
 }
 func resourceIkePolicyDelete(d *schema.ResourceData, m interface{}) error {
 	sess := m.(*Session)

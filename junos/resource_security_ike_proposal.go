@@ -152,7 +152,6 @@ func resourceIkeProposalUpdate(d *schema.ResourceData, m interface{}) error {
 	}
 	d.Partial(false)
 	return resourceIkeProposalRead(d, m)
-
 }
 func resourceIkeProposalDelete(d *schema.ResourceData, m interface{}) error {
 	sess := m.(*Session)
