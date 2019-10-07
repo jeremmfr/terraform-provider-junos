@@ -599,7 +599,6 @@ func resourceBgpNeighborUpdate(d *schema.ResourceData, m interface{}) error {
 	}
 	d.Partial(false)
 	return resourceBgpNeighborRead(d, m)
-
 }
 func resourceBgpNeighborDelete(d *schema.ResourceData, m interface{}) error {
 	sess := m.(*Session)

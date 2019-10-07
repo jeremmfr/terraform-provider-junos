@@ -249,7 +249,6 @@ func resourceSecurityZoneImport(d *schema.ResourceData, m interface{}) ([]*schem
 
 	result[0] = d
 	return result, nil
-
 }
 
 func checkSecurityZonesExists(zone string, m interface{}, jnprSess *NetconfObject) (bool, error) {

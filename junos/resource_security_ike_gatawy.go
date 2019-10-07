@@ -243,7 +243,6 @@ func resourceIkeGatewayUpdate(d *schema.ResourceData, m interface{}) error {
 	}
 	d.Partial(false)
 	return resourceIkeGatewayRead(d, m)
-
 }
 func resourceIkeGatewayDelete(d *schema.ResourceData, m interface{}) error {
 	sess := m.(*Session)
