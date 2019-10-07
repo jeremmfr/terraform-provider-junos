@@ -90,6 +90,7 @@ func Provider() terraform.ResourceProvider {
 			"junos_security_policy_tunnel_pair_policy": resourceSecurityPolicyTunnelPairPolicy(),
 			"junos_security_policy":                    resourceSecurityPolicy(),
 			"junos_security_zone":                      resourceSecurityZone(),
+			"junos_vlan":                               resourceVlan(),
 		},
 		ConfigureFunc: configureProvider,
 	}

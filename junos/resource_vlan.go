@@ -394,6 +394,27 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 				}
 			case strings.HasPrefix(itemTrim, "l3-interface "):
 				confRead.l3Interface = strings.TrimPrefix(itemTrim, "l3-interface ")
+			case strings.HasPrefix(itemTrim, "forwarding-options filter input "):
+				confRead.forwardFilterInput = strings.TrimPrefix(itemTrim, "forwarding-options filter input ")
+			case strings.HasPrefix(itemTrim, "forwarding-options filter output "):
+				confRead.forwardFilterOutput = strings.TrimPrefix(itemTrim, "forwarding-options filter output ")
+			case strings.HasPrefix(itemTrim, "forwarding-options flood input "):
+				confRead.forwardFloodInput = strings.TrimPrefix(itemTrim, "forwarding-options flood input ")
+			case strings.HasPrefix(itemTrim, "private-vlan "):
+				confRead.privateVlan = strings.TrimPrefix(itemTrim, "private-vlan ")
+			case strings.HasPrefix(itemTrim, "community-vlans "):
+				commVlan, err := strconv.Atoi(strings.TrimPrefix(itemTrim, "community-vlans "))
+				if err != nil {
+					return confRead, err
+				}
+				confRead.communityVlans = append(confRead.communityVlans, commVlan)
+			case strings.HasPrefix(itemTrim, "isolated-vlan "):
+				confRead.isolatedVlan, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "isolated-vlan "))
+				if err != nil {
+					return confRead, err
+				}
+			case strings.HasPrefix(itemTrim, "vxlan "):
+				// TODO
 			}
 		}
 	} else {
