@@ -39,7 +39,8 @@ func resourceIkeProposal() *schema.Resource {
 			},
 			"authentication_method": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Default:  "pre-shared-keys",
 			},
 			"dh_group": {
 				Type:     schema.TypeString,

@@ -71,7 +71,7 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
 							"version", "v2-only"),
 						resource.TestCheckResourceAttr("junos_security_ipsec_proposal.testacc_ipsecprop",
-							"authenticatio_algorithm", "hmac-sha1-96"),
+							"authentication_algorithm", "hmac-sha1-96"),
 						resource.TestCheckResourceAttr("junos_security_ipsec_proposal.testacc_ipsecprop",
 							"protocol", "esp"),
 						resource.TestCheckResourceAttr("junos_security_ipsec_proposal.testacc_ipsecprop",
@@ -178,7 +178,6 @@ resource junos_security_ike_proposal "testacc_ikeprop" {
   name = "testacc_ikeprop"
   authentication_algorithm = "sha1"
   encryption_algorithm = "aes-256-cbc"
-  authentication_method = "pre-shared-keys"
   dh_group = "group2"
   lifetime_seconds = 3600
 }
@@ -213,7 +212,7 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
 
 resource junos_security_ipsec_proposal "testacc_ipsecprop" {
   name = "testacc_ipsecprop"
-  authenticatio_algorithm = "hmac-sha1-96"
+  authentication_algorithm = "hmac-sha1-96"
   protocol = "esp"
   encryption_algorithm = "aes-128-cbc"
 }
@@ -248,7 +247,6 @@ resource junos_security_ike_proposal "testacc_ikeprop" {
   name = "testacc_ikeprop"
   authentication_algorithm = "sha1"
   encryption_algorithm = "aes-256-cbc"
-  authentication_method = "pre-shared-keys"
   dh_group = "group1"
   lifetime_seconds = 3600
 }
@@ -283,7 +281,7 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
 
 resource junos_security_ipsec_proposal "testacc_ipsecprop" {
   name = "testacc_ipsecprop"
-  authenticatio_algorithm = "hmac-sha1-96"
+  authentication_algorithm = "hmac-sha1-96"
   protocol = "esp"
   encryption_algorithm = "aes-256-cbc"
 }

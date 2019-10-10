@@ -33,7 +33,7 @@ func resourceIpsecProposal() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validateNameObjectJunos(),
 			},
-			"authenticatio_algorithm": {
+			"authentication_algorithm": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -226,8 +226,8 @@ func setIpsecProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 	configSet := make([]string, 0)
 
 	setPrefix := "set security ipsec proposal " + d.Get("name").(string)
-	if d.Get("authenticatio_algorithm").(string) != "" {
-		configSet = append(configSet, setPrefix+" authentication-algorithm "+d.Get("authenticatio_algorithm").(string)+"\n")
+	if d.Get("authentication_algorithm").(string) != "" {
+		configSet = append(configSet, setPrefix+" authentication-algorithm "+d.Get("authentication_algorithm").(string)+"\n")
 	}
 	if d.Get("encryption_algorithm").(string) != "" {
 		configSet = append(configSet, setPrefix+" encryption-algorithm "+d.Get("encryption_algorithm").(string)+"\n")
@@ -308,7 +308,7 @@ func fillIpsecProposalData(d *schema.ResourceData, ipsecProposalOptions ipsecPro
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("authenticatio_algorithm", ipsecProposalOptions.authenticatioAlgorithm)
+	tfErr = d.Set("authentication_algorithm", ipsecProposalOptions.authenticatioAlgorithm)
 	if tfErr != nil {
 		panic(tfErr)
 	}
