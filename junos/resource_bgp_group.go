@@ -641,7 +641,7 @@ func resourceBgpGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.Re
 	}
 	if !bgpGroupxists {
 		return nil, fmt.Errorf("don't find bgp group with id '%v' "+
-			"(id must be <name>"+idSeparator+"<routing_instace>)", d.Id())
+			"(id must be <name>"+idSeparator+"<routing_instance>)", d.Id())
 	}
 	bgpGroupOptions, err := readBgpGroup(idSplit[0], idSplit[1], m, jnprSess)
 	if err != nil {

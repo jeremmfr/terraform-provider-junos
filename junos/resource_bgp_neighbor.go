@@ -641,7 +641,7 @@ func resourceBgpNeighborImport(d *schema.ResourceData, m interface{}) ([]*schema
 	}
 	if !bgpNeighborxists {
 		return nil, fmt.Errorf("don't find bgp neighbor with id '%v' "+
-			"(id must be <ip>"+idSeparator+"<routing_instace>"+idSeparator+"<group>)", d.Id())
+			"(id must be <ip>"+idSeparator+"<routing_instance>"+idSeparator+"<group>)", d.Id())
 	}
 	bgpNeighborOptions, err := readBgpNeighbor(idSplit[0], idSplit[1], idSplit[2], m, jnprSess)
 	if err != nil {
