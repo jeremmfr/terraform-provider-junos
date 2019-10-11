@@ -761,7 +761,7 @@ func checkInterfaceExists(interFace string, m interface{}, jnprSess *NetconfObje
 	if err != nil {
 		return false, err
 	}
-	if strings.Contains(reply, interFace+" not found") {
+	if strings.Contains(reply, " not found\n") {
 		return false, nil
 	}
 	return true, nil

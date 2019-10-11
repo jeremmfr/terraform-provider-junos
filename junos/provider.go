@@ -19,6 +19,8 @@ const (
 	actionNoneWord = "none"
 	setLineStart   = "set "
 	st0Word        = "st0"
+	opsfV2         = "ospf"
+	ospfV3         = "ospf3"
 )
 
 var (
@@ -68,6 +70,7 @@ func Provider() terraform.ResourceProvider {
 			"junos_firewall_filter":                    resourceFirewallFilter(),
 			"junos_firewall_policer":                   resourceFirewallPolicer(),
 			"junos_interface":                          resourceInterface(),
+			"junos_ospf_area":                          resourceOspfArea(),
 			"junos_policyoptions_as_path_group":        resourcePolicyoptionsAsPathGroup(),
 			"junos_policyoptions_as_path":              resourcePolicyoptionsAsPath(),
 			"junos_policyoptions_community":            resourcePolicyoptionsCommunity(),
