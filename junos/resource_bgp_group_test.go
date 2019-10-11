@@ -10,7 +10,7 @@ import (
 
 func TestAccJunosBgpGroup_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") == "" {
-		resource.ParallelTest(t, resource.TestCase{
+		resource.Test(t, resource.TestCase{
 			PreCheck:  func() { testAccPreCheck(t) },
 			Providers: testAccProviders,
 			Steps: []resource.TestStep{

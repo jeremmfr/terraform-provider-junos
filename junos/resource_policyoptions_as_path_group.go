@@ -80,7 +80,7 @@ func resourcePolicyoptionsAsPathGroupCreate(d *schema.ResourceData, m interface{
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("create resource junos_policyoptions_as_path_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -140,7 +140,7 @@ func resourcePolicyoptionsAsPathGroupUpdate(d *schema.ResourceData, m interface{
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("update resource junos_policyoptions_as_path_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -164,7 +164,7 @@ func resourcePolicyoptionsAsPathGroupDelete(d *schema.ResourceData, m interface{
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("delete resource junos_policyoptions_as_path_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err

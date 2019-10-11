@@ -70,7 +70,7 @@ func resourceIpsecPolicyCreate(d *schema.ResourceData, m interface{}) error {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("create resource junos_ipsec_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -129,7 +129,7 @@ func resourceIpsecPolicyUpdate(d *schema.ResourceData, m interface{}) error {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("update resource junos_ipsec_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -153,7 +153,7 @@ func resourceIpsecPolicyDelete(d *schema.ResourceData, m interface{}) error {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("delete resource junos_ipsec_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err

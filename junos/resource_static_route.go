@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-type routeStaticOptions struct {
+type staticRouteOptions struct {
 	preference       int
 	metric           int
 	destination      string
@@ -17,14 +17,14 @@ type routeStaticOptions struct {
 	qualifiedNextHop []map[string]interface{}
 }
 
-func resourceRouteStatic() *schema.Resource {
+func resourceStaticRoute() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceRouteStaticCreate,
-		Read:   resourceRouteStaticRead,
-		Update: resourceRouteStaticUpdate,
-		Delete: resourceRouteStaticDelete,
+		Create: resourceStaticRouteCreate,
+		Read:   resourceStaticRouteRead,
+		Update: resourceStaticRouteUpdate,
+		Delete: resourceStaticRouteDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceRouteStaticImport,
+			State: resourceStaticRouteImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"destination": {
@@ -85,7 +85,7 @@ func resourceRouteStatic() *schema.Resource {
 	}
 }
 
-func resourceRouteStaticCreate(d *schema.ResourceData, m interface{}) error {
+func resourceStaticRouteCreate(d *schema.ResourceData, m interface{}) error {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -107,42 +107,42 @@ func resourceRouteStaticCreate(d *schema.ResourceData, m interface{}) error {
 			return fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string))
 		}
 	}
-	routeStaticExists, err := checkRouteStaticExists(d.Get("destination").(string), d.Get("routing_instance").(string),
+	staticRouteExists, err := checkStaticRouteExists(d.Get("destination").(string), d.Get("routing_instance").(string),
 		m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
 	}
-	if routeStaticExists {
+	if staticRouteExists {
 		sess.configClear(jnprSess)
 		return fmt.Errorf("static route %v already exists on table %s",
 			d.Get("destination").(string), d.Get("routing_instance").(string))
 	}
-	err = setRouteStatic(d, m, jnprSess)
+	err = setStaticRoute(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("create resource junos_static_route", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
 	}
-	routeStaticExists, err = checkRouteStaticExists(d.Get("destination").(string), d.Get("routing_instance").(string),
+	staticRouteExists, err = checkStaticRouteExists(d.Get("destination").(string), d.Get("routing_instance").(string),
 		m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
 	}
-	if routeStaticExists {
+	if staticRouteExists {
 		d.SetId(d.Get("destination").(string) + idSeparator + d.Get("routing_instance").(string))
 	} else {
-		return fmt.Errorf("route static %v not exists in routing_instance %v after commit "+
+		return fmt.Errorf("static route %v not exists in routing_instance %v after commit "+
 			"=> check your config", d.Get("destination").(string), d.Get("routing_instance").(string))
 	}
-	return resourceRouteStaticRead(d, m)
+	return resourceStaticRouteRead(d, m)
 }
-func resourceRouteStaticRead(d *schema.ResourceData, m interface{}) error {
+func resourceStaticRouteRead(d *schema.ResourceData, m interface{}) error {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
@@ -151,20 +151,20 @@ func resourceRouteStaticRead(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 	defer sess.closeSession(jnprSess)
-	routeStaticOptions, err := readRouteStatic(d.Get("destination").(string), d.Get("routing_instance").(string),
+	staticRouteOptions, err := readStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string),
 		m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return err
 	}
-	if routeStaticOptions.destination == "" {
+	if staticRouteOptions.destination == "" {
 		d.SetId("")
 	} else {
-		fillRouteStaticData(d, routeStaticOptions)
+		fillStaticRouteData(d, staticRouteOptions)
 	}
 	return nil
 }
-func resourceRouteStaticUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceStaticRouteUpdate(d *schema.ResourceData, m interface{}) error {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -176,26 +176,26 @@ func resourceRouteStaticUpdate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return err
 	}
-	err = delRouteStaticOpts(d, m, jnprSess)
+	err = delStaticRouteOpts(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
 	}
 
-	err = setRouteStatic(d, m, jnprSess)
+	err = setStaticRoute(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("update resource junos_static_route", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
 	}
 	d.Partial(false)
-	return resourceRouteStaticRead(d, m)
+	return resourceStaticRouteRead(d, m)
 }
-func resourceRouteStaticDelete(d *schema.ResourceData, m interface{}) error {
+func resourceStaticRouteDelete(d *schema.ResourceData, m interface{}) error {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -206,19 +206,19 @@ func resourceRouteStaticDelete(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return err
 	}
-	err = delRouteStatic(d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess)
+	err = delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("delete resource junos_static_route", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
 	}
 	return nil
 }
-func resourceRouteStaticImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceStaticRouteImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -230,48 +230,48 @@ func resourceRouteStaticImport(d *schema.ResourceData, m interface{}) ([]*schema
 	if len(idSplit) < 2 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", idSeparator)
 	}
-	routeStaticExists, err := checkRouteStaticExists(idSplit[0], idSplit[1], m, jnprSess)
+	staticRouteExists, err := checkStaticRouteExists(idSplit[0], idSplit[1], m, jnprSess)
 	if err != nil {
 		return nil, err
 	}
-	if !routeStaticExists {
-		return nil, fmt.Errorf("don't find route static with id '%v' (id must be "+
+	if !staticRouteExists {
+		return nil, fmt.Errorf("don't find static route with id '%v' (id must be "+
 			"<destination>"+idSeparator+"<routing_instance>)", d.Id())
 	}
-	routeStaticOptions, err := readRouteStatic(idSplit[0], idSplit[1], m, jnprSess)
+	staticRouteOptions, err := readStaticRoute(idSplit[0], idSplit[1], m, jnprSess)
 	if err != nil {
 		return nil, err
 	}
-	fillRouteStaticData(d, routeStaticOptions)
+	fillStaticRouteData(d, staticRouteOptions)
 
 	result[0] = d
 	return result, nil
 }
 
-func checkRouteStaticExists(destination string, instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
+func checkStaticRouteExists(destination string, instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	var routeStaticConfig string
+	var staticRouteConfig string
 	var err error
 	if instance == defaultWord {
-		routeStaticConfig, err = sess.command("show configuration"+
+		staticRouteConfig, err = sess.command("show configuration"+
 			" routing-options static route "+destination+" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
-		routeStaticConfig, err = sess.command("show configuration routing-instances "+instance+
+		staticRouteConfig, err = sess.command("show configuration routing-instances "+instance+
 			" routing-options static route "+destination+" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
 	}
 
-	if routeStaticConfig == emptyWord {
+	if staticRouteConfig == emptyWord {
 		return false, nil
 	}
 	return true, nil
 }
-func setRouteStatic(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
+func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 
@@ -311,10 +311,10 @@ func setRouteStatic(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	}
 	return nil
 }
-func readRouteStatic(destination string, instance string, m interface{},
-	jnprSess *NetconfObject) (routeStaticOptions, error) {
+func readStaticRoute(destination string, instance string, m interface{},
+	jnprSess *NetconfObject) (staticRouteOptions, error) {
 	sess := m.(*Session)
-	var confRead routeStaticOptions
+	var confRead staticRouteOptions
 	var destinationConfig string
 	var err error
 
@@ -388,7 +388,7 @@ func readRouteStatic(destination string, instance string, m interface{},
 	return confRead, nil
 }
 
-func delRouteStaticOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
+func delStaticRouteOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	delPrefix := "delete "
@@ -415,7 +415,7 @@ func delRouteStaticOpts(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	}
 	return nil
 }
-func delRouteStatic(destination string, instance string, m interface{}, jnprSess *NetconfObject) error {
+func delStaticRoute(destination string, instance string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	if instance == defaultWord {
@@ -430,28 +430,28 @@ func delRouteStatic(destination string, instance string, m interface{}, jnprSess
 	return nil
 }
 
-func fillRouteStaticData(d *schema.ResourceData, routeStaticOptions routeStaticOptions) {
-	tfErr := d.Set("destination", routeStaticOptions.destination)
+func fillStaticRouteData(d *schema.ResourceData, staticRouteOptions staticRouteOptions) {
+	tfErr := d.Set("destination", staticRouteOptions.destination)
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("routing_instance", routeStaticOptions.routingInstance)
+	tfErr = d.Set("routing_instance", staticRouteOptions.routingInstance)
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("preference", routeStaticOptions.preference)
+	tfErr = d.Set("preference", staticRouteOptions.preference)
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("metric", routeStaticOptions.metric)
+	tfErr = d.Set("metric", staticRouteOptions.metric)
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("next_hop", routeStaticOptions.nextHop)
+	tfErr = d.Set("next_hop", staticRouteOptions.nextHop)
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("qualified_next_hop", routeStaticOptions.qualifiedNextHop)
+	tfErr = d.Set("qualified_next_hop", staticRouteOptions.qualifiedNextHop)
 	if tfErr != nil {
 		panic(tfErr)
 	}

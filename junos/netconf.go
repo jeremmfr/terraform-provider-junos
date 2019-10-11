@@ -17,11 +17,12 @@ var (
 	rpcConfigStringSet = "<load-configuration action=\"set\" format=\"text\">" +
 		"<configuration-set>%s</configuration-set></load-configuration>"
 	rpcVersion         = "<get-software-information/>"
-	rpcCommit          = "<commit-configuration/>"
-	rpcCommitCheck     = "<commit-configuration><check/></commit-configuration>"
+	rpcCommit          = "<commit-configuration><log>%s</log></commit-configuration>"
+	rpcCommitCheck     = "<commit-configuration><check/><log>check</log></commit-configuration>"
 	rpcCandidateLock   = "<lock><target><candidate/></target></lock>"
 	rpcCandidateUnlock = "<unlock><target><candidate/></target></unlock>"
 	rpcClearCandidate  = "<delete-config><target><candidate/></target></delete-config>"
+	rpcClose           = "<close-session/>"
 )
 
 type NetconfObject struct {
@@ -308,9 +309,9 @@ func (j *NetconfObject) netconfConfigClear() error {
 }
 
 // netconfCommit commits the configuration.
-func (j *NetconfObject) netconfCommit() error {
+func (j *NetconfObject) netconfCommit(logMessage string) error {
 	var errs commitResults
-	reply, err := j.Session.Exec(netconf.RawMethod(rpcCommit))
+	reply, err := j.Session.Exec(netconf.RawMethod(fmt.Sprintf(rpcCommit, logMessage)))
 	if err != nil {
 		return err
 	}
@@ -372,6 +373,11 @@ func (j *NetconfObject) netconfCommitCheck() error {
 }
 
 // Close disconnects our session to the device.
-func (j *NetconfObject) Close() {
+func (j *NetconfObject) Close() error {
+	_, err := j.Session.Exec(netconf.RawMethod(rpcClose))
 	j.Session.Transport.Close()
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -127,7 +127,7 @@ func resourceSecurityPolicyCreate(d *schema.ResourceData, m interface{}) error {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("create resource junos_security_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -191,7 +191,7 @@ func resourceSecurityPolicyUpdate(d *schema.ResourceData, m interface{}) error {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("update resource junos_security_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -215,7 +215,7 @@ func resourceSecurityPolicyDelete(d *schema.ResourceData, m interface{}) error {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("delete resource junos_security_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -373,6 +373,7 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 					case strings.HasSuffix(itemTrimPolicy, "log session-close"):
 						m["log_close"] = true
 					case strings.HasPrefix(itemTrimPolicy, "then permit tunnel ipsec-vpn "):
+						m["then"] = "permit"
 						m["permit_tunnel_ipsec_vpn"] = strings.TrimPrefix(itemTrimPolicy,
 							"then permit tunnel ipsec-vpn ")
 					}

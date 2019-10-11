@@ -71,7 +71,7 @@ func resourceApplicationCreate(d *schema.ResourceData, m interface{}) error {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("create resource junos_application", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -130,7 +130,7 @@ func resourceApplicationUpdate(d *schema.ResourceData, m interface{}) error {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("update resource junos_application", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -154,7 +154,7 @@ func resourceApplicationDelete(d *schema.ResourceData, m interface{}) error {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("delete resource junos_application", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err

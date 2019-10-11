@@ -467,7 +467,7 @@ func resourceInterfaceCreate(d *schema.ResourceData, m interface{}) error {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("create resource junos_interface", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -605,7 +605,7 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("update resource junos_interface", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -629,7 +629,7 @@ func resourceInterfaceDelete(d *schema.ResourceData, m interface{}) error {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("delete resource junos_interface", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -644,7 +644,7 @@ func resourceInterfaceDelete(d *schema.ResourceData, m interface{}) error {
 			sess.configClear(jnprSess)
 			return err
 		}
-		err = sess.commitConf(jnprSess)
+		err = sess.commitConf("disable(NC) resource junos_interface", jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
 			return err

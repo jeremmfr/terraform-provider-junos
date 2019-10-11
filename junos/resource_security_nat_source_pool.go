@@ -93,7 +93,7 @@ func resourceSecurityNatSourcePoolCreate(d *schema.ResourceData, m interface{}) 
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("create resource junos_security_nat_source_pool", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -152,7 +152,7 @@ func resourceSecurityNatSourcePoolUpdate(d *schema.ResourceData, m interface{}) 
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("update resource junos_security_nat_source_pool", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -176,7 +176,7 @@ func resourceSecurityNatSourcePoolDelete(d *schema.ResourceData, m interface{}) 
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("delete resource junos_security_nat_source_pool", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err

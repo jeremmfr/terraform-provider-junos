@@ -11,7 +11,7 @@ import (
 
 func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 	if os.Getenv("TESTACC_SWITCH") == "" {
-		resource.ParallelTest(t, resource.TestCase{
+		resource.Test(t, resource.TestCase{
 			PreCheck:  func() { testAccPreCheck(t) },
 			Providers: testAccProviders,
 			Steps: []resource.TestStep{
@@ -131,9 +131,9 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 							"policy.#", "1"),
 						resource.TestCheckResourceAttr("junos_security_policy.testacc_policyIpsecRemToLoc",
 							"policy.0.permit_tunnel_ipsec_vpn", "testacc_ipsecvpn"),
-						resource.TestCheckResourceAttr("junos_security_policy_pair_policy.testacc_vpn-in-out",
+						resource.TestCheckResourceAttr("junos_security_policy_tunnel_pair_policy.testacc_vpn-in-out",
 							"policy_a_to_b", "testacc_vpn-out"),
-						resource.TestCheckResourceAttr("junos_security_policy_pair_policy.testacc_vpn-in-out",
+						resource.TestCheckResourceAttr("junos_security_policy_tunnel_pair_policy.testacc_vpn-in-out",
 							"policy_b_to_a", "testacc_vpn-in"),
 					),
 				},
