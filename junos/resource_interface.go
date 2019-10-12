@@ -664,10 +664,6 @@ func resourceInterfaceDelete(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 	if intExists {
-		err = sess.configLock(jnprSess)
-		if err != nil {
-			return err
-		}
 		err = addInterfaceNC(d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
@@ -679,7 +675,6 @@ func resourceInterfaceDelete(d *schema.ResourceData, m interface{}) error {
 			return err
 		}
 	}
-
 	return nil
 }
 func resourceInterfaceImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -881,7 +876,8 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 				oldAE = oldAEtf.(string)
 			}
 		}
-		aggregatedCount, err := aggregatedCountSearchMax(d.Get("ether802_3ad").(string), oldAE, d.Get("name").(string), m, jnprSess)
+		aggregatedCount, err := aggregatedCountSearchMax(d.Get("ether802_3ad").(string), oldAE,
+			d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			return err
 		}
@@ -1111,7 +1107,8 @@ func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 					return err
 				}
 			}
-			aggregatedCount, err := aggregatedCountSearchMax("ae-1", d.Get("ether802_3ad").(string), d.Get("name").(string), m, jnprSess)
+			aggregatedCount, err := aggregatedCountSearchMax("ae-1", d.Get("ether802_3ad").(string),
+				d.Get("name").(string), m, jnprSess)
 			if err != nil {
 				return err
 			}
