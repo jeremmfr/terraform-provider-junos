@@ -105,7 +105,7 @@ func (sess *Session) commitConf(logMessage string, jnpr *NetconfObject) error {
 		return err
 	}
 	if sess.junosLogFile != "" {
-		logFile(fmt.Sprintf("[commitConf] commit"), sess.junosLogFile)
+		logFile(fmt.Sprintf("[commitConf] commit %q", logMessage), sess.junosLogFile)
 	}
 	err = jnpr.netconfCommit(logMessage)
 	sleepShort(sess.junosSleepShort)
