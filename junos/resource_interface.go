@@ -556,14 +556,6 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 				return err
 			}
 			if lastAEchild {
-				oAEintNC := checkInterfaceNC(oAE.(string), m, jnprSess)
-				if oAEintNC == nil {
-					err = sess.configSet([]string{"delete interfaces " + oAE.(string) + "\n"}, jnprSess)
-					if err != nil {
-						sess.configClear(jnprSess)
-						return err
-					}
-				}
 				aggregatedCount, err := aggregatedCountSearchMax(newAE, oAE.(string), d.Get("name").(string), m, jnprSess)
 				if err != nil {
 					sess.configClear(jnprSess)
@@ -574,6 +566,35 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 					if err != nil {
 						sess.configClear(jnprSess)
 						return err
+					}
+					oAEintNC := checkInterfaceNC(oAE.(string), m, jnprSess)
+					if oAEintNC == nil {
+						err = sess.configSet([]string{"delete interfaces " + oAE.(string) + "\n"}, jnprSess)
+						if err != nil {
+							sess.configClear(jnprSess)
+							return err
+						}
+					}
+				} else {
+					oldAEInt, err := strconv.Atoi(strings.TrimPrefix(oAE.(string), "ae"))
+					if err != nil {
+						sess.configClear(jnprSess)
+						return err
+					}
+					aggregatedCountInt, err := strconv.Atoi(aggregatedCount)
+					if err != nil {
+						sess.configClear(jnprSess)
+						return err
+					}
+					if aggregatedCountInt < oldAEInt+1 {
+						oAEintNC := checkInterfaceNC(oAE.(string), m, jnprSess)
+						if oAEintNC == nil {
+							err = sess.configSet([]string{"delete interfaces " + oAE.(string) + "\n"}, jnprSess)
+							if err != nil {
+								sess.configClear(jnprSess)
+								return err
+							}
+						}
 					}
 				}
 			}
@@ -1100,13 +1121,6 @@ func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 			return err
 		}
 		if lastAEchild {
-			oAEintNC := checkInterfaceNC(d.Get("ether802_3ad").(string), m, jnprSess)
-			if oAEintNC == nil {
-				err = sess.configSet([]string{"delete interfaces " + d.Get("ether802_3ad").(string) + "\n"}, jnprSess)
-				if err != nil {
-					return err
-				}
-			}
 			aggregatedCount, err := aggregatedCountSearchMax("ae-1", d.Get("ether802_3ad").(string),
 				d.Get("name").(string), m, jnprSess)
 			if err != nil {
@@ -1122,6 +1136,23 @@ func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 					aggregatedCount + "\n"}, jnprSess)
 				if err != nil {
 					return err
+				}
+			}
+			aeInt, err := strconv.Atoi(strings.TrimPrefix(d.Get("ether802_3ad").(string), "ae"))
+			if err != nil {
+				return err
+			}
+			aggregatedCountInt, err := strconv.Atoi(aggregatedCount)
+			if err != nil {
+				return err
+			}
+			if aggregatedCountInt < aeInt+1 {
+				oAEintNC := checkInterfaceNC(d.Get("ether802_3ad").(string), m, jnprSess)
+				if oAEintNC == nil {
+					err = sess.configSet([]string{"delete interfaces " + d.Get("ether802_3ad").(string) + "\n"}, jnprSess)
+					if err != nil {
+						return err
+					}
 				}
 			}
 		}
