@@ -439,26 +439,42 @@ func resourceInterfaceCreate(d *schema.ResourceData, m interface{}) error {
 				sess.configClear(jnprSess)
 				return err
 			}
+		} else {
+			err = delInterfaceElement("disable", d, m, jnprSess)
+			if err != nil {
+				sess.configClear(jnprSess)
+				return err
+			}
+			err = delInterfaceElement("description", d, m, jnprSess)
+			if err != nil {
+				sess.configClear(jnprSess)
+				return err
+			}
 		}
 	}
 	if d.Get("security_zone").(string) != "" {
 		if !checkCompatibilitySecurity(jnprSess) {
+			sess.configClear(jnprSess)
 			return fmt.Errorf("security zone not compatible with Junos device %s", jnprSess.Platform[0].Model)
 		}
 		zonesExists, err := checkSecurityZonesExists(d.Get("security_zone").(string), m, jnprSess)
 		if err != nil {
+			sess.configClear(jnprSess)
 			return err
 		}
 		if !zonesExists {
+			sess.configClear(jnprSess)
 			return fmt.Errorf("security zones %v doesn't exist", d.Get("security_zone").(string))
 		}
 	}
 	if d.Get("routing_instance").(string) != "" {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
+			sess.configClear(jnprSess)
 			return err
 		}
 		if !instanceExists {
+			sess.configClear(jnprSess)
 			return fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string))
 		}
 	}
@@ -467,7 +483,7 @@ func resourceInterfaceCreate(d *schema.ResourceData, m interface{}) error {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("create resource junos_interface", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -534,23 +550,52 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 			if nAE.(string) != "" {
 				newAE = nAE.(string)
 			}
-			oAEintNC := checkInterfaceNC(oAE.(string), m, jnprSess)
-			if oAEintNC == nil {
-				err = sess.configSet([]string{"delete interfaces " + oAE.(string) + "\n"}, jnprSess)
-				if err != nil {
-					return err
-				}
-			}
-			aggregatedCount, err := aggregatedCountSearchMax(newAE, oAE.(string), m, jnprSess)
+			lastAEchild, err := aggregatedLastChild(oAE.(string), d.Get("name").(string), m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
 				return err
 			}
-			if aggregatedCount == "0" {
-				err = sess.configSet([]string{"delete chassis aggregated-devices ethernet device-count"}, jnprSess)
+			if lastAEchild {
+				aggregatedCount, err := aggregatedCountSearchMax(newAE, oAE.(string), d.Get("name").(string), m, jnprSess)
 				if err != nil {
 					sess.configClear(jnprSess)
 					return err
+				}
+				if aggregatedCount == "0" {
+					err = sess.configSet([]string{"delete chassis aggregated-devices ethernet device-count"}, jnprSess)
+					if err != nil {
+						sess.configClear(jnprSess)
+						return err
+					}
+					oAEintNC := checkInterfaceNC(oAE.(string), m, jnprSess)
+					if oAEintNC == nil {
+						err = sess.configSet([]string{"delete interfaces " + oAE.(string) + "\n"}, jnprSess)
+						if err != nil {
+							sess.configClear(jnprSess)
+							return err
+						}
+					}
+				} else {
+					oldAEInt, err := strconv.Atoi(strings.TrimPrefix(oAE.(string), "ae"))
+					if err != nil {
+						sess.configClear(jnprSess)
+						return err
+					}
+					aggregatedCountInt, err := strconv.Atoi(aggregatedCount)
+					if err != nil {
+						sess.configClear(jnprSess)
+						return err
+					}
+					if aggregatedCountInt < oldAEInt+1 {
+						oAEintNC := checkInterfaceNC(oAE.(string), m, jnprSess)
+						if oAEintNC == nil {
+							err = sess.configSet([]string{"delete interfaces " + oAE.(string) + "\n"}, jnprSess)
+							if err != nil {
+								sess.configClear(jnprSess)
+								return err
+							}
+						}
+					}
 				}
 			}
 		}
@@ -559,6 +604,7 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 		oSecurityZone, nSecurityZone := d.GetChange("security_zone")
 		if nSecurityZone.(string) != "" {
 			if !checkCompatibilitySecurity(jnprSess) {
+				sess.configClear(jnprSess)
 				return fmt.Errorf("security zone not compatible with Junos device %s", jnprSess.Platform[0].Model)
 			}
 			zonesExists, err := checkSecurityZonesExists(nSecurityZone.(string), m, jnprSess)
@@ -605,7 +651,7 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("update resource junos_interface", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -629,7 +675,7 @@ func resourceInterfaceDelete(d *schema.ResourceData, m interface{}) error {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("delete resource junos_interface", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -644,13 +690,12 @@ func resourceInterfaceDelete(d *schema.ResourceData, m interface{}) error {
 			sess.configClear(jnprSess)
 			return err
 		}
-		err = sess.commitConf(jnprSess)
+		err = sess.commitConf("disable(NC) resource junos_interface", jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
 			return err
 		}
 	}
-
 	return nil
 }
 func resourceInterfaceImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -852,7 +897,8 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 				oldAE = oldAEtf.(string)
 			}
 		}
-		aggregatedCount, err := aggregatedCountSearchMax(d.Get("ether802_3ad").(string), oldAE, m, jnprSess)
+		aggregatedCount, err := aggregatedCountSearchMax(d.Get("ether802_3ad").(string), oldAE,
+			d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			return err
 		}
@@ -1070,27 +1116,44 @@ func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 		}
 	}
 	if d.Get("ether802_3ad").(string) != "" {
-		oAEintNC := checkInterfaceNC(d.Get("ether802_3ad").(string), m, jnprSess)
-		if oAEintNC == nil {
-			err = sess.configSet([]string{"delete interfaces " + d.Get("ether802_3ad").(string) + "\n"}, jnprSess)
-			if err != nil {
-				return err
-			}
-		}
-		aggregatedCount, err := aggregatedCountSearchMax("ae-1", d.Get("ether802_3ad").(string), m, jnprSess)
+		lastAEchild, err := aggregatedLastChild(d.Get("ether802_3ad").(string), d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			return err
 		}
-		if aggregatedCount == "0" {
-			err = sess.configSet([]string{"delete chassis aggregated-devices ethernet device-count"}, jnprSess)
+		if lastAEchild {
+			aggregatedCount, err := aggregatedCountSearchMax("ae-1", d.Get("ether802_3ad").(string),
+				d.Get("name").(string), m, jnprSess)
 			if err != nil {
 				return err
 			}
-		} else {
-			err = sess.configSet([]string{"set chassis aggregated-devices ethernet device-count " +
-				aggregatedCount + "\n"}, jnprSess)
+			if aggregatedCount == "0" {
+				err = sess.configSet([]string{"delete chassis aggregated-devices ethernet device-count"}, jnprSess)
+				if err != nil {
+					return err
+				}
+			} else {
+				err = sess.configSet([]string{"set chassis aggregated-devices ethernet device-count " +
+					aggregatedCount + "\n"}, jnprSess)
+				if err != nil {
+					return err
+				}
+			}
+			aeInt, err := strconv.Atoi(strings.TrimPrefix(d.Get("ether802_3ad").(string), "ae"))
 			if err != nil {
 				return err
+			}
+			aggregatedCountInt, err := strconv.Atoi(aggregatedCount)
+			if err != nil {
+				return err
+			}
+			if aggregatedCountInt < aeInt+1 {
+				oAEintNC := checkInterfaceNC(d.Get("ether802_3ad").(string), m, jnprSess)
+				if oAEintNC == nil {
+					err = sess.configSet([]string{"delete interfaces " + d.Get("ether802_3ad").(string) + "\n"}, jnprSess)
+					if err != nil {
+						return err
+					}
+				}
 			}
 		}
 	}
@@ -1501,7 +1564,22 @@ func setFamilyAddress(inetAddress interface{}, intCut []string, configSet []stri
 	return configSet, nil
 }
 
-func aggregatedCountSearchMax(newAE string, oldAE string, m interface{}, jnprSess *NetconfObject) (string, error) {
+func aggregatedLastChild(ae, interFace string, m interface{}, jnprSess *NetconfObject) (bool, error) {
+	sess := m.(*Session)
+	showConf, err := sess.command("show configuration interfaces | display set relative", jnprSess)
+	if err != nil {
+		return false, err
+	}
+	lastAE := true
+	for _, item := range strings.Split(showConf, "\n") {
+		if strings.HasSuffix(item, "ether-options 802.3ad "+ae) &&
+			!strings.HasPrefix(item, "set "+interFace+" ") {
+			lastAE = false
+		}
+	}
+	return lastAE, nil
+}
+func aggregatedCountSearchMax(newAE, oldAE, interFace string, m interface{}, jnprSess *NetconfObject) (string, error) {
 	sess := m.(*Session)
 	newAENum := strings.TrimPrefix(newAE, "ae")
 	newAENumInt, err := strconv.Atoi(newAENum)
@@ -1527,11 +1605,11 @@ func aggregatedCountSearchMax(newAE string, oldAE string, m interface{}, jnprSes
 			}
 		}
 	}
-	showConf, err := sess.command("show configuration interfaces | display set relative", jnprSess)
+	lastOldAE, err := aggregatedLastChild(oldAE, interFace, m, jnprSess)
 	if err != nil {
 		return "", err
 	}
-	if strings.Contains(showConf, "ether-options 802.3ad "+oldAE+"\n") {
+	if !lastOldAE {
 		intShowAE = append(intShowAE, oldAE)
 	}
 	if len(intShowAE) > 0 {

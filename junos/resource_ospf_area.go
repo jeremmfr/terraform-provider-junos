@@ -122,7 +122,7 @@ func resourceOspfAreaCreate(d *schema.ResourceData, m interface{}) error {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("create resource junos_ospf_area", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -186,7 +186,7 @@ func resourceOspfAreaUpdate(d *schema.ResourceData, m interface{}) error {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("update resource junos_ospf_area", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -210,7 +210,7 @@ func resourceOspfAreaDelete(d *schema.ResourceData, m interface{}) error {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("delete resource junos_ospf_area", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err

@@ -132,7 +132,7 @@ func resourceSecurityNatDestinationCreate(d *schema.ResourceData, m interface{})
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("create resource junos_security_nat_destination", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -191,7 +191,7 @@ func resourceSecurityNatDestinationUpdate(d *schema.ResourceData, m interface{})
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("update resource junos_security_nat_destination", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -215,7 +215,7 @@ func resourceSecurityNatDestinationDelete(d *schema.ResourceData, m interface{})
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("delete resource junos_security_nat_destination", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err

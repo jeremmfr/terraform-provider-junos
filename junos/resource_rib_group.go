@@ -77,7 +77,7 @@ func resourceRibGroupCreate(d *schema.ResourceData, m interface{}) error {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("create resource junos_rib_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -156,7 +156,7 @@ func resourceRibGroupUpdate(d *schema.ResourceData, m interface{}) error {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("update resource junos_rib_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -180,7 +180,7 @@ func resourceRibGroupDelete(d *schema.ResourceData, m interface{}) error {
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("delete resource junos_rib_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err

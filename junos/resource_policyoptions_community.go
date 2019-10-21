@@ -68,7 +68,7 @@ func resourcePolicyoptionsCommunityCreate(d *schema.ResourceData, m interface{})
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("create resource junos_policyoptions_community", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -127,7 +127,7 @@ func resourcePolicyoptionsCommunityUpdate(d *schema.ResourceData, m interface{})
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("update resource junos_policyoptions_community", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err
@@ -151,7 +151,7 @@ func resourcePolicyoptionsCommunityDelete(d *schema.ResourceData, m interface{})
 		sess.configClear(jnprSess)
 		return err
 	}
-	err = sess.commitConf(jnprSess)
+	err = sess.commitConf("delete resource junos_policyoptions_community", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 		return err

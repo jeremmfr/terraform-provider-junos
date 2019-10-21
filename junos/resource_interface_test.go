@@ -23,8 +23,8 @@ func TestAccJunosInterface_basic(t *testing.T) {
 	} else {
 		testaccInterfaceAE = "ae0"
 	}
-	if os.Getenv("TESTACC_SWITCH") == "" {
-		resource.ParallelTest(t, resource.TestCase{
+	if os.Getenv("TESTACC_SWITCH") != "" {
+		resource.Test(t, resource.TestCase{
 			PreCheck:  func() { testAccPreCheck(t) },
 			Providers: testAccProviders,
 			Steps: []resource.TestStep{
@@ -66,7 +66,7 @@ func TestAccJunosInterface_basic(t *testing.T) {
 			},
 		})
 	} else {
-		resource.ParallelTest(t, resource.TestCase{
+		resource.Test(t, resource.TestCase{
 			PreCheck:  func() { testAccPreCheck(t) },
 			Providers: testAccProviders,
 			Steps: []resource.TestStep{
