@@ -4,10 +4,14 @@ linters:
     - funlen
     - gochecknoglobals
     - dupl
+    - wsl
 linters-settings:
   gocyclo:
     # minimal code complexity to report, 30 by default
     min-complexity: 50
+  gocognit:
+    # minimal code complexity to report, 30 by default
+    min-complexity: 110
 issues:
   exclude-rules:
     - text: "Use of ssh InsecureIgnoreHostKey"
@@ -15,4 +19,4 @@ issues:
         - gosec
     - text: "`jnpr` can be `github.com/hashicorp/terraform/terraform.ResourceProviderCloser`"
       linters:
-        - interfacer 
+        - interfacer
