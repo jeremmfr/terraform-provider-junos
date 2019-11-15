@@ -1,0 +1,64 @@
+name: Release
+on:
+  push:
+    tags:
+      - "v*"
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+      - name: Set env
+        run: echo ::set-env name=RELEASE_VERSION::$(echo ${GITHUB_REF} | cut -d'/' -f3)
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ env.RELEASE_VERSION }}
+          draft: false
+          prerelease: false
+
+  assets:
+    name: Push assets for ${{ matrix.os }}
+    needs: release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            asset_name: linux_amd64
+          - os: macos-latest
+            asset_name: darwin_amd64
+    steps:
+      - name: Set up Go 1.13
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v1
+      - name: Set env
+        run: |
+          echo ::set-env name=RELEASE_VERSION::$(echo ${GITHUB_REF} | cut -d'/' -f3)
+          echo ::set-env name=REPO_NAME::$(echo ${GITHUB_REPOSITORY} | cut -d'/' -f2)
+      - name: Get dependencies
+        run: |
+          go get -v -t -d ./...
+      - name: Build
+        run: go build -o ${REPO_NAME}_${RELEASE_VERSION}
+      - name: Create archive
+        run: tar -czvf ${REPO_NAME}_${RELEASE_VERSION}_${{ matrix.asset_name }}.tar.gz ${REPO_NAME}_${RELEASE_VERSION}
+      - name: Upload archive to release
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_${{ matrix.asset_name }}.tar.gz
+          asset_name: ${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_${{ matrix.asset_name }}.tar.gz
+          tag: ${{ github.ref }}
