@@ -55,8 +55,14 @@ func resourceBgpNeighbor() *schema.Resource {
 				Optional: true,
 			},
 			"advertise_peer_as": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"no_advertise_peer_as"},
+			},
+			"no_advertise_peer_as": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"advertise_peer_as"},
 			},
 			"as_override": {
 				Type:     schema.TypeBool,
@@ -79,10 +85,6 @@ func resourceBgpNeighbor() *schema.Resource {
 				Optional: true,
 			},
 			"multipath": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-			"no_advertise_peer_as": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
