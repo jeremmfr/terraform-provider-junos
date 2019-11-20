@@ -16,12 +16,13 @@ Requirements
 Building The Provider
 ---------------------
 ```
-$ git clone git@github.com:jeremmfr/terraform-provider-junos.git
+$ git clone https://github.com/jeremmfr/terraform-provider-junos.git
 $ cd terraform-provider-junos && git fetch --tags
 $ latestTag=$(git describe --tags `git rev-list --tags --max-count=1`)
 $ git checkout ${latestTag}
-$ go build -o /usr/bin/terraform-provider-junos_${latestTag}
-$ unset latestTag
+$ tfPath=$(which terraform | rev | cut -d'/' -f2- | rev)
+$ go build -o ${tfPath}/terraform-provider-junos_${latestTag}
+$ unset latestTag tfPath
 ```
 
 See [website/docs/index](website/docs/index.html.markdown) for config provider and start add resource
