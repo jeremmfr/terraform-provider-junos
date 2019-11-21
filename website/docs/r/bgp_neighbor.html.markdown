@@ -8,13 +8,13 @@ description: |-
 
 # junos_bgp_neighbor
 
-Provides a bgp neighbor resource.
+Provides a bgp neighbor.
 
 ## Example Usage
 
 ```hcl
 # Configure a bgp neighbor
-resource junos_bgp_neighbor "bgpNeighborDemo" {
+resource junos_bgp_neighbor "bgpneighbordemo" {
   ip               = "192.0.2.4"
   routing_instance = "default"
   group            = "GroupBgpDemo"
@@ -67,37 +67,44 @@ The following arguments are supported:
 * `local_interface` - (Optional)(`String`) Local interface for IPv6 link local EBGP peering.
 * `export` - (Optional)(`ListOfString`) Export policy list.
 * `import` - (Optional)(`ListOfString`) Import policy list.
-* `bfd_liveness_detection` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for define Bidirectional Forwarding Detection (BFD) options.
-  * `authentication_key_chain` - (Optional)(`String`) Authentication key chain name.
-  * `authentication_algorithm` - (Optional)(`String`) Authentication algorithm name.
-  * `authentication_loose_check`  - (Optional)(`Bool`) Verify authentication only if authentication is negotiated.
-  * `detection_time_threshold` - (Optional)(`Int`) High detection-time triggering a trap (milliseconds).
-  * `transmit_interval_threshold` - (Optional)(`Int`) High transmit interval triggering a trap (milliseconds).
-  * `transmit_interval_minimum_interval` - (Optional)(`Int`) Minimum transmit interval (1..255000 milliseconds).
-  * `holddown_interval` - (Optional)(`Int`) Time to hold the session-UP notification to the client (1..255000 milliseconds).
-  * `minimum_interval` - (Optional)(`Int`) Minimum transmit and receive interval (1..255000 milliseconds).
-  * `minimum_receive_interval` - (Optional)(`Int`) Minimum receive interval (1..255000 milliseconds)
-  * `multiplier` - (Optional)(`Int`) Detection time multiplier (1..255).
-  * `session_mode` - (Optional)(`String`) BFD single-hop or multihop session-mode. Need to be 'automatic', 'multihop' or 'single-hop'.
-  * `version` - (Optional)(`String`) BFD protocol version number.
+* `bfd_liveness_detection` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Define Bidirectional Forwarding Detection (BFD) options. See the [`bfd_liveness_detection` configuration](#bfd_liveness_detection-arguments) block. Max of 1.
 * `family_inet` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each nlri_type.
-  * `nlri_type` - (Required)(`String`) NLRI type. Need to be 'any', 'flow', 'labeled-unicast', 'unicast' or 'multicast'.
-  * `accepted_prefix_limit` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for define maximum number of prefixes accepted from a peer and options.
-    * `maximum` - (Required)(`Int`) Maximum number of prefixes accepted from a peer (1..4294967295).
-    * `teardown` - (Optional)(`Int`) Clear peer connection on reaching limit with this percentage of prefix-limit to start warnings.
-    * `teardown_idle_timeout` - (Optional)(`Int`) Timeout before attempting to restart peer.
-    * `teardown_idle_timeout_forever`  - (Optional)(`Bool`) Idle the peer until the user intervenes. ConflictsWith `teardown_idle_timeout`.
-  * `prefix_limit` Same options as `accepted_prefix_limit` but for limit maximum number of prefixes from a peer
-* `family_inet6` Same options as `family_inet` but for inet6 family
-* `graceful_restart` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for define BGP graceful restart options.
-  * `disable` - (Optional)(`Bool`)Disable graceful restart.
-  * `restart_time` - (Optional)(`Int`) Restart time used when negotiating with a peer (1..600).
-  * `stale_route_time` - (Optional)(`Int`) Maximum time for which stale routes are kept (1..600).
+See the [`family_inet` configuration](#family_inet-arguments) block.
+* `family_inet6` Same options as [`family_inet` configuration](#family_inet-arguments)  but for inet6 family
+* `graceful_restart` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Define BGP graceful restart options.See the [`graceful_restart` configuration](#graceful_restart-arguments) block. Max of 1.
+
+#### bfd_liveness_detection arguments
+* `authentication_key_chain` - (Optional)(`String`) Authentication key chain name.
+* `authentication_algorithm` - (Optional)(`String`) Authentication algorithm name.
+* `authentication_loose_check`  - (Optional)(`Bool`) Verify authentication only if authentication is negotiated.
+* `detection_time_threshold` - (Optional)(`Int`) High detection-time triggering a trap (milliseconds).
+* `transmit_interval_threshold` - (Optional)(`Int`) High transmit interval triggering a trap (milliseconds).
+* `transmit_interval_minimum_interval` - (Optional)(`Int`) Minimum transmit interval (1..255000 milliseconds).
+* `holddown_interval` - (Optional)(`Int`) Time to hold the session-UP notification to the client (1..255000 milliseconds).
+* `minimum_interval` - (Optional)(`Int`) Minimum transmit and receive interval (1..255000 milliseconds).
+* `minimum_receive_interval` - (Optional)(`Int`) Minimum receive interval (1..255000 milliseconds)
+* `multiplier` - (Optional)(`Int`) Detection time multiplier (1..255).
+* `session_mode` - (Optional)(`String`) BFD single-hop or multihop session-mode. Need to be 'automatic', 'multihop' or 'single-hop'.
+* `version` - (Optional)(`String`) BFD protocol version number.
+
+#### family_inet arguments
+* `nlri_type` - (Required)(`String`) NLRI type. Need to be 'any', 'flow', 'labeled-unicast', 'unicast' or 'multicast'.
+* `accepted_prefix_limit` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for define maximum number of prefixes accepted from a peer and options.
+  * `maximum` - (Required)(`Int`) Maximum number of prefixes accepted from a peer (1..4294967295).
+  * `teardown` - (Optional)(`Int`) Clear peer connection on reaching limit with this percentage of prefix-limit to start warnings.
+  * `teardown_idle_timeout` - (Optional)(`Int`) Timeout before attempting to restart peer.
+  * `teardown_idle_timeout_forever`  - (Optional)(`Bool`) Idle the peer until the user intervenes. ConflictsWith `teardown_idle_timeout`.
+* `prefix_limit` Same options as [`accepted_prefix_limit`](#accepted_prefix_limit) but for limit maximum number of prefixes from a peer
+
+#### graceful_restart arguments
+* `disable` - (Optional)(`Bool`)Disable graceful restart.
+* `restart_time` - (Optional)(`Int`) Restart time used when negotiating with a peer (1..600).
+* `stale_route_time` - (Optional)(`Int`) Maximum time for which stale routes are kept (1..600).
 
 ## Import
 
 Junos bgp neighbor can be imported using an id made up of `<ip>_-_<routing_instance>_-_<group>`, e.g.
 
 ```
-$ terraform import junos_bgp_neighbor.bgpNeighborDemo 192.0.2.4_-_default_-_GroupBgpDemo
+$ terraform import junos_bgp_neighbor.bgpneighbordemo 192.0.2.4_-_default_-_GroupBgpDemo
 ```

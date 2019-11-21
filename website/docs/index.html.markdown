@@ -9,17 +9,21 @@ description: |-
 # Junos Provider (unofficial)
 
 The Junos provider communicate with Junos device via netconf protocol
-and modify a part of configuration
+and modify a part of configuration.
 
 The provider allows you to manage some elements on Junos device.
-You need to add netconf service :<br/>
-```
+
+You need to add netconf service:</br>
+```text
 set system services netconf ssh
 ```
-and optionally a specific user for netconf:<br/>
-```
+
+and optionally a specific user for netconf:</br>
+```text
 set system login user netconf uid 200?
+
 set system login user netconf class xxxx
+
 set system login user netconf authentication ssh-rsa "xxxx"
 ```
 
@@ -67,21 +71,23 @@ The following arguments are supported in the `provider` block:
 * `group_interface_delete` - (Optional) This is the Junos group used for remove
   configuration on a physical interface
   (exemple if group_interface_delete="interface-NC") :
-  ```
+  ```text
   ge-0/0/3 {
     apply-groups interface-NC;
   }
   ```
+
   When create a resource for this interface, the provider considers the
   interface available if there is this apply-groups and only this line on
   interface. If empty the provider add this configuration on physical interface
   when delete resource :
-  ```
+  ```text
   ge-0/0/2 {
     description NC;
     disable;
   }
   ```
+
   and considers the interface available if the is this lines and only this
   lines on interface. It can also be sourced from the
   `JUNOS_GROUP_INTERFACE_DELETE` environment variable.

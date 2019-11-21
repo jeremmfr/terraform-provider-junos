@@ -8,7 +8,7 @@ description: |-
 
 # junos_application_set
 
-Provides a application set resource.
+Provides a application set.
 
 ## Example Usage
 
