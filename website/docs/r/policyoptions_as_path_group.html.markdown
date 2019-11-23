@@ -14,22 +14,22 @@ Provides a as-path group resource.
 
 ```hcl
 # Add a as-path group
-resource junos_policyoptions_as_path_group "viaCenturyLink" {
+resource junos_policyoptions_as_path_group "via_century_link" {
   name = "viaCenturyLink"
   as_path {
-    name = "qwest"	  
+    name = "qwest"
     path = ".* 209 .*"
   }
   as_path {
-    name = "level3"	  
+    name = "level3"
     path = ".* 3356 .*"
   }
   as_path {
-    name = "level3-bis"	  
+    name = "level3-bis"
     path = ".* 3549 .*"
   }
   as_path {
-    name = "twtc"	  
+    name = "twtc"
     path = ".* 4323 .*"
   }
 }
@@ -50,5 +50,5 @@ The following arguments are supported:
 Junos as-path group can be imported using an id made up of `<name>`, e.g.
 
 ```
-$ terraform import junos_policyoptions_as_path_group.viaCenturyLink viaCenturyLink
+$ terraform import junos_policyoptions_as_path_group.via_century_link viaCenturyLink
 ```

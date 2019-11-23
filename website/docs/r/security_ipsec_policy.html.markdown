@@ -14,7 +14,7 @@ Provides a security ipsec policy resource.
 
 ```hcl
 # Add a ipsec policy
-resource "junos_security_ipsec_policy" "DemoVPNpolicy" {
+resource junos_security_ipsec_policy "demo_vpn_policy" {
   name      = "ipsec-policy"
   proposals = ["ipsec-proposal"]
   pfs_keys  = "group2"
@@ -34,5 +34,5 @@ The following arguments are supported:
 Junos security ipsec policy can be imported using an id made up of `<name>`, e.g.
 
 ```
-$ terraform import junos_security_ipsec_policy.DemoVPNpolicy ipsec-policy
+$ terraform import junos_security_ipsec_policy.demo_vpn_policy ipsec-policy
 ```

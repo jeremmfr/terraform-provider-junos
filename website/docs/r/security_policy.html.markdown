@@ -14,7 +14,7 @@ Provides a security policy resource.
 
 ```hcl
 # Add a security policy
-resource "junos_security_policy" "DemoPolicy" {
+resource junos_security_policy "demo_policy" {
   from_zone = "trust"
   to_zone   = "untrust"
   policy {
@@ -49,5 +49,5 @@ The following arguments are supported:
 Junos security policy can be imported using an id made up of `<from_zone>_-_<to_zone>`, e.g.
 
 ```
-$ terraform import junos_security_zone.DemoPolicy trust_-_untrust
+$ terraform import junos_security_zone.demo_policy trust_-_untrust
 ```

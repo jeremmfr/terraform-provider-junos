@@ -8,12 +8,12 @@ description: |-
 
 # junos_application_set
 
-Provides a application set.
+Provides a set of applications resource.
 
 ## Example Usage
 
 ```hcl
-# Add a set of application
+# Add a set of applications
 resource junos_application_set "ssh_telnet" {
   name         = "ssh_telnet"
   applications = ["junos-ssh", "junos-telnet"]

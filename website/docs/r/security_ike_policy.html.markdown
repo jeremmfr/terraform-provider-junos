@@ -14,7 +14,7 @@ Provides a security ike policy resource.
 
 ```hcl
 # Add a ike policy
-resource "junos_security_ike_policy" "DemoVPNpolicy" {
+resource junos_security_ike_policy "demo_vpn_policy" {
   name                = "ike-policy"
   proposals           = ["ike-proposal"]
   pre_shared_key_text = "theKey"
@@ -29,14 +29,14 @@ The following arguments are supported:
 * `proposals` - (Required)(`ListOfString`) Ike proposals list.
 * `mode` - (Optional)(`String`) IKE mode for Phase 1. Default to `main`. Need to 'main' or 'aggressive'.
 * `pre_shared_key_text` - (Optional)(`String`) Preshared key wit format as text.
->**WARNING** Clear in tfstate.
+**WARNING** Clear in tfstate.
 * `pre_shared_key_hexa` - (Optional)(`String`) Preshared key wit format as hexa.
->**WARNING** Clear in tfstate.
+**WARNING** Clear in tfstate.
 
 ## Import
 
 Junos security ike policy can be imported using an id made up of `<name>`, e.g.
 
 ```
-$ terraform import junos_security_ike_policy.DemoVPNpolicy ike-policy
+$ terraform import junos_security_ike_policy.demo_vpn_policy ike-policy
 ```

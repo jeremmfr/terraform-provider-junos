@@ -6,7 +6,7 @@ description: |-
   Add a tunnel pair policy options in each policy (when Junos device supports it)
 ---
 
-# junos_security_policy
+# junos_security_policy_tunnel_pair_policy
 
 Provides a tunnel pair policy resource options in each policy.
 
@@ -14,7 +14,7 @@ Provides a tunnel pair policy resource options in each policy.
 
 ```hcl
 # Add a tunnel pair policy
-resource "junos_security_policy_tunnel_pair_policy" "DemoPair" {
+resource junos_security_policy_tunnel_pair_policy "demo_pair" {
   zone_a        = "trust"
   zone_b        = "untrust"
   policy_a_to_b = "trust_to_untrust"
@@ -38,5 +38,5 @@ All arguments forces new resource
 Junos security policy can be imported using an id made up of `<zone_a>_-_<policy_a_to_b>_-_<zone_b>_-_<policy_b_to_a>`, e.g.
 
 ```
-$ terraform import junos_security_policy_tunnel_pair_policy.DemoDemoPair trust_-_trust_to_untrust_-_untrust_-_untrust_to_trust
+$ terraform import junos_security_policy_tunnel_pair_policy.demo_pair trust_-_trust_to_untrust_-_untrust_-_untrust_to_trust
 ```

@@ -8,7 +8,7 @@ description: |-
 
 # junos_application
 
-Provides a application.
+Provides a application resource.
 
 ## Example Usage
 

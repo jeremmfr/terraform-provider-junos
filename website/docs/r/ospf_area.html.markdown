@@ -14,7 +14,7 @@ Provides a ospf area resource.
 
 ```hcl
 # Add a ospf area
-resource junos_ospf_area "demoArea" {
+resource junos_ospf_area "demo_area" {
   area_id = "0.0.0.0"
   interface {
     name = "all"
@@ -43,5 +43,5 @@ The following arguments are supported:
 Junos ospf area can be imported using an id made up of `<aread_id>_-_<version>_-_<routing_instance>`, e.g.
 
 ```
-$ terraform import junos_ospf_area.demoArea 0.0.0.0_-_v2_-_default
+$ terraform import junos_ospf_area.demo_area 0.0.0.0_-_v2_-_default
 ```

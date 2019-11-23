@@ -36,8 +36,8 @@ Use the navigation to the left to read about the available resources.
 ```hcl
 # Configure the Junos Provider
 provider "junos" {
-  ip         = "${var.junos_ip_or_dns}"
-  sshkeyfile = "${var.ssh_key_path}"
+  ip         = var.junos_ip_or_dns
+  sshkeyfile = var.ssh_key_path
 }
 
 # Configure an interface

@@ -1,12 +1,12 @@
 ---
 layout: "junos"
-page_title: "Junos: junos_security_static_route"
-sidebar_current: "docs-junos-resource-security-static-route"
+page_title: "Junos: junos_static_route"
+sidebar_current: "docs-junos-resource-static-route"
 description: |-
   Create a static route for destination
 ---
 
-# junos_security_static_route
+# junos_static_route
 
 Provides a static route resource for destination.
 
@@ -14,7 +14,7 @@ Provides a static route resource for destination.
 
 ```hcl
 # Add a static route
-resource "junos_security_static_route" "DemoStaticRoute" {
+resource junos_static_route "demo_static_route" {
   destination      = "192.0.2.0/25"
   routing_instance = "prod-vr"
   next_hop         = ["st0.0"]
@@ -40,5 +40,5 @@ The following arguments are supported:
 Junos static route can be imported using an id made up of `<destination>_-_<routing_instance>`, e.g.
 
 ```
-$ terraform import junos_security_static_route.DemoStaticRoute 192.0.2.0/25_-_prod-vr
+$ terraform import junos_static_route.demo_static_route 192.0.2.0/25_-_prod-vr
 ```

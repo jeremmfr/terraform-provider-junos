@@ -14,9 +14,9 @@ Provides a security pool resource for source nat.
 
 ```hcl
 # Add a source nat pool
-resource "junos_security_nat_source_pool" "DemoSNatPool" {
+resource junos_security_nat_source_pool "demo_snat_pool" {
   name    = "ip_external"
-  address = "192.0.2.129/32"
+  address = ["192.0.2.129/32"]
 }
 ```
 
@@ -25,7 +25,7 @@ resource "junos_security_nat_source_pool" "DemoSNatPool" {
 The following arguments are supported:
 
 * `name` - (Required, Forces new resource)(`String`) The name of source nat pool.
-* `address` - (Required)(`String`) The IP/mask for source nat pool.
+* `address` - (Required)(`ListofString`) List of IP/mask for source nat pool.
 * `routing_instance` - (Optional)(`String`) Name of routing instance for switch with nat
 * `port_no_translation` - (Optional)(`Bool`) Do not perform port translation
 * `port_overloading_factor` - (Optional)(`Int`) Port overloading factor for each IP
@@ -36,5 +36,5 @@ The following arguments are supported:
 Junos security nat source pool can be imported using an id made up of `<name>`, e.g.
 
 ```
-$ terraform import junos_security_nat_source_pool.DemoSNatPool ip_external
+$ terraform import junos_security_nat_source_pool.demo_snat_pool ip_external
 ```

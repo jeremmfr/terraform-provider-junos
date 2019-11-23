@@ -14,13 +14,13 @@ Provides a security ipsec vpn resource.
 
 ```hcl
 # Add a route-based ipsec vpn
-resource "junos_security_ipsec_vpn" "DemoVPN" {
-  name = "first-vpn"
-  establish_tunnels = "immediately"
+resource junos_security_ipsec_vpn "demo_vpn" {
+  name                = "first-vpn"
+  establish_tunnels   = "immediately"
   bind_interface_auto = true
   ike {
     gateway = "ike-gateway"
-    policy = "ipsec-policy"
+    policy  = "ipsec-policy"
   }
 }
 ```
@@ -51,5 +51,5 @@ The following arguments are supported:
 Junos security ipsec vpn can be imported using an id made up of `<name>`, e.g.
 
 ```
-$ terraform import junos_security_ipsec_vpn.DemoVPN first-vpn
+$ terraform import junos_security_ipsec_vpn.demo_vpn first-vpn
 ```

@@ -14,9 +14,9 @@ Provides a community BGP resource.
 
 ```hcl
 # Add a community
-resource junos_policyoptions_community "communityDemo" {
+resource junos_policyoptions_community "community_demo" {
   name    = "communityDemo"
-  members = [ "65000:100" ]
+  members = ["65000:100"]
 }
 ```
 
@@ -33,5 +33,5 @@ The following arguments are supported:
 Junos community can be imported using an id made up of `<name>`, e.g.
 
 ```
-$ terraform import junos_policyoptions_community.communityDemo communityDemo
+$ terraform import junos_policyoptions_community.community_demo communityDemo
 ```

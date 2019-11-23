@@ -14,7 +14,7 @@ Provides a prefix list resource.
 
 ```hcl
 # Add a prefix list
-resource "junos_policyoptions_prefix_list" "DemoPList" {
+resource junos_policyoptions_prefix_list "demo_plist" {
   name   = "DemoPList"
   prefix = ["192.0.2.0/25"]
 }
@@ -32,5 +32,5 @@ The following arguments are supported:
 Junos prefix list can be imported using an id made up of `<name>`, e.g.
 
 ```
-$ terraform import junos_policyoptions_prefix_list.DemoPList DemoPList
+$ terraform import junos_policyoptions_prefix_list.demo_plist DemoPList
 ```

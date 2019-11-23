@@ -14,7 +14,7 @@ Provides a security pool resource for destination nat.
 
 ```hcl
 # Add a destination nat pool
-resource "junos_security_nat_destination_pool" "DemoDNatPool" {
+resource junos_security_nat_destination_pool "demo_dnat_pool" {
   name    = "ip_internal"
   address = "192.0.2.2/32"
 }
@@ -35,5 +35,5 @@ The following arguments are supported:
 Junos security nat destination pool can be imported using an id made up of `<name>`, e.g.
 
 ```
-$ terraform import junos_security_nat_destination_pool.DemoDNatPool ip_internal
+$ terraform import junos_security_nat_destination_pool.demo_dnat_pool ip_internal
 ```

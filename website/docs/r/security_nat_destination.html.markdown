@@ -14,11 +14,11 @@ Provides a security destination nat resource.
 
 ```hcl
 # Add a destination nat
-resource "junos_security_nat_destination" "DemoDNat" {
+resource junos_security_nat_destination "demo_dnat" {
   name = "dnat_from_untrust"
   from {
-   type  = "zone"
-   value = ["untrust"]
+    type  = "zone"
+    value = ["untrust"]
   }
   rule {
     name                = "nat_192_0_2_129"
@@ -39,17 +39,19 @@ The following arguments are supported:
 * `from` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'from' configuration.
   * `type` - (Required)(`String`) Type of from options. Need to be 'interface', 'routing-instance' or 'zone'
   * `value`  - (Required)(`String`) Name of interface, routing-instance or zone for from options
-* `rule` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each rule to declare.
-  * `name` - (Required)(`String`) Name of rule
-  * `destination_address` - (Required)(`String`) CIDR for match destination address
-  * `then` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'then' configuration.
-    * `type` - (Required)(`String`) Type of destination nat. Need to be 'pool' or 'off'
-    * `pool` - (Optional)(`String`) Name of nat destination pool when type pool
+* `rule` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each rule to declare. See the [`rule` arguments](#rule-arguments) block.
+
+#### `rule` arguments
+* `name` - (Required)(`String`) Name of rule
+* `destination_address` - (Required)(`String`) CIDR for match destination address
+* `then` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'then' action.
+  * `type` - (Required)(`String`) Type of destination nat. Need to be 'pool' or 'off'
+  * `pool` - (Optional)(`String`) Name of nat destination pool when type pool
 
 ## Import
 
 Junos security nat destination can be imported using an id made up of `<name>`, e.g.
 
 ```
-$ terraform import junos_security_nat_destination.DemoDNat dnat_from_untrust
+$ terraform import junos_security_nat_destination.demo_dnat dnat_from_untrust
 ```

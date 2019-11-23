@@ -14,7 +14,7 @@ Provides a vlan resource.
 
 ```hcl
 # Add a vlan
-resource "junos_vlan" "blue" {
+resource junos_vlan "blue" {
   name        = "blue"
   description = "blue-10"
   vlan_id     = 10
@@ -39,7 +39,7 @@ The following arguments are supported:
 * `forward_flood_input` - (Optional)(`String`) input filter to apply for ethernet switching flood packets (when Junos device supports it)
 * `private_vlan` - (Optional)(`String`) Type of secondary vlan for private vlan. Must be 'community' or 'isolated' (when Junos device supports it)
 * `isolated-vlan` - (Optional)(`Int`) declare ID isolated vlan for primary vlan (when Junos device supports it)
-* `community_vlans-vlan` - (Optional)(`ListOfInt`) List of ID community vlan for primary vlan (when Junos device supports it)
+* `community_vlans` - (Optional)(`ListOfInt`) List of ID community vlan for primary vlan (when Junos device supports it)
 * `vxlan` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare vxlan configuration (when Junos device supports it).
   * `vni` - (Required)(`Int`) VXLAN identifier
   * `encapsulate_inner_vlan` - (Optional)(`Bool`) Retain inner VLAN in the packet

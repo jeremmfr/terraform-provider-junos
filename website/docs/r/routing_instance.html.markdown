@@ -1,12 +1,12 @@
 ---
 layout: "junos"
-page_title: "Junos: junos_security_routing_instance"
-sidebar_current: "docs-junos-resource-security-routing-instance"
+page_title: "Junos: junos_routing_instance"
+sidebar_current: "docs-junos-resource-routing-instance"
 description: |-
   Create a routing instance
 ---
 
-# junos_security_routing_instance
+# junos_routing_instance
 
 Provides a routing instance resource.
 
@@ -14,7 +14,7 @@ Provides a routing instance resource.
 
 ```hcl
 # Add a routing instance
-resource "junos_security_routing_instance" "DemoRI" {
+resource junos_routing_instance "demo_ri" {
   name = "prod-vr"
 }
 ```
@@ -32,5 +32,5 @@ The following arguments are supported:
 Junos routing instance can be imported using an id made up of `<name>`, e.g.
 
 ```
-$ terraform import junos_security_routing_instance.DemoRI prod-vr
+$ terraform import junos_routing_instance.demo_ri prod-vr
 ```

@@ -14,11 +14,11 @@ Provides a security source nat resource.
 
 ```hcl
 # Add a source nat
-resource "junos_security_nat_source" "DemoSNat" {
+resource junos_security_nat_source "demo_snat" {
   name = "nat_from_trust_to_untrust"
   from {
-   type  = "zone"
-   value = ["trust"]
+    type  = "zone"
+    value = ["trust"]
   }
   to {
     type  = "zone"
@@ -46,22 +46,24 @@ The following arguments are supported:
   * `type` - (Required)(`String`) Type of from options. Need to be 'interface', 'routing-instance' or 'zone'
   * `value`  - (Required)(`String`) Name of interface, routing-instance or zone for from options
 * `to` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'to' configuration.
-    * `type` - (Required)(`String`) Type of to options. Need to be 'interface', 'routing-instance' or 'zone'
-    * `value`  - (Required)(`String`) Name of interface, routing-instance or zone for to options
-* `rule` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each rule to declare.
-  * `name` - (Required)(`String`) Name of rule
-  * `match` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'match' configuration.
-    * `source_address` - (Optional)(`ListOfString`) CIDR list to match source address
-    * `destination_address` - (Optional)(`ListOfString`) CIDR list to match destination address
-    * `protocol` - (Optional)(`ListOfString`) Protocol list to match
-  * `then` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'then' configuration.
-    * `type` - (Required)(`String`) Type of source nat. Need to be 'interface', 'pool' or 'off'
-    * `pool` - (Optional)(`String`) Name of nat source pool when type pool
+  * `type` - (Required)(`String`) Type of to options. Need to be 'interface', 'routing-instance' or 'zone'
+  * `value`  - (Required)(`String`) Name of interface, routing-instance or zone for to options
+* `rule` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each rule to declare. See the [`rule` arguments](#rule-arguments) block.
+
+#### `rule` arguments
+* `name` - (Required)(`String`) Name of rule
+* `match` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'match' configuration.
+  * `source_address` - (Optional)(`ListOfString`) CIDR list to match source address
+  * `destination_address` - (Optional)(`ListOfString`) CIDR list to match destination address
+  * `protocol` - (Optional)(`ListOfString`) Protocol list to match
+* `then` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'then' configuration.
+  * `type` - (Required)(`String`) Type of source nat. Need to be 'interface', 'pool' or 'off'
+  * `pool` - (Optional)(`String`) Name of nat source pool when type pool
 
 ## Import
 
 Junos security nat source can be imported using an id made up of `<name>`, e.g.
 
 ```
-$ terraform import junos_security_nat_source.DemoSNat nat_from_trust_to_untrust
+$ terraform import junos_security_nat_source.demo_snat nat_from_trust_to_untrust
 ```

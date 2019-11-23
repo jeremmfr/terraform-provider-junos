@@ -14,12 +14,12 @@ Provides a firewall policer resource.
 
 ```hcl
 # Configure a firewall policer
-resource junos_firewall_policer policerDemo {
-  name = "policerDemo"
+resource junos_firewall_policer "policer_demo" {
+  name            = "policerDemo"
   filter_specific = true
   if_exceeding {
     bandwidth_percent = 80
-    burst_size_limit = "50k"
+    burst_size_limit  = "50k"
   }
   then {
     discard = true
@@ -48,5 +48,5 @@ The following arguments are supported:
 Junos firewall policer can be imported using an id made up of `<name>`, e.g.
 
 ```
-$ terraform import junos_firewall_policer.policerDemo policerDemo
+$ terraform import junos_firewall_policer.policer_demo policerDemo
 ```

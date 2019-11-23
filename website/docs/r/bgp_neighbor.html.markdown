@@ -8,7 +8,7 @@ description: |-
 
 # junos_bgp_neighbor
 
-Provides a bgp neighbor.
+Provides a bgp neighbor resource.
 
 ## Example Usage
 
@@ -62,18 +62,19 @@ The following arguments are supported:
 * `preference` - (Optional)(`Int`) Preference value
 * `authentication_algorithm` - (Optional)(`String`) Authentication algorithm name. ConflictsWith `authentication_key`.
 * `authentication_key` - (Optional)(`String`) MD5 authentication key. ConflictsWith `authentication_*`.
+**WARNING** Clear in tfstate.
 * `authentication_key_chain` - (Optional)(`String`) Key chain name. ConflictsWith `authentication_key`.
 * `local_address` - (Optional)(`String`) Address of local end of BGP session.
 * `local_interface` - (Optional)(`String`) Local interface for IPv6 link local EBGP peering.
 * `export` - (Optional)(`ListOfString`) Export policy list.
 * `import` - (Optional)(`ListOfString`) Import policy list.
-* `bfd_liveness_detection` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Define Bidirectional Forwarding Detection (BFD) options. See the [`bfd_liveness_detection` configuration](#bfd_liveness_detection-arguments) block. Max of 1.
+* `bfd_liveness_detection` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Define Bidirectional Forwarding Detection (BFD) options. See the [`bfd_liveness_detection` arguments](#bfd_liveness_detection-arguments) block. Max of 1.
 * `family_inet` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each nlri_type.
-See the [`family_inet` configuration](#family_inet-arguments) block.
-* `family_inet6` Same options as [`family_inet` configuration](#family_inet-arguments)  but for inet6 family
-* `graceful_restart` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Define BGP graceful restart options.See the [`graceful_restart` configuration](#graceful_restart-arguments) block. Max of 1.
+See the [`family_inet` arguments](#family_inet-arguments) block.
+* `family_inet6` Same options as [`family_inet` arguments](#family_inet-arguments)  but for inet6 family
+* `graceful_restart` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Define BGP graceful restart options.See the [`graceful_restart` arguments](#graceful_restart-arguments) block. Max of 1.
 
-#### bfd_liveness_detection arguments
+#### `bfd_liveness_detection` arguments
 * `authentication_key_chain` - (Optional)(`String`) Authentication key chain name.
 * `authentication_algorithm` - (Optional)(`String`) Authentication algorithm name.
 * `authentication_loose_check`  - (Optional)(`Bool`) Verify authentication only if authentication is negotiated.
@@ -87,7 +88,9 @@ See the [`family_inet` configuration](#family_inet-arguments) block.
 * `session_mode` - (Optional)(`String`) BFD single-hop or multihop session-mode. Need to be 'automatic', 'multihop' or 'single-hop'.
 * `version` - (Optional)(`String`) BFD protocol version number.
 
-#### family_inet arguments
+#### `family_inet` arguments
+Also for `family_inet6`
+
 * `nlri_type` - (Required)(`String`) NLRI type. Need to be 'any', 'flow', 'labeled-unicast', 'unicast' or 'multicast'.
 * `accepted_prefix_limit` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for define maximum number of prefixes accepted from a peer and options.
   * `maximum` - (Required)(`Int`) Maximum number of prefixes accepted from a peer (1..4294967295).
@@ -96,7 +99,7 @@ See the [`family_inet` configuration](#family_inet-arguments) block.
   * `teardown_idle_timeout_forever`  - (Optional)(`Bool`) Idle the peer until the user intervenes. ConflictsWith `teardown_idle_timeout`.
 * `prefix_limit` Same options as [`accepted_prefix_limit`](#accepted_prefix_limit) but for limit maximum number of prefixes from a peer
 
-#### graceful_restart arguments
+#### `graceful_restart` arguments
 * `disable` - (Optional)(`Bool`)Disable graceful restart.
 * `restart_time` - (Optional)(`Int`) Restart time used when negotiating with a peer (1..600).
 * `stale_route_time` - (Optional)(`Int`) Maximum time for which stale routes are kept (1..600).

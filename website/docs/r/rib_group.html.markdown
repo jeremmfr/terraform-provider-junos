@@ -1,12 +1,12 @@
 ---
 layout: "junos"
-page_title: "Junos: junos_security_rib_group"
-sidebar_current: "docs-junos-resource-security-rib-group"
+page_title: "Junos: junos_rib_group"
+sidebar_current: "docs-junos-resource-rib-group"
 description: |-
   Create a rib group
 ---
 
-# junos_security_rib_group
+# junos_rib_group
 
 Provides a rib group resource.
 
@@ -14,7 +14,7 @@ Provides a rib group resource.
 
 ```hcl
 # Add a rib group
-resource "junos_security_rib_group" "DemoRIB" {
+resource junos_rib_group "demo_rib" {
   name          = "prod"
   import_policy = ["policy-import-rib"]
   import_rib    = ["prod-vr.inet.0", "externe-vr.inet.0"]
@@ -35,5 +35,5 @@ The following arguments are supported:
 Junos rib group can be imported using an id made up of `<name>`, e.g.
 
 ```
-$ terraform import junos_security_rib_group.DemoRIB prod
+$ terraform import junos_rib_group.demo_rib prod
 ```

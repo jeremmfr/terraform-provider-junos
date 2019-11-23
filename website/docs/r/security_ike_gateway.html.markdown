@@ -14,7 +14,7 @@ Provides a security ike gateway resource.
 
 ```hcl
 # Add a ike gateway
-resource "junos_security_ike_gateway" "DemoVPNP1" {
+resource junos_security_ike_gateway "demo_vpn_p1" {
   name               = "first-vpn"
   address            = ["192.0.2.1"]
   policy             = "ike-policy"
@@ -49,5 +49,5 @@ The following arguments are supported:
 Junos security ike gateway can be imported using an id made up of `<name>`, e.g.
 
 ```
-$ terraform import junos_security_ike_gateway.DemoVPNP1 first-vpn
+$ terraform import junos_security_ike_gateway.demo_vpn_p1 first-vpn
 ```

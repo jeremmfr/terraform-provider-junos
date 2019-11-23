@@ -14,7 +14,7 @@ Provides a security ike proposal resource.
 
 ```hcl
 # Add a ike proposal
-resource "junos_security_ike_proposal" "DemoVPNproposal" {
+resource junos_security_ike_proposal "demo_vpn_proposal" {
   name                     = "ike-proposal"
   authentication_algorithm = "sha1"
   encryption_algorithm     = "aes-128-cbc"
@@ -38,5 +38,5 @@ The following arguments are supported:
 Junos security ike proposal can be imported using an id made up of `<name>`, e.g.
 
 ```
-$ terraform import junos_security_ike_proposal.DemoVPNproposal ike-proposal
+$ terraform import junos_security_ike_proposal.demo_vpn_proposal ike-proposal
 ```

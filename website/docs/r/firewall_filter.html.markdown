@@ -8,7 +8,7 @@ description: |-
 
 # junos_firewall_filter
 
-Provides a firewall filter.
+Provides a firewall filter resource.
 
 ## Example Usage
 
@@ -20,9 +20,9 @@ resource junos_firewall_filter "filterdemo" {
   term {
     name = "filterDemo_term1"
     from {
-      port        = [ "22" ]
-      prefix_list = [ "prefixList1" ]
-      protocol    = [ "tcp" ]
+      port        = ["22"]
+      prefix_list = ["prefixList1"]
+      protocol    = ["tcp"]
     }
     then {
       action = "accept"
@@ -42,10 +42,10 @@ The following arguments are supported:
   * `name` - (Required)(`String`) Name of term.
   * `filter` - (Optional)(`String`) Filter to include.
   * `from` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Define match criteria.
-  See the [`from` configuration](#from-arguments) block. Max of 1.
-  * `then` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Define action to take if the 'from' condition is matched. See the [`then` configuration](#then-arguments) block. Max of 1.
+  See the [`from` arguments](#from-arguments) block. Max of 1.
+  * `then` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Define action to take if the `from` condition is matched. See the [`then` arguments](#then-arguments) block. Max of 1.
 
-#### From arguments
+#### `from` arguments
   * `address` - (Optional)(`ListOfString`) Match IP source or destination address.
   * `address_except` - (Optional)(`ListOfString`) Match address not in this list of prefix.
   * `port` - (Optional)(`ListOfString`) Match TCP/UDP source or destination port
@@ -72,7 +72,7 @@ The following arguments are supported:
   * `icmp_type` - (Optional)(`ListOfString`) Match ICMP message type.
   * `icmp_type_except` - (Optional)(`ListOfString`) Do not match ICMP message type.
 
-#### Then arguments
+#### `then` arguments
   * `action` - (Optional)(`String`) Action for term if needed. Need to be 'accept', 'reject', 'discard' or 'next term'.
   * `count` - (Optional)(`String`) Count the packet in the named counter.
   * `routing_instance` - (Optional)(`String`) Packets are directed to specified routing stance.
