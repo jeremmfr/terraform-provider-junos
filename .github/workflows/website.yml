@@ -1,5 +1,8 @@
 name: Website
-on: push
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   deploy:
