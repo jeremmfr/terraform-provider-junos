@@ -11,8 +11,8 @@ jobs:
       - name: Clone original Terraform Website
         run: git clone https://github.com/hashicorp/terraform-website.git /tmp/terraform-website
       - name: Copy necessary files and cie
+        working-directory: ./.terraform-website/
         run: |
-          cd .terraform-website/
           cp /tmp/terraform-website/content/config.rb .
           cp /tmp/terraform-website/content/Gemfile .
           cp /tmp/terraform-website/content/Gemfile.lock .
@@ -25,15 +25,17 @@ jobs:
         with:
           ruby-version: "2.x"
       - name: Install middleman
+        working-directory: ./.terraform-website/
         run: |
           gem install bundler
           bundle install --jobs 4 --retry 3
       - name: Build Website
+        working-directory: ./.terraform-website/
         run: bundle exec middleman build --verbose
       - name: Upload Website on S3
         uses: actions/aws/cli@master
         with:
-          args: s3 sync build/ s3://terraform-provider-junos.jeremm.fr/ --delete --recursive
+          args: s3 sync .terraform-website/build/ s3://terraform-provider-junos.jeremm.fr/ --delete --recursive
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
