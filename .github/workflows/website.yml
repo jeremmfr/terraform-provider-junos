@@ -17,8 +17,8 @@ jobs:
           cp /tmp/terraform-website/content/Gemfile .
           cp /tmp/terraform-website/content/Gemfile.lock .
           cp /tmp/terraform-website/content/middleman_helpers.rb .
-          cp -r /tmp/terraform-website/content/assets ./source/
-          cp /tmp/terraform-website/content/layouts/inner.erb ./source/layouts/
+          cp -r /tmp/terraform-website/content/source/assets ./source/
+          cp /tmp/terraform-website/content/source/layouts/inner.erb ./source/layouts/
           echo "redirect 'index.html', to: 'docs/providers/junos/index.html'" >> config.rb
       - name: Setup ruby
         uses: actions/setup-ruby@v1
