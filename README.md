@@ -4,6 +4,7 @@ terraform-provider-junos
 [![Go Status](https://github.com/jeremmfr/terraform-provider-junos/workflows/Go%20Tests/badge.svg)](https://github.com/jeremmfr/terraform-provider-junos/actions)
 [![Lint Status](https://github.com/jeremmfr/terraform-provider-junos/workflows/GolangCI-Lint/badge.svg)](https://github.com/jeremmfr/terraform-provider-junos/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/jeremmfr/terraform-provider-junos)](https://goreportcard.com/report/github.com/jeremmfr/terraform-provider-junos)
+[![Website](https://img.shields.io/badge/doc-website-lightgrey)](https://terraform-provider-junos.jeremm.fr/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/jeremmfr/terraform-provider-junos/blob/master/LICENSE)
 <br/><br/>
 This is an **unofficial** terraform provider for Junos devices with netconf protocol
@@ -25,8 +26,6 @@ $ go build -o ${tfPath}/terraform-provider-junos_${latestTag}
 $ unset latestTag tfPath
 ```
 
-See [website/docs/index](website/docs/index.html.markdown) for config provider and start add resource
-
-See [website/docs/r/](https://github.com/jeremmfr/terraform-provider-junos/tree/master/website/docs/r) directory for resources documentation.
+See [website](https://terraform-provider-junos.jeremm.fr/) for provider and resources documentation.
 
 Some Junos parameters are not included in provider for various reasons (time, utility, understanding, ...)

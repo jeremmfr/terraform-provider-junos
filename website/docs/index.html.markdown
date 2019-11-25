@@ -13,7 +13,9 @@ and modify a part of configuration.
 
 The provider allows you to manage some elements on Junos device.
 
-You need to add netconf service:
+For provider installation see [source on github](https://github.com/jeremmfr/terraform-provider-junos)
+
+You need to add netconf service on your Junos device:
 
 ```text
 set system services netconf ssh

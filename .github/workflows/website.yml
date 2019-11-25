@@ -1,0 +1,39 @@
+name: Website
+on: push
+
+jobs:
+  deploy:
+    name: Deploy Website
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+      - name: Clone original Terraform Website
+        run: git clone https://github.com/hashicorp/terraform-website.git /tmp/terraform-website
+      - name: Copy necessary files and cie
+        run: |
+          cd .terraform-website/
+          cp /tmp/terraform-website/content/config.rb .
+          cp /tmp/terraform-website/content/Gemfile .
+          cp /tmp/terraform-website/content/Gemfile.lock .
+          cp /tmp/terraform-website/content/middleman_helpers.rb .
+          cp -r /tmp/terraform-website/content/assets ./source/
+          cp /tmp/terraform-website/content/layouts/inner.erb ./source/layouts/
+          echo "redirect 'index.html', to: 'docs/providers/junos/index.html'" >> config.rb
+      - name: Setup ruby
+        uses: actions/setup-ruby@v1
+        with:
+          ruby-version: "2.x"
+      - name: Install middleman
+        run: |
+          gem install bundler
+          bundle install --jobs 4 --retry 3
+      - name: Build Website
+        run: bundle exec middleman build --verbose
+      - name: Upload Website on S3
+        uses: actions/aws/cli@master
+        with:
+          - args: s3 sync build/ s3://terraform-provider-junos.jeremm.fr/ --delete --recursive
+          - secrets:
+              - AWS_ACCESS_KEY_ID
+              - AWS_SECRET_ACCESS_KEY
