@@ -14,7 +14,8 @@ jobs:
           if [[ ! -f website/docs/r/${resource}.html.markdown ]] ; then \
           missing+="${resource} " ; \
           fi ; \
-          done
+          done ;
+          echo ${missing}
       - name: Test results of last step
         run: |
           if [[ ${missing} != "" ]] ; then \
