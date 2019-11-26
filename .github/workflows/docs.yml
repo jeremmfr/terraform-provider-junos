@@ -1,4 +1,4 @@
-name: Docs Tests
+name: Docs
 on: [push, pull_request]
 jobs:
   website:
