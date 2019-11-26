@@ -42,7 +42,7 @@ jobs:
           go-version: 1.13
         id: go
 
-      - name: Check out code into the Go module directory
+      - name: Check out code
         uses: actions/checkout@v1
       - name: Set env
         run: |
