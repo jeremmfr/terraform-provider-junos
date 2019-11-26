@@ -1,9 +1,8 @@
 name: Website
 on:
   push:
-    branches:
-      - master
-
+    tags:
+      - "v*"
 jobs:
   deploy:
     name: Deploy Website
