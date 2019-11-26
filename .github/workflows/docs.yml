@@ -1,0 +1,20 @@
+name: Docs
+on: [push, pull_request]
+jobs:
+  website:
+    name: Website files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v1
+      - name: List resource files and Test Website Files exists
+        run: |
+          missing=""
+          for resource in $(ls junos/resource_*.go | grep -v "_test.go$" | cut -d'/' -f2 | cut -d'.' -f1 | sed 's/^resource_//' ) ; do \
+          if [[ ! -f website/docs/r/${resource}.html.markdown ]] ; then \
+          missing+="${resource} " ; \
+          fi ; \
+          done
+          if [[ ${missing} != "" ]] ; then \
+          echo "Missing documentation for ${missing}" ; exit 1 ; \
+          fi
