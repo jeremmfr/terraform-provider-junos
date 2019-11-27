@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// Session information for connect to Junos Device
 type Session struct {
 	junosPort        int
 	junosSleep       int
