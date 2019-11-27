@@ -5,6 +5,7 @@ import (
 	"strconv"
 )
 
+// Config : provider config
 type Config struct {
 	junosPort        int
 	junosIP          string
@@ -14,6 +15,7 @@ type Config struct {
 	junosGroupIntDel string
 }
 
+// Session : read session information for Junos Device
 func (c *Config) Session() (*Session, error) {
 	junosLogFile, _ := os.LookupEnv("TFJUNOS_LOG_PATH")
 	var junosSleep, junosSleepShort int

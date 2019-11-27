@@ -25,6 +25,7 @@ var (
 	rpcClose           = "<close-session/>"
 )
 
+// NetconfObject : store Junos device info and session
 type NetconfObject struct {
 	Session        *netconf.Session
 	Hostname       string
@@ -33,6 +34,7 @@ type NetconfObject struct {
 	CommitTimeout  time.Duration
 }
 
+// RoutingEngine: store Platform information
 type RoutingEngine struct {
 	Model   string
 	Version string
