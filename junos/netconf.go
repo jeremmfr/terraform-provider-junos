@@ -34,7 +34,7 @@ type NetconfObject struct {
 	CommitTimeout  time.Duration
 }
 
-// RoutingEngine: store Platform information
+// RoutingEngine : store Platform information
 type RoutingEngine struct {
 	Model   string
 	Version string
