@@ -10,8 +10,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@master
-      - name: Set env
+      - name: Set env RELEASE_VERSION
         run: echo ::set-env name=RELEASE_VERSION::$(echo ${GITHUB_REF} | cut -d'/' -f3)
+      - name: Set env MESSAGE
+        run: echo ::set-env name=MESSAGE::$(git tag -l --format='%(contents)' ${RELEASE_VERSION})
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -20,6 +22,7 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: ${{ env.RELEASE_VERSION }}
+          body: ${{ env.MESSAGE }}
           draft: false
           prerelease: false
 
