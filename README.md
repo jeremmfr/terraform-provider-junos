@@ -9,10 +9,20 @@ terraform-provider-junos
 <br/><br/>
 This is an **unofficial** terraform provider for Junos devices with netconf protocol
 
+See [website](https://terraform-provider-junos.jeremm.fr/) for provider and resources documentation.
+
 Requirements
 ------------
 -	[Terraform](https://www.terraform.io/downloads.html) 0.12.x
 -	[Go](https://golang.org/doc/install) 1.13 (to build the provider plugin)
+
+Install (without build)
+-----------------------
+Download latest version in [releases](https://github.com/jeremmfr/terraform-provider-junos/releases)
+```
+$ tfPath=$(which terraform | rev | cut -d'/' -f2- | rev)
+$ tar -zxvf terraform-provider-junos*.tar.gz -C ${tfPath}
+```
 
 Building The Provider
 ---------------------
@@ -25,7 +35,5 @@ $ tfPath=$(which terraform | rev | cut -d'/' -f2- | rev)
 $ go build -o ${tfPath}/terraform-provider-junos_${latestTag}
 $ unset latestTag tfPath
 ```
-
-See [website](https://terraform-provider-junos.jeremm.fr/) for provider and resources documentation.
 
 Some Junos parameters are not included in provider for various reasons (time, utility, understanding, ...)
