@@ -516,6 +516,12 @@ func resourceInterfaceRead(d *schema.ResourceData, m interface{}) error {
 	}
 	if !intExists {
 		d.SetId("")
+		mutex.Unlock()
+		return nil
+	}
+	if err = checkInterfaceNC(d.Get("name").(string), m, jnprSess); err == nil {
+		d.SetId("")
+		mutex.Unlock()
 		return nil
 	}
 	interfaceOpt, err := readInterface(d.Get("name").(string), m, jnprSess)
