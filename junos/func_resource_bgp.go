@@ -182,13 +182,11 @@ func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, j
 	if d.Get("local_as_loops").(int) != 0 {
 		configSet = append(configSet, setPrefix+"local-as loops "+strconv.Itoa(d.Get("local_as_loops").(int))+"\n")
 	}
-	localPref, localPrefExists := d.GetOk("local_preference")
-	if localPrefExists {
-		configSet = append(configSet, setPrefix+"local-preference "+strconv.Itoa(localPref.(int))+"\n")
+	if d.Get("local_preference").(int) != -1 {
+		configSet = append(configSet, setPrefix+"local-preference "+strconv.Itoa(d.Get("local_preference").(int))+"\n")
 	}
-	metricOut, metricOutExists := d.GetOk("metric_out")
-	if metricOutExists {
-		configSet = append(configSet, setPrefix+"metric-out "+strconv.Itoa(metricOut.(int))+"\n")
+	if d.Get("metric_out").(int) != -1 {
+		configSet = append(configSet, setPrefix+"metric-out "+strconv.Itoa(d.Get("metric_out").(int))+"\n")
 	}
 	if d.Get("metric_out_igp").(bool) {
 		configSet = append(configSet, setPrefix+"metric-out igp\n")
@@ -224,9 +222,8 @@ func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, j
 	if d.Get("peer_as").(string) != "" {
 		configSet = append(configSet, setPrefix+"peer-as "+d.Get("peer_as").(string)+"\n")
 	}
-	preference, preferenceExists := d.GetOk("preference")
-	if preferenceExists {
-		configSet = append(configSet, setPrefix+"preference "+strconv.Itoa(preference.(int))+"\n")
+	if d.Get("preference").(int) != -1 {
+		configSet = append(configSet, setPrefix+"preference "+strconv.Itoa(d.Get("preference").(int))+"\n")
 	}
 	if d.Get("authentication_algorithm").(string) != "" {
 		configSet = append(configSet, setPrefix+"authentication-algorithm "+d.Get("authentication_algorithm").(string)+"\n")

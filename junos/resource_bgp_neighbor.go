@@ -129,11 +129,13 @@ func resourceBgpNeighbor() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validateIntRange(0, 4294967295),
+				Default:      -1,
 			},
 			"metric_out": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validateIntRange(0, 4294967295),
+				Default:      -1,
 				ConflictsWith: []string{"metric_out_igp",
 					"metric_out_igp_offset",
 					"metric_out_igp_delay_med_update",
@@ -194,6 +196,7 @@ func resourceBgpNeighbor() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validateIntRange(0, 4294967295),
+				Default:      -1,
 			},
 			"authentication_algorithm": {
 				Type:          schema.TypeString,
@@ -900,17 +903,13 @@ func fillBgpNeighborData(d *schema.ResourceData, bgpNeighborOptions bgpOptions) 
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	if bgpNeighborOptions.localPreference != -1 {
-		tfErr = d.Set("local_preference", bgpNeighborOptions.localPreference)
-		if tfErr != nil {
-			panic(tfErr)
-		}
+	tfErr = d.Set("local_preference", bgpNeighborOptions.localPreference)
+	if tfErr != nil {
+		panic(tfErr)
 	}
-	if bgpNeighborOptions.metricOut != -1 {
-		tfErr = d.Set("metric_out", bgpNeighborOptions.metricOut)
-		if tfErr != nil {
-			panic(tfErr)
-		}
+	tfErr = d.Set("metric_out", bgpNeighborOptions.metricOut)
+	if tfErr != nil {
+		panic(tfErr)
 	}
 	tfErr = d.Set("metric_out_igp_offset", bgpNeighborOptions.metricOutIgpOffset)
 	if tfErr != nil {
@@ -924,11 +923,9 @@ func fillBgpNeighborData(d *schema.ResourceData, bgpNeighborOptions bgpOptions) 
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	if bgpNeighborOptions.preference != -1 {
-		tfErr = d.Set("preference", bgpNeighborOptions.preference)
-		if tfErr != nil {
-			panic(tfErr)
-		}
+	tfErr = d.Set("preference", bgpNeighborOptions.preference)
+	if tfErr != nil {
+		panic(tfErr)
 	}
 	tfErr = d.Set("authentication_algorithm", bgpNeighborOptions.authenticationAlgorithm)
 	if tfErr != nil {
