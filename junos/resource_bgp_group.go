@@ -137,13 +137,11 @@ func resourceBgpGroup() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validateIntRange(0, 4294967295),
-				Default:      -1,
 			},
 			"metric_out": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validateIntRange(0, 4294967295),
-				Default:      -1,
 				ConflictsWith: []string{"metric_out_igp",
 					"metric_out_igp_offset",
 					"metric_out_igp_delay_med_update",
@@ -204,7 +202,6 @@ func resourceBgpGroup() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validateIntRange(0, 4294967295),
-				Default:      -1,
 			},
 			"authentication_algorithm": {
 				Type:          schema.TypeString,
@@ -900,13 +897,17 @@ func fillBgpGroupData(d *schema.ResourceData, bgpGroupOptions bgpOptions) {
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_preference", bgpGroupOptions.localPreference)
-	if tfErr != nil {
-		panic(tfErr)
+	if bgpGroupOptions.localPreference != -1 {
+		tfErr = d.Set("local_preference", bgpGroupOptions.localPreference)
+		if tfErr != nil {
+			panic(tfErr)
+		}
 	}
-	tfErr = d.Set("metric_out", bgpGroupOptions.metricOut)
-	if tfErr != nil {
-		panic(tfErr)
+	if bgpGroupOptions.metricOut != -1 {
+		tfErr = d.Set("metric_out", bgpGroupOptions.metricOut)
+		if tfErr != nil {
+			panic(tfErr)
+		}
 	}
 	tfErr = d.Set("metric_out_igp_offset", bgpGroupOptions.metricOutIgpOffset)
 	if tfErr != nil {
@@ -920,9 +921,11 @@ func fillBgpGroupData(d *schema.ResourceData, bgpGroupOptions bgpOptions) {
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("preference", bgpGroupOptions.preference)
-	if tfErr != nil {
-		panic(tfErr)
+	if bgpGroupOptions.preference != -1 {
+		tfErr = d.Set("preference", bgpGroupOptions.preference)
+		if tfErr != nil {
+			panic(tfErr)
+		}
 	}
 	tfErr = d.Set("authentication_algorithm", bgpGroupOptions.authenticationAlgorithm)
 	if tfErr != nil {
