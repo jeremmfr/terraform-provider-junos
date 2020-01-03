@@ -95,20 +95,9 @@ func (sess *Session) configSet(cmd []string, jnpr *NetconfObject) error {
 }
 func (sess *Session) commitConf(logMessage string, jnpr *NetconfObject) error {
 	if sess.junosLogFile != "" {
-		logFile(fmt.Sprintf("[commitConf] commit check"), sess.junosLogFile)
-	}
-	err := jnpr.netconfCommitCheck()
-	sleepShort(sess.junosSleepShort)
-	if err != nil {
-		if sess.junosLogFile != "" {
-			logFile(fmt.Sprintf("[commitConf] commit check error: %q", err), sess.junosLogFile)
-		}
-		return err
-	}
-	if sess.junosLogFile != "" {
 		logFile(fmt.Sprintf("[commitConf] commit %q", logMessage), sess.junosLogFile)
 	}
-	err = jnpr.netconfCommit(logMessage)
+	err := jnpr.netconfCommit(logMessage)
 	sleepShort(sess.junosSleepShort)
 	if err != nil {
 		if sess.junosLogFile != "" {

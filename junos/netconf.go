@@ -18,7 +18,6 @@ var (
 		"<configuration-set>%s</configuration-set></load-configuration>"
 	rpcVersion         = "<get-software-information/>"
 	rpcCommit          = "<commit-configuration><log>%s</log></commit-configuration>"
-	rpcCommitCheck     = "<commit-configuration><check/><log>check</log></commit-configuration>"
 	rpcCandidateLock   = "<lock><target><candidate/></target></lock>"
 	rpcCandidateUnlock = "<unlock><target><candidate/></target></unlock>"
 	rpcClearCandidate  = "<delete-config><target><candidate/></target></delete-config>"
@@ -337,36 +336,6 @@ func (j *NetconfObject) netconfCommit(logMessage string) error {
 					strings.Trim(m.Element, "[\r\n]"),
 					strings.Trim(m.Message, "[\r\n]"))
 				return errors.New(message)
-			}
-		}
-	}
-
-	return nil
-}
-
-// netconfCommitCheck checks the configuration for syntax errors, but does not commit any changes.
-func (j *NetconfObject) netconfCommitCheck() error {
-	var errs commitResults
-	reply, err := j.Session.Exec(netconf.RawMethod(rpcCommitCheck))
-	if err != nil {
-		return err
-	}
-
-	if reply.Errors != nil {
-		for _, m := range reply.Errors {
-			return errors.New(m.Message)
-		}
-	}
-	if reply.Data != "\n<ok/>\n" {
-		formatted := strings.Replace(reply.Data, "\n", "", -1)
-		err = xml.Unmarshal([]byte(formatted), &errs)
-		if err != nil {
-			return err
-		}
-
-		if errs.Errors != nil {
-			for _, m := range errs.Errors {
-				return errors.New(strings.Trim(m.Message, "[\r\n]"))
 			}
 		}
 	}
