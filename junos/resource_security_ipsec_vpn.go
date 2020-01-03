@@ -155,7 +155,7 @@ func resourceIpsecVpnCreate(d *schema.ResourceData, m interface{}) error {
 		return fmt.Errorf("ipsec vpn %v already exists", d.Get("name").(string))
 	}
 	if d.Get("bind_interface_auto").(bool) {
-		newSt0, err := searchInterfaceSt0Empty(m, jnprSess)
+		newSt0, err := searchInterfaceSt0ToCreate(m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
 			return fmt.Errorf("error for find new bind interface: %q", err)
@@ -499,25 +499,24 @@ func fillIpsecVpnData(d *schema.ResourceData, ipsecVpnOptions ipsecVpnOptions) {
 	}
 }
 
-func searchInterfaceSt0Empty(m interface{}, jnprSess *NetconfObject) (string, error) {
+func searchInterfaceSt0ToCreate(m interface{}, jnprSess *NetconfObject) (string, error) {
 	sess := m.(*Session)
 	st0, err := sess.command("show interfaces st0 terse", jnprSess)
 	if err != nil {
 		return "", err
 	}
 	st0Line := strings.Split(st0, "\n")
-	for i := 1; i <= len(st0Line); i++ {
-		st0Exists, err := checkInterfaceExists("st0."+strconv.Itoa(i), m, jnprSess)
-		if err != nil {
-			return "", err
+	st0int := make([]string, 0)
+	for _, line := range st0Line {
+		if strings.HasPrefix(line, "st0.") {
+			lineSplit := strings.Split(line, " ")
+			st0int = append(st0int, lineSplit[0])
 		}
-		if st0Exists {
-			if checkInterfaceNC("st0."+strconv.Itoa(i), m, jnprSess) == nil {
-				return "st0." + strconv.Itoa(i), nil
-			}
-		} else {
+	}
+	for i := 0; i <= 1073741823; i++ {
+		if !stringInSlice("st0."+strconv.Itoa(i), st0int) {
 			return "st0." + strconv.Itoa(i), nil
 		}
 	}
-	return "st0.0", nil
+	return "", fmt.Errorf("error for find st0 unit to create")
 }
