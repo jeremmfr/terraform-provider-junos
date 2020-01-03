@@ -45,7 +45,7 @@ The following arguments are supported:
   See the [`from` arguments](#from-arguments) block. Max of 1.
   * `then` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Define action to take if the `from` condition is matched. See the [`then` arguments](#then-arguments) block. Max of 1.
 
-#### `from` arguments
+#### from arguments
   * `address` - (Optional)(`ListOfString`) Match IP source or destination address.
   * `address_except` - (Optional)(`ListOfString`) Match address not in this list of prefix.
   * `port` - (Optional)(`ListOfString`) Match TCP/UDP source or destination port
@@ -72,7 +72,7 @@ The following arguments are supported:
   * `icmp_type` - (Optional)(`ListOfString`) Match ICMP message type.
   * `icmp_type_except` - (Optional)(`ListOfString`) Do not match ICMP message type.
 
-#### `then` arguments
+#### then arguments
   * `action` - (Optional)(`String`) Action for term if needed. Need to be 'accept', 'reject', 'discard' or 'next term'.
   * `count` - (Optional)(`String`) Count the packet in the named counter.
   * `routing_instance` - (Optional)(`String`) Packets are directed to specified routing stance.

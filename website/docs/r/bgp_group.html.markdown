@@ -73,7 +73,7 @@ See the [`family_inet` arguments](#family_inet-arguments) block.
 * `family_inet6` Same options as [`family_inet` arguments](#family_inet-arguments) but for inet6 family
 * `graceful_restart` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Define BGP graceful restart options.See the [`graceful_restart` arguments](#graceful_restart-arguments) block. Max of 1.
 
-#### `bfd_liveness_detection` arguments
+#### bfd_liveness_detection arguments
 * `authentication_key_chain` - (Optional)(`String`) Authentication key chain name.
 * `authentication_algorithm` - (Optional)(`String`) Authentication algorithm name.
 * `authentication_loose_check`  - (Optional)(`Bool`) Verify authentication only if authentication is negotiated.
@@ -88,7 +88,7 @@ See the [`family_inet` arguments](#family_inet-arguments) block.
 * `version` - (Optional)(`String`) BFD protocol version number.
 
 
-#### `family_inet` arguments
+#### family_inet arguments
 Also for `family_inet6`
 
 * `nlri_type` - (Required)(`String`) NLRI type. Need to be 'any', 'flow', 'labeled-unicast', 'unicast' or 'multicast'.
@@ -99,7 +99,7 @@ Also for `family_inet6`
   * `teardown_idle_timeout_forever`  - (Optional)(`Bool`) Idle the peer until the user intervenes. ConflictsWith `teardown_idle_timeout`.
 * `prefix_limit` Same options as [`accepted_prefix_limit`](#accepted_prefix_limit) but for limit maximum number of prefixes from a peer
 
-#### `graceful_restart` arguments
+#### graceful_restart arguments
 * `disable` - (Optional)(`Bool`)Disable graceful restart.
 * `restart_time` - (Optional)(`Int`) Restart time used when negotiating with a peer (1..600).
 * `stale_route_time` - (Optional)(`Int`) Maximum time for which stale routes are kept (1..600).

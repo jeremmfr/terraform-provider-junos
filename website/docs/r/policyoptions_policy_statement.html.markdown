@@ -54,7 +54,7 @@ The following arguments are supported:
   * `to` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Declare to filter. See the [`to` arguments](#to-arguments) block. Max of 1.
   * `then` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Declare then actions. See the [`then` arguments](#then-arguments) block. Max of 1.
 
-#### `from` arguments
+#### from arguments
 * `aggregate_contributor` - (Optional)(`Bool`) Match more specifics of an aggregate.
 * `bgp_as_path` - (Optional)(`ListOfString`) Name of AS path regular expression. See resource `junos_policyoptions_as_path`.
 * `bgp_as_path_group` - (Optional)(`ListOfString`) Name of AS path group. See resource `junos_policyoptions_as_path_group`.
@@ -77,7 +77,7 @@ The following arguments are supported:
   * `option` - (Required)(`String`): Mask option. Need to be 'address-mask', 'exact', 'longer', 'orlonger', 'prefix-length-range', 'through' or 'upto'.
   * `option_value` - (Optional)(`String`) For options that need an argument
 
-#### `to` arguments
+#### to arguments
 * `bgp_as_path` - (Optional)(`ListOfString`) Name of AS path regular expression. See resource `junos_policyoptions_as_path`.
 * `bgp_as_path_group` - (Optional)(`ListOfString`) Name of AS path group. See resource `junos_policyoptions_as_path_group`.
 * `bgp_community` - (Optional)(`ListOfString`) BGP community. See resource `junos_policyoptions_community`.
@@ -94,7 +94,7 @@ The following arguments are supported:
 * `preference` - (Optional)(`Int`) Preference value
 * `protocol` - (Optional)(`ListOfString`) Protocol from which route was learned
 
-#### `then` arguments
+#### then arguments
 * `action` - (Optional)(`String`) Action 'accept' or 'reject'.
 * `as_path_expand` - (Optional)(`String`) Prepend AS numbers prior to adding local-as.
 * `as_path_prepend` - (Optional)(`String`) Prepend AS numbers to an AS path.
