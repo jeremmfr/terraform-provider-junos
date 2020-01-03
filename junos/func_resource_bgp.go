@@ -407,49 +407,51 @@ func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{},
 
 	setPrefixBfd := setPrefix + "bfd-liveness-detection "
 	for _, v := range bfdLivenessDetection {
-		m := v.(map[string]interface{})
-		if m["authentication_key_chain"].(string) != "" {
-			configSet = append(configSet, setPrefixBfd+"authentication key-chain "+m["authentication_key_chain"].(string)+"\n")
-		}
-		if m["authentication_algorithm"].(string) != "" {
-			configSet = append(configSet, setPrefixBfd+"authentication algorithm "+m["authentication_algorithm"].(string)+"\n")
-		}
-		if m["authentication_loose_check"].(bool) {
-			configSet = append(configSet, setPrefixBfd+"authentication loose-check\n")
-		}
-		if m["detection_time_threshold"].(int) != 0 {
-			configSet = append(configSet, setPrefixBfd+"detection-time threshold "+
-				strconv.Itoa(m["detection_time_threshold"].(int))+"\n")
-		}
-		if m["transmit_interval_threshold"].(int) != 0 {
-			configSet = append(configSet, setPrefixBfd+"transmit-interval threshold "+
-				strconv.Itoa(m["transmit_interval_threshold"].(int))+"\n")
-		}
-		if m["transmit_interval_minimum_interval"].(int) != 0 {
-			configSet = append(configSet, setPrefixBfd+"transmit-interval minimum-interval "+
-				strconv.Itoa(m["transmit_interval_minimum_interval"].(int))+"\n")
-		}
-		if m["holddown_interval"].(int) != 0 {
-			configSet = append(configSet, setPrefixBfd+"holddown-interval "+
-				strconv.Itoa(m["holddown_interval"].(int))+"\n")
-		}
-		if m["minimum_interval"].(int) != 0 {
-			configSet = append(configSet, setPrefixBfd+"minimum-interval "+
-				strconv.Itoa(m["minimum_interval"].(int))+"\n")
-		}
-		if m["minimum_receive_interval"].(int) != 0 {
-			configSet = append(configSet, setPrefixBfd+"minimum-receive-interval "+
-				strconv.Itoa(m["minimum_receive_interval"].(int))+"\n")
-		}
-		if m["multiplier"].(int) != 0 {
-			configSet = append(configSet, setPrefixBfd+"multiplier "+
-				strconv.Itoa(m["multiplier"].(int))+"\n")
-		}
-		if m["session_mode"].(string) != "" {
-			configSet = append(configSet, setPrefixBfd+"session-mode "+m["session_mode"].(string)+"\n")
-		}
-		if m["version"].(string) != "" {
-			configSet = append(configSet, setPrefixBfd+"version "+m["version"].(string)+"\n")
+		if v != nil {
+			m := v.(map[string]interface{})
+			if m["authentication_key_chain"].(string) != "" {
+				configSet = append(configSet, setPrefixBfd+"authentication key-chain "+m["authentication_key_chain"].(string)+"\n")
+			}
+			if m["authentication_algorithm"].(string) != "" {
+				configSet = append(configSet, setPrefixBfd+"authentication algorithm "+m["authentication_algorithm"].(string)+"\n")
+			}
+			if m["authentication_loose_check"].(bool) {
+				configSet = append(configSet, setPrefixBfd+"authentication loose-check\n")
+			}
+			if m["detection_time_threshold"].(int) != 0 {
+				configSet = append(configSet, setPrefixBfd+"detection-time threshold "+
+					strconv.Itoa(m["detection_time_threshold"].(int))+"\n")
+			}
+			if m["transmit_interval_threshold"].(int) != 0 {
+				configSet = append(configSet, setPrefixBfd+"transmit-interval threshold "+
+					strconv.Itoa(m["transmit_interval_threshold"].(int))+"\n")
+			}
+			if m["transmit_interval_minimum_interval"].(int) != 0 {
+				configSet = append(configSet, setPrefixBfd+"transmit-interval minimum-interval "+
+					strconv.Itoa(m["transmit_interval_minimum_interval"].(int))+"\n")
+			}
+			if m["holddown_interval"].(int) != 0 {
+				configSet = append(configSet, setPrefixBfd+"holddown-interval "+
+					strconv.Itoa(m["holddown_interval"].(int))+"\n")
+			}
+			if m["minimum_interval"].(int) != 0 {
+				configSet = append(configSet, setPrefixBfd+"minimum-interval "+
+					strconv.Itoa(m["minimum_interval"].(int))+"\n")
+			}
+			if m["minimum_receive_interval"].(int) != 0 {
+				configSet = append(configSet, setPrefixBfd+"minimum-receive-interval "+
+					strconv.Itoa(m["minimum_receive_interval"].(int))+"\n")
+			}
+			if m["multiplier"].(int) != 0 {
+				configSet = append(configSet, setPrefixBfd+"multiplier "+
+					strconv.Itoa(m["multiplier"].(int))+"\n")
+			}
+			if m["session_mode"].(string) != "" {
+				configSet = append(configSet, setPrefixBfd+"session-mode "+m["session_mode"].(string)+"\n")
+			}
+			if m["version"].(string) != "" {
+				configSet = append(configSet, setPrefixBfd+"version "+m["version"].(string)+"\n")
+			}
 		}
 	}
 	if len(configSet) > 0 {
@@ -710,17 +712,19 @@ func setBgpOptsGrafefulRestart(setPrefix string, gracefulRestarts []interface{},
 	configSet := make([]string, 0)
 
 	for _, v := range gracefulRestarts {
-		m := v.(map[string]interface{})
-		if m["disable"].(bool) {
-			configSet = append(configSet, setPrefix+"graceful-restart disable\n")
-		}
-		if m["restart_time"].(int) != 0 {
-			configSet = append(configSet, setPrefix+"graceful-restart restart-time "+
-				strconv.Itoa(m["restart_time"].(int))+"\n")
-		}
-		if m["stale_route_time"].(int) != 0 {
-			configSet = append(configSet, setPrefix+"graceful-restart stale-routes-time "+
-				strconv.Itoa(m["stale_route_time"].(int))+"\n")
+		if v != nil {
+			m := v.(map[string]interface{})
+			if m["disable"].(bool) {
+				configSet = append(configSet, setPrefix+"graceful-restart disable\n")
+			}
+			if m["restart_time"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"graceful-restart restart-time "+
+					strconv.Itoa(m["restart_time"].(int))+"\n")
+			}
+			if m["stale_route_time"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"graceful-restart stale-routes-time "+
+					strconv.Itoa(m["stale_route_time"].(int))+"\n")
+			}
 		}
 	}
 	if len(configSet) > 0 {

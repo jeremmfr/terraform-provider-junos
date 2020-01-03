@@ -332,14 +332,16 @@ func setIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 	if len(d.Get("dead_peer_detection").([]interface{})) != 0 {
 		configSet = append(configSet, setPrefix+" dead-peer-detection\n")
 		for _, v := range d.Get("dead_peer_detection").([]interface{}) {
-			deadPeerOptions := v.(map[string]interface{})
-			if deadPeerOptions["interval"].(int) != 0 {
-				configSet = append(configSet, setPrefix+" dead-peer-detection interval "+
-					strconv.Itoa(deadPeerOptions["interval"].(int))+"\n")
-			}
-			if deadPeerOptions["threshold"].(int) != 0 {
-				configSet = append(configSet, setPrefix+" dead-peer-detection threshold "+
-					strconv.Itoa(deadPeerOptions["threshold"].(int))+"\n")
+			if v != nil {
+				deadPeerOptions := v.(map[string]interface{})
+				if deadPeerOptions["interval"].(int) != 0 {
+					configSet = append(configSet, setPrefix+" dead-peer-detection interval "+
+						strconv.Itoa(deadPeerOptions["interval"].(int))+"\n")
+				}
+				if deadPeerOptions["threshold"].(int) != 0 {
+					configSet = append(configSet, setPrefix+" dead-peer-detection threshold "+
+						strconv.Itoa(deadPeerOptions["threshold"].(int))+"\n")
+				}
 			}
 		}
 	}

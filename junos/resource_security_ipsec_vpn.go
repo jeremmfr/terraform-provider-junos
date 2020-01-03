@@ -199,10 +199,12 @@ func resourceIpsecVpnRead(d *schema.ResourceData, m interface{}) error {
 	// copy state vpn_monitor.0.source_interface_auto to struct
 	if len(ipsecVpnOptions.vpnMonitor) > 0 {
 		for _, v := range d.Get("vpn_monitor").([]interface{}) {
-			stateMonitor := v.(map[string]interface{})
-			vpnMonitor := ipsecVpnOptions.vpnMonitor[0]
-			vpnMonitor["source_interface_auto"] = stateMonitor["source_interface_auto"].(bool)
-			ipsecVpnOptions.vpnMonitor = []map[string]interface{}{vpnMonitor}
+			if v != nil {
+				stateMonitor := v.(map[string]interface{})
+				vpnMonitor := ipsecVpnOptions.vpnMonitor[0]
+				vpnMonitor["source_interface_auto"] = stateMonitor["source_interface_auto"].(bool)
+				ipsecVpnOptions.vpnMonitor = []map[string]interface{}{vpnMonitor}
+			}
 		}
 	}
 	mutex.Unlock()

@@ -1014,36 +1014,44 @@ func setPolicyStatement(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	configSet := make([]string, 0)
 
 	setPrefix := "set policy-options policy-statement " + d.Get("name").(string)
-	mapRootOpts := make(map[string]interface{})
-	for _, key := range []string{"from", "then"} {
-		mapRootOpts[key] = d.Get(key)
-	}
 	for _, from := range d.Get("from").([]interface{}) {
-		configSetFrom := setPolicyStatementOptsFrom(setPrefix, from.(map[string]interface{}))
-		configSet = append(configSet, configSetFrom...)
+		if from != nil {
+			configSetFrom := setPolicyStatementOptsFrom(setPrefix, from.(map[string]interface{}))
+			configSet = append(configSet, configSetFrom...)
+		}
 	}
 	for _, then := range d.Get("then").([]interface{}) {
-		configSetThen := setPolicyStatementOptsThen(setPrefix, then.(map[string]interface{}))
-		configSet = append(configSet, configSetThen...)
+		if then != nil {
+			configSetThen := setPolicyStatementOptsThen(setPrefix, then.(map[string]interface{}))
+			configSet = append(configSet, configSetThen...)
+		}
 	}
 	for _, to := range d.Get("to").([]interface{}) {
-		configSetTo := setPolicyStatementOptsTo(setPrefix, to.(map[string]interface{}))
-		configSet = append(configSet, configSetTo...)
+		if to != nil {
+			configSetTo := setPolicyStatementOptsTo(setPrefix, to.(map[string]interface{}))
+			configSet = append(configSet, configSetTo...)
+		}
 	}
 	for _, term := range d.Get("term").([]interface{}) {
 		termMap := term.(map[string]interface{})
 		setPrefixTerm := setPrefix + " term " + termMap["name"].(string)
 		for _, from := range termMap["from"].([]interface{}) {
-			configSetFrom := setPolicyStatementOptsFrom(setPrefixTerm, from.(map[string]interface{}))
-			configSet = append(configSet, configSetFrom...)
+			if from != nil {
+				configSetFrom := setPolicyStatementOptsFrom(setPrefixTerm, from.(map[string]interface{}))
+				configSet = append(configSet, configSetFrom...)
+			}
 		}
 		for _, then := range termMap["then"].([]interface{}) {
-			configSetThen := setPolicyStatementOptsThen(setPrefixTerm, then.(map[string]interface{}))
-			configSet = append(configSet, configSetThen...)
+			if then != nil {
+				configSetThen := setPolicyStatementOptsThen(setPrefixTerm, then.(map[string]interface{}))
+				configSet = append(configSet, configSetThen...)
+			}
 		}
 		for _, to := range termMap["to"].([]interface{}) {
-			configSetTo := setPolicyStatementOptsTo(setPrefixTerm, to.(map[string]interface{}))
-			configSet = append(configSet, configSetTo...)
+			if to != nil {
+				configSetTo := setPolicyStatementOptsTo(setPrefixTerm, to.(map[string]interface{}))
+				configSet = append(configSet, configSetTo...)
+			}
 		}
 	}
 
