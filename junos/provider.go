@@ -61,6 +61,21 @@ func Provider() terraform.ResourceProvider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JUNOS_GROUP_INTERFACE_DELETE", nil),
 			},
+			"cmd_sleep_short": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("JUNOS_SLEEP_SHORT", 100),
+			},
+			"cmd_sleep_lock": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("JUNOS_SLEEP_LOCK", 10),
+			},
+			"debug_netconf_log_path": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("JUNOS_LOG_PATH", ""),
+			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"junos_application_set":                    resourceApplicationSet(),
@@ -101,12 +116,15 @@ func Provider() terraform.ResourceProvider {
 
 func configureProvider(d *schema.ResourceData) (interface{}, error) {
 	config := Config{
-		junosIP:          d.Get("ip").(string),
-		junosPort:        d.Get("port").(int),
-		junosUserName:    d.Get("username").(string),
-		junosSSHKeyFile:  d.Get("sshkeyfile").(string),
-		junosKeyPass:     d.Get("keypass").(string),
-		junosGroupIntDel: d.Get("group_interface_delete").(string),
+		junosIP:                  d.Get("ip").(string),
+		junosPort:                d.Get("port").(int),
+		junosUserName:            d.Get("username").(string),
+		junosSSHKeyFile:          d.Get("sshkeyfile").(string),
+		junosKeyPass:             d.Get("keypass").(string),
+		junosGroupIntDel:         d.Get("group_interface_delete").(string),
+		junosCmdSleepShort:       d.Get("cmd_sleep_short").(int),
+		junosCmdSleepLock:        d.Get("cmd_sleep_lock").(int),
+		junosDebugNetconfLogPath: d.Get("debug_netconf_log_path").(string),
 	}
 	return config.Session()
 }

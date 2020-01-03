@@ -74,6 +74,16 @@ The following arguments are supported in the `provider` block:
 
 * `group_interface_delete` - (Optional) This is the Junos group used for remove configuration on a physical interface. See interface specifications [interface specifications](#interface-specifications). It can also be sourced from the `JUNOS_GROUP_INTERFACE_DELETE` environment variable. Default to empty.
 
+#### Command options
+* `cmd_sleep_short` - (Optional) Number of milliseconds to wait after Terraform executes an action on the Junos device. It can also be sourced from the `JUNOS_SLEEP_SHORT` environment variable.
+  Defaults to `100`.
+
+* `cmd_sleep_lock` - (Optional) Number of seconds of standby while waiting for Terraform to lock candidate configuration on a Junos device. It can also be sourced from the `JUNOS_SLEEP_LOCK` environment variable.
+  Defaults to `10`.
+
+#### Debug options
+* `debug_netconf_log_path` - (Optional) more detailed log (netconf) in the specified file. It can also be sourced from the `JUNOS_LOG_PATH` environment variable.
+
 ## Interface specifications
 
 When create a resource for a physical interface, the provider considers the interface available if there is 'apply-groups [`group_interface_delete`](#group_interface_delete)' and only this line on interface configuration.
@@ -98,11 +108,3 @@ ge-0/0/3 {
 ```
 
 and considers the interface available if the is this lines and only this lines on interface.
-
-## Environment variables
-
-You can export the `TFJUNOS_LOG_PATH` environment variable for a more detailed log (netconf) in the specified file.
-
-You can export the `TFJUNOS_SLEEP` environment variable to change the number of seconds of standby while waiting for Terraform to lock candidate configuration on a Junos device. The default value is `10`.
-
-You can export the `TFJUNOS_SLEEP_SHORT` environment variable to change the number of milliseconds to wait after Terraform executes an action on the Junos device. Default to `100`
