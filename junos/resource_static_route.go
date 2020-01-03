@@ -419,9 +419,9 @@ func delStaticRoute(destination string, instance string, m interface{}, jnprSess
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	if instance == defaultWord {
-		configSet = append(configSet, "del routing-options static route "+destination)
+		configSet = append(configSet, "delete routing-options static route "+destination)
 	} else {
-		configSet = append(configSet, "del routing-instances "+instance+" routing-options static route "+destination)
+		configSet = append(configSet, "delete routing-instances "+instance+" routing-options static route "+destination)
 	}
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
