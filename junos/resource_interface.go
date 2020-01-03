@@ -769,6 +769,7 @@ func checkInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) 
 		}
 	}
 	if intConfig == "set description NC\nset disable" ||
+		intConfig == "set disable\nset description NC" ||
 		intConfig == emptyWord ||
 		intConfig == setLineStart {
 		return nil
