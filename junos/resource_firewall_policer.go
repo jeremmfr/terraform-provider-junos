@@ -267,22 +267,24 @@ func setFirewallPolicer(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 			" if-exceeding burst-size-limit "+ifExceedingMap["burst_size_limit"].(string)+"\n")
 	}
 	for _, then := range d.Get("then").([]interface{}) {
-		thenMap := then.(map[string]interface{})
-		if thenMap["discard"].(bool) {
-			configSet = append(configSet, setPrefix+
-				" then discard\n")
-		}
-		if thenMap["forwarding_class"].(string) != "" {
-			configSet = append(configSet, setPrefix+
-				" then forwarding-class "+thenMap["forwarding_class"].(string)+"\n")
-		}
-		if thenMap["loss_priority"].(string) != "" {
-			configSet = append(configSet, setPrefix+
-				" then loss-priority "+thenMap["loss_priority"].(string)+"\n")
-		}
-		if thenMap["out_of_profile"].(bool) {
-			configSet = append(configSet, setPrefix+
-				" then out-of-profile\n")
+		if then != nil {
+			thenMap := then.(map[string]interface{})
+			if thenMap["discard"].(bool) {
+				configSet = append(configSet, setPrefix+
+					" then discard\n")
+			}
+			if thenMap["forwarding_class"].(string) != "" {
+				configSet = append(configSet, setPrefix+
+					" then forwarding-class "+thenMap["forwarding_class"].(string)+"\n")
+			}
+			if thenMap["loss_priority"].(string) != "" {
+				configSet = append(configSet, setPrefix+
+					" then loss-priority "+thenMap["loss_priority"].(string)+"\n")
+			}
+			if thenMap["out_of_profile"].(bool) {
+				configSet = append(configSet, setPrefix+
+					" then out-of-profile\n")
+			}
 		}
 	}
 
