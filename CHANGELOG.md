@@ -1,3 +1,4 @@
+
 ## 1.0.5
 BUG FIXES:
 * fix resource_junos_interface crach on closeSession Netconf after error on startNewSession 
