@@ -37,7 +37,7 @@ jobs:
         working-directory: ./.terraform-website/
         run: bundle exec middleman build --verbose
       - name: Download google files from S3
-        uses: actions/aws/cli@master
+        uses: ItsKarma/aws-cli@v1.70.0
         with:
           args: s3 cp s3://terraform-provider-junos.jeremm.fr/google72955f25e01c2a06.html .terraform-website/build/
         env:
