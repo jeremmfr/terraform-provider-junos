@@ -537,10 +537,10 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
-	defer sess.closeSession(jnprSess)
 	if err != nil {
 		return err
 	}
+	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
 		return err
@@ -669,10 +669,10 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 func resourceInterfaceDelete(d *schema.ResourceData, m interface{}) error {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
-	defer sess.closeSession(jnprSess)
 	if err != nil {
 		return err
 	}
+	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
 		return err
