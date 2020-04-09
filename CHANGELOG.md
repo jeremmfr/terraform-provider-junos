@@ -1,7 +1,7 @@
 
 ## 1.0.5
 BUG FIXES:
-* fix resource_junos_interface crach on closeSession Netconf after error on startNewSession 
+* fix resource_junos_interface crach on closeSession Netconf after error on startNewSession  ([19](https://github.com/jeremmfr/terraform-provider-junos/pull/19))
 
 ## 1.0.4
 BUG FIXES:
