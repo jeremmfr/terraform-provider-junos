@@ -8,7 +8,7 @@ import (
 )
 
 type asPathGroupOptions struct {
-	dynamicDb bool
+	dynamicDB bool
 	name      string
 	asPath    []map[string]interface{}
 }
@@ -251,7 +251,7 @@ func readPolicyoptionsAsPathGroup(asPathGroup string,
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
 			case strings.HasPrefix(itemTrim, "dynamic-db"):
-				confRead.dynamicDb = true
+				confRead.dynamicDB = true
 			case strings.HasPrefix(itemTrim, "as-path "):
 				asPath := map[string]interface{}{
 					"name": "",
@@ -290,7 +290,7 @@ func fillPolicyoptionsAsPathGroupData(d *schema.ResourceData, asPathGroupOptions
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("dynamic_db", asPathGroupOptions.dynamicDb)
+	tfErr = d.Set("dynamic_db", asPathGroupOptions.dynamicDB)
 	if tfErr != nil {
 		panic(tfErr)
 	}

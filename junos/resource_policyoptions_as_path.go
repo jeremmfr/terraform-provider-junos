@@ -8,7 +8,7 @@ import (
 )
 
 type asPathOptions struct {
-	dynamicDb bool
+	dynamicDB bool
 	name      string
 	path      string
 }
@@ -233,7 +233,7 @@ func readPolicyoptionsAsPath(asPath string, m interface{}, jnprSess *NetconfObje
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
 			case strings.HasPrefix(itemTrim, "dynamic-db"):
-				confRead.dynamicDb = true
+				confRead.dynamicDB = true
 			default:
 				confRead.path = strings.Trim(itemTrim, "\"")
 			}
@@ -264,7 +264,7 @@ func fillPolicyoptionsAsPathData(d *schema.ResourceData, asPathOptions asPathOpt
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("dynamic_db", asPathOptions.dynamicDb)
+	tfErr = d.Set("dynamic_db", asPathOptions.dynamicDB)
 	if tfErr != nil {
 		panic(tfErr)
 	}
