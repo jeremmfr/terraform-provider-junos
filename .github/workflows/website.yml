@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@master
+        uses: actions/checkout@v2
       - name: Clone original Terraform Website
         run: git clone https://github.com/hashicorp/terraform-website.git /tmp/terraform-website
       - name: Copy necessary files and co
@@ -44,7 +44,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: Upload Website on S3
-        uses: actions/aws/cli@master
+        uses: ItsKarma/aws-cli@v1.70.0
         with:
           args: s3 sync .terraform-website/build/ s3://terraform-provider-junos.jeremm.fr/ --delete
         env:
