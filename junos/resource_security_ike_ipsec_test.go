@@ -1,7 +1,6 @@
 package junos
 
 import (
-	"fmt"
 	"os"
 	"regexp"
 	"testing"
@@ -174,7 +173,7 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 }
 
 func testAccJunosSecurityIkeIpsecConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_security_ike_proposal "testacc_ikeprop" {
   name = "testacc_ikeprop"
   authentication_algorithm = "sha1"
@@ -240,10 +239,10 @@ resource junos_security_ipsec_vpn "testacc_ipsecvpn" {
   establish_tunnels = "on-traffic"
   df_bit = "clear"
 }
-`)
+`
 }
 func testAccJunosSecurityIkeIpsecConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_security_ike_proposal "testacc_ikeprop" {
   name = "testacc_ikeprop"
   authentication_algorithm = "sha1"
@@ -348,5 +347,5 @@ resource junos_security_policy_tunnel_pair_policy testacc_vpn-in-out {
   policy_a_to_b = junos_security_policy.testacc_policyIpsecLocToRem.policy[0].name
   policy_b_to_a = junos_security_policy.testacc_policyIpsecRemToLoc.policy[0].name
 }
-`)
+`
 }

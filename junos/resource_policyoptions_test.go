@@ -1,7 +1,6 @@
 package junos
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -475,7 +474,7 @@ func TestAccJunosPolicyOptions_basic(t *testing.T) {
 }
 
 func testAccJunosPolicyOptionsConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_routing_instance "testacc_policyOptions" {
   name = "testacc_policyOptions"
 }
@@ -698,10 +697,10 @@ resource junos_policyoptions_policy_statement "testacc_policyOptions2" {
     }
   }
 }
-`)
+`
 }
 func testAccJunosPolicyOptionsConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_routing_instance "testacc_policyOptions" {
   name = "testacc_policyOptions"
 }
@@ -870,5 +869,5 @@ resource junos_policyoptions_policy_statement "testacc_policyOptions2" {
     }
   }
 }
-`)
+`
 }

@@ -1,7 +1,6 @@
 package junos
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -137,7 +136,7 @@ func TestAccJunosFirewallFilter_basic(t *testing.T) {
 }
 
 func testAccJunosFirewallFilterConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_firewall_filter "testacc_fwFilter" {
   name = "testacc_fwFilter"
   family = "inet"
@@ -170,10 +169,10 @@ resource junos_policyoptions_prefix_list "testacc_fwFilter2" {
   name = "testacc_fwFilter2"
   prefix = [ "192.0.2.128/25" ]
 }
-`)
+`
 }
 func testAccJunosFirewallFilterConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_firewall_filter "testacc_fwFilter" {
   name = "testacc_fwFilter"
   family = "inet"
@@ -257,5 +256,5 @@ resource junos_firewall_policer testacc_fwfilter {
     discard = true
   }
 }
-`)
+`
 }

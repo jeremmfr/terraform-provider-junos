@@ -1,7 +1,6 @@
 package junos
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -51,7 +50,7 @@ func TestAccJunosRibGroup_basic(t *testing.T) {
 }
 
 func testAccJunosRibGroupConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_routing_instance "testacc_ribGroup1" {
   name = "testacc_ribGroup1"
 }
@@ -69,10 +68,10 @@ resource junos_rib_group testacc_ribGroup {
   ]
   export_rib = "${junos_routing_instance.testacc_ribGroup1.name}.inet.0"
 }
-`)
+`
 }
 func testAccJunosRibGroupConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_routing_instance "testacc_ribGroup1" {
   name = "testacc_ribGroup1"
 }
@@ -94,5 +93,5 @@ resource junos_rib_group testacc_ribGroup {
   ]
   export_rib = "${junos_routing_instance.testacc_ribGroup2.name}.inet.0"
 }
-`)
+`
 }

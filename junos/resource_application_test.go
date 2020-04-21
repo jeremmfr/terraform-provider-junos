@@ -1,7 +1,6 @@
 package junos
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -40,21 +39,21 @@ func TestAccJunosApplication_basic(t *testing.T) {
 }
 
 func testAccJunosApplicationConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource "junos_application" "testacc_app" {
   name = "testacc_app"
   protocol = "tcp"
   destination_port = 22
 }
-`)
+`
 }
 func testAccJunosApplicationConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource "junos_application" "testacc_app" {
   name = "testacc_app"
   protocol = "tcp"
   destination_port = "22"
   source_port = "1024-65535"
 }
-`)
+`
 }

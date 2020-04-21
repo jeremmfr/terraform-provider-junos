@@ -1,7 +1,6 @@
 package junos
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -40,18 +39,18 @@ func TestAccJunosApplicationSet_basic(t *testing.T) {
 }
 
 func testAccJunosApplicationSetConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource "junos_application_set" "testacc_app_set" {
   name = "testacc_app_set"
   applications = [ "junos-ssh" ]
 }
-`)
+`
 }
 func testAccJunosApplicationSetConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource "junos_application_set" "testacc_app_set" {
   name = "testacc_app_set"
   applications = [ "junos-ssh", "junos-telnet" ]
 }
-`)
+`
 }

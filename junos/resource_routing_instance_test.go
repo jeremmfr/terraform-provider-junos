@@ -1,7 +1,6 @@
 package junos
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -41,18 +40,18 @@ func TestAccJunosRoutingInstance_basic(t *testing.T) {
 }
 
 func testAccJunosRoutingInstanceConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_routing_instance "testacc_routingInst" {
   name = "testacc_routingInst"
   as = "65000"
 }
-`)
+`
 }
 func testAccJunosRoutingInstanceConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_routing_instance "testacc_routingInst" {
   name = "testacc_routingInst"
   as = "65001"
 }
-`)
+`
 }

@@ -1,7 +1,6 @@
 package junos
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -61,7 +60,7 @@ func TestAccJunosStaticRoute_basic(t *testing.T) {
 }
 
 func testAccJunosStaticRouteConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_routing_instance testacc_staticRoute {
   name = "testacc_staticRoute"
 }
@@ -77,10 +76,10 @@ resource junos_static_route testacc_staticRoute {
     metric = 101
   }
 }
-`)
+`
 }
 func testAccJunosStaticRouteConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_routing_instance testacc_staticRoute {
   name = "testacc_staticRoute"
 }
@@ -101,5 +100,5 @@ resource junos_static_route testacc_staticRoute {
     metric = 102
   }
 }
-`)
+`
 }

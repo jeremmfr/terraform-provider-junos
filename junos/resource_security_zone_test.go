@@ -1,7 +1,6 @@
 package junos
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -63,7 +62,7 @@ func TestAccJunosSecurityZone_basic(t *testing.T) {
 }
 
 func testAccJunosSecurityZoneConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_security_zone "testacc_securityZone" {
   name = "testacc_securityZone"
   inbound_protocols = [ "bgp" ]
@@ -76,10 +75,10 @@ resource junos_security_zone "testacc_securityZone" {
     address = [ "testacc_address1" ]
   }
 }
-`)
+`
 }
 func testAccJunosSecurityZoneConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_security_zone "testacc_securityZone" {
   name = "testacc_securityZone"
   inbound_protocols = [ "bgp" ]
@@ -97,5 +96,5 @@ resource junos_security_zone "testacc_securityZone" {
     address = [ "testacc_address1", "testacc_address2" ]
   }
 }
-`)
+`
 }

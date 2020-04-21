@@ -1,7 +1,6 @@
 package junos
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -67,7 +66,7 @@ func TestAccJunosOspfArea_basic(t *testing.T) {
 }
 
 func testAccJunosOspfAreaConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_ospf_area "testacc_ospfarea" {
   area_id = "0.0.0.0"
   interface {
@@ -80,10 +79,10 @@ resource junos_ospf_area "testacc_ospfarea" {
     dead_interval = 10
   }
 }
-`)
+`
 }
 func testAccJunosOspfAreaConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_interface "testacc_ospfarea" {
   name = "vlan.100"
   routing_instance = junos_routing_instance.testacc_ospfarea.name
@@ -108,5 +107,5 @@ resource junos_ospf_area "testacc_ospfarea" {
     disable = true
   }
 }
-`)
+`
 }

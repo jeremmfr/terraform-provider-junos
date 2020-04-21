@@ -1,7 +1,6 @@
 package junos
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -195,7 +194,7 @@ func TestAccJunosBgpGroup_basic(t *testing.T) {
 }
 
 func testAccJunosBgpGroupConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_routing_instance "testacc_bgpgroup" {
   name = "testacc_bgpgroup"
   as = "65000"
@@ -285,10 +284,10 @@ resource junos_bgp_group "testacc_bgpgroup" {
     disable = true
   }
 }
-`)
+`
 }
 func testAccJunosBgpGroupConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_routing_instance "testacc_bgpgroup" {
   name = "testacc_bgpgroup"
   as = "65000"
@@ -314,10 +313,10 @@ resource junos_bgp_group "testacc_bgpgroup" {
   }
 }
 
-`)
+`
 }
 func testAccJunosBgpGroupConfigUpdate2() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_bgp_group "testacc_bgpgroup" {
   name = "testacc_bgpgroup"
   advertise_external = true
@@ -328,15 +327,15 @@ resource junos_bgp_group "testacc_bgpgroup" {
   metric_out_minimum_igp_offset = -10
   type = "internal"
 }
-`)
+`
 }
 func testAccJunosBgpGroupConfigUpdate3() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_bgp_group "testacc_bgpgroup" {
   name = "testacc_bgpgroup"
   local_as = "65000"
   local_as_alias = true
   metric_out_minimum_igp = true
 }
-`)
+`
 }

@@ -34,7 +34,7 @@ func (sess *Session) startNewSession() (*NetconfObject, error) {
 		return jnpr, fmt.Errorf("can't read platform junos with <get-software-information/>")
 	}
 	if sess.junosLogFile != "" {
-		logFile(fmt.Sprintf("[startNewSession] started"), sess.junosLogFile)
+		logFile("[startNewSession] started", sess.junosLogFile)
 	}
 	return jnpr, nil
 }
@@ -44,7 +44,7 @@ func (sess *Session) closeSession(jnpr *NetconfObject) {
 		if err != nil {
 			logFile(fmt.Sprintf("[closeSession] err: %q", err), sess.junosLogFile)
 		} else {
-			logFile(fmt.Sprintf("[closeSession] closed"), sess.junosLogFile)
+			logFile("[closeSession] closed", sess.junosLogFile)
 		}
 	}
 }
@@ -114,13 +114,13 @@ func (sess *Session) configLock(jnpr *NetconfObject) error {
 		lock = jnpr.netconfConfigLock()
 		if lock {
 			if sess.junosLogFile != "" {
-				logFile(fmt.Sprintf("[configLock] locked"), sess.junosLogFile)
+				logFile("[configLock] locked", sess.junosLogFile)
 			}
 			sleepShort(sess.junosSleepShort)
 			break
 		} else {
 			if sess.junosLogFile != "" {
-				logFile(fmt.Sprintf("[configLock] sleep for wait lock"), sess.junosLogFile)
+				logFile("[configLock] sleep for wait lock", sess.junosLogFile)
 			}
 			sleep(sess.junosSleep)
 		}
@@ -131,7 +131,7 @@ func (sess *Session) configClear(jnpr *NetconfObject) {
 	err := jnpr.netconfConfigClear()
 	sleepShort(sess.junosSleepShort)
 	if sess.junosLogFile != "" {
-		logFile(fmt.Sprintf("[configClear] config clear"), sess.junosLogFile)
+		logFile("[configClear] config clear", sess.junosLogFile)
 	}
 	if err != nil {
 		err := jnpr.Close()
@@ -143,7 +143,7 @@ func (sess *Session) configClear(jnpr *NetconfObject) {
 	err = jnpr.netconfConfigUnlock()
 	sleepShort(sess.junosSleepShort)
 	if sess.junosLogFile != "" {
-		logFile(fmt.Sprintf("[configClear] config unlock"), sess.junosLogFile)
+		logFile("[configClear] config unlock", sess.junosLogFile)
 	}
 	if err != nil {
 		err := jnpr.Close()

@@ -1,7 +1,6 @@
 package junos
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -71,7 +70,7 @@ func TestAccJunosSecurityNatDestination_basic(t *testing.T) {
 }
 
 func testAccJunosSecurityNatDestinationConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_security_nat_destination testacc_securityDNAT {
   name = "testacc_securityDNAT"
   from {
@@ -106,10 +105,10 @@ resource junos_security_zone testacc_securityDNAT {
 resource junos_routing_instance testacc_securityDNAT {
   name = "testacc_securityDNAT"
 }
-`)
+`
 }
 func testAccJunosSecurityNatDestinationConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_security_nat_destination testacc_securityDNAT {
   name = "testacc_securityDNAT"
   from {
@@ -152,5 +151,5 @@ resource junos_security_zone testacc_securityDNAT {
 resource junos_routing_instance testacc_securityDNAT {
   name = "testacc_securityDNAT"
 }
-`)
+`
 }

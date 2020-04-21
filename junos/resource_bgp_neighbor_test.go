@@ -1,7 +1,6 @@
 package junos
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -189,7 +188,7 @@ func TestAccJunosBgpNeighbor_basic(t *testing.T) {
 }
 
 func testAccJunosBgpNeighborConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_routing_instance "testacc_bgpneighbor" {
   name = "testacc_bgpneighbor"
   as = "65000"
@@ -284,10 +283,10 @@ resource junos_bgp_neighbor "testacc_bgpneighbor" {
     disable = true
   }
 }
-`)
+`
 }
 func testAccJunosBgpNeighborConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_routing_instance "testacc_bgpneighbor" {
   name = "testacc_bgpneighbor"
   as = "65000"
@@ -318,10 +317,10 @@ resource junos_bgp_neighbor "testacc_bgpneighbor" {
   }
 }
 
-`)
+`
 }
 func testAccJunosBgpNeighborConfigUpdate2() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_routing_instance "testacc_bgpneighbor" {
   name = "testacc_bgpneighbor"
   as = "65000"
@@ -342,10 +341,10 @@ resource junos_bgp_neighbor "testacc_bgpneighbor" {
   local_as_no_prepend_global_as = true
   metric_out_minimum_igp_offset = -10
 }
-`)
+`
 }
 func testAccJunosBgpNeighborConfigUpdate3() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_routing_instance "testacc_bgpneighbor" {
   name = "testacc_bgpneighbor"
   as = "65000"
@@ -363,5 +362,5 @@ resource junos_bgp_neighbor "testacc_bgpneighbor" {
   local_as_alias = true
   metric_out_minimum_igp = true
 }
-`)
+`
 }

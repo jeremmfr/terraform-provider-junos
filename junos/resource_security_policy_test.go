@@ -1,7 +1,6 @@
 package junos
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -61,7 +60,7 @@ func TestAccJunosSecurityPolicy_basic(t *testing.T) {
 }
 
 func testAccJunosSecurityPolicyConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_security_policy testacc_securityPolicy {
   from_zone = junos_security_zone.testacc_seczonePolicy1.name
   to_zone = junos_security_zone.testacc_seczonePolicy1.name
@@ -83,10 +82,10 @@ resource junos_security_zone testacc_seczonePolicy1 {
          network = "192.0.2.0/25"
        }
 }
-`)
+`
 }
 func testAccJunosSecurityPolicyConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_security_policy testacc_securityPolicy {
   from_zone = junos_security_zone.testacc_seczonePolicy1.name
   to_zone = junos_security_zone.testacc_seczonePolicy1.name
@@ -115,5 +114,5 @@ resource junos_security_zone testacc_seczonePolicy1 {
          network = "192.0.2.0/25"
        }
 }
-`)
+`
 }
