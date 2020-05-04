@@ -27,7 +27,7 @@ var (
 	mutex = &sync.Mutex{}
 )
 
-// Provider junos for terraform
+// Provider junos for terraform.
 func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{

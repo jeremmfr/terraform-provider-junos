@@ -1,4 +1,4 @@
-package junos
+package junos_test
 
 import (
 	"fmt"
@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-// export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3
-// export TESTACC_INTERFACE_AE=ae<num> for choose interface aggregate test else it's ae0
+// export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
+// export TESTACC_INTERFACE_AE=ae<num> for choose interface aggregate test else it's ae0.
 func TestAccJunosInterface_basic(t *testing.T) {
 	var testaccInterface string
 	var testaccInterfaceAE string

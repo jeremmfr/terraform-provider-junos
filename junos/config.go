@@ -1,6 +1,6 @@
 package junos
 
-// Config : provider config
+// Config : provider config.
 type Config struct {
 	junosPort                int
 	junosCmdSleepShort       int
@@ -13,7 +13,7 @@ type Config struct {
 	junosDebugNetconfLogPath string
 }
 
-// Session : read session information for Junos Device
+// Session : read session information for Junos Device.
 func (c *Config) Session() (*Session, error) {
 	sess := &Session{
 		junosIP:          c.junosIP,

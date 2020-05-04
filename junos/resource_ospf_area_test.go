@@ -1,4 +1,4 @@
-package junos
+package junos_test
 
 import (
 	"os"

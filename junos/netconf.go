@@ -24,7 +24,7 @@ var (
 	rpcClose           = "<close-session/>"
 )
 
-// NetconfObject : store Junos device info and session
+// NetconfObject : store Junos device info and session.
 type NetconfObject struct {
 	Session        *netconf.Session
 	Hostname       string
@@ -33,7 +33,7 @@ type NetconfObject struct {
 	CommitTimeout  time.Duration
 }
 
-// RoutingEngine : store Platform information
+// RoutingEngine : store Platform information.
 type RoutingEngine struct {
 	Model   string
 	Version string
@@ -81,7 +81,7 @@ type commitResults struct {
 //
 // Please view the package documentation for netconfAuthMethod on how to use these methods.
 //
-// NOTE: most users should use this function, instead of the other NewSession* functions
+// NOTE: most users should use this function, instead of the other NewSession* functions.
 func netconfNewSession(host string, auth *netconfAuthMethod) (*NetconfObject, error) {
 	clientConfig, err := genSSHClientConfig(auth)
 	if err != nil {
@@ -218,7 +218,7 @@ func (j *NetconfObject) GatherFacts() error {
 	return nil
 }
 
-// Command (show, execute) on Junos device
+// Command (show, execute) on Junos device.
 func (j *NetconfObject) netconfCommand(cmd string) (string, error) {
 	command := fmt.Sprintf(rpcCommand, cmd)
 	reply, err := j.Session.Exec(netconf.RawMethod(command))
@@ -270,7 +270,7 @@ func (j *NetconfObject) netconfConfigSet(cmd []string) (string, error) {
 	return "", nil
 }
 
-// netConfConfigLock locks the candiata configuration
+// netConfConfigLock locks the candiata configuration.
 func (j *NetconfObject) netconfConfigLock() bool {
 	reply, err := j.Session.Exec(netconf.RawMethod(rpcCandidateLock))
 	if err != nil {

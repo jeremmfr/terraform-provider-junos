@@ -1,8 +1,10 @@
-package junos
+package junos_test
 
 import (
 	"os"
 	"testing"
+
+	"terraform-provider-junos/junos"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -12,16 +14,16 @@ var (
 	testAccProviders = map[string]terraform.ResourceProvider{
 		"junos": testAccProvider,
 	}
-	testAccProvider = Provider().(*schema.Provider)
+	testAccProvider = junos.Provider().(*schema.Provider)
 )
 
 func TestProvider(t *testing.T) {
-	if err := Provider().(*schema.Provider).InternalValidate(); err != nil {
+	if err := junos.Provider().(*schema.Provider).InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
 	}
 }
 func TestProvider_impl(t *testing.T) {
-	var _ terraform.ResourceProvider = Provider()
+	var _ terraform.ResourceProvider = junos.Provider()
 }
 
 // export TESTACC_SWITCH not empty for test switch options (interface mode trunk, vlan native/members)
