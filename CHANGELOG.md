@@ -1,3 +1,6 @@
+## 1.0.6
+BUG FIXES:
+* update module go-netconf : Close ssh socket even if we get an error
 
 ## 1.0.5
 BUG FIXES:
