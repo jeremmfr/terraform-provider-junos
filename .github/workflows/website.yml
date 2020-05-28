@@ -29,7 +29,7 @@ jobs:
       - name: Install middleman
         working-directory: ./.terraform-website/
         run: |
-          gem install bundler
+          gem install bundler bundler:1.17.3
           # json fail with (1.8.3.1) in Gemfile.lock
           bundle update json --jobs 4 --retry 3
           bundle install --jobs 4 --retry 3
