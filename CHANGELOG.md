@@ -1,3 +1,7 @@
+## 1.1.0
+ENHANCEMENTS:
+*  add application-services in security_policy (#20)
+
 ## 1.0.6
 BUG FIXES:
 * update module go-netconf : Close ssh socket even if we get an error
