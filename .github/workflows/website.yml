@@ -1,8 +1,12 @@
 name: Website
 on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - 'master'
+    paths:
+      - '.github/workflows/website.yml'    
+      - '.terraform-website/**'
+      - 'website/**'
 jobs:
   deploy:
     name: Deploy Website
