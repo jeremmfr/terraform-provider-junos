@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
+const actionPolicyPermit = "permit"
+
 type policyOptions struct {
 	fromZone string
 	toZone   string
@@ -63,14 +65,85 @@ func resourceSecurityPolicy() *schema.Resource {
 						"then": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  "permit",
+							Default:  actionPolicyPermit,
 							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
 								value := v.(string)
-								if !stringInSlice(value, []string{"permit", "reject", "deny"}) {
+								if !stringInSlice(value, []string{actionPolicyPermit, "reject", "deny"}) {
 									errors = append(errors, fmt.Errorf(
 										"%q %q invalid action", value, k))
 								}
 								return
+							},
+						},
+						"permit_application_services": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"application_firewall_rule_set": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"application_traffic_control_rule_set": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"gprs_gtp_profile": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"gprs_sctp_profile": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"idp": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"redirect_wx": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"reverse_redirect_wx": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"security_intelligence_policy": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"ssl_proxy": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"profile_name": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+											},
+										},
+									},
+									"uac_policy": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"captive_portal": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+											},
+										},
+									},
+									"utm_policy": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
 							},
 						},
 						"permit_tunnel_ipsec_vpn": {
@@ -297,12 +370,27 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		}
 		configSet = append(configSet, setPrefixPolicy+" then "+policy["then"].(string)+"\n")
 		if policy["permit_tunnel_ipsec_vpn"].(string) != "" {
-			if policy["then"].(string) != "permit" {
+			if policy["then"].(string) != actionPolicyPermit {
 				return fmt.Errorf("conflict policy then %v and policy permit_tunnel_ipsec_vpn",
 					policy["then"].(string))
 			}
 			configSet = append(configSet, setPrefixPolicy+" then permit tunnel ipsec-vpn "+
 				policy["permit_tunnel_ipsec_vpn"].(string)+"\n")
+		}
+		if len(policy["permit_application_services"].([]interface{})) > 0 {
+			if policy["permit_application_services"].([]interface{})[0] == nil {
+				return fmt.Errorf("permit_application_services block is empty")
+			}
+			if policy["then"].(string) != actionPolicyPermit {
+				return fmt.Errorf("conflict policy then %v and policy permit_application_services",
+					policy["then"].(string))
+			}
+			configSetAppSvc, err := setPolicyPermitApplicationServices(setPrefixPolicy,
+				policy["permit_application_services"].([]interface{})[0].(map[string]interface{}))
+			if err != nil {
+				return err
+			}
+			configSet = append(configSet, configSetAppSvc...)
 		}
 		if policy["count"].(bool) {
 			configSet = append(configSet, setPrefixPolicy+" then count\n")
@@ -362,7 +450,7 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 						strings.TrimPrefix(itemTrimPolicy, "match application "))
 				case strings.HasPrefix(itemTrimPolicy, "then "):
 					switch {
-					case strings.HasSuffix(itemTrimPolicy, "permit"),
+					case strings.HasSuffix(itemTrimPolicy, actionPolicyPermit),
 						strings.HasSuffix(itemTrimPolicy, "deny"),
 						strings.HasSuffix(itemTrimPolicy, "reject"):
 						m["then"] = strings.TrimPrefix(itemTrimPolicy, "then ")
@@ -373,9 +461,13 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 					case strings.HasSuffix(itemTrimPolicy, "log session-close"):
 						m["log_close"] = true
 					case strings.HasPrefix(itemTrimPolicy, "then permit tunnel ipsec-vpn "):
-						m["then"] = "permit"
+						m["then"] = actionPolicyPermit
 						m["permit_tunnel_ipsec_vpn"] = strings.TrimPrefix(itemTrimPolicy,
 							"then permit tunnel ipsec-vpn ")
+					case strings.HasPrefix(itemTrimPolicy, "then permit application-services"):
+						m["then"] = actionPolicyPermit
+						m["permit_application_services"] = readPolicyPermitApplicationServices(itemTrimPolicy,
+							m["permit_application_services"])
 					}
 				}
 				policyList = append(policyList, m)
@@ -413,14 +505,169 @@ func fillSecurityPolicyData(d *schema.ResourceData, policyOptions policyOptions)
 
 func genMapPolicyWithName(name string) map[string]interface{} {
 	return map[string]interface{}{
-		"name":                      name,
-		"match_source_address":      make([]string, 0),
-		"match_destination_address": make([]string, 0),
-		"match_application":         make([]string, 0),
-		"then":                      "",
-		"count":                     false,
-		"log_init":                  false,
-		"log_close":                 false,
-		"permit_tunnel_ipsec_vpn":   "",
+		"name":                        name,
+		"match_source_address":        make([]string, 0),
+		"match_destination_address":   make([]string, 0),
+		"match_application":           make([]string, 0),
+		"then":                        "",
+		"count":                       false,
+		"log_init":                    false,
+		"log_close":                   false,
+		"permit_tunnel_ipsec_vpn":     "",
+		"permit_application_services": make([]map[string]interface{}, 0),
 	}
+}
+
+func readPolicyPermitApplicationServices(itemTrimPolicy string,
+	permitApplicationServices interface{}) []map[string]interface{} {
+	applicationServices := map[string]interface{}{
+		"application_firewall_rule_set":        "",
+		"application_traffic_control_rule_set": "",
+		"gprs_gtp_profile":                     "",
+		"gprs_sctp_profile":                    "",
+		"idp":                                  false,
+		"redirect_wx":                          false,
+		"reverse_redirect_wx":                  false,
+		"security_intelligence_policy":         "",
+		"ssl_proxy":                            make([]map[string]interface{}, 0, 1),
+		"uac_policy":                           make([]map[string]interface{}, 0, 1),
+		"utm_policy":                           "",
+	}
+	if len(permitApplicationServices.([]map[string]interface{})) > 0 {
+		for k, v := range permitApplicationServices.([]map[string]interface{})[0] {
+			applicationServices[k] = v
+		}
+	}
+	itemTrimPolicyPermitAppSvc := strings.TrimPrefix(itemTrimPolicy, "then permit application-services ")
+	switch {
+	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "application-firewall rule-set "):
+		applicationServices["application_firewall_rule_set"] = strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
+			"application-firewall rule-set ")
+	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "application-traffic-control rule-set "):
+		applicationServices["application_traffic_control_rule_set"] = strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
+			"application-traffic-control rule-set ")
+	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "gprs-gtp-profile "):
+		applicationServices["gprs_gtp_profile"] = strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
+			"gprs-gtp-profile ")
+	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "gprs-sctp-profile "):
+		applicationServices["gprs_sctp_profile"] = strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
+			"gprs-sctp-profile ")
+	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "idp"):
+		applicationServices["idp"] = true
+	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "redirect-wx"):
+		applicationServices["redirect_wx"] = true
+	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "reverse-redirect-wx"):
+		applicationServices["reverse_redirect_wx"] = true
+	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "security-intelligence-policy "):
+		applicationServices["security_intelligence_policy"] = strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
+			"security-intelligence-policy ")
+	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "ssl-proxy"):
+		if strings.HasPrefix(itemTrimPolicyPermitAppSvc, "ssl-proxy profile-name ") {
+			applicationServices["ssl_proxy"] = append(applicationServices["ssl_proxy"].([]map[string]interface{}),
+				map[string]interface{}{
+					"profile_name": strings.TrimPrefix(itemTrimPolicyPermitAppSvc, "ssl-proxy profile-name "),
+				})
+		} else {
+			applicationServices["ssl_proxy"] = append(applicationServices["ssl_proxy"].([]map[string]interface{}),
+				map[string]interface{}{
+					"profile_name": "",
+				})
+		}
+	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "uac-policy"):
+		if strings.HasPrefix(itemTrimPolicyPermitAppSvc, "uac-policy captive-portal ") {
+			applicationServices["uac_policy"] = append(applicationServices["uac_policy"].([]map[string]interface{}),
+				map[string]interface{}{
+					"captive_portal": strings.TrimPrefix(itemTrimPolicyPermitAppSvc, "uac-policy captive-portal "),
+				})
+		} else {
+			applicationServices["uac_policy"] = append(applicationServices["uac_policy"].([]map[string]interface{}),
+				map[string]interface{}{
+					"captive_portal": "",
+				})
+		}
+	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "utm-policy "):
+		applicationServices["utm_policy"] = strings.TrimPrefix(itemTrimPolicyPermitAppSvc, "utm-policy ")
+	}
+	// override (maxItem = 1)
+	return []map[string]interface{}{applicationServices}
+}
+
+func setPolicyPermitApplicationServices(setPrefixPolicy string,
+	policyPermitApplicationServices map[string]interface{}) ([]string, error) {
+	configSet := make([]string, 0)
+	setPrefixPolicyPermitAppSvc := setPrefixPolicy + " then permit application-services"
+	if policyPermitApplicationServices["application_firewall_rule_set"].(string) != "" {
+		configSet = append(configSet, setPrefixPolicyPermitAppSvc+
+			" application-firewall rule-set "+
+			policyPermitApplicationServices["application_firewall_rule_set"].(string))
+	}
+	if policyPermitApplicationServices["application_traffic_control_rule_set"].(string) != "" {
+		configSet = append(configSet, setPrefixPolicyPermitAppSvc+
+			" application-traffic-control rule-set "+
+			policyPermitApplicationServices["application_traffic_control_rule_set"].(string))
+	}
+	if policyPermitApplicationServices["gprs_gtp_profile"].(string) != "" {
+		configSet = append(configSet, setPrefixPolicyPermitAppSvc+
+			" gprs-gtp-profile "+policyPermitApplicationServices["gprs_gtp_profile"].(string))
+	}
+	if policyPermitApplicationServices["gprs_sctp_profile"].(string) != "" {
+		configSet = append(configSet, setPrefixPolicyPermitAppSvc+
+			" gprs-sctp-profile "+policyPermitApplicationServices["gprs_sctp_profile"].(string))
+	}
+	if policyPermitApplicationServices["idp"].(bool) {
+		configSet = append(configSet, setPrefixPolicyPermitAppSvc+
+			" idp")
+	}
+	if policyPermitApplicationServices["redirect_wx"].(bool) &&
+		policyPermitApplicationServices["reverse_redirect_wx"].(bool) {
+		return configSet, fmt.Errorf("conflict redirect_wx and reverse_redirect_wx enabled both")
+	}
+	if policyPermitApplicationServices["redirect_wx"].(bool) {
+		configSet = append(configSet, setPrefixPolicyPermitAppSvc+
+			" redirect-wx")
+	}
+	if policyPermitApplicationServices["reverse_redirect_wx"].(bool) {
+		configSet = append(configSet, setPrefixPolicyPermitAppSvc+
+			" reverse-redirect-wx")
+	}
+	if policyPermitApplicationServices["security_intelligence_policy"].(string) != "" {
+		configSet = append(configSet, setPrefixPolicyPermitAppSvc+
+			" security-intelligence-policy "+
+			policyPermitApplicationServices["security_intelligence_policy"].(string))
+	}
+	if len(policyPermitApplicationServices["ssl_proxy"].([]interface{})) > 0 {
+		if policyPermitApplicationServices["ssl_proxy"].([]interface{})[0] != nil {
+			policyPermitApplicationServicesSSLProxy :=
+				policyPermitApplicationServices["ssl_proxy"].([]interface{})[0].(map[string]interface{})
+			if policyPermitApplicationServicesSSLProxy["profile_name"].(string) != "" {
+				configSet = append(configSet, setPrefixPolicyPermitAppSvc+
+					" ssl-proxy profile-name "+
+					policyPermitApplicationServicesSSLProxy["profile_name"].(string))
+			} else {
+				configSet = append(configSet, setPrefixPolicyPermitAppSvc+" ssl-proxy")
+			}
+		} else {
+			configSet = append(configSet, setPrefixPolicyPermitAppSvc+" ssl-proxy")
+		}
+	}
+	if len(policyPermitApplicationServices["uac_policy"].([]interface{})) > 0 {
+		if policyPermitApplicationServices["uac_policy"].([]interface{})[0] != nil {
+			policyPermitApplicationServicesUACPolicy :=
+				policyPermitApplicationServices["uac_policy"].([]interface{})[0].(map[string]interface{})
+			if policyPermitApplicationServicesUACPolicy["captive_portal"].(string) != "" {
+				configSet = append(configSet, setPrefixPolicyPermitAppSvc+
+					" uac-policy captive-portal "+
+					policyPermitApplicationServicesUACPolicy["captive_portal"].(string))
+			} else {
+				configSet = append(configSet, setPrefixPolicyPermitAppSvc+" uac-policy")
+			}
+		} else {
+			configSet = append(configSet, setPrefixPolicyPermitAppSvc+" uac-policy")
+		}
+	}
+	if policyPermitApplicationServices["utm_policy"].(string) != "" {
+		configSet = append(configSet, setPrefixPolicyPermitAppSvc+
+			" utm-policy "+policyPermitApplicationServices["utm_policy"].(string))
+	}
+	return configSet, nil
 }
