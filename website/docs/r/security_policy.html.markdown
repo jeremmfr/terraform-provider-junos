@@ -45,7 +45,7 @@ The following arguments are supported:
   * `log_init` - (Optional)(`Bool`) Log at session init time
   * `log_close` - (Optional)(`Bool`) Log at session close time
 
-### permit_application_services arguments
+#### permit_application_services arguments
 * `application_firewall_rule_set` - (Optional)(`String`) Servie rule-set Name for Application firewall.
 * `application_traffic_control_rule_set` - (Optional)(`String`) Service rule-set name Application traffic control.
 * `gprs_gtp_profile` - (Optional)(`String`) Specify GPRS Tunneling Protocol profile name.
