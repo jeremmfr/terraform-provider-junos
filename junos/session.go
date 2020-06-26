@@ -3,8 +3,8 @@ package junos
 import (
 	"fmt"
 	"os"
-	"strings"
 	"strconv"
+	"strings"
 	"time"
 )
 
