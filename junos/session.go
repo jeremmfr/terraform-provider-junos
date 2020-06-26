@@ -2,6 +2,8 @@ package junos
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"strconv"
 	"time"
 )
@@ -22,7 +24,15 @@ type Session struct {
 func (sess *Session) startNewSession() (*NetconfObject, error) {
 	var auth netconfAuthMethod
 	auth.Username = sess.junosUserName
-	auth.PrivateKey = sess.junosSSHKeyFile
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+	if !strings.HasPrefix(sess.junosSSHKeyFile, "~") {
+		auth.PrivateKey = sess.junosSSHKeyFile
+	} else {
+		auth.PrivateKey = homeDir + sess.junosSSHKeyFile[1:]
+	}
 	if sess.junosKeyPass != "" {
 		auth.Passphrase = sess.junosKeyPass
 	}
