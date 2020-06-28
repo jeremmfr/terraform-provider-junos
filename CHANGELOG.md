@@ -1,3 +1,7 @@
+## 1.1.1
+BUG FIXES:
+* Allow usage of ~ in sshkeyfile path (Fixes #22)
+
 ## 1.1.0
 ENHANCEMENTS:
 *  add application-services in security_policy (#20)
