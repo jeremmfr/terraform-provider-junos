@@ -24,13 +24,12 @@ type Session struct {
 func (sess *Session) startNewSession() (*NetconfObject, error) {
 	var auth netconfAuthMethod
 	auth.Username = sess.junosUserName
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return nil, err
-	}
-	if !strings.HasPrefix(sess.junosSSHKeyFile, "~") {
-		auth.PrivateKey = sess.junosSSHKeyFile
-	} else {
+	auth.PrivateKey = sess.junosSSHKeyFile
+	if strings.HasPrefix(sess.junosSSHKeyFile, "~") {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return nil, err
+		}
 		auth.PrivateKey = homeDir + sess.junosSSHKeyFile[1:]
 	}
 	if sess.junosKeyPass != "" {
