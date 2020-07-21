@@ -81,6 +81,7 @@ func Provider() terraform.ResourceProvider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
+			"junos_aggregate_route":                    resourceAggregateRoute(),
 			"junos_application_set":                    resourceApplicationSet(),
 			"junos_application":                        resourceApplication(),
 			"junos_bgp_group":                          resourceBgpGroup(),
