@@ -60,7 +60,7 @@ type bgpOptions struct {
 func delBgpOpts(d *schema.ResourceData, typebgp string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
-	delPrefix := "delete "
+	delPrefix := deleteWord + " "
 	switch typebgp {
 	case "group":
 		if d.Get("routing_instance").(string) == defaultWord {

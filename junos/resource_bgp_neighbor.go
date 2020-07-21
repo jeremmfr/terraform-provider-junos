@@ -790,7 +790,7 @@ func delBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 			" group "+d.Get("group").(string)+
 			" neighbor "+d.Get("ip").(string)+"\n")
 	} else {
-		configSet = append(configSet, "delete"+
+		configSet = append(configSet, deleteWord+
 			" routing-instances "+d.Get("routing_instance").(string)+
 			" protocols bgp group "+d.Get("group").(string)+
 			" neighbor "+d.Get("ip").(string)+"\n")
