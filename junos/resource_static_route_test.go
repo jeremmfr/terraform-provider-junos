@@ -34,6 +34,10 @@ func TestAccJunosStaticRoute_basic(t *testing.T) {
 							"qualified_next_hop.0.preference", "101"),
 						resource.TestCheckResourceAttr("junos_static_route.testacc_staticRoute",
 							"qualified_next_hop.0.metric", "101"),
+						resource.TestCheckResourceAttr("junos_static_route.testacc_staticRoute",
+							"community.#", "1"),
+						resource.TestCheckResourceAttr("junos_static_route.testacc_staticRoute",
+							"community.0", "no-advertise"),
 					),
 				},
 				{
@@ -75,6 +79,7 @@ resource junos_static_route testacc_staticRoute {
     preference = 101
     metric = 101
   }
+  community = ["no-advertise"]
 }
 `
 }
