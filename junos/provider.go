@@ -17,7 +17,10 @@ const (
 	thenWord       = "then"
 	prefixWord     = "prefix"
 	actionNoneWord = "none"
-	setLineStart   = "set "
+	addWord        = "add"
+	deleteWord     = "delete"
+	setWord        = "set"
+	setLineStart   = setWord + " "
 	st0Word        = "st0"
 	opsfV2         = "ospf"
 	ospfV3         = "ospf3"
@@ -78,6 +81,7 @@ func Provider() terraform.ResourceProvider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
+			"junos_aggregate_route":                    resourceAggregateRoute(),
 			"junos_application_set":                    resourceApplicationSet(),
 			"junos_application":                        resourceApplication(),
 			"junos_bgp_group":                          resourceBgpGroup(),

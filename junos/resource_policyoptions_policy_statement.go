@@ -203,7 +203,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 										Required: true,
 										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
 											value := v.(string)
-											if !stringInSlice(value, []string{"add", "delete", "set"}) {
+											if !stringInSlice(value, []string{addWord, deleteWord, setWord}) {
 												errors = append(errors, fmt.Errorf(
 													"%q for %q is not valid action", value, k))
 											}
@@ -252,7 +252,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 										Required: true,
 										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
 											value := v.(string)
-											if !stringInSlice(value, []string{"add", "subtract", actionNoneWord}) {
+											if !stringInSlice(value, []string{addWord, "subtract", actionNoneWord}) {
 												errors = append(errors, fmt.Errorf(
 													"%q for %q is not valid action", value, k))
 											}
@@ -615,7 +615,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 													Required: true,
 													ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
 														value := v.(string)
-														if !stringInSlice(value, []string{"add", "delete", "set"}) {
+														if !stringInSlice(value, []string{addWord, deleteWord, setWord}) {
 															errors = append(errors, fmt.Errorf(
 																"%q for %q is not valid action", value, k))
 														}

@@ -14,6 +14,7 @@ type staticRouteOptions struct {
 	destination      string
 	routingInstance  string
 	nextHop          []string
+	community        []string
 	qualifiedNextHop []map[string]interface{}
 }
 
@@ -55,6 +56,11 @@ func resourceStaticRoute() *schema.Resource {
 			"metric": {
 				Type:     schema.TypeInt,
 				Optional: true,
+			},
+			"community": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"next_hop": {
 				Type:     schema.TypeList,
@@ -288,6 +294,11 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	if d.Get("metric").(int) > 0 {
 		configSet = append(configSet, setPrefix+" metric "+strconv.Itoa(d.Get("metric").(int))+"\n")
 	}
+	if len(d.Get("community").([]interface{})) > 0 {
+		for _, v := range d.Get("community").([]interface{}) {
+			configSet = append(configSet, setPrefix+" community "+v.(string)+"\n")
+		}
+	}
 	for _, nextHop := range d.Get("next_hop").([]interface{}) {
 		configSet = append(configSet, setPrefix+" next-hop "+nextHop.(string)+"\n")
 	}
@@ -351,6 +362,8 @@ func readStaticRoute(destination string, instance string, m interface{},
 				if err != nil {
 					return confRead, err
 				}
+			case strings.HasPrefix(itemTrim, "community "):
+				confRead.community = append(confRead.community, strings.TrimPrefix(itemTrim, "community "))
 			case strings.HasPrefix(itemTrim, "next-hop "):
 				confRead.nextHop = append(confRead.nextHop, strings.TrimPrefix(itemTrim, "next-hop "))
 			case strings.HasPrefix(itemTrim, "qualified-next-hop "):
@@ -401,6 +414,7 @@ func delStaticRouteOpts(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	configSet = append(configSet,
 		delPrefix+"preference\n",
 		delPrefix+"metric\n",
+		delPrefix+"community\n",
 		delPrefix+"next-hop\n")
 	if d.HasChange("qualified_next_hop") {
 		oQualifiedNextHop, _ := d.GetChange("qualified_next_hop")
@@ -444,6 +458,10 @@ func fillStaticRouteData(d *schema.ResourceData, staticRouteOptions staticRouteO
 		panic(tfErr)
 	}
 	tfErr = d.Set("metric", staticRouteOptions.metric)
+	if tfErr != nil {
+		panic(tfErr)
+	}
+	tfErr = d.Set("community", staticRouteOptions.community)
 	if tfErr != nil {
 		panic(tfErr)
 	}

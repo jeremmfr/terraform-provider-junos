@@ -29,6 +29,7 @@ The following arguments are supported:
 * `routing_instance` - (Optional, Forces new resource)(`String`) Routing instance for route. Need to be default or name of routing instance. Default to `default`
 * `preference` - (Optional)(`Int`) Preference for static route
 * `metric` - (Optional)(`Int`) Metric for static route
+* `community` - (Optional)(`ListOfString`) List of BGP community
 * `next_hop` - (Optional)(`ListOfString`) List of next-hop
 * `qualified_next_hop` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) List of qualified-next-hop with options. Can be specified multiple times for each qualified-next-hop.
   * `next_hop` - (Required)(`String`) Target for qualified-next-hop
