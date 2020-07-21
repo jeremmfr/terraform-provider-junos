@@ -1,3 +1,11 @@
+## 1.2.0
+ENHANCEMENTS:
+* add community on resource junos_static_route
+* new resource junos_aggregate_route #24
+
+BUG FIXES:
+* fix go lint error
+
 ## 1.1.1
 BUG FIXES:
 * Allow usage of ~ in sshkeyfile path (Fixes #22)
