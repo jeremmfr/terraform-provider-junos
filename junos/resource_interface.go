@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/jeremmfr/junosdecode/jdecode"
+	jdecode "github.com/jeremmfr/junosdecode"
 )
 
 type interfaceOptions struct {

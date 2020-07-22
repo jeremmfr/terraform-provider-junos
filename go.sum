@@ -113,8 +113,8 @@ github.com/hashicorp/yamux v0.0.0-20181012175058-2f1d1f20f75d h1:kJCB4vdITiW1eC1
 github.com/hashicorp/yamux v0.0.0-20181012175058-2f1d1f20f75d/go.mod h1:+NfK9FKeTrX5uv1uIXGdwYDTeHna2qgaIlx54MXqjAM=
 github.com/jeremmfr/go-netconf v0.2.1 h1:ArNpAoXMVZf3Aub1yjUOnDSySU7hMs7KdJWjKRmMq8I=
 github.com/jeremmfr/go-netconf v0.2.1/go.mod h1:1vOGQHfD7yK+kyrMdLYb0qyuSyoIkek3zNQFYbhBmgc=
-github.com/jeremmfr/junosdecode v0.1.0 h1:W8Ilz01oS+Af5SrnMmWEYyyxOXbqK8oDc4v5Zw6XT4Q=
-github.com/jeremmfr/junosdecode v0.1.0/go.mod h1:SzO48WssarbDj1iQWgIiH6GDWTarJc7pEvbZHwJoblA=
+github.com/jeremmfr/junosdecode v1.0.0 h1:fk6YD/FM4yk+dcATCswulteHRf2S+PQkznj3YxoAvgI=
+github.com/jeremmfr/junosdecode v1.0.0/go.mod h1:kGZxoTprXFZZ+xKMY5d4KB1UN0w3M3DScaN6ELs31Go=
 github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8/go.mod h1:Nht3zPeWKUH0NzdCt2Blrr5ys8VGpn0CEB0cQHVjt7k=
 github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af h1:pmfjZENx5imkbgOkpRUYLnmbU7UEFbjtDA2hxJ1ichM=
 github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af/go.mod h1:Nht3zPeWKUH0NzdCt2Blrr5ys8VGpn0CEB0cQHVjt7k=
