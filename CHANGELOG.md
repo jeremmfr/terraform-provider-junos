@@ -1,3 +1,13 @@
+## 1.2.1
+ENHANCEMENTS:
+for terraform 0.13
+* upgrade go version
+* [workflows] rewrite release job
+* [doc] rewrite index/readme
+
+BUG FIXES:
+* [workflows] no tar.gz incompatible with registry
+
 ## 1.2.0
 ENHANCEMENTS:
 * add community on resource junos_static_route
