@@ -43,6 +43,8 @@ jobs:
             goarch: arm64
           - goos: windows
             goarch: arm64
+          - goos: freebsd
+            goarch: arm64    
     steps:
       - name: Set up Go 1.14
         uses: actions/setup-go@v1
