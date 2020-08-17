@@ -72,23 +72,12 @@ jobs:
           if [[ "${{ matrix.goos }}" == "windows" ]] ; then
             mv ${REPO_NAME}_v${RELEASE_VERSION} ${REPO_NAME}_v${RELEASE_VERSION}.exe
           fi
-      - name: Create archive tar.gz
-        run: tar -czvf ${REPO_NAME}_${RELEASE_VERSION}_${{ matrix.goos }}_${{ matrix.goarch }}.tar.gz ${REPO_NAME}_v${RELEASE_VERSION}*
       - name: Install zip utils
         run: |
           sudo apt update
           sudo apt install -y zip
       - name: Create archive zip
         run: zip ${REPO_NAME}_${RELEASE_VERSION}_${{ matrix.goos }}_${{ matrix.goarch }}.zip ${REPO_NAME}_v${RELEASE_VERSION}*
-      - name: Upload archive tar.gz to release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.release.outputs.upload_url }}
-          asset_path: ./${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_${{ matrix.goos }}_${{ matrix.goarch }}.tar.gz
-          asset_name: ${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_${{ matrix.goos }}_${{ matrix.goarch }}.tar.gz
-          asset_content_type: application/gzip
       - name: Upload archive zip to release
         uses: actions/upload-release-asset@v1
         env:
@@ -127,7 +116,7 @@ jobs:
       - name: List files
         run: ls -la
       - name: Generate SHA256SUMS
-        run: shasum -a 256 ${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_* > ${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_SHA256SUMS
+        run: shasum -a 256 ${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_*.zip > ${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_SHA256SUMS
       - name: Upload shasum result
         uses: actions/upload-release-asset@v1
         env:
