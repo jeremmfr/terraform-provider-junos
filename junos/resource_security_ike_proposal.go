@@ -76,20 +76,24 @@ func resourceIkeProposalCreate(d *schema.ResourceData, m interface{}) error {
 	ikeProposalExists, err := checkIkeProposalExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if ikeProposalExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("ike proposal %v already exists", d.Get("name").(string))
 	}
 	err = setIkeProposal(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_ike_proposal", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	ikeProposalExists, err = checkIkeProposalExists(d.Get("name").(string), m, jnprSess)
@@ -101,6 +105,7 @@ func resourceIkeProposalCreate(d *schema.ResourceData, m interface{}) error {
 	} else {
 		return fmt.Errorf("ike proposal %v not exists after commit => check your config", d.Get("name").(string))
 	}
+
 	return resourceIkeProposalRead(d, m)
 }
 func resourceIkeProposalRead(d *schema.ResourceData, m interface{}) error {
@@ -109,6 +114,7 @@ func resourceIkeProposalRead(d *schema.ResourceData, m interface{}) error {
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -122,6 +128,7 @@ func resourceIkeProposalRead(d *schema.ResourceData, m interface{}) error {
 	} else {
 		fillIkeProposalData(d, ikeProposalOptions)
 	}
+
 	return nil
 }
 func resourceIkeProposalUpdate(d *schema.ResourceData, m interface{}) error {
@@ -139,19 +146,23 @@ func resourceIkeProposalUpdate(d *schema.ResourceData, m interface{}) error {
 	err = delIkeProposal(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setIkeProposal(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_ike_proposal", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceIkeProposalRead(d, m)
 }
 func resourceIkeProposalDelete(d *schema.ResourceData, m interface{}) error {
@@ -168,13 +179,16 @@ func resourceIkeProposalDelete(d *schema.ResourceData, m interface{}) error {
 	err = delIkeProposal(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_ike_proposal", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceIkeProposalImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -198,6 +212,7 @@ func resourceIkeProposalImport(d *schema.ResourceData, m interface{}) ([]*schema
 	}
 	fillIkeProposalData(d, ikeProposalOptions)
 	result[0] = d
+
 	return result, nil
 }
 
@@ -211,6 +226,7 @@ func checkIkeProposalExists(ikeProposal string, m interface{}, jnprSess *Netconf
 	if ikeProposalConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setIkeProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -238,6 +254,7 @@ func setIkeProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readIkeProposal(ikeProposal string, m interface{}, jnprSess *NetconfObject) (ikeProposalOptions, error) {
@@ -277,8 +294,10 @@ func readIkeProposal(ikeProposal string, m interface{}, jnprSess *NetconfObject)
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 func delIkeProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -289,6 +308,7 @@ func delIkeProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

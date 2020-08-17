@@ -75,21 +75,25 @@ func resourceSecurityNatDestinationPoolCreate(d *schema.ResourceData, m interfac
 	securityNatDestinationPoolExists, err := checkSecurityNatDestinationPoolExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if securityNatDestinationPoolExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("security nat destination pool %v already exists", d.Get("name").(string))
 	}
 
 	err = setSecurityNatDestinationPool(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_security_nat_destination_pool", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	securityNatDestinationPoolExists, err = checkSecurityNatDestinationPoolExists(d.Get("name").(string), m, jnprSess)
@@ -102,6 +106,7 @@ func resourceSecurityNatDestinationPoolCreate(d *schema.ResourceData, m interfac
 		return fmt.Errorf("security nat destination pool %v not exists after commit "+
 			"=> check your config", d.Get("name").(string))
 	}
+
 	return resourceSecurityNatDestinationPoolRead(d, m)
 }
 func resourceSecurityNatDestinationPoolRead(d *schema.ResourceData, m interface{}) error {
@@ -110,6 +115,7 @@ func resourceSecurityNatDestinationPoolRead(d *schema.ResourceData, m interface{
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -123,6 +129,7 @@ func resourceSecurityNatDestinationPoolRead(d *schema.ResourceData, m interface{
 	} else {
 		fillSecurityNatDestinationPoolData(d, natDestinationPoolOptions)
 	}
+
 	return nil
 }
 func resourceSecurityNatDestinationPoolUpdate(d *schema.ResourceData, m interface{}) error {
@@ -140,19 +147,23 @@ func resourceSecurityNatDestinationPoolUpdate(d *schema.ResourceData, m interfac
 	err = delSecurityNatDestinationPool(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setSecurityNatDestinationPool(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_security_nat_destination_pool", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceSecurityNatDestinationPoolRead(d, m)
 }
 func resourceSecurityNatDestinationPoolDelete(d *schema.ResourceData, m interface{}) error {
@@ -169,13 +180,16 @@ func resourceSecurityNatDestinationPoolDelete(d *schema.ResourceData, m interfac
 	err = delSecurityNatDestinationPool(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_security_nat_destination_pool", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceSecurityNatDestinationPoolImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -201,6 +215,7 @@ func resourceSecurityNatDestinationPoolImport(d *schema.ResourceData, m interfac
 	fillSecurityNatDestinationPoolData(d, natDestinationPoolOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -214,6 +229,7 @@ func checkSecurityNatDestinationPoolExists(name string, m interface{}, jnprSess 
 	if natDestinationPoolConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setSecurityNatDestinationPool(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -235,6 +251,7 @@ func setSecurityNatDestinationPool(d *schema.ResourceData, m interface{}, jnprSe
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readSecurityNatDestinationPool(natDestinationPool string,
@@ -273,8 +290,10 @@ func readSecurityNatDestinationPool(natDestinationPool string,
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 
@@ -286,6 +305,7 @@ func delSecurityNatDestinationPool(natDestinationPool string, m interface{}, jnp
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func fillSecurityNatDestinationPoolData(d *schema.ResourceData, natDestinationPoolOptions natDestinationPoolOptions) {

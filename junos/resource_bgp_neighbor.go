@@ -294,6 +294,7 @@ func resourceBgpNeighbor() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q for %q is not 'automatic', 'multihop' or 'single-hop'", value, k))
 								}
+
 								return
 							},
 						},
@@ -318,6 +319,7 @@ func resourceBgpNeighbor() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q for %q is not valid nlri type", value, k))
 								}
+
 								return
 							},
 						},
@@ -394,6 +396,7 @@ func resourceBgpNeighbor() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q for %q is not valid nlri type", value, k))
 								}
+
 								return
 							},
 						},
@@ -498,41 +501,49 @@ func resourceBgpNeighborCreate(d *schema.ResourceData, m interface{}) error {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
+
 			return err
 		}
 		if !instanceExists {
 			sess.configClear(jnprSess)
+
 			return fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string))
 		}
 	}
 	bgpGroupExists, err := checkBgpGroupExists(d.Get("group").(string), d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if !bgpGroupExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("bgp group %v doesn't exist", d.Get("group").(string))
 	}
 	bgpNeighborxists, err := checkBgpNeighborExists(d.Get("ip").(string),
 		d.Get("routing_instance").(string), d.Get("group").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if bgpNeighborxists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("bgp neighbor %v already exists in group %v (routing-instance %v)",
 			d.Get("ip").(string), d.Get("group").(string), d.Get("routing_instance").(string))
 	}
 	err = setBgpNeighbor(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_bgp_neighbor", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	bgpNeighborxists, err = checkBgpNeighborExists(d.Get("ip").(string),
@@ -548,6 +559,7 @@ func resourceBgpNeighborCreate(d *schema.ResourceData, m interface{}) error {
 		return fmt.Errorf("bgp neighbor %v not exists in group %v (routing-instance %v) after commit "+
 			"=> check your config", d.Get("ip").(string), d.Get("group").(string), d.Get("routing_instance").(string))
 	}
+
 	return resourceBgpNeighborRead(d, m)
 }
 func resourceBgpNeighborRead(d *schema.ResourceData, m interface{}) error {
@@ -556,6 +568,7 @@ func resourceBgpNeighborRead(d *schema.ResourceData, m interface{}) error {
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -570,6 +583,7 @@ func resourceBgpNeighborRead(d *schema.ResourceData, m interface{}) error {
 	} else {
 		fillBgpNeighborData(d, bgpNeighborOptions)
 	}
+
 	return nil
 }
 func resourceBgpNeighborUpdate(d *schema.ResourceData, m interface{}) error {
@@ -587,19 +601,23 @@ func resourceBgpNeighborUpdate(d *schema.ResourceData, m interface{}) error {
 	err = delBgpOpts(d, "neighbor", m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setBgpNeighbor(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_bgp_neighbor", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceBgpNeighborRead(d, m)
 }
 func resourceBgpNeighborDelete(d *schema.ResourceData, m interface{}) error {
@@ -616,13 +634,16 @@ func resourceBgpNeighborDelete(d *schema.ResourceData, m interface{}) error {
 	err = delBgpNeighbor(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_bgp_neighbor", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceBgpNeighborImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -651,6 +672,7 @@ func resourceBgpNeighborImport(d *schema.ResourceData, m interface{}) ([]*schema
 	}
 	fillBgpNeighborData(d, bgpNeighborOptions)
 	result[0] = d
+
 	return result, nil
 }
 
@@ -674,6 +696,7 @@ func checkBgpNeighborExists(ip, instance, group string, m interface{}, jnprSess 
 	if bgpNeighborConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -778,8 +801,10 @@ func readBgpNeighbor(ip, instance, group string, m interface{}, jnprSess *Netcon
 		}
 	} else {
 		confRead.ip = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 func delBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -799,6 +824,7 @@ func delBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

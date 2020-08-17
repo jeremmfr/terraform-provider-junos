@@ -81,21 +81,25 @@ func resourceSecurityNatSourcePoolCreate(d *schema.ResourceData, m interface{}) 
 	securityNatSourcePoolExists, err := checkSecurityNatSourcePoolExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if securityNatSourcePoolExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("security nat source pool %v already exists", d.Get("name").(string))
 	}
 
 	err = setSecurityNatSourcePool(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_security_nat_source_pool", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	securityNatSourcePoolExists, err = checkSecurityNatSourcePoolExists(d.Get("name").(string), m, jnprSess)
@@ -107,6 +111,7 @@ func resourceSecurityNatSourcePoolCreate(d *schema.ResourceData, m interface{}) 
 	} else {
 		return fmt.Errorf("security nat source pool %v not exists after commit => check your config", d.Get("name").(string))
 	}
+
 	return resourceSecurityNatSourcePoolRead(d, m)
 }
 func resourceSecurityNatSourcePoolRead(d *schema.ResourceData, m interface{}) error {
@@ -115,6 +120,7 @@ func resourceSecurityNatSourcePoolRead(d *schema.ResourceData, m interface{}) er
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -128,6 +134,7 @@ func resourceSecurityNatSourcePoolRead(d *schema.ResourceData, m interface{}) er
 	} else {
 		fillSecurityNatSourcePoolData(d, natSourcePoolOptions)
 	}
+
 	return nil
 }
 func resourceSecurityNatSourcePoolUpdate(d *schema.ResourceData, m interface{}) error {
@@ -145,19 +152,23 @@ func resourceSecurityNatSourcePoolUpdate(d *schema.ResourceData, m interface{}) 
 	err = delSecurityNatSourcePool(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setSecurityNatSourcePool(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_security_nat_source_pool", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceSecurityNatSourcePoolRead(d, m)
 }
 func resourceSecurityNatSourcePoolDelete(d *schema.ResourceData, m interface{}) error {
@@ -174,13 +185,16 @@ func resourceSecurityNatSourcePoolDelete(d *schema.ResourceData, m interface{}) 
 	err = delSecurityNatSourcePool(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_security_nat_source_pool", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceSecurityNatSourcePoolImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -206,6 +220,7 @@ func resourceSecurityNatSourcePoolImport(d *schema.ResourceData, m interface{}) 
 	fillSecurityNatSourcePoolData(d, natSourcePoolOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -219,6 +234,7 @@ func checkSecurityNatSourcePoolExists(name string, m interface{}, jnprSess *Netc
 	if natSourcePoolConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setSecurityNatSourcePool(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -252,6 +268,7 @@ func setSecurityNatSourcePool(d *schema.ResourceData, m interface{}, jnprSess *N
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readSecurityNatSourcePool(natSourcePool string,
@@ -297,8 +314,10 @@ func readSecurityNatSourcePool(natSourcePool string,
 		confRead.portRange = portRange
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 
@@ -310,6 +329,7 @@ func delSecurityNatSourcePool(natSourcePool string, m interface{}, jnprSess *Net
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func fillSecurityNatSourcePoolData(d *schema.ResourceData, natSourcePoolOptions natSourcePoolOptions) {
@@ -367,6 +387,7 @@ func validateSourcePoolPortRange() schema.SchemaValidateFunc {
 			es = append(es, fmt.Errorf(
 				"%q high in %q is too big (max 63487)", k, i))
 		}
+
 		return
 	}
 }

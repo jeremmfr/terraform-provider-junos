@@ -2,9 +2,8 @@ package junos_test
 
 import (
 	"os"
-	"testing"
-
 	"terraform-provider-junos/junos"
+	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"

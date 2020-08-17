@@ -66,20 +66,24 @@ func resourceRibGroupCreate(d *schema.ResourceData, m interface{}) error {
 	ribGroupExists, err := checkRibGroupExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if ribGroupExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("rib-group %v already exists", d.Get("name").(string))
 	}
 	err = setRibGroup(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_rib_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	ribGroupExists, err = checkRibGroupExists(d.Get("name").(string), m, jnprSess)
@@ -91,6 +95,7 @@ func resourceRibGroupCreate(d *schema.ResourceData, m interface{}) error {
 	} else {
 		return fmt.Errorf("rib-group %v not exists after commit => check your config", d.Get("name").(string))
 	}
+
 	return resourceRibGroupRead(d, m)
 }
 func resourceRibGroupRead(d *schema.ResourceData, m interface{}) error {
@@ -99,6 +104,7 @@ func resourceRibGroupRead(d *schema.ResourceData, m interface{}) error {
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -112,6 +118,7 @@ func resourceRibGroupRead(d *schema.ResourceData, m interface{}) error {
 	} else {
 		fillRibGroupData(d, ribGroupOptions)
 	}
+
 	return nil
 }
 func resourceRibGroupUpdate(d *schema.ResourceData, m interface{}) error {
@@ -134,6 +141,7 @@ func resourceRibGroupUpdate(d *schema.ResourceData, m interface{}) error {
 		err = delRibGroupElement("import-policy", d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
+
 			return err
 		}
 	}
@@ -141,6 +149,7 @@ func resourceRibGroupUpdate(d *schema.ResourceData, m interface{}) error {
 		err = delRibGroupElement("import-rib", d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
+
 			return err
 		}
 	}
@@ -148,20 +157,24 @@ func resourceRibGroupUpdate(d *schema.ResourceData, m interface{}) error {
 		err = delRibGroupElement("export-rib", d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
+
 			return err
 		}
 	}
 	err = setRibGroup(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_rib_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceRibGroupRead(d, m)
 }
 func resourceRibGroupDelete(d *schema.ResourceData, m interface{}) error {
@@ -178,13 +191,16 @@ func resourceRibGroupDelete(d *schema.ResourceData, m interface{}) error {
 	err = delRibGroup(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_rib_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceRibGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -208,6 +224,7 @@ func resourceRibGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.Re
 	}
 	fillRibGroupData(d, rigGroupOptions)
 	result[0] = d
+
 	return result, nil
 }
 
@@ -220,6 +237,7 @@ func checkRibGroupExists(group string, m interface{}, jnprSess *NetconfObject) (
 	if rigGroupConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setRibGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -240,6 +258,7 @@ func setRibGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readRibGroup(group string, m interface{}, jnprSess *NetconfObject) (ribGroupOptions, error) {
@@ -272,8 +291,10 @@ func readRibGroup(group string, m interface{}, jnprSess *NetconfObject) (ribGrou
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 func delRibGroupElement(element string, group string, m interface{}, jnprSess *NetconfObject) error {
@@ -284,6 +305,7 @@ func delRibGroupElement(element string, group string, m interface{}, jnprSess *N
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func delRibGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -294,6 +316,7 @@ func delRibGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -313,6 +336,7 @@ func validateRibGroup(d *schema.ResourceData) error {
 	if errors != "" {
 		return fmt.Errorf(errors)
 	}
+
 	return nil
 }
 func fillRibGroupData(d *schema.ResourceData, ribGroupOptions ribGroupOptions) {

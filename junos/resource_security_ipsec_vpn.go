@@ -42,6 +42,7 @@ func resourceIpsecVpn() *schema.Resource {
 						errors = append(errors, fmt.Errorf(
 							"%q for %q is not 'immediately' or 'on-traffic'", value, k))
 					}
+
 					return
 				},
 			},
@@ -64,6 +65,7 @@ func resourceIpsecVpn() *schema.Resource {
 						errors = append(errors, fmt.Errorf(
 							"%q for %q is not 'clear', 'copy' or 'set'", value, k))
 					}
+
 					return
 				},
 			},
@@ -148,16 +150,19 @@ func resourceIpsecVpnCreate(d *schema.ResourceData, m interface{}) error {
 	ipsecVpnExists, err := checkIpsecVpnExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if ipsecVpnExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("ipsec vpn %v already exists", d.Get("name").(string))
 	}
 	if d.Get("bind_interface_auto").(bool) {
 		newSt0, err := searchInterfaceSt0ToCreate(m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
+
 			return fmt.Errorf("error for find new bind interface: %q", err)
 		}
 		tfErr := d.Set("bind_interface", newSt0)
@@ -168,11 +173,13 @@ func resourceIpsecVpnCreate(d *schema.ResourceData, m interface{}) error {
 	err = setIpsecVpn(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_ipsec_vpn", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	ipsecVpnExists, err = checkIpsecVpnExists(d.Get("name").(string), m, jnprSess)
@@ -184,6 +191,7 @@ func resourceIpsecVpnCreate(d *schema.ResourceData, m interface{}) error {
 	} else {
 		return fmt.Errorf("ipsec vpn %v not exists after commit => check your config", d.Get("name").(string))
 	}
+
 	return resourceIpsecVpnRead(d, m)
 }
 func resourceIpsecVpnRead(d *schema.ResourceData, m interface{}) error {
@@ -192,6 +200,7 @@ func resourceIpsecVpnRead(d *schema.ResourceData, m interface{}) error {
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -216,6 +225,7 @@ func resourceIpsecVpnRead(d *schema.ResourceData, m interface{}) error {
 	} else {
 		fillIpsecVpnData(d, ipsecVpnOptions)
 	}
+
 	return nil
 }
 func resourceIpsecVpnUpdate(d *schema.ResourceData, m interface{}) error {
@@ -233,19 +243,23 @@ func resourceIpsecVpnUpdate(d *schema.ResourceData, m interface{}) error {
 	err = delIpsecVpnConf(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setIpsecVpn(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_ipsec_vpn", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceIpsecVpnRead(d, m)
 }
 func resourceIpsecVpnDelete(d *schema.ResourceData, m interface{}) error {
@@ -262,13 +276,16 @@ func resourceIpsecVpnDelete(d *schema.ResourceData, m interface{}) error {
 	err = delIpsecVpn(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_ipsec_vpn", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceIpsecVpnImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -292,6 +309,7 @@ func resourceIpsecVpnImport(d *schema.ResourceData, m interface{}) ([]*schema.Re
 	}
 	fillIpsecVpnData(d, ipsecVpnOptions)
 	result[0] = d
+
 	return result, nil
 }
 
@@ -304,6 +322,7 @@ func checkIpsecVpnExists(ipsecVpn string, m interface{}, jnprSess *NetconfObject
 	if ipsecVpnConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -361,6 +380,7 @@ func setIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readIpsecVpn(ipsecVpn string, m interface{}, jnprSess *NetconfObject) (ipsecVpnOptions, error) {
@@ -441,8 +461,10 @@ func readIpsecVpn(ipsecVpn string, m interface{}, jnprSess *NetconfObject) (ipse
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 func delIpsecVpnConf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -453,6 +475,7 @@ func delIpsecVpnConf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func delIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -469,6 +492,7 @@ func delIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -518,5 +542,6 @@ func searchInterfaceSt0ToCreate(m interface{}, jnprSess *NetconfObject) (string,
 			return "st0." + strconv.Itoa(i), nil
 		}
 	}
+
 	return "", fmt.Errorf("error for find st0 unit to create")
 }

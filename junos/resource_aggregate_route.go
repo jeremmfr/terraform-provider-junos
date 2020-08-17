@@ -43,6 +43,7 @@ func resourceAggregateRoute() *schema.Resource {
 						errors = append(errors, fmt.Errorf(
 							"%q error for validate %q : %q", k, value, err))
 					}
+
 					return
 				},
 			},
@@ -114,10 +115,12 @@ func resourceAggregateRouteCreate(d *schema.ResourceData, m interface{}) error {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
+
 			return err
 		}
 		if !instanceExists {
 			sess.configClear(jnprSess)
+
 			return fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string))
 		}
 	}
@@ -125,27 +128,32 @@ func resourceAggregateRouteCreate(d *schema.ResourceData, m interface{}) error {
 		d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if aggregateRouteExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("aggregate route %v already exists on table %s",
 			d.Get("destination").(string), d.Get("routing_instance").(string))
 	}
 	err = setAggregateRoute(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_aggregate_route", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	aggregateRouteExists, err = checkAggregateRouteExists(
 		d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if aggregateRouteExists {
@@ -154,6 +162,7 @@ func resourceAggregateRouteCreate(d *schema.ResourceData, m interface{}) error {
 		return fmt.Errorf("aggregate route %v not exists in routing_instance %v after commit "+
 			"=> check your config", d.Get("destination").(string), d.Get("routing_instance").(string))
 	}
+
 	return resourceAggregateRouteRead(d, m)
 }
 func resourceAggregateRouteRead(d *schema.ResourceData, m interface{}) error {
@@ -162,6 +171,7 @@ func resourceAggregateRouteRead(d *schema.ResourceData, m interface{}) error {
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -176,6 +186,7 @@ func resourceAggregateRouteRead(d *schema.ResourceData, m interface{}) error {
 	} else {
 		fillAggregateRouteData(d, aggregateRouteOptions)
 	}
+
 	return nil
 }
 func resourceAggregateRouteUpdate(d *schema.ResourceData, m interface{}) error {
@@ -193,20 +204,24 @@ func resourceAggregateRouteUpdate(d *schema.ResourceData, m interface{}) error {
 	err = delAggregateRouteOpts(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 
 	err = setAggregateRoute(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_aggregate_route", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceAggregateRouteRead(d, m)
 }
 func resourceAggregateRouteDelete(d *schema.ResourceData, m interface{}) error {
@@ -223,13 +238,16 @@ func resourceAggregateRouteDelete(d *schema.ResourceData, m interface{}) error {
 	err = delAggregateRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_aggregate_route", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceAggregateRouteImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -259,6 +277,7 @@ func resourceAggregateRouteImport(d *schema.ResourceData, m interface{}) ([]*sch
 	fillAggregateRouteData(d, aggregateRouteOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -284,6 +303,7 @@ func checkAggregateRouteExists(destination string, instance string, m interface{
 	if aggregateRouteConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setAggregateRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -333,6 +353,7 @@ func setAggregateRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readAggregateRoute(destination string, instance string, m interface{},
@@ -393,8 +414,10 @@ func readAggregateRoute(destination string, instance string, m interface{},
 		}
 	} else {
 		confRead.destination = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 
@@ -423,6 +446,7 @@ func delAggregateRouteOpts(d *schema.ResourceData, m interface{}, jnprSess *Netc
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func delAggregateRoute(destination string, instance string, m interface{}, jnprSess *NetconfObject) error {
@@ -437,6 +461,7 @@ func delAggregateRoute(destination string, instance string, m interface{}, jnprS
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

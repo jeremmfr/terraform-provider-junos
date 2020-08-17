@@ -44,6 +44,7 @@ func resourceSecurityNatStatic() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q for %q is not 'interface', 'routing-instance' or 'zone'", value, k))
 								}
+
 								return
 							},
 						},
@@ -85,6 +86,7 @@ func resourceSecurityNatStatic() *schema.Resource {
 												errors = append(errors, fmt.Errorf(
 													"%q for %q is not 'inet' or 'prefix'", value, k))
 											}
+
 											return
 										},
 									},
@@ -125,21 +127,25 @@ func resourceSecurityNatStaticCreate(d *schema.ResourceData, m interface{}) erro
 	securityNatStaticExists, err := checkSecurityNatStaticExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if securityNatStaticExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("security nat static %v already exists", d.Get("name").(string))
 	}
 
 	err = setSecurityNatStatic(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_security_nat_static", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	securityNatStaticExists, err = checkSecurityNatStaticExists(d.Get("name").(string), m, jnprSess)
@@ -151,6 +157,7 @@ func resourceSecurityNatStaticCreate(d *schema.ResourceData, m interface{}) erro
 	} else {
 		return fmt.Errorf("security nat static %v not exists after commit => check your config", d.Get("name").(string))
 	}
+
 	return resourceSecurityNatStaticRead(d, m)
 }
 func resourceSecurityNatStaticRead(d *schema.ResourceData, m interface{}) error {
@@ -159,6 +166,7 @@ func resourceSecurityNatStaticRead(d *schema.ResourceData, m interface{}) error 
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -172,6 +180,7 @@ func resourceSecurityNatStaticRead(d *schema.ResourceData, m interface{}) error 
 	} else {
 		fillSecurityNatStaticData(d, natStaticOptions)
 	}
+
 	return nil
 }
 func resourceSecurityNatStaticUpdate(d *schema.ResourceData, m interface{}) error {
@@ -189,19 +198,23 @@ func resourceSecurityNatStaticUpdate(d *schema.ResourceData, m interface{}) erro
 	err = delSecurityNatStatic(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setSecurityNatStatic(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_security_nat_static", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceSecurityNatStaticRead(d, m)
 }
 func resourceSecurityNatStaticDelete(d *schema.ResourceData, m interface{}) error {
@@ -218,13 +231,16 @@ func resourceSecurityNatStaticDelete(d *schema.ResourceData, m interface{}) erro
 	err = delSecurityNatStatic(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_security_nat_static", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceSecurityNatStaticImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -250,6 +266,7 @@ func resourceSecurityNatStaticImport(d *schema.ResourceData, m interface{}) ([]*
 	fillSecurityNatStaticData(d, natStaticOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -263,6 +280,7 @@ func checkSecurityNatStaticExists(name string, m interface{}, jnprSess *NetconfO
 	if natStaticConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -308,6 +326,7 @@ func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObject) (natStaticOptions, error) {
@@ -389,8 +408,10 @@ func readSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObj
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 
@@ -402,6 +423,7 @@ func delSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObje
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func fillSecurityNatStaticData(d *schema.ResourceData, natStaticOptions natStaticOptions) {

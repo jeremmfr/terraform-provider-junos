@@ -70,6 +70,7 @@ func resourceVlan() *schema.Resource {
 						errors = append(errors, fmt.Errorf(
 							"%q for %q is not start with 'irb.'", value, k))
 					}
+
 					return
 				},
 			},
@@ -97,6 +98,7 @@ func resourceVlan() *schema.Resource {
 						errors = append(errors, fmt.Errorf(
 							"%q for %q is not 'community' or 'isolated'", value, k))
 					}
+
 					return
 				},
 			},
@@ -164,21 +166,25 @@ func resourceVlanCreate(d *schema.ResourceData, m interface{}) error {
 	vlanExists, err := checkVlansExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if vlanExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("vlan %v already exists", d.Get("name").(string))
 	}
 
 	err = setVlan(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_vlan", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	mutex.Lock()
@@ -192,6 +198,7 @@ func resourceVlanCreate(d *schema.ResourceData, m interface{}) error {
 	} else {
 		return fmt.Errorf("vlan%v not exists after commit => check your config", d.Get("name").(string))
 	}
+
 	return resourceVlanRead(d, m)
 }
 func resourceVlanRead(d *schema.ResourceData, m interface{}) error {
@@ -200,6 +207,7 @@ func resourceVlanRead(d *schema.ResourceData, m interface{}) error {
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -213,6 +221,7 @@ func resourceVlanRead(d *schema.ResourceData, m interface{}) error {
 	} else {
 		fillVlanData(d, vlanOptions)
 	}
+
 	return nil
 }
 func resourceVlanUpdate(d *schema.ResourceData, m interface{}) error {
@@ -230,19 +239,23 @@ func resourceVlanUpdate(d *schema.ResourceData, m interface{}) error {
 	err = delVlan(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setVlan(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_vlan", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceVlanRead(d, m)
 }
 func resourceVlanDelete(d *schema.ResourceData, m interface{}) error {
@@ -259,13 +272,16 @@ func resourceVlanDelete(d *schema.ResourceData, m interface{}) error {
 	err = delVlan(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_vlan", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceVlanImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -290,6 +306,7 @@ func resourceVlanImport(d *schema.ResourceData, m interface{}) ([]*schema.Resour
 	fillVlanData(d, vlanOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -302,6 +319,7 @@ func checkVlansExists(vlan string, m interface{}, jnprSess *NetconfObject) (bool
 	if vlanConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setVlan(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -371,6 +389,7 @@ func setVlan(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions, error) {
@@ -468,8 +487,10 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 
@@ -481,6 +502,7 @@ func delVlan(vlan string, m interface{}, jnprSess *NetconfObject) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

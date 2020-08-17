@@ -72,6 +72,7 @@ func resourceSecurityPolicy() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q %q invalid action", value, k))
 								}
+
 								return
 							},
 						},
@@ -187,10 +188,12 @@ func resourceSecurityPolicyCreate(d *schema.ResourceData, m interface{}) error {
 		m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if securityPolicyExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("security policy from %v to %v already exists",
 			d.Get("from_zone").(string), d.Get("to_zone").(string))
 	}
@@ -198,11 +201,13 @@ func resourceSecurityPolicyCreate(d *schema.ResourceData, m interface{}) error {
 	err = setSecurityPolicy(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_security_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	securityPolicyExists, err = checkSecurityPolicyExists(d.Get("from_zone").(string), d.Get("to_zone").(string),
@@ -216,6 +221,7 @@ func resourceSecurityPolicyCreate(d *schema.ResourceData, m interface{}) error {
 		return fmt.Errorf("security policy from %v to %v not exists after commit "+
 			"=> check your config", d.Get("from_zone").(string), d.Get("to_zone").(string))
 	}
+
 	return resourceSecurityPolicyRead(d, m)
 }
 func resourceSecurityPolicyRead(d *schema.ResourceData, m interface{}) error {
@@ -224,6 +230,7 @@ func resourceSecurityPolicyRead(d *schema.ResourceData, m interface{}) error {
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -238,6 +245,7 @@ func resourceSecurityPolicyRead(d *schema.ResourceData, m interface{}) error {
 	} else {
 		fillSecurityPolicyData(d, policyOptions)
 	}
+
 	return nil
 }
 func resourceSecurityPolicyUpdate(d *schema.ResourceData, m interface{}) error {
@@ -256,20 +264,24 @@ func resourceSecurityPolicyUpdate(d *schema.ResourceData, m interface{}) error {
 	err = delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 
 	err = setSecurityPolicy(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_security_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceSecurityPolicyRead(d, m)
 }
 func resourceSecurityPolicyDelete(d *schema.ResourceData, m interface{}) error {
@@ -286,13 +298,16 @@ func resourceSecurityPolicyDelete(d *schema.ResourceData, m interface{}) error {
 	err = delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_security_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceSecurityPolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -321,6 +336,7 @@ func resourceSecurityPolicyImport(d *schema.ResourceData, m interface{}) ([]*sch
 	fillSecurityPolicyData(d, policyOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -334,6 +350,7 @@ func checkSecurityPolicyExists(fromZone, toZone string, m interface{}, jnprSess 
 	if zoneConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -406,6 +423,7 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject) (policyOptions, error) {
@@ -475,6 +493,7 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 		}
 	}
 	confRead.policy = policyList
+
 	return confRead, nil
 }
 func delSecurityPolicy(fromZone string, toZone string, m interface{}, jnprSess *NetconfObject) error {
@@ -485,6 +504,7 @@ func delSecurityPolicy(fromZone string, toZone string, m interface{}, jnprSess *
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -588,6 +608,7 @@ func readPolicyPermitApplicationServices(itemTrimPolicy string,
 	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "utm-policy "):
 		applicationServices["utm_policy"] = strings.TrimPrefix(itemTrimPolicyPermitAppSvc, "utm-policy ")
 	}
+
 	// override (maxItem = 1)
 	return []map[string]interface{}{applicationServices}
 }
@@ -669,5 +690,6 @@ func setPolicyPermitApplicationServices(setPrefixPolicy string,
 		configSet = append(configSet, setPrefixPolicyPermitAppSvc+
 			" utm-policy "+policyPermitApplicationServices["utm_policy"].(string))
 	}
+
 	return configSet, nil
 }
