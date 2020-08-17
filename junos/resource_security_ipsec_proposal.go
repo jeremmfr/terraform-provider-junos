@@ -60,6 +60,7 @@ func resourceIpsecProposal() *schema.Resource {
 						errors = append(errors, fmt.Errorf(
 							"%q for %q is not 'esp' or 'ah'", value, k))
 					}
+
 					return
 				},
 			},
@@ -84,20 +85,24 @@ func resourceIpsecProposalCreate(d *schema.ResourceData, m interface{}) error {
 	ipsecProposalExists, err := checkIpsecProposalExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if ipsecProposalExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("ipsec proposal %v already exists", d.Get("name").(string))
 	}
 	err = setIpsecProposal(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_ipsec_proposal", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	ipsecProposalExists, err = checkIpsecProposalExists(d.Get("name").(string), m, jnprSess)
@@ -109,6 +114,7 @@ func resourceIpsecProposalCreate(d *schema.ResourceData, m interface{}) error {
 	} else {
 		return fmt.Errorf("ipsec proposal %v not exists after commit => check your config", d.Get("name").(string))
 	}
+
 	return resourceIpsecProposalRead(d, m)
 }
 func resourceIpsecProposalRead(d *schema.ResourceData, m interface{}) error {
@@ -117,6 +123,7 @@ func resourceIpsecProposalRead(d *schema.ResourceData, m interface{}) error {
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -130,6 +137,7 @@ func resourceIpsecProposalRead(d *schema.ResourceData, m interface{}) error {
 	} else {
 		fillIpsecProposalData(d, ipsecProposalOptions)
 	}
+
 	return nil
 }
 func resourceIpsecProposalUpdate(d *schema.ResourceData, m interface{}) error {
@@ -147,19 +155,23 @@ func resourceIpsecProposalUpdate(d *schema.ResourceData, m interface{}) error {
 	err = delIpsecProposal(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setIpsecProposal(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_ipsec_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceIpsecProposalRead(d, m)
 }
 func resourceIpsecProposalDelete(d *schema.ResourceData, m interface{}) error {
@@ -176,13 +188,16 @@ func resourceIpsecProposalDelete(d *schema.ResourceData, m interface{}) error {
 	err = delIpsecProposal(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_ipsec_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceIpsecProposalImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -206,6 +221,7 @@ func resourceIpsecProposalImport(d *schema.ResourceData, m interface{}) ([]*sche
 	}
 	fillIpsecProposalData(d, ipsecProposalOptions)
 	result[0] = d
+
 	return result, nil
 }
 
@@ -219,6 +235,7 @@ func checkIpsecProposalExists(ipsecProposal string, m interface{}, jnprSess *Net
 	if ipsecProposalConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setIpsecProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -246,6 +263,7 @@ func setIpsecProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readIpsecProposal(ipsecProposal string, m interface{}, jnprSess *NetconfObject) (ipsecProposalOptions, error) {
@@ -288,8 +306,10 @@ func readIpsecProposal(ipsecProposal string, m interface{}, jnprSess *NetconfObj
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 func delIpsecProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -300,6 +320,7 @@ func delIpsecProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

@@ -51,21 +51,25 @@ func resourcePolicyoptionsPrefixListCreate(d *schema.ResourceData, m interface{}
 	policyoptsPrefixListExists, err := checkPolicyoptionsPrefixListExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if policyoptsPrefixListExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("policy-options prefix-list %v already exists", d.Get("name").(string))
 	}
 
 	err = setPolicyoptionsPrefixList(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_policyoptions_prefix_list", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	policyoptsPrefixListExists, err = checkPolicyoptionsPrefixListExists(d.Get("name").(string), m, jnprSess)
@@ -78,6 +82,7 @@ func resourcePolicyoptionsPrefixListCreate(d *schema.ResourceData, m interface{}
 		return fmt.Errorf("policy-options prefix-list %v not exists after commit "+
 			"=> check your config", d.Get("name").(string))
 	}
+
 	return resourcePolicyoptionsPrefixListRead(d, m)
 }
 func resourcePolicyoptionsPrefixListRead(d *schema.ResourceData, m interface{}) error {
@@ -86,6 +91,7 @@ func resourcePolicyoptionsPrefixListRead(d *schema.ResourceData, m interface{}) 
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -99,6 +105,7 @@ func resourcePolicyoptionsPrefixListRead(d *schema.ResourceData, m interface{}) 
 	} else {
 		fillPolicyoptionsPrefixListData(d, prefixListOptions)
 	}
+
 	return nil
 }
 func resourcePolicyoptionsPrefixListUpdate(d *schema.ResourceData, m interface{}) error {
@@ -117,19 +124,23 @@ func resourcePolicyoptionsPrefixListUpdate(d *schema.ResourceData, m interface{}
 	err = delPolicyoptionsPrefixList(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setPolicyoptionsPrefixList(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_policyoptions_prefix_list", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourcePolicyoptionsPrefixListRead(d, m)
 }
 func resourcePolicyoptionsPrefixListDelete(d *schema.ResourceData, m interface{}) error {
@@ -146,13 +157,16 @@ func resourcePolicyoptionsPrefixListDelete(d *schema.ResourceData, m interface{}
 	err = delPolicyoptionsPrefixList(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_policyoptions_prefix_list", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourcePolicyoptionsPrefixListImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -178,6 +192,7 @@ func resourcePolicyoptionsPrefixListImport(d *schema.ResourceData, m interface{}
 	fillPolicyoptionsPrefixListData(d, prefixListOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -190,6 +205,7 @@ func checkPolicyoptionsPrefixListExists(name string, m interface{}, jnprSess *Ne
 	if prefixListConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -208,6 +224,7 @@ func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess 
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readPolicyoptionsPrefixList(prefixList string, m interface{}, jnprSess *NetconfObject) (prefixListOptions, error) {
@@ -234,8 +251,10 @@ func readPolicyoptionsPrefixList(prefixList string, m interface{}, jnprSess *Net
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 
@@ -247,6 +266,7 @@ func delPolicyoptionsPrefixList(prefixList string, m interface{}, jnprSess *Netc
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func fillPolicyoptionsPrefixListData(d *schema.ResourceData, prefixListOptions prefixListOptions) {

@@ -40,6 +40,7 @@ func resourceFirewallFilter() *schema.Resource {
 						errors = append(errors, fmt.Errorf(
 							"%q for %q is not valid family", value, k))
 					}
+
 					return
 				},
 			},
@@ -208,6 +209,7 @@ func resourceFirewallFilter() *schema.Resource {
 												errors = append(errors, fmt.Errorf(
 													"%q for %q is not valid acceptance", value, k))
 											}
+
 											return
 										},
 									},
@@ -268,21 +270,25 @@ func resourceFirewallFilterCreate(d *schema.ResourceData, m interface{}) error {
 	firewallFilterExists, err := checkFirewallFilterExists(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if firewallFilterExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("firewall filter %v already exists", d.Get("name").(string))
 	}
 
 	err = setFirewallFilter(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_firewall_filter", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	firewallFilterExists, err = checkFirewallFilterExists(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
@@ -294,6 +300,7 @@ func resourceFirewallFilterCreate(d *schema.ResourceData, m interface{}) error {
 	} else {
 		return fmt.Errorf("firewall filter %v not exists after commit => check your config", d.Get("name").(string))
 	}
+
 	return resourceFirewallFilterRead(d, m)
 }
 func resourceFirewallFilterRead(d *schema.ResourceData, m interface{}) error {
@@ -302,6 +309,7 @@ func resourceFirewallFilterRead(d *schema.ResourceData, m interface{}) error {
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -315,6 +323,7 @@ func resourceFirewallFilterRead(d *schema.ResourceData, m interface{}) error {
 	} else {
 		fillFirewallFilterData(d, filterOptions)
 	}
+
 	return nil
 }
 func resourceFirewallFilterUpdate(d *schema.ResourceData, m interface{}) error {
@@ -332,19 +341,23 @@ func resourceFirewallFilterUpdate(d *schema.ResourceData, m interface{}) error {
 	err = delFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setFirewallFilter(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_firewall_filter", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceFirewallFilterRead(d, m)
 }
 func resourceFirewallFilterDelete(d *schema.ResourceData, m interface{}) error {
@@ -361,13 +374,16 @@ func resourceFirewallFilterDelete(d *schema.ResourceData, m interface{}) error {
 	err = delFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_firewall_filter", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceFirewallFilterImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -396,6 +412,7 @@ func resourceFirewallFilterImport(d *schema.ResourceData, m interface{}) ([]*sch
 	fillFirewallFilterData(d, filterOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -409,6 +426,7 @@ func checkFirewallFilterExists(name, family string, m interface{}, jnprSess *Net
 	if filterConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setFirewallFilter(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -442,6 +460,7 @@ func setFirewallFilter(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfObject) (filterOptions, error) {
@@ -494,8 +513,10 @@ func readFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfO
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 
@@ -507,6 +528,7 @@ func delFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfOb
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func fillFirewallFilterData(d *schema.ResourceData, filterOptions filterOptions) {
@@ -648,6 +670,7 @@ func setFirewallFilterOptsFrom(setPrefixTermFrom string,
 	for _, icmp := range fromMap["icmp_type_except"].([]interface{}) {
 		configSet = append(configSet, setPrefixTermFrom+"icmp-type-except "+icmp.(string)+"\n")
 	}
+
 	return configSet, nil
 }
 func setFirewallFilterOptsThen(setPrefixTermThen string, configSet []string, thenMap map[string]interface{}) []string {
@@ -678,6 +701,7 @@ func setFirewallFilterOptsThen(setPrefixTermThen string, configSet []string, the
 	if thenMap["service_accounting"].(bool) {
 		configSet = append(configSet, setPrefixTermThen+"service-accounting\n")
 	}
+
 	return configSet
 }
 func readFirewallFilterOptsFrom(item string,
@@ -772,6 +796,7 @@ func readFirewallFilterOptsFrom(item string,
 		fromMap["icmp_type_except"] = append(fromMap["icmp_type_except"].([]string),
 			strings.TrimPrefix(item, "icmp-type-except "))
 	}
+
 	// override (maxItem = 1)
 	return []map[string]interface{}{fromMap}
 }

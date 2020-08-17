@@ -48,6 +48,7 @@ func resourceOspfArea() *schema.Resource {
 						errors = append(errors, fmt.Errorf(
 							"%q for %q is not 'v2' or 'v3", value, k))
 					}
+
 					return
 				},
 			},
@@ -110,21 +111,25 @@ func resourceOspfAreaCreate(d *schema.ResourceData, m interface{}) error {
 		d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if ospfAreaExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("ospf %v area %v already exists in routing instance %v",
 			d.Get("version").(string), d.Get("area_id").(string), d.Get("routing_instance").(string))
 	}
 	err = setOspfArea(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_ospf_area", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	ospfAreaExists, err = checkOspfAreaExists(d.Get("area_id").(string), d.Get("version").(string),
@@ -139,6 +144,7 @@ func resourceOspfAreaCreate(d *schema.ResourceData, m interface{}) error {
 		return fmt.Errorf("ospf %v area %v in routing instance %v not exists after commit => check your config",
 			d.Get("version").(string), d.Get("area_id").(string), d.Get("routing_instance").(string))
 	}
+
 	return resourceOspfAreaRead(d, m)
 }
 func resourceOspfAreaRead(d *schema.ResourceData, m interface{}) error {
@@ -147,6 +153,7 @@ func resourceOspfAreaRead(d *schema.ResourceData, m interface{}) error {
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -161,6 +168,7 @@ func resourceOspfAreaRead(d *schema.ResourceData, m interface{}) error {
 	} else {
 		fillOspfAreaData(d, ospfAreaOptions)
 	}
+
 	return nil
 }
 func resourceOspfAreaUpdate(d *schema.ResourceData, m interface{}) error {
@@ -179,19 +187,23 @@ func resourceOspfAreaUpdate(d *schema.ResourceData, m interface{}) error {
 	err = delOspfArea(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setOspfArea(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_ospf_area", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceOspfAreaRead(d, m)
 }
 func resourceOspfAreaDelete(d *schema.ResourceData, m interface{}) error {
@@ -208,13 +220,16 @@ func resourceOspfAreaDelete(d *schema.ResourceData, m interface{}) error {
 	err = delOspfArea(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_ospf_area", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceOspfAreaImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -243,6 +258,7 @@ func resourceOspfAreaImport(d *schema.ResourceData, m interface{}) ([]*schema.Re
 	}
 	fillOspfAreaData(d, ospfAreaOptions)
 	result[0] = d
+
 	return result, nil
 }
 
@@ -271,6 +287,7 @@ func checkOspfAreaExists(idArea, version, routingInstance string,
 	if ospfAreaConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -317,6 +334,7 @@ func setOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readOspfArea(idArea, version, routingInstance string,
@@ -403,8 +421,10 @@ func readOspfArea(idArea, version, routingInstance string,
 		}
 	} else {
 		confRead.areaID = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 
@@ -425,6 +445,7 @@ func delOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

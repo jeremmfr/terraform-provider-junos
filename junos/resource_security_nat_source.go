@@ -45,6 +45,7 @@ func resourceSecurityNatSource() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q for %q is not 'interface', 'routing-instance' or 'zone'", value, k))
 								}
+
 								return
 							},
 						},
@@ -71,6 +72,7 @@ func resourceSecurityNatSource() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q for %q is not 'interface', 'routing-instance' or 'zone'", value, k))
 								}
+
 								return
 							},
 						},
@@ -131,6 +133,7 @@ func resourceSecurityNatSource() *schema.Resource {
 												errors = append(errors, fmt.Errorf(
 													"%q for %q is not 'interface', 'pool' or 'off'", value, k))
 											}
+
 											return
 										},
 									},
@@ -166,21 +169,25 @@ func resourceSecurityNatSourceCreate(d *schema.ResourceData, m interface{}) erro
 	securityNatSourceExists, err := checkSecurityNatSourceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if securityNatSourceExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("security nat source %v already exists", d.Get("name").(string))
 	}
 
 	err = setSecurityNatSource(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_security_nat_source", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	securityNatSourceExists, err = checkSecurityNatSourceExists(d.Get("name").(string), m, jnprSess)
@@ -192,6 +199,7 @@ func resourceSecurityNatSourceCreate(d *schema.ResourceData, m interface{}) erro
 	} else {
 		return fmt.Errorf("security nat source %v not exists after commit => check your config", d.Get("name").(string))
 	}
+
 	return resourceSecurityNatSourceRead(d, m)
 }
 func resourceSecurityNatSourceRead(d *schema.ResourceData, m interface{}) error {
@@ -200,6 +208,7 @@ func resourceSecurityNatSourceRead(d *schema.ResourceData, m interface{}) error 
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -213,6 +222,7 @@ func resourceSecurityNatSourceRead(d *schema.ResourceData, m interface{}) error 
 	} else {
 		fillSecurityNatSourceData(d, natSourceOptions)
 	}
+
 	return nil
 }
 func resourceSecurityNatSourceUpdate(d *schema.ResourceData, m interface{}) error {
@@ -230,19 +240,23 @@ func resourceSecurityNatSourceUpdate(d *schema.ResourceData, m interface{}) erro
 	err = delSecurityNatSource(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setSecurityNatSource(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_security_nat_source", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceSecurityNatSourceRead(d, m)
 }
 func resourceSecurityNatSourceDelete(d *schema.ResourceData, m interface{}) error {
@@ -259,13 +273,16 @@ func resourceSecurityNatSourceDelete(d *schema.ResourceData, m interface{}) erro
 	err = delSecurityNatSource(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_security_nat_source", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceSecurityNatSourceImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -291,6 +308,7 @@ func resourceSecurityNatSourceImport(d *schema.ResourceData, m interface{}) ([]*
 	fillSecurityNatSourceData(d, natSourceOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -304,6 +322,7 @@ func checkSecurityNatSourceExists(name string, m interface{}, jnprSess *NetconfO
 	if natSourceConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -367,6 +386,7 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObject) (natSourceOptions, error) {
@@ -478,8 +498,10 @@ func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObj
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 
@@ -491,6 +513,7 @@ func delSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObje
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func fillSecurityNatSourceData(d *schema.ResourceData, natSourceOptions natSourceOptions) {

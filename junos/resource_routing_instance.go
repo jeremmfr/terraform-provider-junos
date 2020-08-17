@@ -59,20 +59,24 @@ func resourceRoutingInstanceCreate(d *schema.ResourceData, m interface{}) error 
 	routingInstanceExists, err := checkRoutingInstanceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if routingInstanceExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("routing-instance %v already exists", d.Get("name").(string))
 	}
 	err = setRoutingInstance(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_routing_instance", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	routingInstanceExists, err = checkRoutingInstanceExists(d.Get("name").(string), m, jnprSess)
@@ -84,6 +88,7 @@ func resourceRoutingInstanceCreate(d *schema.ResourceData, m interface{}) error 
 	} else {
 		return fmt.Errorf("routing-instance %v not exists after commit => check your config", d.Get("name").(string))
 	}
+
 	return resourceRoutingInstanceRead(d, m)
 }
 func resourceRoutingInstanceRead(d *schema.ResourceData, m interface{}) error {
@@ -92,6 +97,7 @@ func resourceRoutingInstanceRead(d *schema.ResourceData, m interface{}) error {
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -105,6 +111,7 @@ func resourceRoutingInstanceRead(d *schema.ResourceData, m interface{}) error {
 	} else {
 		fillRoutingInstanceData(d, instanceOptions)
 	}
+
 	return nil
 }
 func resourceRoutingInstanceUpdate(d *schema.ResourceData, m interface{}) error {
@@ -123,19 +130,23 @@ func resourceRoutingInstanceUpdate(d *schema.ResourceData, m interface{}) error 
 	err = delRoutingInstanceOpts(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setRoutingInstance(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_routing_instance", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceRoutingInstanceRead(d, m)
 }
 func resourceRoutingInstanceDelete(d *schema.ResourceData, m interface{}) error {
@@ -152,13 +163,16 @@ func resourceRoutingInstanceDelete(d *schema.ResourceData, m interface{}) error 
 	err = delRoutingInstance(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_routing_instance", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceRoutingInstanceImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -182,6 +196,7 @@ func resourceRoutingInstanceImport(d *schema.ResourceData, m interface{}) ([]*sc
 	}
 	fillRoutingInstanceData(d, instanceOptions)
 	result[0] = d
+
 	return result, nil
 }
 
@@ -194,6 +209,7 @@ func checkRoutingInstanceExists(instance string, m interface{}, jnprSess *Netcon
 	if routingInstanceConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -214,6 +230,7 @@ func setRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject) (instanceOptions, error) {
@@ -244,8 +261,10 @@ func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 func delRoutingInstanceOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -259,6 +278,7 @@ func delRoutingInstanceOpts(d *schema.ResourceData, m interface{}, jnprSess *Net
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func delRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -269,6 +289,7 @@ func delRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

@@ -55,21 +55,25 @@ func resourcePolicyoptionsAsPathCreate(d *schema.ResourceData, m interface{}) er
 	policyoptsAsPathExists, err := checkPolicyoptionsAsPathExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if policyoptsAsPathExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("policy-options as-path %v already exists", d.Get("name").(string))
 	}
 
 	err = setPolicyoptionsAsPath(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_policyoptions_as_path", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	policyoptsAsPathExists, err = checkPolicyoptionsAsPathExists(d.Get("name").(string), m, jnprSess)
@@ -81,6 +85,7 @@ func resourcePolicyoptionsAsPathCreate(d *schema.ResourceData, m interface{}) er
 	} else {
 		return fmt.Errorf("policy-options as-path %v not exists after commit => check your config", d.Get("name").(string))
 	}
+
 	return resourcePolicyoptionsAsPathRead(d, m)
 }
 func resourcePolicyoptionsAsPathRead(d *schema.ResourceData, m interface{}) error {
@@ -89,6 +94,7 @@ func resourcePolicyoptionsAsPathRead(d *schema.ResourceData, m interface{}) erro
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -102,6 +108,7 @@ func resourcePolicyoptionsAsPathRead(d *schema.ResourceData, m interface{}) erro
 	} else {
 		fillPolicyoptionsAsPathData(d, asPathOptions)
 	}
+
 	return nil
 }
 func resourcePolicyoptionsAsPathUpdate(d *schema.ResourceData, m interface{}) error {
@@ -119,19 +126,23 @@ func resourcePolicyoptionsAsPathUpdate(d *schema.ResourceData, m interface{}) er
 	err = delPolicyoptionsAsPath(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setPolicyoptionsAsPath(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_policyoptions_as_path", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourcePolicyoptionsAsPathRead(d, m)
 }
 func resourcePolicyoptionsAsPathDelete(d *schema.ResourceData, m interface{}) error {
@@ -148,13 +159,16 @@ func resourcePolicyoptionsAsPathDelete(d *schema.ResourceData, m interface{}) er
 	err = delPolicyoptionsAsPath(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_policyoptions_as_path", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourcePolicyoptionsAsPathImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -180,6 +194,7 @@ func resourcePolicyoptionsAsPathImport(d *schema.ResourceData, m interface{}) ([
 	fillPolicyoptionsAsPathData(d, asPathOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -192,6 +207,7 @@ func checkPolicyoptionsAsPathExists(name string, m interface{}, jnprSess *Netcon
 	if asPathConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setPolicyoptionsAsPath(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -210,6 +226,7 @@ func setPolicyoptionsAsPath(d *schema.ResourceData, m interface{}, jnprSess *Net
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readPolicyoptionsAsPath(asPath string, m interface{}, jnprSess *NetconfObject) (asPathOptions, error) {
@@ -240,8 +257,10 @@ func readPolicyoptionsAsPath(asPath string, m interface{}, jnprSess *NetconfObje
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 
@@ -253,6 +272,7 @@ func delPolicyoptionsAsPath(asPath string, m interface{}, jnprSess *NetconfObjec
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func fillPolicyoptionsAsPathData(d *schema.ResourceData, asPathOptions asPathOptions) {

@@ -117,6 +117,7 @@ func delBgpOpts(d *schema.ResourceData, typebgp string, m interface{}, jnprSess 
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -251,6 +252,7 @@ func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, j
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readBgpOptsSimple(item string, confRead bgpOptions) (bgpOptions, error) {
@@ -460,6 +462,7 @@ func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{},
 			return err
 		}
 	}
+
 	return nil
 }
 func readBgpOptsBfd(item string, bfdOpts []map[string]interface{}) ([]map[string]interface{}, error) {
@@ -586,6 +589,7 @@ func setBgpOptsFamily(setPrefix, familyType string, familyOptsList []interface{}
 			return err
 		}
 	}
+
 	return nil
 }
 func setBgpOptsFamilyPrefixLimit(configSet []string,
@@ -606,6 +610,7 @@ func setBgpOptsFamilyPrefixLimit(configSet []string,
 	if prefixLimit["teardown_idle_timeout_forever"].(bool) {
 		configSet = append(configSet, setPrefix+"teardown idle-timeout forever\n")
 	}
+
 	return configSet, nil
 }
 func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) ([]map[string]interface{}, error) {
@@ -704,6 +709,7 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 		// override (maxItem = 1)
 		readOpts["prefix_limit"] = []map[string]interface{}{readOptsPL}
 	}
+
 	return append(opts, readOpts), nil
 }
 func setBgpOptsGrafefulRestart(setPrefix string, gracefulRestarts []interface{},
@@ -733,6 +739,7 @@ func setBgpOptsGrafefulRestart(setPrefix string, gracefulRestarts []interface{},
 			return err
 		}
 	}
+
 	return nil
 }
 func readBgpOptsGracefulRestart(item string, grOpts []map[string]interface{}) ([]map[string]interface{}, error) {

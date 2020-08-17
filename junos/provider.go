@@ -130,5 +130,6 @@ func configureProvider(d *schema.ResourceData) (interface{}, error) {
 		junosCmdSleepLock:        d.Get("cmd_sleep_lock").(int),
 		junosDebugNetconfLogPath: d.Get("debug_netconf_log_path").(string),
 	}
+
 	return config.Session()
 }

@@ -106,21 +106,25 @@ func resourceFirewallPolicerCreate(d *schema.ResourceData, m interface{}) error 
 	firewallPolicerExists, err := checkFirewallPolicerExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if firewallPolicerExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("firewall policer %v already exists", d.Get("name").(string))
 	}
 
 	err = setFirewallPolicer(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_firewall_policer", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	firewallPolicerExists, err = checkFirewallPolicerExists(d.Get("name").(string), m, jnprSess)
@@ -132,6 +136,7 @@ func resourceFirewallPolicerCreate(d *schema.ResourceData, m interface{}) error 
 	} else {
 		return fmt.Errorf("firewall policer %v not exists after commit => check your config", d.Get("name").(string))
 	}
+
 	return resourceFirewallPolicerRead(d, m)
 }
 func resourceFirewallPolicerRead(d *schema.ResourceData, m interface{}) error {
@@ -140,6 +145,7 @@ func resourceFirewallPolicerRead(d *schema.ResourceData, m interface{}) error {
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -153,6 +159,7 @@ func resourceFirewallPolicerRead(d *schema.ResourceData, m interface{}) error {
 	} else {
 		fillFirewallPolicerData(d, policerOptions)
 	}
+
 	return nil
 }
 func resourceFirewallPolicerUpdate(d *schema.ResourceData, m interface{}) error {
@@ -170,19 +177,23 @@ func resourceFirewallPolicerUpdate(d *schema.ResourceData, m interface{}) error 
 	err = delFirewallPolicer(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setFirewallPolicer(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_firewall_policer", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceFirewallPolicerRead(d, m)
 }
 func resourceFirewallPolicerDelete(d *schema.ResourceData, m interface{}) error {
@@ -199,13 +210,16 @@ func resourceFirewallPolicerDelete(d *schema.ResourceData, m interface{}) error 
 	err = delFirewallPolicer(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_firewall_policer", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceFirewallPolicerImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -231,6 +245,7 @@ func resourceFirewallPolicerImport(d *schema.ResourceData, m interface{}) ([]*sc
 	fillFirewallPolicerData(d, policerOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -243,6 +258,7 @@ func checkFirewallPolicerExists(name string, m interface{}, jnprSess *NetconfObj
 	if policerConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setFirewallPolicer(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -292,6 +308,7 @@ func setFirewallPolicer(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject) (policerOptions, error) {
@@ -367,8 +384,10 @@ func readFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject)
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 
@@ -380,6 +399,7 @@ func delFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject) 
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func fillFirewallPolicerData(d *schema.ResourceData, policerOptions policerOptions) {

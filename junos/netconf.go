@@ -113,6 +113,7 @@ func newSessionFromNetconf(s *netconf.Session) (*NetconfObject, error) {
 	n := &NetconfObject{
 		Session: s,
 	}
+
 	return n, n.GatherFacts()
 }
 
@@ -128,6 +129,7 @@ func genSSHClientConfig(auth *netconfAuthMethod) (*ssh.ClientConfig, error) {
 			"aes128-gcm@openssh.com", "chacha20-poly1305@openssh.com",
 			"aes128-ctr", "aes192-ctr", "aes256-ctr",
 			"aes128-cbc")
+
 		return config, nil
 	}
 
@@ -169,6 +171,7 @@ func (j *NetconfObject) GatherFacts() error {
 		for _, m := range reply.Errors {
 			errorsMsg = append(errorsMsg, fmt.Sprintf("%v", m))
 		}
+
 		return fmt.Errorf(strings.Join(errorsMsg, "\n"))
 	}
 
@@ -194,6 +197,7 @@ func (j *NetconfObject) GatherFacts() error {
 		j.RoutingEngines = numRE
 		j.Platform = res
 		j.CommitTimeout = 0
+
 		return nil
 	}
 
@@ -238,6 +242,7 @@ func (j *NetconfObject) netconfCommand(cmd string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return output.Config, nil
 }
 func (j *NetconfObject) netconfCommandXML(cmd string) (string, error) {
@@ -250,6 +255,7 @@ func (j *NetconfObject) netconfCommandXML(cmd string) (string, error) {
 			return "", errors.New(m.Message)
 		}
 	}
+
 	return reply.Data, nil
 }
 
@@ -265,8 +271,10 @@ func (j *NetconfObject) netconfConfigSet(cmd []string) (string, error) {
 		for _, m := range reply.Errors {
 			message += m.Message
 		}
+
 		return message, nil
 	}
+
 	return "", nil
 }
 
@@ -294,6 +302,7 @@ func (j *NetconfObject) netconfConfigUnlock() error {
 			return errors.New(m.Message)
 		}
 	}
+
 	return nil
 }
 func (j *NetconfObject) netconfConfigClear() error {
@@ -306,6 +315,7 @@ func (j *NetconfObject) netconfConfigClear() error {
 			return errors.New(m.Message)
 		}
 	}
+
 	return nil
 }
 
@@ -335,6 +345,7 @@ func (j *NetconfObject) netconfCommit(logMessage string) error {
 					strings.Trim(m.Path, "[\r\n]"),
 					strings.Trim(m.Element, "[\r\n]"),
 					strings.Trim(m.Message, "[\r\n]"))
+
 				return errors.New(message)
 			}
 		}
@@ -350,5 +361,6 @@ func (j *NetconfObject) Close() error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

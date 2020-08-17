@@ -68,21 +68,25 @@ func resourcePolicyoptionsAsPathGroupCreate(d *schema.ResourceData, m interface{
 	policyoptsAsPathGroupExists, err := checkPolicyoptionsAsPathGroupExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if policyoptsAsPathGroupExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("policy-options as-path-group %v already exists", d.Get("name").(string))
 	}
 
 	err = setPolicyoptionsAsPathGroup(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_policyoptions_as_path_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	policyoptsAsPathGroupExists, err = checkPolicyoptionsAsPathGroupExists(d.Get("name").(string), m, jnprSess)
@@ -95,6 +99,7 @@ func resourcePolicyoptionsAsPathGroupCreate(d *schema.ResourceData, m interface{
 		return fmt.Errorf("policy-options as-path-group %v not exists after commit "+
 			"=> check your config", d.Get("name").(string))
 	}
+
 	return resourcePolicyoptionsAsPathGroupRead(d, m)
 }
 func resourcePolicyoptionsAsPathGroupRead(d *schema.ResourceData, m interface{}) error {
@@ -103,6 +108,7 @@ func resourcePolicyoptionsAsPathGroupRead(d *schema.ResourceData, m interface{})
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -116,6 +122,7 @@ func resourcePolicyoptionsAsPathGroupRead(d *schema.ResourceData, m interface{})
 	} else {
 		fillPolicyoptionsAsPathGroupData(d, asPathGroupOptions)
 	}
+
 	return nil
 }
 func resourcePolicyoptionsAsPathGroupUpdate(d *schema.ResourceData, m interface{}) error {
@@ -133,19 +140,23 @@ func resourcePolicyoptionsAsPathGroupUpdate(d *schema.ResourceData, m interface{
 	err = delPolicyoptionsAsPathGroup(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setPolicyoptionsAsPathGroup(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_policyoptions_as_path_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourcePolicyoptionsAsPathGroupRead(d, m)
 }
 func resourcePolicyoptionsAsPathGroupDelete(d *schema.ResourceData, m interface{}) error {
@@ -162,13 +173,16 @@ func resourcePolicyoptionsAsPathGroupDelete(d *schema.ResourceData, m interface{
 	err = delPolicyoptionsAsPathGroup(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_policyoptions_as_path_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourcePolicyoptionsAsPathGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -194,6 +208,7 @@ func resourcePolicyoptionsAsPathGroupImport(d *schema.ResourceData, m interface{
 	fillPolicyoptionsAsPathGroupData(d, asPathGroupOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -207,6 +222,7 @@ func checkPolicyoptionsAsPathGroupExists(name string, m interface{}, jnprSess *N
 	if asPathGroupConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setPolicyoptionsAsPathGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -227,6 +243,7 @@ func setPolicyoptionsAsPathGroup(d *schema.ResourceData, m interface{}, jnprSess
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readPolicyoptionsAsPathGroup(asPathGroup string,
@@ -266,8 +283,10 @@ func readPolicyoptionsAsPathGroup(asPathGroup string,
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 
@@ -279,6 +298,7 @@ func delPolicyoptionsAsPathGroup(asPathGroup string, m interface{}, jnprSess *Ne
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func fillPolicyoptionsAsPathGroupData(d *schema.ResourceData, asPathGroupOptions asPathGroupOptions) {

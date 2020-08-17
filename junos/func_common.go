@@ -34,6 +34,7 @@ func validateIPMaskFunc() schema.SchemaValidateFunc {
 		if err != nil {
 			es = append(es, err)
 		}
+
 		return
 	}
 }
@@ -44,6 +45,7 @@ func validateIPFunc() schema.SchemaValidateFunc {
 		if err != nil {
 			es = append(es, err)
 		}
+
 		return
 	}
 }
@@ -54,6 +56,7 @@ func validateNetworkFunc() schema.SchemaValidateFunc {
 		if err != nil {
 			es = append(es, err)
 		}
+
 		return
 	}
 }
@@ -64,6 +67,7 @@ func validateIP(ip string) error {
 	if err != nil || ipnet == nil {
 		return fmt.Errorf("%v is not a valid IP", ip)
 	}
+
 	return nil
 }
 
@@ -82,6 +86,7 @@ func validateIPwithMask(ip string) error {
 	if ip == ipnet.String() {
 		return fmt.Errorf("%v is not a valide IP/mask, is a network", ip)
 	}
+
 	return nil
 }
 
@@ -96,6 +101,7 @@ func validateNetwork(network string) error {
 	if network != ipnet.String() {
 		return fmt.Errorf("%v is not a network, is a IP/mask", network)
 	}
+
 	return nil
 }
 
@@ -113,6 +119,7 @@ func validateNameObjectJunos() schema.SchemaValidateFunc {
 			es = append(es, fmt.Errorf(
 				"%q %q invalid name (bad character)", k, i))
 		}
+
 		return
 	}
 }
@@ -124,6 +131,7 @@ func validateIntRange(start int, end int) schema.SchemaValidateFunc {
 			errors = append(errors, fmt.Errorf(
 				"%q for %q is not valid (1-%d)", value, k, end))
 		}
+
 		return
 	}
 }
@@ -134,6 +142,7 @@ func stringInSlice(str string, list []string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 func copyAndRemoveItemMapList(identifier string, integer bool,
@@ -145,6 +154,7 @@ func copyAndRemoveItemMapList(identifier string, integer bool,
 					m[key] = value
 				}
 				list = append(list[:i], list[i+1:]...)
+
 				break
 			}
 		} else {
@@ -153,10 +163,12 @@ func copyAndRemoveItemMapList(identifier string, integer bool,
 					m[key] = value
 				}
 				list = append(list[:i], list[i+1:]...)
+
 				break
 			}
 		}
 	}
+
 	return m, list
 }
 
@@ -170,5 +182,6 @@ func checkCompatibilitySecurity(jnprSess *NetconfObject) bool {
 	if strings.HasPrefix(strings.ToLower(jnprSess.Platform[0].Model), "j") {
 		return true
 	}
+
 	return false
 }

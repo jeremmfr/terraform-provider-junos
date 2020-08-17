@@ -54,6 +54,7 @@ func resourceInterface() *schema.Resource {
 						errors = append(errors, fmt.Errorf(
 							"%q in %q cannot have more of 1 dot", value, k))
 					}
+
 					return
 				},
 			},
@@ -127,6 +128,7 @@ func resourceInterface() *schema.Resource {
 												errors = append(errors, fmt.Errorf(
 													"%q for %q is not' md5' or 'simple'", value, k))
 											}
+
 											return
 										},
 									},
@@ -300,6 +302,7 @@ func resourceInterface() *schema.Resource {
 						errors = append(errors, fmt.Errorf(
 							"%q for %q is not a valid mtu (500-9192)", value, k))
 					}
+
 					return
 				},
 			},
@@ -312,6 +315,7 @@ func resourceInterface() *schema.Resource {
 						errors = append(errors, fmt.Errorf(
 							"%q for %q is not a valid mtu (500-9192)", value, k))
 					}
+
 					return
 				},
 			},
@@ -344,6 +348,7 @@ func resourceInterface() *schema.Resource {
 						errors = append(errors, fmt.Errorf(
 							"%q in %q isn't an ae interface", value, k))
 					}
+
 					return
 				},
 			},
@@ -365,6 +370,7 @@ func resourceInterface() *schema.Resource {
 						errors = append(errors, fmt.Errorf(
 							"%q in %q is not in default vlan id (1-4094)", value, k))
 					}
+
 					return
 				},
 			},
@@ -378,6 +384,7 @@ func resourceInterface() *schema.Resource {
 						errors = append(errors, fmt.Errorf(
 							"%q is not active or passive", k))
 					}
+
 					return
 				},
 			},
@@ -391,6 +398,7 @@ func resourceInterface() *schema.Resource {
 						errors = append(errors, fmt.Errorf(
 							"%q in %q is not valid speed", value, k))
 					}
+
 					return
 				},
 			},
@@ -431,23 +439,27 @@ func resourceInterfaceCreate(d *schema.ResourceData, m interface{}) error {
 		err = checkInterfaceNC(d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
+
 			return err
 		}
 		if sess.junosGroupIntDel != "" {
 			err = delInterfaceElement("apply-groups "+sess.junosGroupIntDel, d, m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
+
 				return err
 			}
 		} else {
 			err = delInterfaceElement("disable", d, m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
+
 				return err
 			}
 			err = delInterfaceElement("description", d, m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
+
 				return err
 			}
 		}
@@ -455,15 +467,18 @@ func resourceInterfaceCreate(d *schema.ResourceData, m interface{}) error {
 	if d.Get("security_zone").(string) != "" {
 		if !checkCompatibilitySecurity(jnprSess) {
 			sess.configClear(jnprSess)
+
 			return fmt.Errorf("security zone not compatible with Junos device %s", jnprSess.Platform[0].Model)
 		}
 		zonesExists, err := checkSecurityZonesExists(d.Get("security_zone").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
+
 			return err
 		}
 		if !zonesExists {
 			sess.configClear(jnprSess)
+
 			return fmt.Errorf("security zones %v doesn't exist", d.Get("security_zone").(string))
 		}
 	}
@@ -471,21 +486,25 @@ func resourceInterfaceCreate(d *schema.ResourceData, m interface{}) error {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
+
 			return err
 		}
 		if !instanceExists {
 			sess.configClear(jnprSess)
+
 			return fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string))
 		}
 	}
 	err = setInterface(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_interface", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	intExists, err = checkInterfaceExists(d.Get("name").(string), m, jnprSess)
@@ -506,22 +525,26 @@ func resourceInterfaceRead(d *schema.ResourceData, m interface{}) error {
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
 	intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	if !intExists {
 		d.SetId("")
 		mutex.Unlock()
+
 		return nil
 	}
 	if err = checkInterfaceNC(d.Get("name").(string), m, jnprSess); err == nil {
 		d.SetId("")
 		mutex.Unlock()
+
 		return nil
 	}
 	interfaceOpt, err := readInterface(d.Get("name").(string), m, jnprSess)
@@ -548,6 +571,7 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 	err = delInterfaceOpts(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if d.HasChange("ether802_3ad") {
@@ -560,18 +584,21 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 			lastAEchild, err := aggregatedLastChild(oAE.(string), d.Get("name").(string), m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
+
 				return err
 			}
 			if lastAEchild {
 				aggregatedCount, err := aggregatedCountSearchMax(newAE, oAE.(string), d.Get("name").(string), m, jnprSess)
 				if err != nil {
 					sess.configClear(jnprSess)
+
 					return err
 				}
 				if aggregatedCount == "0" {
 					err = sess.configSet([]string{"delete chassis aggregated-devices ethernet device-count"}, jnprSess)
 					if err != nil {
 						sess.configClear(jnprSess)
+
 						return err
 					}
 					oAEintNC := checkInterfaceNC(oAE.(string), m, jnprSess)
@@ -579,6 +606,7 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 						err = sess.configSet([]string{"delete interfaces " + oAE.(string) + "\n"}, jnprSess)
 						if err != nil {
 							sess.configClear(jnprSess)
+
 							return err
 						}
 					}
@@ -586,11 +614,13 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 					oldAEInt, err := strconv.Atoi(strings.TrimPrefix(oAE.(string), "ae"))
 					if err != nil {
 						sess.configClear(jnprSess)
+
 						return err
 					}
 					aggregatedCountInt, err := strconv.Atoi(aggregatedCount)
 					if err != nil {
 						sess.configClear(jnprSess)
+
 						return err
 					}
 					if aggregatedCountInt < oldAEInt+1 {
@@ -599,6 +629,7 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 							err = sess.configSet([]string{"delete interfaces " + oAE.(string) + "\n"}, jnprSess)
 							if err != nil {
 								sess.configClear(jnprSess)
+
 								return err
 							}
 						}
@@ -612,15 +643,18 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 		if nSecurityZone.(string) != "" {
 			if !checkCompatibilitySecurity(jnprSess) {
 				sess.configClear(jnprSess)
+
 				return fmt.Errorf("security zone not compatible with Junos device %s", jnprSess.Platform[0].Model)
 			}
 			zonesExists, err := checkSecurityZonesExists(nSecurityZone.(string), m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
+
 				return err
 			}
 			if !zonesExists {
 				sess.configClear(jnprSess)
+
 				return fmt.Errorf("security zones %v doesn't exist", nSecurityZone.(string))
 			}
 		}
@@ -628,6 +662,7 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 			err = delZoneInterface(oSecurityZone.(string), d, m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
+
 				return err
 			}
 		}
@@ -638,10 +673,12 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 			instanceExists, err := checkRoutingInstanceExists(nRoutingInstance.(string), m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
+
 				return err
 			}
 			if !instanceExists {
 				sess.configClear(jnprSess)
+
 				return fmt.Errorf("routing instance %v doesn't exist", nRoutingInstance.(string))
 			}
 		}
@@ -649,6 +686,7 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 			err = delRoutingInstanceInterface(oRoutingInstance.(string), d, m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
+
 				return err
 			}
 		}
@@ -656,14 +694,17 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 	err = setInterface(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_interface", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceInterfaceRead(d, m)
 }
 func resourceInterfaceDelete(d *schema.ResourceData, m interface{}) error {
@@ -680,11 +721,13 @@ func resourceInterfaceDelete(d *schema.ResourceData, m interface{}) error {
 	err = delInterface(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_interface", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
@@ -695,14 +738,17 @@ func resourceInterfaceDelete(d *schema.ResourceData, m interface{}) error {
 		err = addInterfaceNC(d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
+
 			return err
 		}
 		err = sess.commitConf("disable(NC) resource junos_interface", jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
+
 			return err
 		}
 	}
+
 	return nil
 }
 func resourceInterfaceImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -731,6 +777,7 @@ func resourceInterfaceImport(d *schema.ResourceData, m interface{}) ([]*schema.R
 	fillInterfaceData(d, interfaceOpt)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -774,6 +821,7 @@ func checkInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) 
 		intConfig == setLineStart {
 		return nil
 	}
+
 	return fmt.Errorf("interface %s already configured", interFace)
 }
 func addInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) error {
@@ -803,6 +851,7 @@ func addInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) er
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -817,6 +866,7 @@ func checkInterfaceExists(interFace string, m interface{}, jnprSess *NetconfObje
 	if strings.Contains(reply, " not found\n") {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -958,6 +1008,7 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (interfaceOptions, error) {
@@ -1068,6 +1119,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 			if intMatch {
 				confRead.securityZones = strings.TrimPrefix(strings.TrimSuffix(item, " interfaces "+interFace),
 					"set security-zone ")
+
 				break
 			}
 		}
@@ -1084,9 +1136,11 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 		if intMatch {
 			confRead.routingInstances = strings.TrimPrefix(strings.TrimSuffix(item, " interface "+interFace),
 				"set ")
+
 			break
 		}
 	}
+
 	return confRead, nil
 }
 func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -1198,9 +1252,11 @@ func checkInterfaceContainsUnit(interFace string, m interface{}, jnprSess *Netco
 			if strings.Contains(item, "ethernet-switching") {
 				continue
 			}
+
 			return fmt.Errorf("interface %s is used for other son unit interface", interFace)
 		}
 	}
+
 	return nil
 }
 func delInterfaceElement(element string, d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -1226,6 +1282,7 @@ func delInterfaceElement(element string, d *schema.ResourceData, m interface{}, 
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func delInterfaceOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -1261,6 +1318,7 @@ func delInterfaceOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func delZoneInterface(zone string, d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -1271,6 +1329,7 @@ func delZoneInterface(zone string, d *schema.ResourceData, m interface{}, jnprSe
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func delRoutingInstanceInterface(instance string, d *schema.ResourceData,
@@ -1282,6 +1341,7 @@ func delRoutingInstanceInterface(instance string, d *schema.ResourceData,
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -1476,6 +1536,7 @@ func fillFamilyInetAddress(item string, inetAddress []map[string]interface{},
 		m["vrrp_group"] = append(m["vrrp_group"].([]map[string]interface{}), vrrpGroup)
 	}
 	inetAddress = append(inetAddress, m)
+
 	return inetAddress, nil
 }
 func setFamilyAddress(inetAddress interface{}, intCut []string, configSet []string, setName string,
@@ -1569,6 +1630,7 @@ func setFamilyAddress(inetAddress interface{}, intCut []string, configSet []stri
 				" priority-cost "+strconv.Itoa(trackRouteMap["priority_cost"].(int))+"\n")
 		}
 	}
+
 	return configSet, nil
 }
 
@@ -1585,6 +1647,7 @@ func aggregatedLastChild(ae, interFace string, m interface{}, jnprSess *NetconfO
 			lastAE = false
 		}
 	}
+
 	return lastAE, nil
 }
 func aggregatedCountSearchMax(newAE, oldAE, interFace string, m interface{}, jnprSess *NetconfObject) (string, error) {
@@ -1659,6 +1722,7 @@ func genVRRPGroup(family string) map[string]interface{} {
 	if family == inet6Word {
 		m["virtual_link_local_address"] = ""
 	}
+
 	return m
 }
 func checkResourceInterfaceConfigAndName(length int, d *schema.ResourceData) error {
@@ -1714,5 +1778,6 @@ func checkResourceInterfaceConfigAndName(length int, d *schema.ResourceData) err
 			return fmt.Errorf("ae_minimum_links invalid for this interface")
 		}
 	}
+
 	return nil
 }

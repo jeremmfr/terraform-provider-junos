@@ -47,6 +47,7 @@ func resourceIkePolicy() *schema.Resource {
 						errors = append(errors, fmt.Errorf(
 							"%q for %q is not 'main' or 'aggressive'", value, k))
 					}
+
 					return
 				},
 			},
@@ -83,20 +84,24 @@ func resourceIkePolicyCreate(d *schema.ResourceData, m interface{}) error {
 	ikePolicyExists, err := checkIkePolicyExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if ikePolicyExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("ike policy %v already exists", d.Get("name").(string))
 	}
 	err = setIkePolicy(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_ike_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	ikePolicyExists, err = checkIkePolicyExists(d.Get("name").(string), m, jnprSess)
@@ -108,6 +113,7 @@ func resourceIkePolicyCreate(d *schema.ResourceData, m interface{}) error {
 	} else {
 		return fmt.Errorf("ike policy %v not exists after commit => check your config", d.Get("name").(string))
 	}
+
 	return resourceIkePolicyRead(d, m)
 }
 func resourceIkePolicyRead(d *schema.ResourceData, m interface{}) error {
@@ -116,6 +122,7 @@ func resourceIkePolicyRead(d *schema.ResourceData, m interface{}) error {
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -129,6 +136,7 @@ func resourceIkePolicyRead(d *schema.ResourceData, m interface{}) error {
 	} else {
 		fillIkePolicyData(d, ikePolicyOptions)
 	}
+
 	return nil
 }
 func resourceIkePolicyUpdate(d *schema.ResourceData, m interface{}) error {
@@ -146,19 +154,23 @@ func resourceIkePolicyUpdate(d *schema.ResourceData, m interface{}) error {
 	err = delIkePolicy(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setIkePolicy(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_ike_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceIkePolicyRead(d, m)
 }
 func resourceIkePolicyDelete(d *schema.ResourceData, m interface{}) error {
@@ -175,13 +187,16 @@ func resourceIkePolicyDelete(d *schema.ResourceData, m interface{}) error {
 	err = delIkePolicy(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_ike_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceIkePolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -205,6 +220,7 @@ func resourceIkePolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.R
 	}
 	fillIkePolicyData(d, ikePolicyOptions)
 	result[0] = d
+
 	return result, nil
 }
 
@@ -217,6 +233,7 @@ func checkIkePolicyExists(ikePolicy string, m interface{}, jnprSess *NetconfObje
 	if ikePolicyConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setIkePolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -244,6 +261,7 @@ func setIkePolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readIkePolicy(ikePolicy string, m interface{}, jnprSess *NetconfObject) (ikePolicyOptions, error) {
@@ -286,8 +304,10 @@ func readIkePolicy(ikePolicy string, m interface{}, jnprSess *NetconfObject) (ik
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 func delIkePolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -298,6 +318,7 @@ func delIkePolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

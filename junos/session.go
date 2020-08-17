@@ -45,6 +45,7 @@ func (sess *Session) startNewSession() (*NetconfObject, error) {
 	if sess.junosLogFile != "" {
 		logFile("[startNewSession] started", sess.junosLogFile)
 	}
+
 	return jnpr, nil
 }
 func (sess *Session) closeSession(jnpr *NetconfObject) {
@@ -68,8 +69,10 @@ func (sess *Session) command(cmd string, jnpr *NetconfObject) (string, error) {
 		if sess.junosLogFile != "" {
 			logFile(fmt.Sprintf("[command] err: %q", err), sess.junosLogFile)
 		}
+
 		return "", err
 	}
+
 	return read, nil
 }
 func (sess *Session) commandXML(cmd string, jnpr *NetconfObject) (string, error) {
@@ -83,8 +86,10 @@ func (sess *Session) commandXML(cmd string, jnpr *NetconfObject) (string, error)
 		if sess.junosLogFile != "" {
 			logFile(fmt.Sprintf("[commandXML] err: %q", err), sess.junosLogFile)
 		}
+
 		return "", err
 	}
+
 	return read, nil
 }
 func (sess *Session) configSet(cmd []string, jnpr *NetconfObject) error {
@@ -98,8 +103,10 @@ func (sess *Session) configSet(cmd []string, jnpr *NetconfObject) error {
 		if sess.junosLogFile != "" {
 			logFile(fmt.Sprintf("[configSet] err: %q", err), sess.junosLogFile)
 		}
+
 		return err
 	}
+
 	return nil
 }
 func (sess *Session) commitConf(logMessage string, jnpr *NetconfObject) error {
@@ -112,8 +119,10 @@ func (sess *Session) commitConf(logMessage string, jnpr *NetconfObject) error {
 		if sess.junosLogFile != "" {
 			logFile(fmt.Sprintf("[commitConf] commit error: %q", err), sess.junosLogFile)
 		}
+
 		return err
 	}
+
 	return nil
 }
 
@@ -126,6 +135,7 @@ func (sess *Session) configLock(jnpr *NetconfObject) error {
 				logFile("[configLock] locked", sess.junosLogFile)
 			}
 			sleepShort(sess.junosSleepShort)
+
 			break
 		} else {
 			if sess.junosLogFile != "" {
@@ -134,6 +144,7 @@ func (sess *Session) configLock(jnpr *NetconfObject) error {
 			sleep(sess.junosSleep)
 		}
 	}
+
 	return nil
 }
 func (sess *Session) configClear(jnpr *NetconfObject) {

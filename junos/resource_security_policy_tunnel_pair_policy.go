@@ -69,29 +69,35 @@ func resourceSecurityPolicyTunnelPairPolicyCreate(d *schema.ResourceData, m inte
 	securityPolicyExists, err := checkSecurityPolicyExists(d.Get("zone_a").(string), d.Get("zone_b").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if !securityPolicyExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("security policy from %v to %v not exists", d.Get("zone_a").(string), d.Get("zone_b").(string))
 	}
 	securityPolicyExists, err = checkSecurityPolicyExists(d.Get("zone_b").(string), d.Get("zone_a").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if !securityPolicyExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("security policy from %v to %v not exists", d.Get("zone_b").(string), d.Get("zone_a").(string))
 	}
 	pairPolicyExists, err := checkSecurityPolicyPairExists(d.Get("zone_a").(string), d.Get("policy_a_to_b").(string),
 		d.Get("zone_b").(string), d.Get("policy_b_to_a").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if pairPolicyExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("security policy pair policy %v(%v) / %v(%v) already exists",
 			d.Get("zone_a").(string), d.Get("policy_a_to_b").(string),
 			d.Get("zone_b").(string), d.Get("policy_b_to_a").(string))
@@ -99,11 +105,13 @@ func resourceSecurityPolicyTunnelPairPolicyCreate(d *schema.ResourceData, m inte
 	err = setSecurityPolicyTunnelPairPolicy(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_security_policy_tunnel_pair_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	pairPolicyExists, err = checkSecurityPolicyPairExists(d.Get("zone_a").(string), d.Get("policy_a_to_b").(string),
@@ -117,6 +125,7 @@ func resourceSecurityPolicyTunnelPairPolicyCreate(d *schema.ResourceData, m inte
 	} else {
 		return fmt.Errorf("security policy pair policy not exists after commit => check your config")
 	}
+
 	return resourceSecurityPolicyTunnelPairPolicyRead(d, m)
 }
 func resourceSecurityPolicyTunnelPairPolicyRead(d *schema.ResourceData, m interface{}) error {
@@ -125,6 +134,7 @@ func resourceSecurityPolicyTunnelPairPolicyRead(d *schema.ResourceData, m interf
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -141,6 +151,7 @@ func resourceSecurityPolicyTunnelPairPolicyRead(d *schema.ResourceData, m interf
 	} else {
 		fillSecurityPolicyPairData(d, policyPairPolicyOptions)
 	}
+
 	return nil
 }
 func resourceSecurityPolicyTunnelPairPolicyDelete(d *schema.ResourceData, m interface{}) error {
@@ -157,13 +168,16 @@ func resourceSecurityPolicyTunnelPairPolicyDelete(d *schema.ResourceData, m inte
 	err = delSecurityPolicyTunnelPairPolicy(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_security_policy_tunnel_pair_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceSecurityPolicyTunnelPairPolicyImport(d *schema.ResourceData,
@@ -196,6 +210,7 @@ func resourceSecurityPolicyTunnelPairPolicyImport(d *schema.ResourceData,
 	fillSecurityPolicyPairData(d, policyPairPolicyOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -218,6 +233,7 @@ func checkSecurityPolicyPairExists(zoneA, policyAtoB, zoneB, policyBtoA string,
 	if pairAtoBConfig == emptyWord && pairBtoAConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -237,6 +253,7 @@ func setSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, m interface{}, jn
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readSecurityPolicyTunnelPairPolicy(idRessource string,
@@ -296,6 +313,7 @@ func readSecurityPolicyTunnelPairPolicy(idRessource string,
 			}
 		}
 	}
+
 	return confRead, nil
 }
 func delSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -313,6 +331,7 @@ func delSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, m interface{}, jn
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

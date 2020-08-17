@@ -41,6 +41,7 @@ func resourceBgpGroup() *schema.Resource {
 						errors = append(errors, fmt.Errorf(
 							"%q for %q is not 'internal' or 'external'", value, k))
 					}
+
 					return
 				},
 			},
@@ -302,6 +303,7 @@ func resourceBgpGroup() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q for %q is not 'automatic', 'multihop' or 'single-hop'", value, k))
 								}
+
 								return
 							},
 						},
@@ -326,6 +328,7 @@ func resourceBgpGroup() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q for %q is not valid nlri type", value, k))
 								}
+
 								return
 							},
 						},
@@ -402,6 +405,7 @@ func resourceBgpGroup() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q for %q is not valid nlri type", value, k))
 								}
+
 								return
 							},
 						},
@@ -510,31 +514,37 @@ func resourceBgpGroupCreate(d *schema.ResourceData, m interface{}) error {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
+
 			return err
 		}
 		if !instanceExists {
 			sess.configClear(jnprSess)
+
 			return fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string))
 		}
 	}
 	bgpGroupxists, err := checkBgpGroupExists(d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if bgpGroupxists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("bgp group %v already exists in routing-instance %v",
 			d.Get("name").(string), d.Get("routing_instance").(string))
 	}
 	err = setBgpGroup(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_bgp_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	bgpGroupxists, err = checkBgpGroupExists(d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
@@ -547,6 +557,7 @@ func resourceBgpGroupCreate(d *schema.ResourceData, m interface{}) error {
 		return fmt.Errorf("bgp group %v not exists in routing-instance %v after commit "+
 			"=> check your config", d.Get("name").(string), d.Get("routing_instance").(string))
 	}
+
 	return resourceBgpGroupRead(d, m)
 }
 func resourceBgpGroupRead(d *schema.ResourceData, m interface{}) error {
@@ -555,6 +566,7 @@ func resourceBgpGroupRead(d *schema.ResourceData, m interface{}) error {
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -568,6 +580,7 @@ func resourceBgpGroupRead(d *schema.ResourceData, m interface{}) error {
 	} else {
 		fillBgpGroupData(d, bgpGroupOptions)
 	}
+
 	return nil
 }
 func resourceBgpGroupUpdate(d *schema.ResourceData, m interface{}) error {
@@ -585,19 +598,23 @@ func resourceBgpGroupUpdate(d *schema.ResourceData, m interface{}) error {
 	err = delBgpOpts(d, "group", m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setBgpGroup(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_bgp_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceBgpGroupRead(d, m)
 }
 func resourceBgpGroupDelete(d *schema.ResourceData, m interface{}) error {
@@ -614,13 +631,16 @@ func resourceBgpGroupDelete(d *schema.ResourceData, m interface{}) error {
 	err = delBgpGroup(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_bgp_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceBgpGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -649,6 +669,7 @@ func resourceBgpGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.Re
 	}
 	fillBgpGroupData(d, bgpGroupOptions)
 	result[0] = d
+
 	return result, nil
 }
 
@@ -672,6 +693,7 @@ func checkBgpGroupExists(bgpGroup, instance string, m interface{}, jnprSess *Net
 	if bgpGroupConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -783,8 +805,10 @@ func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObj
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 func delBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -800,6 +824,7 @@ func delBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

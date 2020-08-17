@@ -56,21 +56,25 @@ func resourcePolicyoptionsCommunityCreate(d *schema.ResourceData, m interface{})
 	policyoptsCommunityExists, err := checkPolicyoptionsCommunityExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if policyoptsCommunityExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("policy-options community %v already exists", d.Get("name").(string))
 	}
 
 	err = setPolicyoptionsCommunity(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_policyoptions_community", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	policyoptsCommunityExists, err = checkPolicyoptionsCommunityExists(d.Get("name").(string), m, jnprSess)
@@ -82,6 +86,7 @@ func resourcePolicyoptionsCommunityCreate(d *schema.ResourceData, m interface{})
 	} else {
 		return fmt.Errorf("policy-options community %v not exists after commit => check your config", d.Get("name").(string))
 	}
+
 	return resourcePolicyoptionsCommunityRead(d, m)
 }
 func resourcePolicyoptionsCommunityRead(d *schema.ResourceData, m interface{}) error {
@@ -90,6 +95,7 @@ func resourcePolicyoptionsCommunityRead(d *schema.ResourceData, m interface{}) e
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -103,6 +109,7 @@ func resourcePolicyoptionsCommunityRead(d *schema.ResourceData, m interface{}) e
 	} else {
 		fillPolicyoptionsCommunityData(d, communityOptions)
 	}
+
 	return nil
 }
 func resourcePolicyoptionsCommunityUpdate(d *schema.ResourceData, m interface{}) error {
@@ -120,19 +127,23 @@ func resourcePolicyoptionsCommunityUpdate(d *schema.ResourceData, m interface{})
 	err = delPolicyoptionsCommunity(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setPolicyoptionsCommunity(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_policyoptions_community", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourcePolicyoptionsCommunityRead(d, m)
 }
 func resourcePolicyoptionsCommunityDelete(d *schema.ResourceData, m interface{}) error {
@@ -149,13 +160,16 @@ func resourcePolicyoptionsCommunityDelete(d *schema.ResourceData, m interface{})
 	err = delPolicyoptionsCommunity(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_policyoptions_community", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourcePolicyoptionsCommunityImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -181,6 +195,7 @@ func resourcePolicyoptionsCommunityImport(d *schema.ResourceData, m interface{})
 	fillPolicyoptionsCommunityData(d, communityOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -193,6 +208,7 @@ func checkPolicyoptionsCommunityExists(name string, m interface{}, jnprSess *Net
 	if communityConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setPolicyoptionsCommunity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -210,6 +226,7 @@ func setPolicyoptionsCommunity(d *schema.ResourceData, m interface{}, jnprSess *
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readPolicyoptionsCommunity(community string, m interface{}, jnprSess *NetconfObject) (communityOptions, error) {
@@ -240,8 +257,10 @@ func readPolicyoptionsCommunity(community string, m interface{}, jnprSess *Netco
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 
@@ -253,6 +272,7 @@ func delPolicyoptionsCommunity(community string, m interface{}, jnprSess *Netcon
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func fillPolicyoptionsCommunityData(d *schema.ResourceData, communityOptions communityOptions) {

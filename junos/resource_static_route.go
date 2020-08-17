@@ -39,6 +39,7 @@ func resourceStaticRoute() *schema.Resource {
 						errors = append(errors, fmt.Errorf(
 							"%q error for validate %q : %q", k, value, err))
 					}
+
 					return
 				},
 			},
@@ -106,10 +107,12 @@ func resourceStaticRouteCreate(d *schema.ResourceData, m interface{}) error {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
+
 			return err
 		}
 		if !instanceExists {
 			sess.configClear(jnprSess)
+
 			return fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string))
 		}
 	}
@@ -117,27 +120,32 @@ func resourceStaticRouteCreate(d *schema.ResourceData, m interface{}) error {
 		m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if staticRouteExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("static route %v already exists on table %s",
 			d.Get("destination").(string), d.Get("routing_instance").(string))
 	}
 	err = setStaticRoute(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_static_route", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	staticRouteExists, err = checkStaticRouteExists(d.Get("destination").(string), d.Get("routing_instance").(string),
 		m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if staticRouteExists {
@@ -146,6 +154,7 @@ func resourceStaticRouteCreate(d *schema.ResourceData, m interface{}) error {
 		return fmt.Errorf("static route %v not exists in routing_instance %v after commit "+
 			"=> check your config", d.Get("destination").(string), d.Get("routing_instance").(string))
 	}
+
 	return resourceStaticRouteRead(d, m)
 }
 func resourceStaticRouteRead(d *schema.ResourceData, m interface{}) error {
@@ -154,6 +163,7 @@ func resourceStaticRouteRead(d *schema.ResourceData, m interface{}) error {
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -168,6 +178,7 @@ func resourceStaticRouteRead(d *schema.ResourceData, m interface{}) error {
 	} else {
 		fillStaticRouteData(d, staticRouteOptions)
 	}
+
 	return nil
 }
 func resourceStaticRouteUpdate(d *schema.ResourceData, m interface{}) error {
@@ -185,20 +196,24 @@ func resourceStaticRouteUpdate(d *schema.ResourceData, m interface{}) error {
 	err = delStaticRouteOpts(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 
 	err = setStaticRoute(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_static_route", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceStaticRouteRead(d, m)
 }
 func resourceStaticRouteDelete(d *schema.ResourceData, m interface{}) error {
@@ -215,13 +230,16 @@ func resourceStaticRouteDelete(d *schema.ResourceData, m interface{}) error {
 	err = delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_static_route", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceStaticRouteImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -251,6 +269,7 @@ func resourceStaticRouteImport(d *schema.ResourceData, m interface{}) ([]*schema
 	fillStaticRouteData(d, staticRouteOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -275,6 +294,7 @@ func checkStaticRouteExists(destination string, instance string, m interface{}, 
 	if staticRouteConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -320,6 +340,7 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readStaticRoute(destination string, instance string, m interface{},
@@ -396,8 +417,10 @@ func readStaticRoute(destination string, instance string, m interface{},
 		}
 	} else {
 		confRead.destination = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 
@@ -427,6 +450,7 @@ func delStaticRouteOpts(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func delStaticRoute(destination string, instance string, m interface{}, jnprSess *NetconfObject) error {
@@ -441,6 +465,7 @@ func delStaticRoute(destination string, instance string, m interface{}, jnprSess
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

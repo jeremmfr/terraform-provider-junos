@@ -44,6 +44,7 @@ func resourceSecurityNatDestination() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q for %q is not 'interface', 'routing-instance' or 'zone'", value, k))
 								}
+
 								return
 							},
 						},
@@ -85,6 +86,7 @@ func resourceSecurityNatDestination() *schema.Resource {
 												errors = append(errors, fmt.Errorf(
 													"%q for %q is not 'off' or 'pool'", value, k))
 											}
+
 											return
 										},
 									},
@@ -120,21 +122,25 @@ func resourceSecurityNatDestinationCreate(d *schema.ResourceData, m interface{})
 	securityNatDestinationExists, err := checkSecurityNatDestinationExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if securityNatDestinationExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("security nat destination %v already exists", d.Get("name").(string))
 	}
 
 	err = setSecurityNatDestination(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_security_nat_destination", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	securityNatDestinationExists, err = checkSecurityNatDestinationExists(d.Get("name").(string), m, jnprSess)
@@ -146,6 +152,7 @@ func resourceSecurityNatDestinationCreate(d *schema.ResourceData, m interface{})
 	} else {
 		return fmt.Errorf("security nat destination %v not exists after commit => check your config", d.Get("name").(string))
 	}
+
 	return resourceSecurityNatDestinationRead(d, m)
 }
 func resourceSecurityNatDestinationRead(d *schema.ResourceData, m interface{}) error {
@@ -154,6 +161,7 @@ func resourceSecurityNatDestinationRead(d *schema.ResourceData, m interface{}) e
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -167,6 +175,7 @@ func resourceSecurityNatDestinationRead(d *schema.ResourceData, m interface{}) e
 	} else {
 		fillSecurityNatDestinationData(d, natDestinationOptions)
 	}
+
 	return nil
 }
 func resourceSecurityNatDestinationUpdate(d *schema.ResourceData, m interface{}) error {
@@ -184,19 +193,23 @@ func resourceSecurityNatDestinationUpdate(d *schema.ResourceData, m interface{})
 	err = delSecurityNatDestination(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setSecurityNatDestination(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_security_nat_destination", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceSecurityNatDestinationRead(d, m)
 }
 func resourceSecurityNatDestinationDelete(d *schema.ResourceData, m interface{}) error {
@@ -213,13 +226,16 @@ func resourceSecurityNatDestinationDelete(d *schema.ResourceData, m interface{})
 	err = delSecurityNatDestination(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_security_nat_destination", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceSecurityNatDestinationImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -245,6 +261,7 @@ func resourceSecurityNatDestinationImport(d *schema.ResourceData, m interface{})
 	fillSecurityNatDestinationData(d, natDestinationOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -258,6 +275,7 @@ func checkSecurityNatDestinationExists(name string, m interface{}, jnprSess *Net
 	if natDestinationConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -294,6 +312,7 @@ func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readSecurityNatDestination(natDestination string,
@@ -369,8 +388,10 @@ func readSecurityNatDestination(natDestination string,
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 
@@ -382,6 +403,7 @@ func delSecurityNatDestination(natDestination string, m interface{}, jnprSess *N
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func fillSecurityNatDestinationData(d *schema.ResourceData, natDestinationOptions natDestinationOptions) {

@@ -60,20 +60,24 @@ func resourceApplicationCreate(d *schema.ResourceData, m interface{}) error {
 	appExists, err := checkApplicationExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if appExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("application %v already exists", d.Get("name").(string))
 	}
 	err = setApplication(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_application", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	appExists, err = checkApplicationExists(d.Get("name").(string), m, jnprSess)
@@ -85,6 +89,7 @@ func resourceApplicationCreate(d *schema.ResourceData, m interface{}) error {
 	} else {
 		return fmt.Errorf("application %v not exists after commit => check your config", d.Get("name").(string))
 	}
+
 	return resourceApplicationRead(d, m)
 }
 func resourceApplicationRead(d *schema.ResourceData, m interface{}) error {
@@ -93,6 +98,7 @@ func resourceApplicationRead(d *schema.ResourceData, m interface{}) error {
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -106,6 +112,7 @@ func resourceApplicationRead(d *schema.ResourceData, m interface{}) error {
 	} else {
 		fillApplicationData(d, applicationOptions)
 	}
+
 	return nil
 }
 func resourceApplicationUpdate(d *schema.ResourceData, m interface{}) error {
@@ -123,19 +130,23 @@ func resourceApplicationUpdate(d *schema.ResourceData, m interface{}) error {
 	err = delApplication(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setApplication(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_application", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceApplicationRead(d, m)
 }
 func resourceApplicationDelete(d *schema.ResourceData, m interface{}) error {
@@ -152,13 +163,16 @@ func resourceApplicationDelete(d *schema.ResourceData, m interface{}) error {
 	err = delApplication(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_application", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceApplicationImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -182,6 +196,7 @@ func resourceApplicationImport(d *schema.ResourceData, m interface{}) ([]*schema
 	}
 	fillApplicationData(d, applicationOptions)
 	result[0] = d
+
 	return result, nil
 }
 
@@ -195,6 +210,7 @@ func checkApplicationExists(application string, m interface{}, jnprSess *Netconf
 	if applicationConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setApplication(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -216,6 +232,7 @@ func setApplication(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readApplication(application string, m interface{}, jnprSess *NetconfObject) (applicationOptions, error) {
@@ -248,8 +265,10 @@ func readApplication(application string, m interface{}, jnprSess *NetconfObject)
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 func delApplication(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -260,6 +279,7 @@ func delApplication(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

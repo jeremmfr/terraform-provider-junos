@@ -13,7 +13,20 @@ and modify a part of configuration.
 
 The provider allows you to manage some elements on Junos device.
 
-For provider installation see [source on github](https://github.com/jeremmfr/terraform-provider-junos)
+## Provider installation
+For manual installation see [README on github](https://github.com/jeremmfr/terraform-provider-junos#install-binary-on-disk)<br>
+For automatic installation (terraform >= 0.13.x) use registry :
+```hcl
+terraform {
+  required_providers {
+    junos = {
+      source = "jeremmfr/junos"
+    }
+  }
+}
+```
+
+## Configure netconf
 
 You need to add netconf service on your Junos device:
 

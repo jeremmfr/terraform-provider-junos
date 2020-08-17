@@ -26,5 +26,6 @@ func (c *Config) Session() (*Session, error) {
 		junosSleep:       c.junosCmdSleepLock,
 		junosSleepShort:  c.junosCmdSleepShort,
 	}
+
 	return sess, nil
 }

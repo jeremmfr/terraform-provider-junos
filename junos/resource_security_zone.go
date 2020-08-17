@@ -61,6 +61,7 @@ func resourceSecurityZone() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q error for validate %q : %q", k, value, err))
 								}
+
 								return
 							},
 						},
@@ -106,21 +107,25 @@ func resourceSecurityZoneCreate(d *schema.ResourceData, m interface{}) error {
 	securityZoneExists, err := checkSecurityZonesExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if securityZoneExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("security zone %v already exists", d.Get("name").(string))
 	}
 
 	err = setSecurityZone(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_security_zone", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	mutex.Lock()
@@ -134,6 +139,7 @@ func resourceSecurityZoneCreate(d *schema.ResourceData, m interface{}) error {
 	} else {
 		return fmt.Errorf("security zone %v not exists after commit => check your config", d.Get("name").(string))
 	}
+
 	return resourceSecurityZoneRead(d, m)
 }
 func resourceSecurityZoneRead(d *schema.ResourceData, m interface{}) error {
@@ -142,6 +148,7 @@ func resourceSecurityZoneRead(d *schema.ResourceData, m interface{}) error {
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -155,6 +162,7 @@ func resourceSecurityZoneRead(d *schema.ResourceData, m interface{}) error {
 	} else {
 		fillSecurityZoneData(d, zoneOptions)
 	}
+
 	return nil
 }
 func resourceSecurityZoneUpdate(d *schema.ResourceData, m interface{}) error {
@@ -173,6 +181,7 @@ func resourceSecurityZoneUpdate(d *schema.ResourceData, m interface{}) error {
 		err = delSecurityZoneElement("host-inbound-traffic system-services", d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
+
 			return err
 		}
 	}
@@ -180,6 +189,7 @@ func resourceSecurityZoneUpdate(d *schema.ResourceData, m interface{}) error {
 		err = delSecurityZoneElement("host-inbound-traffic protocols", d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
+
 			return err
 		}
 	}
@@ -187,20 +197,24 @@ func resourceSecurityZoneUpdate(d *schema.ResourceData, m interface{}) error {
 		err = delSecurityZoneElement("address-book", d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
+
 			return err
 		}
 	}
 	err = setSecurityZone(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_security_zone", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceSecurityZoneRead(d, m)
 }
 func resourceSecurityZoneDelete(d *schema.ResourceData, m interface{}) error {
@@ -217,13 +231,16 @@ func resourceSecurityZoneDelete(d *schema.ResourceData, m interface{}) error {
 	err = delSecurityZone(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_security_zone", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceSecurityZoneImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -248,6 +265,7 @@ func resourceSecurityZoneImport(d *schema.ResourceData, m interface{}) ([]*schem
 	fillSecurityZoneData(d, zoneOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -260,6 +278,7 @@ func checkSecurityZonesExists(zone string, m interface{}, jnprSess *NetconfObjec
 	if zoneConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -294,6 +313,7 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zoneOptions, error) {
@@ -354,6 +374,7 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
 	confRead.inboundServices = inboundServices
@@ -371,6 +392,7 @@ func delSecurityZoneElement(element string, zone string, m interface{}, jnprSess
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func delSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) error {
@@ -381,6 +403,7 @@ func delSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) error 
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

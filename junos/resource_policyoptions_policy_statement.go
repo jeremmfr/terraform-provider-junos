@@ -66,6 +66,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q for %q is not valid bgp origin", value, k))
 								}
+
 								return
 							},
 						},
@@ -80,6 +81,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q for %q is not valid family", value, k))
 								}
+
 								return
 							},
 						},
@@ -153,6 +155,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 												errors = append(errors, fmt.Errorf(
 													"%q for %q is not valid option", value, k))
 											}
+
 											return
 										},
 									},
@@ -182,6 +185,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q for %q is not valid acceptance", value, k))
 								}
+
 								return
 							},
 						},
@@ -207,6 +211,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 												errors = append(errors, fmt.Errorf(
 													"%q for %q is not valid action", value, k))
 											}
+
 											return
 										},
 									},
@@ -226,6 +231,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q for %q is not valid acceptance", value, k))
 								}
+
 								return
 							},
 						},
@@ -238,6 +244,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q for %q is not valid load-balance option", value, k))
 								}
+
 								return
 							},
 						},
@@ -256,6 +263,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 												errors = append(errors, fmt.Errorf(
 													"%q for %q is not valid action", value, k))
 											}
+
 											return
 										},
 									},
@@ -275,6 +283,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q for %q is not valid next action", value, k))
 								}
+
 								return
 							},
 						},
@@ -297,6 +306,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 												errors = append(errors, fmt.Errorf(
 													"%q for %q is not valid action", value, k))
 											}
+
 											return
 										},
 									},
@@ -326,6 +336,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 												errors = append(errors, fmt.Errorf(
 													"%q for %q is not valid action", value, k))
 											}
+
 											return
 										},
 									},
@@ -369,6 +380,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q for %q is not valid bgp origin", value, k))
 								}
+
 								return
 							},
 						},
@@ -383,6 +395,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q for %q is not valid family", value, k))
 								}
+
 								return
 							},
 						},
@@ -478,6 +491,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 												errors = append(errors, fmt.Errorf(
 													"%q for %q is not valid bgp origin", value, k))
 											}
+
 											return
 										},
 									},
@@ -492,6 +506,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 												errors = append(errors, fmt.Errorf(
 													"%q for %q is not valid family", value, k))
 											}
+
 											return
 										},
 									},
@@ -565,6 +580,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 															errors = append(errors, fmt.Errorf(
 																"%q for %q is not valid option", value, k))
 														}
+
 														return
 													},
 												},
@@ -594,6 +610,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 												errors = append(errors, fmt.Errorf(
 													"%q for %q is not valid acceptance", value, k))
 											}
+
 											return
 										},
 									},
@@ -619,6 +636,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 															errors = append(errors, fmt.Errorf(
 																"%q for %q is not valid action", value, k))
 														}
+
 														return
 													},
 												},
@@ -638,6 +656,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 												errors = append(errors, fmt.Errorf(
 													"%q for %q is not valid acceptance", value, k))
 											}
+
 											return
 										},
 									},
@@ -650,6 +669,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 												errors = append(errors, fmt.Errorf(
 													"%q for %q is not valid load-balance option", value, k))
 											}
+
 											return
 										},
 									},
@@ -668,6 +688,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 															errors = append(errors, fmt.Errorf(
 																"%q for %q is not valid action", value, k))
 														}
+
 														return
 													},
 												},
@@ -687,6 +708,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 												errors = append(errors, fmt.Errorf(
 													"%q for %q is not valid next action", value, k))
 											}
+
 											return
 										},
 									},
@@ -709,6 +731,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 															errors = append(errors, fmt.Errorf(
 																"%q for %q is not valid action", value, k))
 														}
+
 														return
 													},
 												},
@@ -738,6 +761,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 															errors = append(errors, fmt.Errorf(
 																"%q for %q is not valid action", value, k))
 														}
+
 														return
 													},
 												},
@@ -781,6 +805,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 												errors = append(errors, fmt.Errorf(
 													"%q for %q is not valid bgp origin", value, k))
 											}
+
 											return
 										},
 									},
@@ -795,6 +820,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 												errors = append(errors, fmt.Errorf(
 													"%q for %q is not valid family", value, k))
 											}
+
 											return
 										},
 									},
@@ -867,21 +893,25 @@ func resourcePolicyoptionsPolicyStatementCreate(d *schema.ResourceData, m interf
 	policyStatementExists, err := checkPolicyStatementExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if policyStatementExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("policy-options policy-statement %v already exists", d.Get("name").(string))
 	}
 
 	err = setPolicyStatement(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_policyoptions_policy_statement", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	policyStatementExists, err = checkPolicyStatementExists(d.Get("name").(string), m, jnprSess)
@@ -903,6 +933,7 @@ func resourcePolicyoptionsPolicyStatementRead(d *schema.ResourceData, m interfac
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -916,6 +947,7 @@ func resourcePolicyoptionsPolicyStatementRead(d *schema.ResourceData, m interfac
 	} else {
 		fillPolicyStatementData(d, policyStatementOptions)
 	}
+
 	return nil
 }
 func resourcePolicyoptionsPolicyStatementUpdate(d *schema.ResourceData, m interface{}) error {
@@ -933,19 +965,23 @@ func resourcePolicyoptionsPolicyStatementUpdate(d *schema.ResourceData, m interf
 	err = delPolicyStatement(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setPolicyStatement(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_policyoptions_policy_statement", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourcePolicyoptionsPolicyStatementRead(d, m)
 }
 func resourcePolicyoptionsPolicyStatementDelete(d *schema.ResourceData, m interface{}) error {
@@ -962,13 +998,16 @@ func resourcePolicyoptionsPolicyStatementDelete(d *schema.ResourceData, m interf
 	err = delPolicyStatement(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_policyoptions_policy_statement", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourcePolicyoptionsPolicyStatementImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -994,6 +1033,7 @@ func resourcePolicyoptionsPolicyStatementImport(d *schema.ResourceData, m interf
 	fillPolicyStatementData(d, policyStatementOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -1007,6 +1047,7 @@ func checkPolicyStatementExists(name string, m interface{}, jnprSess *NetconfObj
 	if policyStatementConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setPolicyStatement(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -1059,6 +1100,7 @@ func setPolicyStatement(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readPolicyStatement(policyStatement string,
@@ -1132,8 +1174,10 @@ func readPolicyStatement(policyStatement string,
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 
@@ -1145,6 +1189,7 @@ func delPolicyStatement(policyStatement string, m interface{}, jnprSess *Netconf
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func fillPolicyStatementData(d *schema.ResourceData, policyStatementOptions policyStatementOptions) {
@@ -1236,6 +1281,7 @@ func setPolicyStatementOptsFrom(setPrefix string, opts map[string]interface{}) [
 		}
 		configSet = append(configSet, setRoutFilter)
 	}
+
 	return configSet
 }
 func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) []string {
@@ -1309,6 +1355,7 @@ func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) [
 				" "+strconv.Itoa(preference["value"].(int))+"\n")
 		}
 	}
+
 	return configSet
 }
 func setPolicyStatementOptsTo(setPrefix string, opts map[string]interface{}) []string {
@@ -1360,6 +1407,7 @@ func setPolicyStatementOptsTo(setPrefix string, opts map[string]interface{}) []s
 	for _, v := range opts["protocol"].([]interface{}) {
 		configSet = append(configSet, setPrefixTo+"protocol "+v.(string)+"\n")
 	}
+
 	return configSet
 }
 func readPolicyStatementOptsFrom(item string,

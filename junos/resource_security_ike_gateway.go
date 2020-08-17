@@ -98,6 +98,7 @@ func resourceIkeGateway() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q for %q is not valid", value, k))
 								}
+
 								return
 							},
 						},
@@ -123,6 +124,7 @@ func resourceIkeGateway() *schema.Resource {
 									errors = append(errors, fmt.Errorf(
 										"%q for %q is not valid", value, k))
 								}
+
 								return
 							},
 						},
@@ -142,6 +144,7 @@ func resourceIkeGateway() *schema.Resource {
 						errors = append(errors, fmt.Errorf(
 							"%q for %q is not 'v1-only' or 'v2-only'", value, k))
 					}
+
 					return
 				},
 			},
@@ -166,20 +169,24 @@ func resourceIkeGatewayCreate(d *schema.ResourceData, m interface{}) error {
 	ikeGatewayExists, err := checkIkeGatewayExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	if ikeGatewayExists {
 		sess.configClear(jnprSess)
+
 		return fmt.Errorf("ike gateway %v already exists", d.Get("name").(string))
 	}
 	err = setIkeGateway(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("create resource junos_ike_gateway", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	ikeGatewayExists, err = checkIkeGatewayExists(d.Get("name").(string), m, jnprSess)
@@ -191,6 +198,7 @@ func resourceIkeGatewayCreate(d *schema.ResourceData, m interface{}) error {
 	} else {
 		return fmt.Errorf("ike gateway %v not exists after commit => check your config", d.Get("name").(string))
 	}
+
 	return resourceIkeGatewayRead(d, m)
 }
 func resourceIkeGatewayRead(d *schema.ResourceData, m interface{}) error {
@@ -199,6 +207,7 @@ func resourceIkeGatewayRead(d *schema.ResourceData, m interface{}) error {
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
+
 		return err
 	}
 	defer sess.closeSession(jnprSess)
@@ -212,6 +221,7 @@ func resourceIkeGatewayRead(d *schema.ResourceData, m interface{}) error {
 	} else {
 		fillIkeGatewayData(d, ikeGatewayOptions)
 	}
+
 	return nil
 }
 func resourceIkeGatewayUpdate(d *schema.ResourceData, m interface{}) error {
@@ -229,19 +239,23 @@ func resourceIkeGatewayUpdate(d *schema.ResourceData, m interface{}) error {
 	err = delIkeGateway(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = setIkeGateway(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("update resource junos_ike_gateway", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	d.Partial(false)
+
 	return resourceIkeGatewayRead(d, m)
 }
 func resourceIkeGatewayDelete(d *schema.ResourceData, m interface{}) error {
@@ -258,13 +272,16 @@ func resourceIkeGatewayDelete(d *schema.ResourceData, m interface{}) error {
 	err = delIkeGateway(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
 	err = sess.commitConf("delete resource junos_ike_gateway", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return err
 	}
+
 	return nil
 }
 func resourceIkeGatewayImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -288,6 +305,7 @@ func resourceIkeGatewayImport(d *schema.ResourceData, m interface{}) ([]*schema.
 	}
 	fillIkeGatewayData(d, ikeGatewayOptions)
 	result[0] = d
+
 	return result, nil
 }
 
@@ -300,6 +318,7 @@ func checkIkeGatewayExists(ikeGateway string, m interface{}, jnprSess *NetconfOb
 	if ikeGatewayConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -373,6 +392,7 @@ func setIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (ikeGatewayOptions, error) {
@@ -463,8 +483,10 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 func delIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -475,6 +497,7 @@ func delIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
