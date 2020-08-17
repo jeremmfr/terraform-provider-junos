@@ -41,12 +41,12 @@ Install binary on disk
 Download latest version in [releases](https://github.com/jeremmfr/terraform-provider-junos/releases)
 ##### terraform 0.13
 ```bash
-for archive in $(ls terraform-provider-junos*.tar.gz) ; do
+for archive in $(ls terraform-provider-junos*.zip) ; do
   OS_ARCH=$(echo $archive | cut -d'_' -f3-4 | cut -d'.' -f1)
   VERSION=$(echo $archive | cut -d'_' -f2)
-  tfPath="${HOME}/.terraform.d/plugins/registry.local/jeremmfr/junos/${VERSION:1}/${OS_ARCH}/"
+  tfPath="${HOME}/.terraform.d/plugins/registry.local/jeremmfr/junos/${VERSION}/${OS_ARCH}/"
   mkdir -p ${tfPath}
-  tar -zxvf ${archive} -C ${tfPath}
+  unzip ${archive} -d ${tfPath}
 done
 ```
 and add this inside the terraform configuration block :
@@ -62,7 +62,7 @@ terraform {
 ##### terraform 0.12
 ```bash
 tfPath=$(which terraform | rev | cut -d'/' -f2- | rev)
-tar -zxvf terraform-provider-junos*.tar.gz -C ${tfPath}
+unzip terraform-provider-junos*.zip -d ${tfPath}
 ```
 
 Building binary provider with latest tag (terraform 0.13)
