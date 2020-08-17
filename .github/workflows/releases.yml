@@ -49,9 +49,6 @@ jobs:
           echo ::set-env name=REPO_NAME::$(echo ${GITHUB_REPOSITORY} | cut -d'/' -f2)
           echo ::set-env name=GOOS::$(echo ${{ matrix.goos }})
           echo ::set-env name=GOARCH::$(echo ${{ matrix.goarch }})
-      - name: Get dependencies
-        run: |
-          go get -v -t -d ./...
       - name: Build
         run: go build -o ${REPO_NAME}_${RELEASE_VERSION}
       - name: Create archive
