@@ -43,8 +43,6 @@ jobs:
             goarch: arm64
           - goos: windows
             goarch: arm64
-          - goos: freebsd
-            goarch: arm64    
     steps:
       - name: Set up Go 1.14
         uses: actions/setup-go@v1
@@ -65,7 +63,6 @@ jobs:
             sudo apt update
             sudo apt install -y gcc-aarch64-linux-gnu
             echo ::set-env name=CC::aarch64-linux-gnu-gcc
-            echo ::set-env name=CGO_ENABLED::1
           fi
       - name: Build
         run: go build -o ${REPO_NAME}_v${RELEASE_VERSION}
