@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* add resource junos_security_utm_custom_url_pattern
 
 BUG FIXES:
 * [workflows] fix compile freebsd/arm64 on release
