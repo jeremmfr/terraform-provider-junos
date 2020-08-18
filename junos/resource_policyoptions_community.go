@@ -32,6 +32,7 @@ func resourcePolicyoptionsCommunity() *schema.Resource {
 			"members": {
 				Type:     schema.TypeList,
 				Required: true,
+				MinItems: 1,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"invert_match": {

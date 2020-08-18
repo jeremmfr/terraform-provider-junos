@@ -99,6 +99,7 @@ func resourceInterface() *schema.Resource {
 									"virtual_address": {
 										Type:     schema.TypeList,
 										Required: true,
+										MinItems: 1,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"accept_data": {
@@ -216,6 +217,7 @@ func resourceInterface() *schema.Resource {
 									"virtual_address": {
 										Type:     schema.TypeList,
 										Required: true,
+										MinItems: 1,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"virtual_link_local_address": {

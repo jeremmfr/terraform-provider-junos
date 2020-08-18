@@ -41,6 +41,7 @@ func resourceIkeGateway() *schema.Resource {
 			"address": {
 				Type:     schema.TypeList,
 				Required: true,
+				MinItems: 1,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"local_address": {

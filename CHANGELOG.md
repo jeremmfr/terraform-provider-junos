@@ -10,6 +10,7 @@ BUG FIXES:
 * fix typo in errors and commits messages
 * [workflows] fix compile freebsd/arm64 on release
 * fix rule/policy with space in name for application-services in resource junos_security_policy
+* fix no empty List if Required for many resource
 
 ## 1.2.1
 ENHANCEMENTS:
