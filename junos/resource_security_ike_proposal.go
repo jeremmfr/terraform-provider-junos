@@ -82,7 +82,7 @@ func resourceIkeProposalCreate(d *schema.ResourceData, m interface{}) error {
 	if ikeProposalExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("ike proposal %v already exists", d.Get("name").(string))
+		return fmt.Errorf("security ike proposal %v already exists", d.Get("name").(string))
 	}
 	err = setIkeProposal(d, m, jnprSess)
 	if err != nil {
@@ -90,7 +90,7 @@ func resourceIkeProposalCreate(d *schema.ResourceData, m interface{}) error {
 
 		return err
 	}
-	err = sess.commitConf("create resource junos_ike_proposal", jnprSess)
+	err = sess.commitConf("create resource junos_security_ike_proposal", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
@@ -103,7 +103,7 @@ func resourceIkeProposalCreate(d *schema.ResourceData, m interface{}) error {
 	if ikeProposalExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("ike proposal %v not exists after commit => check your config", d.Get("name").(string))
+		return fmt.Errorf("security ike proposal %v not exists after commit => check your config", d.Get("name").(string))
 	}
 
 	return resourceIkeProposalRead(d, m)
@@ -155,7 +155,7 @@ func resourceIkeProposalUpdate(d *schema.ResourceData, m interface{}) error {
 
 		return err
 	}
-	err = sess.commitConf("update resource junos_ike_proposal", jnprSess)
+	err = sess.commitConf("update resource junos_security_ike_proposal", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
@@ -182,7 +182,7 @@ func resourceIkeProposalDelete(d *schema.ResourceData, m interface{}) error {
 
 		return err
 	}
-	err = sess.commitConf("delete resource junos_ike_proposal", jnprSess)
+	err = sess.commitConf("delete resource junos_security_ike_proposal", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
@@ -204,7 +204,7 @@ func resourceIkeProposalImport(d *schema.ResourceData, m interface{}) ([]*schema
 		return nil, err
 	}
 	if !ikeProposalExists {
-		return nil, fmt.Errorf("don't find ike proposal with id '%v' (id must be <name>)", d.Id())
+		return nil, fmt.Errorf("don't find security ike proposal with id '%v' (id must be <name>)", d.Id())
 	}
 	ikeProposalOptions, err := readIkeProposal(d.Id(), m, jnprSess)
 	if err != nil {

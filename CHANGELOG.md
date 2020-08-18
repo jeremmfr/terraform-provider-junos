@@ -2,6 +2,7 @@
 ENHANCEMENTS:
 
 BUG FIXES:
+* fix typo in errors and commits messages
 * [workflows] fix compile freebsd/arm64 on release
 
 ## 1.2.1

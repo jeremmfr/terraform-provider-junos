@@ -175,7 +175,7 @@ func resourceIkeGatewayCreate(d *schema.ResourceData, m interface{}) error {
 	if ikeGatewayExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("ike gateway %v already exists", d.Get("name").(string))
+		return fmt.Errorf("security ike gateway %v already exists", d.Get("name").(string))
 	}
 	err = setIkeGateway(d, m, jnprSess)
 	if err != nil {
@@ -183,7 +183,7 @@ func resourceIkeGatewayCreate(d *schema.ResourceData, m interface{}) error {
 
 		return err
 	}
-	err = sess.commitConf("create resource junos_ike_gateway", jnprSess)
+	err = sess.commitConf("create resource junos_security_ike_gateway", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
@@ -196,7 +196,7 @@ func resourceIkeGatewayCreate(d *schema.ResourceData, m interface{}) error {
 	if ikeGatewayExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("ike gateway %v not exists after commit => check your config", d.Get("name").(string))
+		return fmt.Errorf("security ike gateway %v not exists after commit => check your config", d.Get("name").(string))
 	}
 
 	return resourceIkeGatewayRead(d, m)
@@ -248,7 +248,7 @@ func resourceIkeGatewayUpdate(d *schema.ResourceData, m interface{}) error {
 
 		return err
 	}
-	err = sess.commitConf("update resource junos_ike_gateway", jnprSess)
+	err = sess.commitConf("update resource junos_security_ike_gateway", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
@@ -275,7 +275,7 @@ func resourceIkeGatewayDelete(d *schema.ResourceData, m interface{}) error {
 
 		return err
 	}
-	err = sess.commitConf("delete resource junos_ike_gateway", jnprSess)
+	err = sess.commitConf("delete resource junos_security_ike_gateway", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
@@ -297,7 +297,7 @@ func resourceIkeGatewayImport(d *schema.ResourceData, m interface{}) ([]*schema.
 		return nil, err
 	}
 	if !ikeGatewayExists {
-		return nil, fmt.Errorf("don't find ike gateway with id '%v' (id must be <name>)", d.Id())
+		return nil, fmt.Errorf("don't find security ike gateway with id '%v' (id must be <name>)", d.Id())
 	}
 	ikeGatewayOptions, err := readIkeGateway(d.Id(), m, jnprSess)
 	if err != nil {
@@ -368,11 +368,11 @@ func setIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 		localIdentity := v.(map[string]interface{})
 		if localIdentity["type"].(string) == "distinguished-name" {
 			if localIdentity["value"].(string) != "" {
-				return fmt.Errorf("no value for option distinguished-name in ike gateway confifg")
+				return fmt.Errorf("no value for option distinguished-name in security ike gateway config")
 			}
 		} else {
 			if localIdentity["value"].(string) == "" {
-				return fmt.Errorf("missing value for option local-identity %s in ike gateway confifg",
+				return fmt.Errorf("missing value for option local-identity %s in security ike gateway config",
 					localIdentity["type"].(string))
 			}
 		}

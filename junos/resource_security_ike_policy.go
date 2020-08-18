@@ -90,7 +90,7 @@ func resourceIkePolicyCreate(d *schema.ResourceData, m interface{}) error {
 	if ikePolicyExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("ike policy %v already exists", d.Get("name").(string))
+		return fmt.Errorf("security ike policy %v already exists", d.Get("name").(string))
 	}
 	err = setIkePolicy(d, m, jnprSess)
 	if err != nil {
@@ -98,7 +98,7 @@ func resourceIkePolicyCreate(d *schema.ResourceData, m interface{}) error {
 
 		return err
 	}
-	err = sess.commitConf("create resource junos_ike_policy", jnprSess)
+	err = sess.commitConf("create resource junos_security_ike_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
@@ -111,7 +111,7 @@ func resourceIkePolicyCreate(d *schema.ResourceData, m interface{}) error {
 	if ikePolicyExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("ike policy %v not exists after commit => check your config", d.Get("name").(string))
+		return fmt.Errorf("security ike policy %v not exists after commit => check your config", d.Get("name").(string))
 	}
 
 	return resourceIkePolicyRead(d, m)
@@ -163,7 +163,7 @@ func resourceIkePolicyUpdate(d *schema.ResourceData, m interface{}) error {
 
 		return err
 	}
-	err = sess.commitConf("update resource junos_ike_policy", jnprSess)
+	err = sess.commitConf("update resource junos_security_ike_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
@@ -190,7 +190,7 @@ func resourceIkePolicyDelete(d *schema.ResourceData, m interface{}) error {
 
 		return err
 	}
-	err = sess.commitConf("delete resource junos_ike_policy", jnprSess)
+	err = sess.commitConf("delete resource junos_security_ike_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
@@ -212,7 +212,7 @@ func resourceIkePolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.R
 		return nil, err
 	}
 	if !ikePolicyExists {
-		return nil, fmt.Errorf("don't find ike policy with id '%v' (id must be <name>)", d.Id())
+		return nil, fmt.Errorf("don't find security ike policy with id '%v' (id must be <name>)", d.Id())
 	}
 	ikePolicyOptions, err := readIkePolicy(d.Id(), m, jnprSess)
 	if err != nil {

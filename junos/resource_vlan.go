@@ -196,7 +196,7 @@ func resourceVlanCreate(d *schema.ResourceData, m interface{}) error {
 	if vlanExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("vlan%v not exists after commit => check your config", d.Get("name").(string))
+		return fmt.Errorf("vlan %v not exists after commit => check your config", d.Get("name").(string))
 	}
 
 	return resourceVlanRead(d, m)

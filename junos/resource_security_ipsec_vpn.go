@@ -156,7 +156,7 @@ func resourceIpsecVpnCreate(d *schema.ResourceData, m interface{}) error {
 	if ipsecVpnExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("ipsec vpn %v already exists", d.Get("name").(string))
+		return fmt.Errorf("security ipsec vpn %v already exists", d.Get("name").(string))
 	}
 	if d.Get("bind_interface_auto").(bool) {
 		newSt0, err := searchInterfaceSt0ToCreate(m, jnprSess)
@@ -176,7 +176,7 @@ func resourceIpsecVpnCreate(d *schema.ResourceData, m interface{}) error {
 
 		return err
 	}
-	err = sess.commitConf("create resource junos_ipsec_vpn", jnprSess)
+	err = sess.commitConf("create resource junos_security_ipsec_vpn", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
@@ -189,7 +189,7 @@ func resourceIpsecVpnCreate(d *schema.ResourceData, m interface{}) error {
 	if ipsecVpnExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("ipsec vpn %v not exists after commit => check your config", d.Get("name").(string))
+		return fmt.Errorf("security ipsec vpn %v not exists after commit => check your config", d.Get("name").(string))
 	}
 
 	return resourceIpsecVpnRead(d, m)
@@ -252,7 +252,7 @@ func resourceIpsecVpnUpdate(d *schema.ResourceData, m interface{}) error {
 
 		return err
 	}
-	err = sess.commitConf("update resource junos_ipsec_vpn", jnprSess)
+	err = sess.commitConf("update resource junos_security_ipsec_vpn", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
@@ -279,7 +279,7 @@ func resourceIpsecVpnDelete(d *schema.ResourceData, m interface{}) error {
 
 		return err
 	}
-	err = sess.commitConf("delete resource junos_ipsec_vpn", jnprSess)
+	err = sess.commitConf("delete resource junos_security_ipsec_vpn", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
@@ -301,7 +301,7 @@ func resourceIpsecVpnImport(d *schema.ResourceData, m interface{}) ([]*schema.Re
 		return nil, err
 	}
 	if !ipsecVpnExists {
-		return nil, fmt.Errorf("don't find ipsec vpn with id '%v' (id must be <name>)", d.Id())
+		return nil, fmt.Errorf("don't find security ipsec vpn with id '%v' (id must be <name>)", d.Id())
 	}
 	ipsecVpnOptions, err := readIpsecVpn(d.Id(), m, jnprSess)
 	if err != nil {
