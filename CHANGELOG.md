@@ -1,3 +1,9 @@
+## upcoming release
+ENHANCEMENTS:
+
+BUG FIXES:
+* [workflows] fix compile freebsd/arm64 on release
+
 ## 1.2.1
 ENHANCEMENTS:
 for terraform 0.13
