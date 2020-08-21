@@ -255,20 +255,20 @@ func resourceSecurityUtmProfileWebFilteringEnhancedCreate(d *schema.ResourceData
 	if err != nil {
 		return err
 	}
-	utmProfileWebFEExists, err := checkUtmProfileWebFEExists(d.Get("name").(string), m, jnprSess)
+	utmProfileWebFEnhancedExists, err := checkUtmProfileWebFEnhancedExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
 		return err
 	}
-	if utmProfileWebFEExists {
+	if utmProfileWebFEnhancedExists {
 		sess.configClear(jnprSess)
 
 		return fmt.Errorf("security utm feature-profile web-filtering juniper-enhanced "+
 			"%v already exists", d.Get("name").(string))
 	}
 
-	err = setUtmProfileWebFE(d, m, jnprSess)
+	err = setUtmProfileWebFEnhanced(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
@@ -281,12 +281,12 @@ func resourceSecurityUtmProfileWebFilteringEnhancedCreate(d *schema.ResourceData
 		return err
 	}
 	mutex.Lock()
-	utmProfileWebFEExists, err = checkUtmProfileWebFEExists(d.Get("name").(string), m, jnprSess)
+	utmProfileWebFEnhancedExists, err = checkUtmProfileWebFEnhancedExists(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return err
 	}
-	if utmProfileWebFEExists {
+	if utmProfileWebFEnhancedExists {
 		d.SetId(d.Get("name").(string))
 	} else {
 		return fmt.Errorf("security utm feature-profile web-filtering juniper-enhanced %v "+
@@ -305,15 +305,15 @@ func resourceSecurityUtmProfileWebFilteringEnhancedRead(d *schema.ResourceData, 
 		return err
 	}
 	defer sess.closeSession(jnprSess)
-	utmProfileWebFEOptions, err := readUtmProfileWebFE(d.Get("name").(string), m, jnprSess)
+	utmProfileWebFEnhancedOptions, err := readUtmProfileWebFEnhanced(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return err
 	}
-	if utmProfileWebFEOptions.name == "" {
+	if utmProfileWebFEnhancedOptions.name == "" {
 		d.SetId("")
 	} else {
-		fillUtmProfileWebFEData(d, utmProfileWebFEOptions)
+		fillUtmProfileWebFEnhancedData(d, utmProfileWebFEnhancedOptions)
 	}
 
 	return nil
@@ -330,13 +330,13 @@ func resourceSecurityUtmProfileWebFilteringEnhancedUpdate(d *schema.ResourceData
 	if err != nil {
 		return err
 	}
-	err = delUtmProfileWebFE(d.Get("name").(string), m, jnprSess)
+	err = delUtmProfileWebFEnhanced(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
 		return err
 	}
-	err = setUtmProfileWebFE(d, m, jnprSess)
+	err = setUtmProfileWebFEnhanced(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
@@ -363,7 +363,7 @@ func resourceSecurityUtmProfileWebFilteringEnhancedDelete(d *schema.ResourceData
 	if err != nil {
 		return err
 	}
-	err = delUtmProfileWebFE(d.Get("name").(string), m, jnprSess)
+	err = delUtmProfileWebFEnhanced(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
@@ -387,26 +387,26 @@ func resourceSecurityUtmProfileWebFilteringEnhancedImport(
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-	utmProfileWebFEExists, err := checkUtmProfileWebFEExists(d.Id(), m, jnprSess)
+	utmProfileWebFEnhancedExists, err := checkUtmProfileWebFEnhancedExists(d.Id(), m, jnprSess)
 	if err != nil {
 		return nil, err
 	}
-	if !utmProfileWebFEExists {
+	if !utmProfileWebFEnhancedExists {
 		return nil, fmt.Errorf("don't find security utm feature-profile web-filtering juniper-enhanced with id "+
 			"'%v' (id must be <name>)", d.Id())
 	}
-	utmProfileWebFEOptions, err := readUtmProfileWebFE(d.Id(), m, jnprSess)
+	utmProfileWebFEnhancedOptions, err := readUtmProfileWebFEnhanced(d.Id(), m, jnprSess)
 	if err != nil {
 		return nil, err
 	}
-	fillUtmProfileWebFEData(d, utmProfileWebFEOptions)
+	fillUtmProfileWebFEnhancedData(d, utmProfileWebFEnhancedOptions)
 
 	result[0] = d
 
 	return result, nil
 }
 
-func checkUtmProfileWebFEExists(profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
+func checkUtmProfileWebFEnhancedExists(profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	profileConfig, err := sess.command("show configuration security utm feature-profile "+
 		"web-filtering juniper-enhanced profile \""+profile+"\" | display set", jnprSess)
@@ -419,7 +419,7 @@ func checkUtmProfileWebFEExists(profile string, m interface{}, jnprSess *Netconf
 
 	return true, nil
 }
-func setUtmProfileWebFE(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
+func setUtmProfileWebFEnhanced(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 
@@ -497,7 +497,7 @@ func setUtmProfileWebFE(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 
 	return nil
 }
-func readUtmProfileWebFE(profile string, m interface{}, jnprSess *NetconfObject) (
+func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *NetconfObject) (
 	utmProfileWebFilteringEnhancedOptions, error) {
 	sess := m.(*Session)
 	var confRead utmProfileWebFilteringEnhancedOptions
@@ -627,7 +627,7 @@ func readUtmProfileWebFE(profile string, m interface{}, jnprSess *NetconfObject)
 	return confRead, nil
 }
 
-func delUtmProfileWebFE(profile string, m interface{}, jnprSess *NetconfObject) error {
+func delUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security utm feature-profile web-filtering juniper-enhanced "+
@@ -640,48 +640,49 @@ func delUtmProfileWebFE(profile string, m interface{}, jnprSess *NetconfObject) 
 	return nil
 }
 
-func fillUtmProfileWebFEData(d *schema.ResourceData, utmProfileWebFEOptions utmProfileWebFilteringEnhancedOptions) {
-	tfErr := d.Set("name", utmProfileWebFEOptions.name)
+func fillUtmProfileWebFEnhancedData(d *schema.ResourceData,
+	utmProfileWebFEnhancedOptions utmProfileWebFilteringEnhancedOptions) {
+	tfErr := d.Set("name", utmProfileWebFEnhancedOptions.name)
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("block_message", utmProfileWebFEOptions.blockMessage)
+	tfErr = d.Set("block_message", utmProfileWebFEnhancedOptions.blockMessage)
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("category", utmProfileWebFEOptions.category)
+	tfErr = d.Set("category", utmProfileWebFEnhancedOptions.category)
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("custom_block_message", utmProfileWebFEOptions.customBlockMessage)
+	tfErr = d.Set("custom_block_message", utmProfileWebFEnhancedOptions.customBlockMessage)
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("default_action", utmProfileWebFEOptions.defaultAction)
+	tfErr = d.Set("default_action", utmProfileWebFEnhancedOptions.defaultAction)
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("fallback_settings", utmProfileWebFEOptions.fallbackSettings)
+	tfErr = d.Set("fallback_settings", utmProfileWebFEnhancedOptions.fallbackSettings)
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("no_safe_search", utmProfileWebFEOptions.noSafeSearch)
+	tfErr = d.Set("no_safe_search", utmProfileWebFEnhancedOptions.noSafeSearch)
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("quarantine_custom_message", utmProfileWebFEOptions.quarantineCustomMessage)
+	tfErr = d.Set("quarantine_custom_message", utmProfileWebFEnhancedOptions.quarantineCustomMessage)
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("quarantine_message", utmProfileWebFEOptions.quarantineMessage)
+	tfErr = d.Set("quarantine_message", utmProfileWebFEnhancedOptions.quarantineMessage)
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("site_reputation_action", utmProfileWebFEOptions.siteReputationAction)
+	tfErr = d.Set("site_reputation_action", utmProfileWebFEnhancedOptions.siteReputationAction)
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("timeout", utmProfileWebFEOptions.timeout)
+	tfErr = d.Set("timeout", utmProfileWebFEnhancedOptions.timeout)
 	if tfErr != nil {
 		panic(tfErr)
 	}
