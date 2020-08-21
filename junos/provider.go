@@ -111,6 +111,7 @@ func Provider() terraform.ResourceProvider {
 			"junos_security_nat_static":                                 resourceSecurityNatStatic(),
 			"junos_security_policy_tunnel_pair_policy":                  resourceSecurityPolicyTunnelPairPolicy(),
 			"junos_security_policy":                                     resourceSecurityPolicy(),
+			"junos_security_utm_policy":                                 resourceSecurityUtmPolicy(),
 			"junos_security_utm_custom_url_pattern":                     resourceSecurityUtmCustomURLPattern(),
 			"junos_security_utm_profile_web_filtering_juniper_enhanced": resourceSecurityUtmProfileWebFilteringEnhanced(),
 			"junos_security_zone":                                       resourceSecurityZone(),
