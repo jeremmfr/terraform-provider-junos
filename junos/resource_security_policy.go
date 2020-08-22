@@ -561,17 +561,17 @@ func readPolicyPermitApplicationServices(itemTrimPolicy string,
 	itemTrimPolicyPermitAppSvc := strings.TrimPrefix(itemTrimPolicy, "then permit application-services ")
 	switch {
 	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "application-firewall rule-set "):
-		applicationServices["application_firewall_rule_set"] = strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
-			"application-firewall rule-set ")
+		applicationServices["application_firewall_rule_set"] = strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
+			"application-firewall rule-set "), "\"")
 	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "application-traffic-control rule-set "):
-		applicationServices["application_traffic_control_rule_set"] = strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
-			"application-traffic-control rule-set ")
+		applicationServices["application_traffic_control_rule_set"] = strings.Trim(
+			strings.TrimPrefix(itemTrimPolicyPermitAppSvc, "application-traffic-control rule-set "), "\"")
 	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "gprs-gtp-profile "):
-		applicationServices["gprs_gtp_profile"] = strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
-			"gprs-gtp-profile ")
+		applicationServices["gprs_gtp_profile"] = strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
+			"gprs-gtp-profile "), "\"")
 	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "gprs-sctp-profile "):
-		applicationServices["gprs_sctp_profile"] = strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
-			"gprs-sctp-profile ")
+		applicationServices["gprs_sctp_profile"] = strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
+			"gprs-sctp-profile "), "\"")
 	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "idp"):
 		applicationServices["idp"] = true
 	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "redirect-wx"):
@@ -579,13 +579,13 @@ func readPolicyPermitApplicationServices(itemTrimPolicy string,
 	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "reverse-redirect-wx"):
 		applicationServices["reverse_redirect_wx"] = true
 	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "security-intelligence-policy "):
-		applicationServices["security_intelligence_policy"] = strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
-			"security-intelligence-policy ")
+		applicationServices["security_intelligence_policy"] = strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
+			"security-intelligence-policy "), "\"")
 	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "ssl-proxy"):
 		if strings.HasPrefix(itemTrimPolicyPermitAppSvc, "ssl-proxy profile-name ") {
 			applicationServices["ssl_proxy"] = append(applicationServices["ssl_proxy"].([]map[string]interface{}),
 				map[string]interface{}{
-					"profile_name": strings.TrimPrefix(itemTrimPolicyPermitAppSvc, "ssl-proxy profile-name "),
+					"profile_name": strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc, "ssl-proxy profile-name "), "\""),
 				})
 		} else {
 			applicationServices["ssl_proxy"] = append(applicationServices["ssl_proxy"].([]map[string]interface{}),
@@ -597,7 +597,7 @@ func readPolicyPermitApplicationServices(itemTrimPolicy string,
 		if strings.HasPrefix(itemTrimPolicyPermitAppSvc, "uac-policy captive-portal ") {
 			applicationServices["uac_policy"] = append(applicationServices["uac_policy"].([]map[string]interface{}),
 				map[string]interface{}{
-					"captive_portal": strings.TrimPrefix(itemTrimPolicyPermitAppSvc, "uac-policy captive-portal "),
+					"captive_portal": strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc, "uac-policy captive-portal "), "\""),
 				})
 		} else {
 			applicationServices["uac_policy"] = append(applicationServices["uac_policy"].([]map[string]interface{}),
@@ -606,7 +606,7 @@ func readPolicyPermitApplicationServices(itemTrimPolicy string,
 				})
 		}
 	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "utm-policy "):
-		applicationServices["utm_policy"] = strings.TrimPrefix(itemTrimPolicyPermitAppSvc, "utm-policy ")
+		applicationServices["utm_policy"] = strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc, "utm-policy "), "\"")
 	}
 
 	// override (maxItem = 1)
@@ -619,21 +619,21 @@ func setPolicyPermitApplicationServices(setPrefixPolicy string,
 	setPrefixPolicyPermitAppSvc := setPrefixPolicy + " then permit application-services"
 	if policyPermitApplicationServices["application_firewall_rule_set"].(string) != "" {
 		configSet = append(configSet, setPrefixPolicyPermitAppSvc+
-			" application-firewall rule-set "+
-			policyPermitApplicationServices["application_firewall_rule_set"].(string))
+			" application-firewall rule-set \""+
+			policyPermitApplicationServices["application_firewall_rule_set"].(string)+"\"")
 	}
 	if policyPermitApplicationServices["application_traffic_control_rule_set"].(string) != "" {
 		configSet = append(configSet, setPrefixPolicyPermitAppSvc+
-			" application-traffic-control rule-set "+
-			policyPermitApplicationServices["application_traffic_control_rule_set"].(string))
+			" application-traffic-control rule-set \""+
+			policyPermitApplicationServices["application_traffic_control_rule_set"].(string)+"\"")
 	}
 	if policyPermitApplicationServices["gprs_gtp_profile"].(string) != "" {
 		configSet = append(configSet, setPrefixPolicyPermitAppSvc+
-			" gprs-gtp-profile "+policyPermitApplicationServices["gprs_gtp_profile"].(string))
+			" gprs-gtp-profile \""+policyPermitApplicationServices["gprs_gtp_profile"].(string)+"\"")
 	}
 	if policyPermitApplicationServices["gprs_sctp_profile"].(string) != "" {
 		configSet = append(configSet, setPrefixPolicyPermitAppSvc+
-			" gprs-sctp-profile "+policyPermitApplicationServices["gprs_sctp_profile"].(string))
+			" gprs-sctp-profile \""+policyPermitApplicationServices["gprs_sctp_profile"].(string)+"\"")
 	}
 	if policyPermitApplicationServices["idp"].(bool) {
 		configSet = append(configSet, setPrefixPolicyPermitAppSvc+
@@ -653,8 +653,8 @@ func setPolicyPermitApplicationServices(setPrefixPolicy string,
 	}
 	if policyPermitApplicationServices["security_intelligence_policy"].(string) != "" {
 		configSet = append(configSet, setPrefixPolicyPermitAppSvc+
-			" security-intelligence-policy "+
-			policyPermitApplicationServices["security_intelligence_policy"].(string))
+			" security-intelligence-policy \""+
+			policyPermitApplicationServices["security_intelligence_policy"].(string)+"\"")
 	}
 	if len(policyPermitApplicationServices["ssl_proxy"].([]interface{})) > 0 {
 		if policyPermitApplicationServices["ssl_proxy"].([]interface{})[0] != nil {
@@ -662,8 +662,8 @@ func setPolicyPermitApplicationServices(setPrefixPolicy string,
 				policyPermitApplicationServices["ssl_proxy"].([]interface{})[0].(map[string]interface{})
 			if policyPermitApplicationServicesSSLProxy["profile_name"].(string) != "" {
 				configSet = append(configSet, setPrefixPolicyPermitAppSvc+
-					" ssl-proxy profile-name "+
-					policyPermitApplicationServicesSSLProxy["profile_name"].(string))
+					" ssl-proxy profile-name \""+
+					policyPermitApplicationServicesSSLProxy["profile_name"].(string)+"\"")
 			} else {
 				configSet = append(configSet, setPrefixPolicyPermitAppSvc+" ssl-proxy")
 			}
@@ -677,8 +677,8 @@ func setPolicyPermitApplicationServices(setPrefixPolicy string,
 				policyPermitApplicationServices["uac_policy"].([]interface{})[0].(map[string]interface{})
 			if policyPermitApplicationServicesUACPolicy["captive_portal"].(string) != "" {
 				configSet = append(configSet, setPrefixPolicyPermitAppSvc+
-					" uac-policy captive-portal "+
-					policyPermitApplicationServicesUACPolicy["captive_portal"].(string))
+					" uac-policy captive-portal \""+
+					policyPermitApplicationServicesUACPolicy["captive_portal"].(string)+"\"")
 			} else {
 				configSet = append(configSet, setPrefixPolicyPermitAppSvc+" uac-policy")
 			}
@@ -688,7 +688,7 @@ func setPolicyPermitApplicationServices(setPrefixPolicy string,
 	}
 	if policyPermitApplicationServices["utm_policy"].(string) != "" {
 		configSet = append(configSet, setPrefixPolicyPermitAppSvc+
-			" utm-policy "+policyPermitApplicationServices["utm_policy"].(string))
+			" utm-policy \""+policyPermitApplicationServices["utm_policy"].(string)+"\"")
 	}
 
 	return configSet, nil
