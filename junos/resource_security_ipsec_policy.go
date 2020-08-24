@@ -219,10 +219,10 @@ func setIpsecPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 
 	setPrefix := "set security ipsec policy " + d.Get("name").(string)
 	if d.Get("pfs_keys").(string) != "" {
-		configSet = append(configSet, setPrefix+" perfect-forward-secrecy keys "+d.Get("pfs_keys").(string)+"\n")
+		configSet = append(configSet, setPrefix+" perfect-forward-secrecy keys "+d.Get("pfs_keys").(string))
 	}
 	for _, v := range d.Get("proposals").([]interface{}) {
-		configSet = append(configSet, setPrefix+" proposals "+v.(string)+"\n")
+		configSet = append(configSet, setPrefix+" proposals "+v.(string))
 	}
 
 	err := sess.configSet(configSet, jnprSess)
@@ -269,7 +269,7 @@ func readIpsecPolicy(ipsecPolicy string, m interface{}, jnprSess *NetconfObject)
 func delIpsecPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security ipsec policy "+d.Get("name").(string)+"\n")
+	configSet = append(configSet, "delete security ipsec policy "+d.Get("name").(string))
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

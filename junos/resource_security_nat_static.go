@@ -291,14 +291,14 @@ func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	for _, v := range d.Get("from").([]interface{}) {
 		from := v.(map[string]interface{})
 		for _, value := range from["value"].([]interface{}) {
-			configSet = append(configSet, setPrefix+" from "+from["type"].(string)+" "+value.(string)+"\n")
+			configSet = append(configSet, setPrefix+" from "+from["type"].(string)+" "+value.(string))
 		}
 	}
 	for _, v := range d.Get("rule").([]interface{}) {
 		rule := v.(map[string]interface{})
 		setPrefixRule := setPrefix + " rule " + rule["name"].(string)
 		configSet = append(configSet, setPrefixRule+" match destination-address "+
-			rule["destination_address"].(string)+"\n")
+			rule["destination_address"].(string))
 		for _, thenV := range rule[thenWord].([]interface{}) {
 			then := thenV.(map[string]interface{})
 			if then["type"].(string) == inetWord {
@@ -307,17 +307,17 @@ func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *Netco
 						rule["name"].(string), d.Get("name").(string))
 				}
 				configSet = append(configSet, setPrefixRule+" then static-nat inet routing-instance "+
-					then["routing_instance"].(string)+"\n")
+					then["routing_instance"].(string))
 			}
 			if then["type"].(string) == prefixWord {
 				if then[prefixWord].(string) == "" {
 					return fmt.Errorf("missing prefix for static-nat prefix for rule %v in %v",
 						rule["name"].(string), d.Get("name").(string))
 				}
-				configSet = append(configSet, setPrefixRule+" then static-nat prefix "+then[prefixWord].(string)+"\n")
+				configSet = append(configSet, setPrefixRule+" then static-nat prefix "+then[prefixWord].(string))
 				if then["routing_instance"].(string) != "" {
 					configSet = append(configSet, setPrefixRule+" then static-nat prefix routing-instance "+
-						then["routing_instance"].(string)+"\n")
+						then["routing_instance"].(string))
 				}
 			}
 		}
@@ -418,7 +418,7 @@ func readSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObj
 func delSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security nat static rule-set "+natStatic+"\n")
+	configSet = append(configSet, "delete security nat static rule-set "+natStatic)
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

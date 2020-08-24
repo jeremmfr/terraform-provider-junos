@@ -317,36 +317,36 @@ func setAggregateRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		setPrefix = "set routing-instances " + d.Get("routing_instance").(string) +
 			" routing-options aggregate route " + d.Get("destination").(string)
 	}
-	configSet = append(configSet, setPrefix+"\n")
+	configSet = append(configSet, setPrefix)
 	if d.Get("active").(bool) {
-		configSet = append(configSet, setPrefix+" active\n")
+		configSet = append(configSet, setPrefix+" active")
 	}
 	if d.Get("passive").(bool) {
-		configSet = append(configSet, setPrefix+" passive\n")
+		configSet = append(configSet, setPrefix+" passive")
 	}
 	if d.Get("brief").(bool) {
-		configSet = append(configSet, setPrefix+" brief\n")
+		configSet = append(configSet, setPrefix+" brief")
 	}
 	if d.Get("full").(bool) {
-		configSet = append(configSet, setPrefix+" full\n")
+		configSet = append(configSet, setPrefix+" full")
 	}
 	if d.Get("discard").(bool) {
-		configSet = append(configSet, setPrefix+" discard\n")
+		configSet = append(configSet, setPrefix+" discard")
 	}
 	if d.Get("preference").(int) > 0 {
-		configSet = append(configSet, setPrefix+" preference "+strconv.Itoa(d.Get("preference").(int))+"\n")
+		configSet = append(configSet, setPrefix+" preference "+strconv.Itoa(d.Get("preference").(int)))
 	}
 	if d.Get("metric").(int) > 0 {
-		configSet = append(configSet, setPrefix+" metric "+strconv.Itoa(d.Get("metric").(int))+"\n")
+		configSet = append(configSet, setPrefix+" metric "+strconv.Itoa(d.Get("metric").(int)))
 	}
 	if len(d.Get("community").([]interface{})) > 0 {
 		for _, v := range d.Get("community").([]interface{}) {
-			configSet = append(configSet, setPrefix+" community "+v.(string)+"\n")
+			configSet = append(configSet, setPrefix+" community "+v.(string))
 		}
 	}
 	if len(d.Get("policy").([]interface{})) > 0 {
 		for _, v := range d.Get("policy").([]interface{}) {
-			configSet = append(configSet, setPrefix+" policy "+v.(string)+"\n")
+			configSet = append(configSet, setPrefix+" policy "+v.(string))
 		}
 	}
 	err := sess.configSet(configSet, jnprSess)
@@ -432,15 +432,15 @@ func delAggregateRouteOpts(d *schema.ResourceData, m interface{}, jnprSess *Netc
 	}
 	delPrefix += d.Get("destination").(string) + " "
 	configSet = append(configSet,
-		delPrefix+"active\n",
-		delPrefix+"passive\n",
-		delPrefix+"brief\n",
-		delPrefix+"full\n",
-		delPrefix+"discard\n",
-		delPrefix+"preference\n",
-		delPrefix+"metric\n",
-		delPrefix+"community\n",
-		delPrefix+"policy\n",
+		delPrefix+"active",
+		delPrefix+"passive",
+		delPrefix+"brief",
+		delPrefix+"full",
+		delPrefix+"discard",
+		delPrefix+"preference",
+		delPrefix+"metric",
+		delPrefix+"community",
+		delPrefix+"policy",
 	)
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {

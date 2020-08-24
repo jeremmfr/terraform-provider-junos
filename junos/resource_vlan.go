@@ -328,60 +328,60 @@ func setVlan(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 
 	setPrefix := "set vlans " + d.Get("name").(string) + " "
 	if d.Get("description").(string) != "" {
-		configSet = append(configSet, setPrefix+"description \""+d.Get("description").(string)+"\"\n")
+		configSet = append(configSet, setPrefix+"description \""+d.Get("description").(string)+"\"")
 	}
 	if d.Get("vlan_id").(int) != 0 {
-		configSet = append(configSet, setPrefix+"vlan-id "+strconv.Itoa(d.Get("vlan_id").(int))+"\n")
+		configSet = append(configSet, setPrefix+"vlan-id "+strconv.Itoa(d.Get("vlan_id").(int)))
 	}
 	for _, v := range d.Get("vlan_id_list").([]interface{}) {
-		configSet = append(configSet, setPrefix+"vlan-id-list "+v.(string)+"\n")
+		configSet = append(configSet, setPrefix+"vlan-id-list "+v.(string))
 	}
 	if d.Get("service_id").(int) != 0 {
-		configSet = append(configSet, setPrefix+"service-id "+strconv.Itoa(d.Get("service_id").(int))+"\n")
+		configSet = append(configSet, setPrefix+"service-id "+strconv.Itoa(d.Get("service_id").(int)))
 	}
 	if d.Get("l3_interface").(string) != "" {
-		configSet = append(configSet, setPrefix+"l3-interface "+d.Get("l3_interface").(string)+"\n")
+		configSet = append(configSet, setPrefix+"l3-interface "+d.Get("l3_interface").(string))
 	}
 	if d.Get("forward_filter_input").(string) != "" {
 		configSet = append(configSet, setPrefix+
-			"forwarding-options filter input "+d.Get("forward_filter_input").(string)+"\n")
+			"forwarding-options filter input "+d.Get("forward_filter_input").(string))
 	}
 	if d.Get("forward_filter_output").(string) != "" {
 		configSet = append(configSet, setPrefix+
-			"forwarding-options filter output "+d.Get("forward_filter_output").(string)+"\n")
+			"forwarding-options filter output "+d.Get("forward_filter_output").(string))
 	}
 	if d.Get("forward_flood_input").(string) != "" {
 		configSet = append(configSet, setPrefix+
-			"forwarding-options flood input "+d.Get("forward_flood_input").(string)+"\n")
+			"forwarding-options flood input "+d.Get("forward_flood_input").(string))
 	}
 	if d.Get("private_vlan").(string) != "" {
-		configSet = append(configSet, setPrefix+"private-vlan "+d.Get("private_vlan").(string)+"\n")
+		configSet = append(configSet, setPrefix+"private-vlan "+d.Get("private_vlan").(string))
 	}
 	for _, v := range d.Get("community_vlans").([]interface{}) {
-		configSet = append(configSet, setPrefix+"community-vlans "+strconv.Itoa(v.(int))+"\n")
+		configSet = append(configSet, setPrefix+"community-vlans "+strconv.Itoa(v.(int)))
 	}
 	if d.Get("isolated_vlan").(int) != 0 {
-		configSet = append(configSet, setPrefix+"isolated-vlan "+strconv.Itoa(d.Get("isolated_vlan").(int))+"\n")
+		configSet = append(configSet, setPrefix+"isolated-vlan "+strconv.Itoa(d.Get("isolated_vlan").(int)))
 	}
 	for _, v := range d.Get("vxlan").([]interface{}) {
 		vxlan := v.(map[string]interface{})
-		configSet = append(configSet, setPrefix+"vxlan vni "+strconv.Itoa(vxlan["vni"].(int))+"\n")
+		configSet = append(configSet, setPrefix+"vxlan vni "+strconv.Itoa(vxlan["vni"].(int)))
 
 		if vxlan["encapsulate_inner_vlan"].(bool) {
-			configSet = append(configSet, setPrefix+"vxlan encapsulate-inner-vlan\n")
+			configSet = append(configSet, setPrefix+"vxlan encapsulate-inner-vlan")
 		}
 		if vxlan["ingress_node_replication"].(bool) {
-			configSet = append(configSet, setPrefix+"vxlan ingress-node-replication\n")
+			configSet = append(configSet, setPrefix+"vxlan ingress-node-replication")
 		}
 		if vxlan["multicast_group"].(string) != "" {
-			configSet = append(configSet, setPrefix+"vxlan multicast-group "+vxlan["multicast_group"].(string)+"\n")
+			configSet = append(configSet, setPrefix+"vxlan multicast-group "+vxlan["multicast_group"].(string))
 		}
 		if vxlan["ovsdb_managed"].(bool) {
-			configSet = append(configSet, setPrefix+"vxlan ovsdb-managed\n")
+			configSet = append(configSet, setPrefix+"vxlan ovsdb-managed")
 		}
 		if vxlan["unreachable_vtep_aging_timer"].(int) != 0 {
 			configSet = append(configSet, setPrefix+
-				"vxlan unreachable-vtep-aging-timer "+strconv.Itoa(vxlan["unreachable_vtep_aging_timer"].(int))+"\n")
+				"vxlan unreachable-vtep-aging-timer "+strconv.Itoa(vxlan["unreachable_vtep_aging_timer"].(int)))
 		}
 	}
 
@@ -497,7 +497,7 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 func delVlan(vlan string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete vlans "+vlan+"\n")
+	configSet = append(configSet, "delete vlans "+vlan)
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

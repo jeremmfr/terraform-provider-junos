@@ -219,13 +219,13 @@ func setApplication(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 
 	setPrefix := "set applications application " + d.Get("name").(string)
 	if d.Get("protocol").(string) != "" {
-		configSet = append(configSet, setPrefix+" protocol "+d.Get("protocol").(string)+"\n")
+		configSet = append(configSet, setPrefix+" protocol "+d.Get("protocol").(string))
 	}
 	if d.Get("destination_port").(string) != "" {
-		configSet = append(configSet, setPrefix+" destination-port "+d.Get("destination_port").(string)+"\n")
+		configSet = append(configSet, setPrefix+" destination-port "+d.Get("destination_port").(string))
 	}
 	if d.Get("source_port").(string) != "" {
-		configSet = append(configSet, setPrefix+" source-port "+d.Get("source_port").(string)+"\n")
+		configSet = append(configSet, setPrefix+" source-port "+d.Get("source_port").(string))
 	}
 
 	err := sess.configSet(configSet, jnprSess)
@@ -274,7 +274,7 @@ func readApplication(application string, m interface{}, jnprSess *NetconfObject)
 func delApplication(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete applications application "+d.Get("name").(string)+"\n")
+	configSet = append(configSet, "delete applications application "+d.Get("name").(string))
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

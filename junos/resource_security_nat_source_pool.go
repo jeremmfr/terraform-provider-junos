@@ -248,19 +248,19 @@ func setSecurityNatSourcePool(d *schema.ResourceData, m interface{}, jnprSess *N
 		if err != nil {
 			return err
 		}
-		configSet = append(configSet, setPrefix+" address "+v.(string)+"\n")
+		configSet = append(configSet, setPrefix+" address "+v.(string))
 	}
 
 	if d.Get("port_no_translation").(bool) {
-		configSet = append(configSet, setPrefix+" port no-translation "+"\n")
+		configSet = append(configSet, setPrefix+" port no-translation ")
 	}
 	if d.Get("port_overloading_factor").(int) != 0 {
 		configSet = append(configSet, setPrefix+" port port-overloading-factor "+
-			strconv.Itoa(d.Get("port_overloading_factor").(int))+"\n")
+			strconv.Itoa(d.Get("port_overloading_factor").(int)))
 	}
 	if d.Get("port_range").(string) != "" {
 		rangePort := strings.Split(d.Get("port_range").(string), "-")
-		configSet = append(configSet, setPrefix+" port range "+rangePort[0]+" to "+rangePort[1]+"\n")
+		configSet = append(configSet, setPrefix+" port range "+rangePort[0]+" to "+rangePort[1])
 	}
 	if d.Get("routing_instance").(string) != "" {
 		configSet = append(configSet, setPrefix+" routing-instance "+d.Get("routing_instance").(string))
@@ -325,7 +325,7 @@ func readSecurityNatSourcePool(natSourcePool string,
 func delSecurityNatSourcePool(natSourcePool string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security nat source pool "+natSourcePool+"\n")
+	configSet = append(configSet, "delete security nat source pool "+natSourcePool)
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

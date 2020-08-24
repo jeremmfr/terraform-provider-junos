@@ -332,35 +332,35 @@ func setIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 		if err != nil {
 			return err
 		}
-		configSet = append(configSet, setPrefix+" address "+v.(string)+"\n")
+		configSet = append(configSet, setPrefix+" address "+v.(string))
 	}
 	if d.Get("local_address").(string) != "" {
-		configSet = append(configSet, setPrefix+" local-address "+d.Get("local_address").(string)+"\n")
+		configSet = append(configSet, setPrefix+" local-address "+d.Get("local_address").(string))
 	}
 	if d.Get("policy").(string) != "" {
-		configSet = append(configSet, setPrefix+" ike-policy "+d.Get("policy").(string)+"\n")
+		configSet = append(configSet, setPrefix+" ike-policy "+d.Get("policy").(string))
 	}
 	if d.Get("external_interface").(string) != "" {
-		configSet = append(configSet, setPrefix+" external-interface "+d.Get("external_interface").(string)+"\n")
+		configSet = append(configSet, setPrefix+" external-interface "+d.Get("external_interface").(string))
 	}
 	if d.Get("general_ike_id").(bool) {
-		configSet = append(configSet, setPrefix+" general-ikeid\n")
+		configSet = append(configSet, setPrefix+" general-ikeid")
 	}
 	if d.Get("no_nat_traversal").(bool) {
-		configSet = append(configSet, setPrefix+" no-nat-traversal\n")
+		configSet = append(configSet, setPrefix+" no-nat-traversal")
 	}
 	if len(d.Get("dead_peer_detection").([]interface{})) != 0 {
-		configSet = append(configSet, setPrefix+" dead-peer-detection\n")
+		configSet = append(configSet, setPrefix+" dead-peer-detection")
 		for _, v := range d.Get("dead_peer_detection").([]interface{}) {
 			if v != nil {
 				deadPeerOptions := v.(map[string]interface{})
 				if deadPeerOptions["interval"].(int) != 0 {
 					configSet = append(configSet, setPrefix+" dead-peer-detection interval "+
-						strconv.Itoa(deadPeerOptions["interval"].(int))+"\n")
+						strconv.Itoa(deadPeerOptions["interval"].(int)))
 				}
 				if deadPeerOptions["threshold"].(int) != 0 {
 					configSet = append(configSet, setPrefix+" dead-peer-detection threshold "+
-						strconv.Itoa(deadPeerOptions["threshold"].(int))+"\n")
+						strconv.Itoa(deadPeerOptions["threshold"].(int)))
 				}
 			}
 		}
@@ -378,15 +378,15 @@ func setIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 			}
 		}
 		configSet = append(configSet, setPrefix+" local-identity "+
-			localIdentity["type"].(string)+" "+localIdentity["value"].(string)+"\n")
+			localIdentity["type"].(string)+" "+localIdentity["value"].(string))
 	}
 	for _, v := range d.Get("remote_identity").([]interface{}) {
 		remoteIdentity := v.(map[string]interface{})
 		configSet = append(configSet, setPrefix+" remote-identity "+
-			remoteIdentity["type"].(string)+" "+remoteIdentity["value"].(string)+"\n")
+			remoteIdentity["type"].(string)+" "+remoteIdentity["value"].(string))
 	}
 	if d.Get("version").(string) != "" {
-		configSet = append(configSet, setPrefix+" version "+d.Get("version").(string)+"\n")
+		configSet = append(configSet, setPrefix+" version "+d.Get("version").(string))
 	}
 
 	err := sess.configSet(configSet, jnprSess)
@@ -493,7 +493,7 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 func delIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security ike gateway "+d.Get("name").(string)+"\n")
+	configSet = append(configSet, "delete security ike gateway "+d.Get("name").(string))
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

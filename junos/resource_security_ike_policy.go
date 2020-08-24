@@ -246,16 +246,16 @@ func setIkePolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 		if d.Get("mode").(string) != "main" && d.Get("mode").(string) != "aggressive" {
 			return fmt.Errorf("unknown ike mode %v", d.Get("mode").(string))
 		}
-		configSet = append(configSet, setPrefix+" mode "+d.Get("mode").(string)+"\n")
+		configSet = append(configSet, setPrefix+" mode "+d.Get("mode").(string))
 	}
 	for _, v := range d.Get("proposals").([]interface{}) {
-		configSet = append(configSet, setPrefix+" proposals "+v.(string)+"\n")
+		configSet = append(configSet, setPrefix+" proposals "+v.(string))
 	}
 	if d.Get("pre_shared_key_text").(string) != "" {
-		configSet = append(configSet, setPrefix+" pre-shared-key ascii-text "+d.Get("pre_shared_key_text").(string)+"\n")
+		configSet = append(configSet, setPrefix+" pre-shared-key ascii-text "+d.Get("pre_shared_key_text").(string))
 	}
 	if d.Get("pre_shared_key_hexa").(string) != "" {
-		configSet = append(configSet, setPrefix+" pre-shared-key hexadecimal "+d.Get("pre_shared_key_hexa").(string)+"\n")
+		configSet = append(configSet, setPrefix+" pre-shared-key hexadecimal "+d.Get("pre_shared_key_hexa").(string))
 	}
 
 	err := sess.configSet(configSet, jnprSess)
@@ -314,7 +314,7 @@ func readIkePolicy(ikePolicy string, m interface{}, jnprSess *NetconfObject) (ik
 func delIkePolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security ike policy "+d.Get("name").(string)+"\n")
+	configSet = append(configSet, "delete security ike policy "+d.Get("name").(string))
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

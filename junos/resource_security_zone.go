@@ -287,26 +287,26 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 	configSet := make([]string, 0)
 
 	setPrefix := "set security zones security-zone " + d.Get("name").(string)
-	configSet = append(configSet, setPrefix+"\n")
+	configSet = append(configSet, setPrefix)
 
 	for _, v := range d.Get("inbound_services").([]interface{}) {
-		configSet = append(configSet, setPrefix+" host-inbound-traffic system-services "+v.(string)+"\n")
+		configSet = append(configSet, setPrefix+" host-inbound-traffic system-services "+v.(string))
 	}
 	for _, v := range d.Get("inbound_protocols").([]interface{}) {
-		configSet = append(configSet, setPrefix+" host-inbound-traffic protocols "+v.(string)+"\n")
+		configSet = append(configSet, setPrefix+" host-inbound-traffic protocols "+v.(string))
 	}
 
 	for _, v := range d.Get("address_book").([]interface{}) {
 		addressBook := v.(map[string]interface{})
 		configSet = append(configSet, setPrefix+" address-book address "+
-			addressBook["name"].(string)+" "+addressBook["network"].(string)+"\n")
+			addressBook["name"].(string)+" "+addressBook["network"].(string))
 	}
 
 	for _, v := range d.Get("address_book_set").([]interface{}) {
 		addressBookSet := v.(map[string]interface{})
 		for _, addressBookSetAddress := range addressBookSet["address"].([]interface{}) {
 			configSet = append(configSet, setPrefix+" address-book address-set "+addressBookSet["name"].(string)+
-				" address "+addressBookSetAddress.(string)+"\n")
+				" address "+addressBookSetAddress.(string))
 		}
 	}
 
@@ -388,7 +388,7 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 func delSecurityZoneElement(element string, zone string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security zones security-zone "+zone+" "+element+"\n")
+	configSet = append(configSet, "delete security zones security-zone "+zone+" "+element)
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err
@@ -399,7 +399,7 @@ func delSecurityZoneElement(element string, zone string, m interface{}, jnprSess
 func delSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security zones security-zone "+zone+"\n")
+	configSet = append(configSet, "delete security zones security-zone "+zone)
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

@@ -429,10 +429,10 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, m interface{}, jnprSess *
 		if v != nil {
 			message := v.(map[string]interface{})
 			if message["url"].(string) != "" {
-				configSet = append(configSet, setPrefix+"block-message url \""+message["url"].(string)+"\"\n")
+				configSet = append(configSet, setPrefix+"block-message url \""+message["url"].(string)+"\"")
 			}
 			if message["type_custom_redirect_url"].(bool) {
-				configSet = append(configSet, setPrefix+"block-message type custom-redirect-url\n")
+				configSet = append(configSet, setPrefix+"block-message type custom-redirect-url")
 			}
 		} else {
 			configSet = append(configSet, setPrefix+"block-message")
@@ -441,57 +441,57 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, m interface{}, jnprSess *
 	for _, v := range d.Get("category").([]interface{}) {
 		category := v.(map[string]interface{})
 		setPrefixCategory := setPrefix + "category \"" + category["name"].(string) + "\" "
-		configSet = append(configSet, setPrefixCategory+"action "+category["action"].(string)+"\n")
+		configSet = append(configSet, setPrefixCategory+"action "+category["action"].(string))
 		for _, r := range category["reputation_action"].([]interface{}) {
 			reputation := r.(map[string]interface{})
 			configSet = append(configSet, setPrefixCategory+"reputation-action "+
-				reputation["site_reputation"].(string)+" "+reputation["action"].(string)+"\n")
+				reputation["site_reputation"].(string)+" "+reputation["action"].(string))
 		}
 	}
 	if d.Get("custom_block_message").(string) != "" {
-		configSet = append(configSet, setPrefix+"custom-block-message \""+d.Get("custom_block_message").(string)+"\"\n")
+		configSet = append(configSet, setPrefix+"custom-block-message \""+d.Get("custom_block_message").(string)+"\"")
 	}
 	if d.Get("default_action").(string) != "" {
-		configSet = append(configSet, setPrefix+"default "+d.Get("default_action").(string)+"\n")
+		configSet = append(configSet, setPrefix+"default "+d.Get("default_action").(string))
 	}
 	for _, v := range d.Get("fallback_settings").([]interface{}) {
 		if v != nil {
 			fSettings := v.(map[string]interface{})
 			if fSettings["default"].(string) != "" {
 				configSet = append(configSet, setPrefix+"fallback-settings default "+
-					fSettings["default"].(string)+"\n")
+					fSettings["default"].(string))
 			}
 			if fSettings["server_connectivity"].(string) != "" {
 				configSet = append(configSet, setPrefix+"fallback-settings server-connectivity "+
-					fSettings["server_connectivity"].(string)+"\n")
+					fSettings["server_connectivity"].(string))
 			}
 			if fSettings["timeout"].(string) != "" {
 				configSet = append(configSet, setPrefix+"fallback-settings timeout "+
-					fSettings["timeout"].(string)+"\n")
+					fSettings["timeout"].(string))
 			}
 			if fSettings["too_many_requests"].(string) != "" {
 				configSet = append(configSet, setPrefix+"fallback-settings too-many-requests "+
-					fSettings["too_many_requests"].(string)+"\n")
+					fSettings["too_many_requests"].(string))
 			}
 		} else {
 			configSet = append(configSet, setPrefix+"fallback-settings")
 		}
 	}
 	if d.Get("no_safe_search").(bool) {
-		configSet = append(configSet, setPrefix+"no-safe-search\n")
+		configSet = append(configSet, setPrefix+"no-safe-search")
 	}
 	if d.Get("quarantine_custom_message").(string) != "" {
 		configSet = append(configSet,
-			setPrefix+"quarantine-custom-message \""+d.Get("quarantine_custom_message").(string)+"\"\n")
+			setPrefix+"quarantine-custom-message \""+d.Get("quarantine_custom_message").(string)+"\"")
 	}
 	for _, v := range d.Get("quarantine_message").([]interface{}) {
 		if v != nil {
 			message := v.(map[string]interface{})
 			if message["url"].(string) != "" {
-				configSet = append(configSet, setPrefix+"quarantine-message url \""+message["url"].(string)+"\"\n")
+				configSet = append(configSet, setPrefix+"quarantine-message url \""+message["url"].(string)+"\"")
 			}
 			if message["type_custom_redirect_url"].(bool) {
-				configSet = append(configSet, setPrefix+"quarantine-message type custom-redirect-url\n")
+				configSet = append(configSet, setPrefix+"quarantine-message type custom-redirect-url")
 			}
 		} else {
 			configSet = append(configSet, setPrefix+"quarantine-message")
@@ -500,10 +500,10 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, m interface{}, jnprSess *
 	for _, v := range d.Get("site_reputation_action").([]interface{}) {
 		siteReputation := v.(map[string]interface{})
 		configSet = append(configSet, setPrefix+"site-reputation-action "+
-			siteReputation["site_reputation"].(string)+" "+siteReputation["action"].(string)+"\n")
+			siteReputation["site_reputation"].(string)+" "+siteReputation["action"].(string))
 	}
 	if d.Get("timeout").(int) != 0 {
-		configSet = append(configSet, setPrefix+"timeout "+strconv.Itoa(d.Get("timeout").(int))+"\n")
+		configSet = append(configSet, setPrefix+"timeout "+strconv.Itoa(d.Get("timeout").(int)))
 	}
 
 	err := sess.configSet(configSet, jnprSess)
@@ -637,7 +637,7 @@ func delUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *NetconfO
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security utm feature-profile web-filtering juniper-enhanced "+
-		"profile \""+profile+"\"\n")
+		"profile \""+profile+"\"")
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

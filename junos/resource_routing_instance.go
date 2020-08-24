@@ -218,13 +218,13 @@ func setRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 
 	setPrefix := "set routing-instances " + d.Get("name").(string) + " "
 	if d.Get("type").(string) != "" {
-		configSet = append(configSet, setPrefix+"instance-type "+d.Get("type").(string)+"\n")
+		configSet = append(configSet, setPrefix+"instance-type "+d.Get("type").(string))
 	} else {
-		configSet = append(configSet, setPrefix+"\n")
+		configSet = append(configSet, setPrefix)
 	}
 	if d.Get("as").(string) != "" {
 		configSet = append(configSet, setPrefix+
-			"routing-options autonomous-system "+d.Get("as").(string)+"\n")
+			"routing-options autonomous-system "+d.Get("as").(string))
 	}
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
@@ -272,8 +272,8 @@ func delRoutingInstanceOpts(d *schema.ResourceData, m interface{}, jnprSess *Net
 	configSet := make([]string, 0)
 	setPrefix := "delete routing-instances " + d.Get("name").(string) + " "
 	configSet = append(configSet,
-		setPrefix+"instance-type\n",
-		setPrefix+"routing-options autonomous-system\n")
+		setPrefix+"instance-type",
+		setPrefix+"routing-options autonomous-system")
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err
@@ -284,7 +284,7 @@ func delRoutingInstanceOpts(d *schema.ResourceData, m interface{}, jnprSess *Net
 func delRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete routing-instances "+d.Get("name").(string)+"\n")
+	configSet = append(configSet, "delete routing-instances "+d.Get("name").(string))
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

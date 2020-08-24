@@ -235,19 +235,19 @@ func setIkeProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 
 	setPrefix := "set security ike proposal " + d.Get("name").(string)
 	if d.Get("authentication_method").(string) != "" {
-		configSet = append(configSet, setPrefix+" authentication-method "+d.Get("authentication_method").(string)+"\n")
+		configSet = append(configSet, setPrefix+" authentication-method "+d.Get("authentication_method").(string))
 	}
 	if d.Get("authentication_algorithm").(string) != "" {
-		configSet = append(configSet, setPrefix+" authentication-algorithm "+d.Get("authentication_algorithm").(string)+"\n")
+		configSet = append(configSet, setPrefix+" authentication-algorithm "+d.Get("authentication_algorithm").(string))
 	}
 	if d.Get("dh_group").(string) != "" {
-		configSet = append(configSet, setPrefix+" dh-group "+d.Get("dh_group").(string)+"\n")
+		configSet = append(configSet, setPrefix+" dh-group "+d.Get("dh_group").(string))
 	}
 	if d.Get("encryption_algorithm").(string) != "" {
-		configSet = append(configSet, setPrefix+" encryption-algorithm "+d.Get("encryption_algorithm").(string)+"\n")
+		configSet = append(configSet, setPrefix+" encryption-algorithm "+d.Get("encryption_algorithm").(string))
 	}
 	if d.Get("lifetime_seconds").(int) != 0 {
-		configSet = append(configSet, setPrefix+" lifetime-seconds "+strconv.Itoa(d.Get("lifetime_seconds").(int))+"\n")
+		configSet = append(configSet, setPrefix+" lifetime-seconds "+strconv.Itoa(d.Get("lifetime_seconds").(int)))
 	}
 
 	err := sess.configSet(configSet, jnprSess)
@@ -303,7 +303,7 @@ func readIkeProposal(ikeProposal string, m interface{}, jnprSess *NetconfObject)
 func delIkeProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security ike proposal "+d.Get("name").(string)+"\n")
+	configSet = append(configSet, "delete security ike proposal "+d.Get("name").(string))
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

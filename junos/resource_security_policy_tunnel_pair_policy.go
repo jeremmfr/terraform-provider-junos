@@ -243,11 +243,11 @@ func setSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, m interface{}, jn
 	configSet = append(configSet, "set security policies from-zone "+
 		d.Get("zone_a").(string)+" to-zone "+d.Get("zone_b").(string)+
 		" policy "+d.Get("policy_a_to_b").(string)+
-		" then permit tunnel pair-policy "+d.Get("policy_b_to_a").(string)+"\n")
+		" then permit tunnel pair-policy "+d.Get("policy_b_to_a").(string))
 	configSet = append(configSet, "set security policies from-zone "+
 		d.Get("zone_b").(string)+" to-zone "+d.Get("zone_a").(string)+
 		" policy "+d.Get("policy_b_to_a").(string)+
-		" then permit tunnel pair-policy "+d.Get("policy_a_to_b").(string)+"\n")
+		" then permit tunnel pair-policy "+d.Get("policy_a_to_b").(string))
 
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
@@ -322,11 +322,11 @@ func delSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, m interface{}, jn
 	configSet = append(configSet, "delete security policies"+
 		" from-zone "+d.Get("zone_a").(string)+" to-zone "+d.Get("zone_b").(string)+
 		" policy "+d.Get("policy_a_to_b").(string)+
-		" then permit tunnel pair-policy "+d.Get("policy_b_to_a").(string)+"\n")
+		" then permit tunnel pair-policy "+d.Get("policy_b_to_a").(string))
 	configSet = append(configSet, "delete security policies"+
 		" from-zone "+d.Get("zone_b").(string)+" to-zone "+d.Get("zone_a").(string)+
 		" policy "+d.Get("policy_b_to_a").(string)+
-		" then permit tunnel pair-policy "+d.Get("policy_a_to_b").(string)+"\n")
+		" then permit tunnel pair-policy "+d.Get("policy_a_to_b").(string))
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

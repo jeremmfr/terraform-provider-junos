@@ -216,11 +216,11 @@ func setPolicyoptionsAsPath(d *schema.ResourceData, m interface{}, jnprSess *Net
 
 	if d.Get("path").(string) != "" {
 		configSet = append(configSet, "set policy-options as-path "+d.Get("name").(string)+
-			" \""+d.Get("path").(string)+"\"\n")
+			" \""+d.Get("path").(string)+"\"")
 	}
 	if d.Get("dynamic_db").(bool) {
 		configSet = append(configSet, "set policy-options as-path "+d.Get("name").(string)+
-			" dynamic-db\n")
+			" dynamic-db")
 	}
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
@@ -267,7 +267,7 @@ func readPolicyoptionsAsPath(asPath string, m interface{}, jnprSess *NetconfObje
 func delPolicyoptionsAsPath(asPath string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete policy-options as-path "+asPath+"\n")
+	configSet = append(configSet, "delete policy-options as-path "+asPath)
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

@@ -364,33 +364,33 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		setPrefixPolicy := setPrefix + policy["name"].(string)
 		if len(policy["match_source_address"].([]interface{})) != 0 {
 			for _, address := range policy["match_source_address"].([]interface{}) {
-				configSet = append(configSet, setPrefixPolicy+" match source-address "+address.(string)+"\n")
+				configSet = append(configSet, setPrefixPolicy+" match source-address "+address.(string))
 			}
 		} else {
-			configSet = append(configSet, setPrefixPolicy+" match source-address any\n")
+			configSet = append(configSet, setPrefixPolicy+" match source-address any")
 		}
 		if len(policy["match_destination_address"].([]interface{})) != 0 {
 			for _, address := range policy["match_destination_address"].([]interface{}) {
-				configSet = append(configSet, setPrefixPolicy+" match destination-address "+address.(string)+"\n")
+				configSet = append(configSet, setPrefixPolicy+" match destination-address "+address.(string))
 			}
 		} else {
-			configSet = append(configSet, setPrefixPolicy+" match destination-address any\n")
+			configSet = append(configSet, setPrefixPolicy+" match destination-address any")
 		}
 		if len(policy["match_application"].([]interface{})) != 0 {
 			for _, app := range policy["match_application"].([]interface{}) {
-				configSet = append(configSet, setPrefixPolicy+" match application "+app.(string)+"\n")
+				configSet = append(configSet, setPrefixPolicy+" match application "+app.(string))
 			}
 		} else {
-			configSet = append(configSet, setPrefixPolicy+" match application any\n")
+			configSet = append(configSet, setPrefixPolicy+" match application any")
 		}
-		configSet = append(configSet, setPrefixPolicy+" then "+policy["then"].(string)+"\n")
+		configSet = append(configSet, setPrefixPolicy+" then "+policy["then"].(string))
 		if policy["permit_tunnel_ipsec_vpn"].(string) != "" {
 			if policy["then"].(string) != permitWord {
 				return fmt.Errorf("conflict policy then %v and policy permit_tunnel_ipsec_vpn",
 					policy["then"].(string))
 			}
 			configSet = append(configSet, setPrefixPolicy+" then permit tunnel ipsec-vpn "+
-				policy["permit_tunnel_ipsec_vpn"].(string)+"\n")
+				policy["permit_tunnel_ipsec_vpn"].(string))
 		}
 		if len(policy["permit_application_services"].([]interface{})) > 0 {
 			if policy["permit_application_services"].([]interface{})[0] == nil {
@@ -408,13 +408,13 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			configSet = append(configSet, configSetAppSvc...)
 		}
 		if policy["count"].(bool) {
-			configSet = append(configSet, setPrefixPolicy+" then count\n")
+			configSet = append(configSet, setPrefixPolicy+" then count")
 		}
 		if policy["log_init"].(bool) {
-			configSet = append(configSet, setPrefixPolicy+" then log session-init\n")
+			configSet = append(configSet, setPrefixPolicy+" then log session-init")
 		}
 		if policy["log_close"].(bool) {
-			configSet = append(configSet, setPrefixPolicy+" then log session-close\n")
+			configSet = append(configSet, setPrefixPolicy+" then log session-close")
 		}
 	}
 	err := sess.configSet(configSet, jnprSess)
@@ -497,7 +497,7 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 func delSecurityPolicy(fromZone string, toZone string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security policies from-zone "+fromZone+" to-zone "+toZone+"\n")
+	configSet = append(configSet, "delete security policies from-zone "+fromZone+" to-zone "+toZone)
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

@@ -220,7 +220,7 @@ func setUtmCustomURLPattern(d *schema.ResourceData, m interface{}, jnprSess *Net
 
 	setPrefix := "set security utm custom-objects url-pattern " + d.Get("name").(string) + " "
 	for _, v := range d.Get("value").([]interface{}) {
-		configSet = append(configSet, setPrefix+"value "+v.(string)+"\n")
+		configSet = append(configSet, setPrefix+"value "+v.(string))
 	}
 
 	err := sess.configSet(configSet, jnprSess)
@@ -266,7 +266,7 @@ func readUtmCustomURLPattern(urlPattern string, m interface{}, jnprSess *Netconf
 func delUtmCustomURLPattern(urlPattern string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security utm custom-objects url-pattern "+urlPattern+"\n")
+	configSet = append(configSet, "delete security utm custom-objects url-pattern "+urlPattern)
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err
