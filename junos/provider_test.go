@@ -16,6 +16,8 @@ var (
 	testAccProvider = junos.Provider().(*schema.Provider)
 )
 
+const defaultInterfaceTestAcc = "ge-0/0/3"
+
 func TestProvider(t *testing.T) {
 	if err := junos.Provider().(*schema.Provider).InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)

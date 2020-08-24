@@ -16,7 +16,7 @@ func TestAccJunosInterface_basic(t *testing.T) {
 	if os.Getenv("TESTACC_INTERFACE") != "" {
 		testaccInterface = os.Getenv("TESTACC_INTERFACE")
 	} else {
-		testaccInterface = "ge-0/0/3"
+		testaccInterface = defaultInterfaceTestAcc
 	}
 	if os.Getenv("TESTACC_INTERFACE_AE") != "" {
 		testaccInterfaceAE = os.Getenv("TESTACC_INTERFACE_AE")

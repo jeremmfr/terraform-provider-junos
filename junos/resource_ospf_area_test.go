@@ -12,7 +12,7 @@ func TestAccJunosOspfArea_basic(t *testing.T) {
 	if os.Getenv("TESTACC_INTERFACE") != "" {
 		testaccOspfArea = os.Getenv("TESTACC_INTERFACE")
 	} else {
-		testaccOspfArea = "ge-0/0/3"
+		testaccOspfArea = defaultInterfaceTestAcc
 	}
 	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.Test(t, resource.TestCase{

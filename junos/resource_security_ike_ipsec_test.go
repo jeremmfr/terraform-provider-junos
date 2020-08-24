@@ -13,7 +13,7 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 	if os.Getenv("TESTACC_INTERFACE") != "" {
 		testaccIkeIpsec = os.Getenv("TESTACC_INTERFACE")
 	} else {
-		testaccIkeIpsec = "ge-0/0/3"
+		testaccIkeIpsec = defaultInterfaceTestAcc
 	}
 	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.Test(t, resource.TestCase{
