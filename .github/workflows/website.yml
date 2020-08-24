@@ -4,9 +4,13 @@ on:
     branches:
       - 'master'
     paths:
-      - '.github/workflows/website.yml'    
+      - '.github/workflows/website.yml'
       - '.terraform-website/**'
       - 'website/**'
+  release:
+    types:
+      - published
+
 jobs:
   deploy:
     name: Deploy Website
