@@ -9,13 +9,19 @@ import (
 )
 
 func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
+	var testaccIkeIpsec string
+	if os.Getenv("TESTACC_INTERFACE") != "" {
+		testaccIkeIpsec = os.Getenv("TESTACC_INTERFACE")
+	} else {
+		testaccIkeIpsec = "ge-0/0/3"
+	}
 	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:  func() { testAccPreCheck(t) },
 			Providers: testAccProviders,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosSecurityIkeIpsecConfigCreate(),
+					Config: testAccJunosSecurityIkeIpsecConfigCreate(testaccIkeIpsec),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_ike_proposal.testacc_ikeprop",
 							"authentication_algorithm", "sha1"),
@@ -42,7 +48,7 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
 							"policy", "testacc_ikepol"),
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
-							"external_interface", "lo0"),
+							"external_interface", testaccIkeIpsec+".0"),
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
 							"general_ike_id", "true"),
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
@@ -61,12 +67,6 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 							"local_identity.0.type", "hostname"),
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
 							"local_identity.0.value", "testacc"),
-						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
-							"remote_identity.#", "1"),
-						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
-							"remote_identity.0.type", "hostname"),
-						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
-							"remote_identity.0.value", "testacc_remote"),
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
 							"version", "v2-only"),
 						resource.TestCheckResourceAttr("junos_security_ipsec_proposal.testacc_ipsecprop",
@@ -110,7 +110,7 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosSecurityIkeIpsecConfigUpdate(),
+					Config: testAccJunosSecurityIkeIpsecConfigUpdate(testaccIkeIpsec),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_ike_proposal.testacc_ikeprop",
 							"dh_group", "group1"),
@@ -124,8 +124,6 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 							"encryption_algorithm", "aes-256-cbc"),
 						resource.TestCheckResourceAttr("junos_security_ipsec_policy.testacc_ipsecpol",
 							"pfs_keys", "group1"),
-						resource.TestCheckResourceAttr("junos_security_ipsec_vpn.testacc_ipsecvpn",
-							"bind_interface", ""),
 						resource.TestCheckResourceAttr("junos_security_policy.testacc_policyIpsecRemToLoc",
 							"policy.#", "1"),
 						resource.TestCheckResourceAttr("junos_security_policy.testacc_policyIpsecRemToLoc",
@@ -134,6 +132,12 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 							"policy_a_to_b", "testacc_vpn-out"),
 						resource.TestCheckResourceAttr("junos_security_policy_tunnel_pair_policy.testacc_vpn-in-out",
 							"policy_b_to_a", "testacc_vpn-in"),
+						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
+							"remote_identity.#", "1"),
+						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
+							"remote_identity.0.type", "hostname"),
+						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
+							"remote_identity.0.value", "testacc_remote"),
 					),
 				},
 				{
@@ -172,8 +176,14 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosSecurityIkeIpsecConfigCreate() string {
+func testAccJunosSecurityIkeIpsecConfigCreate(interFace string) string {
 	return `
+resource junos_interface "testacc_ikegateway" {
+  name = "` + interFace + `.0"
+  inet_address {
+    address = "192.0.2.4/25"
+  }
+}
 resource junos_security_ike_proposal "testacc_ikeprop" {
   name = "testacc_ikeprop"
   authentication_algorithm = "sha1"
@@ -191,7 +201,7 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
   name = "testacc_ikegateway"
   address = [ "192.0.2.3" ]
   policy = junos_security_ike_policy.testacc_ikepol.name
-  external_interface = "lo0"
+  external_interface = junos_interface.testacc_ikegateway.name
   general_ike_id = true
   no_nat_traversal = true
   dead_peer_detection {
@@ -202,10 +212,6 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
   local_identity {
     type = "hostname"
     value = "testacc"
-  }
-  remote_identity {
-    type = "hostname"
-    value = "testacc_remote"
   }
   version = "v2-only"
 }
@@ -241,8 +247,14 @@ resource junos_security_ipsec_vpn "testacc_ipsecvpn" {
 }
 `
 }
-func testAccJunosSecurityIkeIpsecConfigUpdate() string {
+func testAccJunosSecurityIkeIpsecConfigUpdate(interFace string) string {
 	return `
+resource junos_interface "testacc_ikegateway" {
+  name = "` + interFace + `.0"
+  inet_address {
+    address = "192.0.2.4/25"
+  }
+}
 resource junos_security_ike_proposal "testacc_ikeprop" {
   name = "testacc_ikeprop"
   authentication_algorithm = "sha1"
@@ -260,8 +272,7 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
   name = "testacc_ikegateway"
   address = [ "192.0.2.4" ]
   policy = junos_security_ike_policy.testacc_ikepol.name
-  external_interface = "lo0"
-  general_ike_id = true
+  external_interface = junos_interface.testacc_ikegateway.name
   no_nat_traversal = true
   dead_peer_detection {
     interval = 10
@@ -276,7 +287,6 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
     type = "hostname"
     value = "testacc_remote"
   }
-  version = "v2-only"
 }
 
 resource junos_security_ipsec_proposal "testacc_ipsecprop" {

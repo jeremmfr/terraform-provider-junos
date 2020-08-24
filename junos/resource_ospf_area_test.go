@@ -8,6 +8,12 @@ import (
 )
 
 func TestAccJunosOspfArea_basic(t *testing.T) {
+	var testaccOspfArea string
+	if os.Getenv("TESTACC_INTERFACE") != "" {
+		testaccOspfArea = os.Getenv("TESTACC_INTERFACE")
+	} else {
+		testaccOspfArea = "ge-0/0/3"
+	}
 	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:  func() { testAccPreCheck(t) },
@@ -41,7 +47,7 @@ func TestAccJunosOspfArea_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosOspfAreaConfigUpdate(),
+					Config: testAccJunosOspfAreaConfigUpdate(testaccOspfArea),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea",
 							"routing_instance", "testacc_ospfarea"),
@@ -50,7 +56,7 @@ func TestAccJunosOspfArea_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea",
 							"interface.#", "2"),
 						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea",
-							"interface.1.name", "vlan.100"),
+							"interface.1.name", testaccOspfArea+".0"),
 						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea",
 							"interface.1.disable", "true"),
 					),
@@ -81,10 +87,11 @@ resource junos_ospf_area "testacc_ospfarea" {
 }
 `
 }
-func testAccJunosOspfAreaConfigUpdate() string {
+func testAccJunosOspfAreaConfigUpdate(interFace string) string {
 	return `
 resource junos_interface "testacc_ospfarea" {
-  name = "vlan.100"
+  name             = "` + interFace + `.0"
+  description      = "testacc_ospfarea"
   routing_instance = junos_routing_instance.testacc_ospfarea.name
 }
 resource junos_routing_instance "testacc_ospfarea" {
