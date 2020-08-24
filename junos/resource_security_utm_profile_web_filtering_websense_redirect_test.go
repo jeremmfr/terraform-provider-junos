@@ -75,7 +75,7 @@ func TestAccJunosSecurityUtmProfileWebFWebS_basic(t *testing.T) {
 func testAccJunosSecurityUtmProfileWebFWebSConfigCreate() string {
 	return `
 resource junos_security_utm_profile_web_filtering_websense_redirect "testacc_ProfileWebFWebS" {
-  name                 = "TestACC ProfileWebFWebS"
+  name                 = "testacc ProfileWebFWebS"
   custom_block_message = "Blocked by Juniper"
   fallback_settings {
     default             = "log-and-permit"
@@ -88,7 +88,7 @@ resource junos_security_utm_profile_web_filtering_websense_redirect "testacc_Pro
 func testAccJunosSecurityUtmProfileWebFWebSConfigUpdate() string {
 	return `
 resource junos_security_utm_profile_web_filtering_websense_redirect "testacc_ProfileWebFWebS" {
-  name                 = "TestACC ProfileWebFWebS"
+  name                 = "testacc ProfileWebFWebS"
   custom_block_message = "Blocked by Juniper"
   timeout              = 3
   server {

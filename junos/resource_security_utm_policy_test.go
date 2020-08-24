@@ -19,7 +19,7 @@ func TestAccJunosSecurityUtmPolicy_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_utm_policy.testacc_Policy",
 							"anti_virus.#", "1"),
 						resource.TestCheckResourceAttr("junos_security_utm_policy.testacc_Policy",
-							"anti_virus.0.http_profile", "junos-av-defaults"),
+							"anti_virus.0.http_profile", "junos-sophos-av-defaults"),
 						resource.TestCheckResourceAttr("junos_security_utm_policy.testacc_Policy",
 							"traffic_sessions_per_client.#", "1"),
 						resource.TestCheckResourceAttr("junos_security_utm_policy.testacc_Policy",
@@ -54,7 +54,7 @@ func testAccJunosSecurityUtmPolicyConfigCreate() string {
 resource junos_security_utm_policy "testacc_Policy" {
   name  = "testacc Policy"
   anti_virus {
-    http_profile = "junos-av-defaults"
+    http_profile = "junos-sophos-av-defaults"
   }
   traffic_sessions_per_client {
     over_limit = "log-and-permit"

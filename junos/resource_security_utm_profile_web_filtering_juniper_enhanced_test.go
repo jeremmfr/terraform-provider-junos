@@ -100,7 +100,7 @@ func TestAccJunosSecurityUtmProfileWebFE_basic(t *testing.T) {
 func testAccJunosSecurityUtmProfileWebFEConfigCreate() string {
 	return `
 resource junos_security_utm_profile_web_filtering_juniper_enhanced "testacc_ProfileWebFE" {
-  name = "TestACC ProfileWebFE"
+  name = "testacc ProfileWebFE"
   block_message {
     url                      = "block.local"
     type_custom_redirect_url = true
@@ -134,7 +134,7 @@ resource junos_security_utm_profile_web_filtering_juniper_enhanced "testacc_Prof
 func testAccJunosSecurityUtmProfileWebFEConfigUpdate() string {
 	return `
 resource junos_security_utm_profile_web_filtering_juniper_enhanced "testacc_ProfileWebFE" {
-  name = "TestACC ProfileWebFE"
+  name = "testacc ProfileWebFE"
   category {
     name   = "Enhanced_Network_Errors"
     action = "block"
