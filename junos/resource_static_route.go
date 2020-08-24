@@ -309,31 +309,31 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 			" routing-options static route " + d.Get("destination").(string)
 	}
 	if d.Get("preference").(int) > 0 {
-		configSet = append(configSet, setPrefix+" preference "+strconv.Itoa(d.Get("preference").(int))+"\n")
+		configSet = append(configSet, setPrefix+" preference "+strconv.Itoa(d.Get("preference").(int)))
 	}
 	if d.Get("metric").(int) > 0 {
-		configSet = append(configSet, setPrefix+" metric "+strconv.Itoa(d.Get("metric").(int))+"\n")
+		configSet = append(configSet, setPrefix+" metric "+strconv.Itoa(d.Get("metric").(int)))
 	}
 	if len(d.Get("community").([]interface{})) > 0 {
 		for _, v := range d.Get("community").([]interface{}) {
-			configSet = append(configSet, setPrefix+" community "+v.(string)+"\n")
+			configSet = append(configSet, setPrefix+" community "+v.(string))
 		}
 	}
 	for _, nextHop := range d.Get("next_hop").([]interface{}) {
-		configSet = append(configSet, setPrefix+" next-hop "+nextHop.(string)+"\n")
+		configSet = append(configSet, setPrefix+" next-hop "+nextHop.(string))
 	}
 	for _, qualifiedNextHop := range d.Get("qualified_next_hop").([]interface{}) {
 		qualifiedNextHopMap := qualifiedNextHop.(map[string]interface{})
-		configSet = append(configSet, setPrefix+" qualified-next-hop "+qualifiedNextHopMap["next_hop"].(string)+"\n")
+		configSet = append(configSet, setPrefix+" qualified-next-hop "+qualifiedNextHopMap["next_hop"].(string))
 		if qualifiedNextHopMap["preference"].(int) > 0 {
 			configSet = append(configSet, setPrefix+
 				" qualified-next-hop "+qualifiedNextHopMap["next_hop"].(string)+
-				" preference "+strconv.Itoa(qualifiedNextHopMap["preference"].(int))+"\n")
+				" preference "+strconv.Itoa(qualifiedNextHopMap["preference"].(int)))
 		}
 		if qualifiedNextHopMap["metric"].(int) > 0 {
 			configSet = append(configSet, setPrefix+
 				" qualified-next-hop "+qualifiedNextHopMap["next_hop"].(string)+
-				" metric "+strconv.Itoa(qualifiedNextHopMap["metric"].(int))+"\n")
+				" metric "+strconv.Itoa(qualifiedNextHopMap["metric"].(int)))
 		}
 	}
 	err := sess.configSet(configSet, jnprSess)
@@ -435,15 +435,15 @@ func delStaticRouteOpts(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	}
 	delPrefix += d.Get("destination").(string) + " "
 	configSet = append(configSet,
-		delPrefix+"preference\n",
-		delPrefix+"metric\n",
-		delPrefix+"community\n",
-		delPrefix+"next-hop\n")
+		delPrefix+"preference",
+		delPrefix+"metric",
+		delPrefix+"community",
+		delPrefix+"next-hop")
 	if d.HasChange("qualified_next_hop") {
 		oQualifiedNextHop, _ := d.GetChange("qualified_next_hop")
 		for _, v := range oQualifiedNextHop.([]interface{}) {
 			qualifiedNextHop := v.(map[string]interface{})
-			configSet = append(configSet, delPrefix+"qualified-next-hop "+qualifiedNextHop["next_hop"].(string)+"\n")
+			configSet = append(configSet, delPrefix+"qualified-next-hop "+qualifiedNextHop["next_hop"].(string))
 		}
 	}
 	err := sess.configSet(configSet, jnprSess)

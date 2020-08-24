@@ -287,25 +287,25 @@ func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *
 	for _, v := range d.Get("from").([]interface{}) {
 		from := v.(map[string]interface{})
 		for _, value := range from["value"].([]interface{}) {
-			configSet = append(configSet, setPrefix+" from "+from["type"].(string)+" "+value.(string)+"\n")
+			configSet = append(configSet, setPrefix+" from "+from["type"].(string)+" "+value.(string))
 		}
 	}
 	for _, v := range d.Get("rule").([]interface{}) {
 		rule := v.(map[string]interface{})
 		setPrefixRule := setPrefix + " rule " + rule["name"].(string)
 		configSet = append(configSet, setPrefixRule+
-			" match destination-address "+rule["destination_address"].(string)+"\n")
+			" match destination-address "+rule["destination_address"].(string))
 		for _, thenV := range rule[thenWord].([]interface{}) {
 			then := thenV.(map[string]interface{})
 			if then["type"].(string) == "off" {
-				configSet = append(configSet, setPrefixRule+" then destination-nat off\n")
+				configSet = append(configSet, setPrefixRule+" then destination-nat off")
 			}
 			if then["type"].(string) == "pool" {
 				if then["pool"].(string) == "" {
 					return fmt.Errorf("missing pool for destination-nat pool for rule %v in %v",
 						then["name"].(string), d.Get("name").(string))
 				}
-				configSet = append(configSet, setPrefixRule+" then destination-nat pool "+then["pool"].(string)+"\n")
+				configSet = append(configSet, setPrefixRule+" then destination-nat pool "+then["pool"].(string))
 			}
 		}
 	}
@@ -399,7 +399,7 @@ func readSecurityNatDestination(natDestination string,
 func delSecurityNatDestination(natDestination string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security nat destination rule-set "+natDestination+"\n")
+	configSet = append(configSet, "delete security nat destination rule-set "+natDestination)
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

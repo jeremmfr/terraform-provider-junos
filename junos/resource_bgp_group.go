@@ -705,7 +705,7 @@ func setBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 			" protocols bgp group " + d.Get("name").(string) + " "
 	}
 	sess := m.(*Session)
-	err := sess.configSet([]string{setPrefix + "type " + d.Get("type").(string) + "\n"}, jnprSess)
+	err := sess.configSet([]string{setPrefix + "type " + d.Get("type").(string)}, jnprSess)
 	if err != nil {
 		return err
 	}
@@ -815,10 +815,10 @@ func delBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	if d.Get("routing_instance").(string) == defaultWord {
-		configSet = append(configSet, "delete protocols bgp group "+d.Get("name").(string)+"\n")
+		configSet = append(configSet, "delete protocols bgp group "+d.Get("name").(string))
 	} else {
 		configSet = append(configSet, "delete routing-instances "+d.Get("routing_instance").(string)+
-			" protocols bgp group "+d.Get("name").(string)+"\n")
+			" protocols bgp group "+d.Get("name").(string))
 	}
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {

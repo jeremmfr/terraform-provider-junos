@@ -330,49 +330,49 @@ func setIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	configSet := make([]string, 0)
 
 	if d.Get("bind_interface_auto").(bool) {
-		configSet = append(configSet, "set interfaces "+d.Get("bind_interface").(string)+"\n")
+		configSet = append(configSet, "set interfaces "+d.Get("bind_interface").(string))
 	}
 	setPrefix := "set security ipsec vpn " + d.Get("name").(string)
 	if d.Get("establish_tunnels").(string) != "" {
-		configSet = append(configSet, setPrefix+" establish-tunnels "+d.Get("establish_tunnels").(string)+"\n")
+		configSet = append(configSet, setPrefix+" establish-tunnels "+d.Get("establish_tunnels").(string))
 	}
 	if d.Get("bind_interface").(string) != "" {
-		configSet = append(configSet, setPrefix+" bind-interface "+d.Get("bind_interface").(string)+"\n")
+		configSet = append(configSet, setPrefix+" bind-interface "+d.Get("bind_interface").(string))
 	}
 	if d.Get("df_bit").(string) != "" {
-		configSet = append(configSet, setPrefix+" df-bit "+d.Get("df_bit").(string)+"\n")
+		configSet = append(configSet, setPrefix+" df-bit "+d.Get("df_bit").(string))
 	}
 	for _, v := range d.Get("ike").([]interface{}) {
 		ike := v.(map[string]interface{})
-		configSet = append(configSet, setPrefix+" ike gateway "+ike["gateway"].(string)+"\n")
-		configSet = append(configSet, setPrefix+" ike ipsec-policy "+ike["policy"].(string)+"\n")
+		configSet = append(configSet, setPrefix+" ike gateway "+ike["gateway"].(string))
+		configSet = append(configSet, setPrefix+" ike ipsec-policy "+ike["policy"].(string))
 		if ike["identity_local"].(string) != "" {
-			configSet = append(configSet, setPrefix+" ike proxy-identity local "+ike["identity_local"].(string)+"\n")
+			configSet = append(configSet, setPrefix+" ike proxy-identity local "+ike["identity_local"].(string))
 		}
 		if ike["identity_remote"].(string) != "" {
-			configSet = append(configSet, setPrefix+" ike proxy-identity remote "+ike["identity_remote"].(string)+"\n")
+			configSet = append(configSet, setPrefix+" ike proxy-identity remote "+ike["identity_remote"].(string))
 		}
 		if ike["identity_service"].(string) != "" {
-			configSet = append(configSet, setPrefix+" ike proxy-identity service "+ike["identity_service"].(string)+"\n")
+			configSet = append(configSet, setPrefix+" ike proxy-identity service "+ike["identity_service"].(string))
 		}
 	}
 	for _, v := range d.Get("vpn_monitor").([]interface{}) {
 		monitor := v.(map[string]interface{})
-		configSet = append(configSet, "set security ipsec vpn "+d.Get("name").(string)+" vpn-monitor\n")
+		configSet = append(configSet, "set security ipsec vpn "+d.Get("name").(string)+" vpn-monitor")
 		if monitor["source_interface"].(string) != "" {
 			configSet = append(configSet, setPrefix+" vpn-monitor source-interface "+
-				monitor["source_interface"].(string)+"\n")
+				monitor["source_interface"].(string))
 		}
 		if monitor["source_interface_auto"].(bool) {
 			configSet = append(configSet, setPrefix+" vpn-monitor source-interface "+
-				d.Get("bind_interface").(string)+"\n")
+				d.Get("bind_interface").(string))
 		}
 		if monitor["destination_ip"].(string) != "" {
 			configSet = append(configSet, setPrefix+" vpn-monitor destination-ip "+
-				monitor["destination_ip"].(string)+"\n")
+				monitor["destination_ip"].(string))
 		}
 		if monitor["optimized"].(bool) {
-			configSet = append(configSet, setPrefix+" vpn-monitor optimized\n")
+			configSet = append(configSet, setPrefix+" vpn-monitor optimized")
 		}
 	}
 
@@ -470,7 +470,7 @@ func readIpsecVpn(ipsecVpn string, m interface{}, jnprSess *NetconfObject) (ipse
 func delIpsecVpnConf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security ipsec vpn "+d.Get("name").(string)+"\n")
+	configSet = append(configSet, "delete security ipsec vpn "+d.Get("name").(string))
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err
@@ -481,11 +481,11 @@ func delIpsecVpnConf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 func delIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security ipsec vpn "+d.Get("name").(string)+"\n")
+	configSet = append(configSet, "delete security ipsec vpn "+d.Get("name").(string))
 	if d.Get("bind_interface_auto").(bool) {
 		empty := checkInterfaceNC(d.Get("bind_interface").(string), m, jnprSess)
 		if empty == nil {
-			configSet = append(configSet, "delete interfaces "+d.Get("bind_interface").(string)+"\n")
+			configSet = append(configSet, "delete interfaces "+d.Get("bind_interface").(string))
 		}
 	}
 	err := sess.configSet(configSet, jnprSess)

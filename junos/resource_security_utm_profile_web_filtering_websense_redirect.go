@@ -320,55 +320,55 @@ func setUtmProfileWebFWebsense(d *schema.ResourceData, m interface{}, jnprSess *
 	setPrefix := "set security utm feature-profile web-filtering websense-redirect " +
 		"profile \"" + d.Get("name").(string) + "\" "
 	if d.Get("account").(string) != "" {
-		configSet = append(configSet, setPrefix+"account \""+d.Get("account").(string)+"\"\n")
+		configSet = append(configSet, setPrefix+"account \""+d.Get("account").(string)+"\"")
 	}
 	if d.Get("custom_block_message").(string) != "" {
-		configSet = append(configSet, setPrefix+"custom-block-message \""+d.Get("custom_block_message").(string)+"\"\n")
+		configSet = append(configSet, setPrefix+"custom-block-message \""+d.Get("custom_block_message").(string)+"\"")
 	}
 	for _, v := range d.Get("fallback_settings").([]interface{}) {
 		if v != nil {
 			fSettings := v.(map[string]interface{})
 			if fSettings["default"].(string) != "" {
 				configSet = append(configSet, setPrefix+"fallback-settings default "+
-					fSettings["default"].(string)+"\n")
+					fSettings["default"].(string))
 			}
 			if fSettings["server_connectivity"].(string) != "" {
 				configSet = append(configSet, setPrefix+"fallback-settings server-connectivity "+
-					fSettings["server_connectivity"].(string)+"\n")
+					fSettings["server_connectivity"].(string))
 			}
 			if fSettings["timeout"].(string) != "" {
 				configSet = append(configSet, setPrefix+"fallback-settings timeout "+
-					fSettings["timeout"].(string)+"\n")
+					fSettings["timeout"].(string))
 			}
 			if fSettings["too_many_requests"].(string) != "" {
 				configSet = append(configSet, setPrefix+"fallback-settings too-many-requests "+
-					fSettings["too_many_requests"].(string)+"\n")
+					fSettings["too_many_requests"].(string))
 			}
 		} else {
 			configSet = append(configSet, setPrefix+"fallback-settings")
 		}
 	}
 	if len(d.Get("server").([]interface{})) != 0 {
-		configSet = append(configSet, setPrefix+"server\n")
+		configSet = append(configSet, setPrefix+"server")
 	}
 	for _, v := range d.Get("server").([]interface{}) {
 		if v != nil {
 			server := v.(map[string]interface{})
 			if server["host"].(string) != "" {
-				configSet = append(configSet, setPrefix+"server host "+server["host"].(string)+"\n")
+				configSet = append(configSet, setPrefix+"server host "+server["host"].(string))
 			}
 			if server["port"].(int) != 0 {
-				configSet = append(configSet, setPrefix+"server port "+strconv.Itoa(server["port"].(int))+"\n")
+				configSet = append(configSet, setPrefix+"server port "+strconv.Itoa(server["port"].(int)))
 			}
 		} else {
 			configSet = append(configSet, setPrefix+"server")
 		}
 	}
 	if d.Get("sockets").(int) != 0 {
-		configSet = append(configSet, setPrefix+"sockets "+strconv.Itoa(d.Get("sockets").(int))+"\n")
+		configSet = append(configSet, setPrefix+"sockets "+strconv.Itoa(d.Get("sockets").(int)))
 	}
 	if d.Get("timeout").(int) != 0 {
-		configSet = append(configSet, setPrefix+"timeout "+strconv.Itoa(d.Get("timeout").(int))+"\n")
+		configSet = append(configSet, setPrefix+"timeout "+strconv.Itoa(d.Get("timeout").(int)))
 	}
 
 	err := sess.configSet(configSet, jnprSess)
@@ -467,7 +467,7 @@ func delUtmProfileWebFWebsense(profile string, m interface{}, jnprSess *NetconfO
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security utm feature-profile web-filtering websense-redirect "+
-		"profile \""+profile+"\"\n")
+		"profile \""+profile+"\"")
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

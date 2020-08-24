@@ -605,7 +605,7 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 					}
 					oAEintNC := checkInterfaceNC(oAE.(string), m, jnprSess)
 					if oAEintNC == nil {
-						err = sess.configSet([]string{"delete interfaces " + oAE.(string) + "\n"}, jnprSess)
+						err = sess.configSet([]string{"delete interfaces " + oAE.(string)}, jnprSess)
 						if err != nil {
 							sess.configClear(jnprSess)
 
@@ -628,7 +628,7 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 					if aggregatedCountInt < oldAEInt+1 {
 						oAEintNC := checkInterfaceNC(oAE.(string), m, jnprSess)
 						if oAEintNC == nil {
-							err = sess.configSet([]string{"delete interfaces " + oAE.(string) + "\n"}, jnprSess)
+							err = sess.configSet([]string{"delete interfaces " + oAE.(string)}, jnprSess)
 							if err != nil {
 								sess.configClear(jnprSess)
 
@@ -845,10 +845,10 @@ func addInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) er
 		return fmt.Errorf("the name %s contains too dot", interFace)
 	}
 	if intCut[0] == st0Word || sess.junosGroupIntDel == "" {
-		err = sess.configSet([]string{"set interfaces " + setName + " disable description NC\n"}, jnprSess)
+		err = sess.configSet([]string{"set interfaces " + setName + " disable description NC"}, jnprSess)
 	} else {
 		err = sess.configSet([]string{"set interfaces " + setName +
-			" apply-groups " + sess.junosGroupIntDel + "\n"}, jnprSess)
+			" apply-groups " + sess.junosGroupIntDel}, jnprSess)
 	}
 	if err != nil {
 		return err
@@ -895,19 +895,19 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 	}
 	setPrefix := "set interfaces " + setName + " "
 	if d.Get("description").(string) != "" {
-		configSet = append(configSet, setPrefix+"description \""+d.Get("description").(string)+"\"\n")
+		configSet = append(configSet, setPrefix+"description \""+d.Get("description").(string)+"\"")
 	}
 	if d.Get("vlan_tagging").(bool) {
-		configSet = append(configSet, setPrefix+"vlan-tagging\n")
+		configSet = append(configSet, setPrefix+"vlan-tagging")
 	}
 	if len(intCut) == 2 && intCut[0] != st0Word && intCut[1] != "0" {
-		configSet = append(configSet, setPrefix+"vlan-id "+intCut[1]+"\n")
+		configSet = append(configSet, setPrefix+"vlan-id "+intCut[1])
 	}
 	if d.Get("inet").(bool) {
-		configSet = append(configSet, setPrefix+"family inet\n")
+		configSet = append(configSet, setPrefix+"family inet")
 	}
 	if d.Get("inet6").(bool) {
-		configSet = append(configSet, setPrefix+"family inet6\n")
+		configSet = append(configSet, setPrefix+"family inet6")
 	}
 	for _, address := range d.Get("inet_address").([]interface{}) {
 		configSet, err = setFamilyAddress(address, intCut, configSet, setName, inetWord)
@@ -923,33 +923,33 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 	}
 	if d.Get("inet_mtu").(int) > 0 {
 		configSet = append(configSet, setPrefix+"family inet mtu "+
-			strconv.Itoa(d.Get("inet_mtu").(int))+"\n")
+			strconv.Itoa(d.Get("inet_mtu").(int)))
 	}
 	if d.Get("inet6_mtu").(int) > 0 {
 		configSet = append(configSet, setPrefix+"family inet6 mtu "+
-			strconv.Itoa(d.Get("inet6_mtu").(int))+"\n")
+			strconv.Itoa(d.Get("inet6_mtu").(int)))
 	}
 	if d.Get("inet_filter_input").(string) != "" {
 		configSet = append(configSet, setPrefix+"family inet filter input "+
-			d.Get("inet_filter_input").(string)+"\n")
+			d.Get("inet_filter_input").(string))
 	}
 	if d.Get("inet_filter_output").(string) != "" {
 		configSet = append(configSet, setPrefix+"family inet filter output "+
-			d.Get("inet_filter_output").(string)+"\n")
+			d.Get("inet_filter_output").(string))
 	}
 	if d.Get("inet6_filter_input").(string) != "" {
 		configSet = append(configSet, setPrefix+"family inet6 filter input "+
-			d.Get("inet6_filter_input").(string)+"\n")
+			d.Get("inet6_filter_input").(string))
 	}
 	if d.Get("inet6_filter_output").(string) != "" {
 		configSet = append(configSet, setPrefix+"family inet6 filter output "+
-			d.Get("inet6_filter_output").(string)+"\n")
+			d.Get("inet6_filter_output").(string))
 	}
 	if d.Get("ether802_3ad").(string) != "" {
 		configSet = append(configSet, setPrefix+"ether-options 802.3ad "+
-			d.Get("ether802_3ad").(string)+"\n")
+			d.Get("ether802_3ad").(string))
 		configSet = append(configSet, setPrefix+"gigether-options 802.3ad "+
-			d.Get("ether802_3ad").(string)+"\n")
+			d.Get("ether802_3ad").(string))
 		oldAE := "ae-1"
 		if d.HasChange("ether802_3ad") {
 			oldAEtf, _ := d.GetChange("ether802_3ad")
@@ -962,48 +962,48 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 		if err != nil {
 			return err
 		}
-		configSet = append(configSet, "set chassis aggregated-devices ethernet device-count "+aggregatedCount+"\n")
+		configSet = append(configSet, "set chassis aggregated-devices ethernet device-count "+aggregatedCount)
 	}
 	if d.Get("trunk").(bool) {
-		configSet = append(configSet, setPrefix+"unit 0 family ethernet-switching interface-mode trunk\n")
+		configSet = append(configSet, setPrefix+"unit 0 family ethernet-switching interface-mode trunk")
 	}
 	if len(d.Get("vlan_members").([]interface{})) > 0 {
 		for _, v := range d.Get("vlan_members").([]interface{}) {
 			configSet = append(configSet, setPrefix+
-				"unit 0 family ethernet-switching vlan members "+v.(string)+"\n")
+				"unit 0 family ethernet-switching vlan members "+v.(string))
 		}
 	}
 	if d.Get("vlan_native").(int) != 0 {
-		configSet = append(configSet, setPrefix+"native-vlan-id "+strconv.Itoa(d.Get("vlan_native").(int))+"\n")
+		configSet = append(configSet, setPrefix+"native-vlan-id "+strconv.Itoa(d.Get("vlan_native").(int)))
 	}
 	if d.Get("ae_lacp").(string) != "" {
 		if !strings.Contains(intCut[0], "ae") {
 			return fmt.Errorf("ae_lacp invalid for this interface")
 		}
 		configSet = append(configSet, setPrefix+
-			"aggregated-ether-options lacp "+d.Get("ae_lacp").(string)+"\n")
+			"aggregated-ether-options lacp "+d.Get("ae_lacp").(string))
 	}
 	if d.Get("ae_link_speed").(string) != "" {
 		if !strings.Contains(intCut[0], "ae") {
 			return fmt.Errorf("ae_link_speed invalid for this interface")
 		}
 		configSet = append(configSet, setPrefix+
-			"aggregated-ether-options link-speed "+d.Get("ae_link_speed").(string)+"\n")
+			"aggregated-ether-options link-speed "+d.Get("ae_link_speed").(string))
 	}
 	if d.Get("ae_minimum_links").(int) > 0 {
 		if !strings.Contains(intCut[0], "ae") {
 			return fmt.Errorf("ae_minimum_links invalid for this interface")
 		}
 		configSet = append(configSet, setPrefix+
-			"aggregated-ether-options minimum-links "+strconv.Itoa(d.Get("ae_minimum_links").(int))+"\n")
+			"aggregated-ether-options minimum-links "+strconv.Itoa(d.Get("ae_minimum_links").(int)))
 	}
 	if checkCompatibilitySecurity(jnprSess) && d.Get("security_zone").(string) != "" {
 		configSet = append(configSet, "set security zones security-zone "+
-			d.Get("security_zone").(string)+" interfaces "+d.Get("name").(string)+"\n")
+			d.Get("security_zone").(string)+" interfaces "+d.Get("name").(string))
 	}
 	if d.Get("routing_instance").(string) != "" {
 		configSet = append(configSet, "set routing-instances "+d.Get("routing_instance").(string)+
-			" interface "+d.Get("name").(string)+"\n")
+			" interface "+d.Get("name").(string))
 	}
 
 	err = sess.configSet(configSet, jnprSess)
@@ -1167,14 +1167,14 @@ func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 		return fmt.Errorf("the name %s contains too dot", d.Get("name").(string))
 	}
 
-	err := sess.configSet([]string{"delete interfaces " + setName + "\n"}, jnprSess)
+	err := sess.configSet([]string{"delete interfaces " + setName}, jnprSess)
 	if err != nil {
 		return err
 	}
 	if strings.Contains(d.Get("name").(string), "st0.") {
 		// interface totally delete by resource_security_ipsec_vpn when bind_interface_auto
 		// else there is an interface st0.x empty
-		err := sess.configSet([]string{"set interfaces " + setName + "\n"}, jnprSess)
+		err := sess.configSet([]string{"set interfaces " + setName}, jnprSess)
 		if err != nil {
 			return err
 		}
@@ -1197,7 +1197,7 @@ func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 				}
 			} else {
 				err = sess.configSet([]string{"set chassis aggregated-devices ethernet device-count " +
-					aggregatedCount + "\n"}, jnprSess)
+					aggregatedCount}, jnprSess)
 				if err != nil {
 					return err
 				}
@@ -1213,7 +1213,7 @@ func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 			if aggregatedCountInt < aeInt+1 {
 				oAEintNC := checkInterfaceNC(d.Get("ether802_3ad").(string), m, jnprSess)
 				if oAEintNC == nil {
-					err = sess.configSet([]string{"delete interfaces " + d.Get("ether802_3ad").(string) + "\n"}, jnprSess)
+					err = sess.configSet([]string{"delete interfaces " + d.Get("ether802_3ad").(string)}, jnprSess)
 					if err != nil {
 						return err
 					}
@@ -1279,7 +1279,7 @@ func delInterfaceElement(element string, d *schema.ResourceData, m interface{}, 
 	default:
 		return fmt.Errorf("the name %s contains too dot", d.Get("name").(string))
 	}
-	configSet = append(configSet, "delete interfaces "+setName+" "+element+"\n")
+	configSet = append(configSet, "delete interfaces "+setName+" "+element)
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err
@@ -1307,15 +1307,15 @@ func delInterfaceOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 	}
 	delPrefix := "delete interfaces " + setName + " "
 	configSet = append(configSet,
-		delPrefix+"vlan-tagging\n",
-		delPrefix+"family inet\n",
-		delPrefix+"family inet6\n",
-		delPrefix+"ether-options 802.3ad\n",
-		delPrefix+"gigether-options 802.3ad\n",
-		delPrefix+"unit 0 family ethernet-switching interface-mode\n",
-		delPrefix+"unit 0 family ethernet-switching vlan members\n",
-		delPrefix+"native-vlan-id\n",
-		delPrefix+"aggregated-ether-options\n")
+		delPrefix+"vlan-tagging",
+		delPrefix+"family inet",
+		delPrefix+"family inet6",
+		delPrefix+"ether-options 802.3ad",
+		delPrefix+"gigether-options 802.3ad",
+		delPrefix+"unit 0 family ethernet-switching interface-mode",
+		delPrefix+"unit 0 family ethernet-switching vlan members",
+		delPrefix+"native-vlan-id",
+		delPrefix+"aggregated-ether-options")
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err
@@ -1326,7 +1326,7 @@ func delInterfaceOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 func delZoneInterface(zone string, d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security zones security-zone "+zone+" interfaces "+d.Get("name").(string)+"\n")
+	configSet = append(configSet, "delete security zones security-zone "+zone+" interfaces "+d.Get("name").(string))
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err
@@ -1338,7 +1338,7 @@ func delRoutingInstanceInterface(instance string, d *schema.ResourceData,
 	m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete routing-instances "+instance+" interface "+d.Get("name").(string)+"\n")
+	configSet = append(configSet, "delete routing-instances "+instance+" interface "+d.Get("name").(string))
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err
@@ -1548,7 +1548,7 @@ func setFamilyAddress(inetAddress interface{}, intCut []string, configSet []stri
 	}
 	inetAddressMap := inetAddress.(map[string]interface{})
 	configSet = append(configSet, "set interfaces "+setName+" family "+family+
-		" address "+inetAddressMap["address"].(string)+"\n")
+		" address "+inetAddressMap["address"].(string))
 	for _, vrrpGroup := range inetAddressMap["vrrp_group"].([]interface{}) {
 		if intCut[0] == st0Word {
 			return configSet, fmt.Errorf("vrrp not available on st0")
@@ -1570,23 +1570,23 @@ func setFamilyAddress(inetAddress interface{}, intCut []string, configSet []stri
 				if err != nil {
 					return configSet, err
 				}
-				configSet = append(configSet, setNameAddVrrp+" virtual-address "+ip.(string)+"\n")
+				configSet = append(configSet, setNameAddVrrp+" virtual-address "+ip.(string))
 			}
 			if vrrpGroupMap["advertise_interval"].(int) != 0 {
 				configSet = append(configSet, setNameAddVrrp+" advertise-interval "+
-					strconv.Itoa(vrrpGroupMap["advertise_interval"].(int))+"\n")
+					strconv.Itoa(vrrpGroupMap["advertise_interval"].(int)))
 			}
 			if vrrpGroupMap["advertisements_threshold"].(int) != 0 {
 				configSet = append(configSet, setNameAddVrrp+" advertisements-threshold "+
-					strconv.Itoa(vrrpGroupMap["advertisements_threshold"].(int))+"\n")
+					strconv.Itoa(vrrpGroupMap["advertisements_threshold"].(int)))
 			}
 			if vrrpGroupMap["authentication_key"].(string) != "" {
 				configSet = append(configSet, setNameAddVrrp+" authentication-key \""+
-					vrrpGroupMap["authentication_key"].(string)+"\"\n")
+					vrrpGroupMap["authentication_key"].(string)+"\"")
 			}
 			if vrrpGroupMap["authentication_type"].(string) != "" {
 				configSet = append(configSet, setNameAddVrrp+" authentication-type "+
-					vrrpGroupMap["authentication_type"].(string)+"\n")
+					vrrpGroupMap["authentication_type"].(string))
 			}
 		case inet6Word:
 			setNameAddVrrp = "set interfaces " + setName + " family inet6 address " + inetAddressMap["address"].(string) +
@@ -1596,40 +1596,40 @@ func setFamilyAddress(inetAddress interface{}, intCut []string, configSet []stri
 				if err != nil {
 					return configSet, err
 				}
-				configSet = append(configSet, setNameAddVrrp+" virtual-inet6-address "+ip.(string)+"\n")
+				configSet = append(configSet, setNameAddVrrp+" virtual-inet6-address "+ip.(string))
 			}
 			configSet = append(configSet, setNameAddVrrp+" virtual-link-local-address "+
-				vrrpGroupMap["virtual_link_local_address"].(string)+"\n")
+				vrrpGroupMap["virtual_link_local_address"].(string))
 			if vrrpGroupMap["advertise_interval"].(int) != 0 {
 				configSet = append(configSet, setNameAddVrrp+" inet6-advertise-interval "+
-					strconv.Itoa(vrrpGroupMap["advertise_interval"].(int))+"\n")
+					strconv.Itoa(vrrpGroupMap["advertise_interval"].(int)))
 			}
 		}
 		if vrrpGroupMap["accept_data"].(bool) {
-			configSet = append(configSet, setNameAddVrrp+" accept-data"+"\n")
+			configSet = append(configSet, setNameAddVrrp+" accept-data")
 		}
 		if vrrpGroupMap["no_accept_data"].(bool) {
-			configSet = append(configSet, setNameAddVrrp+" no-accept-data"+"\n")
+			configSet = append(configSet, setNameAddVrrp+" no-accept-data")
 		}
 		if vrrpGroupMap["no_preempt"].(bool) {
-			configSet = append(configSet, setNameAddVrrp+" no-preempt"+"\n")
+			configSet = append(configSet, setNameAddVrrp+" no-preempt")
 		}
 		if vrrpGroupMap["preempt"].(bool) {
-			configSet = append(configSet, setNameAddVrrp+" preempt"+"\n")
+			configSet = append(configSet, setNameAddVrrp+" preempt")
 		}
 		if vrrpGroupMap["priority"].(int) != 0 {
-			configSet = append(configSet, setNameAddVrrp+" priority "+strconv.Itoa(vrrpGroupMap["priority"].(int))+"\n")
+			configSet = append(configSet, setNameAddVrrp+" priority "+strconv.Itoa(vrrpGroupMap["priority"].(int)))
 		}
 		for _, trackInterface := range vrrpGroupMap["track_interface"].([]interface{}) {
 			trackInterfaceMap := trackInterface.(map[string]interface{})
 			configSet = append(configSet, setNameAddVrrp+" track interface "+trackInterfaceMap["interface"].(string)+
-				" priority-cost "+strconv.Itoa(trackInterfaceMap["priority_cost"].(int))+"\n")
+				" priority-cost "+strconv.Itoa(trackInterfaceMap["priority_cost"].(int)))
 		}
 		for _, trackRoute := range vrrpGroupMap["track_route"].([]interface{}) {
 			trackRouteMap := trackRoute.(map[string]interface{})
 			configSet = append(configSet, setNameAddVrrp+" track route "+trackRouteMap["route"].(string)+
 				" routing-instance "+trackRouteMap["routing_instance"].(string)+
-				" priority-cost "+strconv.Itoa(trackRouteMap["priority_cost"].(int))+"\n")
+				" priority-cost "+strconv.Itoa(trackRouteMap["priority_cost"].(int)))
 		}
 	}
 

@@ -267,39 +267,39 @@ func setFirewallPolicer(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 
 	setPrefix := "set firewall policer " + d.Get("name").(string)
 	if d.Get("filter_specific").(bool) {
-		configSet = append(configSet, setPrefix+" filter-specific\n")
+		configSet = append(configSet, setPrefix+" filter-specific")
 	}
 	for _, ifExceeding := range d.Get("if_exceeding").([]interface{}) {
 		ifExceedingMap := ifExceeding.(map[string]interface{})
 		if ifExceedingMap["bandwidth_percent"].(int) != 0 {
 			configSet = append(configSet, setPrefix+
-				" if-exceeding bandwidth-percent "+strconv.Itoa(ifExceedingMap["bandwidth_percent"].(int))+"\n")
+				" if-exceeding bandwidth-percent "+strconv.Itoa(ifExceedingMap["bandwidth_percent"].(int)))
 		}
 		if ifExceedingMap["bandwidth_limit"].(string) != "" {
 			configSet = append(configSet, setPrefix+
-				" if-exceeding bandwidth-limit "+ifExceedingMap["bandwidth_limit"].(string)+"\n")
+				" if-exceeding bandwidth-limit "+ifExceedingMap["bandwidth_limit"].(string))
 		}
 		configSet = append(configSet, setPrefix+
-			" if-exceeding burst-size-limit "+ifExceedingMap["burst_size_limit"].(string)+"\n")
+			" if-exceeding burst-size-limit "+ifExceedingMap["burst_size_limit"].(string))
 	}
 	for _, then := range d.Get("then").([]interface{}) {
 		if then != nil {
 			thenMap := then.(map[string]interface{})
 			if thenMap["discard"].(bool) {
 				configSet = append(configSet, setPrefix+
-					" then discard\n")
+					" then discard")
 			}
 			if thenMap["forwarding_class"].(string) != "" {
 				configSet = append(configSet, setPrefix+
-					" then forwarding-class "+thenMap["forwarding_class"].(string)+"\n")
+					" then forwarding-class "+thenMap["forwarding_class"].(string))
 			}
 			if thenMap["loss_priority"].(string) != "" {
 				configSet = append(configSet, setPrefix+
-					" then loss-priority "+thenMap["loss_priority"].(string)+"\n")
+					" then loss-priority "+thenMap["loss_priority"].(string))
 			}
 			if thenMap["out_of_profile"].(bool) {
 				configSet = append(configSet, setPrefix+
-					" then out-of-profile\n")
+					" then out-of-profile")
 			}
 		}
 	}
@@ -394,7 +394,7 @@ func readFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject)
 func delFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete firewall policer "+policer+"\n")
+	configSet = append(configSet, "delete firewall policer "+policer)
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

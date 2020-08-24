@@ -813,12 +813,12 @@ func delBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	if d.Get("routing_instance").(string) == defaultWord {
 		configSet = append(configSet, "delete protocols bgp"+
 			" group "+d.Get("group").(string)+
-			" neighbor "+d.Get("ip").(string)+"\n")
+			" neighbor "+d.Get("ip").(string))
 	} else {
 		configSet = append(configSet, deleteWord+
 			" routing-instances "+d.Get("routing_instance").(string)+
 			" protocols bgp group "+d.Get("group").(string)+
-			" neighbor "+d.Get("ip").(string)+"\n")
+			" neighbor "+d.Get("ip").(string))
 	}
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {

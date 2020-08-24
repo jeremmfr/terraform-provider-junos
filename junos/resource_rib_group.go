@@ -246,13 +246,13 @@ func setRibGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 
 	setPrefix := "set routing-options rib-groups " + d.Get("name").(string) + " "
 	for _, v := range d.Get("import_policy").([]interface{}) {
-		configSet = append(configSet, setPrefix+"import-policy "+v.(string)+"\n")
+		configSet = append(configSet, setPrefix+"import-policy "+v.(string))
 	}
 	for _, v := range d.Get("import_rib").([]interface{}) {
-		configSet = append(configSet, setPrefix+"import-rib "+v.(string)+"\n")
+		configSet = append(configSet, setPrefix+"import-rib "+v.(string))
 	}
 	if d.Get("export_rib").(string) != "" {
-		configSet = append(configSet, setPrefix+"export-rib "+d.Get("export_rib").(string)+"\n")
+		configSet = append(configSet, setPrefix+"export-rib "+d.Get("export_rib").(string))
 	}
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
@@ -300,7 +300,7 @@ func readRibGroup(group string, m interface{}, jnprSess *NetconfObject) (ribGrou
 func delRibGroupElement(element string, group string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete routing-options rib-groups "+group+" "+element+"\n")
+	configSet = append(configSet, "delete routing-options rib-groups "+group+" "+element)
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err
@@ -311,7 +311,7 @@ func delRibGroupElement(element string, group string, m interface{}, jnprSess *N
 func delRibGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete routing-options rib-groups "+d.Get("name").(string)+"\n")
+	configSet = append(configSet, "delete routing-options rib-groups "+d.Get("name").(string))
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

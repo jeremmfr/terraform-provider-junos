@@ -218,7 +218,7 @@ func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess 
 		if err != nil {
 			return err
 		}
-		configSet = append(configSet, "set policy-options prefix-list "+d.Get("name").(string)+" "+v.(string)+"\n")
+		configSet = append(configSet, "set policy-options prefix-list "+d.Get("name").(string)+" "+v.(string))
 	}
 
 	err := sess.configSet(configSet, jnprSess)
@@ -262,7 +262,7 @@ func readPolicyoptionsPrefixList(prefixList string, m interface{}, jnprSess *Net
 func delPolicyoptionsPrefixList(prefixList string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete policy-options prefix-list "+prefixList+"\n")
+	configSet = append(configSet, "delete policy-options prefix-list "+prefixList)
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

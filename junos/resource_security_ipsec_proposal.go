@@ -244,19 +244,19 @@ func setIpsecProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 
 	setPrefix := "set security ipsec proposal " + d.Get("name").(string)
 	if d.Get("authentication_algorithm").(string) != "" {
-		configSet = append(configSet, setPrefix+" authentication-algorithm "+d.Get("authentication_algorithm").(string)+"\n")
+		configSet = append(configSet, setPrefix+" authentication-algorithm "+d.Get("authentication_algorithm").(string))
 	}
 	if d.Get("encryption_algorithm").(string) != "" {
-		configSet = append(configSet, setPrefix+" encryption-algorithm "+d.Get("encryption_algorithm").(string)+"\n")
+		configSet = append(configSet, setPrefix+" encryption-algorithm "+d.Get("encryption_algorithm").(string))
 	}
 	if d.Get("lifetime_seconds").(int) != 0 {
-		configSet = append(configSet, setPrefix+" lifetime-seconds "+strconv.Itoa(d.Get("lifetime_seconds").(int))+"\n")
+		configSet = append(configSet, setPrefix+" lifetime-seconds "+strconv.Itoa(d.Get("lifetime_seconds").(int)))
 	}
 	if d.Get("lifetime_kilobytes").(int) != 0 {
-		configSet = append(configSet, setPrefix+" lifetime-kilobytes "+strconv.Itoa(d.Get("lifetime_kilobytes").(int))+"\n")
+		configSet = append(configSet, setPrefix+" lifetime-kilobytes "+strconv.Itoa(d.Get("lifetime_kilobytes").(int)))
 	}
 	if d.Get("protocol").(string) != "" {
-		configSet = append(configSet, setPrefix+" protocol "+d.Get("protocol").(string)+"\n")
+		configSet = append(configSet, setPrefix+" protocol "+d.Get("protocol").(string))
 	}
 
 	err := sess.configSet(configSet, jnprSess)
@@ -315,7 +315,7 @@ func readIpsecProposal(ipsecProposal string, m interface{}, jnprSess *NetconfObj
 func delIpsecProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security ipsec proposal "+d.Get("name").(string)+"\n")
+	configSet = append(configSet, "delete security ipsec proposal "+d.Get("name").(string))
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

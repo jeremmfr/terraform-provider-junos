@@ -335,13 +335,13 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	for _, v := range d.Get("from").([]interface{}) {
 		from := v.(map[string]interface{})
 		for _, value := range from["value"].([]interface{}) {
-			configSet = append(configSet, setPrefix+" from "+from["type"].(string)+" "+value.(string)+"\n")
+			configSet = append(configSet, setPrefix+" from "+from["type"].(string)+" "+value.(string))
 		}
 	}
 	for _, v := range d.Get("to").([]interface{}) {
 		to := v.(map[string]interface{})
 		for _, value := range to["value"].([]interface{}) {
-			configSet = append(configSet, setPrefix+" to "+to["type"].(string)+" "+value.(string)+"\n")
+			configSet = append(configSet, setPrefix+" to "+to["type"].(string)+" "+value.(string))
 		}
 	}
 	for _, v := range d.Get("rule").([]interface{}) {
@@ -354,33 +354,33 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				if err != nil {
 					return err
 				}
-				configSet = append(configSet, setPrefixRule+" match source-address "+address.(string)+"\n")
+				configSet = append(configSet, setPrefixRule+" match source-address "+address.(string))
 			}
 			for _, address := range match["destination_address"].([]interface{}) {
 				err := validateNetwork(address.(string))
 				if err != nil {
 					return err
 				}
-				configSet = append(configSet, setPrefixRule+" match destination-address "+address.(string)+"\n")
+				configSet = append(configSet, setPrefixRule+" match destination-address "+address.(string))
 			}
 			for _, proto := range match["protocol"].([]interface{}) {
-				configSet = append(configSet, setPrefixRule+" match protocol "+proto.(string)+"\n")
+				configSet = append(configSet, setPrefixRule+" match protocol "+proto.(string))
 			}
 		}
 		for _, thenV := range rule[thenWord].([]interface{}) {
 			then := thenV.(map[string]interface{})
 			if then["type"].(string) == "interface" {
-				configSet = append(configSet, setPrefixRule+" then source-nat interface\n")
+				configSet = append(configSet, setPrefixRule+" then source-nat interface")
 			}
 			if then["type"].(string) == "off" {
-				configSet = append(configSet, setPrefixRule+" then source-nat off\n")
+				configSet = append(configSet, setPrefixRule+" then source-nat off")
 			}
 			if then["type"].(string) == "pool" {
 				if then["pool"].(string) == "" {
 					return fmt.Errorf("missing pool for source-nat pool for rule %v in %v",
 						rule["name"].(string), d.Get("name").(string))
 				}
-				configSet = append(configSet, setPrefixRule+" then source-nat pool "+then["pool"].(string)+"\n")
+				configSet = append(configSet, setPrefixRule+" then source-nat pool "+then["pool"].(string))
 			}
 		}
 	}
@@ -510,7 +510,7 @@ func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObj
 func delSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security nat source rule-set "+natSource+"\n")
+	configSet = append(configSet, "delete security nat source rule-set "+natSource)
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

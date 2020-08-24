@@ -237,15 +237,15 @@ func setSecurityNatDestinationPool(d *schema.ResourceData, m interface{}, jnprSe
 	configSet := make([]string, 0)
 
 	setPrefix := "set security nat destination pool " + d.Get("name").(string)
-	configSet = append(configSet, setPrefix+" address "+d.Get("address").(string)+"\n")
+	configSet = append(configSet, setPrefix+" address "+d.Get("address").(string))
 	if d.Get("address_to").(string) != "" {
-		configSet = append(configSet, setPrefix+" address to "+d.Get("address_to").(string)+"\n")
+		configSet = append(configSet, setPrefix+" address to "+d.Get("address_to").(string))
 	}
 	if d.Get("address_port").(int) != 0 {
-		configSet = append(configSet, setPrefix+" address port "+strconv.Itoa(d.Get("address_port").(int))+"\n")
+		configSet = append(configSet, setPrefix+" address port "+strconv.Itoa(d.Get("address_port").(int)))
 	}
 	if d.Get("routing_instance").(string) != "" {
-		configSet = append(configSet, setPrefix+" routing-instance "+d.Get("routing_instance").(string)+"\n")
+		configSet = append(configSet, setPrefix+" routing-instance "+d.Get("routing_instance").(string))
 	}
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
@@ -300,7 +300,7 @@ func readSecurityNatDestinationPool(natDestinationPool string,
 func delSecurityNatDestinationPool(natDestinationPool string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security nat destination pool "+natDestinationPool+"\n")
+	configSet = append(configSet, "delete security nat destination pool "+natDestinationPool)
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err

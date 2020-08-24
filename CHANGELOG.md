@@ -5,6 +5,7 @@ ENHANCEMENTS:
 * add resource junos_security_utm_profile_web_filtering_juniper_enhanced
 * add resource junos_security_utm_profile_web_filtering_juniper_local
 * add resource junos_security_utm_profile_web_filtering_websense_redirect
+* remove useless LF for list of set command
 
 BUG FIXES:
 * fix typo in errors and commits messages

@@ -1184,7 +1184,7 @@ func readPolicyStatement(policyStatement string,
 func delPolicyStatement(policyStatement string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete policy-options policy-statement "+policyStatement+"\n")
+	configSet = append(configSet, "delete policy-options policy-statement "+policyStatement)
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err
@@ -1220,64 +1220,62 @@ func setPolicyStatementOptsFrom(setPrefix string, opts map[string]interface{}) [
 	setPrefixFrom := setPrefix + " from "
 
 	if opts["aggregate_contributor"].(bool) {
-		configSet = append(configSet, setPrefixFrom+"aggregate-contributor\n")
+		configSet = append(configSet, setPrefixFrom+"aggregate-contributor")
 	}
 	for _, v := range opts["bgp_as_path"].([]interface{}) {
-		configSet = append(configSet, setPrefixFrom+"as-path "+v.(string)+"\n")
+		configSet = append(configSet, setPrefixFrom+"as-path "+v.(string))
 	}
 	for _, v := range opts["bgp_as_path_group"].([]interface{}) {
-		configSet = append(configSet, setPrefixFrom+"as-path-group "+v.(string)+"\n")
+		configSet = append(configSet, setPrefixFrom+"as-path-group "+v.(string))
 	}
 	for _, v := range opts["bgp_community"].([]interface{}) {
-		configSet = append(configSet, setPrefixFrom+"community "+v.(string)+"\n")
+		configSet = append(configSet, setPrefixFrom+"community "+v.(string))
 	}
 	if opts["bgp_origin"].(string) != "" {
-		configSet = append(configSet, setPrefixFrom+"origin "+opts["bgp_origin"].(string)+"\n")
+		configSet = append(configSet, setPrefixFrom+"origin "+opts["bgp_origin"].(string))
 	}
 	if opts["family"].(string) != "" {
-		configSet = append(configSet, setPrefixFrom+"family "+opts["family"].(string)+"\n")
+		configSet = append(configSet, setPrefixFrom+"family "+opts["family"].(string))
 	}
 	if opts["local_preference"].(int) != 0 {
-		configSet = append(configSet, setPrefixFrom+"local-preference "+strconv.Itoa(opts["local_preference"].(int))+"\n")
+		configSet = append(configSet, setPrefixFrom+"local-preference "+strconv.Itoa(opts["local_preference"].(int)))
 	}
 	if opts["routing_instance"].(string) != "" {
-		configSet = append(configSet, setPrefixFrom+"instance "+opts["routing_instance"].(string)+"\n")
+		configSet = append(configSet, setPrefixFrom+"instance "+opts["routing_instance"].(string))
 	}
 	for _, v := range opts["interface"].([]interface{}) {
-		configSet = append(configSet, setPrefixFrom+"interface "+v.(string)+"\n")
+		configSet = append(configSet, setPrefixFrom+"interface "+v.(string))
 	}
 	if opts["metric"].(int) != 0 {
-		configSet = append(configSet, setPrefixFrom+"metric "+strconv.Itoa(opts["metric"].(int))+"\n")
+		configSet = append(configSet, setPrefixFrom+"metric "+strconv.Itoa(opts["metric"].(int)))
 	}
 	for _, v := range opts["neighbor"].([]interface{}) {
-		configSet = append(configSet, setPrefixFrom+"neighbor "+v.(string)+"\n")
+		configSet = append(configSet, setPrefixFrom+"neighbor "+v.(string))
 	}
 	for _, v := range opts["next_hop"].([]interface{}) {
-		configSet = append(configSet, setPrefixFrom+"next-hop "+v.(string)+"\n")
+		configSet = append(configSet, setPrefixFrom+"next-hop "+v.(string))
 	}
 	if opts["ospf_area"].(string) != "" {
-		configSet = append(configSet, setPrefixFrom+"area "+opts["ospf_area"].(string)+"\n")
+		configSet = append(configSet, setPrefixFrom+"area "+opts["ospf_area"].(string))
 	}
 	for _, v := range opts["policy"].([]interface{}) {
-		configSet = append(configSet, setPrefixFrom+"policy "+v.(string)+"\n")
+		configSet = append(configSet, setPrefixFrom+"policy "+v.(string))
 	}
 	if opts["preference"].(int) != 0 {
-		configSet = append(configSet, setPrefixFrom+"preference "+strconv.Itoa(opts["preference"].(int))+"\n")
+		configSet = append(configSet, setPrefixFrom+"preference "+strconv.Itoa(opts["preference"].(int)))
 	}
 	for _, v := range opts["prefix_list"].([]interface{}) {
-		configSet = append(configSet, setPrefixFrom+"prefix-list "+v.(string)+"\n")
+		configSet = append(configSet, setPrefixFrom+"prefix-list "+v.(string))
 	}
 	for _, v := range opts["protocol"].([]interface{}) {
-		configSet = append(configSet, setPrefixFrom+"protocol "+v.(string)+"\n")
+		configSet = append(configSet, setPrefixFrom+"protocol "+v.(string))
 	}
 	for _, v := range opts["route_filter"].([]interface{}) {
 		routeFilter := v.(map[string]interface{})
 		setRoutFilter := setPrefixFrom + "route-filter " +
 			routeFilter["route"].(string) + " " + routeFilter["option"].(string)
 		if routeFilter["option_value"].(string) != "" {
-			setRoutFilter += " " + routeFilter["option_value"].(string) + "\n"
-		} else {
-			setRoutFilter += "\n"
+			setRoutFilter += " " + routeFilter["option_value"].(string)
 		}
 		configSet = append(configSet, setRoutFilter)
 	}
@@ -1289,70 +1287,70 @@ func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) [
 	setPrefixThen := setPrefix + " then "
 
 	if opts["action"].(string) != "" {
-		configSet = append(configSet, setPrefixThen+opts["action"].(string)+"\n")
+		configSet = append(configSet, setPrefixThen+opts["action"].(string))
 	}
 	if opts["as_path_expand"].(string) != "" {
 		if strings.Contains(opts["as_path_expand"].(string), "last-as") {
-			configSet = append(configSet, setPrefixThen+"as-path-expand "+opts["as_path_expand"].(string)+"\n")
+			configSet = append(configSet, setPrefixThen+"as-path-expand "+opts["as_path_expand"].(string))
 		} else {
-			configSet = append(configSet, setPrefixThen+"as-path-expand \""+opts["as_path_expand"].(string)+"\"\n")
+			configSet = append(configSet, setPrefixThen+"as-path-expand \""+opts["as_path_expand"].(string)+"\"")
 		}
 	}
 	if opts["as_path_prepend"].(string) != "" {
-		configSet = append(configSet, setPrefixThen+"as-path-prepend \""+opts["as_path_prepend"].(string)+"\"\n")
+		configSet = append(configSet, setPrefixThen+"as-path-prepend \""+opts["as_path_prepend"].(string)+"\"")
 	}
 	for _, v := range opts["community"].([]interface{}) {
 		community := v.(map[string]interface{})
 		configSet = append(configSet, setPrefixThen+
 			"community "+community["action"].(string)+
-			" "+community["value"].(string)+"\n")
+			" "+community["value"].(string))
 	}
 	if opts["default_action"].(string) != "" {
-		configSet = append(configSet, setPrefixThen+"default-action "+opts["default_action"].(string)+"\n")
+		configSet = append(configSet, setPrefixThen+"default-action "+opts["default_action"].(string))
 	}
 	if opts["load_balance"].(string) != "" {
-		configSet = append(configSet, setPrefixThen+"load-balance "+opts["load_balance"].(string)+"\n")
+		configSet = append(configSet, setPrefixThen+"load-balance "+opts["load_balance"].(string))
 	}
 	for _, v := range opts["local_preference"].([]interface{}) {
 		localPreference := v.(map[string]interface{})
 		if localPreference["action"] == actionNoneWord {
 			configSet = append(configSet, setPrefixThen+
-				"local-preference "+strconv.Itoa(localPreference["value"].(int))+"\n")
+				"local-preference "+strconv.Itoa(localPreference["value"].(int)))
 		} else {
 			configSet = append(configSet, setPrefixThen+
 				"local-preference "+localPreference["action"].(string)+
-				" "+strconv.Itoa(localPreference["value"].(int))+"\n")
+				" "+strconv.Itoa(localPreference["value"].(int)))
 		}
 	}
 	if opts["next"].(string) != "" {
-		configSet = append(configSet, setPrefixThen+"next "+opts["next"].(string)+"\n")
+		configSet = append(configSet, setPrefixThen+"next "+opts["next"].(string))
 	}
 	if opts["next_hop"].(string) != "" {
-		configSet = append(configSet, setPrefixThen+"next-hop "+opts["next_hop"].(string)+"\n")
+		configSet = append(configSet, setPrefixThen+"next-hop "+opts["next_hop"].(string))
 	}
 	for _, v := range opts["metric"].([]interface{}) {
 		metric := v.(map[string]interface{})
 		if metric["action"] == actionNoneWord {
 			configSet = append(configSet, setPrefixThen+
-				"metric "+strconv.Itoa(metric["value"].(int))+"\n")
+				"metric "+strconv.Itoa(metric["value"].(int)))
 		} else {
 			configSet = append(configSet, setPrefixThen+
 				"metric "+metric["action"].(string)+
-				" "+strconv.Itoa(metric["value"].(int))+"\n")
+				" "+strconv.Itoa(metric["value"].(int)))
 		}
 	}
 	if opts["origin"].(string) != "" {
-		configSet = append(configSet, setPrefixThen+"origin "+opts["origin"].(string)+"\n")
+		configSet = append(configSet, setPrefixThen+"origin "+opts["origin"].(string))
 	}
 	for _, v := range opts["preference"].([]interface{}) {
 		preference := v.(map[string]interface{})
 		if preference["action"] == actionNoneWord {
 			configSet = append(configSet, setPrefixThen+
-				"preference "+strconv.Itoa(preference["value"].(int))+"\n")
+				"preference "+strconv.Itoa(preference["value"].(int)))
 		} else {
 			configSet = append(configSet, setPrefixThen+
 				"preference "+preference["action"].(string)+
-				" "+strconv.Itoa(preference["value"].(int))+"\n")
+				" "+strconv.Itoa(preference["value"].(int)))
 		}
 	}
 
@@ -1363,49 +1361,49 @@ func setPolicyStatementOptsTo(setPrefix string, opts map[string]interface{}) []s
 	setPrefixTo := setPrefix + " to "
 
 	for _, v := range opts["bgp_as_path"].([]interface{}) {
-		configSet = append(configSet, setPrefixTo+"as-path "+v.(string)+"\n")
+		configSet = append(configSet, setPrefixTo+"as-path "+v.(string))
 	}
 	for _, v := range opts["bgp_as_path_group"].([]interface{}) {
-		configSet = append(configSet, setPrefixTo+"as-path-group "+v.(string)+"\n")
+		configSet = append(configSet, setPrefixTo+"as-path-group "+v.(string))
 	}
 	for _, v := range opts["bgp_community"].([]interface{}) {
-		configSet = append(configSet, setPrefixTo+"community "+v.(string)+"\n")
+		configSet = append(configSet, setPrefixTo+"community "+v.(string))
 	}
 	if opts["bgp_origin"].(string) != "" {
-		configSet = append(configSet, setPrefixTo+"origin "+opts["bgp_origin"].(string)+"\n")
+		configSet = append(configSet, setPrefixTo+"origin "+opts["bgp_origin"].(string))
 	}
 	if opts["family"].(string) != "" {
-		configSet = append(configSet, setPrefixTo+"family "+opts["family"].(string)+"\n")
+		configSet = append(configSet, setPrefixTo+"family "+opts["family"].(string))
 	}
 	if opts["local_preference"].(int) != 0 {
-		configSet = append(configSet, setPrefixTo+"local-preference "+strconv.Itoa(opts["local_preference"].(int))+"\n")
+		configSet = append(configSet, setPrefixTo+"local-preference "+strconv.Itoa(opts["local_preference"].(int)))
 	}
 	if opts["routing_instance"].(string) != "" {
-		configSet = append(configSet, setPrefixTo+"instance "+opts["routing_instance"].(string)+"\n")
+		configSet = append(configSet, setPrefixTo+"instance "+opts["routing_instance"].(string))
 	}
 	for _, v := range opts["interface"].([]interface{}) {
-		configSet = append(configSet, setPrefixTo+"interface "+v.(string)+"\n")
+		configSet = append(configSet, setPrefixTo+"interface "+v.(string))
 	}
 	if opts["metric"].(int) != 0 {
-		configSet = append(configSet, setPrefixTo+"metric "+strconv.Itoa(opts["metric"].(int))+"\n")
+		configSet = append(configSet, setPrefixTo+"metric "+strconv.Itoa(opts["metric"].(int)))
 	}
 	for _, v := range opts["neighbor"].([]interface{}) {
-		configSet = append(configSet, setPrefixTo+"neighbor "+v.(string)+"\n")
+		configSet = append(configSet, setPrefixTo+"neighbor "+v.(string))
 	}
 	for _, v := range opts["next_hop"].([]interface{}) {
-		configSet = append(configSet, setPrefixTo+"next-hop "+v.(string)+"\n")
+		configSet = append(configSet, setPrefixTo+"next-hop "+v.(string))
 	}
 	if opts["ospf_area"].(string) != "" {
-		configSet = append(configSet, setPrefixTo+"area "+opts["ospf_area"].(string)+"\n")
+		configSet = append(configSet, setPrefixTo+"area "+opts["ospf_area"].(string))
 	}
 	for _, v := range opts["policy"].([]interface{}) {
-		configSet = append(configSet, setPrefixTo+"policy "+v.(string)+"\n")
+		configSet = append(configSet, setPrefixTo+"policy "+v.(string))
 	}
 	if opts["preference"].(int) != 0 {
-		configSet = append(configSet, setPrefixTo+"preference "+strconv.Itoa(opts["preference"].(int))+"\n")
+		configSet = append(configSet, setPrefixTo+"preference "+strconv.Itoa(opts["preference"].(int)))
 	}
 	for _, v := range opts["protocol"].([]interface{}) {
-		configSet = append(configSet, setPrefixTo+"protocol "+v.(string)+"\n")
+		configSet = append(configSet, setPrefixTo+"protocol "+v.(string))
 	}
 
 	return configSet

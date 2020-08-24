@@ -308,26 +308,26 @@ func setOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		ospfInterface := v.(map[string]interface{})
 		setPrefixInterface := setPrefix + "interface " + ospfInterface["name"].(string) + " "
 		if ospfInterface["disable"].(bool) {
-			configSet = append(configSet, setPrefixInterface+"disable\n")
+			configSet = append(configSet, setPrefixInterface+"disable")
 		}
 		if ospfInterface["passive"].(bool) {
-			configSet = append(configSet, setPrefixInterface+"passive\n")
+			configSet = append(configSet, setPrefixInterface+"passive")
 		}
 		if ospfInterface["metric"].(int) != 0 {
 			configSet = append(configSet, setPrefixInterface+"metric "+
-				strconv.Itoa(ospfInterface["metric"].(int))+"\n")
+				strconv.Itoa(ospfInterface["metric"].(int)))
 		}
 		if ospfInterface["hello_interval"].(int) != 0 {
 			configSet = append(configSet, setPrefixInterface+"hello-interval "+
-				strconv.Itoa(ospfInterface["hello_interval"].(int))+"\n")
+				strconv.Itoa(ospfInterface["hello_interval"].(int)))
 		}
 		if ospfInterface["retransmit_interval"].(int) != 0 {
 			configSet = append(configSet, setPrefixInterface+"retransmit-interval "+
-				strconv.Itoa(ospfInterface["retransmit_interval"].(int))+"\n")
+				strconv.Itoa(ospfInterface["retransmit_interval"].(int)))
 		}
 		if ospfInterface["dead_interval"].(int) != 0 {
 			configSet = append(configSet, setPrefixInterface+"dead-interval "+
-				strconv.Itoa(ospfInterface["dead_interval"].(int))+"\n")
+				strconv.Itoa(ospfInterface["dead_interval"].(int)))
 		}
 	}
 	err := sess.configSet(configSet, jnprSess)
@@ -436,10 +436,10 @@ func delOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		ospfVersion = ospfV3
 	}
 	if d.Get("routing_instance").(string) == defaultWord {
-		configSet = append(configSet, "delete protocols "+ospfVersion+" area "+d.Get("area_id").(string)+"\n")
+		configSet = append(configSet, "delete protocols "+ospfVersion+" area "+d.Get("area_id").(string))
 	} else {
 		configSet = append(configSet, "delete routing-instances "+d.Get("routing_instance").(string)+
-			" protocols "+ospfVersion+" area "+d.Get("area_id").(string)+"\n")
+			" protocols "+ospfVersion+" area "+d.Get("area_id").(string))
 	}
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
