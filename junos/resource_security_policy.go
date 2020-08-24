@@ -7,8 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-const actionPolicyPermit = "permit"
-
 type policyOptions struct {
 	fromZone string
 	toZone   string
@@ -65,10 +63,10 @@ func resourceSecurityPolicy() *schema.Resource {
 						"then": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  actionPolicyPermit,
+							Default:  permitWord,
 							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
 								value := v.(string)
-								if !stringInSlice(value, []string{actionPolicyPermit, "reject", "deny"}) {
+								if !stringInSlice(value, []string{permitWord, "reject", "deny"}) {
 									errors = append(errors, fmt.Errorf(
 										"%q %q invalid action", value, k))
 								}
@@ -387,7 +385,7 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		}
 		configSet = append(configSet, setPrefixPolicy+" then "+policy["then"].(string)+"\n")
 		if policy["permit_tunnel_ipsec_vpn"].(string) != "" {
-			if policy["then"].(string) != actionPolicyPermit {
+			if policy["then"].(string) != permitWord {
 				return fmt.Errorf("conflict policy then %v and policy permit_tunnel_ipsec_vpn",
 					policy["then"].(string))
 			}
@@ -398,7 +396,7 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			if policy["permit_application_services"].([]interface{})[0] == nil {
 				return fmt.Errorf("permit_application_services block is empty")
 			}
-			if policy["then"].(string) != actionPolicyPermit {
+			if policy["then"].(string) != permitWord {
 				return fmt.Errorf("conflict policy then %v and policy permit_application_services",
 					policy["then"].(string))
 			}
@@ -468,7 +466,7 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 						strings.TrimPrefix(itemTrimPolicy, "match application "))
 				case strings.HasPrefix(itemTrimPolicy, "then "):
 					switch {
-					case strings.HasSuffix(itemTrimPolicy, actionPolicyPermit),
+					case strings.HasSuffix(itemTrimPolicy, permitWord),
 						strings.HasSuffix(itemTrimPolicy, "deny"),
 						strings.HasSuffix(itemTrimPolicy, "reject"):
 						m["then"] = strings.TrimPrefix(itemTrimPolicy, "then ")
@@ -479,11 +477,11 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 					case strings.HasSuffix(itemTrimPolicy, "log session-close"):
 						m["log_close"] = true
 					case strings.HasPrefix(itemTrimPolicy, "then permit tunnel ipsec-vpn "):
-						m["then"] = actionPolicyPermit
+						m["then"] = permitWord
 						m["permit_tunnel_ipsec_vpn"] = strings.TrimPrefix(itemTrimPolicy,
 							"then permit tunnel ipsec-vpn ")
 					case strings.HasPrefix(itemTrimPolicy, "then permit application-services"):
-						m["then"] = actionPolicyPermit
+						m["then"] = permitWord
 						m["permit_application_services"] = readPolicyPermitApplicationServices(itemTrimPolicy,
 							m["permit_application_services"])
 					}

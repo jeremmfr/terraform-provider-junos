@@ -1,5 +1,10 @@
 ## upcoming release
 ENHANCEMENTS:
+* add resource junos_security_utm_custom_url_pattern
+* add resource junos_security_utm_policy
+* add resource junos_security_utm_profile_web_filtering_juniper_enhanced
+* add resource junos_security_utm_profile_web_filtering_juniper_local
+* add resource junos_security_utm_profile_web_filtering_websense_redirect
 
 BUG FIXES:
 * fix typo in errors and commits messages
