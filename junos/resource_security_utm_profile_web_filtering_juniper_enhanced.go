@@ -426,10 +426,16 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, m interface{}, jnprSess *
 	setPrefix := "set security utm feature-profile web-filtering juniper-enhanced " +
 		"profile \"" + d.Get("name").(string) + "\" "
 	for _, v := range d.Get("block_message").([]interface{}) {
-		message := v.(map[string]interface{})
-		configSet = append(configSet, setPrefix+"block-message url \""+message["url"].(string)+"\"\n")
-		if message["type_custom_redirect_url"].(bool) {
-			configSet = append(configSet, setPrefix+"block-message type custom-redirect-url\n")
+		if v != nil {
+			message := v.(map[string]interface{})
+			if message["url"].(string) != "" {
+				configSet = append(configSet, setPrefix+"block-message url \""+message["url"].(string)+"\"\n")
+			}
+			if message["type_custom_redirect_url"].(bool) {
+				configSet = append(configSet, setPrefix+"block-message type custom-redirect-url\n")
+			}
+		} else {
+			configSet = append(configSet, setPrefix+"block-message")
 		}
 	}
 	for _, v := range d.Get("category").([]interface{}) {
@@ -449,22 +455,26 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, m interface{}, jnprSess *
 		configSet = append(configSet, setPrefix+"default "+d.Get("default_action").(string)+"\n")
 	}
 	for _, v := range d.Get("fallback_settings").([]interface{}) {
-		fSettings := v.(map[string]interface{})
-		if fSettings["default"].(string) != "" {
-			configSet = append(configSet, setPrefix+"fallback-settings default "+
-				fSettings["default"].(string)+"\n")
-		}
-		if fSettings["server_connectivity"].(string) != "" {
-			configSet = append(configSet, setPrefix+"fallback-settings server-connectivity "+
-				fSettings["server_connectivity"].(string)+"\n")
-		}
-		if fSettings["timeout"].(string) != "" {
-			configSet = append(configSet, setPrefix+"fallback-settings timeout "+
-				fSettings["timeout"].(string)+"\n")
-		}
-		if fSettings["too_many_requests"].(string) != "" {
-			configSet = append(configSet, setPrefix+"fallback-settings too-many-requests "+
-				fSettings["too_many_requests"].(string)+"\n")
+		if v != nil {
+			fSettings := v.(map[string]interface{})
+			if fSettings["default"].(string) != "" {
+				configSet = append(configSet, setPrefix+"fallback-settings default "+
+					fSettings["default"].(string)+"\n")
+			}
+			if fSettings["server_connectivity"].(string) != "" {
+				configSet = append(configSet, setPrefix+"fallback-settings server-connectivity "+
+					fSettings["server_connectivity"].(string)+"\n")
+			}
+			if fSettings["timeout"].(string) != "" {
+				configSet = append(configSet, setPrefix+"fallback-settings timeout "+
+					fSettings["timeout"].(string)+"\n")
+			}
+			if fSettings["too_many_requests"].(string) != "" {
+				configSet = append(configSet, setPrefix+"fallback-settings too-many-requests "+
+					fSettings["too_many_requests"].(string)+"\n")
+			}
+		} else {
+			configSet = append(configSet, setPrefix+"fallback-settings")
 		}
 	}
 	if d.Get("no_safe_search").(bool) {
@@ -475,10 +485,16 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, m interface{}, jnprSess *
 			setPrefix+"quarantine-custom-message \""+d.Get("quarantine_custom_message").(string)+"\"\n")
 	}
 	for _, v := range d.Get("quarantine_message").([]interface{}) {
-		message := v.(map[string]interface{})
-		configSet = append(configSet, setPrefix+"quarantine-message url \""+message["url"].(string)+"\"\n")
-		if message["type_custom_redirect_url"].(bool) {
-			configSet = append(configSet, setPrefix+"quarantine-message type custom-redirect-url\n")
+		if v != nil {
+			message := v.(map[string]interface{})
+			if message["url"].(string) != "" {
+				configSet = append(configSet, setPrefix+"quarantine-message url \""+message["url"].(string)+"\"\n")
+			}
+			if message["type_custom_redirect_url"].(bool) {
+				configSet = append(configSet, setPrefix+"quarantine-message type custom-redirect-url\n")
+			}
+		} else {
+			configSet = append(configSet, setPrefix+"quarantine-message")
 		}
 	}
 	for _, v := range d.Get("site_reputation_action").([]interface{}) {
@@ -519,23 +535,18 @@ func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *Netconf
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case strings.HasPrefix(itemTrim, "block-message type custom-redirect-url"):
-				if len(confRead.blockMessage) != 0 {
-					confRead.blockMessage[0]["type_custom_redirect_url"] = true
-				} else {
+			case strings.HasPrefix(itemTrim, "block-message"):
+				if len(confRead.blockMessage) == 0 {
 					confRead.blockMessage = append(confRead.blockMessage, map[string]interface{}{
 						"url":                      "",
-						"type_custom_redirect_url": true,
-					})
-				}
-			case strings.HasPrefix(itemTrim, "block-message url "):
-				if len(confRead.blockMessage) != 0 {
-					confRead.blockMessage[0]["url"] = strings.Trim(strings.TrimPrefix(itemTrim, "block-message url "), "\"")
-				} else {
-					confRead.blockMessage = append(confRead.blockMessage, map[string]interface{}{
-						"url":                      strings.Trim(strings.TrimPrefix(itemTrim, "block-message url "), "\""),
 						"type_custom_redirect_url": false,
 					})
+				}
+				switch {
+				case strings.HasPrefix(itemTrim, "block-message type custom-redirect-url"):
+					confRead.blockMessage[0]["type_custom_redirect_url"] = true
+				case strings.HasPrefix(itemTrim, "block-message url "):
+					confRead.blockMessage[0]["url"] = strings.Trim(strings.TrimPrefix(itemTrim, "block-message url "), "\"")
 				}
 			case strings.HasPrefix(itemTrim, "category "):
 				catergoryLineCut := strings.Split(itemTrim, " ")
@@ -561,7 +572,7 @@ func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *Netconf
 				confRead.customBlockMessage = strings.Trim(strings.TrimPrefix(itemTrim, "custom-block-message "), "\"")
 			case strings.HasPrefix(itemTrim, "default "):
 				confRead.defaultAction = strings.TrimPrefix(itemTrim, "default ")
-			case strings.HasPrefix(itemTrim, "fallback-settings "):
+			case strings.HasPrefix(itemTrim, "fallback-settings"):
 				if len(confRead.fallbackSettings) == 0 {
 					confRead.fallbackSettings = append(confRead.fallbackSettings, map[string]interface{}{
 						"default":             "",
@@ -585,23 +596,18 @@ func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *Netconf
 				confRead.noSafeSearch = true
 			case strings.HasPrefix(itemTrim, "quarantine-custom-message "):
 				confRead.quarantineCustomMessage = strings.Trim(strings.TrimPrefix(itemTrim, "quarantine-custom-message "), "\"")
-			case strings.HasPrefix(itemTrim, "quarantine-message type custom-redirect-url"):
-				if len(confRead.quarantineMessage) != 0 {
-					confRead.quarantineMessage[0]["type_custom_redirect_url"] = true
-				} else {
+			case strings.HasPrefix(itemTrim, "quarantine-message"):
+				if len(confRead.quarantineMessage) == 0 {
 					confRead.quarantineMessage = append(confRead.quarantineMessage, map[string]interface{}{
 						"url":                      "",
-						"type_custom_redirect_url": true,
-					})
-				}
-			case strings.HasPrefix(itemTrim, "quarantine-message url "):
-				if len(confRead.quarantineMessage) != 0 {
-					confRead.quarantineMessage[0]["url"] = strings.Trim(strings.TrimPrefix(itemTrim, "quarantine-message url "), "\"")
-				} else {
-					confRead.quarantineMessage = append(confRead.quarantineMessage, map[string]interface{}{
-						"url":                      strings.Trim(strings.TrimPrefix(itemTrim, "quarantine-message url "), "\""),
 						"type_custom_redirect_url": false,
 					})
+				}
+				switch {
+				case strings.HasPrefix(itemTrim, "quarantine-message type custom-redirect-url"):
+					confRead.quarantineMessage[0]["type_custom_redirect_url"] = true
+				case strings.HasPrefix(itemTrim, "quarantine-message url "):
+					confRead.quarantineMessage[0]["url"] = strings.Trim(strings.TrimPrefix(itemTrim, "quarantine-message url "), "\"")
 				}
 			case strings.HasPrefix(itemTrim, "site-reputation-action "):
 				itemTrimSiteReput := strings.Split(strings.TrimPrefix(itemTrim, "site-reputation-action "), " ")

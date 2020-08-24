@@ -310,22 +310,26 @@ func setUtmProfileWebFLocal(d *schema.ResourceData, m interface{}, jnprSess *Net
 		configSet = append(configSet, setPrefix+"default "+d.Get("default_action").(string)+"\n")
 	}
 	for _, v := range d.Get("fallback_settings").([]interface{}) {
-		fSettings := v.(map[string]interface{})
-		if fSettings["default"].(string) != "" {
-			configSet = append(configSet, setPrefix+"fallback-settings default "+
-				fSettings["default"].(string)+"\n")
-		}
-		if fSettings["server_connectivity"].(string) != "" {
-			configSet = append(configSet, setPrefix+"fallback-settings server-connectivity "+
-				fSettings["server_connectivity"].(string)+"\n")
-		}
-		if fSettings["timeout"].(string) != "" {
-			configSet = append(configSet, setPrefix+"fallback-settings timeout "+
-				fSettings["timeout"].(string)+"\n")
-		}
-		if fSettings["too_many_requests"].(string) != "" {
-			configSet = append(configSet, setPrefix+"fallback-settings too-many-requests "+
-				fSettings["too_many_requests"].(string)+"\n")
+		if v != nil {
+			fSettings := v.(map[string]interface{})
+			if fSettings["default"].(string) != "" {
+				configSet = append(configSet, setPrefix+"fallback-settings default "+
+					fSettings["default"].(string)+"\n")
+			}
+			if fSettings["server_connectivity"].(string) != "" {
+				configSet = append(configSet, setPrefix+"fallback-settings server-connectivity "+
+					fSettings["server_connectivity"].(string)+"\n")
+			}
+			if fSettings["timeout"].(string) != "" {
+				configSet = append(configSet, setPrefix+"fallback-settings timeout "+
+					fSettings["timeout"].(string)+"\n")
+			}
+			if fSettings["too_many_requests"].(string) != "" {
+				configSet = append(configSet, setPrefix+"fallback-settings too-many-requests "+
+					fSettings["too_many_requests"].(string)+"\n")
+			}
+		} else {
+			configSet = append(configSet, setPrefix+"fallback-settings")
 		}
 	}
 	if d.Get("timeout").(int) != 0 {
@@ -364,7 +368,7 @@ func readUtmProfileWebFLocal(profile string, m interface{}, jnprSess *NetconfObj
 				confRead.customBlockMessage = strings.Trim(strings.TrimPrefix(itemTrim, "custom-block-message "), "\"")
 			case strings.HasPrefix(itemTrim, "default "):
 				confRead.defaultAction = strings.TrimPrefix(itemTrim, "default ")
-			case strings.HasPrefix(itemTrim, "fallback-settings "):
+			case strings.HasPrefix(itemTrim, "fallback-settings"):
 				if len(confRead.fallbackSettings) == 0 {
 					confRead.fallbackSettings = append(confRead.fallbackSettings, map[string]interface{}{
 						"default":             "",

@@ -323,70 +323,82 @@ func setUtmPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 		configSet = append(configSet, setPrefix+"anti-spam smtp-profile \""+d.Get("anti_spam_smtp_profile").(string)+"\"\n")
 	}
 	for _, v := range d.Get("anti_virus").([]interface{}) {
-		antiVirus := v.(map[string]interface{})
-		setPrefixAntiVirus := setPrefix + "anti-virus "
-		if antiVirus["ftp_download_profile"].(string) != "" {
-			configSet = append(configSet, setPrefixAntiVirus+"ftp download-profile \""+
-				antiVirus["ftp_download_profile"].(string)+"\"\n")
-		}
-		if antiVirus["ftp_upload_profile"].(string) != "" {
-			configSet = append(configSet, setPrefixAntiVirus+"ftp upload-profile \""+
-				antiVirus["ftp_upload_profile"].(string)+"\"\n")
-		}
-		if antiVirus["http_profile"].(string) != "" {
-			configSet = append(configSet, setPrefixAntiVirus+"http-profile \""+
-				antiVirus["http_profile"].(string)+"\"\n")
-		}
-		if antiVirus["imap_profile"].(string) != "" {
-			configSet = append(configSet, setPrefixAntiVirus+"imap-profile \""+
-				antiVirus["imap_profile"].(string)+"\"\n")
-		}
-		if antiVirus["pop3_profile"].(string) != "" {
-			configSet = append(configSet, setPrefixAntiVirus+"pop3-profile \""+
-				antiVirus["pop3_profile"].(string)+"\"\n")
-		}
-		if antiVirus["smtp_profile"].(string) != "" {
-			configSet = append(configSet, setPrefixAntiVirus+"smtp-profile \""+
-				antiVirus["smtp_profile"].(string)+"\"\n")
+		if v != nil {
+			antiVirus := v.(map[string]interface{})
+			setPrefixAntiVirus := setPrefix + "anti-virus "
+			if antiVirus["ftp_download_profile"].(string) != "" {
+				configSet = append(configSet, setPrefixAntiVirus+"ftp download-profile \""+
+					antiVirus["ftp_download_profile"].(string)+"\"\n")
+			}
+			if antiVirus["ftp_upload_profile"].(string) != "" {
+				configSet = append(configSet, setPrefixAntiVirus+"ftp upload-profile \""+
+					antiVirus["ftp_upload_profile"].(string)+"\"\n")
+			}
+			if antiVirus["http_profile"].(string) != "" {
+				configSet = append(configSet, setPrefixAntiVirus+"http-profile \""+
+					antiVirus["http_profile"].(string)+"\"\n")
+			}
+			if antiVirus["imap_profile"].(string) != "" {
+				configSet = append(configSet, setPrefixAntiVirus+"imap-profile \""+
+					antiVirus["imap_profile"].(string)+"\"\n")
+			}
+			if antiVirus["pop3_profile"].(string) != "" {
+				configSet = append(configSet, setPrefixAntiVirus+"pop3-profile \""+
+					antiVirus["pop3_profile"].(string)+"\"\n")
+			}
+			if antiVirus["smtp_profile"].(string) != "" {
+				configSet = append(configSet, setPrefixAntiVirus+"smtp-profile \""+
+					antiVirus["smtp_profile"].(string)+"\"\n")
+			}
+		} else {
+			return fmt.Errorf("anti_virus block is empty")
 		}
 	}
 	for _, v := range d.Get("content_filtering").([]interface{}) {
-		contentFiltering := v.(map[string]interface{})
-		setPrefixContentFiltering := setPrefix + "content-filtering "
-		if contentFiltering["ftp_download_profile"].(string) != "" {
-			configSet = append(configSet, setPrefixContentFiltering+"ftp download-profile \""+
-				contentFiltering["ftp_download_profile"].(string)+"\"\n")
-		}
-		if contentFiltering["ftp_upload_profile"].(string) != "" {
-			configSet = append(configSet, setPrefixContentFiltering+"ftp upload-profile \""+
-				contentFiltering["ftp_upload_profile"].(string)+"\"\n")
-		}
-		if contentFiltering["http_profile"].(string) != "" {
-			configSet = append(configSet, setPrefixContentFiltering+"http-profile \""+
-				contentFiltering["http_profile"].(string)+"\"\n")
-		}
-		if contentFiltering["imap_profile"].(string) != "" {
-			configSet = append(configSet, setPrefixContentFiltering+"imap-profile \""+
-				contentFiltering["imap_profile"].(string)+"\"\n")
-		}
-		if contentFiltering["pop3_profile"].(string) != "" {
-			configSet = append(configSet, setPrefixContentFiltering+"pop3-profile \""+
-				contentFiltering["pop3_profile"].(string)+"\"\n")
-		}
-		if contentFiltering["smtp_profile"].(string) != "" {
-			configSet = append(configSet, setPrefixContentFiltering+"smtp-profile \""+
-				contentFiltering["smtp_profile"].(string)+"\"\n")
+		if v != nil {
+			contentFiltering := v.(map[string]interface{})
+			setPrefixContentFiltering := setPrefix + "content-filtering "
+			if contentFiltering["ftp_download_profile"].(string) != "" {
+				configSet = append(configSet, setPrefixContentFiltering+"ftp download-profile \""+
+					contentFiltering["ftp_download_profile"].(string)+"\"\n")
+			}
+			if contentFiltering["ftp_upload_profile"].(string) != "" {
+				configSet = append(configSet, setPrefixContentFiltering+"ftp upload-profile \""+
+					contentFiltering["ftp_upload_profile"].(string)+"\"\n")
+			}
+			if contentFiltering["http_profile"].(string) != "" {
+				configSet = append(configSet, setPrefixContentFiltering+"http-profile \""+
+					contentFiltering["http_profile"].(string)+"\"\n")
+			}
+			if contentFiltering["imap_profile"].(string) != "" {
+				configSet = append(configSet, setPrefixContentFiltering+"imap-profile \""+
+					contentFiltering["imap_profile"].(string)+"\"\n")
+			}
+			if contentFiltering["pop3_profile"].(string) != "" {
+				configSet = append(configSet, setPrefixContentFiltering+"pop3-profile \""+
+					contentFiltering["pop3_profile"].(string)+"\"\n")
+			}
+			if contentFiltering["smtp_profile"].(string) != "" {
+				configSet = append(configSet, setPrefixContentFiltering+"smtp-profile \""+
+					contentFiltering["smtp_profile"].(string)+"\"\n")
+			}
+		} else {
+			return fmt.Errorf("content_filtering block is empty")
 		}
 	}
 	for _, v := range d.Get("traffic_sessions_per_client").([]interface{}) {
-		trafficSessPerClient := v.(map[string]interface{})
-		if trafficSessPerClient["limit"].(int) != -1 {
-			configSet = append(configSet, setPrefix+"traffic-options sessions-per-client limit "+
-				strconv.Itoa(trafficSessPerClient["limit"].(int))+"\n")
-		}
-		if trafficSessPerClient["over_limit"].(string) != "" {
-			configSet = append(configSet, setPrefix+"traffic-options sessions-per-client over-limit "+
-				trafficSessPerClient["over_limit"].(string)+"\n")
+		if v != nil {
+			trafficSessPerClient := v.(map[string]interface{})
+			if trafficSessPerClient["limit"].(int) != -1 {
+				configSet = append(configSet, setPrefix+"traffic-options sessions-per-client limit "+
+					strconv.Itoa(trafficSessPerClient["limit"].(int))+"\n")
+			}
+			if trafficSessPerClient["over_limit"].(string) != "" {
+				configSet = append(configSet, setPrefix+"traffic-options sessions-per-client over-limit "+
+					trafficSessPerClient["over_limit"].(string)+"\n")
+			}
+		} else {
+			return fmt.Errorf("traffic_sessions_per_client block is empty")
 		}
 	}
 	if d.Get("web_filtering_profile").(string) != "" {

@@ -326,34 +326,42 @@ func setUtmProfileWebFWebsense(d *schema.ResourceData, m interface{}, jnprSess *
 		configSet = append(configSet, setPrefix+"custom-block-message \""+d.Get("custom_block_message").(string)+"\"\n")
 	}
 	for _, v := range d.Get("fallback_settings").([]interface{}) {
-		fSettings := v.(map[string]interface{})
-		if fSettings["default"].(string) != "" {
-			configSet = append(configSet, setPrefix+"fallback-settings default "+
-				fSettings["default"].(string)+"\n")
-		}
-		if fSettings["server_connectivity"].(string) != "" {
-			configSet = append(configSet, setPrefix+"fallback-settings server-connectivity "+
-				fSettings["server_connectivity"].(string)+"\n")
-		}
-		if fSettings["timeout"].(string) != "" {
-			configSet = append(configSet, setPrefix+"fallback-settings timeout "+
-				fSettings["timeout"].(string)+"\n")
-		}
-		if fSettings["too_many_requests"].(string) != "" {
-			configSet = append(configSet, setPrefix+"fallback-settings too-many-requests "+
-				fSettings["too_many_requests"].(string)+"\n")
+		if v != nil {
+			fSettings := v.(map[string]interface{})
+			if fSettings["default"].(string) != "" {
+				configSet = append(configSet, setPrefix+"fallback-settings default "+
+					fSettings["default"].(string)+"\n")
+			}
+			if fSettings["server_connectivity"].(string) != "" {
+				configSet = append(configSet, setPrefix+"fallback-settings server-connectivity "+
+					fSettings["server_connectivity"].(string)+"\n")
+			}
+			if fSettings["timeout"].(string) != "" {
+				configSet = append(configSet, setPrefix+"fallback-settings timeout "+
+					fSettings["timeout"].(string)+"\n")
+			}
+			if fSettings["too_many_requests"].(string) != "" {
+				configSet = append(configSet, setPrefix+"fallback-settings too-many-requests "+
+					fSettings["too_many_requests"].(string)+"\n")
+			}
+		} else {
+			configSet = append(configSet, setPrefix+"fallback-settings")
 		}
 	}
 	if len(d.Get("server").([]interface{})) != 0 {
 		configSet = append(configSet, setPrefix+"server\n")
 	}
 	for _, v := range d.Get("server").([]interface{}) {
-		server := v.(map[string]interface{})
-		if server["host"].(string) != "" {
-			configSet = append(configSet, setPrefix+"server host "+server["host"].(string)+"\n")
-		}
-		if server["port"].(int) != 0 {
-			configSet = append(configSet, setPrefix+"server port "+strconv.Itoa(server["port"].(int))+"\n")
+		if v != nil {
+			server := v.(map[string]interface{})
+			if server["host"].(string) != "" {
+				configSet = append(configSet, setPrefix+"server host "+server["host"].(string)+"\n")
+			}
+			if server["port"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"server port "+strconv.Itoa(server["port"].(int))+"\n")
+			}
+		} else {
+			configSet = append(configSet, setPrefix+"server")
 		}
 	}
 	if d.Get("sockets").(int) != 0 {
@@ -395,7 +403,7 @@ func readUtmProfileWebFWebsense(profile string, m interface{}, jnprSess *Netconf
 				confRead.customBlockMessage = strings.Trim(strings.TrimPrefix(itemTrim, "account "), "\"")
 			case strings.HasPrefix(itemTrim, "custom-block-message "):
 				confRead.customBlockMessage = strings.Trim(strings.TrimPrefix(itemTrim, "custom-block-message "), "\"")
-			case strings.HasPrefix(itemTrim, "fallback-settings "):
+			case strings.HasPrefix(itemTrim, "fallback-settings"):
 				if len(confRead.fallbackSettings) == 0 {
 					confRead.fallbackSettings = append(confRead.fallbackSettings, map[string]interface{}{
 						"default":             "",
