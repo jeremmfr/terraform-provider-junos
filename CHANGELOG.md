@@ -5,9 +5,9 @@ BUG FIXES:
 
 ## v1.3.0
 ENHANCEMENTS:
-* add resource junos_security_utm_custom_url_pattern
-* add resource junos_security_utm_policy
-* add resource junos_security_utm_profile_web_filtering_juniper_enhanced
+* add resource junos_security_utm_custom_url_pattern #26
+* add resource junos_security_utm_policy #26
+* add resource junos_security_utm_profile_web_filtering_juniper_enhanced #26
 * add resource junos_security_utm_profile_web_filtering_juniper_local
 * add resource junos_security_utm_profile_web_filtering_websense_redirect
 * remove useless LF for list of set command
