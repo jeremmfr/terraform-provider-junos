@@ -134,6 +134,7 @@ func validateAddress() schema.SchemaValidateFunc {
 			es = append(es, fmt.Errorf(
 				"%q %q invalid address (bad character)", k, i))
 		}
+
 		return
 	}
 }
