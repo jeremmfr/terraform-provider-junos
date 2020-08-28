@@ -123,6 +123,20 @@ func validateNameObjectJunos() schema.SchemaValidateFunc {
 		return
 	}
 }
+func validateAddress() schema.SchemaValidateFunc {
+	return func(i interface{}, k string) (s []string, es []error) {
+		v := i.(string)
+
+		f := func(r rune) bool {
+			return (r < 'a' || r > 'z') && (r < '0' || r > '9') && r != '-' && r != '.'
+		}
+		if strings.IndexFunc(v, f) != -1 {
+			es = append(es, fmt.Errorf(
+				"%q %q invalid address (bad character)", k, i))
+		}
+		return
+	}
+}
 
 func validateIntRange(start int, end int) schema.SchemaValidateFunc {
 	return func(v interface{}, k string) (ws []string, errors []error) {
