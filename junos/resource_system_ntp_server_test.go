@@ -15,7 +15,7 @@ func TestAccJunosSystemNtpServer_basic(t *testing.T) {
 				Config: testAccJunosSystemNtpServerConfigCreate(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("junos_system_ntp_server.testacc_ntpServer",
-						"address", "192.0.0.1"),
+						"address", "192.0.2.1"),
 					resource.TestCheckResourceAttr("junos_system_ntp_server.testacc_ntpServer",
 						"prefer", "true"),
 					resource.TestCheckResourceAttr("junos_system_ntp_server.testacc_ntpServer",
@@ -43,7 +43,7 @@ func TestAccJunosSystemNtpServer_basic(t *testing.T) {
 func testAccJunosSystemNtpServerConfigCreate() string {
 	return `
 resource junos_system_ntp_server testacc_ntpServer {
-  address = "192.0.0.1"
+  address = "192.0.2.1"
   prefer  = true
   version = 4
   key     = 1
@@ -56,7 +56,7 @@ resource junos_routing_instance testacc_ntpServer {
   name = "testacc_ntpServer"
 }
 resource junos_system_ntp_server testacc_ntpServer {
-  address          = "192.0.0.1"
+  address          = "192.0.2.1"
   prefer           = true
   version          = 4
   routing_instance = junos_routing_instance.testacc_ntpServer.name

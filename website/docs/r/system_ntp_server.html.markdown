@@ -15,7 +15,7 @@ Configure a system ntp server.
 ```hcl
 # Add a system ntp server
 resource junos_system_ntp_server "demo_ntp_server" {
-  address = "192.0.0.1"
+  address = "192.0.2.1"
   prefer  = true
 }
 ```
@@ -35,5 +35,5 @@ The following arguments are supported:
 Junos system ntp server can be imported using an id made up of `<address>`, e.g.
 
 ```
-$ terraform import junos_system_ntp_server.demo_ntp_server 192.0.0.1
+$ terraform import junos_system_ntp_server.demo_ntp_server 192.0.2.1
 ```
