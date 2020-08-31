@@ -3,6 +3,7 @@ ENHANCEMENTS:
 * add options `apply_path`, `dynamic_db` in resource junos_policyoptions_prefix_list #31
 * add options `is_fragment`, `next_header`, `next_header_except` in `from` block for resource firewall_filter #32
 * add resource junos_system_ntp_server #33
+* add resource junos_system_radius_server #33
 
 BUG FIXES:
 
