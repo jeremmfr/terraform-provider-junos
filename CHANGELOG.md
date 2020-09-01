@@ -6,6 +6,7 @@ ENHANCEMENTS:
 * add resource junos_system_radius_server #33
 
 BUG FIXES:
+* fix message validateIntRange
 
 ## v1.3.0
 ENHANCEMENTS:

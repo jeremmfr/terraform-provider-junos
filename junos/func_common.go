@@ -144,7 +144,7 @@ func validateIntRange(start int, end int) schema.SchemaValidateFunc {
 		value := v.(int)
 		if value < start || value > end {
 			errors = append(errors, fmt.Errorf(
-				"%q for %q is not valid (1-%d)", value, k, end))
+				"%d for %q is not valid (%d-%d)", value, k, start, end))
 		}
 
 		return
