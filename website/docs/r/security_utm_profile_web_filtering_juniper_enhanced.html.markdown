@@ -51,14 +51,14 @@ The following arguments are supported:
     * `action` - (Required)(`String`) Action for site-reputation. Need to be 'block', 'log-and-permit', 'permit' or 'quarantine'.
 * `custom_block_message` - (Optional)(`String`) Custom block message sent to HTTP client.
 * `default_action` - (Optional)(`String`) Default action. Need to be 'block', 'log-and-permit', 'permit' or 'quarantine'.
-* `fallback_settings` (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Configure fallback settings. Max of 1.
+* `fallback_settings` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Configure fallback settings. Max of 1.
   * `default` - (Optional)(`String`) Default action. Need to be 'block' or 'log-and-permit'.
   * `server_connectivity` - (Optional)(`String`) Action when device cannot connect to server. Need to be 'block' or 'log-and-permit'.
   * `timeout` - (Optional)(`String`) Action when connection to server timeout. Need to be 'block' or 'log-and-permit'.
   * `too_many_requests` - (Optional)(`String`) Action when requests exceed the limit of engine. Need to be 'block' or 'log-and-permit'.
 * `no_safe_search` - (Optional)(`Bool`) Do not perform safe-search for Juniper enhanced protocol.
 * `quarantine_custom_message` - (Optional)(`String`) Quarantine custom message.
-* `quarantine_message` (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Configure quarantine message. Max of 1.
+* `quarantine_message` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Configure quarantine message. Max of 1.
   * `url` - (Optional)(`String`) URL of quarantine message.
   * `type_custom_redirect_url` - (Optional)(`Bool`) Enable Custom redirect URL server type.
  * `site_reputation_action` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) List of configuration for site reputation action. Can be specified multiple times for each `site_reputation`.

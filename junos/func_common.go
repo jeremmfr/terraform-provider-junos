@@ -123,13 +123,28 @@ func validateNameObjectJunos() schema.SchemaValidateFunc {
 		return
 	}
 }
+func validateAddress() schema.SchemaValidateFunc {
+	return func(i interface{}, k string) (s []string, es []error) {
+		v := i.(string)
+
+		f := func(r rune) bool {
+			return (r < 'a' || r > 'z') && (r < '0' || r > '9') && r != '-' && r != '.'
+		}
+		if strings.IndexFunc(v, f) != -1 {
+			es = append(es, fmt.Errorf(
+				"%q %q invalid address (bad character)", k, i))
+		}
+
+		return
+	}
+}
 
 func validateIntRange(start int, end int) schema.SchemaValidateFunc {
 	return func(v interface{}, k string) (ws []string, errors []error) {
 		value := v.(int)
 		if value < start || value > end {
 			errors = append(errors, fmt.Errorf(
-				"%q for %q is not valid (1-%d)", value, k, end))
+				"%d for %q is not valid (%d-%d)", value, k, start, end))
 		}
 
 		return
@@ -184,4 +199,17 @@ func checkCompatibilitySecurity(jnprSess *NetconfObject) bool {
 	}
 
 	return false
+}
+
+func validateSyslogSeverity() schema.SchemaValidateFunc {
+	return func(v interface{}, k string) (ws []string, errors []error) {
+		value := v.(string)
+		if !stringInSlice(value, []string{"alert", "any", "critical",
+			"emergency", "error", "info", "none", "notice", "warning"}) {
+			errors = append(errors, fmt.Errorf(
+				"%q %q invalid severity", value, k))
+		}
+
+		return
+	}
 }
