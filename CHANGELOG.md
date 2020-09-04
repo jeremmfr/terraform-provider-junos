@@ -5,6 +5,7 @@ ENHANCEMENTS:
 * add resource junos_system_ntp_server #33
 * add resource junos_system_radius_server #33
 * add resource junos_system_syslog_host #33
+* add resource junos_system_syslog_file #33
 
 BUG FIXES:
 * fix message validateIntRange

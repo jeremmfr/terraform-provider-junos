@@ -121,6 +121,7 @@ func Provider() terraform.ResourceProvider {
 			"junos_system_ntp_server":                                    resourceSystemNtpServer(),
 			"junos_system_radius_server":                                 resourceSystemRadiusServer(),
 			"junos_system_syslog_host":                                   resourceSystemSyslogHost(),
+			"junos_system_syslog_file":                                   resourceSystemSyslogFile(),
 			"junos_vlan":                                                 resourceVlan(),
 		},
 		ConfigureFunc: configureProvider,

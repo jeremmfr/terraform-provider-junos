@@ -200,3 +200,16 @@ func checkCompatibilitySecurity(jnprSess *NetconfObject) bool {
 
 	return false
 }
+
+func validateSyslogSeverity() schema.SchemaValidateFunc {
+	return func(v interface{}, k string) (ws []string, errors []error) {
+		value := v.(string)
+		if !stringInSlice(value, []string{"alert", "any", "critical",
+			"emergency", "error", "info", "none", "notice", "warning"}) {
+			errors = append(errors, fmt.Errorf(
+				"%q %q invalid severity", value, k))
+		}
+
+		return
+	}
+}
