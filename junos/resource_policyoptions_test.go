@@ -391,8 +391,12 @@ func TestAccJunosPolicyOptions_basic(t *testing.T) {
 							"prefix.0", "192.0.2.0/26"),
 						resource.TestCheckResourceAttr("junos_policyoptions_prefix_list.testacc_policyOptions",
 							"prefix.1", "192.0.2.64/26"),
+						resource.TestCheckResourceAttr("junos_policyoptions_prefix_list.testacc_policyOptions2",
+							"apply_path", "system radius-server <*>"),
 						resource.TestCheckResourceAttr("junos_policyoptions_policy_statement.testacc_policyOptions",
 							"from.#", "1"),
+						resource.TestCheckResourceAttr("junos_policyoptions_policy_statement.testacc_policyOptions",
+							"from.0.prefix_list.#", "2"),
 						resource.TestCheckResourceAttr("junos_policyoptions_policy_statement.testacc_policyOptions",
 							"from.0.route_filter.#", "1"),
 						resource.TestCheckResourceAttr("junos_policyoptions_policy_statement.testacc_policyOptions",
@@ -723,6 +727,10 @@ resource junos_policyoptions_prefix_list "testacc_policyOptions" {
   name = "testacc_policyOptions"
   prefix = [ "192.0.2.0/26", "192.0.2.64/26" ]
 }
+resource junos_policyoptions_prefix_list "testacc_policyOptions2" {
+  name = "testacc_policyOptions2"
+  apply_path = "system radius-server <*>"
+}
 resource junos_policyoptions_policy_statement "testacc_policyOptions" {
   name = "testacc_policyOptions"
   from {
@@ -739,7 +747,9 @@ resource junos_policyoptions_policy_statement "testacc_policyOptions" {
     next_hop = [ "192.0.2.4" ]
     ospf_area = "0.0.0.0"
     preference = 100
-    prefix_list = [ junos_policyoptions_prefix_list.testacc_policyOptions.name ]
+    prefix_list = [ junos_policyoptions_prefix_list.testacc_policyOptions.name,
+      junos_policyoptions_prefix_list.testacc_policyOptions2.name,
+    ]
     protocol = [ "bgp" ]
     route_filter {
       route = "192.0.2.0/25"

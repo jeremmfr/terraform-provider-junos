@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* add options `apply_path`, `dynamic_db` in resource junos_policyoptions_prefix_list #31
 
 BUG FIXES:
 

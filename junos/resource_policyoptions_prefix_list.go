@@ -8,8 +8,10 @@ import (
 )
 
 type prefixListOptions struct {
-	name   string
-	prefix []string
+	dynamicDB bool
+	name      string
+	applyPath string
+	prefix    []string
 }
 
 func resourcePolicyoptionsPrefixList() *schema.Resource {
@@ -30,9 +32,16 @@ func resourcePolicyoptionsPrefixList() *schema.Resource {
 			},
 			"prefix": {
 				Type:     schema.TypeList,
-				Required: true,
-				MinItems: 1,
+				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"apply_path": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"dynamic_db": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 		},
 	}
@@ -213,12 +222,21 @@ func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess 
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 
+	setPrefix := "set policy-options prefix-list " + d.Get("name").(string)
 	for _, v := range d.Get("prefix").([]interface{}) {
 		err := validateNetwork(v.(string))
 		if err != nil {
 			return err
 		}
-		configSet = append(configSet, "set policy-options prefix-list "+d.Get("name").(string)+" "+v.(string))
+		configSet = append(configSet, setPrefix+" "+v.(string))
+	}
+	if d.Get("apply_path").(string) != "" {
+		replaceSign := strings.ReplaceAll(d.Get("apply_path").(string), "<", "&lt;")
+		replaceSign = strings.ReplaceAll(replaceSign, ">", "&gt;")
+		configSet = append(configSet, setPrefix+" apply-path \""+replaceSign+"\"")
+	}
+	if d.Get("dynamic_db").(bool) {
+		configSet = append(configSet, setPrefix+" dynamic-db")
 	}
 
 	err := sess.configSet(configSet, jnprSess)
@@ -240,14 +258,22 @@ func readPolicyoptionsPrefixList(prefixList string, m interface{}, jnprSess *Net
 	if prefixListConfig != emptyWord {
 		confRead.name = prefixList
 		for _, item := range strings.Split(prefixListConfig, "\n") {
+			itemTrim := strings.TrimPrefix(item, setLineStart)
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			if strings.Contains(item, "/") {
-				confRead.prefix = append(confRead.prefix, strings.TrimPrefix(item, setLineStart))
+			switch {
+			case strings.HasPrefix(itemTrim, "apply-path "):
+				replaceSign := strings.ReplaceAll(strings.Trim(strings.TrimPrefix(itemTrim, "apply-path "), "\""), "&lt;", "<")
+				replaceSign = strings.ReplaceAll(replaceSign, "&gt;", ">")
+				confRead.applyPath = replaceSign
+			case strings.HasSuffix(itemTrim, "dynamic-db"):
+				confRead.dynamicDB = true
+			case strings.Contains(itemTrim, "/"):
+				confRead.prefix = append(confRead.prefix, itemTrim)
 			}
 		}
 	} else {
@@ -276,6 +302,14 @@ func fillPolicyoptionsPrefixListData(d *schema.ResourceData, prefixListOptions p
 		panic(tfErr)
 	}
 	tfErr = d.Set("prefix", prefixListOptions.prefix)
+	if tfErr != nil {
+		panic(tfErr)
+	}
+	tfErr = d.Set("apply_path", prefixListOptions.applyPath)
+	if tfErr != nil {
+		panic(tfErr)
+	}
+	tfErr = d.Set("dynamic_db", prefixListOptions.dynamicDB)
 	if tfErr != nil {
 		panic(tfErr)
 	}
