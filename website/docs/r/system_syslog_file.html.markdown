@@ -43,6 +43,7 @@ The following arguments are supported:
   * `sites` - (Optional)[attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Configure an archive site. Can be specified multiple times for each url (first declaration is primary URL, failover for others). 
     * `url` - (Required)(`String`) Primary or failover URLs to receive archive files.
     * `password` - (Optional)(`String`) Password for login into the archive site.
+    **WARNING** Clear in tfstate.
     * `routing_instance` - (Optional)(`String`) Routing instance.
 * `any_severity` - (Optional)(`String`) All facilities severity.
 * `authorization_severity` - (Optional)(`String`) Authorization system severity.
