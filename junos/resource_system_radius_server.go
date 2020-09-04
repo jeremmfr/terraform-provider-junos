@@ -346,7 +346,7 @@ func setSystemRadiusServer(d *schema.ResourceData, m interface{}, jnprSess *Netc
 
 	return nil
 }
-func readSystemRadiusServer(server string, m interface{}, jnprSess *NetconfObject) (radiusServerOptions, error) {
+func readSystemRadiusServer(address string, m interface{}, jnprSess *NetconfObject) (radiusServerOptions, error) {
 	sess := m.(*Session)
 	var confRead radiusServerOptions
 	confRead.accountingRetry = -1
@@ -354,12 +354,12 @@ func readSystemRadiusServer(server string, m interface{}, jnprSess *NetconfObjec
 	confRead.maxOutstandingRequests = -1
 
 	radiusServerConfig, err := sess.command("show configuration"+
-		" system radius-server "+server+" | display set relative", jnprSess)
+		" system radius-server "+address+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if radiusServerConfig != emptyWord {
-		confRead.address = server
+		confRead.address = address
 		for _, item := range strings.Split(radiusServerConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
@@ -452,10 +452,10 @@ func readSystemRadiusServer(server string, m interface{}, jnprSess *NetconfObjec
 	return confRead, nil
 }
 
-func delSystemRadiusServer(server string, m interface{}, jnprSess *NetconfObject) error {
+func delSystemRadiusServer(address string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete system radius-server "+server)
+	configSet = append(configSet, "delete system radius-server "+address)
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err
