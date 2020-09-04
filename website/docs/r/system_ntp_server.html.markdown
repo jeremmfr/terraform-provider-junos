@@ -24,7 +24,7 @@ resource junos_system_ntp_server "demo_ntp_server" {
 
 The following arguments are supported:
 
-* `address` - (Required, Forces new resource)(`String`) The name or address of server.
+* `address` - (Required, Forces new resource)(`String`) Address of server.
 * `key` - (Optional)(`Int`) Authentication key (1..65534).
 * `prefer` - (Optional)(`Bool`) Prefer this peer_serv.
 * `routing_instance` - (Optional)(`String`) Routing instance through which server is reachable.

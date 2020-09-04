@@ -30,7 +30,7 @@ func resourceSystemNtpServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAddress(),
+				ValidateFunc: validateIPFunc(),
 			},
 			"key": {
 				Type:         schema.TypeInt,
