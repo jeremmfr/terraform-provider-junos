@@ -251,17 +251,17 @@ func setSystemNtpServer(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 
 	return nil
 }
-func readSystemNtpServer(server string, m interface{}, jnprSess *NetconfObject) (ntpServerOptions, error) {
+func readSystemNtpServer(address string, m interface{}, jnprSess *NetconfObject) (ntpServerOptions, error) {
 	sess := m.(*Session)
 	var confRead ntpServerOptions
 
 	ntpServerConfig, err := sess.command("show configuration"+
-		" system ntp server "+server+" | display set relative", jnprSess)
+		" system ntp server "+address+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if ntpServerConfig != emptyWord {
-		confRead.address = server
+		confRead.address = address
 		for _, item := range strings.Split(ntpServerConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
@@ -298,10 +298,10 @@ func readSystemNtpServer(server string, m interface{}, jnprSess *NetconfObject) 
 	return confRead, nil
 }
 
-func delSystemNtpServer(server string, m interface{}, jnprSess *NetconfObject) error {
+func delSystemNtpServer(address string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete system ntp server "+server)
+	configSet = append(configSet, "delete system ntp server "+address)
 	err := sess.configSet(configSet, jnprSess)
 	if err != nil {
 		return err
