@@ -29,7 +29,7 @@ The following arguments are supported:
 * `name` - (Required, Forces new resource)(`String`) The name of security utm feature-profile web-filtering juniper-local profile.
 * `custom_block_message` - (Optional)(`String`) Custom block message sent to HTTP client.
 * `default_action` - (Optional)(`String`) Default action. Need to be 'block', 'log-and-permit' or 'permit'.
-* `fallback_settings` (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Configure fallback settings. Max of 1.
+* `fallback_settings` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Configure fallback settings. Max of 1.
   * `default` - (Optional)(`String`) Default action. Need to be 'block' or 'log-and-permit'.
   * `server_connectivity` - (Optional)(`String`) Action when device cannot connect to server. Need to be 'block' or 'log-and-permit'.
   * `timeout` - (Optional)(`String`) Action when connection to server timeout. Need to be 'block' or 'log-and-permit'.
