@@ -53,6 +53,8 @@ func TestAccJunosFirewallFilter_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"term.0.from.0.tcp_flags", "!0x3"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
+							"term.0.from.0.is_fragment", "true"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"term.0.then.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"term.0.then.0.action", "next term"),
@@ -123,6 +125,20 @@ func TestAccJunosFirewallFilter_basic(t *testing.T) {
 							"term.3.then.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"term.3.then.0.action", "reject"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
+							"family", "inet6"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
+							"term.#", "1"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
+							"term.0.from.#", "1"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
+							"term.0.from.0.next_header.#", "1"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
+							"term.0.from.0.next_header.0", "icmp6"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
+							"term.0.then.#", "1"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
+							"term.0.then.0.action", "discard"),
 					),
 				},
 				{
@@ -151,6 +167,7 @@ resource junos_firewall_filter "testacc_fwFilter" {
       prefix_list_except = [ junos_policyoptions_prefix_list.testacc_fwFilter2.name ]
       protocol = [ "tcp" ]
       tcp_flags = "!0x3"
+	 is_fragment = true
     }
     then {
       action = "next term"
@@ -235,6 +252,19 @@ resource junos_firewall_filter "testacc_fwFilter" {
     }
     then {
       action = "reject"
+    }
+  }
+}
+resource junos_firewall_filter "testacc_fwFilter6" {
+  name = "testacc_fwFilter6"
+  family = "inet6"
+  term {
+    name = "testacc_fwFilter6_term1"
+    from {
+      next_header = ["icmp6"]
+    }
+    then {
+      action = "discard"
     }
   }
 }

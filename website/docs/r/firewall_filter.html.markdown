@@ -71,6 +71,9 @@ The following arguments are supported:
   * `tcp_established` - (Optional)(`Bool`) Match packet of an established TCP connection.
   * `icmp_type` - (Optional)(`ListOfString`) Match ICMP message type.
   * `icmp_type_except` - (Optional)(`ListOfString`) Do not match ICMP message type.
+  * `is_fragment` - (Optional)(`Bool`) Match if packet is a fragment.
+  * `next_header` - (Optional)(`ListOfString`) Match next header protocol type. ConflictsWith `next_header_except`.
+  * `next_header_except` - (Optional)(`ListOfString`) Do not match next header protocol type. ConflictsWith `next_header`.
 
 #### then arguments
   * `action` - (Optional)(`String`) Action for term if needed. Need to be 'accept', 'reject', 'discard' or 'next term'.

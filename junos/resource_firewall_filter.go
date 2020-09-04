@@ -191,6 +191,20 @@ func resourceFirewallFilter() *schema.Resource {
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
+									"is_fragment": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"next_header": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"next_header_except": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
 								},
 							},
 						},
@@ -670,6 +684,18 @@ func setFirewallFilterOptsFrom(setPrefixTermFrom string,
 	for _, icmp := range fromMap["icmp_type_except"].([]interface{}) {
 		configSet = append(configSet, setPrefixTermFrom+"icmp-type-except "+icmp.(string))
 	}
+	if fromMap["is_fragment"].(bool) {
+		configSet = append(configSet, setPrefixTermFrom+"is-fragment")
+	}
+	if len(fromMap["next_header"].([]interface{})) > 0 && len(fromMap["next_header_except"].([]interface{})) > 0 {
+		return nil, fmt.Errorf("conflict between next_header and next_header_except")
+	}
+	for _, header := range fromMap["next_header"].([]interface{}) {
+		configSet = append(configSet, setPrefixTermFrom+"next-header "+header.(string))
+	}
+	for _, header := range fromMap["next_header_except"].([]interface{}) {
+		configSet = append(configSet, setPrefixTermFrom+"next-header-except "+header.(string))
+	}
 
 	return configSet, nil
 }
@@ -795,6 +821,14 @@ func readFirewallFilterOptsFrom(item string,
 	case strings.HasPrefix(item, "icmp-type-except "):
 		fromMap["icmp_type_except"] = append(fromMap["icmp_type_except"].([]string),
 			strings.TrimPrefix(item, "icmp-type-except "))
+	case strings.HasSuffix(item, "is-fragment"):
+		fromMap["is_fragment"] = true
+	case strings.HasPrefix(item, "next-header "):
+		fromMap["next_header"] = append(fromMap["next_header"].([]string),
+			strings.TrimPrefix(item, "next-header "))
+	case strings.HasPrefix(item, "next-header-except "):
+		fromMap["next_header_except"] = append(fromMap["next_header_except"].([]string),
+			strings.TrimPrefix(item, "next-header-except "))
 	}
 
 	// override (maxItem = 1)
@@ -862,6 +896,9 @@ func genMapFirewallFilterOptsFrom() map[string]interface{} {
 		"tcp_established":                false,
 		"icmp_type":                      make([]string, 0),
 		"icmp_type_except":               make([]string, 0),
+		"is_fragment":                    false,
+		"next_header":                    make([]string, 0),
+		"next_header_except":             make([]string, 0),
 	}
 }
 func genMapFirewallFilterOptsThen() map[string]interface{} {
