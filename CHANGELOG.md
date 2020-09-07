@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* add data source junos_interface
 
 BUG FIXES:
 
