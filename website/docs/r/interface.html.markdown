@@ -42,6 +42,7 @@ The following arguments are supported:
 * `name` - (Required, Forces new resource)(`String`) Name of interface or unit interface (with dot).
 * `description` - (Optional)(`String`) Description for interface.
 * `vlan_tagging` - (Optional)(`Bool`) Add 802.1q VLAN tagging support.
+* `vlan_tagging_id` - (Optional,Computed)(`Int`) 802.1q VLAN ID for unit interface. If not set, computed with `name` of interface (ge-0/0/0.100 = 100)
 * `inet` - (Optional,Computed)(`Bool`) Enable family inet.
 * `inet6` - (Optional,Computed)(`Bool`) Enable family inet6.
 * `inet_address` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each address to declare.

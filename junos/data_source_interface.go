@@ -41,6 +41,10 @@ func dataSourceInterface() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"vlan_tagging_id": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 			"inet": {
 				Type:     schema.TypeBool,
 				Computed: true,

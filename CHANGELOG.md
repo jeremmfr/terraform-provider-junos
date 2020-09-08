@@ -1,6 +1,7 @@
 ## upcoming release
 ENHANCEMENTS:
 * add data source junos_interface
+* add argument `vlan_tagging_id` in resource junos_interface
 
 BUG FIXES:
 

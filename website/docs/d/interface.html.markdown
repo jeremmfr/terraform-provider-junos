@@ -38,6 +38,7 @@ The following arguments are supported:
 * `name` - Name of interface or unit interface (with dot).
 * `description` - Description for interface.
 * `vlan_tagging` - 802.1q VLAN tagging support.
+* `vlan_taggind_id` - 802.1q VLAN ID for unit interface.
 * `inet` - Family inet enabled.
 * `inet6` - Family inet6 enabled.
 * `inet_address` - List of `family inet` `address` and with each vrrp-group set.
