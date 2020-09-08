@@ -175,7 +175,7 @@ func (j *NetconfObject) GatherFacts() error {
 		return fmt.Errorf(strings.Join(errorsMsg, "\n"))
 	}
 
-	formatted := strings.Replace(reply.Data, "\n", "", -1)
+	formatted := strings.ReplaceAll(reply.Data, "\n", "")
 	if strings.Contains(reply.Data, "multi-routing-engine-results") {
 		var facts versionRouteEngines
 		err = xml.Unmarshal([]byte(formatted), &facts)
@@ -265,7 +265,7 @@ func (j *NetconfObject) netconfConfigSet(cmd []string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	//logFile("netconfConfigSet.Reply:" + reply.RawReply)
+	// logFile("netconfConfigSet.Reply:" + reply.RawReply)
 	message := ""
 	if reply.Errors != nil {
 		for _, m := range reply.Errors {
