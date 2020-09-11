@@ -16,5 +16,16 @@ jobs:
           fi ; \
           done
           if [[ ${missing} != "" ]] ; then \
-          echo "Missing documentation for ${missing}" ; exit 1 ; \
+          echo "Missing documentation for resource ${missing}" ; exit 1 ; \
+          fi
+      - name: List data_source files and Test Website Files exists
+        run: |
+          missing=""
+          for datasource in $(ls junos/data_source_*.go | grep -v "_test.go$" | cut -d'/' -f2 | cut -d'.' -f1 | sed 's/^data_source_//' ) ; do \
+          if [[ ! -f website/docs/d/${datasource}.html.markdown ]] ; then \
+          missing+="${datasource} " ; \
+          fi ; \
+          done
+          if [[ ${missing} != "" ]] ; then \
+          echo "Missing documentation for data_source ${missing}" ; exit 1 ; \
           fi
