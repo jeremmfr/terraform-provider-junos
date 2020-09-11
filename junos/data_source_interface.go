@@ -175,7 +175,6 @@ func dataSourceInterface() *schema.Resource {
 									"virtual_address": {
 										Type:     schema.TypeList,
 										Computed: true,
-										MinItems: 1,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"virtual_link_local_address": {
