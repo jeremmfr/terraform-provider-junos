@@ -5,15 +5,10 @@ jobs:
     name: Run
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go 1.14
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.14
-        id: go
       - name: Check out code
         uses: actions/checkout@v2
-      - name: Install golangci-lint
-        run: curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.31.0
-
-      - name: Run golangci-lint
-        run: $(go env GOPATH)/bin/golangci-lint run -c .golangci.yml -v
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.31
+          args: -c .golangci.yml -v
