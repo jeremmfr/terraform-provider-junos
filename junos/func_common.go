@@ -213,3 +213,16 @@ func validateSyslogSeverity() schema.SchemaValidateFunc {
 		return
 	}
 }
+
+func uniqueListString(s []string) []string {
+	k := make(map[string]bool)
+	r := []string{}
+	for _, v := range s {
+		if _, value := k[v]; !value {
+			k[v] = true
+			r = append(r, v)
+		}
+	}
+
+	return r
+}

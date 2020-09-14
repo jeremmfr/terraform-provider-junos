@@ -39,9 +39,10 @@ resource junos_interface "interface_fw_demo_100" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) Name of interface or unit interface.
+* `name` - (Required, Forces new resource)(`String`) Name of interface or unit interface (with dot).
 * `description` - (Optional)(`String`) Description for interface.
 * `vlan_tagging` - (Optional)(`Bool`) Add 802.1q VLAN tagging support.
+* `vlan_tagging_id` - (Optional,Computed)(`Int`) 802.1q VLAN ID for unit interface. If not set, computed with `name` of interface (ge-0/0/0.100 = 100)
 * `inet` - (Optional,Computed)(`Bool`) Enable family inet.
 * `inet6` - (Optional,Computed)(`Bool`) Enable family inet6.
 * `inet_address` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each address to declare.
@@ -54,9 +55,9 @@ The following arguments are supported:
 * `inet_mtu` - (Optional)(`Int`) Protocol family inet maximum transmission unit.
 * `inet6_mtu` - (Optional)(`Int`) Protocol family inet6 maximum transmission unit.
 * `inet_filter_input` - (Optional)(`String`) Filter to be applied to received packets for family inet.
-* `inet_filter_output` - (Optional)(`String`)Filter to be applied to transmitted packets for family inet.
+* `inet_filter_output` - (Optional)(`String`) Filter to be applied to transmitted packets for family inet.
 * `inet6_filter_input` - (Optional)(`String`) Filter to be applied to received packets for family inet6.
-* `inet6_filter_output` - (Optional)(`String`)Filter to be applied to transmitted packets for family inet6.
+* `inet6_filter_output` - (Optional)(`String`) Filter to be applied to transmitted packets for family inet6.
 * `ether802_3ad` - (Optional)(`String`) Name of aggregated device for add this interface to link of 802.3ad interface.
 * `trunk` - (Optional)(`Bool`) Interface mode is trunk.
 * `vlan_members` - (Optional)(`ListOfString`) List of vlan for membership for this interface.

@@ -81,6 +81,9 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("JUNOS_LOG_PATH", ""),
 			},
 		},
+		DataSourcesMap: map[string]*schema.Resource{
+			"junos_interface": dataSourceInterface(),
+		},
 		ResourcesMap: map[string]*schema.Resource{
 			"junos_aggregate_route":                                      resourceAggregateRoute(),
 			"junos_application_set":                                      resourceApplicationSet(),

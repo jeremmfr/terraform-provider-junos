@@ -19,6 +19,7 @@ type interfaceOptions struct {
 	aeMinLink         int
 	inetMtu           int
 	inet6Mtu          int
+	vlanTaggingID     int
 	inetFilterInput   string
 	inetFilterOutput  string
 	inet6FilterInput  string
@@ -65,6 +66,20 @@ func resourceInterface() *schema.Resource {
 			"vlan_tagging": {
 				Type:     schema.TypeBool,
 				Optional: true,
+			},
+			"vlan_tagging_id": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
+					value := v.(int)
+					if value < 1 || value > 4094 {
+						errors = append(errors, fmt.Errorf(
+							"%q in %q is not in default vlan id (1-4094)", value, k))
+					}
+
+					return
+				},
 			},
 			"inet": {
 				Type:     schema.TypeBool,
@@ -900,7 +915,9 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 	if d.Get("vlan_tagging").(bool) {
 		configSet = append(configSet, setPrefix+"vlan-tagging")
 	}
-	if len(intCut) == 2 && intCut[0] != st0Word && intCut[1] != "0" {
+	if d.Get("vlan_tagging_id").(int) != 0 {
+		configSet = append(configSet, setPrefix+"vlan-id "+strconv.Itoa(d.Get("vlan_tagging_id").(int)))
+	} else if len(intCut) == 2 && intCut[0] != st0Word && intCut[1] != "0" {
 		configSet = append(configSet, setPrefix+"vlan-id "+intCut[1])
 	}
 	if d.Get("inet").(bool) {
@@ -1043,6 +1060,12 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 
 			case strings.HasPrefix(itemTrim, "vlan-tagging"):
 				confRead.vlanTagging = true
+			case strings.HasPrefix(itemTrim, "vlan-id "):
+				var err error
+				confRead.vlanTaggingID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vlan-id "))
+				if err != nil {
+					return confRead, err
+				}
 			case strings.HasPrefix(itemTrim, "family inet6"):
 				confRead.inet6 = true
 				switch {
@@ -1353,6 +1376,10 @@ func fillInterfaceData(d *schema.ResourceData, interfaceOpt interfaceOptions) {
 		panic(tfErr)
 	}
 	tfErr = d.Set("vlan_tagging", interfaceOpt.vlanTagging)
+	if tfErr != nil {
+		panic(tfErr)
+	}
+	tfErr = d.Set("vlan_tagging_id", interfaceOpt.vlanTaggingID)
 	if tfErr != nil {
 		panic(tfErr)
 	}
@@ -1729,6 +1756,9 @@ func genVRRPGroup(family string) map[string]interface{} {
 }
 func checkResourceInterfaceConfigAndName(length int, d *schema.ResourceData) error {
 	if length == 1 {
+		if d.Get("vlan_tagging_id").(int) != 0 {
+			return fmt.Errorf("vlan_tagging_id invalid for this interface")
+		}
 		if d.Get("inet").(bool) {
 			return fmt.Errorf("inet invalid for this interface")
 		}
