@@ -43,11 +43,11 @@ set system login user netconf uid 200?
 set system login user netconf class xxxx
 ```
 with authentication method : ssh key or password
-```
+```text
 set system login user netconf authentication ssh-rsa "xxxx"
 ```
 or
-```
+```text
 set system login user netconf authentication plain-text-password
 ```
 
