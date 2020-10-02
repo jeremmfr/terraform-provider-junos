@@ -73,38 +73,46 @@ resource "junos_interface" "server1" {
 
 The following arguments are supported in the `provider` block:
 
-* `ip` - (Required) This is the target for Netconf session (ip or dns name).
+* `ip` - (Required) This is the target for Netconf session (ip or dns name).  
   It can also be sourced from the `JUNOS_HOST` environment variable.
 
-* `username` - (Optional) This is the username for ssh connection.
-  It can also be sourced from the `JUNOS_USERNAME` environment variable.
+* `username` - (Optional) This is the username for ssh connection.  
+  It can also be sourced from the `JUNOS_USERNAME` environment variable.  
   Defaults to `netconf`.
 
-* `sshkeyfile` - (Optional) This is the path to ssh key for establish ssh connection.
-  It can also be sourced from the `JUNOS_KEYFILE` environment variable.
-
-* `password` - (Optional) This is a password for ssh connection if `sshkeyfile` is not used.
-  It can also be sourced from the `JUNOS_PASSWORD` environment variable.
-
-* `port` - (Optional) This is the tcp port for ssh connection.
-  It can also be sourced from the `JUNOS_PORT` environment variable.
-  Defaults to `830`.
-
-* `keypass` - (Optional) This is the passphrase for open ssh key file.
-  It can also be sourced from the `JUNOS_KEYPASS` environment variable.
+* `sshkeyfile` - (Optional) This is the path to ssh key for establish ssh connection.  
+  It can also be sourced from the `JUNOS_KEYFILE` environment variable.  
   Defaults is empty.
 
-* `group_interface_delete` - (Optional) This is the Junos group used for remove configuration on a physical interface. See interface specifications [interface specifications](#interface-specifications). It can also be sourced from the `JUNOS_GROUP_INTERFACE_DELETE` environment variable. Default to empty.
+* `password` - (Optional) This is a password for ssh connection if `sshkeyfile` is not used.  
+  It can also be sourced from the `JUNOS_PASSWORD` environment variable.  
+  Defaults is empty.
+
+* `port` - (Optional) This is the tcp port for ssh connection.  
+  It can also be sourced from the `JUNOS_PORT` environment variable.  
+  Defaults to `830`.
+
+* `keypass` - (Optional) This is the passphrase for open ssh key file.  
+  It can also be sourced from the `JUNOS_KEYPASS` environment variable.  
+  Defaults is empty.
+
+* `group_interface_delete` - (Optional) This is the Junos group used for remove configuration on a physical interface.  
+  See interface specifications [interface specifications](#interface-specifications).  
+  It can also be sourced from the `JUNOS_GROUP_INTERFACE_DELETE` environment variable.  
+  Default to empty.
 
 #### Command options
-* `cmd_sleep_short` - (Optional) Number of milliseconds to wait after Terraform executes an action on the Junos device. It can also be sourced from the `JUNOS_SLEEP_SHORT` environment variable.
+* `cmd_sleep_short` - (Optional) Number of milliseconds to wait after Terraform executes an action on the Junos device.  
+  It can also be sourced from the `JUNOS_SLEEP_SHORT` environment variable.  
   Defaults to `100`.
 
-* `cmd_sleep_lock` - (Optional) Number of seconds of standby while waiting for Terraform to lock candidate configuration on a Junos device. It can also be sourced from the `JUNOS_SLEEP_LOCK` environment variable.
+* `cmd_sleep_lock` - (Optional) Number of seconds of standby while waiting for Terraform to lock candidate configuration on a Junos device.  
+  It can also be sourced from the `JUNOS_SLEEP_LOCK` environment variable.  
   Defaults to `10`.
 
 #### Debug options
-* `debug_netconf_log_path` - (Optional) more detailed log (netconf) in the specified file. It can also be sourced from the `JUNOS_LOG_PATH` environment variable.
+* `debug_netconf_log_path` - (Optional) more detailed log (netconf) in the specified file.  
+  It can also be sourced from the `JUNOS_LOG_PATH` environment variable.
 
 ## Interface specifications
 
