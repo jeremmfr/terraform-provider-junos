@@ -50,9 +50,14 @@ func Provider() terraform.ResourceProvider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JUNOS_USERNAME", "netconf"),
 			},
+			"password": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("JUNOS_PASSWORD", nil),
+			},
 			"sshkeyfile": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JUNOS_KEYFILE", nil),
 			},
 			"keypass": {
@@ -136,6 +141,7 @@ func configureProvider(d *schema.ResourceData) (interface{}, error) {
 		junosIP:                  d.Get("ip").(string),
 		junosPort:                d.Get("port").(int),
 		junosUserName:            d.Get("username").(string),
+		junosPassword:            d.Get("password").(string),
 		junosSSHKeyFile:          d.Get("sshkeyfile").(string),
 		junosKeyPass:             d.Get("keypass").(string),
 		junosGroupIntDel:         d.Get("group_interface_delete").(string),
