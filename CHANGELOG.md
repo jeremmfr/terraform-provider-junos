@@ -2,6 +2,9 @@
 ENHANCEMENTS:
 
 BUG FIXES:
+
+## v1.5.1
+BUG FIXES:
 * add missing `password` field in provider configuration for ssh authentication #41
 
 ## v1.5.0
