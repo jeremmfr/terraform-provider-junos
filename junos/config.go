@@ -7,6 +7,7 @@ type Config struct {
 	junosCmdSleepLock        int
 	junosIP                  string
 	junosUserName            string
+	junosPassword            string
 	junosSSHKeyFile          string
 	junosKeyPass             string
 	junosGroupIntDel         string
@@ -19,6 +20,7 @@ func (c *Config) Session() (*Session, error) {
 		junosIP:          c.junosIP,
 		junosPort:        c.junosPort,
 		junosUserName:    c.junosUserName,
+		junosPassword:    c.junosPassword,
 		junosSSHKeyFile:  c.junosSSHKeyFile,
 		junosKeyPass:     c.junosKeyPass,
 		junosGroupIntDel: c.junosGroupIntDel,

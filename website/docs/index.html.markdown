@@ -41,8 +41,14 @@ and optionally a specific user for netconf:
 set system login user netconf uid 200?
 
 set system login user netconf class xxxx
-
+```
+with authentication method : ssh key or password
+```
 set system login user netconf authentication ssh-rsa "xxxx"
+```
+or
+```
+set system login user netconf authentication plain-text-password
 ```
 
 Use the navigation to the left to read about the available resources.
@@ -70,13 +76,15 @@ The following arguments are supported in the `provider` block:
 * `ip` - (Required) This is the target for Netconf session (ip or dns name).
   It can also be sourced from the `JUNOS_HOST` environment variable.
 
-* `sshkeyfile` - (Required) This is the path to ssh key for establish ssh
-  connection. It can also be sourced from the `JUNOS_KEYFILE` environment
-  variable.
-
 * `username` - (Optional) This is the username for ssh connection.
   It can also be sourced from the `JUNOS_USERNAME` environment variable.
   Defaults to `netconf`.
+
+* `sshkeyfile` - (Optional) This is the path to ssh key for establish ssh connection.
+  It can also be sourced from the `JUNOS_KEYFILE` environment variable.
+
+* `password` - (Optional) This is a password for ssh connection if `sshkeyfile` is not used.
+  It can also be sourced from the `JUNOS_PASSWORD` environment variable.
 
 * `port` - (Optional) This is the tcp port for ssh connection.
   It can also be sourced from the `JUNOS_PORT` environment variable.
