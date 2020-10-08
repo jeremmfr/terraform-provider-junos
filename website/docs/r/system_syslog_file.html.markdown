@@ -32,10 +32,10 @@ The following arguments are supported:
 * `structured_data` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Log system message in structured format. Max of 1.
   * `brief` - (Optional)(`Bool`) Omit English-language text from end of logged message.
 * `archive` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Define parameters for archiving log messages. Max of 1.
-  * `binary_data` - (Optional)(`Bool`) Mark file as if it contains binary data. ConflictsWith `no_binary_data`.
-  * `no_binary_data` - (Optional)(`Bool`) Don't mark file as if it contains binary data. ConflictsWith `binary_data`.
-  * `world_readable` - (Optional)(`Bool`) Allow any user to read the log file. ConflictsWith `no_world_readable`.
-  * `no_world_readable` - (Optional)(`Bool`) Don't allow any user to read the log file. ConflictsWith `world_readable`.
+  * `binary_data` - (Optional)(`Bool`) Mark file as if it contains binary data. Conflict with `no_binary_data`.
+  * `no_binary_data` - (Optional)(`Bool`) Don't mark file as if it contains binary data. Conflict with `binary_data`.
+  * `world_readable` - (Optional)(`Bool`) Allow any user to read the log file. Conflict with `no_world_readable`.
+  * `no_world_readable` - (Optional)(`Bool`) Don't allow any user to read the log file. Conflict with `world_readable`.
   * `files` - (Optional)(`Int`) Number of files to be archived (1..1000)
   * `size` - (Optional)(`Int`) Size of files to be archived (65536..1073741824 bytes)
   * `start_time` - (Optional)(`String`) Start time for file transmission (yyyy-mm-dd.hh:mm)

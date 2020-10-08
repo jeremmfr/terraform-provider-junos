@@ -31,11 +31,11 @@ The following arguments are supported:
 * `routing_instance` - (Optional, Forces new resource)(`String`) Routing instance for bgp protocol. Need to be default or name of routing instance. Default to `default`
 * `group` - (Required, Forces new resource)(`String`) Name of BGP group for this neighbor
 * `accept_remote_nexthop` - (Optional)(`Bool`) Allow import policy to specify a non-directly connected next-hop.
-* `advertise_external` - (Optional)(`Bool`) Advertise best external routes. ConflictsWith `advertise_external_conditional`.
-* `advertise_external_conditional` - (Optional)(`Bool`) Route matches active route upto med-comparison rule. ConflictsWith `advertise_external`.
+* `advertise_external` - (Optional)(`Bool`) Advertise best external routes. Conflict with `advertise_external_conditional`.
+* `advertise_external_conditional` - (Optional)(`Bool`) Route matches active route upto med-comparison rule. Conflict with `advertise_external`.
 * `advertise_inactive` - (Optional)(`Bool`) Advertise inactive routes.
-* `advertise_peer_as` - (Optional)(`Bool`) Advertise routes received from the same autonomous system. ConflictsWith `no_advertise_peer_as`.
-* `no_advertise_peer_as` - (Optional)(`Bool`) Don't advertise routes received from the same autonomous system. ConflictsWith `advertise_peer_as`.
+* `advertise_peer_as` - (Optional)(`Bool`) Advertise routes received from the same autonomous system. Conflict with `no_advertise_peer_as`.
+* `no_advertise_peer_as` - (Optional)(`Bool`) Don't advertise routes received from the same autonomous system. Conflict with `advertise_peer_as`.
 * `as_override` - (Optional)(`Bool`) Replace neighbor AS number with our AS number.
 * `damping` - (Optional)(`Bool`) Enable route flap damping.
 * `log_updown` - (Optional)(`Bool`) Log a message for peer state transitions.
@@ -46,24 +46,24 @@ The following arguments are supported:
 * `passive` - (Optional)(`Bool`) Do not send open messages to a peer.
 * `hold_time` - (Optional)(`Int`) Hold time used when negotiating with a peer.
 * `local_as` - (Optional)(`String`) Local autonomous system number.
-* `local_as_private` - (Optional)(`Bool`) Hide this local AS in paths learned from this peering. ConflictsWith other local_as options.
-* `local_as_alias` - (Optional)(`Bool`) Treat this AS as an alias to the system AS. ConflictsWith other local_as options.
-* `local_as_no_prepend_global_as` - (Optional)(`Bool`) Do not prepend global autonomous-system number in advertised paths. ConflictsWith other local_as options.
+* `local_as_private` - (Optional)(`Bool`) Hide this local AS in paths learned from this peering. Conflict with other local_as options.
+* `local_as_alias` - (Optional)(`Bool`) Treat this AS as an alias to the system AS. Conflict with other local_as options.
+* `local_as_no_prepend_global_as` - (Optional)(`Bool`) Do not prepend global autonomous-system number in advertised paths. Conflict with other local_as options.
 * `local_as_loops` - (Optional)(`Int`) Maximum number of times this AS can be in an AS path (1..10).
 * `local_preference` - (Optional)(`Int`) Value of LOCAL_PREF path attribute
 * `metric_out` - (Optional)(`Int`) Route metric sent in MED
-* `metric_out_igp` - (Optional)(`Bool`) Track the IGP metric. ConflictsWith `metric_out` and `metric_out_minimum_*`.
-* `metric_out_igp_offset` - (Optional)(`Int`) Metric offset for MED. ConflictsWith `metric_out` and `metric_out_minimum_*`.
-* `metric_out_igp_delay_med_update` - (Optional)(`Bool`) Delay updating MED when IGP metric increases. ConflictsWith `metric_out` and `metric_out_minimum_*`.
-* `metric_out_minimum_igp` - (Optional)(`Bool`) Track the minimum IGP metric. ConflictsWith `metric_out` and `metric_out_(?!minimum)_*`.
-* `metric_out_minimum_igp_offset` - (Optional)(`Bool`) Metric offset for MED. ConflictsWith `metric_out` and `metric_out_(?!minimum)_*`.
+* `metric_out_igp` - (Optional)(`Bool`) Track the IGP metric. Conflict with `metric_out` and `metric_out_minimum_*`.
+* `metric_out_igp_offset` - (Optional)(`Int`) Metric offset for MED. Conflict with `metric_out` and `metric_out_minimum_*`.
+* `metric_out_igp_delay_med_update` - (Optional)(`Bool`) Delay updating MED when IGP metric increases. Conflict with `metric_out` and `metric_out_minimum_*`.
+* `metric_out_minimum_igp` - (Optional)(`Bool`) Track the minimum IGP metric. Conflict with `metric_out` and `metric_out_(?!minimum)_*`.
+* `metric_out_minimum_igp_offset` - (Optional)(`Bool`) Metric offset for MED. Conflict with `metric_out` and `metric_out_(?!minimum)_*`.
 * `out_delay` - (Optional)(`Int`) How long before exporting routes from routing table.
 * `peer_as` - (Optional)(`String`) Autonomous system number
 * `preference` - (Optional)(`Int`) Preference value
-* `authentication_algorithm` - (Optional)(`String`) Authentication algorithm name. ConflictsWith `authentication_key`.
-* `authentication_key` - (Optional)(`String`) MD5 authentication key. ConflictsWith `authentication_*`.
+* `authentication_algorithm` - (Optional)(`String`) Authentication algorithm name. Conflict with `authentication_key`.
+* `authentication_key` - (Optional)(`String`) MD5 authentication key. Conflict with `authentication_*`.
 **WARNING** Clear in tfstate.
-* `authentication_key_chain` - (Optional)(`String`) Key chain name. ConflictsWith `authentication_key`.
+* `authentication_key_chain` - (Optional)(`String`) Key chain name. Conflict with `authentication_key`.
 * `local_address` - (Optional)(`String`) Address of local end of BGP session.
 * `local_interface` - (Optional)(`String`) Local interface for IPv6 link local EBGP peering.
 * `export` - (Optional)(`ListOfString`) Export policy list.
@@ -96,7 +96,7 @@ Also for `family_inet6`
   * `maximum` - (Required)(`Int`) Maximum number of prefixes accepted from a peer (1..4294967295).
   * `teardown` - (Optional)(`Int`) Clear peer connection on reaching limit with this percentage of prefix-limit to start warnings.
   * `teardown_idle_timeout` - (Optional)(`Int`) Timeout before attempting to restart peer.
-  * `teardown_idle_timeout_forever`  - (Optional)(`Bool`) Idle the peer until the user intervenes. ConflictsWith `teardown_idle_timeout`.
+  * `teardown_idle_timeout_forever`  - (Optional)(`Bool`) Idle the peer until the user intervenes. Conflict with `teardown_idle_timeout`.
 * `prefix_limit` Same options as [`accepted_prefix_limit`](#accepted_prefix_limit) but for limit maximum number of prefixes from a peer
 
 #### graceful_restart arguments
