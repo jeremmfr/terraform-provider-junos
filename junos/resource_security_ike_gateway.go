@@ -84,6 +84,11 @@ func resourceIkeGateway() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(1, 5),
 						},
+						"send_mode": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"always-send", "optimized", "probe-idle-tunnel"}, false),
+						},
 					},
 				},
 			},
@@ -336,6 +341,10 @@ func setIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 					configSet = append(configSet, setPrefix+" dead-peer-detection threshold "+
 						strconv.Itoa(deadPeerOptions["threshold"].(int)))
 				}
+				if deadPeerOptions["send_mode"].(string) != "" {
+					configSet = append(configSet, setPrefix+" dead-peer-detection "+
+						deadPeerOptions["send_mode"].(string))
+				}
 			}
 		}
 	}
@@ -406,6 +415,7 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 				deadPeerOptions := map[string]interface{}{
 					"interval":  0,
 					"threshold": 0,
+					"send_mode": "",
 				}
 				if len(confRead.deadPeerDetection) > 0 {
 					for k, v := range confRead.deadPeerDetection[0] {
@@ -425,6 +435,12 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 					if err != nil {
 						return confRead, err
 					}
+				case strings.HasSuffix(itemTrim, " always-send"):
+					deadPeerOptions["send_mode"] = "always-send"
+				case strings.HasSuffix(itemTrim, " optimized"):
+					deadPeerOptions["send_mode"] = "optimized"
+				case strings.HasSuffix(itemTrim, " probe-idle-tunnel"):
+					deadPeerOptions["send_mode"] = "probe-idle-tunnel"
 				}
 				// override (maxItem = 1)
 				confRead.deadPeerDetection = []map[string]interface{}{deadPeerOptions}

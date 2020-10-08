@@ -2,6 +2,7 @@
 ENHANCEMENTS:
 * upgrade to terraform-plugin-sdk v2
 * switch to sdk for part of ValidateFunc and rewrite the others to ValidateDiagFunc
+* add `send_mode` for `dead_peer_detection` in resource `security_ike_gateway` (Fixes [#43](https://github.com/jeremmfr/terraform-provider-junos/issues/43))
 
 BUG FIXES:
 * fix sess.configLock return already nil
