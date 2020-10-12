@@ -1,10 +1,12 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type natStaticOptions struct {
@@ -15,10 +17,10 @@ type natStaticOptions struct {
 
 func resourceSecurityNatStatic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSecurityNatStaticCreate,
-		Read:   resourceSecurityNatStaticRead,
-		Update: resourceSecurityNatStaticUpdate,
-		Delete: resourceSecurityNatStaticDelete,
+		CreateContext: resourceSecurityNatStaticCreate,
+		ReadContext:   resourceSecurityNatStaticRead,
+		UpdateContext: resourceSecurityNatStaticUpdate,
+		DeleteContext: resourceSecurityNatStaticDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceSecurityNatStaticImport,
 		},
@@ -110,70 +112,71 @@ func resourceSecurityNatStatic() *schema.Resource {
 	}
 }
 
-func resourceSecurityNatStaticCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatStaticCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security nat static not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security nat static not compatible with Junos device %s", jnprSess.Platform[0].Model))
 	}
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	securityNatStaticExists, err := checkSecurityNatStaticExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if securityNatStaticExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("security nat static %v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security nat static %v already exists", d.Get("name").(string)))
 	}
 
 	err = setSecurityNatStatic(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_security_nat_static", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	securityNatStaticExists, err = checkSecurityNatStaticExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if securityNatStaticExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("security nat static %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security nat static %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceSecurityNatStaticRead(d, m)
+	return resourceSecurityNatStaticRead(ctx, d, m)
 }
-func resourceSecurityNatStaticRead(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatStaticRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	natStaticOptions, err := readSecurityNatStatic(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if natStaticOptions.name == "" {
 		d.SetId("")
@@ -183,62 +186,62 @@ func resourceSecurityNatStaticRead(d *schema.ResourceData, m interface{}) error 
 
 	return nil
 }
-func resourceSecurityNatStaticUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatStaticUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delSecurityNatStatic(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setSecurityNatStatic(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_security_nat_static", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceSecurityNatStaticRead(d, m)
+	return resourceSecurityNatStaticRead(ctx, d, m)
 }
-func resourceSecurityNatStaticDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatStaticDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delSecurityNatStatic(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_security_nat_static", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

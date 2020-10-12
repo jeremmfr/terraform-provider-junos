@@ -1,11 +1,13 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type natSourcePoolOptions struct {
@@ -19,10 +21,10 @@ type natSourcePoolOptions struct {
 
 func resourceSecurityNatSourcePool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSecurityNatSourcePoolCreate,
-		Read:   resourceSecurityNatSourcePoolRead,
-		Update: resourceSecurityNatSourcePoolUpdate,
-		Delete: resourceSecurityNatSourcePoolDelete,
+		CreateContext: resourceSecurityNatSourcePoolCreate,
+		ReadContext:   resourceSecurityNatSourcePoolRead,
+		UpdateContext: resourceSecurityNatSourcePoolUpdate,
+		DeleteContext: resourceSecurityNatSourcePoolDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceSecurityNatSourcePoolImport,
 		},
@@ -65,70 +67,72 @@ func resourceSecurityNatSourcePool() *schema.Resource {
 	}
 }
 
-func resourceSecurityNatSourcePoolCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatSourcePoolCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security nat source pool not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security nat source pool not compatible with Junos device %s",
+			jnprSess.Platform[0].Model))
 	}
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	securityNatSourcePoolExists, err := checkSecurityNatSourcePoolExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if securityNatSourcePoolExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("security nat source pool %v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security nat source pool %v already exists", d.Get("name").(string)))
 	}
 
 	err = setSecurityNatSourcePool(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_security_nat_source_pool", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	securityNatSourcePoolExists, err = checkSecurityNatSourcePoolExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if securityNatSourcePoolExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("security nat source pool %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security nat source pool %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceSecurityNatSourcePoolRead(d, m)
+	return resourceSecurityNatSourcePoolRead(ctx, d, m)
 }
-func resourceSecurityNatSourcePoolRead(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatSourcePoolRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	natSourcePoolOptions, err := readSecurityNatSourcePool(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if natSourcePoolOptions.name == "" {
 		d.SetId("")
@@ -138,62 +142,62 @@ func resourceSecurityNatSourcePoolRead(d *schema.ResourceData, m interface{}) er
 
 	return nil
 }
-func resourceSecurityNatSourcePoolUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatSourcePoolUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delSecurityNatSourcePool(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setSecurityNatSourcePool(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_security_nat_source_pool", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceSecurityNatSourcePoolRead(d, m)
+	return resourceSecurityNatSourcePoolRead(ctx, d, m)
 }
-func resourceSecurityNatSourcePoolDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatSourcePoolDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delSecurityNatSourcePool(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_security_nat_source_pool", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

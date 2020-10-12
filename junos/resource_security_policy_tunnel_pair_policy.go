@@ -1,10 +1,12 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type policyPairPolicyOptions struct {
@@ -16,9 +18,9 @@ type policyPairPolicyOptions struct {
 
 func resourceSecurityPolicyTunnelPairPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSecurityPolicyTunnelPairPolicyCreate,
-		Read:   resourceSecurityPolicyTunnelPairPolicyRead,
-		Delete: resourceSecurityPolicyTunnelPairPolicyDelete,
+		CreateContext: resourceSecurityPolicyTunnelPairPolicyCreate,
+		ReadContext:   resourceSecurityPolicyTunnelPairPolicyRead,
+		DeleteContext: resourceSecurityPolicyTunnelPairPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceSecurityPolicyTunnelPairPolicyImport,
 		},
@@ -51,91 +53,95 @@ func resourceSecurityPolicyTunnelPairPolicy() *schema.Resource {
 	}
 }
 
-func resourceSecurityPolicyTunnelPairPolicyCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityPolicyTunnelPairPolicyCreate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security policy tunnel pair policy not compatible with Junos device %s",
-			jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security policy tunnel pair policy not compatible with Junos device %s",
+			jnprSess.Platform[0].Model))
 	}
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	securityPolicyExists, err := checkSecurityPolicyExists(d.Get("zone_a").(string), d.Get("zone_b").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if !securityPolicyExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("security policy from %v to %v not exists", d.Get("zone_a").(string), d.Get("zone_b").(string))
+		return diag.FromErr(fmt.Errorf("security policy from %v to %v not exists",
+			d.Get("zone_a").(string), d.Get("zone_b").(string)))
 	}
 	securityPolicyExists, err = checkSecurityPolicyExists(d.Get("zone_b").(string), d.Get("zone_a").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if !securityPolicyExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("security policy from %v to %v not exists", d.Get("zone_b").(string), d.Get("zone_a").(string))
+		return diag.FromErr(fmt.Errorf("security policy from %v to %v not exists",
+			d.Get("zone_b").(string), d.Get("zone_a").(string)))
 	}
 	pairPolicyExists, err := checkSecurityPolicyPairExists(d.Get("zone_a").(string), d.Get("policy_a_to_b").(string),
 		d.Get("zone_b").(string), d.Get("policy_b_to_a").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if pairPolicyExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("security policy pair policy %v(%v) / %v(%v) already exists",
+		return diag.FromErr(fmt.Errorf("security policy pair policy %v(%v) / %v(%v) already exists",
 			d.Get("zone_a").(string), d.Get("policy_a_to_b").(string),
-			d.Get("zone_b").(string), d.Get("policy_b_to_a").(string))
+			d.Get("zone_b").(string), d.Get("policy_b_to_a").(string)))
 	}
 	err = setSecurityPolicyTunnelPairPolicy(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_security_policy_tunnel_pair_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	pairPolicyExists, err = checkSecurityPolicyPairExists(d.Get("zone_a").(string), d.Get("policy_a_to_b").(string),
 		d.Get("zone_b").(string), d.Get("policy_b_to_a").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if pairPolicyExists {
 		d.SetId(d.Get("zone_a").(string) + idSeparator + d.Get("policy_a_to_b").(string) +
 			idSeparator + d.Get("zone_b").(string) + idSeparator + d.Get("policy_b_to_a").(string))
 	} else {
-		return fmt.Errorf("security policy pair policy not exists after commit => check your config")
+		return diag.FromErr(fmt.Errorf("security policy pair policy not exists after commit => check your config"))
 	}
 
-	return resourceSecurityPolicyTunnelPairPolicyRead(d, m)
+	return resourceSecurityPolicyTunnelPairPolicyRead(ctx, d, m)
 }
-func resourceSecurityPolicyTunnelPairPolicyRead(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityPolicyTunnelPairPolicyRead(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	policyPairPolicyOptions, err := readSecurityPolicyTunnelPairPolicy(d.Get("zone_a").(string)+idSeparator+
@@ -144,7 +150,7 @@ func resourceSecurityPolicyTunnelPairPolicyRead(d *schema.ResourceData, m interf
 		d.Get("policy_b_to_a").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if policyPairPolicyOptions.policyAtoB == "" && policyPairPolicyOptions.policyBtoA == "" {
 		d.SetId("")
@@ -154,28 +160,29 @@ func resourceSecurityPolicyTunnelPairPolicyRead(d *schema.ResourceData, m interf
 
 	return nil
 }
-func resourceSecurityPolicyTunnelPairPolicyDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityPolicyTunnelPairPolicyDelete(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delSecurityPolicyTunnelPairPolicy(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_security_policy_tunnel_pair_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

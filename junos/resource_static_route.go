@@ -1,11 +1,13 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type staticRouteOptions struct {
@@ -20,10 +22,10 @@ type staticRouteOptions struct {
 
 func resourceStaticRoute() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceStaticRouteCreate,
-		Read:   resourceStaticRouteRead,
-		Update: resourceStaticRouteUpdate,
-		Delete: resourceStaticRouteDelete,
+		CreateContext: resourceStaticRouteCreate,
+		ReadContext:   resourceStaticRouteRead,
+		UpdateContext: resourceStaticRouteUpdate,
+		DeleteContext: resourceStaticRouteDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceStaticRouteImport,
 		},
@@ -92,28 +94,28 @@ func resourceStaticRoute() *schema.Resource {
 	}
 }
 
-func resourceStaticRouteCreate(d *schema.ResourceData, m interface{}) error {
+func resourceStaticRouteCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if d.Get("routing_instance").(string) != defaultWord {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
 
-			return err
+			return diag.FromErr(err)
 		}
 		if !instanceExists {
 			sess.configClear(jnprSess)
 
-			return fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string))
+			return diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))
 		}
 	}
 	staticRouteExists, err := checkStaticRouteExists(d.Get("destination").(string), d.Get("routing_instance").(string),
@@ -121,57 +123,57 @@ func resourceStaticRouteCreate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if staticRouteExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("static route %v already exists on table %s",
-			d.Get("destination").(string), d.Get("routing_instance").(string))
+		return diag.FromErr(fmt.Errorf("static route %v already exists on table %s",
+			d.Get("destination").(string), d.Get("routing_instance").(string)))
 	}
 	err = setStaticRoute(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_static_route", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	staticRouteExists, err = checkStaticRouteExists(d.Get("destination").(string), d.Get("routing_instance").(string),
 		m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if staticRouteExists {
 		d.SetId(d.Get("destination").(string) + idSeparator + d.Get("routing_instance").(string))
 	} else {
-		return fmt.Errorf("static route %v not exists in routing_instance %v after commit "+
-			"=> check your config", d.Get("destination").(string), d.Get("routing_instance").(string))
+		return diag.FromErr(fmt.Errorf("static route %v not exists in routing_instance %v after commit "+
+			"=> check your config", d.Get("destination").(string), d.Get("routing_instance").(string)))
 	}
 
-	return resourceStaticRouteRead(d, m)
+	return resourceStaticRouteRead(ctx, d, m)
 }
-func resourceStaticRouteRead(d *schema.ResourceData, m interface{}) error {
+func resourceStaticRouteRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	staticRouteOptions, err := readStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string),
 		m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if staticRouteOptions.destination == "" {
 		d.SetId("")
@@ -181,63 +183,63 @@ func resourceStaticRouteRead(d *schema.ResourceData, m interface{}) error {
 
 	return nil
 }
-func resourceStaticRouteUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceStaticRouteUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delStaticRouteOpts(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	err = setStaticRoute(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_static_route", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceStaticRouteRead(d, m)
+	return resourceStaticRouteRead(ctx, d, m)
 }
-func resourceStaticRouteDelete(d *schema.ResourceData, m interface{}) error {
+func resourceStaticRouteDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_static_route", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

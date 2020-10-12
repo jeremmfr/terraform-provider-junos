@@ -1,11 +1,13 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type utmPolicyOptions struct {
@@ -19,10 +21,10 @@ type utmPolicyOptions struct {
 
 func resourceSecurityUtmPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSecurityUtmPolicyCreate,
-		Read:   resourceSecurityUtmPolicyRead,
-		Update: resourceSecurityUtmPolicyUpdate,
-		Delete: resourceSecurityUtmPolicyDelete,
+		CreateContext: resourceSecurityUtmPolicyCreate,
+		ReadContext:   resourceSecurityUtmPolicyRead,
+		UpdateContext: resourceSecurityUtmPolicyUpdate,
+		DeleteContext: resourceSecurityUtmPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceSecurityUtmPolicyImport,
 		},
@@ -138,74 +140,74 @@ func resourceSecurityUtmPolicy() *schema.Resource {
 	}
 }
 
-func resourceSecurityUtmPolicyCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityUtmPolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security utm utm-policy "+
-			"not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security utm utm-policy "+
+			"not compatible with Junos device %s", jnprSess.Platform[0].Model))
 	}
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	utmPolicyExists, err := checkUtmPolicysExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if utmPolicyExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("security utm utm-policy %v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security utm utm-policy %v already exists", d.Get("name").(string)))
 	}
 
 	err = setUtmPolicy(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_security_utm_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	mutex.Lock()
 	utmPolicyExists, err = checkUtmPolicysExists(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if utmPolicyExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("security utm utm-policy %v "+
-			"not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security utm utm-policy %v "+
+			"not exists after commit => check your config", d.Get("name").(string)))
 	}
 
-	return resourceSecurityUtmPolicyRead(d, m)
+	return resourceSecurityUtmPolicyRead(ctx, d, m)
 }
-func resourceSecurityUtmPolicyRead(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityUtmPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	utmPolicyOptions, err := readUtmPolicy(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if utmPolicyOptions.name == "" {
 		d.SetId("")
@@ -215,62 +217,62 @@ func resourceSecurityUtmPolicyRead(d *schema.ResourceData, m interface{}) error 
 
 	return nil
 }
-func resourceSecurityUtmPolicyUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityUtmPolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delUtmPolicy(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setUtmPolicy(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_security_utm_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceSecurityUtmPolicyRead(d, m)
+	return resourceSecurityUtmPolicyRead(ctx, d, m)
 }
-func resourceSecurityUtmPolicyDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityUtmPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delUtmPolicy(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_security_utm_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

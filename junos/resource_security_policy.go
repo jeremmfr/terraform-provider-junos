@@ -1,10 +1,12 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type policyOptions struct {
@@ -15,10 +17,10 @@ type policyOptions struct {
 
 func resourceSecurityPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSecurityPolicyCreate,
-		Read:   resourceSecurityPolicyRead,
-		Update: resourceSecurityPolicyUpdate,
-		Delete: resourceSecurityPolicyDelete,
+		CreateContext: resourceSecurityPolicyCreate,
+		ReadContext:   resourceSecurityPolicyRead,
+		UpdateContext: resourceSecurityPolicyUpdate,
+		DeleteContext: resourceSecurityPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceSecurityPolicyImport,
 		},
@@ -168,75 +170,75 @@ func resourceSecurityPolicy() *schema.Resource {
 	}
 }
 
-func resourceSecurityPolicyCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityPolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security policy not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security policy not compatible with Junos device %s", jnprSess.Platform[0].Model))
 	}
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	securityPolicyExists, err := checkSecurityPolicyExists(d.Get("from_zone").(string), d.Get("to_zone").(string),
 		m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if securityPolicyExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("security policy from %v to %v already exists",
-			d.Get("from_zone").(string), d.Get("to_zone").(string))
+		return diag.FromErr(fmt.Errorf("security policy from %v to %v already exists",
+			d.Get("from_zone").(string), d.Get("to_zone").(string)))
 	}
 
 	err = setSecurityPolicy(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_security_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	securityPolicyExists, err = checkSecurityPolicyExists(d.Get("from_zone").(string), d.Get("to_zone").(string),
 		m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if securityPolicyExists {
 		d.SetId(d.Get("from_zone").(string) + idSeparator + d.Get("to_zone").(string))
 	} else {
-		return fmt.Errorf("security policy from %v to %v not exists after commit "+
-			"=> check your config", d.Get("from_zone").(string), d.Get("to_zone").(string))
+		return diag.FromErr(fmt.Errorf("security policy from %v to %v not exists after commit "+
+			"=> check your config", d.Get("from_zone").(string), d.Get("to_zone").(string)))
 	}
 
-	return resourceSecurityPolicyRead(d, m)
+	return resourceSecurityPolicyRead(ctx, d, m)
 }
-func resourceSecurityPolicyRead(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	policyOptions, err := readSecurityPolicy(d.Get("from_zone").(string)+idSeparator+d.Get("to_zone").(string),
 		m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if len(policyOptions.policy) == 0 {
 		d.SetId("")
@@ -246,64 +248,64 @@ func resourceSecurityPolicyRead(d *schema.ResourceData, m interface{}) error {
 
 	return nil
 }
-func resourceSecurityPolicyUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityPolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	err = delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	err = setSecurityPolicy(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_security_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceSecurityPolicyRead(d, m)
+	return resourceSecurityPolicyRead(ctx, d, m)
 }
-func resourceSecurityPolicyDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_security_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

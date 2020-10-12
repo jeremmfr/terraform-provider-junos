@@ -1,11 +1,13 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -36,10 +38,10 @@ type syslogFileOptions struct {
 
 func resourceSystemSyslogFile() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSystemSyslogFileCreate,
-		Read:   resourceSystemSyslogFileRead,
-		Update: resourceSystemSyslogFileUpdate,
-		Delete: resourceSystemSyslogFileDelete,
+		CreateContext: resourceSystemSyslogFileCreate,
+		ReadContext:   resourceSystemSyslogFileRead,
+		UpdateContext: resourceSystemSyslogFileUpdate,
+		DeleteContext: resourceSystemSyslogFileDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceSystemSyslogFileImport,
 		},
@@ -228,67 +230,68 @@ func resourceSystemSyslogFile() *schema.Resource {
 	}
 }
 
-func resourceSystemSyslogFileCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSystemSyslogFileCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	syslogFileExists, err := checkSystemSyslogFileExists(d.Get("filename").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if syslogFileExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("system syslog file %v already exists", d.Get("filename").(string))
+		return diag.FromErr(fmt.Errorf("system syslog file %v already exists", d.Get("filename").(string)))
 	}
 
 	err = setSystemSyslogFile(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_system_syslog_file", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	syslogFileExists, err = checkSystemSyslogFileExists(d.Get("filename").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if syslogFileExists {
 		d.SetId(d.Get("filename").(string))
 	} else {
-		return fmt.Errorf("system syslog file %v not exists after commit => check your config", d.Get("filename").(string))
+		return diag.FromErr(fmt.Errorf("system syslog file %v not exists after commit "+
+			"=> check your config", d.Get("filename").(string)))
 	}
 
-	return resourceSystemSyslogFileRead(d, m)
+	return resourceSystemSyslogFileRead(ctx, d, m)
 }
-func resourceSystemSyslogFileRead(d *schema.ResourceData, m interface{}) error {
+func resourceSystemSyslogFileRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	syslogFileOptions, err := readSystemSyslogFile(d.Get("filename").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if syslogFileOptions.filename == "" {
 		d.SetId("")
@@ -298,62 +301,62 @@ func resourceSystemSyslogFileRead(d *schema.ResourceData, m interface{}) error {
 
 	return nil
 }
-func resourceSystemSyslogFileUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceSystemSyslogFileUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delSystemSyslogFile(d.Get("filename").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setSystemSyslogFile(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_system_syslog_file", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceSystemSyslogFileRead(d, m)
+	return resourceSystemSyslogFileRead(ctx, d, m)
 }
-func resourceSystemSyslogFileDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSystemSyslogFileDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delSystemSyslogFile(d.Get("filename").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_system_syslog_file", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

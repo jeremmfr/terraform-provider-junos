@@ -1,10 +1,12 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type filterOptions struct {
@@ -16,10 +18,10 @@ type filterOptions struct {
 
 func resourceFirewallFilter() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceFirewallFilterCreate,
-		Read:   resourceFirewallFilterRead,
-		Update: resourceFirewallFilterUpdate,
-		Delete: resourceFirewallFilterDelete,
+		CreateContext: resourceFirewallFilterCreate,
+		ReadContext:   resourceFirewallFilterRead,
+		UpdateContext: resourceFirewallFilterUpdate,
+		DeleteContext: resourceFirewallFilterDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceFirewallFilterImport,
 		},
@@ -270,67 +272,68 @@ func resourceFirewallFilter() *schema.Resource {
 	}
 }
 
-func resourceFirewallFilterCreate(d *schema.ResourceData, m interface{}) error {
+func resourceFirewallFilterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	firewallFilterExists, err := checkFirewallFilterExists(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if firewallFilterExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("firewall filter %v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("firewall filter %v already exists", d.Get("name").(string)))
 	}
 
 	err = setFirewallFilter(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_firewall_filter", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	firewallFilterExists, err = checkFirewallFilterExists(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if firewallFilterExists {
 		d.SetId(d.Get("name").(string) + idSeparator + d.Get("family").(string))
 	} else {
-		return fmt.Errorf("firewall filter %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("firewall filter %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceFirewallFilterRead(d, m)
+	return resourceFirewallFilterRead(ctx, d, m)
 }
-func resourceFirewallFilterRead(d *schema.ResourceData, m interface{}) error {
+func resourceFirewallFilterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	filterOptions, err := readFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if filterOptions.name == "" {
 		d.SetId("")
@@ -340,62 +343,62 @@ func resourceFirewallFilterRead(d *schema.ResourceData, m interface{}) error {
 
 	return nil
 }
-func resourceFirewallFilterUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceFirewallFilterUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setFirewallFilter(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_firewall_filter", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceFirewallFilterRead(d, m)
+	return resourceFirewallFilterRead(ctx, d, m)
 }
-func resourceFirewallFilterDelete(d *schema.ResourceData, m interface{}) error {
+func resourceFirewallFilterDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_firewall_filter", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

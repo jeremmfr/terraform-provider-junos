@@ -1,18 +1,20 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceBgpNeighbor() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBgpNeighborCreate,
-		Read:   resourceBgpNeighborRead,
-		Update: resourceBgpNeighborUpdate,
-		Delete: resourceBgpNeighborDelete,
+		CreateContext: resourceBgpNeighborCreate,
+		ReadContext:   resourceBgpNeighborRead,
+		UpdateContext: resourceBgpNeighborUpdate,
+		DeleteContext: resourceBgpNeighborDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceBgpNeighborImport,
 		},
@@ -486,97 +488,97 @@ func resourceBgpNeighbor() *schema.Resource {
 	}
 }
 
-func resourceBgpNeighborCreate(d *schema.ResourceData, m interface{}) error {
+func resourceBgpNeighborCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if d.Get("routing_instance").(string) != defaultWord {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
 
-			return err
+			return diag.FromErr(err)
 		}
 		if !instanceExists {
 			sess.configClear(jnprSess)
 
-			return fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string))
+			return diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))
 		}
 	}
 	bgpGroupExists, err := checkBgpGroupExists(d.Get("group").(string), d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if !bgpGroupExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("bgp group %v doesn't exist", d.Get("group").(string))
+		return diag.FromErr(fmt.Errorf("bgp group %v doesn't exist", d.Get("group").(string)))
 	}
 	bgpNeighborxists, err := checkBgpNeighborExists(d.Get("ip").(string),
 		d.Get("routing_instance").(string), d.Get("group").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if bgpNeighborxists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("bgp neighbor %v already exists in group %v (routing-instance %v)",
-			d.Get("ip").(string), d.Get("group").(string), d.Get("routing_instance").(string))
+		return diag.FromErr(fmt.Errorf("bgp neighbor %v already exists in group %v (routing-instance %v)",
+			d.Get("ip").(string), d.Get("group").(string), d.Get("routing_instance").(string)))
 	}
 	err = setBgpNeighbor(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_bgp_neighbor", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	bgpNeighborxists, err = checkBgpNeighborExists(d.Get("ip").(string),
 		d.Get("routing_instance").(string), d.Get("group").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if bgpNeighborxists {
 		d.SetId(d.Get("ip").(string) +
 			idSeparator + d.Get("routing_instance").(string) +
 			idSeparator + d.Get("group").(string))
 	} else {
-		return fmt.Errorf("bgp neighbor %v not exists in group %v (routing-instance %v) after commit "+
-			"=> check your config", d.Get("ip").(string), d.Get("group").(string), d.Get("routing_instance").(string))
+		return diag.FromErr(fmt.Errorf("bgp neighbor %v not exists in group %v (routing-instance %v) after commit "+
+			"=> check your config", d.Get("ip").(string), d.Get("group").(string), d.Get("routing_instance").(string)))
 	}
 
-	return resourceBgpNeighborRead(d, m)
+	return resourceBgpNeighborRead(ctx, d, m)
 }
-func resourceBgpNeighborRead(d *schema.ResourceData, m interface{}) error {
+func resourceBgpNeighborRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	bgpNeighborOptions, err := readBgpNeighbor(d.Get("ip").(string),
 		d.Get("routing_instance").(string), d.Get("group").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if bgpNeighborOptions.ip == "" {
 		d.SetId("")
@@ -586,62 +588,62 @@ func resourceBgpNeighborRead(d *schema.ResourceData, m interface{}) error {
 
 	return nil
 }
-func resourceBgpNeighborUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceBgpNeighborUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delBgpOpts(d, "neighbor", m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setBgpNeighbor(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_bgp_neighbor", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceBgpNeighborRead(d, m)
+	return resourceBgpNeighborRead(ctx, d, m)
 }
-func resourceBgpNeighborDelete(d *schema.ResourceData, m interface{}) error {
+func resourceBgpNeighborDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delBgpNeighbor(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_bgp_neighbor", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

@@ -1,10 +1,12 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type utmCustomURLPatternOptions struct {
@@ -14,10 +16,10 @@ type utmCustomURLPatternOptions struct {
 
 func resourceSecurityUtmCustomURLPattern() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSecurityUtmCustomURLPatternCreate,
-		Read:   resourceSecurityUtmCustomURLPatternRead,
-		Update: resourceSecurityUtmCustomURLPatternUpdate,
-		Delete: resourceSecurityUtmCustomURLPatternDelete,
+		CreateContext: resourceSecurityUtmCustomURLPatternCreate,
+		ReadContext:   resourceSecurityUtmCustomURLPatternRead,
+		UpdateContext: resourceSecurityUtmCustomURLPatternUpdate,
+		DeleteContext: resourceSecurityUtmCustomURLPatternDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceSecurityUtmCustomURLPatternImport,
 		},
@@ -38,74 +40,76 @@ func resourceSecurityUtmCustomURLPattern() *schema.Resource {
 	}
 }
 
-func resourceSecurityUtmCustomURLPatternCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityUtmCustomURLPatternCreate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security utm custom-objects url-pattern "+
-			"not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security utm custom-objects url-pattern "+
+			"not compatible with Junos device %s", jnprSess.Platform[0].Model))
 	}
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	utmCustomURLPatternExists, err := checkUtmCustomURLPatternsExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if utmCustomURLPatternExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("security utm custom-objects url-pattern %v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security utm custom-objects url-pattern %v already exists", d.Get("name").(string)))
 	}
 
 	err = setUtmCustomURLPattern(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_security_utm_custom_url_pattern", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	mutex.Lock()
 	utmCustomURLPatternExists, err = checkUtmCustomURLPatternsExists(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if utmCustomURLPatternExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("security utm custom-objects url-pattern %v "+
-			"not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security utm custom-objects url-pattern %v "+
+			"not exists after commit => check your config", d.Get("name").(string)))
 	}
 
-	return resourceSecurityUtmCustomURLPatternRead(d, m)
+	return resourceSecurityUtmCustomURLPatternRead(ctx, d, m)
 }
-func resourceSecurityUtmCustomURLPatternRead(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityUtmCustomURLPatternRead(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	utmCustomURLPatternOptions, err := readUtmCustomURLPattern(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if utmCustomURLPatternOptions.name == "" {
 		d.SetId("")
@@ -115,62 +119,64 @@ func resourceSecurityUtmCustomURLPatternRead(d *schema.ResourceData, m interface
 
 	return nil
 }
-func resourceSecurityUtmCustomURLPatternUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityUtmCustomURLPatternUpdate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delUtmCustomURLPattern(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setUtmCustomURLPattern(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_security_utm_custom_url_pattern", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceSecurityUtmCustomURLPatternRead(d, m)
+	return resourceSecurityUtmCustomURLPatternRead(ctx, d, m)
 }
-func resourceSecurityUtmCustomURLPatternDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityUtmCustomURLPatternDelete(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delUtmCustomURLPattern(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_security_utm_custom_url_pattern", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

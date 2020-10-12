@@ -1,18 +1,20 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceBgpGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBgpGroupCreate,
-		Read:   resourceBgpGroupRead,
-		Update: resourceBgpGroupUpdate,
-		Delete: resourceBgpGroupDelete,
+		CreateContext: resourceBgpGroupCreate,
+		ReadContext:   resourceBgpGroupRead,
+		UpdateContext: resourceBgpGroupUpdate,
+		DeleteContext: resourceBgpGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceBgpGroupImport,
 		},
@@ -499,81 +501,81 @@ func resourceBgpGroup() *schema.Resource {
 	}
 }
 
-func resourceBgpGroupCreate(d *schema.ResourceData, m interface{}) error {
+func resourceBgpGroupCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if d.Get("routing_instance").(string) != defaultWord {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
 
-			return err
+			return diag.FromErr(err)
 		}
 		if !instanceExists {
 			sess.configClear(jnprSess)
 
-			return fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string))
+			return diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))
 		}
 	}
 	bgpGroupxists, err := checkBgpGroupExists(d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if bgpGroupxists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("bgp group %v already exists in routing-instance %v",
-			d.Get("name").(string), d.Get("routing_instance").(string))
+		return diag.FromErr(fmt.Errorf("bgp group %v already exists in routing-instance %v",
+			d.Get("name").(string), d.Get("routing_instance").(string)))
 	}
 	err = setBgpGroup(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_bgp_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	bgpGroupxists, err = checkBgpGroupExists(d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if bgpGroupxists {
 		d.SetId(d.Get("name").(string) + idSeparator + d.Get("routing_instance").(string))
 	} else {
-		return fmt.Errorf("bgp group %v not exists in routing-instance %v after commit "+
-			"=> check your config", d.Get("name").(string), d.Get("routing_instance").(string))
+		return diag.FromErr(fmt.Errorf("bgp group %v not exists in routing-instance %v after commit "+
+			"=> check your config", d.Get("name").(string), d.Get("routing_instance").(string)))
 	}
 
-	return resourceBgpGroupRead(d, m)
+	return resourceBgpGroupRead(ctx, d, m)
 }
-func resourceBgpGroupRead(d *schema.ResourceData, m interface{}) error {
+func resourceBgpGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	bgpGroupOptions, err := readBgpGroup(d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if bgpGroupOptions.name == "" {
 		d.SetId("")
@@ -583,62 +585,62 @@ func resourceBgpGroupRead(d *schema.ResourceData, m interface{}) error {
 
 	return nil
 }
-func resourceBgpGroupUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceBgpGroupUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delBgpOpts(d, "group", m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setBgpGroup(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_bgp_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceBgpGroupRead(d, m)
+	return resourceBgpGroupRead(ctx, d, m)
 }
-func resourceBgpGroupDelete(d *schema.ResourceData, m interface{}) error {
+func resourceBgpGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delBgpGroup(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_bgp_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

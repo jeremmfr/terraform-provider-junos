@@ -1,12 +1,14 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -37,10 +39,10 @@ type interfaceOptions struct {
 
 func resourceInterface() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceInterfaceCreate,
-		Read:   resourceInterfaceRead,
-		Update: resourceInterfaceUpdate,
-		Delete: resourceInterfaceDelete,
+		CreateContext: resourceInterfaceCreate,
+		ReadContext:   resourceInterfaceRead,
+		UpdateContext: resourceInterfaceUpdate,
+		DeleteContext: resourceInterfaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceInterfaceImport,
 		},
@@ -437,47 +439,47 @@ func resourceInterface() *schema.Resource {
 	}
 }
 
-func resourceInterfaceCreate(d *schema.ResourceData, m interface{}) error {
+func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if intExists {
 		err = checkInterfaceNC(d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
 
-			return err
+			return diag.FromErr(err)
 		}
 		if sess.junosGroupIntDel != "" {
 			err = delInterfaceElement("apply-groups "+sess.junosGroupIntDel, d, m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return err
+				return diag.FromErr(err)
 			}
 		} else {
 			err = delInterfaceElement("disable", d, m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return err
+				return diag.FromErr(err)
 			}
 			err = delInterfaceElement("description", d, m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return err
+				return diag.FromErr(err)
 			}
 		}
 	}
@@ -485,18 +487,18 @@ func resourceInterfaceCreate(d *schema.ResourceData, m interface{}) error {
 		if !checkCompatibilitySecurity(jnprSess) {
 			sess.configClear(jnprSess)
 
-			return fmt.Errorf("security zone not compatible with Junos device %s", jnprSess.Platform[0].Model)
+			return diag.FromErr(fmt.Errorf("security zone not compatible with Junos device %s", jnprSess.Platform[0].Model))
 		}
 		zonesExists, err := checkSecurityZonesExists(d.Get("security_zone").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
 
-			return err
+			return diag.FromErr(err)
 		}
 		if !zonesExists {
 			sess.configClear(jnprSess)
 
-			return fmt.Errorf("security zones %v doesn't exist", d.Get("security_zone").(string))
+			return diag.FromErr(fmt.Errorf("security zones %v doesn't exist", d.Get("security_zone").(string)))
 		}
 	}
 	if d.Get("routing_instance").(string) != "" {
@@ -504,53 +506,53 @@ func resourceInterfaceCreate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			sess.configClear(jnprSess)
 
-			return err
+			return diag.FromErr(err)
 		}
 		if !instanceExists {
 			sess.configClear(jnprSess)
 
-			return fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string))
+			return diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))
 		}
 	}
 	err = setInterface(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_interface", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	intExists, err = checkInterfaceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if intExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("interface %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("interface %v not exists after commit => check your config", d.Get("name").(string)))
 	}
 
-	return resourceInterfaceRead(d, m)
+	return resourceInterfaceRead(ctx, d, m)
 }
-func resourceInterfaceRead(d *schema.ResourceData, m interface{}) error {
+func resourceInterfaceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	if !intExists {
 		d.SetId("")
@@ -567,29 +569,29 @@ func resourceInterfaceRead(d *schema.ResourceData, m interface{}) error {
 	interfaceOpt, err := readInterface(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	fillInterfaceData(d, interfaceOpt)
 
 	return nil
 }
-func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delInterfaceOpts(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if d.HasChange("ether802_3ad") {
 		oAE, nAE := d.GetChange("ether802_3ad")
@@ -602,21 +604,21 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return err
+				return diag.FromErr(err)
 			}
 			if lastAEchild {
 				aggregatedCount, err := aggregatedCountSearchMax(newAE, oAE.(string), d.Get("name").(string), m, jnprSess)
 				if err != nil {
 					sess.configClear(jnprSess)
 
-					return err
+					return diag.FromErr(err)
 				}
 				if aggregatedCount == "0" {
 					err = sess.configSet([]string{"delete chassis aggregated-devices ethernet device-count"}, jnprSess)
 					if err != nil {
 						sess.configClear(jnprSess)
 
-						return err
+						return diag.FromErr(err)
 					}
 					oAEintNC := checkInterfaceNC(oAE.(string), m, jnprSess)
 					if oAEintNC == nil {
@@ -624,7 +626,7 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 						if err != nil {
 							sess.configClear(jnprSess)
 
-							return err
+							return diag.FromErr(err)
 						}
 					}
 				} else {
@@ -632,13 +634,13 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 					if err != nil {
 						sess.configClear(jnprSess)
 
-						return err
+						return diag.FromErr(err)
 					}
 					aggregatedCountInt, err := strconv.Atoi(aggregatedCount)
 					if err != nil {
 						sess.configClear(jnprSess)
 
-						return err
+						return diag.FromErr(err)
 					}
 					if aggregatedCountInt < oldAEInt+1 {
 						oAEintNC := checkInterfaceNC(oAE.(string), m, jnprSess)
@@ -647,7 +649,7 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 							if err != nil {
 								sess.configClear(jnprSess)
 
-								return err
+								return diag.FromErr(err)
 							}
 						}
 					}
@@ -661,18 +663,18 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 			if !checkCompatibilitySecurity(jnprSess) {
 				sess.configClear(jnprSess)
 
-				return fmt.Errorf("security zone not compatible with Junos device %s", jnprSess.Platform[0].Model)
+				return diag.FromErr(fmt.Errorf("security zone not compatible with Junos device %s", jnprSess.Platform[0].Model))
 			}
 			zonesExists, err := checkSecurityZonesExists(nSecurityZone.(string), m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return err
+				return diag.FromErr(err)
 			}
 			if !zonesExists {
 				sess.configClear(jnprSess)
 
-				return fmt.Errorf("security zones %v doesn't exist", nSecurityZone.(string))
+				return diag.FromErr(fmt.Errorf("security zones %v doesn't exist", nSecurityZone.(string)))
 			}
 		}
 		if oSecurityZone.(string) != "" {
@@ -680,7 +682,7 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return err
+				return diag.FromErr(err)
 			}
 		}
 	}
@@ -691,12 +693,12 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return err
+				return diag.FromErr(err)
 			}
 			if !instanceExists {
 				sess.configClear(jnprSess)
 
-				return fmt.Errorf("routing instance %v doesn't exist", nRoutingInstance.(string))
+				return diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", nRoutingInstance.(string)))
 			}
 		}
 		if oRoutingInstance.(string) != "" {
@@ -704,7 +706,7 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return err
+				return diag.FromErr(err)
 			}
 		}
 	}
@@ -712,57 +714,57 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_interface", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceInterfaceRead(d, m)
+	return resourceInterfaceRead(ctx, d, m)
 }
-func resourceInterfaceDelete(d *schema.ResourceData, m interface{}) error {
+func resourceInterfaceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delInterface(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_interface", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if intExists {
 		err = addInterfaceNC(d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
 
-			return err
+			return diag.FromErr(err)
 		}
 		err = sess.commitConf("disable(NC) resource junos_interface", jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
 
-			return err
+			return diag.FromErr(err)
 		}
 	}
 

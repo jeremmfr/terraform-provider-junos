@@ -1,11 +1,13 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type ntpServerOptions struct {
@@ -18,10 +20,10 @@ type ntpServerOptions struct {
 
 func resourceSystemNtpServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSystemNtpServerCreate,
-		Read:   resourceSystemNtpServerRead,
-		Update: resourceSystemNtpServerUpdate,
-		Delete: resourceSystemNtpServerDelete,
+		CreateContext: resourceSystemNtpServerCreate,
+		ReadContext:   resourceSystemNtpServerRead,
+		UpdateContext: resourceSystemNtpServerUpdate,
+		DeleteContext: resourceSystemNtpServerDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceSystemNtpServerImport,
 		},
@@ -55,67 +57,68 @@ func resourceSystemNtpServer() *schema.Resource {
 	}
 }
 
-func resourceSystemNtpServerCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSystemNtpServerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	ntpServerExists, err := checkSystemNtpServerExists(d.Get("address").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if ntpServerExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("system ntp server %v already exists", d.Get("address").(string))
+		return diag.FromErr(fmt.Errorf("system ntp server %v already exists", d.Get("address").(string)))
 	}
 
 	err = setSystemNtpServer(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_system_ntp_server", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	ntpServerExists, err = checkSystemNtpServerExists(d.Get("address").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if ntpServerExists {
 		d.SetId(d.Get("address").(string))
 	} else {
-		return fmt.Errorf("system ntp server %v not exists after commit => check your config", d.Get("address").(string))
+		return diag.FromErr(fmt.Errorf("system ntp server %v not exists after commit "+
+			"=> check your config", d.Get("address").(string)))
 	}
 
-	return resourceSystemNtpServerRead(d, m)
+	return resourceSystemNtpServerRead(ctx, d, m)
 }
-func resourceSystemNtpServerRead(d *schema.ResourceData, m interface{}) error {
+func resourceSystemNtpServerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	ntpServerOptions, err := readSystemNtpServer(d.Get("address").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if ntpServerOptions.address == "" {
 		d.SetId("")
@@ -125,62 +128,62 @@ func resourceSystemNtpServerRead(d *schema.ResourceData, m interface{}) error {
 
 	return nil
 }
-func resourceSystemNtpServerUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceSystemNtpServerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delSystemNtpServer(d.Get("address").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setSystemNtpServer(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_system_ntp_server", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceSystemNtpServerRead(d, m)
+	return resourceSystemNtpServerRead(ctx, d, m)
 }
-func resourceSystemNtpServerDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSystemNtpServerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delSystemNtpServer(d.Get("address").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_system_ntp_server", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

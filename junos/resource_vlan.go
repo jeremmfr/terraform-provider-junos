@@ -1,11 +1,13 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type vlanOptions struct {
@@ -26,10 +28,10 @@ type vlanOptions struct {
 
 func resourceVlan() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceVlanCreate,
-		Read:   resourceVlanRead,
-		Update: resourceVlanUpdate,
-		Delete: resourceVlanDelete,
+		CreateContext: resourceVlanCreate,
+		ReadContext:   resourceVlanRead,
+		UpdateContext: resourceVlanUpdate,
+		DeleteContext: resourceVlanDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceVlanImport,
 		},
@@ -152,69 +154,69 @@ func resourceVlan() *schema.Resource {
 	}
 }
 
-func resourceVlanCreate(d *schema.ResourceData, m interface{}) error {
+func resourceVlanCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	vlanExists, err := checkVlansExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if vlanExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("vlan %v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("vlan %v already exists", d.Get("name").(string)))
 	}
 
 	err = setVlan(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_vlan", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	mutex.Lock()
 	vlanExists, err = checkVlansExists(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if vlanExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("vlan %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("vlan %v not exists after commit => check your config", d.Get("name").(string)))
 	}
 
-	return resourceVlanRead(d, m)
+	return resourceVlanRead(ctx, d, m)
 }
-func resourceVlanRead(d *schema.ResourceData, m interface{}) error {
+func resourceVlanRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	vlanOptions, err := readVlan(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if vlanOptions.name == "" {
 		d.SetId("")
@@ -224,62 +226,62 @@ func resourceVlanRead(d *schema.ResourceData, m interface{}) error {
 
 	return nil
 }
-func resourceVlanUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceVlanUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delVlan(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setVlan(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_vlan", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceVlanRead(d, m)
+	return resourceVlanRead(ctx, d, m)
 }
-func resourceVlanDelete(d *schema.ResourceData, m interface{}) error {
+func resourceVlanDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delVlan(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_vlan", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

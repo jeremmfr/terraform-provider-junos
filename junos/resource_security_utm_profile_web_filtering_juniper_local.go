@@ -1,11 +1,13 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type utmProfileWebFilteringLocalOptions struct {
@@ -18,10 +20,10 @@ type utmProfileWebFilteringLocalOptions struct {
 
 func resourceSecurityUtmProfileWebFilteringLocal() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSecurityUtmProfileWebFilteringLocalCreate,
-		Read:   resourceSecurityUtmProfileWebFilteringLocalRead,
-		Update: resourceSecurityUtmProfileWebFilteringLocalUpdate,
-		Delete: resourceSecurityUtmProfileWebFilteringLocalDelete,
+		CreateContext: resourceSecurityUtmProfileWebFilteringLocalCreate,
+		ReadContext:   resourceSecurityUtmProfileWebFilteringLocalRead,
+		UpdateContext: resourceSecurityUtmProfileWebFilteringLocalUpdate,
+		DeleteContext: resourceSecurityUtmProfileWebFilteringLocalDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceSecurityUtmProfileWebFilteringLocalImport,
 		},
@@ -118,75 +120,77 @@ func resourceSecurityUtmProfileWebFilteringLocal() *schema.Resource {
 	}
 }
 
-func resourceSecurityUtmProfileWebFilteringLocalCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityUtmProfileWebFilteringLocalCreate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security utm feature-profile web-filtering juniper-local "+
-			"not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering juniper-local "+
+			"not compatible with Junos device %s", jnprSess.Platform[0].Model))
 	}
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	utmProfileWebFLocalExists, err := checkUtmProfileWebFLocalExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if utmProfileWebFLocalExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("security utm feature-profile web-filtering juniper-local "+
-			"%v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering juniper-local "+
+			"%v already exists", d.Get("name").(string)))
 	}
 
 	err = setUtmProfileWebFLocal(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_security_utm_profile_web_filtering_juniper_local", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	mutex.Lock()
 	utmProfileWebFLocalExists, err = checkUtmProfileWebFLocalExists(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if utmProfileWebFLocalExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("security utm feature-profile web-filtering juniper-local %v "+
-			"not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering juniper-local %v "+
+			"not exists after commit => check your config", d.Get("name").(string)))
 	}
 
-	return resourceSecurityUtmProfileWebFilteringLocalRead(d, m)
+	return resourceSecurityUtmProfileWebFilteringLocalRead(ctx, d, m)
 }
-func resourceSecurityUtmProfileWebFilteringLocalRead(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityUtmProfileWebFilteringLocalRead(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	utmProfileWebFLocalOptions, err := readUtmProfileWebFLocal(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if utmProfileWebFLocalOptions.name == "" {
 		d.SetId("")
@@ -196,62 +200,64 @@ func resourceSecurityUtmProfileWebFilteringLocalRead(d *schema.ResourceData, m i
 
 	return nil
 }
-func resourceSecurityUtmProfileWebFilteringLocalUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityUtmProfileWebFilteringLocalUpdate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delUtmProfileWebFLocal(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setUtmProfileWebFLocal(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_security_utm_profile_web_filtering_juniper_local", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceSecurityUtmProfileWebFilteringLocalRead(d, m)
+	return resourceSecurityUtmProfileWebFilteringLocalRead(ctx, d, m)
 }
-func resourceSecurityUtmProfileWebFilteringLocalDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityUtmProfileWebFilteringLocalDelete(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delUtmProfileWebFLocal(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_security_utm_profile_web_filtering_juniper_local", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

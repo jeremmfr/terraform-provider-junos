@@ -23,6 +23,6 @@ issues:
     - text: "Use of ssh InsecureIgnoreHostKey"
       linters:
         - gosec
-    - text: "`jnpr` can be `github.com/hashicorp/terraform-plugin-sdk/terraform.ResourceProviderCloser`"
+    - text: "`jnpr` can be `io.Closer`"
       linters:
         - interfacer

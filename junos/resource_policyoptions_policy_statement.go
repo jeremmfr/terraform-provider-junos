@@ -1,11 +1,13 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type policyStatementOptions struct {
@@ -18,10 +20,10 @@ type policyStatementOptions struct {
 
 func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 	return &schema.Resource{
-		Create: resourcePolicyoptionsPolicyStatementCreate,
-		Read:   resourcePolicyoptionsPolicyStatementRead,
-		Update: resourcePolicyoptionsPolicyStatementUpdate,
-		Delete: resourcePolicyoptionsPolicyStatementDelete,
+		CreateContext: resourcePolicyoptionsPolicyStatementCreate,
+		ReadContext:   resourcePolicyoptionsPolicyStatementRead,
+		UpdateContext: resourcePolicyoptionsPolicyStatementUpdate,
+		DeleteContext: resourcePolicyoptionsPolicyStatementDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourcePolicyoptionsPolicyStatementImport,
 		},
@@ -879,68 +881,70 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 	}
 }
 
-func resourcePolicyoptionsPolicyStatementCreate(d *schema.ResourceData, m interface{}) error {
+func resourcePolicyoptionsPolicyStatementCreate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	policyStatementExists, err := checkPolicyStatementExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if policyStatementExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("policy-options policy-statement %v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("policy-options policy-statement %v already exists", d.Get("name").(string)))
 	}
 
 	err = setPolicyStatement(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_policyoptions_policy_statement", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	policyStatementExists, err = checkPolicyStatementExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if policyStatementExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("policy-options policy-statement %v not exists after commit "+
-			"=> check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("policy-options policy-statement %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourcePolicyoptionsPolicyStatementRead(d, m)
+	return resourcePolicyoptionsPolicyStatementRead(ctx, d, m)
 }
-func resourcePolicyoptionsPolicyStatementRead(d *schema.ResourceData, m interface{}) error {
+func resourcePolicyoptionsPolicyStatementRead(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	policyStatementOptions, err := readPolicyStatement(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if policyStatementOptions.name == "" {
 		d.SetId("")
@@ -950,62 +954,64 @@ func resourcePolicyoptionsPolicyStatementRead(d *schema.ResourceData, m interfac
 
 	return nil
 }
-func resourcePolicyoptionsPolicyStatementUpdate(d *schema.ResourceData, m interface{}) error {
+func resourcePolicyoptionsPolicyStatementUpdate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delPolicyStatement(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setPolicyStatement(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_policyoptions_policy_statement", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourcePolicyoptionsPolicyStatementRead(d, m)
+	return resourcePolicyoptionsPolicyStatementRead(ctx, d, m)
 }
-func resourcePolicyoptionsPolicyStatementDelete(d *schema.ResourceData, m interface{}) error {
+func resourcePolicyoptionsPolicyStatementDelete(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delPolicyStatement(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_policyoptions_policy_statement", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

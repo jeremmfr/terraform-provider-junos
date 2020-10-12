@@ -1,10 +1,11 @@
 package junos
 
 import (
+	"context"
 	"sync"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const (
@@ -32,7 +33,7 @@ var (
 )
 
 // Provider junos for terraform.
-func Provider() terraform.ResourceProvider {
+func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"ip": {
@@ -132,11 +133,11 @@ func Provider() terraform.ResourceProvider {
 			"junos_system_syslog_file":                                   resourceSystemSyslogFile(),
 			"junos_vlan":                                                 resourceVlan(),
 		},
-		ConfigureFunc: configureProvider,
+		ConfigureContextFunc: configureProvider,
 	}
 }
 
-func configureProvider(d *schema.ResourceData) (interface{}, error) {
+func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	config := Config{
 		junosIP:                  d.Get("ip").(string),
 		junosPort:                d.Get("port").(int),

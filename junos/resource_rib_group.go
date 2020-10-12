@@ -1,10 +1,12 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type ribGroupOptions struct {
@@ -16,10 +18,10 @@ type ribGroupOptions struct {
 
 func resourceRibGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceRibGroupCreate,
-		Read:   resourceRibGroupRead,
-		Update: resourceRibGroupUpdate,
-		Delete: resourceRibGroupDelete,
+		CreateContext: resourceRibGroupCreate,
+		ReadContext:   resourceRibGroupRead,
+		UpdateContext: resourceRibGroupUpdate,
+		DeleteContext: resourceRibGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceRibGroupImport,
 		},
@@ -48,70 +50,70 @@ func resourceRibGroup() *schema.Resource {
 	}
 }
 
-func resourceRibGroupCreate(d *schema.ResourceData, m interface{}) error {
+func resourceRibGroupCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	err := validateRibGroup(d)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	ribGroupExists, err := checkRibGroupExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if ribGroupExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("rib-group %v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("rib-group %v already exists", d.Get("name").(string)))
 	}
 	err = setRibGroup(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_rib_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	ribGroupExists, err = checkRibGroupExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if ribGroupExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("rib-group %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("rib-group %v not exists after commit => check your config", d.Get("name").(string)))
 	}
 
-	return resourceRibGroupRead(d, m)
+	return resourceRibGroupRead(ctx, d, m)
 }
-func resourceRibGroupRead(d *schema.ResourceData, m interface{}) error {
+func resourceRibGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	ribGroupOptions, err := readRibGroup(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if ribGroupOptions.name == "" {
 		d.SetId("")
@@ -121,28 +123,28 @@ func resourceRibGroupRead(d *schema.ResourceData, m interface{}) error {
 
 	return nil
 }
-func resourceRibGroupUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceRibGroupUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	err := validateRibGroup(d)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if d.HasChange("import_policy") {
 		err = delRibGroupElement("import-policy", d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
 
-			return err
+			return diag.FromErr(err)
 		}
 	}
 	if d.HasChange("import_rib") {
@@ -150,7 +152,7 @@ func resourceRibGroupUpdate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			sess.configClear(jnprSess)
 
-			return err
+			return diag.FromErr(err)
 		}
 	}
 	if d.HasChange("export_rib") {
@@ -158,47 +160,47 @@ func resourceRibGroupUpdate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			sess.configClear(jnprSess)
 
-			return err
+			return diag.FromErr(err)
 		}
 	}
 	err = setRibGroup(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_rib_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceRibGroupRead(d, m)
+	return resourceRibGroupRead(ctx, d, m)
 }
-func resourceRibGroupDelete(d *schema.ResourceData, m interface{}) error {
+func resourceRibGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delRibGroup(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_rib_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* upgrade to terraform-plugin-sdk v2
 
 BUG FIXES:
 

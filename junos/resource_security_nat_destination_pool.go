@@ -1,11 +1,13 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type natDestinationPoolOptions struct {
@@ -18,10 +20,10 @@ type natDestinationPoolOptions struct {
 
 func resourceSecurityNatDestinationPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSecurityNatDestinationPoolCreate,
-		Read:   resourceSecurityNatDestinationPoolRead,
-		Update: resourceSecurityNatDestinationPoolUpdate,
-		Delete: resourceSecurityNatDestinationPoolDelete,
+		CreateContext: resourceSecurityNatDestinationPoolCreate,
+		ReadContext:   resourceSecurityNatDestinationPoolRead,
+		UpdateContext: resourceSecurityNatDestinationPoolUpdate,
+		DeleteContext: resourceSecurityNatDestinationPoolDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceSecurityNatDestinationPoolImport,
 		},
@@ -58,71 +60,74 @@ func resourceSecurityNatDestinationPool() *schema.Resource {
 	}
 }
 
-func resourceSecurityNatDestinationPoolCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatDestinationPoolCreate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security nat destination pool not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security nat destination pool not compatible with Junos device %s",
+			jnprSess.Platform[0].Model))
 	}
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	securityNatDestinationPoolExists, err := checkSecurityNatDestinationPoolExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if securityNatDestinationPoolExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("security nat destination pool %v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security nat destination pool %v already exists", d.Get("name").(string)))
 	}
 
 	err = setSecurityNatDestinationPool(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_security_nat_destination_pool", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	securityNatDestinationPoolExists, err = checkSecurityNatDestinationPoolExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if securityNatDestinationPoolExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("security nat destination pool %v not exists after commit "+
-			"=> check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security nat destination pool %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceSecurityNatDestinationPoolRead(d, m)
+	return resourceSecurityNatDestinationPoolRead(ctx, d, m)
 }
-func resourceSecurityNatDestinationPoolRead(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatDestinationPoolRead(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	natDestinationPoolOptions, err := readSecurityNatDestinationPool(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if natDestinationPoolOptions.name == "" {
 		d.SetId("")
@@ -132,62 +137,64 @@ func resourceSecurityNatDestinationPoolRead(d *schema.ResourceData, m interface{
 
 	return nil
 }
-func resourceSecurityNatDestinationPoolUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatDestinationPoolUpdate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delSecurityNatDestinationPool(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setSecurityNatDestinationPool(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_security_nat_destination_pool", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceSecurityNatDestinationPoolRead(d, m)
+	return resourceSecurityNatDestinationPoolRead(ctx, d, m)
 }
-func resourceSecurityNatDestinationPoolDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatDestinationPoolDelete(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	err = sess.configLock(jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = delSecurityNatDestinationPool(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_security_nat_destination_pool", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil
