@@ -65,10 +65,7 @@ func resourceSecurityPolicyTunnelPairPolicyCreate(
 		return diag.FromErr(fmt.Errorf("security policy tunnel pair policy not compatible with Junos device %s",
 			jnprSess.Platform[0].Model))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	securityPolicyExists, err := checkSecurityPolicyExists(d.Get("zone_a").(string), d.Get("zone_b").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -168,10 +165,7 @@ func resourceSecurityPolicyTunnelPairPolicyDelete(
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delSecurityPolicyTunnelPairPolicy(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)

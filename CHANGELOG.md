@@ -4,6 +4,7 @@ ENHANCEMENTS:
 * switch to sdk for part of ValidateFunc and rewrite the others to ValidateDiagFunc
 
 BUG FIXES:
+* fix sess.configLock return already nil
 
 ## v1.5.1
 BUG FIXES:

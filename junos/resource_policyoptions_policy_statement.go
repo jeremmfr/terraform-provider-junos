@@ -686,10 +686,7 @@ func resourcePolicyoptionsPolicyStatementCreate(
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	policyStatementExists, err := checkPolicyStatementExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -760,10 +757,7 @@ func resourcePolicyoptionsPolicyStatementUpdate(
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delPolicyStatement(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -794,10 +788,7 @@ func resourcePolicyoptionsPolicyStatementDelete(
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delPolicyStatement(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)

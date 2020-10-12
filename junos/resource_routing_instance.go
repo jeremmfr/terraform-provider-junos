@@ -51,10 +51,7 @@ func resourceRoutingInstanceCreate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	routingInstanceExists, err := checkRoutingInstanceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -122,10 +119,7 @@ func resourceRoutingInstanceUpdate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 
 	err = delRoutingInstanceOpts(d, m, jnprSess)
 	if err != nil {
@@ -156,10 +150,7 @@ func resourceRoutingInstanceDelete(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delRoutingInstance(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)

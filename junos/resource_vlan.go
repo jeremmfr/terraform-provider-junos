@@ -154,10 +154,7 @@ func resourceVlanCreate(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	vlanExists, err := checkVlansExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -227,10 +224,7 @@ func resourceVlanUpdate(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delVlan(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -260,10 +254,7 @@ func resourceVlanDelete(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delVlan(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)

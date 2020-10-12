@@ -93,10 +93,7 @@ func resourceSecurityUtmProfileWebFilteringLocalCreate(
 		return diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering juniper-local "+
 			"not compatible with Junos device %s", jnprSess.Platform[0].Model))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	utmProfileWebFLocalExists, err := checkUtmProfileWebFLocalExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -170,10 +167,7 @@ func resourceSecurityUtmProfileWebFilteringLocalUpdate(
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delUtmProfileWebFLocal(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -204,10 +198,7 @@ func resourceSecurityUtmProfileWebFilteringLocalDelete(
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delUtmProfileWebFLocal(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)

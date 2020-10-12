@@ -80,10 +80,7 @@ func resourceSecurityNatSourcePoolCreate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(fmt.Errorf("security nat source pool not compatible with Junos device %s",
 			jnprSess.Platform[0].Model))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	securityNatSourcePoolExists, err := checkSecurityNatSourcePoolExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -152,10 +149,7 @@ func resourceSecurityNatSourcePoolUpdate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delSecurityNatSourcePool(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -185,10 +179,7 @@ func resourceSecurityNatSourcePoolDelete(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delSecurityNatSourcePool(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)

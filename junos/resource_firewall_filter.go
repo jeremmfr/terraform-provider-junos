@@ -265,10 +265,7 @@ func resourceFirewallFilterCreate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	firewallFilterExists, err := checkFirewallFilterExists(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -337,10 +334,7 @@ func resourceFirewallFilterUpdate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -370,10 +364,7 @@ func resourceFirewallFilterDelete(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)

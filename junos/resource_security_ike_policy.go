@@ -73,10 +73,7 @@ func resourceIkePolicyCreate(ctx context.Context, d *schema.ResourceData, m inte
 	if !checkCompatibilitySecurity(jnprSess) {
 		return diag.FromErr(fmt.Errorf("security ike policy not compatible with Junos device %s", jnprSess.Platform[0].Model))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	ikePolicyExists, err := checkIkePolicyExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -144,10 +141,7 @@ func resourceIkePolicyUpdate(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delIkePolicy(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -177,10 +171,7 @@ func resourceIkePolicyDelete(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delIkePolicy(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)

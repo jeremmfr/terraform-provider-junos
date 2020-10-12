@@ -98,10 +98,7 @@ func resourceOspfAreaCreate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	ospfAreaExists, err := checkOspfAreaExists(d.Get("area_id").(string), d.Get("version").(string),
 		d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
@@ -174,11 +171,7 @@ func resourceOspfAreaUpdate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
+	sess.configLock(jnprSess)
 	err = delOspfArea(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -208,10 +201,7 @@ func resourceOspfAreaDelete(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delOspfArea(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)

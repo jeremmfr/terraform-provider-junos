@@ -197,10 +197,7 @@ func resourceSystemSyslogHostCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	syslogHostExists, err := checkSystemSyslogHostExists(d.Get("host").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -269,10 +266,7 @@ func resourceSystemSyslogHostUpdate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delSystemSyslogHost(d.Get("host").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -302,10 +296,7 @@ func resourceSystemSyslogHostDelete(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delSystemSyslogHost(d.Get("host").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)

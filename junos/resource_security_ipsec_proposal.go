@@ -74,10 +74,7 @@ func resourceIpsecProposalCreate(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(fmt.Errorf("security ipsec proposal not compatible with Junos device %s",
 			jnprSess.Platform[0].Model))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	ipsecProposalExists, err := checkIpsecProposalExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -145,10 +142,7 @@ func resourceIpsecProposalUpdate(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delIpsecProposal(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -178,10 +172,7 @@ func resourceIpsecProposalDelete(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delIpsecProposal(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)

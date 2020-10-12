@@ -93,10 +93,7 @@ func resourceStaticRouteCreate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	if d.Get("routing_instance").(string) != defaultWord {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
@@ -183,10 +180,7 @@ func resourceStaticRouteUpdate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delStaticRouteOpts(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -217,10 +211,7 @@ func resourceStaticRouteDelete(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)

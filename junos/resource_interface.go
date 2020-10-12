@@ -394,10 +394,7 @@ func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	if intExists {
 		err = checkInterfaceNC(d.Get("name").(string), m, jnprSess)
 		if err != nil {
@@ -527,10 +524,7 @@ func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delInterfaceOpts(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -677,10 +671,7 @@ func resourceInterfaceDelete(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delInterface(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)

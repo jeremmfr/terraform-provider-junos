@@ -173,10 +173,7 @@ func resourceSecurityPolicyCreate(ctx context.Context, d *schema.ResourceData, m
 	if !checkCompatibilitySecurity(jnprSess) {
 		return diag.FromErr(fmt.Errorf("security policy not compatible with Junos device %s", jnprSess.Platform[0].Model))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	securityPolicyExists, err := checkSecurityPolicyExists(d.Get("from_zone").(string), d.Get("to_zone").(string),
 		m, jnprSess)
 	if err != nil {
@@ -249,10 +246,7 @@ func resourceSecurityPolicyUpdate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 
 	err = delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), m, jnprSess)
 	if err != nil {
@@ -284,10 +278,7 @@ func resourceSecurityPolicyDelete(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)

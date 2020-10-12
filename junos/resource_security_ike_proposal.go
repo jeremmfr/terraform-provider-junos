@@ -73,10 +73,7 @@ func resourceIkeProposalCreate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(fmt.Errorf("security ike proposal not compatible with Junos device %s",
 			jnprSess.Platform[0].Model))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	ikeProposalExists, err := checkIkeProposalExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -144,10 +141,7 @@ func resourceIkeProposalUpdate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delIkeProposal(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -177,10 +171,7 @@ func resourceIkeProposalDelete(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delIkeProposal(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)

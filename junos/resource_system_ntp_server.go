@@ -65,10 +65,7 @@ func resourceSystemNtpServerCreate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	ntpServerExists, err := checkSystemNtpServerExists(d.Get("address").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -137,10 +134,7 @@ func resourceSystemNtpServerUpdate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delSystemNtpServer(d.Get("address").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -170,10 +164,7 @@ func resourceSystemNtpServerDelete(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delSystemNtpServer(d.Get("address").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)

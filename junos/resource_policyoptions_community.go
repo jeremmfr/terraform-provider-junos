@@ -52,10 +52,7 @@ func resourcePolicyoptionsCommunityCreate(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	policyoptsCommunityExists, err := checkPolicyoptionsCommunityExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -124,10 +121,7 @@ func resourcePolicyoptionsCommunityUpdate(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delPolicyoptionsCommunity(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -157,10 +151,7 @@ func resourcePolicyoptionsCommunityDelete(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delPolicyoptionsCommunity(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)

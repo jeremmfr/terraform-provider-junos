@@ -124,10 +124,7 @@ func resourceSystemRadiusServerCreate(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	radiusServerExists, err := checkSystemRadiusServerExists(d.Get("address").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -196,10 +193,7 @@ func resourceSystemRadiusServerUpdate(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delSystemRadiusServer(d.Get("address").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -229,10 +223,7 @@ func resourceSystemRadiusServerDelete(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delSystemRadiusServer(d.Get("address").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)

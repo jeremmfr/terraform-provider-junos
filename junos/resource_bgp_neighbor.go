@@ -474,10 +474,7 @@ func resourceBgpNeighborCreate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	if d.Get("routing_instance").(string) != defaultWord {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
@@ -575,10 +572,7 @@ func resourceBgpNeighborUpdate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delBgpOpts(d, "neighbor", m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -608,10 +602,7 @@ func resourceBgpNeighborDelete(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delBgpNeighbor(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)

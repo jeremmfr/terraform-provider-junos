@@ -61,10 +61,7 @@ func resourceRibGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	ribGroupExists, err := checkRibGroupExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -135,10 +132,7 @@ func resourceRibGroupUpdate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	if d.HasChange("import_policy") {
 		err = delRibGroupElement("import-policy", d.Get("name").(string), m, jnprSess)
 		if err != nil {
@@ -186,10 +180,7 @@ func resourceRibGroupDelete(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delRibGroup(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)

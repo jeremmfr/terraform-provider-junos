@@ -101,10 +101,7 @@ func resourceAggregateRouteCreate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	if d.Get("routing_instance").(string) != defaultWord {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
@@ -191,10 +188,7 @@ func resourceAggregateRouteUpdate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delAggregateRouteOpts(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
@@ -225,10 +219,7 @@ func resourceAggregateRouteDelete(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	sess.configLock(jnprSess)
 	err = delAggregateRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)

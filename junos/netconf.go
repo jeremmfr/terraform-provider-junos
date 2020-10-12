@@ -278,7 +278,7 @@ func (j *NetconfObject) netconfConfigSet(cmd []string) (string, error) {
 	return "", nil
 }
 
-// netConfConfigLock locks the candiata configuration.
+// netConfConfigLock locks the candidate configuration.
 func (j *NetconfObject) netconfConfigLock() bool {
 	reply, err := j.Session.Exec(netconf.RawMethod(rpcCandidateLock))
 	if err != nil {
