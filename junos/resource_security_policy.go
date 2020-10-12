@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type policyOptions struct {
@@ -26,16 +27,16 @@ func resourceSecurityPolicy() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"from_zone": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"to_zone": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"policy": {
 				Type:     schema.TypeList,
@@ -43,9 +44,9 @@ func resourceSecurityPolicy() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validateNameObjectJunos(),
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateNameObjectJunos([]string{}),
 						},
 						"match_source_address": {
 							Type:     schema.TypeList,
@@ -63,18 +64,10 @@ func resourceSecurityPolicy() *schema.Resource {
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"then": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  permitWord,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{permitWord, "reject", "deny"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q %q invalid action", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      permitWord,
+							ValidateFunc: validation.StringInSlice([]string{permitWord, "reject", "deny"}, false),
 						},
 						"permit_application_services": {
 							Type:     schema.TypeList,

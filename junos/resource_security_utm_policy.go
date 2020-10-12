@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type utmPolicyOptions struct {
@@ -113,21 +114,13 @@ func resourceSecurityUtmPolicy() *schema.Resource {
 						"limit": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(0, 2000),
+							ValidateFunc: validation.IntBetween(0, 2000),
 							Default:      -1,
 						},
 						"over_limit": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"block", "log-and-permit"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q %q invalid action", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit"}, false),
 						},
 					},
 				},

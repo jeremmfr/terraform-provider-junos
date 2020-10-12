@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type syslogHostOptions struct {
@@ -50,10 +51,10 @@ func resourceSystemSyslogHost() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"host": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validateAddress(),
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validateAddress(),
 			},
 			"allow_duplicates": {
 				Type:     schema.TypeBool,
@@ -70,21 +71,13 @@ func resourceSystemSyslogHost() *schema.Resource {
 			"facility_override": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if !stringInSlice(value, []string{"authorization", "daemon", "ftp", "kernel", "user",
-						"local0", "local1", "local2", "local3", "local4", "local5", "local6", "local7"}) {
-						errors = append(errors, fmt.Errorf(
-							"%q for %q is not a valid facilty", value, k))
-					}
-
-					return
-				},
+				ValidateFunc: validation.StringInSlice([]string{"authorization", "daemon", "ftp", "kernel", "user",
+					"local0", "local1", "local2", "local3", "local4", "local5", "local6", "local7"}, false),
 			},
 			"log_prefix": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"match": {
 				Type:     schema.TypeString,
@@ -98,12 +91,12 @@ func resourceSystemSyslogHost() *schema.Resource {
 			"port": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 65535),
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"source_address": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateIPFunc(),
+				ValidateFunc: validation.IsIPAddress,
 			},
 			"structured_data": {
 				Type:     schema.TypeList,
@@ -121,77 +114,77 @@ func resourceSystemSyslogHost() *schema.Resource {
 			"any_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"authorization_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"changelog_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"conflictlog_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"daemon_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"dfc_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"external_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"firewall_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"ftp_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"interactivecommands_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"kernel_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"ntp_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"pfe_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"security_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"user_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 		},
 	}

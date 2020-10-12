@@ -27,10 +27,10 @@ func resourcePolicyoptionsPrefixList() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"prefix": {
 				Type:     schema.TypeList,
@@ -229,7 +229,7 @@ func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess 
 
 	setPrefix := "set policy-options prefix-list " + d.Get("name").(string)
 	for _, v := range d.Get("prefix").([]interface{}) {
-		err := validateNetwork(v.(string))
+		err := validateCIDRNetwork(v.(string))
 		if err != nil {
 			return err
 		}

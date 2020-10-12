@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type filterOptions struct {
@@ -27,24 +28,17 @@ func resourceFirewallFilter() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"family": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if !stringInSlice(value, []string{inetWord, inet6Word, "any", "ccc", "mpls", "vpls", "ethernet-switching"}) {
-						errors = append(errors, fmt.Errorf(
-							"%q for %q is not valid family", value, k))
-					}
-
-					return
-				},
+				ValidateFunc: validation.StringInSlice([]string{
+					inetWord, inet6Word, "any", "ccc", "mpls", "vpls", "ethernet-switching"}, false),
 			},
 			"interface_specific": {
 				Type:     schema.TypeBool,
@@ -56,14 +50,14 @@ func resourceFirewallFilter() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validateNameObjectJunos(),
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateNameObjectJunos([]string{}),
 						},
 						"filter": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validateNameObjectJunos(),
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateDiagFunc: validateNameObjectJunos([]string{}),
 						},
 						"from": {
 							Type:     schema.TypeList,
@@ -217,17 +211,9 @@ func resourceFirewallFilter() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"action": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-											value := v.(string)
-											if !stringInSlice(value, []string{"accept", "reject", "discard", "next term"}) {
-												errors = append(errors, fmt.Errorf(
-													"%q for %q is not valid acceptance", value, k))
-											}
-
-											return
-										},
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice([]string{"accept", "reject", "discard", "next term"}, false),
 									},
 									"count": {
 										Type:     schema.TypeString,
@@ -238,9 +224,9 @@ func resourceFirewallFilter() *schema.Resource {
 										Optional: true,
 									},
 									"policer": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validateNameObjectJunos(),
+										Type:             schema.TypeString,
+										Optional:         true,
+										ValidateDiagFunc: validateNameObjectJunos([]string{}),
 									},
 									"log": {
 										Type:     schema.TypeBool,
@@ -570,14 +556,14 @@ func fillFirewallFilterData(d *schema.ResourceData, filterOptions filterOptions)
 func setFirewallFilterOptsFrom(setPrefixTermFrom string,
 	configSet []string, fromMap map[string]interface{}) ([]string, error) {
 	for _, address := range fromMap["address"].([]interface{}) {
-		err := validateNetwork(address.(string))
+		err := validateCIDRNetwork(address.(string))
 		if err != nil {
 			return nil, err
 		}
 		configSet = append(configSet, setPrefixTermFrom+"address "+address.(string))
 	}
 	for _, address := range fromMap["address_except"].([]interface{}) {
-		err := validateNetwork(address.(string))
+		err := validateCIDRNetwork(address.(string))
 		if err != nil {
 			return nil, err
 		}
@@ -599,14 +585,14 @@ func setFirewallFilterOptsFrom(setPrefixTermFrom string,
 		configSet = append(configSet, setPrefixTermFrom+"prefix-list "+prefixList.(string)+" except")
 	}
 	for _, address := range fromMap["destination_address"].([]interface{}) {
-		err := validateNetwork(address.(string))
+		err := validateCIDRNetwork(address.(string))
 		if err != nil {
 			return nil, err
 		}
 		configSet = append(configSet, setPrefixTermFrom+"destination-address "+address.(string))
 	}
 	for _, address := range fromMap["destination_address_except"].([]interface{}) {
-		err := validateNetwork(address.(string))
+		err := validateCIDRNetwork(address.(string))
 		if err != nil {
 			return nil, err
 		}
@@ -629,14 +615,14 @@ func setFirewallFilterOptsFrom(setPrefixTermFrom string,
 		configSet = append(configSet, setPrefixTermFrom+"destination-prefix-list "+prefixList.(string)+" except")
 	}
 	for _, address := range fromMap["source_address"].([]interface{}) {
-		err := validateNetwork(address.(string))
+		err := validateCIDRNetwork(address.(string))
 		if err != nil {
 			return nil, err
 		}
 		configSet = append(configSet, setPrefixTermFrom+"source-address "+address.(string))
 	}
 	for _, address := range fromMap["source_address_except"].([]interface{}) {
-		err := validateNetwork(address.(string))
+		err := validateCIDRNetwork(address.(string))
 		if err != nil {
 			return nil, err
 		}

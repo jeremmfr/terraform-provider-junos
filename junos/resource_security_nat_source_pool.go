@@ -6,8 +6,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type natSourcePoolOptions struct {
@@ -30,10 +32,10 @@ func resourceSecurityNatSourcePool() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"address": {
 				Type:     schema.TypeList,
@@ -42,9 +44,9 @@ func resourceSecurityNatSourcePool() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"routing_instance": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"port_no_translation": {
 				Type:          schema.TypeBool,
@@ -54,14 +56,14 @@ func resourceSecurityNatSourcePool() *schema.Resource {
 			"port_overloading_factor": {
 				Type:          schema.TypeInt,
 				Optional:      true,
-				ValidateFunc:  validateIntRange(2, 32),
+				ValidateFunc:  validation.IntBetween(2, 32),
 				ConflictsWith: []string{"port_no_translation", "port_range"},
 			},
 			"port_range": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ConflictsWith: []string{"port_overloading_factor", "port_no_translation"},
-				ValidateFunc:  validateSourcePoolPortRange(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ConflictsWith:    []string{"port_overloading_factor", "port_no_translation"},
+				ValidateDiagFunc: validateSourcePoolPortRange(),
 			},
 		},
 	}
@@ -364,35 +366,56 @@ func fillSecurityNatSourcePoolData(d *schema.ResourceData, natSourcePoolOptions 
 	}
 }
 
-func validateSourcePoolPortRange() schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (s []string, es []error) {
+func validateSourcePoolPortRange() schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
 		v := i.(string)
 		vSplit := strings.Split(v, "-")
 		if len(vSplit) < 2 {
-			es = append(es, fmt.Errorf(
-				"%q missing range separtor - in %q", k, i))
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("missing range separtor - in %s", v),
+				AttributePath: path,
+			})
 		}
 		low, err := strconv.Atoi(vSplit[0])
 		if err != nil {
-			es = append(es, err)
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       err.Error(),
+				AttributePath: path,
+			})
 		}
 		high, err := strconv.Atoi(vSplit[1])
 		if err != nil {
-			es = append(es, err)
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       err.Error(),
+				AttributePath: path,
+			})
 		}
 		if low > high {
-			es = append(es, fmt.Errorf(
-				"%q low in %q bigger than high", k, i))
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("low(%d) in %s bigger than high(%d)", low, v, high),
+				AttributePath: path,
+			})
 		}
 		if low < 1024 {
-			es = append(es, fmt.Errorf(
-				"%q low in %q is too small (min 1024)", k, i))
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("low(%d) in %s is too small (min 1024)", low, v),
+				AttributePath: path,
+			})
 		}
 		if high > 63487 {
-			es = append(es, fmt.Errorf(
-				"%q high in %q is too big (max 63487)", k, i))
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("high(%d) in %s is too big (max 63487)", high, v),
+				AttributePath: path,
+			})
 		}
 
-		return
+		return diags
 	}
 }

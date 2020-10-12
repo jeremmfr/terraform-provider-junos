@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type vlanOptions struct {
@@ -37,10 +38,10 @@ func resourceVlan() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -49,7 +50,7 @@ func resourceVlan() *schema.Resource {
 			"vlan_id": {
 				Type:          schema.TypeInt,
 				Optional:      true,
-				ValidateFunc:  validateIntRange(1, 4094),
+				ValidateFunc:  validation.IntBetween(1, 4094),
 				ConflictsWith: []string{"vlan_id_list"},
 			},
 			"vlan_id_list": {
@@ -61,7 +62,7 @@ func resourceVlan() *schema.Resource {
 			"service_id": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 65535),
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"l3_interface": {
 				Type:     schema.TypeString,
@@ -77,32 +78,24 @@ func resourceVlan() *schema.Resource {
 				},
 			},
 			"forward_filter_input": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"forward_filter_output": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"forward_flood_input": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"private_vlan": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if value != "community" && value != "isolated" {
-						errors = append(errors, fmt.Errorf(
-							"%q for %q is not 'community' or 'isolated'", value, k))
-					}
-
-					return
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"community", "isolated"}, false),
 			},
 			"community_vlans": {
 				Type:     schema.TypeList,
@@ -112,7 +105,7 @@ func resourceVlan() *schema.Resource {
 			"isolated_vlan": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 65535),
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"vxlan": {
 				Type:     schema.TypeList,
@@ -123,7 +116,7 @@ func resourceVlan() *schema.Resource {
 						"vni": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validateIntRange(0, 16777214),
+							ValidateFunc: validation.IntBetween(0, 16777214),
 						},
 						"encapsulate_inner_vlan": {
 							Type:     schema.TypeBool,
@@ -136,7 +129,7 @@ func resourceVlan() *schema.Resource {
 						"multicast_group": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validateIPFunc(),
+							ValidateFunc: validation.IsIPAddress,
 						},
 						"ovsdb_managed": {
 							Type:     schema.TypeBool,
@@ -145,7 +138,7 @@ func resourceVlan() *schema.Resource {
 						"unreachable_vtep_aging_timer": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(300, 1800),
+							ValidateFunc: validation.IntBetween(300, 1800),
 						},
 					},
 				},

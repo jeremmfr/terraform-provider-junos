@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type utmProfileWebFilteringLocalOptions struct {
@@ -38,17 +39,9 @@ func resourceSecurityUtmProfileWebFilteringLocal() *schema.Resource {
 				Optional: true,
 			},
 			"default_action": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (s []string, es []error) {
-					value := v.(string)
-					if !stringInSlice(value, []string{"block", "log-and-permit", permitWord}) {
-						es = append(es, fmt.Errorf(
-							"%q %q invalid action", value, k))
-					}
-
-					return
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitWord}, false),
 			},
 			"fallback_settings": {
 				Type:     schema.TypeList,
@@ -57,56 +50,24 @@ func resourceSecurityUtmProfileWebFilteringLocal() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"default": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"block", "log-and-permit"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q %q invalid action", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit"}, false),
 						},
 						"server_connectivity": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"block", "log-and-permit"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q %q invalid action", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit"}, false),
 						},
 						"timeout": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"block", "log-and-permit"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q %q invalid action", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit"}, false),
 						},
 						"too_many_requests": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"block", "log-and-permit"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q %q invalid action", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit"}, false),
 						},
 					},
 				},
@@ -114,7 +75,7 @@ func resourceSecurityUtmProfileWebFilteringLocal() *schema.Resource {
 			"timeout": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 1800),
+				ValidateFunc: validation.IntBetween(1, 1800),
 			},
 		},
 	}

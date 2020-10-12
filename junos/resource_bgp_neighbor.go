@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceBgpNeighbor() *schema.Resource {
@@ -23,20 +24,20 @@ func resourceBgpNeighbor() *schema.Resource {
 				Type:         schema.TypeString,
 				ForceNew:     true,
 				Required:     true,
-				ValidateFunc: validateIPFunc(),
+				ValidateFunc: validation.IsIPAddress,
 			},
 			"routing_instance": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				Default:      defaultWord,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				Default:          defaultWord,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"group": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"accept_remote_nexthop": {
 				Type:     schema.TypeBool,
@@ -101,7 +102,7 @@ func resourceBgpNeighbor() *schema.Resource {
 			"hold_time": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(3, 65535),
+				ValidateFunc: validation.IntBetween(3, 65535),
 			},
 			"local_as": {
 				Type:     schema.TypeString,
@@ -125,18 +126,18 @@ func resourceBgpNeighbor() *schema.Resource {
 			"local_as_loops": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 10),
+				ValidateFunc: validation.IntBetween(1, 10),
 			},
 			"local_preference": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(0, 4294967295),
+				ValidateFunc: validation.IntBetween(0, 4294967295),
 				Default:      -1,
 			},
 			"metric_out": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(0, 4294967295),
+				ValidateFunc: validation.IntBetween(0, 4294967295),
 				Default:      -1,
 				ConflictsWith: []string{"metric_out_igp",
 					"metric_out_igp_offset",
@@ -155,7 +156,7 @@ func resourceBgpNeighbor() *schema.Resource {
 			"metric_out_igp_offset": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(-2147483648, 2147483647),
+				ValidateFunc: validation.IntBetween(-2147483648, 2147483647),
 				ConflictsWith: []string{"metric_out",
 					"metric_out_minimum_igp",
 					"metric_out_minimum_igp_offset"},
@@ -179,7 +180,7 @@ func resourceBgpNeighbor() *schema.Resource {
 			"metric_out_minimum_igp_offset": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(-2147483648, 2147483647),
+				ValidateFunc: validation.IntBetween(-2147483648, 2147483647),
 				ConflictsWith: []string{"metric_out",
 					"metric_out_igp",
 					"metric_out_igp_offset",
@@ -188,7 +189,7 @@ func resourceBgpNeighbor() *schema.Resource {
 			"out_delay": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 65535),
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"peer_as": {
 				Type:     schema.TypeString,
@@ -197,7 +198,7 @@ func resourceBgpNeighbor() *schema.Resource {
 			"preference": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(0, 4294967295),
+				ValidateFunc: validation.IntBetween(0, 4294967295),
 				Default:      -1,
 			},
 			"authentication_algorithm": {
@@ -218,7 +219,7 @@ func resourceBgpNeighbor() *schema.Resource {
 			"local_address": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateIPFunc(),
+				ValidateFunc: validation.IsIPAddress,
 			},
 			"local_interface": {
 				Type:     schema.TypeString,
@@ -255,50 +256,42 @@ func resourceBgpNeighbor() *schema.Resource {
 						"detection_time_threshold": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 4294967295),
+							ValidateFunc: validation.IntBetween(1, 4294967295),
 						},
 						"transmit_interval_threshold": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 4294967295),
+							ValidateFunc: validation.IntBetween(1, 4294967295),
 						},
 						"transmit_interval_minimum_interval": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 255000),
+							ValidateFunc: validation.IntBetween(1, 255000),
 						},
 						"holddown_interval": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 255000),
+							ValidateFunc: validation.IntBetween(1, 255000),
 						},
 						"minimum_interval": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 255000),
+							ValidateFunc: validation.IntBetween(1, 255000),
 						},
 						"minimum_receive_interval": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 255000),
+							ValidateFunc: validation.IntBetween(1, 255000),
 						},
 						"multiplier": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 255),
+							ValidateFunc: validation.IntBetween(1, 255),
 						},
 						"session_mode": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"automatic", "multihop", "single-hop"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not 'automatic', 'multihop' or 'single-hop'", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"automatic", "multihop", "single-hop"}, false),
 						},
 						"version": {
 							Type:     schema.TypeString,
@@ -315,15 +308,8 @@ func resourceBgpNeighbor() *schema.Resource {
 						"nlri_type": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"any", "flow", "labeled-unicast", "unicast", "multicast"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not valid nlri type", value, k))
-								}
-
-								return
-							},
+							ValidateFunc: validation.StringInSlice([]string{
+								"any", "flow", "labeled-unicast", "unicast", "multicast"}, false),
 						},
 						"accepted_prefix_limit": {
 							Type:     schema.TypeList,
@@ -334,17 +320,17 @@ func resourceBgpNeighbor() *schema.Resource {
 									"maximum": {
 										Type:         schema.TypeInt,
 										Required:     true,
-										ValidateFunc: validateIntRange(1, 4294967295),
+										ValidateFunc: validation.IntBetween(1, 4294967295),
 									},
 									"teardown": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(1, 100),
+										ValidateFunc: validation.IntBetween(1, 100),
 									},
 									"teardown_idle_timeout": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(1, 2400),
+										ValidateFunc: validation.IntBetween(1, 2400),
 									},
 									"teardown_idle_timeout_forever": {
 										Type:     schema.TypeBool,
@@ -362,17 +348,17 @@ func resourceBgpNeighbor() *schema.Resource {
 									"maximum": {
 										Type:         schema.TypeInt,
 										Required:     true,
-										ValidateFunc: validateIntRange(1, 4294967295),
+										ValidateFunc: validation.IntBetween(1, 4294967295),
 									},
 									"teardown": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(1, 100),
+										ValidateFunc: validation.IntBetween(1, 100),
 									},
 									"teardown_idle_timeout": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(1, 2400),
+										ValidateFunc: validation.IntBetween(1, 2400),
 									},
 									"teardown_idle_timeout_forever": {
 										Type:     schema.TypeBool,
@@ -392,15 +378,8 @@ func resourceBgpNeighbor() *schema.Resource {
 						"nlri_type": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"any", "flow", "labeled-unicast", "unicast", "multicast"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not valid nlri type", value, k))
-								}
-
-								return
-							},
+							ValidateFunc: validation.StringInSlice([]string{
+								"any", "flow", "labeled-unicast", "unicast", "multicast"}, false),
 						},
 						"accepted_prefix_limit": {
 							Type:     schema.TypeList,
@@ -411,17 +390,17 @@ func resourceBgpNeighbor() *schema.Resource {
 									"maximum": {
 										Type:         schema.TypeInt,
 										Required:     true,
-										ValidateFunc: validateIntRange(1, 4294967295),
+										ValidateFunc: validation.IntBetween(1, 4294967295),
 									},
 									"teardown": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(1, 100),
+										ValidateFunc: validation.IntBetween(1, 100),
 									},
 									"teardown_idle_timeout": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(1, 2400),
+										ValidateFunc: validation.IntBetween(1, 2400),
 									},
 									"teardown_idle_timeout_forever": {
 										Type:     schema.TypeBool,
@@ -439,17 +418,17 @@ func resourceBgpNeighbor() *schema.Resource {
 									"maximum": {
 										Type:         schema.TypeInt,
 										Required:     true,
-										ValidateFunc: validateIntRange(1, 4294967295),
+										ValidateFunc: validation.IntBetween(1, 4294967295),
 									},
 									"teardown": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(1, 100),
+										ValidateFunc: validation.IntBetween(1, 100),
 									},
 									"teardown_idle_timeout": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(1, 2400),
+										ValidateFunc: validation.IntBetween(1, 2400),
 									},
 									"teardown_idle_timeout_forever": {
 										Type:     schema.TypeBool,
@@ -474,12 +453,12 @@ func resourceBgpNeighbor() *schema.Resource {
 						"restart_time": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 600),
+							ValidateFunc: validation.IntBetween(1, 600),
 						},
 						"stale_route_time": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 600),
+							ValidateFunc: validation.IntBetween(1, 600),
 						},
 					},
 				},

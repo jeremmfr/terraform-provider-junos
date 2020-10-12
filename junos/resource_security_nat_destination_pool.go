@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type natDestinationPoolOptions struct {
@@ -29,32 +30,32 @@ func resourceSecurityNatDestinationPool() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"address": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validateIPMaskFunc(),
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: validateIPMaskFunc(),
 			},
 			"address_to": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ValidateFunc:  validateIPMaskFunc(),
-				ConflictsWith: []string{"address_port"},
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateIPMaskFunc(),
+				ConflictsWith:    []string{"address_port"},
 			},
 			"address_port": {
 				Type:          schema.TypeInt,
 				Optional:      true,
-				ValidateFunc:  validateIntRange(1, 65535),
+				ValidateFunc:  validation.IntBetween(1, 65535),
 				ConflictsWith: []string{"address_to"},
 			},
 			"routing_instance": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 		},
 	}

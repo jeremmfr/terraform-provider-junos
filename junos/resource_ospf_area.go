@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type ospfAreaOptions struct {
@@ -33,26 +34,18 @@ func resourceOspfArea() *schema.Resource {
 				Required: true,
 			},
 			"routing_instance": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				Default:      defaultWord,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				Default:          defaultWord,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"version": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "v2",
-				ForceNew: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if !stringInSlice(value, []string{"v2", "v3"}) {
-						errors = append(errors, fmt.Errorf(
-							"%q for %q is not 'v2' or 'v3", value, k))
-					}
-
-					return
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "v2",
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice([]string{"v2", "v3"}, false),
 			},
 			"interface": {
 				Type:     schema.TypeList,
@@ -74,22 +67,22 @@ func resourceOspfArea() *schema.Resource {
 						"metric": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 65535),
+							ValidateFunc: validation.IntBetween(1, 65535),
 						},
 						"hello_interval": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 255),
+							ValidateFunc: validation.IntBetween(1, 255),
 						},
 						"retransmit_interval": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 65535),
+							ValidateFunc: validation.IntBetween(1, 65535),
 						},
 						"dead_interval": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 65535),
+							ValidateFunc: validation.IntBetween(1, 65535),
 						},
 					},
 				},

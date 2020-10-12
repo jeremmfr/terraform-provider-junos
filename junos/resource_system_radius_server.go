@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -42,7 +43,7 @@ func resourceSystemRadiusServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateIPFunc(),
+				ValidateFunc: validation.IsIPAddress,
 			},
 			"secret": {
 				Type:      schema.TypeString,
@@ -57,60 +58,60 @@ func resourceSystemRadiusServer() *schema.Resource {
 			"source_address": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateIPFunc(),
+				ValidateFunc: validation.IsIPAddress,
 			},
 			"port": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 65535),
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"accounting_port": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 65535),
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"dynamic_request_port": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 65535),
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"preauthentication_port": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 65535),
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"timeout": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 1000),
+				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 			"accouting_timeout": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      -1,
-				ValidateFunc: validateIntRange(0, 1000),
+				ValidateFunc: validation.IntBetween(0, 1000),
 			},
 			"retry": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 100),
+				ValidateFunc: validation.IntBetween(1, 100),
 			},
 			"accounting_retry": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      -1,
-				ValidateFunc: validateIntRange(0, 100),
+				ValidateFunc: validation.IntBetween(0, 100),
 			},
 			"max_outstanding_requests": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      -1,
-				ValidateFunc: validateIntRange(0, 2000),
+				ValidateFunc: validation.IntBetween(0, 2000),
 			},
 			"routing_instance": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 		},
 	}

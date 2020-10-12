@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type ipsecProposalOptions struct {
@@ -30,10 +31,10 @@ func resourceIpsecProposal() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"authentication_algorithm": {
 				Type:     schema.TypeString,
@@ -46,25 +47,17 @@ func resourceIpsecProposal() *schema.Resource {
 			"lifetime_seconds": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(180, 86400),
+				ValidateFunc: validation.IntBetween(180, 86400),
 			},
 			"lifetime_kilobytes": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(64, 4294967294),
+				ValidateFunc: validation.IntBetween(64, 4294967294),
 			},
 			"protocol": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if !stringInSlice(value, []string{"esp", "ah"}) {
-						errors = append(errors, fmt.Errorf(
-							"%q for %q is not 'esp' or 'ah'", value, k))
-					}
-
-					return
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"esp", "ah"}, false),
 			},
 		},
 	}

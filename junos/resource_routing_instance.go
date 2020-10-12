@@ -26,10 +26,10 @@ func resourceRoutingInstance() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{"default"}),
 			},
 			"type": {
 				Type:     schema.TypeString,
@@ -45,10 +45,6 @@ func resourceRoutingInstance() *schema.Resource {
 }
 
 func resourceRoutingInstanceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	// TODO rewrite
-	if d.Get("name").(string) == "default" {
-		return diag.FromErr(fmt.Errorf("name default isn't valid"))
-	}
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

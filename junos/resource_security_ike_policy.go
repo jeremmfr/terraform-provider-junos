@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -29,10 +30,10 @@ func resourceIkePolicy() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"proposals": {
 				Type:     schema.TypeList,
@@ -41,18 +42,10 @@ func resourceIkePolicy() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"mode": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "main",
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if !stringInSlice(value, []string{"main", "aggressive"}) {
-						errors = append(errors, fmt.Errorf(
-							"%q for %q is not 'main' or 'aggressive'", value, k))
-					}
-
-					return
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "main",
+				ValidateFunc: validation.StringInSlice([]string{"main", "aggressive"}, false),
 			},
 			"pre_shared_key_text": {
 				Type:          schema.TypeString,

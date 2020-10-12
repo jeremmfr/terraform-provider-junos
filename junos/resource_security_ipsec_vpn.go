@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type ipsecVpnOptions struct {
@@ -30,23 +31,15 @@ func resourceIpsecVpn() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"establish_tunnels": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if !stringInSlice(value, []string{"immediately", "on-traffic"}) {
-						errors = append(errors, fmt.Errorf(
-							"%q for %q is not 'immediately' or 'on-traffic'", value, k))
-					}
-
-					return
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"immediately", "on-traffic"}, false),
 			},
 			"bind_interface": {
 				Type:     schema.TypeString,
@@ -59,17 +52,9 @@ func resourceIpsecVpn() *schema.Resource {
 				ForceNew: true,
 			},
 			"df_bit": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if !stringInSlice(value, []string{"clear", "copy", "set"}) {
-						errors = append(errors, fmt.Errorf(
-							"%q for %q is not 'clear', 'copy' or 'set'", value, k))
-					}
-
-					return
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"clear", "copy", "set"}, false),
 			},
 			"ike": {
 				Type:     schema.TypeList,
@@ -82,24 +67,24 @@ func resourceIpsecVpn() *schema.Resource {
 							Required: true,
 						},
 						"policy": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validateNameObjectJunos(),
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateNameObjectJunos([]string{}),
 						},
 						"identity_local": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validateNetworkFunc(),
+							ValidateFunc: validation.IsCIDRNetwork(0, 128),
 						},
 						"identity_remote": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validateNetworkFunc(),
+							ValidateFunc: validation.IsCIDRNetwork(0, 128),
 						},
 						"identity_service": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validateNameObjectJunos(),
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateDiagFunc: validateNameObjectJunos([]string{}),
 						},
 					},
 				},
@@ -122,7 +107,7 @@ func resourceIpsecVpn() *schema.Resource {
 						"destination_ip": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validateIPFunc(),
+							ValidateFunc: validation.IsIPAddress,
 						},
 						"optimized": {
 							Type:     schema.TypeBool,

@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type utmProfileWebFilteringEnhancedOptions struct {
@@ -62,14 +63,14 @@ func resourceSecurityUtmProfileWebFilteringEnhanced() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validateNameObjectJunos(),
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateNameObjectJunos([]string{}),
 						},
 						"action": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validateUtmProfileAction(),
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitWord, "quarantine"}, false),
 						},
 						"reputation_action": {
 							Type:     schema.TypeList,
@@ -79,20 +80,13 @@ func resourceSecurityUtmProfileWebFilteringEnhanced() *schema.Resource {
 									"site_reputation": {
 										Type:     schema.TypeString,
 										Required: true,
-										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-											value := v.(string)
-											if !stringInSlice(value, []string{"fairly-safe", "harmful", "moderately-safe", "suspicious", "very-safe"}) {
-												errors = append(errors, fmt.Errorf(
-													"%q %q invalid reputation", value, k))
-											}
-
-											return
-										},
+										ValidateFunc: validation.StringInSlice([]string{
+											"fairly-safe", "harmful", "moderately-safe", "suspicious", "very-safe"}, false),
 									},
 									"action": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validateUtmProfileAction(),
+										ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitWord, "quarantine"}, false),
 									},
 								},
 							},
@@ -107,7 +101,7 @@ func resourceSecurityUtmProfileWebFilteringEnhanced() *schema.Resource {
 			"default_action": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateUtmProfileAction(),
+				ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitWord, "quarantine"}, false),
 			},
 			"fallback_settings": {
 				Type:     schema.TypeList,
@@ -116,56 +110,24 @@ func resourceSecurityUtmProfileWebFilteringEnhanced() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"default": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"block", "log-and-permit"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q %q invalid action", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit"}, false),
 						},
 						"server_connectivity": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"block", "log-and-permit"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q %q invalid action", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit"}, false),
 						},
 						"timeout": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"block", "log-and-permit"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q %q invalid action", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit"}, false),
 						},
 						"too_many_requests": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"block", "log-and-permit"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q %q invalid action", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit"}, false),
 						},
 					},
 				},
@@ -203,20 +165,13 @@ func resourceSecurityUtmProfileWebFilteringEnhanced() *schema.Resource {
 						"site_reputation": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"fairly-safe", "harmful", "moderately-safe", "suspicious", "very-safe"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q %q invalid reputation", value, k))
-								}
-
-								return
-							},
+							ValidateFunc: validation.StringInSlice([]string{
+								"fairly-safe", "harmful", "moderately-safe", "suspicious", "very-safe"}, false),
 						},
 						"action": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validateUtmProfileAction(),
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitWord, "quarantine"}, false),
 						},
 					},
 				},
@@ -224,21 +179,9 @@ func resourceSecurityUtmProfileWebFilteringEnhanced() *schema.Resource {
 			"timeout": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 1800),
+				ValidateFunc: validation.IntBetween(1, 1800),
 			},
 		},
-	}
-}
-
-func validateUtmProfileAction() schema.SchemaValidateFunc {
-	return func(v interface{}, k string) (s []string, es []error) {
-		value := v.(string)
-		if !stringInSlice(value, []string{"block", "log-and-permit", permitWord, "quarantine"}) {
-			es = append(es, fmt.Errorf(
-				"%q %q invalid action", value, k))
-		}
-
-		return
 	}
 }
 

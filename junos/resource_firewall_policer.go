@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type policerOptions struct {
@@ -28,10 +29,10 @@ func resourceFirewallPolicer() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"filter_specific": {
 				Type:     schema.TypeBool,
@@ -46,7 +47,7 @@ func resourceFirewallPolicer() *schema.Resource {
 						"bandwidth_percent": {
 							Type:          schema.TypeInt,
 							Optional:      true,
-							ValidateFunc:  validateIntRange(1, 100),
+							ValidateFunc:  validation.IntBetween(1, 100),
 							ConflictsWith: []string{"if_exceeding.0.bandwidth_limit"},
 						},
 						"bandwidth_limit": {

@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -47,10 +48,10 @@ func resourceSystemSyslogFile() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"filename": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"allow_duplicates": {
 				Type:     schema.TypeBool,
@@ -85,77 +86,77 @@ func resourceSystemSyslogFile() *schema.Resource {
 			"any_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"authorization_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"changelog_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"conflictlog_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"daemon_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"dfc_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"external_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"firewall_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"ftp_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"interactivecommands_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"kernel_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"ntp_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"pfe_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"security_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"user_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"archive": {
 				Type:     schema.TypeList,
@@ -207,12 +208,12 @@ func resourceSystemSyslogFile() *schema.Resource {
 						"files": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 1000),
+							ValidateFunc: validation.IntBetween(1, 1000),
 						},
 						"size": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(65536, 1073741824),
+							ValidateFunc: validation.IntBetween(65536, 1073741824),
 						},
 						"start_time": {
 							Type:     schema.TypeString,
@@ -221,7 +222,7 @@ func resourceSystemSyslogFile() *schema.Resource {
 						"transfer_interval": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(5, 2880),
+							ValidateFunc: validation.IntBetween(5, 2880),
 						},
 					},
 				},

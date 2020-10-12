@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type ikeProposalOptions struct {
@@ -30,10 +31,10 @@ func resourceIkeProposal() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"authentication_algorithm": {
 				Type:     schema.TypeString,
@@ -55,7 +56,7 @@ func resourceIkeProposal() *schema.Resource {
 			"lifetime_seconds": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(180, 86400),
+				ValidateFunc: validation.IntBetween(180, 86400),
 			},
 		},
 	}

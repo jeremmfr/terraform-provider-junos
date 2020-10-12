@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type ikeGatewayOptions struct {
@@ -35,10 +36,10 @@ func resourceIkeGateway() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"address": {
 				Type:     schema.TypeList,
@@ -49,7 +50,7 @@ func resourceIkeGateway() *schema.Resource {
 			"local_address": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateIPFunc(),
+				ValidateFunc: validation.IsIPAddress,
 			},
 			"policy": {
 				Type:     schema.TypeString,
@@ -76,12 +77,12 @@ func resourceIkeGateway() *schema.Resource {
 						"interval": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(10, 60),
+							ValidateFunc: validation.IntBetween(10, 60),
 						},
 						"threshold": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 5),
+							ValidateFunc: validation.IntBetween(1, 5),
 						},
 					},
 				},
@@ -95,15 +96,8 @@ func resourceIkeGateway() *schema.Resource {
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"distinguished-name", "hostname", "inet", "inet6", "user-at-hostname"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not valid", value, k))
-								}
-
-								return
-							},
+							ValidateFunc: validation.StringInSlice([]string{
+								"distinguished-name", "hostname", "inet", "inet6", "user-at-hostname"}, false),
 						},
 						"value": {
 							Type:     schema.TypeString,
@@ -121,15 +115,8 @@ func resourceIkeGateway() *schema.Resource {
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"distinguished-name", "hostname", "inet", "inet6", "user-at-hostname"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not valid", value, k))
-								}
-
-								return
-							},
+							ValidateFunc: validation.StringInSlice([]string{
+								"distinguished-name", "hostname", "inet", "inet6", "user-at-hostname"}, false),
 						},
 						"value": {
 							Type:     schema.TypeString,
@@ -139,17 +126,9 @@ func resourceIkeGateway() *schema.Resource {
 				},
 			},
 			"version": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if !stringInSlice(value, []string{"v1-only", "v2-only"}) {
-						errors = append(errors, fmt.Errorf(
-							"%q for %q is not 'v1-only' or 'v2-only'", value, k))
-					}
-
-					return
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"v1-only", "v2-only"}, false),
 			},
 		},
 	}
@@ -332,9 +311,9 @@ func setIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 
 	setPrefix := "set security ike gateway " + d.Get("name").(string)
 	for _, v := range d.Get("address").([]interface{}) {
-		err := validateIP(v.(string))
-		if err != nil {
-			return err
+		_, errs := validation.IsIPAddress(v, "address")
+		if len(errs) > 0 {
+			return errs[0]
 		}
 		configSet = append(configSet, setPrefix+" address "+v.(string))
 	}
