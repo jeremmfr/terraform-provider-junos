@@ -35,7 +35,10 @@ func TestProvider_impl(t *testing.T) {
 
 func testAccPreCheck(t *testing.T) {
 	if os.Getenv("JUNOS_HOST") == "" && os.Getenv("JUNOS_KEYFILE") == "" {
-		t.Fatal("JUNOS_HOST and JUNOS_KEYFILE must be set for acceptance tests")
+		t.Fatal("JUNOS_HOST must be set for acceptance tests")
+	}
+	if os.Getenv("JUNOS_KEYFILE") == "" && os.Getenv("JUNOS_PASSWORD") == "" {
+		t.Fatal("JUNOS_KEYFILE or JUNOS_PASSWORD must be set for acceptance tests")
 	}
 
 	err := testAccProvider.Configure(context.Background(), terraform.NewResourceConfigRaw(nil))
