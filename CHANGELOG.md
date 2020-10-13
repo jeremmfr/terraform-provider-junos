@@ -5,32 +5,38 @@ BUG FIXES:
 
 ## v1.5.1
 BUG FIXES:
-* add missing `password` field in provider configuration for ssh authentication #41
+* add missing `password` field in provider configuration for ssh authentication (Fixes [#41](https://github.com/jeremmfr/terraform-provider-junos/issues/41))
 
 ## v1.5.0
+FEATURES:
+* add data source `junos_interface`
+
 ENHANCEMENTS:
-* add data source junos_interface
 * add argument `vlan_tagging_id` in resource junos_interface
 
 ## v1.4.0
+FEATURES:
+* add resource `junos_system_ntp_server` (Fixes [#33](https://github.com/jeremmfr/terraform-provider-junos/issues/33))
+* add resource `junos_system_radius_server` (Fixes [#33](https://github.com/jeremmfr/terraform-provider-junos/issues/33))
+* add resource `junos_system_syslog_host` (Fixes [#33](https://github.com/jeremmfr/terraform-provider-junos/issues/33))
+* add resource `junos_system_syslog_file` (Fixes [#33](https://github.com/jeremmfr/terraform-provider-junos/issues/33))
+
 ENHANCEMENTS:
-* add options `apply_path`, `dynamic_db` in resource junos_policyoptions_prefix_list #31
-* add options `is_fragment`, `next_header`, `next_header_except` in `from` block for resource firewall_filter #32
-* add resource junos_system_ntp_server #33
-* add resource junos_system_radius_server #33
-* add resource junos_system_syslog_host #33
-* add resource junos_system_syslog_file #33
+* add options `apply_path`, `dynamic_db` in resource junos_policyoptions_prefix_list (Fixes [#31](https://github.com/jeremmfr/terraform-provider-junos/issues/31))
+* add options `is_fragment`, `next_header`, `next_header_except` in `from` block for resource firewall_filter (Fixes [#32](https://github.com/jeremmfr/terraform-provider-junos/issues/32))
 
 BUG FIXES:
 * fix message validateIntRange
 
 ## v1.3.0
+FEATURES:
+* add resource `junos_security_utm_custom_url_pattern` (Fixes [#26](https://github.com/jeremmfr/terraform-provider-junos/issues/26))
+* add resource `junos_security_utm_policy` (Fixes [#26](https://github.com/jeremmfr/terraform-provider-junos/issues/26))
+* add resource `junos_security_utm_profile_web_filtering_juniper_enhanced` (Fixes [#26](https://github.com/jeremmfr/terraform-provider-junos/issues/26))
+* add resource `junos_security_utm_profile_web_filtering_juniper_local`
+* add resource `junos_security_utm_profile_web_filtering_websense_redirect`
+
 ENHANCEMENTS:
-* add resource junos_security_utm_custom_url_pattern #26
-* add resource junos_security_utm_policy #26
-* add resource junos_security_utm_profile_web_filtering_juniper_enhanced #26
-* add resource junos_security_utm_profile_web_filtering_juniper_local
-* add resource junos_security_utm_profile_web_filtering_websense_redirect
 * remove useless LF for list of set command
 
 BUG FIXES:
@@ -50,20 +56,22 @@ BUG FIXES:
 * [workflows] no tar.gz incompatible with registry
 
 ## 1.2.0
+FEATURES:
+* new resource `junos_aggregate_route` (Fixes [#24](https://github.com/jeremmfr/terraform-provider-junos/issues/24))
+
 ENHANCEMENTS:
-* add community on resource junos_static_route
-* new resource junos_aggregate_route #24
+* add `community` on resource `junos_static_route`
 
 BUG FIXES:
 * fix go lint error
 
 ## 1.1.1
 BUG FIXES:
-* Allow usage of ~ in sshkeyfile path (Fixes #22)
+* Allow usage of ~ in sshkeyfile path (Fixes [#22](https://github.com/jeremmfr/terraform-provider-junos/issues/22))
 
 ## 1.1.0
 ENHANCEMENTS:
-*  add application-services in security_policy (#20)
+*  add `application-services` in `security_policy` (Fixes [#20](https://github.com/jeremmfr/terraform-provider-junos/issues/20))
 
 ## 1.0.6
 BUG FIXES:
@@ -71,21 +79,21 @@ BUG FIXES:
 
 ## 1.0.5
 BUG FIXES:
-* fix resource_junos_interface crach on closeSession Netconf after error on startNewSession  ([19](https://github.com/jeremmfr/terraform-provider-junos/pull/19))
+* fix resource `junos_interface` crach on closeSession Netconf after error on startNewSession
 
 ## 1.0.4
 BUG FIXES:
-* fix ipsec_vpn bind_interface_auto -> search st0 unit not in terse simply ([17](https://github.com/jeremmfr/terraform-provider-junos/pull/17))
-* remove commit-check before commit which gives the same error if there is ([16](https://github.com/jeremmfr/terraform-provider-junos/pull/16))
-* fix check interface disable and NC ([15](https://github.com/jeremmfr/terraform-provider-junos/pull/15))
+* fix `bind_interface_auto` on resource `junos_security_ipsec_vpn` -> search st0 unit not in terse simply
+* remove commit-check before commit which gives the same error if there is
+* fix check interface disable and NC
 
 ## 1.0.3
 BUG FIXES:
-* fix terraform crash with an empty blocks-mode (no one required) ([14](https://github.com/jeremmfr/terraform-provider-junos/pull/14))
+* fix terraform crash with an empty blocks-mode (no one required)
 
 ## 1.0.2
 ENHANCEMENTS:
-* move cmd/debug environnement variables to provider config ([13](https://github.com/jeremmfr/terraform-provider-junos/pull/13))
+* move cmd/debug environnement variables to provider config
 
 ## 1.0.1
 BUG FIXES:
