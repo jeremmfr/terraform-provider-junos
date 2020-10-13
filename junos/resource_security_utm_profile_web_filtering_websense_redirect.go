@@ -1,11 +1,14 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type utmProfileWebFilteringWebsenseOptions struct {
@@ -20,10 +23,10 @@ type utmProfileWebFilteringWebsenseOptions struct {
 
 func resourceSecurityUtmProfileWebFilteringWebsense() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSecurityUtmProfileWebFilteringWebsenseCreate,
-		Read:   resourceSecurityUtmProfileWebFilteringWebsenseRead,
-		Update: resourceSecurityUtmProfileWebFilteringWebsenseUpdate,
-		Delete: resourceSecurityUtmProfileWebFilteringWebsenseDelete,
+		CreateContext: resourceSecurityUtmProfileWebFilteringWebsenseCreate,
+		ReadContext:   resourceSecurityUtmProfileWebFilteringWebsenseRead,
+		UpdateContext: resourceSecurityUtmProfileWebFilteringWebsenseUpdate,
+		DeleteContext: resourceSecurityUtmProfileWebFilteringWebsenseDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceSecurityUtmProfileWebFilteringWebsenseImport,
 		},
@@ -48,56 +51,24 @@ func resourceSecurityUtmProfileWebFilteringWebsense() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"default": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"block", "log-and-permit"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q %q invalid action", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit"}, false),
 						},
 						"server_connectivity": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"block", "log-and-permit"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q %q invalid action", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit"}, false),
 						},
 						"timeout": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"block", "log-and-permit"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q %q invalid action", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit"}, false),
 						},
 						"too_many_requests": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"block", "log-and-permit"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q %q invalid action", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit"}, false),
 						},
 					},
 				},
@@ -115,7 +86,7 @@ func resourceSecurityUtmProfileWebFilteringWebsense() *schema.Resource {
 						"port": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1024, 65535),
+							ValidateFunc: validation.IntBetween(1024, 65535),
 						},
 					},
 				},
@@ -123,86 +94,85 @@ func resourceSecurityUtmProfileWebFilteringWebsense() *schema.Resource {
 			"sockets": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 32),
+				ValidateFunc: validation.IntBetween(1, 32),
 			},
 			"timeout": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 1800),
+				ValidateFunc: validation.IntBetween(1, 1800),
 			},
 		},
 	}
 }
 
-func resourceSecurityUtmProfileWebFilteringWebsenseCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityUtmProfileWebFilteringWebsenseCreate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security utm feature-profile web-filtering websense-redirect "+
-			"not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering websense-redirect "+
+			"not compatible with Junos device %s", jnprSess.Platform[0].Model))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	utmProfileWebFWebsenseExists, err := checkUtmProfileWebFWebsenseExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if utmProfileWebFWebsenseExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("security utm feature-profile web-filtering websense-redirect "+
-			"%v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering websense-redirect "+
+			"%v already exists", d.Get("name").(string)))
 	}
 
 	err = setUtmProfileWebFWebsense(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_security_utm_profile_web_filtering_websense_redirect", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	mutex.Lock()
 	utmProfileWebFWebsenseExists, err = checkUtmProfileWebFWebsenseExists(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if utmProfileWebFWebsenseExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("security utm feature-profile web-filtering websense-redirect %v "+
-			"not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering websense-redirect %v "+
+			"not exists after commit => check your config", d.Get("name").(string)))
 	}
 
-	return resourceSecurityUtmProfileWebFilteringWebsenseRead(d, m)
+	return resourceSecurityUtmProfileWebFilteringWebsenseRead(ctx, d, m)
 }
-func resourceSecurityUtmProfileWebFilteringWebsenseRead(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityUtmProfileWebFilteringWebsenseRead(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	utmProfileWebFWebsenseOptions, err := readUtmProfileWebFWebsense(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if utmProfileWebFWebsenseOptions.name == "" {
 		d.SetId("")
@@ -212,62 +182,58 @@ func resourceSecurityUtmProfileWebFilteringWebsenseRead(d *schema.ResourceData, 
 
 	return nil
 }
-func resourceSecurityUtmProfileWebFilteringWebsenseUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityUtmProfileWebFilteringWebsenseUpdate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delUtmProfileWebFWebsense(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setUtmProfileWebFWebsense(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_security_utm_profile_web_filtering_websense_redirect", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceSecurityUtmProfileWebFilteringWebsenseRead(d, m)
+	return resourceSecurityUtmProfileWebFilteringWebsenseRead(ctx, d, m)
 }
-func resourceSecurityUtmProfileWebFilteringWebsenseDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityUtmProfileWebFilteringWebsenseDelete(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delUtmProfileWebFWebsense(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_security_utm_profile_web_filtering_websense_redirect", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

@@ -1,11 +1,14 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type ikeGatewayOptions struct {
@@ -24,19 +27,19 @@ type ikeGatewayOptions struct {
 
 func resourceIkeGateway() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceIkeGatewayCreate,
-		Read:   resourceIkeGatewayRead,
-		Update: resourceIkeGatewayUpdate,
-		Delete: resourceIkeGatewayDelete,
+		CreateContext: resourceIkeGatewayCreate,
+		ReadContext:   resourceIkeGatewayRead,
+		UpdateContext: resourceIkeGatewayUpdate,
+		DeleteContext: resourceIkeGatewayDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceIkeGatewayImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"address": {
 				Type:     schema.TypeList,
@@ -47,7 +50,7 @@ func resourceIkeGateway() *schema.Resource {
 			"local_address": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateIPFunc(),
+				ValidateFunc: validation.IsIPAddress,
 			},
 			"policy": {
 				Type:     schema.TypeString,
@@ -74,12 +77,12 @@ func resourceIkeGateway() *schema.Resource {
 						"interval": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(10, 60),
+							ValidateFunc: validation.IntBetween(10, 60),
 						},
 						"threshold": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 5),
+							ValidateFunc: validation.IntBetween(1, 5),
 						},
 					},
 				},
@@ -93,15 +96,8 @@ func resourceIkeGateway() *schema.Resource {
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"distinguished-name", "hostname", "inet", "inet6", "user-at-hostname"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not valid", value, k))
-								}
-
-								return
-							},
+							ValidateFunc: validation.StringInSlice([]string{
+								"distinguished-name", "hostname", "inet", "inet6", "user-at-hostname"}, false),
 						},
 						"value": {
 							Type:     schema.TypeString,
@@ -119,15 +115,8 @@ func resourceIkeGateway() *schema.Resource {
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"distinguished-name", "hostname", "inet", "inet6", "user-at-hostname"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not valid", value, k))
-								}
-
-								return
-							},
+							ValidateFunc: validation.StringInSlice([]string{
+								"distinguished-name", "hostname", "inet", "inet6", "user-at-hostname"}, false),
 						},
 						"value": {
 							Type:     schema.TypeString,
@@ -137,85 +126,76 @@ func resourceIkeGateway() *schema.Resource {
 				},
 			},
 			"version": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if !stringInSlice(value, []string{"v1-only", "v2-only"}) {
-						errors = append(errors, fmt.Errorf(
-							"%q for %q is not 'v1-only' or 'v2-only'", value, k))
-					}
-
-					return
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"v1-only", "v2-only"}, false),
 			},
 		},
 	}
 }
 
-func resourceIkeGatewayCreate(d *schema.ResourceData, m interface{}) error {
+func resourceIkeGatewayCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security ike gateway not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security ike gateway not compatible with Junos device %s",
+			jnprSess.Platform[0].Model))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	ikeGatewayExists, err := checkIkeGatewayExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if ikeGatewayExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("security ike gateway %v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security ike gateway %v already exists", d.Get("name").(string)))
 	}
 	err = setIkeGateway(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_security_ike_gateway", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	ikeGatewayExists, err = checkIkeGatewayExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if ikeGatewayExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("security ike gateway %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security ike gateway %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceIkeGatewayRead(d, m)
+	return resourceIkeGatewayRead(ctx, d, m)
 }
-func resourceIkeGatewayRead(d *schema.ResourceData, m interface{}) error {
+func resourceIkeGatewayRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	ikeGatewayOptions, err := readIkeGateway(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if ikeGatewayOptions.name == "" {
 		d.SetId("")
@@ -225,62 +205,56 @@ func resourceIkeGatewayRead(d *schema.ResourceData, m interface{}) error {
 
 	return nil
 }
-func resourceIkeGatewayUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceIkeGatewayUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delIkeGateway(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setIkeGateway(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_security_ike_gateway", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceIkeGatewayRead(d, m)
+	return resourceIkeGatewayRead(ctx, d, m)
 }
-func resourceIkeGatewayDelete(d *schema.ResourceData, m interface{}) error {
+func resourceIkeGatewayDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delIkeGateway(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_security_ike_gateway", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil
@@ -328,9 +302,9 @@ func setIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 
 	setPrefix := "set security ike gateway " + d.Get("name").(string)
 	for _, v := range d.Get("address").([]interface{}) {
-		err := validateIP(v.(string))
-		if err != nil {
-			return err
+		_, errs := validation.IsIPAddress(v, "address")
+		if len(errs) > 0 {
+			return errs[0]
 		}
 		configSet = append(configSet, setPrefix+" address "+v.(string))
 	}

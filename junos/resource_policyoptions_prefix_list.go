@@ -1,10 +1,12 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type prefixListOptions struct {
@@ -16,19 +18,19 @@ type prefixListOptions struct {
 
 func resourcePolicyoptionsPrefixList() *schema.Resource {
 	return &schema.Resource{
-		Create: resourcePolicyoptionsPrefixListCreate,
-		Read:   resourcePolicyoptionsPrefixListRead,
-		Update: resourcePolicyoptionsPrefixListUpdate,
-		Delete: resourcePolicyoptionsPrefixListDelete,
+		CreateContext: resourcePolicyoptionsPrefixListCreate,
+		ReadContext:   resourcePolicyoptionsPrefixListRead,
+		UpdateContext: resourcePolicyoptionsPrefixListUpdate,
+		DeleteContext: resourcePolicyoptionsPrefixListDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourcePolicyoptionsPrefixListImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"prefix": {
 				Type:     schema.TypeList,
@@ -47,68 +49,66 @@ func resourcePolicyoptionsPrefixList() *schema.Resource {
 	}
 }
 
-func resourcePolicyoptionsPrefixListCreate(d *schema.ResourceData, m interface{}) error {
+func resourcePolicyoptionsPrefixListCreate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	policyoptsPrefixListExists, err := checkPolicyoptionsPrefixListExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if policyoptsPrefixListExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("policy-options prefix-list %v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("policy-options prefix-list %v already exists", d.Get("name").(string)))
 	}
 
 	err = setPolicyoptionsPrefixList(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_policyoptions_prefix_list", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	policyoptsPrefixListExists, err = checkPolicyoptionsPrefixListExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if policyoptsPrefixListExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("policy-options prefix-list %v not exists after commit "+
-			"=> check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("policy-options prefix-list %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourcePolicyoptionsPrefixListRead(d, m)
+	return resourcePolicyoptionsPrefixListRead(ctx, d, m)
 }
-func resourcePolicyoptionsPrefixListRead(d *schema.ResourceData, m interface{}) error {
+func resourcePolicyoptionsPrefixListRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	prefixListOptions, err := readPolicyoptionsPrefixList(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if prefixListOptions.name == "" {
 		d.SetId("")
@@ -118,63 +118,59 @@ func resourcePolicyoptionsPrefixListRead(d *schema.ResourceData, m interface{}) 
 
 	return nil
 }
-func resourcePolicyoptionsPrefixListUpdate(d *schema.ResourceData, m interface{}) error {
+func resourcePolicyoptionsPrefixListUpdate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delPolicyoptionsPrefixList(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setPolicyoptionsPrefixList(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_policyoptions_prefix_list", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourcePolicyoptionsPrefixListRead(d, m)
+	return resourcePolicyoptionsPrefixListRead(ctx, d, m)
 }
-func resourcePolicyoptionsPrefixListDelete(d *schema.ResourceData, m interface{}) error {
+func resourcePolicyoptionsPrefixListDelete(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delPolicyoptionsPrefixList(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_policyoptions_prefix_list", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil
@@ -224,7 +220,7 @@ func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess 
 
 	setPrefix := "set policy-options prefix-list " + d.Get("name").(string)
 	for _, v := range d.Get("prefix").([]interface{}) {
-		err := validateNetwork(v.(string))
+		err := validateCIDRNetwork(v.(string))
 		if err != nil {
 			return err
 		}

@@ -1,10 +1,12 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type instanceOptions struct {
@@ -15,19 +17,19 @@ type instanceOptions struct {
 
 func resourceRoutingInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceRoutingInstanceCreate,
-		Read:   resourceRoutingInstanceRead,
-		Update: resourceRoutingInstanceUpdate,
-		Delete: resourceRoutingInstanceDelete,
+		CreateContext: resourceRoutingInstanceCreate,
+		ReadContext:   resourceRoutingInstanceRead,
+		UpdateContext: resourceRoutingInstanceUpdate,
+		DeleteContext: resourceRoutingInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceRoutingInstanceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{"default"}),
 			},
 			"type": {
 				Type:     schema.TypeString,
@@ -42,69 +44,64 @@ func resourceRoutingInstance() *schema.Resource {
 	}
 }
 
-func resourceRoutingInstanceCreate(d *schema.ResourceData, m interface{}) error {
-	if d.Get("name").(string) == "default" {
-		return fmt.Errorf("name default isn't valid")
-	}
+func resourceRoutingInstanceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	routingInstanceExists, err := checkRoutingInstanceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if routingInstanceExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("routing-instance %v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("routing-instance %v already exists", d.Get("name").(string)))
 	}
 	err = setRoutingInstance(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_routing_instance", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	routingInstanceExists, err = checkRoutingInstanceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if routingInstanceExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("routing-instance %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("routing-instance %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceRoutingInstanceRead(d, m)
+	return resourceRoutingInstanceRead(ctx, d, m)
 }
-func resourceRoutingInstanceRead(d *schema.ResourceData, m interface{}) error {
+func resourceRoutingInstanceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	instanceOptions, err := readRoutingInstance(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if instanceOptions.name == "" {
 		d.SetId("")
@@ -114,63 +111,57 @@ func resourceRoutingInstanceRead(d *schema.ResourceData, m interface{}) error {
 
 	return nil
 }
-func resourceRoutingInstanceUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceRoutingInstanceUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 
 	err = delRoutingInstanceOpts(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setRoutingInstance(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_routing_instance", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceRoutingInstanceRead(d, m)
+	return resourceRoutingInstanceRead(ctx, d, m)
 }
-func resourceRoutingInstanceDelete(d *schema.ResourceData, m interface{}) error {
+func resourceRoutingInstanceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delRoutingInstance(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_routing_instance", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

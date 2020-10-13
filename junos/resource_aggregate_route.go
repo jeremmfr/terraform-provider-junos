@@ -1,11 +1,14 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type aggregateRouteOptions struct {
@@ -24,35 +27,26 @@ type aggregateRouteOptions struct {
 
 func resourceAggregateRoute() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAggregateRouteCreate,
-		Read:   resourceAggregateRouteRead,
-		Update: resourceAggregateRouteUpdate,
-		Delete: resourceAggregateRouteDelete,
+		CreateContext: resourceAggregateRouteCreate,
+		ReadContext:   resourceAggregateRouteRead,
+		UpdateContext: resourceAggregateRouteUpdate,
+		DeleteContext: resourceAggregateRouteDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceAggregateRouteImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"destination": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					err := validateNetwork(value)
-					if err != nil {
-						errors = append(errors, fmt.Errorf(
-							"%q error for validate %q : %q", k, value, err))
-					}
-
-					return
-				},
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsCIDRNetwork(0, 128),
 			},
 			"routing_instance": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				Default:      defaultWord,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				Default:          defaultWord,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"active": {
 				Type:          schema.TypeBool,
@@ -100,28 +94,25 @@ func resourceAggregateRoute() *schema.Resource {
 	}
 }
 
-func resourceAggregateRouteCreate(d *schema.ResourceData, m interface{}) error {
+func resourceAggregateRouteCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	if d.Get("routing_instance").(string) != defaultWord {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
 
-			return err
+			return diag.FromErr(err)
 		}
 		if !instanceExists {
 			sess.configClear(jnprSess)
 
-			return fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string))
+			return diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))
 		}
 	}
 	aggregateRouteExists, err := checkAggregateRouteExists(
@@ -129,57 +120,57 @@ func resourceAggregateRouteCreate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if aggregateRouteExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("aggregate route %v already exists on table %s",
-			d.Get("destination").(string), d.Get("routing_instance").(string))
+		return diag.FromErr(fmt.Errorf("aggregate route %v already exists on table %s",
+			d.Get("destination").(string), d.Get("routing_instance").(string)))
 	}
 	err = setAggregateRoute(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_aggregate_route", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	aggregateRouteExists, err = checkAggregateRouteExists(
 		d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if aggregateRouteExists {
 		d.SetId(d.Get("destination").(string) + idSeparator + d.Get("routing_instance").(string))
 	} else {
-		return fmt.Errorf("aggregate route %v not exists in routing_instance %v after commit "+
-			"=> check your config", d.Get("destination").(string), d.Get("routing_instance").(string))
+		return diag.FromErr(fmt.Errorf("aggregate route %v not exists in routing_instance %v after commit "+
+			"=> check your config", d.Get("destination").(string), d.Get("routing_instance").(string)))
 	}
 
-	return resourceAggregateRouteRead(d, m)
+	return resourceAggregateRouteRead(ctx, d, m)
 }
-func resourceAggregateRouteRead(d *schema.ResourceData, m interface{}) error {
+func resourceAggregateRouteRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	aggregateRouteOptions, err := readAggregateRoute(d.Get("destination").(string), d.Get("routing_instance").(string),
 		m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if aggregateRouteOptions.destination == "" {
 		d.SetId("")
@@ -189,63 +180,57 @@ func resourceAggregateRouteRead(d *schema.ResourceData, m interface{}) error {
 
 	return nil
 }
-func resourceAggregateRouteUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceAggregateRouteUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delAggregateRouteOpts(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	err = setAggregateRoute(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_aggregate_route", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceAggregateRouteRead(d, m)
+	return resourceAggregateRouteRead(ctx, d, m)
 }
-func resourceAggregateRouteDelete(d *schema.ResourceData, m interface{}) error {
+func resourceAggregateRouteDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delAggregateRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_aggregate_route", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

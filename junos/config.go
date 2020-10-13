@@ -1,5 +1,9 @@
 package junos
 
+import (
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+)
+
 // Config : provider config.
 type Config struct {
 	junosPort                int
@@ -15,7 +19,7 @@ type Config struct {
 }
 
 // Session : read session information for Junos Device.
-func (c *Config) Session() (*Session, error) {
+func (c *Config) Session() (*Session, diag.Diagnostics) {
 	sess := &Session{
 		junosIP:          c.junosIP,
 		junosPort:        c.junosPort,

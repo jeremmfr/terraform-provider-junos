@@ -1,16 +1,18 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceInterface() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceInterfaceRead,
+		ReadContext: dataSourceInterfaceRead,
 		Schema: map[string]*schema.Schema{
 			"config_interface": {
 				Type:     schema.TypeString,
@@ -312,26 +314,26 @@ func dataSourceInterface() *schema.Resource {
 	}
 }
 
-func dataSourceInterfaceRead(d *schema.ResourceData, m interface{}) error {
+func dataSourceInterfaceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	if d.Get("config_interface").(string) == "" && d.Get("match").(string) == "" {
-		return fmt.Errorf("no arguments provided, 'config_interface' and 'match' empty")
+		return diag.FromErr(fmt.Errorf("no arguments provided, 'config_interface' and 'match' empty"))
 	}
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	nameFound, err := searchInterfaceID(d.Get("config_interface").(string), d.Get("match").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if nameFound == "" {
-		return fmt.Errorf("no interface found with arguments provided")
+		return diag.FromErr(fmt.Errorf("no interface found with arguments provided"))
 	}
 	interfaceOpt, err := readInterface(nameFound, m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	d.SetId(nameFound)
 	tfErr := d.Set("name", nameFound)

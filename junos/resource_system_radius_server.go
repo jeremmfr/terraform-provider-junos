@@ -1,11 +1,14 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -28,10 +31,10 @@ type radiusServerOptions struct {
 
 func resourceSystemRadiusServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSystemRadiusServerCreate,
-		Read:   resourceSystemRadiusServerRead,
-		Update: resourceSystemRadiusServerUpdate,
-		Delete: resourceSystemRadiusServerDelete,
+		CreateContext: resourceSystemRadiusServerCreate,
+		ReadContext:   resourceSystemRadiusServerRead,
+		UpdateContext: resourceSystemRadiusServerUpdate,
+		DeleteContext: resourceSystemRadiusServerDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceSystemRadiusServerImport,
 		},
@@ -40,7 +43,7 @@ func resourceSystemRadiusServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateIPFunc(),
+				ValidateFunc: validation.IsIPAddress,
 			},
 			"secret": {
 				Type:      schema.TypeString,
@@ -55,126 +58,124 @@ func resourceSystemRadiusServer() *schema.Resource {
 			"source_address": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateIPFunc(),
+				ValidateFunc: validation.IsIPAddress,
 			},
 			"port": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 65535),
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"accounting_port": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 65535),
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"dynamic_request_port": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 65535),
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"preauthentication_port": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 65535),
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"timeout": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 1000),
+				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 			"accouting_timeout": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      -1,
-				ValidateFunc: validateIntRange(0, 1000),
+				ValidateFunc: validation.IntBetween(0, 1000),
 			},
 			"retry": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 100),
+				ValidateFunc: validation.IntBetween(1, 100),
 			},
 			"accounting_retry": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      -1,
-				ValidateFunc: validateIntRange(0, 100),
+				ValidateFunc: validation.IntBetween(0, 100),
 			},
 			"max_outstanding_requests": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      -1,
-				ValidateFunc: validateIntRange(0, 2000),
+				ValidateFunc: validation.IntBetween(0, 2000),
 			},
 			"routing_instance": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 		},
 	}
 }
 
-func resourceSystemRadiusServerCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSystemRadiusServerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	radiusServerExists, err := checkSystemRadiusServerExists(d.Get("address").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if radiusServerExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("system radius-server %v already exists", d.Get("address").(string))
+		return diag.FromErr(fmt.Errorf("system radius-server %v already exists", d.Get("address").(string)))
 	}
 
 	err = setSystemRadiusServer(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_system_radius_server", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	radiusServerExists, err = checkSystemRadiusServerExists(d.Get("address").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if radiusServerExists {
 		d.SetId(d.Get("address").(string))
 	} else {
-		return fmt.Errorf("system radius-server %v not exists after commit => check your config", d.Get("address").(string))
+		return diag.FromErr(fmt.Errorf("system radius-server %v not exists after commit "+
+			"=> check your config", d.Get("address").(string)))
 	}
 
-	return resourceSystemRadiusServerRead(d, m)
+	return resourceSystemRadiusServerRead(ctx, d, m)
 }
-func resourceSystemRadiusServerRead(d *schema.ResourceData, m interface{}) error {
+func resourceSystemRadiusServerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	radiusServerOptions, err := readSystemRadiusServer(d.Get("address").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if radiusServerOptions.address == "" {
 		d.SetId("")
@@ -184,62 +185,56 @@ func resourceSystemRadiusServerRead(d *schema.ResourceData, m interface{}) error
 
 	return nil
 }
-func resourceSystemRadiusServerUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceSystemRadiusServerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delSystemRadiusServer(d.Get("address").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setSystemRadiusServer(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_system_radius_server", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceSystemRadiusServerRead(d, m)
+	return resourceSystemRadiusServerRead(ctx, d, m)
 }
-func resourceSystemRadiusServerDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSystemRadiusServerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delSystemRadiusServer(d.Get("address").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_system_radius_server", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

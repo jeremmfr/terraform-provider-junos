@@ -1,10 +1,13 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -18,19 +21,19 @@ type ikePolicyOptions struct {
 
 func resourceIkePolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceIkePolicyCreate,
-		Read:   resourceIkePolicyRead,
-		Update: resourceIkePolicyUpdate,
-		Delete: resourceIkePolicyDelete,
+		CreateContext: resourceIkePolicyCreate,
+		ReadContext:   resourceIkePolicyRead,
+		UpdateContext: resourceIkePolicyUpdate,
+		DeleteContext: resourceIkePolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceIkePolicyImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"proposals": {
 				Type:     schema.TypeList,
@@ -39,18 +42,10 @@ func resourceIkePolicy() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"mode": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "main",
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if !stringInSlice(value, []string{"main", "aggressive"}) {
-						errors = append(errors, fmt.Errorf(
-							"%q for %q is not 'main' or 'aggressive'", value, k))
-					}
-
-					return
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "main",
+				ValidateFunc: validation.StringInSlice([]string{"main", "aggressive"}, false),
 			},
 			"pre_shared_key_text": {
 				Type:          schema.TypeString,
@@ -68,69 +63,67 @@ func resourceIkePolicy() *schema.Resource {
 	}
 }
 
-func resourceIkePolicyCreate(d *schema.ResourceData, m interface{}) error {
+func resourceIkePolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security ike policy not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security ike policy not compatible with Junos device %s", jnprSess.Platform[0].Model))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	ikePolicyExists, err := checkIkePolicyExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if ikePolicyExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("security ike policy %v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security ike policy %v already exists", d.Get("name").(string)))
 	}
 	err = setIkePolicy(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_security_ike_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	ikePolicyExists, err = checkIkePolicyExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if ikePolicyExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("security ike policy %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security ike policy %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceIkePolicyRead(d, m)
+	return resourceIkePolicyRead(ctx, d, m)
 }
-func resourceIkePolicyRead(d *schema.ResourceData, m interface{}) error {
+func resourceIkePolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	ikePolicyOptions, err := readIkePolicy(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if ikePolicyOptions.name == "" {
 		d.SetId("")
@@ -140,62 +133,56 @@ func resourceIkePolicyRead(d *schema.ResourceData, m interface{}) error {
 
 	return nil
 }
-func resourceIkePolicyUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceIkePolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delIkePolicy(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setIkePolicy(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_security_ike_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceIkePolicyRead(d, m)
+	return resourceIkePolicyRead(ctx, d, m)
 }
-func resourceIkePolicyDelete(d *schema.ResourceData, m interface{}) error {
+func resourceIkePolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delIkePolicy(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_security_ike_policy", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

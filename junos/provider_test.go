@@ -1,30 +1,31 @@
 package junos_test
 
 import (
+	"context"
 	"os"
 	"terraform-provider-junos/junos"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 var (
-	testAccProviders = map[string]terraform.ResourceProvider{
+	testAccProviders = map[string]*schema.Provider{
 		"junos": testAccProvider,
 	}
-	testAccProvider = junos.Provider().(*schema.Provider)
+	testAccProvider = junos.Provider()
 )
 
 const defaultInterfaceTestAcc = "ge-0/0/3"
 
 func TestProvider(t *testing.T) {
-	if err := junos.Provider().(*schema.Provider).InternalValidate(); err != nil {
+	if err := junos.Provider().InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
 	}
 }
 func TestProvider_impl(t *testing.T) {
-	var _ terraform.ResourceProvider = junos.Provider()
+	var _ *schema.Provider = junos.Provider()
 }
 
 // export TESTACC_SWITCH not empty for test switch options (interface mode trunk, vlan native/members)
@@ -34,10 +35,13 @@ func TestProvider_impl(t *testing.T) {
 
 func testAccPreCheck(t *testing.T) {
 	if os.Getenv("JUNOS_HOST") == "" && os.Getenv("JUNOS_KEYFILE") == "" {
-		t.Fatal("JUNOS_HOST and JUNOS_KEYFILE must be set for acceptance tests")
+		t.Fatal("JUNOS_HOST must be set for acceptance tests")
+	}
+	if os.Getenv("JUNOS_KEYFILE") == "" && os.Getenv("JUNOS_PASSWORD") == "" {
+		t.Fatal("JUNOS_KEYFILE or JUNOS_PASSWORD must be set for acceptance tests")
 	}
 
-	err := testAccProvider.Configure(terraform.NewResourceConfigRaw(nil))
+	err := testAccProvider.Configure(context.Background(), terraform.NewResourceConfigRaw(nil))
 	if err != nil {
 		t.Fatal(err)
 	}

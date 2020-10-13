@@ -1,10 +1,13 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type natDestinationOptions struct {
@@ -15,19 +18,19 @@ type natDestinationOptions struct {
 
 func resourceSecurityNatDestination() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSecurityNatDestinationCreate,
-		Read:   resourceSecurityNatDestinationRead,
-		Update: resourceSecurityNatDestinationUpdate,
-		Delete: resourceSecurityNatDestinationDelete,
+		CreateContext: resourceSecurityNatDestinationCreate,
+		ReadContext:   resourceSecurityNatDestinationRead,
+		UpdateContext: resourceSecurityNatDestinationUpdate,
+		DeleteContext: resourceSecurityNatDestinationDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceSecurityNatDestinationImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"from": {
 				Type:     schema.TypeList,
@@ -36,17 +39,9 @@ func resourceSecurityNatDestination() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"interface", "routing-instance", "zone"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not 'interface', 'routing-instance' or 'zone'", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice([]string{"interface", "routing-instance", "zone"}, false),
 						},
 						"value": {
 							Type:     schema.TypeList,
@@ -63,14 +58,14 @@ func resourceSecurityNatDestination() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validateNameObjectJunos(),
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateNameObjectJunos([]string{}),
 						},
 						"destination_address": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validateNetworkFunc(),
+							ValidateFunc: validation.IsCIDRNetwork(0, 128),
 						},
 						"then": {
 							Type:     schema.TypeList,
@@ -79,22 +74,14 @@ func resourceSecurityNatDestination() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"type": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-											value := v.(string)
-											if !stringInSlice(value, []string{"off", "pool"}) {
-												errors = append(errors, fmt.Errorf(
-													"%q for %q is not 'off' or 'pool'", value, k))
-											}
-
-											return
-										},
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice([]string{"off", "pool"}, false),
 									},
 									"pool": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validateNameObjectJunos(),
+										Type:             schema.TypeString,
+										Optional:         true,
+										ValidateDiagFunc: validateNameObjectJunos([]string{}),
 									},
 								},
 							},
@@ -106,70 +93,69 @@ func resourceSecurityNatDestination() *schema.Resource {
 	}
 }
 
-func resourceSecurityNatDestinationCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatDestinationCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security nat destination not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security nat destination not compatible with Junos device %s",
+			jnprSess.Platform[0].Model))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	securityNatDestinationExists, err := checkSecurityNatDestinationExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if securityNatDestinationExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("security nat destination %v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security nat destination %v already exists", d.Get("name").(string)))
 	}
 
 	err = setSecurityNatDestination(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_security_nat_destination", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	securityNatDestinationExists, err = checkSecurityNatDestinationExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if securityNatDestinationExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("security nat destination %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security nat destination %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceSecurityNatDestinationRead(d, m)
+	return resourceSecurityNatDestinationRead(ctx, d, m)
 }
-func resourceSecurityNatDestinationRead(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatDestinationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	natDestinationOptions, err := readSecurityNatDestination(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if natDestinationOptions.name == "" {
 		d.SetId("")
@@ -179,62 +165,56 @@ func resourceSecurityNatDestinationRead(d *schema.ResourceData, m interface{}) e
 
 	return nil
 }
-func resourceSecurityNatDestinationUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatDestinationUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delSecurityNatDestination(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setSecurityNatDestination(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_security_nat_destination", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceSecurityNatDestinationRead(d, m)
+	return resourceSecurityNatDestinationRead(ctx, d, m)
 }
-func resourceSecurityNatDestinationDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatDestinationDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delSecurityNatDestination(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_security_nat_destination", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

@@ -1,12 +1,15 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -37,10 +40,10 @@ type interfaceOptions struct {
 
 func resourceInterface() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceInterfaceCreate,
-		Read:   resourceInterfaceRead,
-		Update: resourceInterfaceUpdate,
-		Delete: resourceInterfaceDelete,
+		CreateContext: resourceInterfaceCreate,
+		ReadContext:   resourceInterfaceRead,
+		UpdateContext: resourceInterfaceUpdate,
+		DeleteContext: resourceInterfaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceInterfaceImport,
 		},
@@ -68,18 +71,10 @@ func resourceInterface() *schema.Resource {
 				Optional: true,
 			},
 			"vlan_tagging_id": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(int)
-					if value < 1 || value > 4094 {
-						errors = append(errors, fmt.Errorf(
-							"%q in %q is not in default vlan id (1-4094)", value, k))
-					}
-
-					return
-				},
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(1, 4094),
 			},
 			"inet": {
 				Type:     schema.TypeBool,
@@ -97,9 +92,9 @@ func resourceInterface() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"address": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validateIPMaskFunc(),
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateIPMaskFunc(),
 						},
 						"vrrp_group": {
 							Type:     schema.TypeList,
@@ -109,7 +104,7 @@ func resourceInterface() *schema.Resource {
 									"identifier": {
 										Type:         schema.TypeInt,
 										Required:     true,
-										ValidateFunc: validateIntRange(1, 255),
+										ValidateFunc: validation.IntBetween(1, 255),
 									},
 									"virtual_address": {
 										Type:     schema.TypeList,
@@ -124,29 +119,21 @@ func resourceInterface() *schema.Resource {
 									"advertise_interval": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(1, 255),
+										ValidateFunc: validation.IntBetween(1, 255),
 									},
 									"advertisements_threshold": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(1, 15),
+										ValidateFunc: validation.IntBetween(1, 15),
 									},
 									"authentication_key": {
 										Type:     schema.TypeString,
 										Optional: true,
 									},
 									"authentication_type": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-											value := v.(string)
-											if value != "md5" && value != "simple" {
-												errors = append(errors, fmt.Errorf(
-													"%q for %q is not' md5' or 'simple'", value, k))
-											}
-
-											return
-										},
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice([]string{"md5", "simple"}, false),
 									},
 									"no_accept_data": {
 										Type:     schema.TypeBool,
@@ -163,7 +150,7 @@ func resourceInterface() *schema.Resource {
 									"priority": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(1, 255),
+										ValidateFunc: validation.IntBetween(1, 255),
 									},
 									"track_interface": {
 										Type:     schema.TypeList,
@@ -177,7 +164,7 @@ func resourceInterface() *schema.Resource {
 												"priority_cost": {
 													Type:         schema.TypeInt,
 													Required:     true,
-													ValidateFunc: validateIntRange(1, 254),
+													ValidateFunc: validation.IntBetween(1, 254),
 												},
 											},
 										},
@@ -198,7 +185,7 @@ func resourceInterface() *schema.Resource {
 												"priority_cost": {
 													Type:         schema.TypeInt,
 													Required:     true,
-													ValidateFunc: validateIntRange(1, 254),
+													ValidateFunc: validation.IntBetween(1, 254),
 												},
 											},
 										},
@@ -215,9 +202,9 @@ func resourceInterface() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"address": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validateIPMaskFunc(),
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateIPMaskFunc(),
 						},
 						"vrrp_group": {
 							Type:     schema.TypeList,
@@ -227,7 +214,7 @@ func resourceInterface() *schema.Resource {
 									"identifier": {
 										Type:         schema.TypeInt,
 										Required:     true,
-										ValidateFunc: validateIntRange(1, 255),
+										ValidateFunc: validation.IntBetween(1, 255),
 									},
 									"virtual_address": {
 										Type:     schema.TypeList,
@@ -238,7 +225,7 @@ func resourceInterface() *schema.Resource {
 									"virtual_link_local_address": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validateIPFunc(),
+										ValidateFunc: validation.IsIPAddress,
 									},
 									"accept_data": {
 										Type:     schema.TypeBool,
@@ -247,7 +234,7 @@ func resourceInterface() *schema.Resource {
 									"advertise_interval": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(100, 40000),
+										ValidateFunc: validation.IntBetween(100, 40000),
 									},
 									"no_accept_data": {
 										Type:     schema.TypeBool,
@@ -264,7 +251,7 @@ func resourceInterface() *schema.Resource {
 									"priority": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(1, 255),
+										ValidateFunc: validation.IntBetween(1, 255),
 									},
 									"track_interface": {
 										Type:     schema.TypeList,
@@ -278,7 +265,7 @@ func resourceInterface() *schema.Resource {
 												"priority_cost": {
 													Type:         schema.TypeInt,
 													Required:     true,
-													ValidateFunc: validateIntRange(1, 254),
+													ValidateFunc: validation.IntBetween(1, 254),
 												},
 											},
 										},
@@ -299,7 +286,7 @@ func resourceInterface() *schema.Resource {
 												"priority_cost": {
 													Type:         schema.TypeInt,
 													Required:     true,
-													ValidateFunc: validateIntRange(1, 254),
+													ValidateFunc: validation.IntBetween(1, 254),
 												},
 											},
 										},
@@ -311,50 +298,34 @@ func resourceInterface() *schema.Resource {
 				},
 			},
 			"inet_mtu": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(int)
-					if value < 500 || value > 9192 {
-						errors = append(errors, fmt.Errorf(
-							"%q for %q is not a valid mtu (500-9192)", value, k))
-					}
-
-					return
-				},
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(500, 9192),
 			},
 			"inet6_mtu": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(int)
-					if value < 500 || value > 9192 {
-						errors = append(errors, fmt.Errorf(
-							"%q for %q is not a valid mtu (500-9192)", value, k))
-					}
-
-					return
-				},
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(500, 9192),
 			},
 			"inet_filter_input": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"inet_filter_output": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"inet6_filter_input": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"inet6_filter_output": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"ether802_3ad": {
 				Type:     schema.TypeString,
@@ -379,105 +350,77 @@ func resourceInterface() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"vlan_native": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(int)
-					if value < 1 || value > 4094 {
-						errors = append(errors, fmt.Errorf(
-							"%q in %q is not in default vlan id (1-4094)", value, k))
-					}
-
-					return
-				},
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 4094),
 			},
 			"ae_lacp": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "",
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if value != "active" && value != "passive" {
-						errors = append(errors, fmt.Errorf(
-							"%q is not active or passive", k))
-					}
-
-					return
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "",
+				ValidateFunc: validation.StringInSlice([]string{"active", "passive"}, false),
 			},
 			"ae_link_speed": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					validSpeed := []string{"100m", "1g", "8g", "10g", "40g", "50g", "80g", "100g"}
-					if !stringInSlice(value, validSpeed) {
-						errors = append(errors, fmt.Errorf(
-							"%q in %q is not valid speed", value, k))
-					}
-
-					return
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"100m", "1g", "8g", "10g", "40g", "50g", "80g", "100g"}, false),
 			},
 			"ae_minimum_links": {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
 			"security_zone": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"routing_instance": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 		},
 	}
 }
 
-func resourceInterfaceCreate(d *schema.ResourceData, m interface{}) error {
+func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	if intExists {
 		err = checkInterfaceNC(d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
 
-			return err
+			return diag.FromErr(err)
 		}
 		if sess.junosGroupIntDel != "" {
 			err = delInterfaceElement("apply-groups "+sess.junosGroupIntDel, d, m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return err
+				return diag.FromErr(err)
 			}
 		} else {
 			err = delInterfaceElement("disable", d, m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return err
+				return diag.FromErr(err)
 			}
 			err = delInterfaceElement("description", d, m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return err
+				return diag.FromErr(err)
 			}
 		}
 	}
@@ -485,18 +428,18 @@ func resourceInterfaceCreate(d *schema.ResourceData, m interface{}) error {
 		if !checkCompatibilitySecurity(jnprSess) {
 			sess.configClear(jnprSess)
 
-			return fmt.Errorf("security zone not compatible with Junos device %s", jnprSess.Platform[0].Model)
+			return diag.FromErr(fmt.Errorf("security zone not compatible with Junos device %s", jnprSess.Platform[0].Model))
 		}
 		zonesExists, err := checkSecurityZonesExists(d.Get("security_zone").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
 
-			return err
+			return diag.FromErr(err)
 		}
 		if !zonesExists {
 			sess.configClear(jnprSess)
 
-			return fmt.Errorf("security zones %v doesn't exist", d.Get("security_zone").(string))
+			return diag.FromErr(fmt.Errorf("security zones %v doesn't exist", d.Get("security_zone").(string)))
 		}
 	}
 	if d.Get("routing_instance").(string) != "" {
@@ -504,53 +447,53 @@ func resourceInterfaceCreate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			sess.configClear(jnprSess)
 
-			return err
+			return diag.FromErr(err)
 		}
 		if !instanceExists {
 			sess.configClear(jnprSess)
 
-			return fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string))
+			return diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))
 		}
 	}
 	err = setInterface(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_interface", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	intExists, err = checkInterfaceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if intExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("interface %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("interface %v not exists after commit => check your config", d.Get("name").(string)))
 	}
 
-	return resourceInterfaceRead(d, m)
+	return resourceInterfaceRead(ctx, d, m)
 }
-func resourceInterfaceRead(d *schema.ResourceData, m interface{}) error {
+func resourceInterfaceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	if !intExists {
 		d.SetId("")
@@ -567,29 +510,26 @@ func resourceInterfaceRead(d *schema.ResourceData, m interface{}) error {
 	interfaceOpt, err := readInterface(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	fillInterfaceData(d, interfaceOpt)
 
 	return nil
 }
-func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delInterfaceOpts(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if d.HasChange("ether802_3ad") {
 		oAE, nAE := d.GetChange("ether802_3ad")
@@ -602,21 +542,21 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return err
+				return diag.FromErr(err)
 			}
 			if lastAEchild {
 				aggregatedCount, err := aggregatedCountSearchMax(newAE, oAE.(string), d.Get("name").(string), m, jnprSess)
 				if err != nil {
 					sess.configClear(jnprSess)
 
-					return err
+					return diag.FromErr(err)
 				}
 				if aggregatedCount == "0" {
 					err = sess.configSet([]string{"delete chassis aggregated-devices ethernet device-count"}, jnprSess)
 					if err != nil {
 						sess.configClear(jnprSess)
 
-						return err
+						return diag.FromErr(err)
 					}
 					oAEintNC := checkInterfaceNC(oAE.(string), m, jnprSess)
 					if oAEintNC == nil {
@@ -624,7 +564,7 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 						if err != nil {
 							sess.configClear(jnprSess)
 
-							return err
+							return diag.FromErr(err)
 						}
 					}
 				} else {
@@ -632,13 +572,13 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 					if err != nil {
 						sess.configClear(jnprSess)
 
-						return err
+						return diag.FromErr(err)
 					}
 					aggregatedCountInt, err := strconv.Atoi(aggregatedCount)
 					if err != nil {
 						sess.configClear(jnprSess)
 
-						return err
+						return diag.FromErr(err)
 					}
 					if aggregatedCountInt < oldAEInt+1 {
 						oAEintNC := checkInterfaceNC(oAE.(string), m, jnprSess)
@@ -647,7 +587,7 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 							if err != nil {
 								sess.configClear(jnprSess)
 
-								return err
+								return diag.FromErr(err)
 							}
 						}
 					}
@@ -661,18 +601,18 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 			if !checkCompatibilitySecurity(jnprSess) {
 				sess.configClear(jnprSess)
 
-				return fmt.Errorf("security zone not compatible with Junos device %s", jnprSess.Platform[0].Model)
+				return diag.FromErr(fmt.Errorf("security zone not compatible with Junos device %s", jnprSess.Platform[0].Model))
 			}
 			zonesExists, err := checkSecurityZonesExists(nSecurityZone.(string), m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return err
+				return diag.FromErr(err)
 			}
 			if !zonesExists {
 				sess.configClear(jnprSess)
 
-				return fmt.Errorf("security zones %v doesn't exist", nSecurityZone.(string))
+				return diag.FromErr(fmt.Errorf("security zones %v doesn't exist", nSecurityZone.(string)))
 			}
 		}
 		if oSecurityZone.(string) != "" {
@@ -680,7 +620,7 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return err
+				return diag.FromErr(err)
 			}
 		}
 	}
@@ -691,12 +631,12 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return err
+				return diag.FromErr(err)
 			}
 			if !instanceExists {
 				sess.configClear(jnprSess)
 
-				return fmt.Errorf("routing instance %v doesn't exist", nRoutingInstance.(string))
+				return diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", nRoutingInstance.(string)))
 			}
 		}
 		if oRoutingInstance.(string) != "" {
@@ -704,7 +644,7 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return err
+				return diag.FromErr(err)
 			}
 		}
 	}
@@ -712,57 +652,54 @@ func resourceInterfaceUpdate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_interface", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceInterfaceRead(d, m)
+	return resourceInterfaceRead(ctx, d, m)
 }
-func resourceInterfaceDelete(d *schema.ResourceData, m interface{}) error {
+func resourceInterfaceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delInterface(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_interface", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if intExists {
 		err = addInterfaceNC(d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
 
-			return err
+			return diag.FromErr(err)
 		}
 		err = sess.commitConf("disable(NC) resource junos_interface", jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
 
-			return err
+			return diag.FromErr(err)
 		}
 	}
 
@@ -1593,9 +1530,9 @@ func setFamilyAddress(inetAddress interface{}, intCut []string, configSet []stri
 			setNameAddVrrp = "set interfaces " + setName + " family inet address " + inetAddressMap["address"].(string) +
 				" vrrp-group " + strconv.Itoa(vrrpGroupMap["identifier"].(int))
 			for _, ip := range vrrpGroupMap["virtual_address"].([]interface{}) {
-				err := validateIP(ip.(string))
-				if err != nil {
-					return configSet, err
+				_, errs := validation.IsIPAddress(ip, "virtual_address")
+				if len(errs) > 0 {
+					return configSet, errs[0]
 				}
 				configSet = append(configSet, setNameAddVrrp+" virtual-address "+ip.(string))
 			}
@@ -1619,9 +1556,9 @@ func setFamilyAddress(inetAddress interface{}, intCut []string, configSet []stri
 			setNameAddVrrp = "set interfaces " + setName + " family inet6 address " + inetAddressMap["address"].(string) +
 				" vrrp-inet6-group " + strconv.Itoa(vrrpGroupMap["identifier"].(int))
 			for _, ip := range vrrpGroupMap["virtual_address"].([]interface{}) {
-				err := validateIP(ip.(string))
-				if err != nil {
-					return configSet, err
+				_, errs := validation.IsIPAddress(ip, "virtual_address")
+				if len(errs) > 0 {
+					return configSet, errs[0]
 				}
 				configSet = append(configSet, setNameAddVrrp+" virtual-inet6-address "+ip.(string))
 			}

@@ -1,11 +1,14 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type policerOptions struct {
@@ -17,19 +20,19 @@ type policerOptions struct {
 
 func resourceFirewallPolicer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceFirewallPolicerCreate,
-		Read:   resourceFirewallPolicerRead,
-		Update: resourceFirewallPolicerUpdate,
-		Delete: resourceFirewallPolicerDelete,
+		CreateContext: resourceFirewallPolicerCreate,
+		ReadContext:   resourceFirewallPolicerRead,
+		UpdateContext: resourceFirewallPolicerUpdate,
+		DeleteContext: resourceFirewallPolicerDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceFirewallPolicerImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"filter_specific": {
 				Type:     schema.TypeBool,
@@ -44,7 +47,7 @@ func resourceFirewallPolicer() *schema.Resource {
 						"bandwidth_percent": {
 							Type:          schema.TypeInt,
 							Optional:      true,
-							ValidateFunc:  validateIntRange(1, 100),
+							ValidateFunc:  validation.IntBetween(1, 100),
 							ConflictsWith: []string{"if_exceeding.0.bandwidth_limit"},
 						},
 						"bandwidth_limit": {
@@ -92,67 +95,65 @@ func resourceFirewallPolicer() *schema.Resource {
 	}
 }
 
-func resourceFirewallPolicerCreate(d *schema.ResourceData, m interface{}) error {
+func resourceFirewallPolicerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	firewallPolicerExists, err := checkFirewallPolicerExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if firewallPolicerExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("firewall policer %v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("firewall policer %v already exists", d.Get("name").(string)))
 	}
 
 	err = setFirewallPolicer(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_firewall_policer", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	firewallPolicerExists, err = checkFirewallPolicerExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if firewallPolicerExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("firewall policer %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("firewall policer %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceFirewallPolicerRead(d, m)
+	return resourceFirewallPolicerRead(ctx, d, m)
 }
-func resourceFirewallPolicerRead(d *schema.ResourceData, m interface{}) error {
+func resourceFirewallPolicerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	policerOptions, err := readFirewallPolicer(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if policerOptions.name == "" {
 		d.SetId("")
@@ -162,62 +163,56 @@ func resourceFirewallPolicerRead(d *schema.ResourceData, m interface{}) error {
 
 	return nil
 }
-func resourceFirewallPolicerUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceFirewallPolicerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delFirewallPolicer(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setFirewallPolicer(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_firewall_policer", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceFirewallPolicerRead(d, m)
+	return resourceFirewallPolicerRead(ctx, d, m)
 }
-func resourceFirewallPolicerDelete(d *schema.ResourceData, m interface{}) error {
+func resourceFirewallPolicerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delFirewallPolicer(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_firewall_policer", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

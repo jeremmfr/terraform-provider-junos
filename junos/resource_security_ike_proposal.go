@@ -1,11 +1,14 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type ikeProposalOptions struct {
@@ -19,19 +22,19 @@ type ikeProposalOptions struct {
 
 func resourceIkeProposal() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceIkeProposalCreate,
-		Read:   resourceIkeProposalRead,
-		Update: resourceIkeProposalUpdate,
-		Delete: resourceIkeProposalDelete,
+		CreateContext: resourceIkeProposalCreate,
+		ReadContext:   resourceIkeProposalRead,
+		UpdateContext: resourceIkeProposalUpdate,
+		DeleteContext: resourceIkeProposalDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceIkeProposalImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"authentication_algorithm": {
 				Type:     schema.TypeString,
@@ -53,75 +56,74 @@ func resourceIkeProposal() *schema.Resource {
 			"lifetime_seconds": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(180, 86400),
+				ValidateFunc: validation.IntBetween(180, 86400),
 			},
 		},
 	}
 }
 
-func resourceIkeProposalCreate(d *schema.ResourceData, m interface{}) error {
+func resourceIkeProposalCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security ike proposal not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security ike proposal not compatible with Junos device %s",
+			jnprSess.Platform[0].Model))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	ikeProposalExists, err := checkIkeProposalExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if ikeProposalExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("security ike proposal %v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security ike proposal %v already exists", d.Get("name").(string)))
 	}
 	err = setIkeProposal(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_security_ike_proposal", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	ikeProposalExists, err = checkIkeProposalExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if ikeProposalExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("security ike proposal %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security ike proposal %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceIkeProposalRead(d, m)
+	return resourceIkeProposalRead(ctx, d, m)
 }
-func resourceIkeProposalRead(d *schema.ResourceData, m interface{}) error {
+func resourceIkeProposalRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	ikeProposalOptions, err := readIkeProposal(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if ikeProposalOptions.name == "" {
 		d.SetId("")
@@ -131,62 +133,56 @@ func resourceIkeProposalRead(d *schema.ResourceData, m interface{}) error {
 
 	return nil
 }
-func resourceIkeProposalUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceIkeProposalUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delIkeProposal(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setIkeProposal(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_security_ike_proposal", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceIkeProposalRead(d, m)
+	return resourceIkeProposalRead(ctx, d, m)
 }
-func resourceIkeProposalDelete(d *schema.ResourceData, m interface{}) error {
+func resourceIkeProposalDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delIkeProposal(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_security_ike_proposal", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

@@ -1,11 +1,14 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type vlanOptions struct {
@@ -26,19 +29,19 @@ type vlanOptions struct {
 
 func resourceVlan() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceVlanCreate,
-		Read:   resourceVlanRead,
-		Update: resourceVlanUpdate,
-		Delete: resourceVlanDelete,
+		CreateContext: resourceVlanCreate,
+		ReadContext:   resourceVlanRead,
+		UpdateContext: resourceVlanUpdate,
+		DeleteContext: resourceVlanDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceVlanImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -47,7 +50,7 @@ func resourceVlan() *schema.Resource {
 			"vlan_id": {
 				Type:          schema.TypeInt,
 				Optional:      true,
-				ValidateFunc:  validateIntRange(1, 4094),
+				ValidateFunc:  validation.IntBetween(1, 4094),
 				ConflictsWith: []string{"vlan_id_list"},
 			},
 			"vlan_id_list": {
@@ -59,7 +62,7 @@ func resourceVlan() *schema.Resource {
 			"service_id": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 65535),
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"l3_interface": {
 				Type:     schema.TypeString,
@@ -75,32 +78,24 @@ func resourceVlan() *schema.Resource {
 				},
 			},
 			"forward_filter_input": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"forward_filter_output": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"forward_flood_input": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"private_vlan": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if value != "community" && value != "isolated" {
-						errors = append(errors, fmt.Errorf(
-							"%q for %q is not 'community' or 'isolated'", value, k))
-					}
-
-					return
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"community", "isolated"}, false),
 			},
 			"community_vlans": {
 				Type:     schema.TypeList,
@@ -110,7 +105,7 @@ func resourceVlan() *schema.Resource {
 			"isolated_vlan": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 65535),
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"vxlan": {
 				Type:     schema.TypeList,
@@ -121,7 +116,7 @@ func resourceVlan() *schema.Resource {
 						"vni": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validateIntRange(0, 16777214),
+							ValidateFunc: validation.IntBetween(0, 16777214),
 						},
 						"encapsulate_inner_vlan": {
 							Type:     schema.TypeBool,
@@ -134,7 +129,7 @@ func resourceVlan() *schema.Resource {
 						"multicast_group": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validateIPFunc(),
+							ValidateFunc: validation.IsIPAddress,
 						},
 						"ovsdb_managed": {
 							Type:     schema.TypeBool,
@@ -143,7 +138,7 @@ func resourceVlan() *schema.Resource {
 						"unreachable_vtep_aging_timer": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(300, 1800),
+							ValidateFunc: validation.IntBetween(300, 1800),
 						},
 					},
 				},
@@ -152,69 +147,66 @@ func resourceVlan() *schema.Resource {
 	}
 }
 
-func resourceVlanCreate(d *schema.ResourceData, m interface{}) error {
+func resourceVlanCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	vlanExists, err := checkVlansExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if vlanExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("vlan %v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("vlan %v already exists", d.Get("name").(string)))
 	}
 
 	err = setVlan(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_vlan", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	mutex.Lock()
 	vlanExists, err = checkVlansExists(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if vlanExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("vlan %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("vlan %v not exists after commit => check your config", d.Get("name").(string)))
 	}
 
-	return resourceVlanRead(d, m)
+	return resourceVlanRead(ctx, d, m)
 }
-func resourceVlanRead(d *schema.ResourceData, m interface{}) error {
+func resourceVlanRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	vlanOptions, err := readVlan(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if vlanOptions.name == "" {
 		d.SetId("")
@@ -224,62 +216,56 @@ func resourceVlanRead(d *schema.ResourceData, m interface{}) error {
 
 	return nil
 }
-func resourceVlanUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceVlanUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delVlan(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setVlan(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_vlan", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceVlanRead(d, m)
+	return resourceVlanRead(ctx, d, m)
 }
-func resourceVlanDelete(d *schema.ResourceData, m interface{}) error {
+func resourceVlanDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delVlan(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_vlan", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

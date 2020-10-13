@@ -1,11 +1,14 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -36,19 +39,19 @@ type syslogFileOptions struct {
 
 func resourceSystemSyslogFile() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSystemSyslogFileCreate,
-		Read:   resourceSystemSyslogFileRead,
-		Update: resourceSystemSyslogFileUpdate,
-		Delete: resourceSystemSyslogFileDelete,
+		CreateContext: resourceSystemSyslogFileCreate,
+		ReadContext:   resourceSystemSyslogFileRead,
+		UpdateContext: resourceSystemSyslogFileUpdate,
+		DeleteContext: resourceSystemSyslogFileDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceSystemSyslogFileImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"filename": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"allow_duplicates": {
 				Type:     schema.TypeBool,
@@ -83,77 +86,77 @@ func resourceSystemSyslogFile() *schema.Resource {
 			"any_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"authorization_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"changelog_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"conflictlog_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"daemon_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"dfc_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"external_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"firewall_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"ftp_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"interactivecommands_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"kernel_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"ntp_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"pfe_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"security_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"user_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"archive": {
 				Type:     schema.TypeList,
@@ -205,12 +208,12 @@ func resourceSystemSyslogFile() *schema.Resource {
 						"files": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 1000),
+							ValidateFunc: validation.IntBetween(1, 1000),
 						},
 						"size": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(65536, 1073741824),
+							ValidateFunc: validation.IntBetween(65536, 1073741824),
 						},
 						"start_time": {
 							Type:     schema.TypeString,
@@ -219,7 +222,7 @@ func resourceSystemSyslogFile() *schema.Resource {
 						"transfer_interval": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(5, 2880),
+							ValidateFunc: validation.IntBetween(5, 2880),
 						},
 					},
 				},
@@ -228,67 +231,65 @@ func resourceSystemSyslogFile() *schema.Resource {
 	}
 }
 
-func resourceSystemSyslogFileCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSystemSyslogFileCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	syslogFileExists, err := checkSystemSyslogFileExists(d.Get("filename").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if syslogFileExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("system syslog file %v already exists", d.Get("filename").(string))
+		return diag.FromErr(fmt.Errorf("system syslog file %v already exists", d.Get("filename").(string)))
 	}
 
 	err = setSystemSyslogFile(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_system_syslog_file", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	syslogFileExists, err = checkSystemSyslogFileExists(d.Get("filename").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if syslogFileExists {
 		d.SetId(d.Get("filename").(string))
 	} else {
-		return fmt.Errorf("system syslog file %v not exists after commit => check your config", d.Get("filename").(string))
+		return diag.FromErr(fmt.Errorf("system syslog file %v not exists after commit "+
+			"=> check your config", d.Get("filename").(string)))
 	}
 
-	return resourceSystemSyslogFileRead(d, m)
+	return resourceSystemSyslogFileRead(ctx, d, m)
 }
-func resourceSystemSyslogFileRead(d *schema.ResourceData, m interface{}) error {
+func resourceSystemSyslogFileRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	syslogFileOptions, err := readSystemSyslogFile(d.Get("filename").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if syslogFileOptions.filename == "" {
 		d.SetId("")
@@ -298,62 +299,56 @@ func resourceSystemSyslogFileRead(d *schema.ResourceData, m interface{}) error {
 
 	return nil
 }
-func resourceSystemSyslogFileUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceSystemSyslogFileUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delSystemSyslogFile(d.Get("filename").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setSystemSyslogFile(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_system_syslog_file", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceSystemSyslogFileRead(d, m)
+	return resourceSystemSyslogFileRead(ctx, d, m)
 }
-func resourceSystemSyslogFileDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSystemSyslogFileDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delSystemSyslogFile(d.Get("filename").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_system_syslog_file", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

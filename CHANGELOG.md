@@ -1,7 +1,10 @@
 ## upcoming release
 ENHANCEMENTS:
+* upgrade to terraform-plugin-sdk v2
+* switch to sdk for part of ValidateFunc and rewrite the others to ValidateDiagFunc
 
 BUG FIXES:
+* fix sess.configLock return already nil
 
 ## v1.5.1
 BUG FIXES:

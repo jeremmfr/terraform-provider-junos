@@ -132,7 +132,7 @@ func (sess *Session) commitConf(logMessage string, jnpr *NetconfObject) error {
 	return nil
 }
 
-func (sess *Session) configLock(jnpr *NetconfObject) error {
+func (sess *Session) configLock(jnpr *NetconfObject) {
 	var lock bool
 	for {
 		lock = jnpr.netconfConfigLock()
@@ -150,8 +150,6 @@ func (sess *Session) configLock(jnpr *NetconfObject) error {
 			sleep(sess.junosSleep)
 		}
 	}
-
-	return nil
 }
 func (sess *Session) configClear(jnpr *NetconfObject) {
 	err := jnpr.netconfConfigClear()

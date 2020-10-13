@@ -1,11 +1,14 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type utmProfileWebFilteringLocalOptions struct {
@@ -18,10 +21,10 @@ type utmProfileWebFilteringLocalOptions struct {
 
 func resourceSecurityUtmProfileWebFilteringLocal() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSecurityUtmProfileWebFilteringLocalCreate,
-		Read:   resourceSecurityUtmProfileWebFilteringLocalRead,
-		Update: resourceSecurityUtmProfileWebFilteringLocalUpdate,
-		Delete: resourceSecurityUtmProfileWebFilteringLocalDelete,
+		CreateContext: resourceSecurityUtmProfileWebFilteringLocalCreate,
+		ReadContext:   resourceSecurityUtmProfileWebFilteringLocalRead,
+		UpdateContext: resourceSecurityUtmProfileWebFilteringLocalUpdate,
+		DeleteContext: resourceSecurityUtmProfileWebFilteringLocalDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceSecurityUtmProfileWebFilteringLocalImport,
 		},
@@ -36,17 +39,9 @@ func resourceSecurityUtmProfileWebFilteringLocal() *schema.Resource {
 				Optional: true,
 			},
 			"default_action": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (s []string, es []error) {
-					value := v.(string)
-					if !stringInSlice(value, []string{"block", "log-and-permit", permitWord}) {
-						es = append(es, fmt.Errorf(
-							"%q %q invalid action", value, k))
-					}
-
-					return
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitWord}, false),
 			},
 			"fallback_settings": {
 				Type:     schema.TypeList,
@@ -55,56 +50,24 @@ func resourceSecurityUtmProfileWebFilteringLocal() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"default": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"block", "log-and-permit"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q %q invalid action", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit"}, false),
 						},
 						"server_connectivity": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"block", "log-and-permit"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q %q invalid action", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit"}, false),
 						},
 						"timeout": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"block", "log-and-permit"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q %q invalid action", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit"}, false),
 						},
 						"too_many_requests": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"block", "log-and-permit"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q %q invalid action", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit"}, false),
 						},
 					},
 				},
@@ -112,81 +75,80 @@ func resourceSecurityUtmProfileWebFilteringLocal() *schema.Resource {
 			"timeout": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 1800),
+				ValidateFunc: validation.IntBetween(1, 1800),
 			},
 		},
 	}
 }
 
-func resourceSecurityUtmProfileWebFilteringLocalCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityUtmProfileWebFilteringLocalCreate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security utm feature-profile web-filtering juniper-local "+
-			"not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering juniper-local "+
+			"not compatible with Junos device %s", jnprSess.Platform[0].Model))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	utmProfileWebFLocalExists, err := checkUtmProfileWebFLocalExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if utmProfileWebFLocalExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("security utm feature-profile web-filtering juniper-local "+
-			"%v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering juniper-local "+
+			"%v already exists", d.Get("name").(string)))
 	}
 
 	err = setUtmProfileWebFLocal(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_security_utm_profile_web_filtering_juniper_local", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	mutex.Lock()
 	utmProfileWebFLocalExists, err = checkUtmProfileWebFLocalExists(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if utmProfileWebFLocalExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("security utm feature-profile web-filtering juniper-local %v "+
-			"not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering juniper-local %v "+
+			"not exists after commit => check your config", d.Get("name").(string)))
 	}
 
-	return resourceSecurityUtmProfileWebFilteringLocalRead(d, m)
+	return resourceSecurityUtmProfileWebFilteringLocalRead(ctx, d, m)
 }
-func resourceSecurityUtmProfileWebFilteringLocalRead(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityUtmProfileWebFilteringLocalRead(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	utmProfileWebFLocalOptions, err := readUtmProfileWebFLocal(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if utmProfileWebFLocalOptions.name == "" {
 		d.SetId("")
@@ -196,62 +158,58 @@ func resourceSecurityUtmProfileWebFilteringLocalRead(d *schema.ResourceData, m i
 
 	return nil
 }
-func resourceSecurityUtmProfileWebFilteringLocalUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityUtmProfileWebFilteringLocalUpdate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delUtmProfileWebFLocal(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setUtmProfileWebFLocal(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_security_utm_profile_web_filtering_juniper_local", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceSecurityUtmProfileWebFilteringLocalRead(d, m)
+	return resourceSecurityUtmProfileWebFilteringLocalRead(ctx, d, m)
 }
-func resourceSecurityUtmProfileWebFilteringLocalDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityUtmProfileWebFilteringLocalDelete(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delUtmProfileWebFLocal(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_security_utm_profile_web_filtering_juniper_local", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

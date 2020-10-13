@@ -1,11 +1,14 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type syslogHostOptions struct {
@@ -39,19 +42,19 @@ type syslogHostOptions struct {
 
 func resourceSystemSyslogHost() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSystemSyslogHostCreate,
-		Read:   resourceSystemSyslogHostRead,
-		Update: resourceSystemSyslogHostUpdate,
-		Delete: resourceSystemSyslogHostDelete,
+		CreateContext: resourceSystemSyslogHostCreate,
+		ReadContext:   resourceSystemSyslogHostRead,
+		UpdateContext: resourceSystemSyslogHostUpdate,
+		DeleteContext: resourceSystemSyslogHostDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceSystemSyslogHostImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"host": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validateAddress(),
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validateAddress(),
 			},
 			"allow_duplicates": {
 				Type:     schema.TypeBool,
@@ -68,21 +71,13 @@ func resourceSystemSyslogHost() *schema.Resource {
 			"facility_override": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if !stringInSlice(value, []string{"authorization", "daemon", "ftp", "kernel", "user",
-						"local0", "local1", "local2", "local3", "local4", "local5", "local6", "local7"}) {
-						errors = append(errors, fmt.Errorf(
-							"%q for %q is not a valid facilty", value, k))
-					}
-
-					return
-				},
+				ValidateFunc: validation.StringInSlice([]string{"authorization", "daemon", "ftp", "kernel", "user",
+					"local0", "local1", "local2", "local3", "local4", "local5", "local6", "local7"}, false),
 			},
 			"log_prefix": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"match": {
 				Type:     schema.TypeString,
@@ -96,12 +91,12 @@ func resourceSystemSyslogHost() *schema.Resource {
 			"port": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 65535),
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"source_address": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateIPFunc(),
+				ValidateFunc: validation.IsIPAddress,
 			},
 			"structured_data": {
 				Type:     schema.TypeList,
@@ -119,143 +114,141 @@ func resourceSystemSyslogHost() *schema.Resource {
 			"any_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"authorization_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"changelog_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"conflictlog_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"daemon_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"dfc_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"external_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"firewall_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"ftp_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"interactivecommands_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"kernel_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"ntp_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"pfe_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"security_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 			"user_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateSyslogSeverity(),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
 			},
 		},
 	}
 }
 
-func resourceSystemSyslogHostCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSystemSyslogHostCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	syslogHostExists, err := checkSystemSyslogHostExists(d.Get("host").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if syslogHostExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("system syslog host %v already exists", d.Get("host").(string))
+		return diag.FromErr(fmt.Errorf("system syslog host %v already exists", d.Get("host").(string)))
 	}
 
 	err = setSystemSyslogHost(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_system_syslog_host", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	syslogHostExists, err = checkSystemSyslogHostExists(d.Get("host").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if syslogHostExists {
 		d.SetId(d.Get("host").(string))
 	} else {
-		return fmt.Errorf("system syslog host %v not exists after commit => check your config", d.Get("host").(string))
+		return diag.FromErr(fmt.Errorf("system syslog host %v not exists after commit "+
+			"=> check your config", d.Get("host").(string)))
 	}
 
-	return resourceSystemSyslogHostRead(d, m)
+	return resourceSystemSyslogHostRead(ctx, d, m)
 }
-func resourceSystemSyslogHostRead(d *schema.ResourceData, m interface{}) error {
+func resourceSystemSyslogHostRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	syslogHostOptions, err := readSystemSyslogHost(d.Get("host").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if syslogHostOptions.host == "" {
 		d.SetId("")
@@ -265,62 +258,56 @@ func resourceSystemSyslogHostRead(d *schema.ResourceData, m interface{}) error {
 
 	return nil
 }
-func resourceSystemSyslogHostUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceSystemSyslogHostUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delSystemSyslogHost(d.Get("host").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setSystemSyslogHost(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_system_syslog_host", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceSystemSyslogHostRead(d, m)
+	return resourceSystemSyslogHostRead(ctx, d, m)
 }
-func resourceSystemSyslogHostDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSystemSyslogHostDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delSystemSyslogHost(d.Get("host").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_system_syslog_host", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

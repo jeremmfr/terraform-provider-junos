@@ -1,11 +1,15 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type natSourcePoolOptions struct {
@@ -19,19 +23,19 @@ type natSourcePoolOptions struct {
 
 func resourceSecurityNatSourcePool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSecurityNatSourcePoolCreate,
-		Read:   resourceSecurityNatSourcePoolRead,
-		Update: resourceSecurityNatSourcePoolUpdate,
-		Delete: resourceSecurityNatSourcePoolDelete,
+		CreateContext: resourceSecurityNatSourcePoolCreate,
+		ReadContext:   resourceSecurityNatSourcePoolRead,
+		UpdateContext: resourceSecurityNatSourcePoolUpdate,
+		DeleteContext: resourceSecurityNatSourcePoolDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceSecurityNatSourcePoolImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"address": {
 				Type:     schema.TypeList,
@@ -40,9 +44,9 @@ func resourceSecurityNatSourcePool() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"routing_instance": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"port_no_translation": {
 				Type:          schema.TypeBool,
@@ -52,83 +56,82 @@ func resourceSecurityNatSourcePool() *schema.Resource {
 			"port_overloading_factor": {
 				Type:          schema.TypeInt,
 				Optional:      true,
-				ValidateFunc:  validateIntRange(2, 32),
+				ValidateFunc:  validation.IntBetween(2, 32),
 				ConflictsWith: []string{"port_no_translation", "port_range"},
 			},
 			"port_range": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ConflictsWith: []string{"port_overloading_factor", "port_no_translation"},
-				ValidateFunc:  validateSourcePoolPortRange(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ConflictsWith:    []string{"port_overloading_factor", "port_no_translation"},
+				ValidateDiagFunc: validateSourcePoolPortRange(),
 			},
 		},
 	}
 }
 
-func resourceSecurityNatSourcePoolCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatSourcePoolCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security nat source pool not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security nat source pool not compatible with Junos device %s",
+			jnprSess.Platform[0].Model))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	securityNatSourcePoolExists, err := checkSecurityNatSourcePoolExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if securityNatSourcePoolExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("security nat source pool %v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security nat source pool %v already exists", d.Get("name").(string)))
 	}
 
 	err = setSecurityNatSourcePool(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_security_nat_source_pool", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	securityNatSourcePoolExists, err = checkSecurityNatSourcePoolExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if securityNatSourcePoolExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("security nat source pool %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security nat source pool %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceSecurityNatSourcePoolRead(d, m)
+	return resourceSecurityNatSourcePoolRead(ctx, d, m)
 }
-func resourceSecurityNatSourcePoolRead(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatSourcePoolRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	natSourcePoolOptions, err := readSecurityNatSourcePool(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if natSourcePoolOptions.name == "" {
 		d.SetId("")
@@ -138,62 +141,56 @@ func resourceSecurityNatSourcePoolRead(d *schema.ResourceData, m interface{}) er
 
 	return nil
 }
-func resourceSecurityNatSourcePoolUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatSourcePoolUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delSecurityNatSourcePool(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setSecurityNatSourcePool(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_security_nat_source_pool", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourceSecurityNatSourcePoolRead(d, m)
+	return resourceSecurityNatSourcePoolRead(ctx, d, m)
 }
-func resourceSecurityNatSourcePoolDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatSourcePoolDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delSecurityNatSourcePool(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_security_nat_source_pool", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil
@@ -360,35 +357,56 @@ func fillSecurityNatSourcePoolData(d *schema.ResourceData, natSourcePoolOptions 
 	}
 }
 
-func validateSourcePoolPortRange() schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (s []string, es []error) {
+func validateSourcePoolPortRange() schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
 		v := i.(string)
 		vSplit := strings.Split(v, "-")
 		if len(vSplit) < 2 {
-			es = append(es, fmt.Errorf(
-				"%q missing range separtor - in %q", k, i))
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("missing range separtor - in %s", v),
+				AttributePath: path,
+			})
 		}
 		low, err := strconv.Atoi(vSplit[0])
 		if err != nil {
-			es = append(es, err)
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       err.Error(),
+				AttributePath: path,
+			})
 		}
 		high, err := strconv.Atoi(vSplit[1])
 		if err != nil {
-			es = append(es, err)
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       err.Error(),
+				AttributePath: path,
+			})
 		}
 		if low > high {
-			es = append(es, fmt.Errorf(
-				"%q low in %q bigger than high", k, i))
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("low(%d) in %s bigger than high(%d)", low, v, high),
+				AttributePath: path,
+			})
 		}
 		if low < 1024 {
-			es = append(es, fmt.Errorf(
-				"%q low in %q is too small (min 1024)", k, i))
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("low(%d) in %s is too small (min 1024)", low, v),
+				AttributePath: path,
+			})
 		}
 		if high > 63487 {
-			es = append(es, fmt.Errorf(
-				"%q high in %q is too big (max 63487)", k, i))
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("high(%d) in %s is too big (max 63487)", high, v),
+				AttributePath: path,
+			})
 		}
 
-		return
+		return diags
 	}
 }

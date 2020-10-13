@@ -1,10 +1,12 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type asPathGroupOptions struct {
@@ -15,19 +17,19 @@ type asPathGroupOptions struct {
 
 func resourcePolicyoptionsAsPathGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourcePolicyoptionsAsPathGroupCreate,
-		Read:   resourcePolicyoptionsAsPathGroupRead,
-		Update: resourcePolicyoptionsAsPathGroupUpdate,
-		Delete: resourcePolicyoptionsAsPathGroupDelete,
+		CreateContext: resourcePolicyoptionsAsPathGroupCreate,
+		ReadContext:   resourcePolicyoptionsAsPathGroupRead,
+		UpdateContext: resourcePolicyoptionsAsPathGroupUpdate,
+		DeleteContext: resourcePolicyoptionsAsPathGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourcePolicyoptionsAsPathGroupImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"as_path": {
 				Type:     schema.TypeList,
@@ -35,9 +37,9 @@ func resourcePolicyoptionsAsPathGroup() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validateNameObjectJunos(),
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateNameObjectJunos([]string{}),
 						},
 						"path": {
 							Type:     schema.TypeString,
@@ -54,68 +56,66 @@ func resourcePolicyoptionsAsPathGroup() *schema.Resource {
 	}
 }
 
-func resourcePolicyoptionsAsPathGroupCreate(d *schema.ResourceData, m interface{}) error {
+func resourcePolicyoptionsAsPathGroupCreate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	policyoptsAsPathGroupExists, err := checkPolicyoptionsAsPathGroupExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if policyoptsAsPathGroupExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("policy-options as-path-group %v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("policy-options as-path-group %v already exists", d.Get("name").(string)))
 	}
 
 	err = setPolicyoptionsAsPathGroup(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_policyoptions_as_path_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	policyoptsAsPathGroupExists, err = checkPolicyoptionsAsPathGroupExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if policyoptsAsPathGroupExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("policy-options as-path-group %v not exists after commit "+
-			"=> check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("policy-options as-path-group %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourcePolicyoptionsAsPathGroupRead(d, m)
+	return resourcePolicyoptionsAsPathGroupRead(ctx, d, m)
 }
-func resourcePolicyoptionsAsPathGroupRead(d *schema.ResourceData, m interface{}) error {
+func resourcePolicyoptionsAsPathGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	asPathGroupOptions, err := readPolicyoptionsAsPathGroup(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if asPathGroupOptions.name == "" {
 		d.SetId("")
@@ -125,62 +125,58 @@ func resourcePolicyoptionsAsPathGroupRead(d *schema.ResourceData, m interface{})
 
 	return nil
 }
-func resourcePolicyoptionsAsPathGroupUpdate(d *schema.ResourceData, m interface{}) error {
+func resourcePolicyoptionsAsPathGroupUpdate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delPolicyoptionsAsPathGroup(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setPolicyoptionsAsPathGroup(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_policyoptions_as_path_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourcePolicyoptionsAsPathGroupRead(d, m)
+	return resourcePolicyoptionsAsPathGroupRead(ctx, d, m)
 }
-func resourcePolicyoptionsAsPathGroupDelete(d *schema.ResourceData, m interface{}) error {
+func resourcePolicyoptionsAsPathGroupDelete(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delPolicyoptionsAsPathGroup(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_policyoptions_as_path_group", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

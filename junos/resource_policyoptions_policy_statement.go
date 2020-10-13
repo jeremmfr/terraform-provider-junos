@@ -1,11 +1,14 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type policyStatementOptions struct {
@@ -18,19 +21,19 @@ type policyStatementOptions struct {
 
 func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 	return &schema.Resource{
-		Create: resourcePolicyoptionsPolicyStatementCreate,
-		Read:   resourcePolicyoptionsPolicyStatementRead,
-		Update: resourcePolicyoptionsPolicyStatementUpdate,
-		Delete: resourcePolicyoptionsPolicyStatementDelete,
+		CreateContext: resourcePolicyoptionsPolicyStatementCreate,
+		ReadContext:   resourcePolicyoptionsPolicyStatementRead,
+		UpdateContext: resourcePolicyoptionsPolicyStatementUpdate,
+		DeleteContext: resourcePolicyoptionsPolicyStatementDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourcePolicyoptionsPolicyStatementImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"from": {
 				Type:     schema.TypeList,
@@ -58,32 +61,17 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"bgp_origin": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"egp", "igp", "incomplete"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not valid bgp origin", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"egp", "igp", "incomplete"}, false),
 						},
 						"family": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"inet", "inet-mdt", "inet-mvpn", "inet-vpn",
-									"inet6", "inet6-mvpn", "inet6-vpn",
-									"iso"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not valid family", value, k))
-								}
-
-								return
-							},
+							ValidateFunc: validation.StringInSlice([]string{
+								"inet", "inet-mdt", "inet-mvpn", "inet-vpn",
+								"inet6", "inet6-mvpn", "inet6-vpn",
+								"iso"}, false),
 						},
 						"local_preference": {
 							Type:     schema.TypeInt,
@@ -143,21 +131,13 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 									"route": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validateNetworkFunc(),
+										ValidateFunc: validation.IsCIDRNetwork(0, 128),
 									},
 									"option": {
 										Type:     schema.TypeString,
 										Required: true,
-										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-											value := v.(string)
-											if !stringInSlice(value, []string{"address-mask", "exact", "longer",
-												"orlonger", "prefix-length-range", "through", "upto"}) {
-												errors = append(errors, fmt.Errorf(
-													"%q for %q is not valid option", value, k))
-											}
-
-											return
-										},
+										ValidateFunc: validation.StringInSlice([]string{"address-mask", "exact", "longer",
+											"orlonger", "prefix-length-range", "through", "upto"}, false),
 									},
 									"option_value": {
 										Type:     schema.TypeString,
@@ -177,17 +157,9 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"action": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"accept", "reject"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not valid acceptance", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"accept", "reject"}, false),
 						},
 						"as_path_expand": {
 							Type:     schema.TypeString,
@@ -203,17 +175,9 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"action": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-											value := v.(string)
-											if !stringInSlice(value, []string{addWord, deleteWord, setWord}) {
-												errors = append(errors, fmt.Errorf(
-													"%q for %q is not valid action", value, k))
-											}
-
-											return
-										},
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice([]string{addWord, deleteWord, setWord}, false),
 									},
 									"value": {
 										Type:     schema.TypeString,
@@ -223,30 +187,14 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 							},
 						},
 						"default_action": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"accept", "reject"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not valid acceptance", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"accept", "reject"}, false),
 						},
 						"load_balance": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"per-packet", "consistent-hash"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not valid load-balance option", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"per-packet", "consistent-hash"}, false),
 						},
 						"local_preference": {
 							Type:     schema.TypeList,
@@ -255,17 +203,9 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"action": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-											value := v.(string)
-											if !stringInSlice(value, []string{addWord, "subtract", actionNoneWord}) {
-												errors = append(errors, fmt.Errorf(
-													"%q for %q is not valid action", value, k))
-											}
-
-											return
-										},
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice([]string{addWord, "subtract", actionNoneWord}, false),
 									},
 									"value": {
 										Type:     schema.TypeInt,
@@ -275,17 +215,9 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 							},
 						},
 						"next": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"policy", "term"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not valid next action", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"policy", "term"}, false),
 						},
 						"next_hop": {
 							Type:     schema.TypeString,
@@ -298,17 +230,9 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"action": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-											value := v.(string)
-											if !stringInSlice(value, []string{"add", "subtract", actionNoneWord}) {
-												errors = append(errors, fmt.Errorf(
-													"%q for %q is not valid action", value, k))
-											}
-
-											return
-										},
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice([]string{"add", "subtract", actionNoneWord}, false),
 									},
 									"value": {
 										Type:     schema.TypeInt,
@@ -328,17 +252,9 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"action": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-											value := v.(string)
-											if !stringInSlice(value, []string{"add", "subtract", actionNoneWord}) {
-												errors = append(errors, fmt.Errorf(
-													"%q for %q is not valid action", value, k))
-											}
-
-											return
-										},
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice([]string{"add", "subtract", actionNoneWord}, false),
 									},
 									"value": {
 										Type:     schema.TypeInt,
@@ -372,32 +288,17 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"bgp_origin": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"egp", "igp", "incomplete"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not valid bgp origin", value, k))
-								}
-
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"egp", "igp", "incomplete"}, false),
 						},
 						"family": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"inet", "inet-mdt", "inet-mvpn", "inet-vpn",
-									"inet6", "inet6-mvpn", "inet6-vpn",
-									"iso"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not valid family", value, k))
-								}
-
-								return
-							},
+							ValidateFunc: validation.StringInSlice([]string{
+								"inet", "inet-mdt", "inet-mvpn", "inet-vpn",
+								"inet6", "inet6-mvpn", "inet6-vpn",
+								"iso"}, false),
 						},
 						"local_preference": {
 							Type:     schema.TypeInt,
@@ -453,9 +354,9 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validateNameObjectJunos(),
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateNameObjectJunos([]string{}),
 						},
 						"from": {
 							Type:     schema.TypeList,
@@ -483,32 +384,17 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"bgp_origin": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-											value := v.(string)
-											if !stringInSlice(value, []string{"egp", "igp", "incomplete"}) {
-												errors = append(errors, fmt.Errorf(
-													"%q for %q is not valid bgp origin", value, k))
-											}
-
-											return
-										},
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice([]string{"egp", "igp", "incomplete"}, false),
 									},
 									"family": {
 										Type:     schema.TypeString,
 										Optional: true,
-										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-											value := v.(string)
-											if !stringInSlice(value, []string{"inet", "inet-mdt", "inet-mvpn", "inet-vpn",
-												"inet6", "inet6-mvpn", "inet6-vpn",
-												"iso"}) {
-												errors = append(errors, fmt.Errorf(
-													"%q for %q is not valid family", value, k))
-											}
-
-											return
-										},
+										ValidateFunc: validation.StringInSlice([]string{
+											"inet", "inet-mdt", "inet-mvpn", "inet-vpn",
+											"inet6", "inet6-mvpn", "inet6-vpn",
+											"iso"}, false),
 									},
 									"local_preference": {
 										Type:     schema.TypeInt,
@@ -568,21 +454,13 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 												"route": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: validateNetworkFunc(),
+													ValidateFunc: validation.IsCIDRNetwork(0, 128),
 												},
 												"option": {
 													Type:     schema.TypeString,
 													Required: true,
-													ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-														value := v.(string)
-														if !stringInSlice(value, []string{"address-mask", "exact", "longer",
-															"orlonger", "prefix-length-range", "through", "upto"}) {
-															errors = append(errors, fmt.Errorf(
-																"%q for %q is not valid option", value, k))
-														}
-
-														return
-													},
+													ValidateFunc: validation.StringInSlice([]string{"address-mask", "exact", "longer",
+														"orlonger", "prefix-length-range", "through", "upto"}, false),
 												},
 												"option_value": {
 													Type:     schema.TypeString,
@@ -602,17 +480,9 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"action": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-											value := v.(string)
-											if !stringInSlice(value, []string{"accept", "reject"}) {
-												errors = append(errors, fmt.Errorf(
-													"%q for %q is not valid acceptance", value, k))
-											}
-
-											return
-										},
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice([]string{"accept", "reject"}, false),
 									},
 									"as_path_expand": {
 										Type:     schema.TypeString,
@@ -628,17 +498,9 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"action": {
-													Type:     schema.TypeString,
-													Required: true,
-													ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-														value := v.(string)
-														if !stringInSlice(value, []string{addWord, deleteWord, setWord}) {
-															errors = append(errors, fmt.Errorf(
-																"%q for %q is not valid action", value, k))
-														}
-
-														return
-													},
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice([]string{addWord, deleteWord, setWord}, false),
 												},
 												"value": {
 													Type:     schema.TypeString,
@@ -648,30 +510,14 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 										},
 									},
 									"default_action": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-											value := v.(string)
-											if !stringInSlice(value, []string{"accept", "reject"}) {
-												errors = append(errors, fmt.Errorf(
-													"%q for %q is not valid acceptance", value, k))
-											}
-
-											return
-										},
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice([]string{"accept", "reject"}, false),
 									},
 									"load_balance": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-											value := v.(string)
-											if !stringInSlice(value, []string{"per-packet", "consistent-hash"}) {
-												errors = append(errors, fmt.Errorf(
-													"%q for %q is not valid load-balance option", value, k))
-											}
-
-											return
-										},
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice([]string{"per-packet", "consistent-hash"}, false),
 									},
 									"local_preference": {
 										Type:     schema.TypeList,
@@ -680,17 +526,9 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"action": {
-													Type:     schema.TypeString,
-													Required: true,
-													ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-														value := v.(string)
-														if !stringInSlice(value, []string{"add", "subtract", actionNoneWord}) {
-															errors = append(errors, fmt.Errorf(
-																"%q for %q is not valid action", value, k))
-														}
-
-														return
-													},
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice([]string{"add", "subtract", actionNoneWord}, false),
 												},
 												"value": {
 													Type:     schema.TypeInt,
@@ -700,17 +538,9 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 										},
 									},
 									"next": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-											value := v.(string)
-											if !stringInSlice(value, []string{"policy", "term"}) {
-												errors = append(errors, fmt.Errorf(
-													"%q for %q is not valid next action", value, k))
-											}
-
-											return
-										},
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice([]string{"policy", "term"}, false),
 									},
 									"next_hop": {
 										Type:     schema.TypeString,
@@ -723,17 +553,9 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"action": {
-													Type:     schema.TypeString,
-													Required: true,
-													ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-														value := v.(string)
-														if !stringInSlice(value, []string{"add", "subtract", actionNoneWord}) {
-															errors = append(errors, fmt.Errorf(
-																"%q for %q is not valid action", value, k))
-														}
-
-														return
-													},
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice([]string{"add", "subtract", actionNoneWord}, false),
 												},
 												"value": {
 													Type:     schema.TypeInt,
@@ -753,17 +575,9 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"action": {
-													Type:     schema.TypeString,
-													Required: true,
-													ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-														value := v.(string)
-														if !stringInSlice(value, []string{"add", "subtract", actionNoneWord}) {
-															errors = append(errors, fmt.Errorf(
-																"%q for %q is not valid action", value, k))
-														}
-
-														return
-													},
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice([]string{"add", "subtract", actionNoneWord}, false),
 												},
 												"value": {
 													Type:     schema.TypeInt,
@@ -797,32 +611,17 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"bgp_origin": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-											value := v.(string)
-											if !stringInSlice(value, []string{"egp", "igp", "incomplete"}) {
-												errors = append(errors, fmt.Errorf(
-													"%q for %q is not valid bgp origin", value, k))
-											}
-
-											return
-										},
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice([]string{"egp", "igp", "incomplete"}, false),
 									},
 									"family": {
 										Type:     schema.TypeString,
 										Optional: true,
-										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-											value := v.(string)
-											if !stringInSlice(value, []string{"inet", "inet-mdt", "inet-mvpn", "inet-vpn",
-												"inet6", "inet6-mvpn", "inet6-vpn",
-												"iso"}) {
-												errors = append(errors, fmt.Errorf(
-													"%q for %q is not valid family", value, k))
-											}
-
-											return
-										},
+										ValidateFunc: validation.StringInSlice([]string{
+											"inet", "inet-mdt", "inet-mvpn", "inet-vpn",
+											"inet6", "inet6-mvpn", "inet6-vpn",
+											"iso"}, false),
 									},
 									"local_preference": {
 										Type:     schema.TypeInt,
@@ -879,68 +678,67 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 	}
 }
 
-func resourcePolicyoptionsPolicyStatementCreate(d *schema.ResourceData, m interface{}) error {
+func resourcePolicyoptionsPolicyStatementCreate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	policyStatementExists, err := checkPolicyStatementExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	if policyStatementExists {
 		sess.configClear(jnprSess)
 
-		return fmt.Errorf("policy-options policy-statement %v already exists", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("policy-options policy-statement %v already exists", d.Get("name").(string)))
 	}
 
 	err = setPolicyStatement(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("create resource junos_policyoptions_policy_statement", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	policyStatementExists, err = checkPolicyStatementExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if policyStatementExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("policy-options policy-statement %v not exists after commit "+
-			"=> check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("policy-options policy-statement %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourcePolicyoptionsPolicyStatementRead(d, m)
+	return resourcePolicyoptionsPolicyStatementRead(ctx, d, m)
 }
-func resourcePolicyoptionsPolicyStatementRead(d *schema.ResourceData, m interface{}) error {
+func resourcePolicyoptionsPolicyStatementRead(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
 
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	policyStatementOptions, err := readPolicyStatement(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if policyStatementOptions.name == "" {
 		d.SetId("")
@@ -950,62 +748,58 @@ func resourcePolicyoptionsPolicyStatementRead(d *schema.ResourceData, m interfac
 
 	return nil
 }
-func resourcePolicyoptionsPolicyStatementUpdate(d *schema.ResourceData, m interface{}) error {
+func resourcePolicyoptionsPolicyStatementUpdate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delPolicyStatement(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = setPolicyStatement(d, m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("update resource junos_policyoptions_policy_statement", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
 
-	return resourcePolicyoptionsPolicyStatementRead(d, m)
+	return resourcePolicyoptionsPolicyStatementRead(ctx, d, m)
 }
-func resourcePolicyoptionsPolicyStatementDelete(d *schema.ResourceData, m interface{}) error {
+func resourcePolicyoptionsPolicyStatementDelete(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	err = delPolicyStatement(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 	err = sess.commitConf("delete resource junos_policyoptions_policy_statement", jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

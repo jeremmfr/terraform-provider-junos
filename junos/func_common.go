@@ -8,7 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func logFile(message string, file string) {
@@ -27,48 +29,21 @@ func logFile(message string, file string) {
 
 	log.Printf("%s", message)
 }
-func validateIPMaskFunc() schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (s []string, es []error) {
+func validateIPMaskFunc() schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
 		v := i.(string)
 		err := validateIPwithMask(v)
 		if err != nil {
-			es = append(es, err)
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       err.Error(),
+				AttributePath: path,
+			})
 		}
 
-		return
+		return diags
 	}
-}
-func validateIPFunc() schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (s []string, es []error) {
-		v := i.(string)
-		err := validateIP(v)
-		if err != nil {
-			es = append(es, err)
-		}
-
-		return
-	}
-}
-func validateNetworkFunc() schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (s []string, es []error) {
-		v := i.(string)
-		err := validateNetwork(v)
-		if err != nil {
-			es = append(es, err)
-		}
-
-		return
-	}
-}
-
-func validateIP(ip string) error {
-	ipMask := ip + "/32"
-	_, ipnet, err := net.ParseCIDR(ipMask)
-	if err != nil || ipnet == nil {
-		return fmt.Errorf("%v is not a valid IP", ip)
-	}
-
-	return nil
 }
 
 func validateIPwithMask(ip string) error {
@@ -90,64 +65,70 @@ func validateIPwithMask(ip string) error {
 	return nil
 }
 
-func validateNetwork(network string) error {
+func validateCIDRNetwork(network string) error {
 	if !strings.Contains(network, "/") {
 		return fmt.Errorf("%v missing mask", network)
 	}
 	_, ipnet, err := net.ParseCIDR(network)
 	if err != nil || ipnet == nil {
-		return fmt.Errorf("%v is not a valid IP/mask", network)
+		return fmt.Errorf("%v is not a valid CIDR", network)
 	}
 	if network != ipnet.String() {
-		return fmt.Errorf("%v is not a network, is a IP/mask", network)
+		return fmt.Errorf("%v is not a valid network CIDR", network)
 	}
 
 	return nil
 }
 
-func validateNameObjectJunos() schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (s []string, es []error) {
+func validateNameObjectJunos(exclude []string) schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
 		v := i.(string)
 		if strings.Count(v, "") > 32 {
-			es = append(es, fmt.Errorf(
-				"%q %q invalid name (too long)", k, i))
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("%s invalid name (too long)", i),
+				AttributePath: path,
+			})
 		}
 		f := func(r rune) bool {
 			return (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') && r != '-' && r != '_'
 		}
 		if strings.IndexFunc(v, f) != -1 {
-			es = append(es, fmt.Errorf(
-				"%q %q invalid name (bad character)", k, i))
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("%s invalid name (bad character)", i),
+				AttributePath: path,
+			})
+		}
+		if stringInSlice(v, exclude) {
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("expected value to not be one of %q, got %v", exclude, i),
+				AttributePath: path,
+			})
 		}
 
-		return
+		return diags
 	}
 }
-func validateAddress() schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (s []string, es []error) {
+func validateAddress() schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
 		v := i.(string)
 
 		f := func(r rune) bool {
 			return (r < 'a' || r > 'z') && (r < '0' || r > '9') && r != '-' && r != '.'
 		}
 		if strings.IndexFunc(v, f) != -1 {
-			es = append(es, fmt.Errorf(
-				"%q %q invalid address (bad character)", k, i))
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("%s invalid address (bad character)", v),
+				AttributePath: path,
+			})
 		}
 
-		return
-	}
-}
-
-func validateIntRange(start int, end int) schema.SchemaValidateFunc {
-	return func(v interface{}, k string) (ws []string, errors []error) {
-		value := v.(int)
-		if value < start || value > end {
-			errors = append(errors, fmt.Errorf(
-				"%d for %q is not valid (%d-%d)", value, k, start, end))
-		}
-
-		return
+		return diags
 	}
 }
 
@@ -201,17 +182,9 @@ func checkCompatibilitySecurity(jnprSess *NetconfObject) bool {
 	return false
 }
 
-func validateSyslogSeverity() schema.SchemaValidateFunc {
-	return func(v interface{}, k string) (ws []string, errors []error) {
-		value := v.(string)
-		if !stringInSlice(value, []string{"alert", "any", "critical",
-			"emergency", "error", "info", "none", "notice", "warning"}) {
-			errors = append(errors, fmt.Errorf(
-				"%q %q invalid severity", value, k))
-		}
-
-		return
-	}
+func listOfSyslogSeveryty() []string {
+	return []string{"alert", "any", "critical",
+		"emergency", "error", "info", "none", "notice", "warning"}
 }
 
 func uniqueListString(s []string) []string {
