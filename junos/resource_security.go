@@ -113,7 +113,7 @@ func resourceSecurityCreate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return diag.FromErr(fmt.Errorf("security not compatible with Junos device %s", jnprSess.Platform[0].Model))
+		return diag.FromErr(fmt.Errorf("not compatible with Junos device %s", jnprSess.Platform[0].Model))
 	}
 	sess.configLock(jnprSess)
 
@@ -209,7 +209,7 @@ func resourceSecurityImport(d *schema.ResourceData, m interface{}) ([]*schema.Re
 func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 
-	setPrefix := "set "
+	setPrefix := "set security "
 	configSet := make([]string, 0)
 
 	for _, ikeTrace := range d.Get("ike_traceoptions").([]interface{}) {
@@ -219,40 +219,40 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 				if ikeTraceFile != nil {
 					ikeTraceFileM := ikeTraceFile.(map[string]interface{})
 					if ikeTraceFileM["name"].(string) != "" {
-						configSet = append(configSet, setPrefix+"security ike traceoptions file "+
+						configSet = append(configSet, setPrefix+"ike traceoptions file "+
 							ikeTraceFileM["name"].(string))
 					}
 					if ikeTraceFileM["files"].(int) > 0 {
-						configSet = append(configSet, setPrefix+"security ike traceoptions file files "+
+						configSet = append(configSet, setPrefix+"ike traceoptions file files "+
 							strconv.Itoa(ikeTraceFileM["files"].(int)))
 					}
 					if ikeTraceFileM["match"].(string) != "" {
-						configSet = append(configSet, setPrefix+"security ike traceoptions file match \""+
+						configSet = append(configSet, setPrefix+"ike traceoptions file match \""+
 							ikeTraceFileM["match"].(string)+"\"")
 					}
 					if ikeTraceFileM["size"].(int) > 0 {
-						configSet = append(configSet, setPrefix+"security ike traceoptions file size "+
+						configSet = append(configSet, setPrefix+"ike traceoptions file size "+
 							strconv.Itoa(ikeTraceFileM["size"].(int)))
 					}
 					if ikeTraceFileM["world_readable"].(bool) && ikeTraceFileM["no_world_readable"].(bool) {
 						return fmt.Errorf("conflict between 'world_readable' and 'no_world_readable' for ike_traceoptions file")
 					}
 					if ikeTraceFileM["world_readable"].(bool) {
-						configSet = append(configSet, setPrefix+"security ike traceoptions file world-readable")
+						configSet = append(configSet, setPrefix+"ike traceoptions file world-readable")
 					}
 					if ikeTraceFileM["no_world_readable"].(bool) {
-						configSet = append(configSet, setPrefix+"security ike traceoptions file no-world-readable")
+						configSet = append(configSet, setPrefix+"ike traceoptions file no-world-readable")
 					}
 				}
 			}
 			for _, ikeTraceFlag := range ikeTraceM["flag"].([]interface{}) {
-				configSet = append(configSet, setPrefix+"security ike traceoptions flag "+ikeTraceFlag.(string))
+				configSet = append(configSet, setPrefix+"ike traceoptions flag "+ikeTraceFlag.(string))
 			}
 			if ikeTraceM["no_remote_trace"].(bool) {
-				configSet = append(configSet, setPrefix+"security ike traceoptions no-remote-trace")
+				configSet = append(configSet, setPrefix+"ike traceoptions no-remote-trace")
 			}
 			if ikeTraceM["rate_limit"].(int) > -1 {
-				configSet = append(configSet, setPrefix+"security ike traceoptions rate-limit "+
+				configSet = append(configSet, setPrefix+"ike traceoptions rate-limit "+
 					strconv.Itoa(ikeTraceM["rate_limit"].(int)))
 			}
 		}
@@ -261,7 +261,7 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		if utm != nil {
 			utmM := utm.(map[string]interface{})
 			if utmM["feature_profile_web_filtering_type"].(string) != "" {
-				configSet = append(configSet, setPrefix+"security utm feature-profile web-filtering type "+
+				configSet = append(configSet, setPrefix+"utm feature-profile web-filtering type "+
 					utmM["feature_profile_web_filtering_type"].(string))
 			}
 		}
@@ -281,7 +281,7 @@ func delSecurity(m interface{}, jnprSess *NetconfObject) error {
 	}
 	sess := m.(*Session)
 	configSet := make([]string, 0)
-	delPrefix := "delete security "
+	delPrefix := "delete "
 	for _, line := range listLineToDelete {
 		configSet = append(configSet,
 			delPrefix+line)
