@@ -45,16 +45,20 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosSecurityConfigUpdate(),
-					Check: resource.ComposeTestCheckFunc(
-						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"ike_traceoptions.0.file.0.no_world_readable", "true"),
-					),
-				},
-				{
 					ResourceName:      "junos_security.testacc_security",
 					ImportState:       true,
 					ImportStateVerify: true,
+				},
+				{
+					Config: testAccJunosSecurityConfigUpdate(),
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"ike_traceoptions.0.file.0.match", ""),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"ike_traceoptions.0.file.0.no_world_readable", "true"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"ike_traceoptions.0.flag.#", "0"),
+					),
 				},
 			},
 		})
@@ -89,11 +93,9 @@ resource junos_security "testacc_security" {
     file {
       name           = "ike.log"
       files          = 5
-      match          = "test"
       size           = 100000
       no_world_readable = true
     }
-    flag       = ["all"]
     rate_limit = 100
     # no_remote_trace = true
   }
