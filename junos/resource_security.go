@@ -113,7 +113,7 @@ func resourceSecurityCreate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return diag.FromErr(fmt.Errorf("not compatible with Junos device %s", jnprSess.Platform[0].Model))
+		return diag.FromErr(fmt.Errorf("security not compatible with Junos device %s", jnprSess.Platform[0].Model))
 	}
 	sess.configLock(jnprSess)
 
@@ -281,7 +281,7 @@ func delSecurity(m interface{}, jnprSess *NetconfObject) error {
 	}
 	sess := m.(*Session)
 	configSet := make([]string, 0)
-	delPrefix := "delete "
+	delPrefix := "delete security "
 	for _, line := range listLineToDelete {
 		configSet = append(configSet,
 			delPrefix+line)
