@@ -13,7 +13,7 @@ import (
 
 type securityOptions struct {
 	ikeTraceoptions []map[string]interface{}
-	utmOptions      []map[string]interface{}
+	utm             []map[string]interface{}
 }
 
 func resourceSecurity() *schema.Resource {
@@ -313,87 +313,76 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
 			case strings.HasPrefix(itemTrim, "ike traceoptions"):
-				ikeTraceoptions := map[string]interface{}{
-					"file":            make([]map[string]interface{}, 0),
-					"flag":            make([]string, 0),
-					"no_remote_trace": false,
-					"rate_limit":      -1,
-				}
-				if len(confRead.ikeTraceoptions) > 0 {
-					for k, v := range confRead.ikeTraceoptions[0] {
-						ikeTraceoptions[k] = v
-					}
+				if len(confRead.ikeTraceoptions) == 0 {
+					confRead.ikeTraceoptions = append(confRead.ikeTraceoptions, map[string]interface{}{
+						"file":            make([]map[string]interface{}, 0),
+						"flag":            make([]string, 0),
+						"no_remote_trace": false,
+						"rate_limit":      -1,
+					})
 				}
 				switch {
 				case strings.HasPrefix(itemTrim, "ike traceoptions file"):
-					ikeTraceOptionsFile := map[string]interface{}{
-						"name":              "",
-						"files":             0,
-						"match":             "",
-						"size":              0,
-						"world_readable":    false,
-						"no_world_readable": false,
-					}
-					if len(ikeTraceoptions["file"].([]map[string]interface{})) > 0 {
-						for k, v := range ikeTraceoptions["file"].([]map[string]interface{})[0] {
-							ikeTraceOptionsFile[k] = v
-						}
+					if len(confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})) == 0 {
+						confRead.ikeTraceoptions[0]["file"] = append(
+							confRead.ikeTraceoptions[0]["file"].([]map[string]interface{}), map[string]interface{}{
+								"name":              "",
+								"files":             0,
+								"match":             "",
+								"size":              0,
+								"world_readable":    false,
+								"no_world_readable": false,
+							})
 					}
 					switch {
 					case strings.HasPrefix(itemTrim, "ike traceoptions file files"):
 						var err error
-						ikeTraceOptionsFile["files"], err = strconv.Atoi(
+						confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["files"], err = strconv.Atoi(
 							strings.TrimPrefix(itemTrim, "ike traceoptions file files "))
 						if err != nil {
 							return confRead, err
 						}
-						ikeTraceoptions["file"] = []map[string]interface{}{ikeTraceOptionsFile}
 					case strings.HasPrefix(itemTrim, "ike traceoptions file match"):
-						ikeTraceOptionsFile["match"] = strings.Trim(
+						confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["match"] = strings.Trim(
 							strings.TrimPrefix(itemTrim, "ike traceoptions file match "), "\"")
-						ikeTraceoptions["file"] = []map[string]interface{}{ikeTraceOptionsFile}
 					case strings.HasPrefix(itemTrim, "ike traceoptions file size"):
 						var err error
-						ikeTraceOptionsFile["size"], err = strconv.Atoi(
+						confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"], err = strconv.Atoi(
 							strings.TrimPrefix(itemTrim, "ike traceoptions file size "))
 						if err != nil {
 							return confRead, err
 						}
-						ikeTraceoptions["file"] = []map[string]interface{}{ikeTraceOptionsFile}
 					case strings.HasPrefix(itemTrim, "ike traceoptions file world-readable"):
-						ikeTraceOptionsFile["world_readable"] = true
-						ikeTraceoptions["file"] = []map[string]interface{}{ikeTraceOptionsFile}
+						confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["world_readable"] = true
 					case strings.HasPrefix(itemTrim, "ike traceoptions file no-world-readable"):
-						ikeTraceOptionsFile["no_world_readable"] = true
-						ikeTraceoptions["file"] = []map[string]interface{}{ikeTraceOptionsFile}
+						confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["no_world_readable"] = true
 					case strings.HasPrefix(itemTrim, "ike traceoptions file "):
-						ikeTraceOptionsFile["name"] = strings.Trim(
+						confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["name"] = strings.Trim(
 							strings.TrimPrefix(itemTrim, "ike traceoptions file "), "\"")
-						ikeTraceoptions["file"] = []map[string]interface{}{ikeTraceOptionsFile}
 					}
 				case strings.HasPrefix(itemTrim, "ike traceoptions flag"):
-					ikeTraceoptions["flag"] = append(ikeTraceoptions["flag"].([]string),
+					confRead.ikeTraceoptions[0]["flag"] = append(confRead.ikeTraceoptions[0]["flag"].([]string),
 						strings.TrimPrefix(itemTrim, "ike traceoptions flag "))
 				case strings.HasPrefix(itemTrim, "ike traceoptions no-remote-trace"):
-					ikeTraceoptions["no_remote_trace"] = true
+					confRead.ikeTraceoptions[0]["no_remote_trace"] = true
 				case strings.HasPrefix(itemTrim, "ike traceoptions rate-limit"):
 					var err error
-					ikeTraceoptions["rate_limit"], err = strconv.Atoi(
+					confRead.ikeTraceoptions[0]["rate_limit"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrim, "ike traceoptions rate-limit "))
 					if err != nil {
 						return confRead, err
 					}
 				}
-				confRead.ikeTraceoptions = []map[string]interface{}{ikeTraceoptions}
 			case strings.HasPrefix(itemTrim, "utm "):
-				utmOptions := map[string]interface{}{
-					"feature_profile_web_filtering_type": "",
+				if len(confRead.utm) == 0 {
+					confRead.utm = append(confRead.utm, map[string]interface{}{
+						"feature_profile_web_filtering_type": "",
+					})
 				}
 				if strings.HasPrefix(itemTrim, "utm feature-profile web-filtering type ") {
-					utmOptions["feature_profile_web_filtering_type"] = strings.TrimPrefix(itemTrim,
+					confRead.utm[0]["feature_profile_web_filtering_type"] = strings.TrimPrefix(itemTrim,
 						"utm feature-profile web-filtering type ")
 				}
-				confRead.utmOptions = []map[string]interface{}{utmOptions}
 			}
 		}
 	}
@@ -406,7 +395,7 @@ func fillSecurity(d *schema.ResourceData, securityOptions securityOptions) {
 	if tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("utm", securityOptions.utmOptions)
+	tfErr = d.Set("utm", securityOptions.utm)
 	if tfErr != nil {
 		panic(tfErr)
 	}
