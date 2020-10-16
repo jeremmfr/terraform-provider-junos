@@ -117,14 +117,12 @@ func resourceSecurityCreate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	sess.configLock(jnprSess)
 
-	err = setSecurity(d, m, jnprSess)
-	if err != nil {
+	if err := setSecurity(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -162,20 +160,17 @@ func resourceSecurityUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delSecurity(m, jnprSess)
-	if err != nil {
+	if err := delSecurity(m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setSecurity(d, m, jnprSess)
-	if err != nil {
+	if err := setSecurity(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_security", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_security", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -266,8 +261,7 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 			}
 		}
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -286,8 +280,7 @@ func delSecurity(m interface{}, jnprSess *NetconfObject) error {
 		configSet = append(configSet,
 			delPrefix+line)
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -391,12 +384,10 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 }
 
 func fillSecurity(d *schema.ResourceData, securityOptions securityOptions) {
-	tfErr := d.Set("ike_traceoptions", securityOptions.ikeTraceoptions)
-	if tfErr != nil {
+	if tfErr := d.Set("ike_traceoptions", securityOptions.ikeTraceoptions); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("utm", securityOptions.utm)
-	if tfErr != nil {
+	if tfErr := d.Set("utm", securityOptions.utm); tfErr != nil {
 		panic(tfErr)
 	}
 }
