@@ -93,14 +93,12 @@ func resourceSecurityNatSourcePoolCreate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(fmt.Errorf("security nat source pool %v already exists", d.Get("name").(string)))
 	}
 
-	err = setSecurityNatSourcePool(d, m, jnprSess)
-	if err != nil {
+	if err := setSecurityNatSourcePool(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security_nat_source_pool", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_nat_source_pool", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -150,20 +148,17 @@ func resourceSecurityNatSourcePoolUpdate(ctx context.Context, d *schema.Resource
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delSecurityNatSourcePool(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delSecurityNatSourcePool(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setSecurityNatSourcePool(d, m, jnprSess)
-	if err != nil {
+	if err := setSecurityNatSourcePool(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_security_nat_source_pool", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_security_nat_source_pool", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -180,14 +175,12 @@ func resourceSecurityNatSourcePoolDelete(ctx context.Context, d *schema.Resource
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delSecurityNatSourcePool(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delSecurityNatSourcePool(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_security_nat_source_pool", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_nat_source_pool", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -262,8 +255,7 @@ func setSecurityNatSourcePool(d *schema.ResourceData, m interface{}, jnprSess *N
 	if d.Get("routing_instance").(string) != "" {
 		configSet = append(configSet, setPrefix+" routing-instance "+d.Get("routing_instance").(string))
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -323,36 +315,29 @@ func delSecurityNatSourcePool(natSourcePool string, m interface{}, jnprSess *Net
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security nat source pool "+natSourcePool)
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
 	return nil
 }
 func fillSecurityNatSourcePoolData(d *schema.ResourceData, natSourcePoolOptions natSourcePoolOptions) {
-	tfErr := d.Set("name", natSourcePoolOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", natSourcePoolOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("address", natSourcePoolOptions.address)
-	if tfErr != nil {
+	if tfErr := d.Set("address", natSourcePoolOptions.address); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("port_no_translation", natSourcePoolOptions.portNoTranslation)
-	if tfErr != nil {
+	if tfErr := d.Set("port_no_translation", natSourcePoolOptions.portNoTranslation); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("port_overloading_factor", natSourcePoolOptions.portOverloadingFactor)
-	if tfErr != nil {
+	if tfErr := d.Set("port_overloading_factor", natSourcePoolOptions.portOverloadingFactor); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("port_range", natSourcePoolOptions.portRange)
-	if tfErr != nil {
+	if tfErr := d.Set("port_range", natSourcePoolOptions.portRange); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("routing_instance", natSourcePoolOptions.routingInstance)
-	if tfErr != nil {
+	if tfErr := d.Set("routing_instance", natSourcePoolOptions.routingInstance); tfErr != nil {
 		panic(tfErr)
 	}
 }

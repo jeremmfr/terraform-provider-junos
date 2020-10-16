@@ -78,14 +78,12 @@ func resourceSystemNtpServerCreate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(fmt.Errorf("system ntp server %v already exists", d.Get("address").(string)))
 	}
 
-	err = setSystemNtpServer(d, m, jnprSess)
-	if err != nil {
+	if err := setSystemNtpServer(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_system_ntp_server", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_system_ntp_server", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -135,20 +133,17 @@ func resourceSystemNtpServerUpdate(ctx context.Context, d *schema.ResourceData, 
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delSystemNtpServer(d.Get("address").(string), m, jnprSess)
-	if err != nil {
+	if err := delSystemNtpServer(d.Get("address").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setSystemNtpServer(d, m, jnprSess)
-	if err != nil {
+	if err := setSystemNtpServer(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_system_ntp_server", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_system_ntp_server", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -165,14 +160,12 @@ func resourceSystemNtpServerDelete(ctx context.Context, d *schema.ResourceData, 
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delSystemNtpServer(d.Get("address").(string), m, jnprSess)
-	if err != nil {
+	if err := delSystemNtpServer(d.Get("address").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_system_ntp_server", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_system_ntp_server", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -239,8 +232,7 @@ func setSystemNtpServer(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		configSet = append(configSet, setPrefix+" routing-instance "+d.Get("routing_instance").(string))
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -297,32 +289,26 @@ func delSystemNtpServer(address string, m interface{}, jnprSess *NetconfObject) 
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system ntp server "+address)
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
 	return nil
 }
 func fillSystemNtpServerData(d *schema.ResourceData, ntpServerOptions ntpServerOptions) {
-	tfErr := d.Set("address", ntpServerOptions.address)
-	if tfErr != nil {
+	if tfErr := d.Set("address", ntpServerOptions.address); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("key", ntpServerOptions.key)
-	if tfErr != nil {
+	if tfErr := d.Set("key", ntpServerOptions.key); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("version", ntpServerOptions.version)
-	if tfErr != nil {
+	if tfErr := d.Set("version", ntpServerOptions.version); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("prefer", ntpServerOptions.prefer)
-	if tfErr != nil {
+	if tfErr := d.Set("prefer", ntpServerOptions.prefer); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("routing_instance", ntpServerOptions.routingInstance)
-	if tfErr != nil {
+	if tfErr := d.Set("routing_instance", ntpServerOptions.routingInstance); tfErr != nil {
 		panic(tfErr)
 	}
 }

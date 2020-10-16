@@ -70,14 +70,12 @@ func resourcePolicyoptionsPrefixListCreate(
 		return diag.FromErr(fmt.Errorf("policy-options prefix-list %v already exists", d.Get("name").(string)))
 	}
 
-	err = setPolicyoptionsPrefixList(d, m, jnprSess)
-	if err != nil {
+	if err := setPolicyoptionsPrefixList(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_policyoptions_prefix_list", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_policyoptions_prefix_list", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -129,20 +127,17 @@ func resourcePolicyoptionsPrefixListUpdate(
 
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delPolicyoptionsPrefixList(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delPolicyoptionsPrefixList(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setPolicyoptionsPrefixList(d, m, jnprSess)
-	if err != nil {
+	if err := setPolicyoptionsPrefixList(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_policyoptions_prefix_list", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_policyoptions_prefix_list", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -160,14 +155,12 @@ func resourcePolicyoptionsPrefixListDelete(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delPolicyoptionsPrefixList(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delPolicyoptionsPrefixList(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_policyoptions_prefix_list", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_policyoptions_prefix_list", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -235,8 +228,7 @@ func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess 
 		configSet = append(configSet, setPrefix+" dynamic-db")
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -285,28 +277,23 @@ func delPolicyoptionsPrefixList(prefixList string, m interface{}, jnprSess *Netc
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete policy-options prefix-list "+prefixList)
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
 	return nil
 }
 func fillPolicyoptionsPrefixListData(d *schema.ResourceData, prefixListOptions prefixListOptions) {
-	tfErr := d.Set("name", prefixListOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", prefixListOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("prefix", prefixListOptions.prefix)
-	if tfErr != nil {
+	if tfErr := d.Set("prefix", prefixListOptions.prefix); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("apply_path", prefixListOptions.applyPath)
-	if tfErr != nil {
+	if tfErr := d.Set("apply_path", prefixListOptions.applyPath); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("dynamic_db", prefixListOptions.dynamicDB)
-	if tfErr != nil {
+	if tfErr := d.Set("dynamic_db", prefixListOptions.dynamicDB); tfErr != nil {
 		panic(tfErr)
 	}
 }

@@ -117,14 +117,12 @@ func resourceSecurityNatDestinationCreate(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(fmt.Errorf("security nat destination %v already exists", d.Get("name").(string)))
 	}
 
-	err = setSecurityNatDestination(d, m, jnprSess)
-	if err != nil {
+	if err := setSecurityNatDestination(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security_nat_destination", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_nat_destination", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -174,20 +172,17 @@ func resourceSecurityNatDestinationUpdate(ctx context.Context, d *schema.Resourc
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delSecurityNatDestination(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delSecurityNatDestination(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setSecurityNatDestination(d, m, jnprSess)
-	if err != nil {
+	if err := setSecurityNatDestination(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_security_nat_destination", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_security_nat_destination", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -204,14 +199,12 @@ func resourceSecurityNatDestinationDelete(ctx context.Context, d *schema.Resourc
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delSecurityNatDestination(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delSecurityNatDestination(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_security_nat_destination", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_nat_destination", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -289,8 +282,7 @@ func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *
 			}
 		}
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -380,24 +372,20 @@ func delSecurityNatDestination(natDestination string, m interface{}, jnprSess *N
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security nat destination rule-set "+natDestination)
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
 	return nil
 }
 func fillSecurityNatDestinationData(d *schema.ResourceData, natDestinationOptions natDestinationOptions) {
-	tfErr := d.Set("name", natDestinationOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", natDestinationOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("from", natDestinationOptions.from)
-	if tfErr != nil {
+	if tfErr := d.Set("from", natDestinationOptions.from); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("rule", natDestinationOptions.rule)
-	if tfErr != nil {
+	if tfErr := d.Set("rule", natDestinationOptions.rule); tfErr != nil {
 		panic(tfErr)
 	}
 }

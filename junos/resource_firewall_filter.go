@@ -278,14 +278,12 @@ func resourceFirewallFilterCreate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("firewall filter %v already exists", d.Get("name").(string)))
 	}
 
-	err = setFirewallFilter(d, m, jnprSess)
-	if err != nil {
+	if err := setFirewallFilter(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_firewall_filter", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_firewall_filter", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -335,20 +333,17 @@ func resourceFirewallFilterUpdate(ctx context.Context, d *schema.ResourceData, m
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
-	if err != nil {
+	if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setFirewallFilter(d, m, jnprSess)
-	if err != nil {
+	if err := setFirewallFilter(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_firewall_filter", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_firewall_filter", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -365,14 +360,12 @@ func resourceFirewallFilterDelete(ctx context.Context, d *schema.ResourceData, m
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
-	if err != nil {
+	if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_firewall_filter", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_firewall_filter", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -450,8 +443,7 @@ func setFirewallFilter(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		}
 	}
 
-	err = sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -518,28 +510,23 @@ func delFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfOb
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete firewall family "+family+" filter "+filter)
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
 	return nil
 }
 func fillFirewallFilterData(d *schema.ResourceData, filterOptions filterOptions) {
-	tfErr := d.Set("name", filterOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", filterOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("family", filterOptions.family)
-	if tfErr != nil {
+	if tfErr := d.Set("family", filterOptions.family); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("interface_specific", filterOptions.interfaceSpecific)
-	if tfErr != nil {
+	if tfErr := d.Set("interface_specific", filterOptions.interfaceSpecific); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("term", filterOptions.term)
-	if tfErr != nil {
+	if tfErr := d.Set("term", filterOptions.term); tfErr != nil {
 		panic(tfErr)
 	}
 }

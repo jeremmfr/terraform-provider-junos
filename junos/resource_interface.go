@@ -455,14 +455,12 @@ func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 			return diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))
 		}
 	}
-	err = setInterface(d, m, jnprSess)
-	if err != nil {
+	if err := setInterface(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_interface", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_interface", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -501,7 +499,7 @@ func resourceInterfaceRead(ctx context.Context, d *schema.ResourceData, m interf
 
 		return nil
 	}
-	if err = checkInterfaceNC(d.Get("name").(string), m, jnprSess); err == nil {
+	if err := checkInterfaceNC(d.Get("name").(string), m, jnprSess); err == nil {
 		d.SetId("")
 		mutex.Unlock()
 
@@ -525,8 +523,7 @@ func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m inte
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delInterfaceOpts(d, m, jnprSess)
-	if err != nil {
+	if err := delInterfaceOpts(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -648,14 +645,12 @@ func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m inte
 			}
 		}
 	}
-	err = setInterface(d, m, jnprSess)
-	if err != nil {
+	if err := setInterface(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_interface", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_interface", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -672,14 +667,12 @@ func resourceInterfaceDelete(ctx context.Context, d *schema.ResourceData, m inte
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delInterface(d, m, jnprSess)
-	if err != nil {
+	if err := delInterface(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_interface", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_interface", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -724,8 +717,7 @@ func resourceInterfaceImport(d *schema.ResourceData, m interface{}) ([]*schema.R
 	if err != nil {
 		return nil, err
 	}
-	tfErr := d.Set("name", d.Id())
-	if tfErr != nil {
+	if tfErr := d.Set("name", d.Id()); tfErr != nil {
 		panic(tfErr)
 	}
 	fillInterfaceData(d, interfaceOpt)
@@ -841,8 +833,7 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 	default:
 		return fmt.Errorf("the name %s contains too dot", d.Get("name").(string))
 	}
-	err := checkResourceInterfaceConfigAndName(len(intCut), d)
-	if err != nil {
+	if err := checkResourceInterfaceConfigAndName(len(intCut), d); err != nil {
 		return err
 	}
 	setPrefix := "set interfaces " + setName + " "
@@ -864,12 +855,14 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 		configSet = append(configSet, setPrefix+"family inet6")
 	}
 	for _, address := range d.Get("inet_address").([]interface{}) {
+		var err error
 		configSet, err = setFamilyAddress(address, intCut, configSet, setName, inetWord)
 		if err != nil {
 			return err
 		}
 	}
 	for _, address := range d.Get("inet6_address").([]interface{}) {
+		var err error
 		configSet, err = setFamilyAddress(address, intCut, configSet, setName, inet6Word)
 		if err != nil {
 			return err
@@ -960,8 +953,7 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 			" interface "+d.Get("name").(string))
 	}
 
-	err = sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -1127,8 +1119,7 @@ func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 		return fmt.Errorf("the name %s contains too dot", d.Get("name").(string))
 	}
 
-	err := sess.configSet([]string{"delete interfaces " + setName}, jnprSess)
-	if err != nil {
+	if err := sess.configSet([]string{"delete interfaces " + setName}, jnprSess); err != nil {
 		return err
 	}
 	if strings.Contains(d.Get("name").(string), "st0.") {
@@ -1182,14 +1173,12 @@ func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 		}
 	}
 	if checkCompatibilitySecurity(jnprSess) && d.Get("security_zone").(string) != "" {
-		err = delZoneInterface(d.Get("security_zone").(string), d, m, jnprSess)
-		if err != nil {
+		if err := delZoneInterface(d.Get("security_zone").(string), d, m, jnprSess); err != nil {
 			return err
 		}
 	}
 	if d.Get("routing_instance").(string) != "" {
-		err = delRoutingInstanceInterface(d.Get("routing_instance").(string), d, m, jnprSess)
-		if err != nil {
+		if err := delRoutingInstanceInterface(d.Get("routing_instance").(string), d, m, jnprSess); err != nil {
 			return err
 		}
 	}
@@ -1240,8 +1229,7 @@ func delInterfaceElement(element string, d *schema.ResourceData, m interface{}, 
 		return fmt.Errorf("the name %s contains too dot", d.Get("name").(string))
 	}
 	configSet = append(configSet, "delete interfaces "+setName+" "+element)
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -1276,8 +1264,7 @@ func delInterfaceOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 		delPrefix+"unit 0 family ethernet-switching vlan members",
 		delPrefix+"native-vlan-id",
 		delPrefix+"aggregated-ether-options")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -1287,8 +1274,7 @@ func delZoneInterface(zone string, d *schema.ResourceData, m interface{}, jnprSe
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security zones security-zone "+zone+" interfaces "+d.Get("name").(string))
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -1299,8 +1285,7 @@ func delRoutingInstanceInterface(instance string, d *schema.ResourceData,
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete routing-instances "+instance+" interface "+d.Get("name").(string))
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -1308,92 +1293,70 @@ func delRoutingInstanceInterface(instance string, d *schema.ResourceData,
 }
 
 func fillInterfaceData(d *schema.ResourceData, interfaceOpt interfaceOptions) {
-	tfErr := d.Set("description", interfaceOpt.description)
-	if tfErr != nil {
+	if tfErr := d.Set("description", interfaceOpt.description); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("vlan_tagging", interfaceOpt.vlanTagging)
-	if tfErr != nil {
+	if tfErr := d.Set("vlan_tagging", interfaceOpt.vlanTagging); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("vlan_tagging_id", interfaceOpt.vlanTaggingID)
-	if tfErr != nil {
+	if tfErr := d.Set("vlan_tagging_id", interfaceOpt.vlanTaggingID); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("inet", interfaceOpt.inet)
-	if tfErr != nil {
+	if tfErr := d.Set("inet", interfaceOpt.inet); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("inet6", interfaceOpt.inet6)
-	if tfErr != nil {
+	if tfErr := d.Set("inet6", interfaceOpt.inet6); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("inet_address", interfaceOpt.inetAddress)
-	if tfErr != nil {
+	if tfErr := d.Set("inet_address", interfaceOpt.inetAddress); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("inet6_address", interfaceOpt.inet6Address)
-	if tfErr != nil {
+	if tfErr := d.Set("inet6_address", interfaceOpt.inet6Address); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("inet_mtu", interfaceOpt.inetMtu)
-	if tfErr != nil {
+	if tfErr := d.Set("inet_mtu", interfaceOpt.inetMtu); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("inet6_mtu", interfaceOpt.inet6Mtu)
-	if tfErr != nil {
+	if tfErr := d.Set("inet6_mtu", interfaceOpt.inet6Mtu); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("inet_filter_input", interfaceOpt.inetFilterInput)
-	if tfErr != nil {
+	if tfErr := d.Set("inet_filter_input", interfaceOpt.inetFilterInput); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("inet_filter_output", interfaceOpt.inetFilterOutput)
-	if tfErr != nil {
+	if tfErr := d.Set("inet_filter_output", interfaceOpt.inetFilterOutput); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("inet6_filter_input", interfaceOpt.inet6FilterInput)
-	if tfErr != nil {
+	if tfErr := d.Set("inet6_filter_input", interfaceOpt.inet6FilterInput); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("inet6_filter_output", interfaceOpt.inet6FilterOutput)
-	if tfErr != nil {
+	if tfErr := d.Set("inet6_filter_output", interfaceOpt.inet6FilterOutput); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("ether802_3ad", interfaceOpt.v8023ad)
-	if tfErr != nil {
+	if tfErr := d.Set("ether802_3ad", interfaceOpt.v8023ad); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("trunk", interfaceOpt.trunk)
-	if tfErr != nil {
+	if tfErr := d.Set("trunk", interfaceOpt.trunk); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("vlan_members", interfaceOpt.vlanMembers)
-	if tfErr != nil {
+	if tfErr := d.Set("vlan_members", interfaceOpt.vlanMembers); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("vlan_native", interfaceOpt.vlanNative)
-	if tfErr != nil {
+	if tfErr := d.Set("vlan_native", interfaceOpt.vlanNative); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("ae_lacp", interfaceOpt.aeLacp)
-	if tfErr != nil {
+	if tfErr := d.Set("ae_lacp", interfaceOpt.aeLacp); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("ae_link_speed", interfaceOpt.aeLinkSpeed)
-	if tfErr != nil {
+	if tfErr := d.Set("ae_link_speed", interfaceOpt.aeLinkSpeed); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("ae_minimum_links", interfaceOpt.aeMinLink)
-	if tfErr != nil {
+	if tfErr := d.Set("ae_minimum_links", interfaceOpt.aeMinLink); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("security_zone", interfaceOpt.securityZones)
-	if tfErr != nil {
+	if tfErr := d.Set("security_zone", interfaceOpt.securityZones); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("routing_instance", interfaceOpt.routingInstances)
-	if tfErr != nil {
+	if tfErr := d.Set("routing_instance", interfaceOpt.routingInstances); tfErr != nil {
 		panic(tfErr)
 	}
 }

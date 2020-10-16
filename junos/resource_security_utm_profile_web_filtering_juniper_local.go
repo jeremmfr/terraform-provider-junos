@@ -107,14 +107,13 @@ func resourceSecurityUtmProfileWebFilteringLocalCreate(
 			"%v already exists", d.Get("name").(string)))
 	}
 
-	err = setUtmProfileWebFLocal(d, m, jnprSess)
-	if err != nil {
+	if err := setUtmProfileWebFLocal(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security_utm_profile_web_filtering_juniper_local", jnprSess)
-	if err != nil {
+	if err := sess.commitConf(
+		"create resource junos_security_utm_profile_web_filtering_juniper_local", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -168,20 +167,18 @@ func resourceSecurityUtmProfileWebFilteringLocalUpdate(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delUtmProfileWebFLocal(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delUtmProfileWebFLocal(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setUtmProfileWebFLocal(d, m, jnprSess)
-	if err != nil {
+	if err := setUtmProfileWebFLocal(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_security_utm_profile_web_filtering_juniper_local", jnprSess)
-	if err != nil {
+	if err := sess.commitConf(
+		"update resource junos_security_utm_profile_web_filtering_juniper_local", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -199,14 +196,13 @@ func resourceSecurityUtmProfileWebFilteringLocalDelete(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delUtmProfileWebFLocal(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delUtmProfileWebFLocal(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_security_utm_profile_web_filtering_juniper_local", jnprSess)
-	if err != nil {
+	if err := sess.commitConf(
+		"delete resource junos_security_utm_profile_web_filtering_juniper_local", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -294,8 +290,7 @@ func setUtmProfileWebFLocal(d *schema.ResourceData, m interface{}, jnprSess *Net
 		configSet = append(configSet, setPrefix+"timeout "+strconv.Itoa(d.Get("timeout").(int)))
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -368,8 +363,7 @@ func delUtmProfileWebFLocal(profile string, m interface{}, jnprSess *NetconfObje
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security utm feature-profile web-filtering juniper-local "+
 		"profile \""+profile+"\"")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -378,24 +372,19 @@ func delUtmProfileWebFLocal(profile string, m interface{}, jnprSess *NetconfObje
 
 func fillUtmProfileWebFLocalData(d *schema.ResourceData,
 	utmProfileWebFLocalOptions utmProfileWebFilteringLocalOptions) {
-	tfErr := d.Set("name", utmProfileWebFLocalOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", utmProfileWebFLocalOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("custom_block_message", utmProfileWebFLocalOptions.customBlockMessage)
-	if tfErr != nil {
+	if tfErr := d.Set("custom_block_message", utmProfileWebFLocalOptions.customBlockMessage); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("default_action", utmProfileWebFLocalOptions.defaultAction)
-	if tfErr != nil {
+	if tfErr := d.Set("default_action", utmProfileWebFLocalOptions.defaultAction); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("fallback_settings", utmProfileWebFLocalOptions.fallbackSettings)
-	if tfErr != nil {
+	if tfErr := d.Set("fallback_settings", utmProfileWebFLocalOptions.fallbackSettings); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("timeout", utmProfileWebFLocalOptions.timeout)
-	if tfErr != nil {
+	if tfErr := d.Set("timeout", utmProfileWebFLocalOptions.timeout); tfErr != nil {
 		panic(tfErr)
 	}
 }

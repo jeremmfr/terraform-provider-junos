@@ -120,14 +120,12 @@ func resourceStaticRouteCreate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(fmt.Errorf("static route %v already exists on table %s",
 			d.Get("destination").(string), d.Get("routing_instance").(string)))
 	}
-	err = setStaticRoute(d, m, jnprSess)
-	if err != nil {
+	if err := setStaticRoute(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_static_route", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_static_route", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -181,21 +179,18 @@ func resourceStaticRouteUpdate(ctx context.Context, d *schema.ResourceData, m in
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delStaticRouteOpts(d, m, jnprSess)
-	if err != nil {
+	if err := delStaticRouteOpts(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
 
-	err = setStaticRoute(d, m, jnprSess)
-	if err != nil {
+	if err := setStaticRoute(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_static_route", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_static_route", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -212,14 +207,12 @@ func resourceStaticRouteDelete(ctx context.Context, d *schema.ResourceData, m in
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess)
-	if err != nil {
+	if err := delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_static_route", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_static_route", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -321,8 +314,7 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 				" metric "+strconv.Itoa(qualifiedNextHopMap["metric"].(int)))
 		}
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -431,8 +423,7 @@ func delStaticRouteOpts(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 			configSet = append(configSet, delPrefix+"qualified-next-hop "+qualifiedNextHop["next_hop"].(string))
 		}
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -446,8 +437,7 @@ func delStaticRoute(destination string, instance string, m interface{}, jnprSess
 	} else {
 		configSet = append(configSet, "delete routing-instances "+instance+" routing-options static route "+destination)
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -455,32 +445,25 @@ func delStaticRoute(destination string, instance string, m interface{}, jnprSess
 }
 
 func fillStaticRouteData(d *schema.ResourceData, staticRouteOptions staticRouteOptions) {
-	tfErr := d.Set("destination", staticRouteOptions.destination)
-	if tfErr != nil {
+	if tfErr := d.Set("destination", staticRouteOptions.destination); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("routing_instance", staticRouteOptions.routingInstance)
-	if tfErr != nil {
+	if tfErr := d.Set("routing_instance", staticRouteOptions.routingInstance); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("preference", staticRouteOptions.preference)
-	if tfErr != nil {
+	if tfErr := d.Set("preference", staticRouteOptions.preference); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("metric", staticRouteOptions.metric)
-	if tfErr != nil {
+	if tfErr := d.Set("metric", staticRouteOptions.metric); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("community", staticRouteOptions.community)
-	if tfErr != nil {
+	if tfErr := d.Set("community", staticRouteOptions.community); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("next_hop", staticRouteOptions.nextHop)
-	if tfErr != nil {
+	if tfErr := d.Set("next_hop", staticRouteOptions.nextHop); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("qualified_next_hop", staticRouteOptions.qualifiedNextHop)
-	if tfErr != nil {
+	if tfErr := d.Set("qualified_next_hop", staticRouteOptions.qualifiedNextHop); tfErr != nil {
 		panic(tfErr)
 	}
 }

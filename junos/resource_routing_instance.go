@@ -63,14 +63,12 @@ func resourceRoutingInstanceCreate(ctx context.Context, d *schema.ResourceData, 
 
 		return diag.FromErr(fmt.Errorf("routing-instance %v already exists", d.Get("name").(string)))
 	}
-	err = setRoutingInstance(d, m, jnprSess)
-	if err != nil {
+	if err := setRoutingInstance(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_routing_instance", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_routing_instance", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -121,20 +119,17 @@ func resourceRoutingInstanceUpdate(ctx context.Context, d *schema.ResourceData, 
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 
-	err = delRoutingInstanceOpts(d, m, jnprSess)
-	if err != nil {
+	if err := delRoutingInstanceOpts(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setRoutingInstance(d, m, jnprSess)
-	if err != nil {
+	if err := setRoutingInstance(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_routing_instance", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_routing_instance", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -151,14 +146,12 @@ func resourceRoutingInstanceDelete(ctx context.Context, d *schema.ResourceData, 
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delRoutingInstance(d, m, jnprSess)
-	if err != nil {
+	if err := delRoutingInstance(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_routing_instance", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_routing_instance", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -217,8 +210,7 @@ func setRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		configSet = append(configSet, setPrefix+
 			"routing-options autonomous-system "+d.Get("as").(string))
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -265,8 +257,7 @@ func delRoutingInstanceOpts(d *schema.ResourceData, m interface{}, jnprSess *Net
 	configSet = append(configSet,
 		setPrefix+"instance-type",
 		setPrefix+"routing-options autonomous-system")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -276,8 +267,7 @@ func delRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete routing-instances "+d.Get("name").(string))
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -285,16 +275,13 @@ func delRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 }
 
 func fillRoutingInstanceData(d *schema.ResourceData, instanceOptions instanceOptions) {
-	tfErr := d.Set("name", instanceOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", instanceOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("type", instanceOptions.instanceType)
-	if tfErr != nil {
+	if tfErr := d.Set("type", instanceOptions.instanceType); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("as", instanceOptions.as)
-	if tfErr != nil {
+	if tfErr := d.Set("as", instanceOptions.as); tfErr != nil {
 		panic(tfErr)
 	}
 }

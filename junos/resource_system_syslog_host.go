@@ -210,14 +210,12 @@ func resourceSystemSyslogHostCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(fmt.Errorf("system syslog host %v already exists", d.Get("host").(string)))
 	}
 
-	err = setSystemSyslogHost(d, m, jnprSess)
-	if err != nil {
+	if err := setSystemSyslogHost(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_system_syslog_host", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_system_syslog_host", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -267,20 +265,17 @@ func resourceSystemSyslogHostUpdate(ctx context.Context, d *schema.ResourceData,
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delSystemSyslogHost(d.Get("host").(string), m, jnprSess)
-	if err != nil {
+	if err := delSystemSyslogHost(d.Get("host").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setSystemSyslogHost(d, m, jnprSess)
-	if err != nil {
+	if err := setSystemSyslogHost(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_system_syslog_host", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_system_syslog_host", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -297,14 +292,12 @@ func resourceSystemSyslogHostDelete(ctx context.Context, d *schema.ResourceData,
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delSystemSyslogHost(d.Get("host").(string), m, jnprSess)
-	if err != nil {
+	if err := delSystemSyslogHost(d.Get("host").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_system_syslog_host", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_system_syslog_host", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -440,8 +433,7 @@ func setSystemSyslogHost(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 		configSet = append(configSet, setPrefix+" user "+d.Get("user_severity").(string))
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -544,116 +536,89 @@ func delSystemSyslogHost(host string, m interface{}, jnprSess *NetconfObject) er
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system syslog host "+host)
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
 	return nil
 }
 func fillSystemSyslogHostData(d *schema.ResourceData, syslogHostOptions syslogHostOptions) {
-	tfErr := d.Set("host", syslogHostOptions.host)
-	if tfErr != nil {
+	if tfErr := d.Set("host", syslogHostOptions.host); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("allow_duplicates", syslogHostOptions.allowDuplicates)
-	if tfErr != nil {
+	if tfErr := d.Set("allow_duplicates", syslogHostOptions.allowDuplicates); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("exclude_hostname", syslogHostOptions.excludeHostname)
-	if tfErr != nil {
+	if tfErr := d.Set("exclude_hostname", syslogHostOptions.excludeHostname); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("explicit_priority", syslogHostOptions.explicitPriority)
-	if tfErr != nil {
+	if tfErr := d.Set("explicit_priority", syslogHostOptions.explicitPriority); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("facility_override", syslogHostOptions.facilityOverride)
-	if tfErr != nil {
+	if tfErr := d.Set("facility_override", syslogHostOptions.facilityOverride); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("log_prefix", syslogHostOptions.logPrefix)
-	if tfErr != nil {
+	if tfErr := d.Set("log_prefix", syslogHostOptions.logPrefix); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("match", syslogHostOptions.match)
-	if tfErr != nil {
+	if tfErr := d.Set("match", syslogHostOptions.match); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("match_strings", syslogHostOptions.matchStrings)
-	if tfErr != nil {
+	if tfErr := d.Set("match_strings", syslogHostOptions.matchStrings); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("port", syslogHostOptions.port)
-	if tfErr != nil {
+	if tfErr := d.Set("port", syslogHostOptions.port); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("source_address", syslogHostOptions.sourceAddress)
-	if tfErr != nil {
+	if tfErr := d.Set("source_address", syslogHostOptions.sourceAddress); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("structured_data", syslogHostOptions.structuredData)
-	if tfErr != nil {
+	if tfErr := d.Set("structured_data", syslogHostOptions.structuredData); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("any_severity", syslogHostOptions.anySeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("any_severity", syslogHostOptions.anySeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("authorization_severity", syslogHostOptions.authorizationSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("authorization_severity", syslogHostOptions.authorizationSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("changelog_severity", syslogHostOptions.changelogSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("changelog_severity", syslogHostOptions.changelogSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("conflictlog_severity", syslogHostOptions.conflictlogSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("conflictlog_severity", syslogHostOptions.conflictlogSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("daemon_severity", syslogHostOptions.daemonSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("daemon_severity", syslogHostOptions.daemonSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("dfc_severity", syslogHostOptions.dfcSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("dfc_severity", syslogHostOptions.dfcSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("external_severity", syslogHostOptions.externalSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("external_severity", syslogHostOptions.externalSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("firewall_severity", syslogHostOptions.firewallSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("firewall_severity", syslogHostOptions.firewallSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("ftp_severity", syslogHostOptions.ftpSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("ftp_severity", syslogHostOptions.ftpSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("interactivecommands_severity", syslogHostOptions.interactivecommandsSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("interactivecommands_severity", syslogHostOptions.interactivecommandsSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("kernel_severity", syslogHostOptions.kernelSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("kernel_severity", syslogHostOptions.kernelSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("ntp_severity", syslogHostOptions.ntpSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("ntp_severity", syslogHostOptions.ntpSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("pfe_severity", syslogHostOptions.pfeSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("pfe_severity", syslogHostOptions.pfeSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("security_severity", syslogHostOptions.securitySeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("security_severity", syslogHostOptions.securitySeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("user_severity", syslogHostOptions.userSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("user_severity", syslogHostOptions.userSeverity); tfErr != nil {
 		panic(tfErr)
 	}
 }

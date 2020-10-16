@@ -41,8 +41,7 @@ func testAccPreCheck(t *testing.T) {
 		t.Fatal("JUNOS_KEYFILE or JUNOS_PASSWORD must be set for acceptance tests")
 	}
 
-	err := testAccProvider.Configure(context.Background(), terraform.NewResourceConfigRaw(nil))
-	if err != nil {
+	if err := testAccProvider.Configure(context.Background(), terraform.NewResourceConfigRaw(nil)); err != nil {
 		t.Fatal(err)
 	}
 }

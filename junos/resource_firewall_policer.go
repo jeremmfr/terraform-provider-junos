@@ -115,14 +115,12 @@ func resourceFirewallPolicerCreate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(fmt.Errorf("firewall policer %v already exists", d.Get("name").(string)))
 	}
 
-	err = setFirewallPolicer(d, m, jnprSess)
-	if err != nil {
+	if err := setFirewallPolicer(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_firewall_policer", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_firewall_policer", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -172,20 +170,17 @@ func resourceFirewallPolicerUpdate(ctx context.Context, d *schema.ResourceData, 
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delFirewallPolicer(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delFirewallPolicer(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setFirewallPolicer(d, m, jnprSess)
-	if err != nil {
+	if err := setFirewallPolicer(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_firewall_policer", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_firewall_policer", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -202,14 +197,12 @@ func resourceFirewallPolicerDelete(ctx context.Context, d *schema.ResourceData, 
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delFirewallPolicer(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delFirewallPolicer(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_firewall_policer", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_firewall_policer", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -299,8 +292,7 @@ func setFirewallPolicer(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		}
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -390,28 +382,23 @@ func delFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject) 
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete firewall policer "+policer)
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
 	return nil
 }
 func fillFirewallPolicerData(d *schema.ResourceData, policerOptions policerOptions) {
-	tfErr := d.Set("name", policerOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", policerOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("filter_specific", policerOptions.filterSpecific)
-	if tfErr != nil {
+	if tfErr := d.Set("filter_specific", policerOptions.filterSpecific); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("if_exceeding", policerOptions.ifExceeding)
-	if tfErr != nil {
+	if tfErr := d.Set("if_exceeding", policerOptions.ifExceeding); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("then", policerOptions.then)
-	if tfErr != nil {
+	if tfErr := d.Set("then", policerOptions.then); tfErr != nil {
 		panic(tfErr)
 	}
 }

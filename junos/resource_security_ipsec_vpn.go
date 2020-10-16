@@ -154,14 +154,12 @@ func resourceIpsecVpnCreate(ctx context.Context, d *schema.ResourceData, m inter
 			panic(tfErr)
 		}
 	}
-	err = setIpsecVpn(d, m, jnprSess)
-	if err != nil {
+	if err := setIpsecVpn(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security_ipsec_vpn", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_ipsec_vpn", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -222,20 +220,17 @@ func resourceIpsecVpnUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delIpsecVpnConf(d, m, jnprSess)
-	if err != nil {
+	if err := delIpsecVpnConf(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setIpsecVpn(d, m, jnprSess)
-	if err != nil {
+	if err := setIpsecVpn(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_security_ipsec_vpn", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_security_ipsec_vpn", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -252,14 +247,12 @@ func resourceIpsecVpnDelete(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delIpsecVpn(d, m, jnprSess)
-	if err != nil {
+	if err := delIpsecVpn(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_security_ipsec_vpn", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_ipsec_vpn", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -355,8 +348,7 @@ func setIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		}
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -450,8 +442,7 @@ func delIpsecVpnConf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ipsec vpn "+d.Get("name").(string))
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -467,8 +458,7 @@ func delIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 			configSet = append(configSet, "delete interfaces "+d.Get("bind_interface").(string))
 		}
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -476,28 +466,22 @@ func delIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 }
 
 func fillIpsecVpnData(d *schema.ResourceData, ipsecVpnOptions ipsecVpnOptions) {
-	tfErr := d.Set("name", ipsecVpnOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", ipsecVpnOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("establish_tunnels", ipsecVpnOptions.establishTunnels)
-	if tfErr != nil {
+	if tfErr := d.Set("establish_tunnels", ipsecVpnOptions.establishTunnels); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("bind_interface", ipsecVpnOptions.bindInterface)
-	if tfErr != nil {
+	if tfErr := d.Set("bind_interface", ipsecVpnOptions.bindInterface); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("df_bit", ipsecVpnOptions.dfBit)
-	if tfErr != nil {
+	if tfErr := d.Set("df_bit", ipsecVpnOptions.dfBit); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("ike", ipsecVpnOptions.ike)
-	if tfErr != nil {
+	if tfErr := d.Set("ike", ipsecVpnOptions.ike); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("vpn_monitor", ipsecVpnOptions.vpnMonitor)
-	if tfErr != nil {
+	if tfErr := d.Set("vpn_monitor", ipsecVpnOptions.vpnMonitor); tfErr != nil {
 		panic(tfErr)
 	}
 }

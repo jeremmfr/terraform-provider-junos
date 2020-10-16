@@ -85,14 +85,12 @@ func resourceIkePolicyCreate(ctx context.Context, d *schema.ResourceData, m inte
 
 		return diag.FromErr(fmt.Errorf("security ike policy %v already exists", d.Get("name").(string)))
 	}
-	err = setIkePolicy(d, m, jnprSess)
-	if err != nil {
+	if err := setIkePolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security_ike_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_ike_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -142,20 +140,17 @@ func resourceIkePolicyUpdate(ctx context.Context, d *schema.ResourceData, m inte
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delIkePolicy(d, m, jnprSess)
-	if err != nil {
+	if err := delIkePolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setIkePolicy(d, m, jnprSess)
-	if err != nil {
+	if err := setIkePolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_security_ike_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_security_ike_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -172,14 +167,12 @@ func resourceIkePolicyDelete(ctx context.Context, d *schema.ResourceData, m inte
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delIkePolicy(d, m, jnprSess)
-	if err != nil {
+	if err := delIkePolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_security_ike_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_ike_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -245,8 +238,7 @@ func setIkePolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 		configSet = append(configSet, setPrefix+" pre-shared-key hexadecimal "+d.Get("pre_shared_key_hexa").(string))
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -302,8 +294,7 @@ func delIkePolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ike policy "+d.Get("name").(string))
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -311,24 +302,19 @@ func delIkePolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 }
 
 func fillIkePolicyData(d *schema.ResourceData, ikePolicyOptions ikePolicyOptions) {
-	tfErr := d.Set("name", ikePolicyOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", ikePolicyOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("mode", ikePolicyOptions.mode)
-	if tfErr != nil {
+	if tfErr := d.Set("mode", ikePolicyOptions.mode); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("pre_shared_key_text", ikePolicyOptions.preSharedKeyText)
-	if tfErr != nil {
+	if tfErr := d.Set("pre_shared_key_text", ikePolicyOptions.preSharedKeyText); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("pre_shared_key_hexa", ikePolicyOptions.preSharedKeyHexa)
-	if tfErr != nil {
+	if tfErr := d.Set("pre_shared_key_hexa", ikePolicyOptions.preSharedKeyHexa); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("proposals", ikePolicyOptions.proposals)
-	if tfErr != nil {
+	if tfErr := d.Set("proposals", ikePolicyOptions.proposals); tfErr != nil {
 		panic(tfErr)
 	}
 }

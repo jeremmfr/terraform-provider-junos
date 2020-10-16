@@ -68,14 +68,12 @@ func resourceIpsecPolicyCreate(ctx context.Context, d *schema.ResourceData, m in
 
 		return diag.FromErr(fmt.Errorf("security ipsec policy %v already exists", d.Get("name").(string)))
 	}
-	err = setIpsecPolicy(d, m, jnprSess)
-	if err != nil {
+	if err := setIpsecPolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security_ipsec_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_ipsec_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -125,20 +123,17 @@ func resourceIpsecPolicyUpdate(ctx context.Context, d *schema.ResourceData, m in
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delIpsecPolicy(d, m, jnprSess)
-	if err != nil {
+	if err := delIpsecPolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setIpsecPolicy(d, m, jnprSess)
-	if err != nil {
+	if err := setIpsecPolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_security_ipsec_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_security_ipsec_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -155,14 +150,12 @@ func resourceIpsecPolicyDelete(ctx context.Context, d *schema.ResourceData, m in
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delIpsecPolicy(d, m, jnprSess)
-	if err != nil {
+	if err := delIpsecPolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_security_ipsec_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_ipsec_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -220,8 +213,7 @@ func setIpsecPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 		configSet = append(configSet, setPrefix+" proposals "+v.(string))
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -265,8 +257,7 @@ func delIpsecPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ipsec policy "+d.Get("name").(string))
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -274,16 +265,13 @@ func delIpsecPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 }
 
 func fillIpsecPolicyData(d *schema.ResourceData, ipsecPolicyOptions ipsecPolicyOptions) {
-	tfErr := d.Set("name", ipsecPolicyOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", ipsecPolicyOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("proposals", ipsecPolicyOptions.proposals)
-	if tfErr != nil {
+	if tfErr := d.Set("proposals", ipsecPolicyOptions.proposals); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("pfs_keys", ipsecPolicyOptions.pfsKeys)
-	if tfErr != nil {
+	if tfErr := d.Set("pfs_keys", ipsecPolicyOptions.pfsKeys); tfErr != nil {
 		panic(tfErr)
 	}
 }

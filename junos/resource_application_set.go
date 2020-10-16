@@ -59,14 +59,12 @@ func resourceApplicationSetCreate(ctx context.Context, d *schema.ResourceData, m
 
 		return diag.FromErr(fmt.Errorf("application-set %v already exists", d.Get("name").(string)))
 	}
-	err = setApplicationSet(d, m, jnprSess)
-	if err != nil {
+	if err := setApplicationSet(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_application_set", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_application_set", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -116,20 +114,17 @@ func resourceApplicationSetUpdate(ctx context.Context, d *schema.ResourceData, m
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delApplicationSet(d, m, jnprSess)
-	if err != nil {
+	if err := delApplicationSet(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setApplicationSet(d, m, jnprSess)
-	if err != nil {
+	if err := setApplicationSet(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_application_set", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_application_set", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -146,14 +141,12 @@ func resourceApplicationSetDelete(ctx context.Context, d *schema.ResourceData, m
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delApplicationSet(d, m, jnprSess)
-	if err != nil {
+	if err := delApplicationSet(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_application_set", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_application_set", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -208,8 +201,7 @@ func setApplicationSet(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		configSet = append(configSet, setPrefix+" application "+v.(string))
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -250,8 +242,7 @@ func delApplicationSet(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete applications application-set "+d.Get("name").(string))
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -259,12 +250,10 @@ func delApplicationSet(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 }
 
 func fillApplicationSetData(d *schema.ResourceData, applicationSetOptions applicationSetOptions) {
-	tfErr := d.Set("name", applicationSetOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", applicationSetOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("applications", applicationSetOptions.applications)
-	if tfErr != nil {
+	if tfErr := d.Set("applications", applicationSetOptions.applications); tfErr != nil {
 		panic(tfErr)
 	}
 }

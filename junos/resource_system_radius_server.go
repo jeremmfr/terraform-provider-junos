@@ -137,14 +137,12 @@ func resourceSystemRadiusServerCreate(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(fmt.Errorf("system radius-server %v already exists", d.Get("address").(string)))
 	}
 
-	err = setSystemRadiusServer(d, m, jnprSess)
-	if err != nil {
+	if err := setSystemRadiusServer(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_system_radius_server", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_system_radius_server", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -194,20 +192,17 @@ func resourceSystemRadiusServerUpdate(ctx context.Context, d *schema.ResourceDat
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delSystemRadiusServer(d.Get("address").(string), m, jnprSess)
-	if err != nil {
+	if err := delSystemRadiusServer(d.Get("address").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setSystemRadiusServer(d, m, jnprSess)
-	if err != nil {
+	if err := setSystemRadiusServer(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_system_radius_server", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_system_radius_server", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -224,14 +219,12 @@ func resourceSystemRadiusServerDelete(ctx context.Context, d *schema.ResourceDat
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delSystemRadiusServer(d.Get("address").(string), m, jnprSess)
-	if err != nil {
+	if err := delSystemRadiusServer(d.Get("address").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_system_radius_server", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_system_radius_server", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -334,8 +327,7 @@ func setSystemRadiusServer(d *schema.ResourceData, m interface{}, jnprSess *Netc
 			d.Get("routing_instance").(string))
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -451,68 +443,53 @@ func delSystemRadiusServer(address string, m interface{}, jnprSess *NetconfObjec
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system radius-server "+address)
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
 	return nil
 }
 func fillSystemRadiusServerData(d *schema.ResourceData, radiusServerOptions radiusServerOptions) {
-	tfErr := d.Set("address", radiusServerOptions.address)
-	if tfErr != nil {
+	if tfErr := d.Set("address", radiusServerOptions.address); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("secret", radiusServerOptions.secret)
-	if tfErr != nil {
+	if tfErr := d.Set("secret", radiusServerOptions.secret); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("preauthentication_secret", radiusServerOptions.preauthenticationSecret)
-	if tfErr != nil {
+	if tfErr := d.Set("preauthentication_secret", radiusServerOptions.preauthenticationSecret); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("source_address", radiusServerOptions.sourceAddress)
-	if tfErr != nil {
+	if tfErr := d.Set("source_address", radiusServerOptions.sourceAddress); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("port", radiusServerOptions.port)
-	if tfErr != nil {
+	if tfErr := d.Set("port", radiusServerOptions.port); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("accounting_port", radiusServerOptions.accountingPort)
-	if tfErr != nil {
+	if tfErr := d.Set("accounting_port", radiusServerOptions.accountingPort); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("dynamic_request_port", radiusServerOptions.dynamicRequestPort)
-	if tfErr != nil {
+	if tfErr := d.Set("dynamic_request_port", radiusServerOptions.dynamicRequestPort); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("preauthentication_port", radiusServerOptions.preauthenticationPort)
-	if tfErr != nil {
+	if tfErr := d.Set("preauthentication_port", radiusServerOptions.preauthenticationPort); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("timeout", radiusServerOptions.timeout)
-	if tfErr != nil {
+	if tfErr := d.Set("timeout", radiusServerOptions.timeout); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("accouting_timeout", radiusServerOptions.accoutingTimeout)
-	if tfErr != nil {
+	if tfErr := d.Set("accouting_timeout", radiusServerOptions.accoutingTimeout); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("retry", radiusServerOptions.retry)
-	if tfErr != nil {
+	if tfErr := d.Set("retry", radiusServerOptions.retry); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("accounting_retry", radiusServerOptions.accountingRetry)
-	if tfErr != nil {
+	if tfErr := d.Set("accounting_retry", radiusServerOptions.accountingRetry); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("max_outstanding_requests", radiusServerOptions.maxOutstandingRequests)
-	if tfErr != nil {
+	if tfErr := d.Set("max_outstanding_requests", radiusServerOptions.maxOutstandingRequests); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("routing_instance", radiusServerOptions.routingInstance)
-	if tfErr != nil {
+	if tfErr := d.Set("routing_instance", radiusServerOptions.routingInstance); tfErr != nil {
 		panic(tfErr)
 	}
 }

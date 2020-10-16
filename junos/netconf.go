@@ -202,8 +202,7 @@ func (j *NetconfObject) GatherFacts() error {
 	}
 
 	var facts versionRouteEngine
-	err = xml.Unmarshal([]byte(formatted), &facts)
-	if err != nil {
+	if err := xml.Unmarshal([]byte(formatted), &facts); err != nil {
 		return err
 	}
 
@@ -238,8 +237,7 @@ func (j *NetconfObject) netconfCommand(cmd string) (string, error) {
 		return emptyWord, errors.New("no output available - please check the syntax of your command")
 	}
 	var output commandXMLConfig
-	err = xml.Unmarshal([]byte(reply.Data), &output)
-	if err != nil {
+	if err := xml.Unmarshal([]byte(reply.Data), &output); err != nil {
 		return "", err
 	}
 

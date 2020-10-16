@@ -108,14 +108,12 @@ func resourceSecurityZoneCreate(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(fmt.Errorf("security zone %v already exists", d.Get("name").(string)))
 	}
 
-	err = setSecurityZone(d, m, jnprSess)
-	if err != nil {
+	if err := setSecurityZone(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security_zone", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_zone", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -191,14 +189,12 @@ func resourceSecurityZoneUpdate(ctx context.Context, d *schema.ResourceData, m i
 			return diag.FromErr(err)
 		}
 	}
-	err = setSecurityZone(d, m, jnprSess)
-	if err != nil {
+	if err := setSecurityZone(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_security_zone", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_security_zone", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -215,14 +211,12 @@ func resourceSecurityZoneDelete(ctx context.Context, d *schema.ResourceData, m i
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delSecurityZone(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delSecurityZone(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_security_zone", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_zone", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -296,8 +290,7 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 		}
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -375,8 +368,7 @@ func delSecurityZoneElement(element string, zone string, m interface{}, jnprSess
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security zones security-zone "+zone+" "+element)
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -386,8 +378,7 @@ func delSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) error 
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security zones security-zone "+zone)
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -395,24 +386,19 @@ func delSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) error 
 }
 
 func fillSecurityZoneData(d *schema.ResourceData, zoneOptions zoneOptions) {
-	tfErr := d.Set("name", zoneOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", zoneOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("inbound_services", zoneOptions.inboundServices)
-	if tfErr != nil {
+	if tfErr := d.Set("inbound_services", zoneOptions.inboundServices); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("inbound_protocols", zoneOptions.inboundProtocols)
-	if tfErr != nil {
+	if tfErr := d.Set("inbound_protocols", zoneOptions.inboundProtocols); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("address_book", zoneOptions.addressBook)
-	if tfErr != nil {
+	if tfErr := d.Set("address_book", zoneOptions.addressBook); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("address_book_set", zoneOptions.addressBookSet)
-	if tfErr != nil {
+	if tfErr := d.Set("address_book_set", zoneOptions.addressBookSet); tfErr != nil {
 		panic(tfErr)
 	}
 }

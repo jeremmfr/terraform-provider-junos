@@ -104,14 +104,12 @@ func resourceSecurityPolicyTunnelPairPolicyCreate(
 			d.Get("zone_a").(string), d.Get("policy_a_to_b").(string),
 			d.Get("zone_b").(string), d.Get("policy_b_to_a").(string)))
 	}
-	err = setSecurityPolicyTunnelPairPolicy(d, m, jnprSess)
-	if err != nil {
+	if err := setSecurityPolicyTunnelPairPolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security_policy_tunnel_pair_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_policy_tunnel_pair_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -166,14 +164,12 @@ func resourceSecurityPolicyTunnelPairPolicyDelete(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delSecurityPolicyTunnelPairPolicy(d, m, jnprSess)
-	if err != nil {
+	if err := delSecurityPolicyTunnelPairPolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_security_policy_tunnel_pair_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_policy_tunnel_pair_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -250,8 +246,7 @@ func setSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, m interface{}, jn
 		" policy "+d.Get("policy_b_to_a").(string)+
 		" then permit tunnel pair-policy "+d.Get("policy_a_to_b").(string))
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -328,8 +323,7 @@ func delSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, m interface{}, jn
 		" from-zone "+d.Get("zone_b").(string)+" to-zone "+d.Get("zone_a").(string)+
 		" policy "+d.Get("policy_b_to_a").(string)+
 		" then permit tunnel pair-policy "+d.Get("policy_a_to_b").(string))
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -337,20 +331,16 @@ func delSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, m interface{}, jn
 }
 
 func fillSecurityPolicyPairData(d *schema.ResourceData, policyPairPolicyOptions policyPairPolicyOptions) {
-	tfErr := d.Set("zone_a", policyPairPolicyOptions.zoneA)
-	if tfErr != nil {
+	if tfErr := d.Set("zone_a", policyPairPolicyOptions.zoneA); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("zone_b", policyPairPolicyOptions.zoneB)
-	if tfErr != nil {
+	if tfErr := d.Set("zone_b", policyPairPolicyOptions.zoneB); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("policy_a_to_b", policyPairPolicyOptions.policyAtoB)
-	if tfErr != nil {
+	if tfErr := d.Set("policy_a_to_b", policyPairPolicyOptions.policyAtoB); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("policy_b_to_a", policyPairPolicyOptions.policyBtoA)
-	if tfErr != nil {
+	if tfErr := d.Set("policy_b_to_a", policyPairPolicyOptions.policyBtoA); tfErr != nil {
 		panic(tfErr)
 	}
 }

@@ -65,14 +65,12 @@ func resourceSecurityUtmCustomURLPatternCreate(
 		return diag.FromErr(fmt.Errorf("security utm custom-objects url-pattern %v already exists", d.Get("name").(string)))
 	}
 
-	err = setUtmCustomURLPattern(d, m, jnprSess)
-	if err != nil {
+	if err := setUtmCustomURLPattern(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security_utm_custom_url_pattern", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_utm_custom_url_pattern", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -126,20 +124,17 @@ func resourceSecurityUtmCustomURLPatternUpdate(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delUtmCustomURLPattern(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delUtmCustomURLPattern(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setUtmCustomURLPattern(d, m, jnprSess)
-	if err != nil {
+	if err := setUtmCustomURLPattern(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_security_utm_custom_url_pattern", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_security_utm_custom_url_pattern", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -157,14 +152,12 @@ func resourceSecurityUtmCustomURLPatternDelete(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delUtmCustomURLPattern(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delUtmCustomURLPattern(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_security_utm_custom_url_pattern", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_utm_custom_url_pattern", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -220,8 +213,7 @@ func setUtmCustomURLPattern(d *schema.ResourceData, m interface{}, jnprSess *Net
 		configSet = append(configSet, setPrefix+"value "+v.(string))
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -264,8 +256,7 @@ func delUtmCustomURLPattern(urlPattern string, m interface{}, jnprSess *NetconfO
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security utm custom-objects url-pattern "+urlPattern)
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -273,12 +264,10 @@ func delUtmCustomURLPattern(urlPattern string, m interface{}, jnprSess *NetconfO
 }
 
 func fillUtmCustomURLPatternData(d *schema.ResourceData, utmCustomURLPatternOptions utmCustomURLPatternOptions) {
-	tfErr := d.Set("name", utmCustomURLPatternOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", utmCustomURLPatternOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("value", utmCustomURLPatternOptions.value)
-	if tfErr != nil {
+	if tfErr := d.Set("value", utmCustomURLPatternOptions.value); tfErr != nil {
 		panic(tfErr)
 	}
 }
