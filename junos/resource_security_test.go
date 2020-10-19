@@ -14,6 +14,10 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 			Providers: testAccProviders,
 			Steps: []resource.TestStep{
 				{
+					Config:             testAccJunosSecurityConfigPreCreate(),
+					ExpectNonEmptyPlan: true,
+				},
+				{
 					Config: testAccJunosSecurityConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
@@ -36,8 +40,8 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 							"ike_traceoptions.0.flag.0", "all"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"ike_traceoptions.0.rate_limit", "100"),
-						/*resource.TestCheckResourceAttr("junos_security.testacc_security",
-						"ike_traceoptions.0.no_remote_trace", "true"),*/
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"ike_traceoptions.0.no_remote_trace", "true"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"utm.#", "1"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
@@ -65,6 +69,14 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 	}
 }
 
+func testAccJunosSecurityConfigPreCreate() string {
+	return `
+resource junos_system "system" {
+  tracing_dest_override_syslog_host = "192.0.2.13"
+}
+`
+}
+
 func testAccJunosSecurityConfigCreate() string {
 	return `
 resource junos_security "testacc_security" {
@@ -78,7 +90,7 @@ resource junos_security "testacc_security" {
     }
     flag       = ["all"]
     rate_limit = 100
-    # no_remote_trace = true
+    no_remote_trace = true
   }
   utm {
     feature_profile_web_filtering_type = "juniper-enhanced"

@@ -4,6 +4,7 @@ ENHANCEMENTS:
 * switch to sdk for part of ValidateFunc and rewrite the others to ValidateDiagFunc
 * add `send_mode` for `dead_peer_detection` in resource `security_ike_gateway` (Fixes [#43](https://github.com/jeremmfr/terraform-provider-junos/issues/43))
 * add resource `junos_security` (special resource for static configuration in security block) (Fixes [#43](https://github.com/jeremmfr/terraform-provider-junos/issues/43))
+* add resource `junos_system` (special resource for static configuration in system block) (Fixes parts of [#33](https://github.com/jeremmfr/terraform-provider-junos/issues/33))
 
 BUG FIXES:
 * fix sess.configLock return already nil
