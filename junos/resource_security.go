@@ -268,15 +268,20 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	return nil
 }
 
-func delSecurity(m interface{}, jnprSess *NetconfObject) error {
-	listLineToDelete := []string{
-		"ike traceoptions",
+func listLinessSecurityUtm() []string {
+	return []string{
 		"utm feature-profile web-filtering type",
 	}
+}
+func delSecurity(m interface{}, jnprSess *NetconfObject) error {
+	listLinesToDelete := []string{
+		"ike traceoptions",
+	}
+	listLinesToDelete = append(listLinesToDelete, listLinessSecurityUtm()...)
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	delPrefix := "delete security "
-	for _, line := range listLineToDelete {
+	for _, line := range listLinesToDelete {
 		configSet = append(configSet,
 			delPrefix+line)
 	}
@@ -366,7 +371,7 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 						return confRead, err
 					}
 				}
-			case strings.HasPrefix(itemTrim, "utm "):
+			case checkStringHasPrefixInList(itemTrim, listLinessSecurityUtm()):
 				if len(confRead.utm) == 0 {
 					confRead.utm = append(confRead.utm, map[string]interface{}{
 						"feature_profile_web_filtering_type": "",
