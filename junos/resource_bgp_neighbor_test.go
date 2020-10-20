@@ -14,6 +14,9 @@ func TestAccJunosBgpNeighbor_basic(t *testing.T) {
 			Providers: testAccProviders,
 			Steps: []resource.TestStep{
 				{
+					Config: testAccJunosBgpConfigPreCreate(),
+				},
+				{
 					Config: testAccJunosBgpNeighborConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
@@ -185,6 +188,14 @@ func TestAccJunosBgpNeighbor_basic(t *testing.T) {
 			},
 		})
 	}
+}
+
+func testAccJunosBgpConfigPreCreate() string {
+	return `
+resource junos_routing_options "testacc_routing_options" {
+  graceful_restart {}
+}
+`
 }
 
 func testAccJunosBgpNeighborConfigCreate() string {

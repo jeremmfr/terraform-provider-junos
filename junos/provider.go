@@ -107,6 +107,7 @@ func Provider() *schema.Provider {
 			"junos_policyoptions_prefix_list":                            resourcePolicyoptionsPrefixList(),
 			"junos_rib_group":                                            resourceRibGroup(),
 			"junos_routing_instance":                                     resourceRoutingInstance(),
+			"junos_routing_options":                                      resourceRoutingOptions(),
 			"junos_security":                                             resourceSecurity(),
 			"junos_security_ike_gateway":                                 resourceIkeGateway(),
 			"junos_security_ike_policy":                                  resourceIkePolicy(),
