@@ -16,6 +16,7 @@ type Session struct {
 	junosIP          string
 	junosUserName    string
 	junosPassword    string
+	junosSSHKeyPEM   string
 	junosSSHKeyFile  string
 	junosKeyPass     string
 	junosGroupIntDel string
@@ -25,14 +26,20 @@ type Session struct {
 func (sess *Session) startNewSession() (*NetconfObject, error) {
 	var auth netconfAuthMethod
 	auth.Username = sess.junosUserName
+	if sess.junosSSHKeyPEM != "" {
+		auth.PrivateKeyPEM = sess.junosSSHKeyPEM
+		if sess.junosKeyPass != "" {
+			auth.Passphrase = sess.junosKeyPass
+		}
+	}
 	if sess.junosSSHKeyFile != "" {
-		auth.PrivateKey = sess.junosSSHKeyFile
+		auth.PrivateKeyFile = sess.junosSSHKeyFile
 		if strings.HasPrefix(sess.junosSSHKeyFile, "~") {
 			homeDir, err := os.UserHomeDir()
 			if err != nil {
 				return nil, err
 			}
-			auth.PrivateKey = homeDir + sess.junosSSHKeyFile[1:]
+			auth.PrivateKeyFile = homeDir + sess.junosSSHKeyFile[1:]
 		}
 		if sess.junosKeyPass != "" {
 			auth.Passphrase = sess.junosKeyPass

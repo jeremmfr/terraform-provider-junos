@@ -2,6 +2,7 @@
 ENHANCEMENTS:
 * upgrade to terraform-plugin-sdk v2
 * switch to sdk for part of ValidateFunc and rewrite the others to ValidateDiagFunc
+* add `sshkey_pem` argument in provider configuration
 
 BUG FIXES:
 * fix sess.configLock return already nil
