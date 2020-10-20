@@ -324,6 +324,7 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 		if syslog != nil {
 			syslogM := syslog.(map[string]interface{})
 			for _, archive := range syslogM["archive"].([]interface{}) {
+				configSet = append(configSet, setPrefix+"syslog archive")
 				if archive != nil {
 					archiveM := archive.(map[string]interface{})
 					if archiveM["binary_data"].(bool) && archiveM["no_binary_data"].(bool) {
@@ -678,7 +679,7 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "syslog archive "):
+				case strings.HasPrefix(itemTrim, "syslog archive"):
 					if len(confRead.syslog[0]["archive"].([]map[string]interface{})) == 0 {
 						confRead.syslog[0]["archive"] = append(confRead.syslog[0]["archive"].([]map[string]interface{}),
 							map[string]interface{}{
