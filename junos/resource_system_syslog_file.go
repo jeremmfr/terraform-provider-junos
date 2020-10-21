@@ -251,14 +251,12 @@ func resourceSystemSyslogFileCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(fmt.Errorf("system syslog file %v already exists", d.Get("filename").(string)))
 	}
 
-	err = setSystemSyslogFile(d, m, jnprSess)
-	if err != nil {
+	if err := setSystemSyslogFile(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_system_syslog_file", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_system_syslog_file", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -308,20 +306,17 @@ func resourceSystemSyslogFileUpdate(ctx context.Context, d *schema.ResourceData,
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delSystemSyslogFile(d.Get("filename").(string), m, jnprSess)
-	if err != nil {
+	if err := delSystemSyslogFile(d.Get("filename").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setSystemSyslogFile(d, m, jnprSess)
-	if err != nil {
+	if err := setSystemSyslogFile(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_system_syslog_file", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_system_syslog_file", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -338,14 +333,12 @@ func resourceSystemSyslogFileDelete(ctx context.Context, d *schema.ResourceData,
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delSystemSyslogFile(d.Get("filename").(string), m, jnprSess)
-	if err != nil {
+	if err := delSystemSyslogFile(d.Get("filename").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_system_syslog_file", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_system_syslog_file", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -515,8 +508,7 @@ func setSystemSyslogFile(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 		}
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -677,8 +669,7 @@ func delSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObject
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system syslog file "+filename)
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -686,92 +677,70 @@ func delSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObject
 }
 
 func fillSystemSyslogFileData(d *schema.ResourceData, syslogFileOptions syslogFileOptions) {
-	tfErr := d.Set("filename", syslogFileOptions.filename)
-	if tfErr != nil {
+	if tfErr := d.Set("filename", syslogFileOptions.filename); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("allow_duplicates", syslogFileOptions.allowDuplicates)
-	if tfErr != nil {
+	if tfErr := d.Set("allow_duplicates", syslogFileOptions.allowDuplicates); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("explicit_priority", syslogFileOptions.explicitPriority)
-	if tfErr != nil {
+	if tfErr := d.Set("explicit_priority", syslogFileOptions.explicitPriority); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("match", syslogFileOptions.match)
-	if tfErr != nil {
+	if tfErr := d.Set("match", syslogFileOptions.match); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("match_strings", syslogFileOptions.matchStrings)
-	if tfErr != nil {
+	if tfErr := d.Set("match_strings", syslogFileOptions.matchStrings); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("structured_data", syslogFileOptions.structuredData)
-	if tfErr != nil {
+	if tfErr := d.Set("structured_data", syslogFileOptions.structuredData); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("any_severity", syslogFileOptions.anySeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("any_severity", syslogFileOptions.anySeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("authorization_severity", syslogFileOptions.authorizationSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("authorization_severity", syslogFileOptions.authorizationSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("changelog_severity", syslogFileOptions.changelogSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("changelog_severity", syslogFileOptions.changelogSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("conflictlog_severity", syslogFileOptions.conflictlogSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("conflictlog_severity", syslogFileOptions.conflictlogSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("daemon_severity", syslogFileOptions.daemonSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("daemon_severity", syslogFileOptions.daemonSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("dfc_severity", syslogFileOptions.dfcSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("dfc_severity", syslogFileOptions.dfcSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("external_severity", syslogFileOptions.externalSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("external_severity", syslogFileOptions.externalSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("firewall_severity", syslogFileOptions.firewallSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("firewall_severity", syslogFileOptions.firewallSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("ftp_severity", syslogFileOptions.ftpSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("ftp_severity", syslogFileOptions.ftpSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("interactivecommands_severity", syslogFileOptions.interactivecommandsSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("interactivecommands_severity", syslogFileOptions.interactivecommandsSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("kernel_severity", syslogFileOptions.kernelSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("kernel_severity", syslogFileOptions.kernelSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("ntp_severity", syslogFileOptions.ntpSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("ntp_severity", syslogFileOptions.ntpSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("pfe_severity", syslogFileOptions.pfeSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("pfe_severity", syslogFileOptions.pfeSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("security_severity", syslogFileOptions.securitySeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("security_severity", syslogFileOptions.securitySeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("user_severity", syslogFileOptions.userSeverity)
-	if tfErr != nil {
+	if tfErr := d.Set("user_severity", syslogFileOptions.userSeverity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("archive", syslogFileOptions.archive)
-	if tfErr != nil {
+	if tfErr := d.Set("archive", syslogFileOptions.archive); tfErr != nil {
 		panic(tfErr)
 	}
 }

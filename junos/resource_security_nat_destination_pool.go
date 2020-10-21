@@ -86,14 +86,12 @@ func resourceSecurityNatDestinationPoolCreate(
 		return diag.FromErr(fmt.Errorf("security nat destination pool %v already exists", d.Get("name").(string)))
 	}
 
-	err = setSecurityNatDestinationPool(d, m, jnprSess)
-	if err != nil {
+	if err := setSecurityNatDestinationPool(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security_nat_destination_pool", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_nat_destination_pool", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -145,20 +143,17 @@ func resourceSecurityNatDestinationPoolUpdate(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delSecurityNatDestinationPool(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delSecurityNatDestinationPool(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setSecurityNatDestinationPool(d, m, jnprSess)
-	if err != nil {
+	if err := setSecurityNatDestinationPool(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_security_nat_destination_pool", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_security_nat_destination_pool", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -176,14 +171,12 @@ func resourceSecurityNatDestinationPoolDelete(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delSecurityNatDestinationPool(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delSecurityNatDestinationPool(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_security_nat_destination_pool", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_nat_destination_pool", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -246,8 +239,7 @@ func setSecurityNatDestinationPool(d *schema.ResourceData, m interface{}, jnprSe
 	if d.Get("routing_instance").(string) != "" {
 		configSet = append(configSet, setPrefix+" routing-instance "+d.Get("routing_instance").(string))
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -300,32 +292,26 @@ func delSecurityNatDestinationPool(natDestinationPool string, m interface{}, jnp
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security nat destination pool "+natDestinationPool)
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
 	return nil
 }
 func fillSecurityNatDestinationPoolData(d *schema.ResourceData, natDestinationPoolOptions natDestinationPoolOptions) {
-	tfErr := d.Set("name", natDestinationPoolOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", natDestinationPoolOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("address", natDestinationPoolOptions.address)
-	if tfErr != nil {
+	if tfErr := d.Set("address", natDestinationPoolOptions.address); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("address_to", natDestinationPoolOptions.addressTo)
-	if tfErr != nil {
+	if tfErr := d.Set("address_to", natDestinationPoolOptions.addressTo); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("address_port", natDestinationPoolOptions.addressPort)
-	if tfErr != nil {
+	if tfErr := d.Set("address_port", natDestinationPoolOptions.addressPort); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("routing_instance", natDestinationPoolOptions.routingInstance)
-	if tfErr != nil {
+	if tfErr := d.Set("routing_instance", natDestinationPoolOptions.routingInstance); tfErr != nil {
 		panic(tfErr)
 	}
 }

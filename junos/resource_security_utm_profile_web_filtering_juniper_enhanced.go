@@ -211,14 +211,13 @@ func resourceSecurityUtmProfileWebFilteringEnhancedCreate(
 			"%v already exists", d.Get("name").(string)))
 	}
 
-	err = setUtmProfileWebFEnhanced(d, m, jnprSess)
-	if err != nil {
+	if err := setUtmProfileWebFEnhanced(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security_utm_profile_web_filtering_juniper_enhanced", jnprSess)
-	if err != nil {
+	if err := sess.commitConf(
+		"create resource junos_security_utm_profile_web_filtering_juniper_enhanced", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -272,20 +271,18 @@ func resourceSecurityUtmProfileWebFilteringEnhancedUpdate(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delUtmProfileWebFEnhanced(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delUtmProfileWebFEnhanced(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setUtmProfileWebFEnhanced(d, m, jnprSess)
-	if err != nil {
+	if err := setUtmProfileWebFEnhanced(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_security_utm_profile_web_filtering_juniper_enhanced", jnprSess)
-	if err != nil {
+	if err := sess.commitConf(
+		"update resource junos_security_utm_profile_web_filtering_juniper_enhanced", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -303,14 +300,13 @@ func resourceSecurityUtmProfileWebFilteringEnhancedDelete(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delUtmProfileWebFEnhanced(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delUtmProfileWebFEnhanced(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_security_utm_profile_web_filtering_juniper_enhanced", jnprSess)
-	if err != nil {
+	if err := sess.commitConf(
+		"delete resource junos_security_utm_profile_web_filtering_juniper_enhanced", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -446,8 +442,7 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, m interface{}, jnprSess *
 		configSet = append(configSet, setPrefix+"timeout "+strconv.Itoa(d.Get("timeout").(int)))
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -578,8 +573,7 @@ func delUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *NetconfO
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security utm feature-profile web-filtering juniper-enhanced "+
 		"profile \""+profile+"\"")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -588,48 +582,37 @@ func delUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *NetconfO
 
 func fillUtmProfileWebFEnhancedData(d *schema.ResourceData,
 	utmProfileWebFEnhancedOptions utmProfileWebFilteringEnhancedOptions) {
-	tfErr := d.Set("name", utmProfileWebFEnhancedOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", utmProfileWebFEnhancedOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("block_message", utmProfileWebFEnhancedOptions.blockMessage)
-	if tfErr != nil {
+	if tfErr := d.Set("block_message", utmProfileWebFEnhancedOptions.blockMessage); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("category", utmProfileWebFEnhancedOptions.category)
-	if tfErr != nil {
+	if tfErr := d.Set("category", utmProfileWebFEnhancedOptions.category); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("custom_block_message", utmProfileWebFEnhancedOptions.customBlockMessage)
-	if tfErr != nil {
+	if tfErr := d.Set("custom_block_message", utmProfileWebFEnhancedOptions.customBlockMessage); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("default_action", utmProfileWebFEnhancedOptions.defaultAction)
-	if tfErr != nil {
+	if tfErr := d.Set("default_action", utmProfileWebFEnhancedOptions.defaultAction); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("fallback_settings", utmProfileWebFEnhancedOptions.fallbackSettings)
-	if tfErr != nil {
+	if tfErr := d.Set("fallback_settings", utmProfileWebFEnhancedOptions.fallbackSettings); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("no_safe_search", utmProfileWebFEnhancedOptions.noSafeSearch)
-	if tfErr != nil {
+	if tfErr := d.Set("no_safe_search", utmProfileWebFEnhancedOptions.noSafeSearch); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("quarantine_custom_message", utmProfileWebFEnhancedOptions.quarantineCustomMessage)
-	if tfErr != nil {
+	if tfErr := d.Set("quarantine_custom_message", utmProfileWebFEnhancedOptions.quarantineCustomMessage); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("quarantine_message", utmProfileWebFEnhancedOptions.quarantineMessage)
-	if tfErr != nil {
+	if tfErr := d.Set("quarantine_message", utmProfileWebFEnhancedOptions.quarantineMessage); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("site_reputation_action", utmProfileWebFEnhancedOptions.siteReputationAction)
-	if tfErr != nil {
+	if tfErr := d.Set("site_reputation_action", utmProfileWebFEnhancedOptions.siteReputationAction); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("timeout", utmProfileWebFEnhancedOptions.timeout)
-	if tfErr != nil {
+	if tfErr := d.Set("timeout", utmProfileWebFEnhancedOptions.timeout); tfErr != nil {
 		panic(tfErr)
 	}
 }

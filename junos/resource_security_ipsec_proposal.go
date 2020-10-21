@@ -86,14 +86,12 @@ func resourceIpsecProposalCreate(ctx context.Context, d *schema.ResourceData, m 
 
 		return diag.FromErr(fmt.Errorf("security ipsec proposal %v already exists", d.Get("name").(string)))
 	}
-	err = setIpsecProposal(d, m, jnprSess)
-	if err != nil {
+	if err := setIpsecProposal(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security_ipsec_proposal", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_ipsec_proposal", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -143,20 +141,17 @@ func resourceIpsecProposalUpdate(ctx context.Context, d *schema.ResourceData, m 
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delIpsecProposal(d, m, jnprSess)
-	if err != nil {
+	if err := delIpsecProposal(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setIpsecProposal(d, m, jnprSess)
-	if err != nil {
+	if err := setIpsecProposal(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_security_ipsec_proposal", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_security_ipsec_proposal", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -173,14 +168,12 @@ func resourceIpsecProposalDelete(ctx context.Context, d *schema.ResourceData, m 
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delIpsecProposal(d, m, jnprSess)
-	if err != nil {
+	if err := delIpsecProposal(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_security_ipsec_proposal", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_ipsec_proposal", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -247,8 +240,7 @@ func setIpsecProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 		configSet = append(configSet, setPrefix+" protocol "+d.Get("protocol").(string))
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -304,8 +296,7 @@ func delIpsecProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ipsec proposal "+d.Get("name").(string))
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -313,28 +304,22 @@ func delIpsecProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 }
 
 func fillIpsecProposalData(d *schema.ResourceData, ipsecProposalOptions ipsecProposalOptions) {
-	tfErr := d.Set("name", ipsecProposalOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", ipsecProposalOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("authentication_algorithm", ipsecProposalOptions.authenticatioAlgorithm)
-	if tfErr != nil {
+	if tfErr := d.Set("authentication_algorithm", ipsecProposalOptions.authenticatioAlgorithm); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("encryption_algorithm", ipsecProposalOptions.encryptionAlgorithm)
-	if tfErr != nil {
+	if tfErr := d.Set("encryption_algorithm", ipsecProposalOptions.encryptionAlgorithm); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("lifetime_kilobytes", ipsecProposalOptions.lifetimeKilobytes)
-	if tfErr != nil {
+	if tfErr := d.Set("lifetime_kilobytes", ipsecProposalOptions.lifetimeKilobytes); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("lifetime_seconds", ipsecProposalOptions.lifetimeSeconds)
-	if tfErr != nil {
+	if tfErr := d.Set("lifetime_seconds", ipsecProposalOptions.lifetimeSeconds); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("protocol", ipsecProposalOptions.protocol)
-	if tfErr != nil {
+	if tfErr := d.Set("protocol", ipsecProposalOptions.protocol); tfErr != nil {
 		panic(tfErr)
 	}
 }

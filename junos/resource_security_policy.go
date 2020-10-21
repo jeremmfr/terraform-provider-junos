@@ -188,14 +188,12 @@ func resourceSecurityPolicyCreate(ctx context.Context, d *schema.ResourceData, m
 			d.Get("from_zone").(string), d.Get("to_zone").(string)))
 	}
 
-	err = setSecurityPolicy(d, m, jnprSess)
-	if err != nil {
+	if err := setSecurityPolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -248,21 +246,18 @@ func resourceSecurityPolicyUpdate(ctx context.Context, d *schema.ResourceData, m
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 
-	err = delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), m, jnprSess)
-	if err != nil {
+	if err := delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
 
-	err = setSecurityPolicy(d, m, jnprSess)
-	if err != nil {
+	if err := setSecurityPolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_security_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_security_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -279,14 +274,12 @@ func resourceSecurityPolicyDelete(ctx context.Context, d *schema.ResourceData, m
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), m, jnprSess)
-	if err != nil {
+	if err := delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_security_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -403,8 +396,7 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			configSet = append(configSet, setPrefixPolicy+" then log session-close")
 		}
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -484,8 +476,7 @@ func delSecurityPolicy(fromZone string, toZone string, m interface{}, jnprSess *
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security policies from-zone "+fromZone+" to-zone "+toZone)
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -493,16 +484,13 @@ func delSecurityPolicy(fromZone string, toZone string, m interface{}, jnprSess *
 }
 
 func fillSecurityPolicyData(d *schema.ResourceData, policyOptions policyOptions) {
-	tfErr := d.Set("from_zone", policyOptions.fromZone)
-	if tfErr != nil {
+	if tfErr := d.Set("from_zone", policyOptions.fromZone); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("to_zone", policyOptions.toZone)
-	if tfErr != nil {
+	if tfErr := d.Set("to_zone", policyOptions.toZone); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("policy", policyOptions.policy)
-	if tfErr != nil {
+	if tfErr := d.Set("policy", policyOptions.policy); tfErr != nil {
 		panic(tfErr)
 	}
 }

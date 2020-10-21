@@ -85,14 +85,12 @@ func resourceIkeProposalCreate(ctx context.Context, d *schema.ResourceData, m in
 
 		return diag.FromErr(fmt.Errorf("security ike proposal %v already exists", d.Get("name").(string)))
 	}
-	err = setIkeProposal(d, m, jnprSess)
-	if err != nil {
+	if err := setIkeProposal(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security_ike_proposal", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_ike_proposal", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -142,20 +140,17 @@ func resourceIkeProposalUpdate(ctx context.Context, d *schema.ResourceData, m in
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delIkeProposal(d, m, jnprSess)
-	if err != nil {
+	if err := delIkeProposal(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setIkeProposal(d, m, jnprSess)
-	if err != nil {
+	if err := setIkeProposal(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_security_ike_proposal", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_security_ike_proposal", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -172,14 +167,12 @@ func resourceIkeProposalDelete(ctx context.Context, d *schema.ResourceData, m in
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delIkeProposal(d, m, jnprSess)
-	if err != nil {
+	if err := delIkeProposal(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_security_ike_proposal", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_ike_proposal", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -246,8 +239,7 @@ func setIkeProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 		configSet = append(configSet, setPrefix+" lifetime-seconds "+strconv.Itoa(d.Get("lifetime_seconds").(int)))
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -300,8 +292,7 @@ func delIkeProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ike proposal "+d.Get("name").(string))
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -309,28 +300,22 @@ func delIkeProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 }
 
 func fillIkeProposalData(d *schema.ResourceData, ikeProposalOptions ikeProposalOptions) {
-	tfErr := d.Set("name", ikeProposalOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", ikeProposalOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("authentication_algorithm", ikeProposalOptions.authenticationAlgorithm)
-	if tfErr != nil {
+	if tfErr := d.Set("authentication_algorithm", ikeProposalOptions.authenticationAlgorithm); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("authentication_method", ikeProposalOptions.authenticationMethod)
-	if tfErr != nil {
+	if tfErr := d.Set("authentication_method", ikeProposalOptions.authenticationMethod); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("dh_group", ikeProposalOptions.dhGroup)
-	if tfErr != nil {
+	if tfErr := d.Set("dh_group", ikeProposalOptions.dhGroup); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("encryption_algorithm", ikeProposalOptions.encryptionAlgorithm)
-	if tfErr != nil {
+	if tfErr := d.Set("encryption_algorithm", ikeProposalOptions.encryptionAlgorithm); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("lifetime_seconds", ikeProposalOptions.lifetimeSeconds)
-	if tfErr != nil {
+	if tfErr := d.Set("lifetime_seconds", ikeProposalOptions.lifetimeSeconds); tfErr != nil {
 		panic(tfErr)
 	}
 }

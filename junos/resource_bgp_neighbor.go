@@ -512,14 +512,12 @@ func resourceBgpNeighborCreate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(fmt.Errorf("bgp neighbor %v already exists in group %v (routing-instance %v)",
 			d.Get("ip").(string), d.Get("group").(string), d.Get("routing_instance").(string)))
 	}
-	err = setBgpNeighbor(d, m, jnprSess)
-	if err != nil {
+	if err := setBgpNeighbor(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_bgp_neighbor", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_bgp_neighbor", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -573,20 +571,17 @@ func resourceBgpNeighborUpdate(ctx context.Context, d *schema.ResourceData, m in
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delBgpOpts(d, "neighbor", m, jnprSess)
-	if err != nil {
+	if err := delBgpOpts(d, "neighbor", m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setBgpNeighbor(d, m, jnprSess)
-	if err != nil {
+	if err := setBgpNeighbor(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_bgp_neighbor", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_bgp_neighbor", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -603,14 +598,12 @@ func resourceBgpNeighborDelete(ctx context.Context, d *schema.ResourceData, m in
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delBgpNeighbor(d, m, jnprSess)
-	if err != nil {
+	if err := delBgpNeighbor(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_bgp_neighbor", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_bgp_neighbor", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -681,24 +674,19 @@ func setBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 			" protocols bgp group " + d.Get("group").(string) +
 			" neighbor " + d.Get("ip").(string) + " "
 	}
-	err := setBgpOptsSimple(setPrefix, d, m, jnprSess)
-	if err != nil {
+	if err := setBgpOptsSimple(setPrefix, d, m, jnprSess); err != nil {
 		return err
 	}
-	err = setBgpOptsBfd(setPrefix, d.Get("bfd_liveness_detection").([]interface{}), m, jnprSess)
-	if err != nil {
+	if err := setBgpOptsBfd(setPrefix, d.Get("bfd_liveness_detection").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
-	err = setBgpOptsFamily(setPrefix, inetWord, d.Get("family_inet").([]interface{}), m, jnprSess)
-	if err != nil {
+	if err := setBgpOptsFamily(setPrefix, inetWord, d.Get("family_inet").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
-	err = setBgpOptsFamily(setPrefix, inet6Word, d.Get("family_inet6").([]interface{}), m, jnprSess)
-	if err != nil {
+	if err := setBgpOptsFamily(setPrefix, inet6Word, d.Get("family_inet6").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
-	err = setBgpOptsGrafefulRestart(setPrefix, d.Get("graceful_restart").([]interface{}), m, jnprSess)
-	if err != nil {
+	if err := setBgpOptsGrafefulRestart(setPrefix, d.Get("graceful_restart").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
 
@@ -792,8 +780,7 @@ func delBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 			" protocols bgp group "+d.Get("group").(string)+
 			" neighbor "+d.Get("ip").(string))
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -801,180 +788,136 @@ func delBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 }
 
 func fillBgpNeighborData(d *schema.ResourceData, bgpNeighborOptions bgpOptions) {
-	tfErr := d.Set("ip", bgpNeighborOptions.ip)
-	if tfErr != nil {
+	if tfErr := d.Set("ip", bgpNeighborOptions.ip); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("routing_instance", bgpNeighborOptions.routingInstance)
-	if tfErr != nil {
+	if tfErr := d.Set("routing_instance", bgpNeighborOptions.routingInstance); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("group", bgpNeighborOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("group", bgpNeighborOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("accept_remote_nexthop", bgpNeighborOptions.acceptRemoteNexthop)
-	if tfErr != nil {
+	if tfErr := d.Set("accept_remote_nexthop", bgpNeighborOptions.acceptRemoteNexthop); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("advertise_external", bgpNeighborOptions.advertiseExternal)
-	if tfErr != nil {
+	if tfErr := d.Set("advertise_external", bgpNeighborOptions.advertiseExternal); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("advertise_external_conditional", bgpNeighborOptions.advertiseExternalConditional)
-	if tfErr != nil {
+	if tfErr := d.Set("advertise_external_conditional", bgpNeighborOptions.advertiseExternalConditional); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("advertise_inactive", bgpNeighborOptions.advertiseInactive)
-	if tfErr != nil {
+	if tfErr := d.Set("advertise_inactive", bgpNeighborOptions.advertiseInactive); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("advertise_peer_as", bgpNeighborOptions.advertisePeerAs)
-	if tfErr != nil {
+	if tfErr := d.Set("advertise_peer_as", bgpNeighborOptions.advertisePeerAs); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("as_override", bgpNeighborOptions.asOverride)
-	if tfErr != nil {
+	if tfErr := d.Set("as_override", bgpNeighborOptions.asOverride); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("damping", bgpNeighborOptions.damping)
-	if tfErr != nil {
+	if tfErr := d.Set("damping", bgpNeighborOptions.damping); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_as_private", bgpNeighborOptions.localAsPrivate)
-	if tfErr != nil {
+	if tfErr := d.Set("local_as_private", bgpNeighborOptions.localAsPrivate); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_as_alias", bgpNeighborOptions.localAsAlias)
-	if tfErr != nil {
+	if tfErr := d.Set("local_as_alias", bgpNeighborOptions.localAsAlias); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_as_no_prepend_global_as", bgpNeighborOptions.localAsNoPrependGlobalAs)
-	if tfErr != nil {
+	if tfErr := d.Set("local_as_no_prepend_global_as", bgpNeighborOptions.localAsNoPrependGlobalAs); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("log_updown", bgpNeighborOptions.logUpdown)
-	if tfErr != nil {
+	if tfErr := d.Set("log_updown", bgpNeighborOptions.logUpdown); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("metric_out_igp", bgpNeighborOptions.metricOutIgp)
-	if tfErr != nil {
+	if tfErr := d.Set("metric_out_igp", bgpNeighborOptions.metricOutIgp); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("metric_out_igp_delay_med_update", bgpNeighborOptions.metricOutIgpDelayMedUpdate)
-	if tfErr != nil {
+	if tfErr := d.Set("metric_out_igp_delay_med_update", bgpNeighborOptions.metricOutIgpDelayMedUpdate); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("metric_out_minimum_igp", bgpNeighborOptions.metricOutMinimumIgp)
-	if tfErr != nil {
+	if tfErr := d.Set("metric_out_minimum_igp", bgpNeighborOptions.metricOutMinimumIgp); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("mtu_discovery", bgpNeighborOptions.mtuDiscovery)
-	if tfErr != nil {
+	if tfErr := d.Set("mtu_discovery", bgpNeighborOptions.mtuDiscovery); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("multihop", bgpNeighborOptions.multihop)
-	if tfErr != nil {
+	if tfErr := d.Set("multihop", bgpNeighborOptions.multihop); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("multipath", bgpNeighborOptions.multipath)
-	if tfErr != nil {
+	if tfErr := d.Set("multipath", bgpNeighborOptions.multipath); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("no_advertise_peer_as", bgpNeighborOptions.noAdvertisePeerAs)
-	if tfErr != nil {
+	if tfErr := d.Set("no_advertise_peer_as", bgpNeighborOptions.noAdvertisePeerAs); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("remove_private", bgpNeighborOptions.removePrivate)
-	if tfErr != nil {
+	if tfErr := d.Set("remove_private", bgpNeighborOptions.removePrivate); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("passive", bgpNeighborOptions.passive)
-	if tfErr != nil {
+	if tfErr := d.Set("passive", bgpNeighborOptions.passive); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("hold_time", bgpNeighborOptions.holdTime)
-	if tfErr != nil {
+	if tfErr := d.Set("hold_time", bgpNeighborOptions.holdTime); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_as_loops", bgpNeighborOptions.localAsLoops)
-	if tfErr != nil {
+	if tfErr := d.Set("local_as_loops", bgpNeighborOptions.localAsLoops); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_preference", bgpNeighborOptions.localPreference)
-	if tfErr != nil {
+	if tfErr := d.Set("local_preference", bgpNeighborOptions.localPreference); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("metric_out", bgpNeighborOptions.metricOut)
-	if tfErr != nil {
+	if tfErr := d.Set("metric_out", bgpNeighborOptions.metricOut); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("metric_out_igp_offset", bgpNeighborOptions.metricOutIgpOffset)
-	if tfErr != nil {
+	if tfErr := d.Set("metric_out_igp_offset", bgpNeighborOptions.metricOutIgpOffset); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("metric_out_minimum_igp_offset", bgpNeighborOptions.metricOutMinimumIgpOffset)
-	if tfErr != nil {
+	if tfErr := d.Set("metric_out_minimum_igp_offset", bgpNeighborOptions.metricOutMinimumIgpOffset); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("out_delay", bgpNeighborOptions.outDelay)
-	if tfErr != nil {
+	if tfErr := d.Set("out_delay", bgpNeighborOptions.outDelay); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("preference", bgpNeighborOptions.preference)
-	if tfErr != nil {
+	if tfErr := d.Set("preference", bgpNeighborOptions.preference); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("authentication_algorithm", bgpNeighborOptions.authenticationAlgorithm)
-	if tfErr != nil {
+	if tfErr := d.Set("authentication_algorithm", bgpNeighborOptions.authenticationAlgorithm); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("authentication_key", bgpNeighborOptions.authenticationKey)
-	if tfErr != nil {
+	if tfErr := d.Set("authentication_key", bgpNeighborOptions.authenticationKey); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("authentication_key_chain", bgpNeighborOptions.authenticationKeyChain)
-	if tfErr != nil {
+	if tfErr := d.Set("authentication_key_chain", bgpNeighborOptions.authenticationKeyChain); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_address", bgpNeighborOptions.localAddress)
-	if tfErr != nil {
+	if tfErr := d.Set("local_address", bgpNeighborOptions.localAddress); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_as", bgpNeighborOptions.localAs)
-	if tfErr != nil {
+	if tfErr := d.Set("local_as", bgpNeighborOptions.localAs); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_interface", bgpNeighborOptions.localInterface)
-	if tfErr != nil {
+	if tfErr := d.Set("local_interface", bgpNeighborOptions.localInterface); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("peer_as", bgpNeighborOptions.peerAs)
-	if tfErr != nil {
+	if tfErr := d.Set("peer_as", bgpNeighborOptions.peerAs); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("export", bgpNeighborOptions.exportPolicy)
-	if tfErr != nil {
+	if tfErr := d.Set("export", bgpNeighborOptions.exportPolicy); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("import", bgpNeighborOptions.importPolicy)
-	if tfErr != nil {
+	if tfErr := d.Set("import", bgpNeighborOptions.importPolicy); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("bfd_liveness_detection", bgpNeighborOptions.bfdLivenessDetection)
-	if tfErr != nil {
+	if tfErr := d.Set("bfd_liveness_detection", bgpNeighborOptions.bfdLivenessDetection); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("family_inet", bgpNeighborOptions.familyInet)
-	if tfErr != nil {
+	if tfErr := d.Set("family_inet", bgpNeighborOptions.familyInet); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("family_inet6", bgpNeighborOptions.familyInet6)
-	if tfErr != nil {
+	if tfErr := d.Set("family_inet6", bgpNeighborOptions.familyInet6); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("graceful_restart", bgpNeighborOptions.gracefulRestart)
-	if tfErr != nil {
+	if tfErr := d.Set("graceful_restart", bgpNeighborOptions.gracefulRestart); tfErr != nil {
 		panic(tfErr)
 	}
 }

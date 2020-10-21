@@ -131,14 +131,13 @@ func resourceSecurityUtmProfileWebFilteringWebsenseCreate(
 			"%v already exists", d.Get("name").(string)))
 	}
 
-	err = setUtmProfileWebFWebsense(d, m, jnprSess)
-	if err != nil {
+	if err := setUtmProfileWebFWebsense(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security_utm_profile_web_filtering_websense_redirect", jnprSess)
-	if err != nil {
+	if err := sess.commitConf(
+		"create resource junos_security_utm_profile_web_filtering_websense_redirect", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -192,20 +191,18 @@ func resourceSecurityUtmProfileWebFilteringWebsenseUpdate(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delUtmProfileWebFWebsense(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delUtmProfileWebFWebsense(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setUtmProfileWebFWebsense(d, m, jnprSess)
-	if err != nil {
+	if err := setUtmProfileWebFWebsense(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_security_utm_profile_web_filtering_websense_redirect", jnprSess)
-	if err != nil {
+	if err := sess.commitConf(
+		"update resource junos_security_utm_profile_web_filtering_websense_redirect", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -223,14 +220,13 @@ func resourceSecurityUtmProfileWebFilteringWebsenseDelete(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delUtmProfileWebFWebsense(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delUtmProfileWebFWebsense(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_security_utm_profile_web_filtering_websense_redirect", jnprSess)
-	if err != nil {
+	if err := sess.commitConf(
+		"delete resource junos_security_utm_profile_web_filtering_websense_redirect", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -337,8 +333,7 @@ func setUtmProfileWebFWebsense(d *schema.ResourceData, m interface{}, jnprSess *
 		configSet = append(configSet, setPrefix+"timeout "+strconv.Itoa(d.Get("timeout").(int)))
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -434,8 +429,7 @@ func delUtmProfileWebFWebsense(profile string, m interface{}, jnprSess *NetconfO
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security utm feature-profile web-filtering websense-redirect "+
 		"profile \""+profile+"\"")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -444,32 +438,25 @@ func delUtmProfileWebFWebsense(profile string, m interface{}, jnprSess *NetconfO
 
 func fillUtmProfileWebFWebsenseData(d *schema.ResourceData,
 	utmProfileWebFWebsenseOptions utmProfileWebFilteringWebsenseOptions) {
-	tfErr := d.Set("name", utmProfileWebFWebsenseOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", utmProfileWebFWebsenseOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("account", utmProfileWebFWebsenseOptions.account)
-	if tfErr != nil {
+	if tfErr := d.Set("account", utmProfileWebFWebsenseOptions.account); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("custom_block_message", utmProfileWebFWebsenseOptions.customBlockMessage)
-	if tfErr != nil {
+	if tfErr := d.Set("custom_block_message", utmProfileWebFWebsenseOptions.customBlockMessage); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("fallback_settings", utmProfileWebFWebsenseOptions.fallbackSettings)
-	if tfErr != nil {
+	if tfErr := d.Set("fallback_settings", utmProfileWebFWebsenseOptions.fallbackSettings); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("server", utmProfileWebFWebsenseOptions.server)
-	if tfErr != nil {
+	if tfErr := d.Set("server", utmProfileWebFWebsenseOptions.server); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("sockets", utmProfileWebFWebsenseOptions.sockets)
-	if tfErr != nil {
+	if tfErr := d.Set("sockets", utmProfileWebFWebsenseOptions.sockets); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("timeout", utmProfileWebFWebsenseOptions.timeout)
-	if tfErr != nil {
+	if tfErr := d.Set("timeout", utmProfileWebFWebsenseOptions.timeout); tfErr != nil {
 		panic(tfErr)
 	}
 }

@@ -506,14 +506,12 @@ func resourceBgpGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(fmt.Errorf("bgp group %v already exists in routing-instance %v",
 			d.Get("name").(string), d.Get("routing_instance").(string)))
 	}
-	err = setBgpGroup(d, m, jnprSess)
-	if err != nil {
+	if err := setBgpGroup(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_bgp_group", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_bgp_group", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -563,20 +561,17 @@ func resourceBgpGroupUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delBgpOpts(d, "group", m, jnprSess)
-	if err != nil {
+	if err := delBgpOpts(d, "group", m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setBgpGroup(d, m, jnprSess)
-	if err != nil {
+	if err := setBgpGroup(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_bgp_group", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_bgp_group", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -593,14 +588,12 @@ func resourceBgpGroupDelete(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delBgpGroup(d, m, jnprSess)
-	if err != nil {
+	if err := delBgpGroup(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_bgp_group", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_bgp_group", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -670,8 +663,7 @@ func setBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 			" protocols bgp group " + d.Get("name").(string) + " "
 	}
 	sess := m.(*Session)
-	err := sess.configSet([]string{setPrefix + "type " + d.Get("type").(string)}, jnprSess)
-	if err != nil {
+	if err := sess.configSet([]string{setPrefix + "type " + d.Get("type").(string)}, jnprSess); err != nil {
 		return err
 	}
 	if d.Get("type").(string) == "external" {
@@ -682,24 +674,19 @@ func setBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 			return fmt.Errorf("conflict between type=external and accept_remote_nexthop + multihop")
 		}
 	}
-	err = setBgpOptsSimple(setPrefix, d, m, jnprSess)
-	if err != nil {
+	if err := setBgpOptsSimple(setPrefix, d, m, jnprSess); err != nil {
 		return err
 	}
-	err = setBgpOptsBfd(setPrefix, d.Get("bfd_liveness_detection").([]interface{}), m, jnprSess)
-	if err != nil {
+	if err := setBgpOptsBfd(setPrefix, d.Get("bfd_liveness_detection").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
-	err = setBgpOptsFamily(setPrefix, inetWord, d.Get("family_inet").([]interface{}), m, jnprSess)
-	if err != nil {
+	if err := setBgpOptsFamily(setPrefix, inetWord, d.Get("family_inet").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
-	err = setBgpOptsFamily(setPrefix, inet6Word, d.Get("family_inet6").([]interface{}), m, jnprSess)
-	if err != nil {
+	if err := setBgpOptsFamily(setPrefix, inet6Word, d.Get("family_inet6").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
-	err = setBgpOptsGrafefulRestart(setPrefix, d.Get("graceful_restart").([]interface{}), m, jnprSess)
-	if err != nil {
+	if err := setBgpOptsGrafefulRestart(setPrefix, d.Get("graceful_restart").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
 
@@ -785,8 +772,7 @@ func delBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		configSet = append(configSet, "delete routing-instances "+d.Get("routing_instance").(string)+
 			" protocols bgp group "+d.Get("name").(string))
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -794,180 +780,136 @@ func delBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 }
 
 func fillBgpGroupData(d *schema.ResourceData, bgpGroupOptions bgpOptions) {
-	tfErr := d.Set("name", bgpGroupOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", bgpGroupOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("routing_instance", bgpGroupOptions.routingInstance)
-	if tfErr != nil {
+	if tfErr := d.Set("routing_instance", bgpGroupOptions.routingInstance); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("accept_remote_nexthop", bgpGroupOptions.acceptRemoteNexthop)
-	if tfErr != nil {
+	if tfErr := d.Set("accept_remote_nexthop", bgpGroupOptions.acceptRemoteNexthop); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("advertise_external", bgpGroupOptions.advertiseExternal)
-	if tfErr != nil {
+	if tfErr := d.Set("advertise_external", bgpGroupOptions.advertiseExternal); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("advertise_external_conditional", bgpGroupOptions.advertiseExternalConditional)
-	if tfErr != nil {
+	if tfErr := d.Set("advertise_external_conditional", bgpGroupOptions.advertiseExternalConditional); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("advertise_inactive", bgpGroupOptions.advertiseInactive)
-	if tfErr != nil {
+	if tfErr := d.Set("advertise_inactive", bgpGroupOptions.advertiseInactive); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("advertise_peer_as", bgpGroupOptions.advertisePeerAs)
-	if tfErr != nil {
+	if tfErr := d.Set("advertise_peer_as", bgpGroupOptions.advertisePeerAs); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("as_override", bgpGroupOptions.asOverride)
-	if tfErr != nil {
+	if tfErr := d.Set("as_override", bgpGroupOptions.asOverride); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("damping", bgpGroupOptions.damping)
-	if tfErr != nil {
+	if tfErr := d.Set("damping", bgpGroupOptions.damping); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_as_private", bgpGroupOptions.localAsPrivate)
-	if tfErr != nil {
+	if tfErr := d.Set("local_as_private", bgpGroupOptions.localAsPrivate); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_as_alias", bgpGroupOptions.localAsAlias)
-	if tfErr != nil {
+	if tfErr := d.Set("local_as_alias", bgpGroupOptions.localAsAlias); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_as_no_prepend_global_as", bgpGroupOptions.localAsNoPrependGlobalAs)
-	if tfErr != nil {
+	if tfErr := d.Set("local_as_no_prepend_global_as", bgpGroupOptions.localAsNoPrependGlobalAs); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("log_updown", bgpGroupOptions.logUpdown)
-	if tfErr != nil {
+	if tfErr := d.Set("log_updown", bgpGroupOptions.logUpdown); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("metric_out_igp", bgpGroupOptions.metricOutIgp)
-	if tfErr != nil {
+	if tfErr := d.Set("metric_out_igp", bgpGroupOptions.metricOutIgp); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("metric_out_igp_delay_med_update", bgpGroupOptions.metricOutIgpDelayMedUpdate)
-	if tfErr != nil {
+	if tfErr := d.Set("metric_out_igp_delay_med_update", bgpGroupOptions.metricOutIgpDelayMedUpdate); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("metric_out_minimum_igp", bgpGroupOptions.metricOutMinimumIgp)
-	if tfErr != nil {
+	if tfErr := d.Set("metric_out_minimum_igp", bgpGroupOptions.metricOutMinimumIgp); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("mtu_discovery", bgpGroupOptions.mtuDiscovery)
-	if tfErr != nil {
+	if tfErr := d.Set("mtu_discovery", bgpGroupOptions.mtuDiscovery); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("multihop", bgpGroupOptions.multihop)
-	if tfErr != nil {
+	if tfErr := d.Set("multihop", bgpGroupOptions.multihop); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("multipath", bgpGroupOptions.multipath)
-	if tfErr != nil {
+	if tfErr := d.Set("multipath", bgpGroupOptions.multipath); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("no_advertise_peer_as", bgpGroupOptions.noAdvertisePeerAs)
-	if tfErr != nil {
+	if tfErr := d.Set("no_advertise_peer_as", bgpGroupOptions.noAdvertisePeerAs); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("remove_private", bgpGroupOptions.removePrivate)
-	if tfErr != nil {
+	if tfErr := d.Set("remove_private", bgpGroupOptions.removePrivate); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("passive", bgpGroupOptions.passive)
-	if tfErr != nil {
+	if tfErr := d.Set("passive", bgpGroupOptions.passive); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("hold_time", bgpGroupOptions.holdTime)
-	if tfErr != nil {
+	if tfErr := d.Set("hold_time", bgpGroupOptions.holdTime); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_as_loops", bgpGroupOptions.localAsLoops)
-	if tfErr != nil {
+	if tfErr := d.Set("local_as_loops", bgpGroupOptions.localAsLoops); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_preference", bgpGroupOptions.localPreference)
-	if tfErr != nil {
+	if tfErr := d.Set("local_preference", bgpGroupOptions.localPreference); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("metric_out", bgpGroupOptions.metricOut)
-	if tfErr != nil {
+	if tfErr := d.Set("metric_out", bgpGroupOptions.metricOut); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("metric_out_igp_offset", bgpGroupOptions.metricOutIgpOffset)
-	if tfErr != nil {
+	if tfErr := d.Set("metric_out_igp_offset", bgpGroupOptions.metricOutIgpOffset); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("metric_out_minimum_igp_offset", bgpGroupOptions.metricOutMinimumIgpOffset)
-	if tfErr != nil {
+	if tfErr := d.Set("metric_out_minimum_igp_offset", bgpGroupOptions.metricOutMinimumIgpOffset); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("out_delay", bgpGroupOptions.outDelay)
-	if tfErr != nil {
+	if tfErr := d.Set("out_delay", bgpGroupOptions.outDelay); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("preference", bgpGroupOptions.preference)
-	if tfErr != nil {
+	if tfErr := d.Set("preference", bgpGroupOptions.preference); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("authentication_algorithm", bgpGroupOptions.authenticationAlgorithm)
-	if tfErr != nil {
+	if tfErr := d.Set("authentication_algorithm", bgpGroupOptions.authenticationAlgorithm); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("authentication_key", bgpGroupOptions.authenticationKey)
-	if tfErr != nil {
+	if tfErr := d.Set("authentication_key", bgpGroupOptions.authenticationKey); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("authentication_key_chain", bgpGroupOptions.authenticationKeyChain)
-	if tfErr != nil {
+	if tfErr := d.Set("authentication_key_chain", bgpGroupOptions.authenticationKeyChain); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("type", bgpGroupOptions.bgpType)
-	if tfErr != nil {
+	if tfErr := d.Set("type", bgpGroupOptions.bgpType); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_address", bgpGroupOptions.localAddress)
-	if tfErr != nil {
+	if tfErr := d.Set("local_address", bgpGroupOptions.localAddress); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_as", bgpGroupOptions.localAs)
-	if tfErr != nil {
+	if tfErr := d.Set("local_as", bgpGroupOptions.localAs); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_interface", bgpGroupOptions.localInterface)
-	if tfErr != nil {
+	if tfErr := d.Set("local_interface", bgpGroupOptions.localInterface); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("peer_as", bgpGroupOptions.peerAs)
-	if tfErr != nil {
+	if tfErr := d.Set("peer_as", bgpGroupOptions.peerAs); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("export", bgpGroupOptions.exportPolicy)
-	if tfErr != nil {
+	if tfErr := d.Set("export", bgpGroupOptions.exportPolicy); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("import", bgpGroupOptions.importPolicy)
-	if tfErr != nil {
+	if tfErr := d.Set("import", bgpGroupOptions.importPolicy); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("bfd_liveness_detection", bgpGroupOptions.bfdLivenessDetection)
-	if tfErr != nil {
+	if tfErr := d.Set("bfd_liveness_detection", bgpGroupOptions.bfdLivenessDetection); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("family_inet", bgpGroupOptions.familyInet)
-	if tfErr != nil {
+	if tfErr := d.Set("family_inet", bgpGroupOptions.familyInet); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("family_inet6", bgpGroupOptions.familyInet6)
-	if tfErr != nil {
+	if tfErr := d.Set("family_inet6", bgpGroupOptions.familyInet6); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("graceful_restart", bgpGroupOptions.gracefulRestart)
-	if tfErr != nil {
+	if tfErr := d.Set("graceful_restart", bgpGroupOptions.gracefulRestart); tfErr != nil {
 		panic(tfErr)
 	}
 }

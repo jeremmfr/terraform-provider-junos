@@ -336,8 +336,7 @@ func dataSourceInterfaceRead(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 	d.SetId(nameFound)
-	tfErr := d.Set("name", nameFound)
-	if tfErr != nil {
+	if tfErr := d.Set("name", nameFound); tfErr != nil {
 		panic(tfErr)
 	}
 	fillInterfaceData(d, interfaceOpt)

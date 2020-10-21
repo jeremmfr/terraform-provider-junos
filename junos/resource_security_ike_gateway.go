@@ -157,14 +157,12 @@ func resourceIkeGatewayCreate(ctx context.Context, d *schema.ResourceData, m int
 
 		return diag.FromErr(fmt.Errorf("security ike gateway %v already exists", d.Get("name").(string)))
 	}
-	err = setIkeGateway(d, m, jnprSess)
-	if err != nil {
+	if err := setIkeGateway(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security_ike_gateway", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_ike_gateway", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -214,20 +212,17 @@ func resourceIkeGatewayUpdate(ctx context.Context, d *schema.ResourceData, m int
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delIkeGateway(d, m, jnprSess)
-	if err != nil {
+	if err := delIkeGateway(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setIkeGateway(d, m, jnprSess)
-	if err != nil {
+	if err := setIkeGateway(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_security_ike_gateway", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_security_ike_gateway", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -244,14 +239,12 @@ func resourceIkeGatewayDelete(ctx context.Context, d *schema.ResourceData, m int
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delIkeGateway(d, m, jnprSess)
-	if err != nil {
+	if err := delIkeGateway(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_security_ike_gateway", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_ike_gateway", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -363,8 +356,7 @@ func setIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 		configSet = append(configSet, setPrefix+" version "+d.Get("version").(string))
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -468,8 +460,7 @@ func delIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ike gateway "+d.Get("name").(string))
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -477,48 +468,37 @@ func delIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 }
 
 func fillIkeGatewayData(d *schema.ResourceData, ikeGatewayOptions ikeGatewayOptions) {
-	tfErr := d.Set("name", ikeGatewayOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", ikeGatewayOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("address", ikeGatewayOptions.address)
-	if tfErr != nil {
+	if tfErr := d.Set("address", ikeGatewayOptions.address); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_address", ikeGatewayOptions.localAddress)
-	if tfErr != nil {
+	if tfErr := d.Set("local_address", ikeGatewayOptions.localAddress); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("policy", ikeGatewayOptions.policy)
-	if tfErr != nil {
+	if tfErr := d.Set("policy", ikeGatewayOptions.policy); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("external_interface", ikeGatewayOptions.externalInterface)
-	if tfErr != nil {
+	if tfErr := d.Set("external_interface", ikeGatewayOptions.externalInterface); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("general_ike_id", ikeGatewayOptions.generalIkeid)
-	if tfErr != nil {
+	if tfErr := d.Set("general_ike_id", ikeGatewayOptions.generalIkeid); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("no_nat_traversal", ikeGatewayOptions.noNatTraversal)
-	if tfErr != nil {
+	if tfErr := d.Set("no_nat_traversal", ikeGatewayOptions.noNatTraversal); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("dead_peer_detection", ikeGatewayOptions.deadPeerDetection)
-	if tfErr != nil {
+	if tfErr := d.Set("dead_peer_detection", ikeGatewayOptions.deadPeerDetection); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_identity", ikeGatewayOptions.localIdentity)
-	if tfErr != nil {
+	if tfErr := d.Set("local_identity", ikeGatewayOptions.localIdentity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("remote_identity", ikeGatewayOptions.remoteIdentity)
-	if tfErr != nil {
+	if tfErr := d.Set("remote_identity", ikeGatewayOptions.remoteIdentity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("version", ikeGatewayOptions.version)
-	if tfErr != nil {
+	if tfErr := d.Set("version", ikeGatewayOptions.version); tfErr != nil {
 		panic(tfErr)
 	}
 }

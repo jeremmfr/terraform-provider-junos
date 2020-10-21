@@ -2,6 +2,7 @@
 ENHANCEMENTS:
 * upgrade to terraform-plugin-sdk v2
 * switch to sdk for part of ValidateFunc and rewrite the others to ValidateDiagFunc
+* code optimization (compact test err func if not nil)
 
 BUG FIXES:
 * fix sess.configLock return already nil

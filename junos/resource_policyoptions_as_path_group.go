@@ -77,14 +77,12 @@ func resourcePolicyoptionsAsPathGroupCreate(
 		return diag.FromErr(fmt.Errorf("policy-options as-path-group %v already exists", d.Get("name").(string)))
 	}
 
-	err = setPolicyoptionsAsPathGroup(d, m, jnprSess)
-	if err != nil {
+	if err := setPolicyoptionsAsPathGroup(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_policyoptions_as_path_group", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_policyoptions_as_path_group", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -135,20 +133,17 @@ func resourcePolicyoptionsAsPathGroupUpdate(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delPolicyoptionsAsPathGroup(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delPolicyoptionsAsPathGroup(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setPolicyoptionsAsPathGroup(d, m, jnprSess)
-	if err != nil {
+	if err := setPolicyoptionsAsPathGroup(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_policyoptions_as_path_group", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_policyoptions_as_path_group", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -166,14 +161,12 @@ func resourcePolicyoptionsAsPathGroupDelete(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delPolicyoptionsAsPathGroup(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delPolicyoptionsAsPathGroup(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_policyoptions_as_path_group", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_policyoptions_as_path_group", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -235,8 +228,7 @@ func setPolicyoptionsAsPathGroup(d *schema.ResourceData, m interface{}, jnprSess
 	if d.Get("dynamic_db").(bool) {
 		configSet = append(configSet, setPrefix+" dynamic-db")
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -290,24 +282,20 @@ func delPolicyoptionsAsPathGroup(asPathGroup string, m interface{}, jnprSess *Ne
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete policy-options as-path-group "+asPathGroup)
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
 	return nil
 }
 func fillPolicyoptionsAsPathGroupData(d *schema.ResourceData, asPathGroupOptions asPathGroupOptions) {
-	tfErr := d.Set("name", asPathGroupOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", asPathGroupOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("as_path", asPathGroupOptions.asPath)
-	if tfErr != nil {
+	if tfErr := d.Set("as_path", asPathGroupOptions.asPath); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("dynamic_db", asPathGroupOptions.dynamicDB)
-	if tfErr != nil {
+	if tfErr := d.Set("dynamic_db", asPathGroupOptions.dynamicDB); tfErr != nil {
 		panic(tfErr)
 	}
 }

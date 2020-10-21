@@ -167,14 +167,12 @@ func resourceVlanCreate(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(fmt.Errorf("vlan %v already exists", d.Get("name").(string)))
 	}
 
-	err = setVlan(d, m, jnprSess)
-	if err != nil {
+	if err := setVlan(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_vlan", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_vlan", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -225,20 +223,17 @@ func resourceVlanUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delVlan(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delVlan(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setVlan(d, m, jnprSess)
-	if err != nil {
+	if err := setVlan(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_vlan", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_vlan", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -255,14 +250,12 @@ func resourceVlanDelete(ctx context.Context, d *schema.ResourceData, m interface
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delVlan(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delVlan(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_vlan", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_vlan", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -371,8 +364,7 @@ func setVlan(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 		}
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -484,8 +476,7 @@ func delVlan(vlan string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete vlans "+vlan)
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -493,56 +484,43 @@ func delVlan(vlan string, m interface{}, jnprSess *NetconfObject) error {
 }
 
 func fillVlanData(d *schema.ResourceData, vlanOptions vlanOptions) {
-	tfErr := d.Set("name", vlanOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", vlanOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("description", vlanOptions.description)
-	if tfErr != nil {
+	if tfErr := d.Set("description", vlanOptions.description); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("vlan_id", vlanOptions.vlanID)
-	if tfErr != nil {
+	if tfErr := d.Set("vlan_id", vlanOptions.vlanID); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("vlan_id_list", vlanOptions.vlanIDList)
-	if tfErr != nil {
+	if tfErr := d.Set("vlan_id_list", vlanOptions.vlanIDList); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("service_id", vlanOptions.serviceID)
-	if tfErr != nil {
+	if tfErr := d.Set("service_id", vlanOptions.serviceID); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("l3_interface", vlanOptions.l3Interface)
-	if tfErr != nil {
+	if tfErr := d.Set("l3_interface", vlanOptions.l3Interface); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("forward_filter_input", vlanOptions.forwardFilterInput)
-	if tfErr != nil {
+	if tfErr := d.Set("forward_filter_input", vlanOptions.forwardFilterInput); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("forward_filter_output", vlanOptions.forwardFilterOutput)
-	if tfErr != nil {
+	if tfErr := d.Set("forward_filter_output", vlanOptions.forwardFilterOutput); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("forward_flood_input", vlanOptions.forwardFloodInput)
-	if tfErr != nil {
+	if tfErr := d.Set("forward_flood_input", vlanOptions.forwardFloodInput); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("private_vlan", vlanOptions.privateVlan)
-	if tfErr != nil {
+	if tfErr := d.Set("private_vlan", vlanOptions.privateVlan); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("community_vlans", vlanOptions.communityVlans)
-	if tfErr != nil {
+	if tfErr := d.Set("community_vlans", vlanOptions.communityVlans); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("isolated_vlan", vlanOptions.isolatedVlan)
-	if tfErr != nil {
+	if tfErr := d.Set("isolated_vlan", vlanOptions.isolatedVlan); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("vxlan", vlanOptions.vxlan)
-	if tfErr != nil {
+	if tfErr := d.Set("vxlan", vlanOptions.vxlan); tfErr != nil {
 		panic(tfErr)
 	}
 }

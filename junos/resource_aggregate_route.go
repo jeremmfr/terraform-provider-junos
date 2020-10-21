@@ -128,14 +128,12 @@ func resourceAggregateRouteCreate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("aggregate route %v already exists on table %s",
 			d.Get("destination").(string), d.Get("routing_instance").(string)))
 	}
-	err = setAggregateRoute(d, m, jnprSess)
-	if err != nil {
+	if err := setAggregateRoute(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_aggregate_route", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_aggregate_route", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -189,21 +187,18 @@ func resourceAggregateRouteUpdate(ctx context.Context, d *schema.ResourceData, m
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delAggregateRouteOpts(d, m, jnprSess)
-	if err != nil {
+	if err := delAggregateRouteOpts(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
 
-	err = setAggregateRoute(d, m, jnprSess)
-	if err != nil {
+	if err := setAggregateRoute(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_aggregate_route", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_aggregate_route", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -220,14 +215,13 @@ func resourceAggregateRouteDelete(ctx context.Context, d *schema.ResourceData, m
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delAggregateRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess)
-	if err != nil {
+	if err := delAggregateRoute(d.Get("destination").(string), d.Get("routing_instance").(string),
+		m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_aggregate_route", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_aggregate_route", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -334,8 +328,7 @@ func setAggregateRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			configSet = append(configSet, setPrefix+" policy "+v.(string))
 		}
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -427,8 +420,7 @@ func delAggregateRouteOpts(d *schema.ResourceData, m interface{}, jnprSess *Netc
 		delPrefix+"community",
 		delPrefix+"policy",
 	)
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -442,8 +434,7 @@ func delAggregateRoute(destination string, instance string, m interface{}, jnprS
 	} else {
 		configSet = append(configSet, "delete routing-instances "+instance+" routing-options aggregate route "+destination)
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -451,48 +442,37 @@ func delAggregateRoute(destination string, instance string, m interface{}, jnprS
 }
 
 func fillAggregateRouteData(d *schema.ResourceData, aggregateRouteOptions aggregateRouteOptions) {
-	tfErr := d.Set("destination", aggregateRouteOptions.destination)
-	if tfErr != nil {
+	if tfErr := d.Set("destination", aggregateRouteOptions.destination); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("routing_instance", aggregateRouteOptions.routingInstance)
-	if tfErr != nil {
+	if tfErr := d.Set("routing_instance", aggregateRouteOptions.routingInstance); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("active", aggregateRouteOptions.active)
-	if tfErr != nil {
+	if tfErr := d.Set("active", aggregateRouteOptions.active); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("passive", aggregateRouteOptions.passive)
-	if tfErr != nil {
+	if tfErr := d.Set("passive", aggregateRouteOptions.passive); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("brief", aggregateRouteOptions.brief)
-	if tfErr != nil {
+	if tfErr := d.Set("brief", aggregateRouteOptions.brief); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("full", aggregateRouteOptions.full)
-	if tfErr != nil {
+	if tfErr := d.Set("full", aggregateRouteOptions.full); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("discard", aggregateRouteOptions.discard)
-	if tfErr != nil {
+	if tfErr := d.Set("discard", aggregateRouteOptions.discard); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("preference", aggregateRouteOptions.preference)
-	if tfErr != nil {
+	if tfErr := d.Set("preference", aggregateRouteOptions.preference); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("metric", aggregateRouteOptions.metric)
-	if tfErr != nil {
+	if tfErr := d.Set("metric", aggregateRouteOptions.metric); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("community", aggregateRouteOptions.community)
-	if tfErr != nil {
+	if tfErr := d.Set("community", aggregateRouteOptions.community); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("policy", aggregateRouteOptions.policy)
-	if tfErr != nil {
+	if tfErr := d.Set("policy", aggregateRouteOptions.policy); tfErr != nil {
 		panic(tfErr)
 	}
 }

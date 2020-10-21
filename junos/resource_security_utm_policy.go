@@ -157,14 +157,12 @@ func resourceSecurityUtmPolicyCreate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf("security utm utm-policy %v already exists", d.Get("name").(string)))
 	}
 
-	err = setUtmPolicy(d, m, jnprSess)
-	if err != nil {
+	if err := setUtmPolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security_utm_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_utm_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -216,20 +214,17 @@ func resourceSecurityUtmPolicyUpdate(ctx context.Context, d *schema.ResourceData
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delUtmPolicy(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delUtmPolicy(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setUtmPolicy(d, m, jnprSess)
-	if err != nil {
+	if err := setUtmPolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_security_utm_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_security_utm_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -246,14 +241,12 @@ func resourceSecurityUtmPolicyDelete(ctx context.Context, d *schema.ResourceData
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delUtmPolicy(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delUtmPolicy(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_security_utm_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_utm_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -392,8 +385,7 @@ func setUtmPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 			d.Get("web_filtering_profile").(string)+"\"")
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -501,8 +493,7 @@ func delUtmPolicy(policy string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security utm utm-policy \""+policy+"\"")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -510,28 +501,22 @@ func delUtmPolicy(policy string, m interface{}, jnprSess *NetconfObject) error {
 }
 
 func fillUtmPolicyData(d *schema.ResourceData, utmPolicyOptions utmPolicyOptions) {
-	tfErr := d.Set("name", utmPolicyOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", utmPolicyOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("anti_spam_smtp_profile", utmPolicyOptions.antiSpamSMTPProfile)
-	if tfErr != nil {
+	if tfErr := d.Set("anti_spam_smtp_profile", utmPolicyOptions.antiSpamSMTPProfile); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("anti_virus", utmPolicyOptions.antiVirus)
-	if tfErr != nil {
+	if tfErr := d.Set("anti_virus", utmPolicyOptions.antiVirus); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("content_filtering", utmPolicyOptions.contentFiltering)
-	if tfErr != nil {
+	if tfErr := d.Set("content_filtering", utmPolicyOptions.contentFiltering); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("traffic_sessions_per_client", utmPolicyOptions.trafficSessionsPerClient)
-	if tfErr != nil {
+	if tfErr := d.Set("traffic_sessions_per_client", utmPolicyOptions.trafficSessionsPerClient); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("web_filtering_profile", utmPolicyOptions.webFilteringProfile)
-	if tfErr != nil {
+	if tfErr := d.Set("web_filtering_profile", utmPolicyOptions.webFilteringProfile); tfErr != nil {
 		panic(tfErr)
 	}
 }

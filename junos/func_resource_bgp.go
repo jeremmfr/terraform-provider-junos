@@ -113,8 +113,7 @@ func delBgpOpts(d *schema.ResourceData, typebgp string, m interface{}, jnprSess 
 		delPrefix+"family inet6",
 		delPrefix+"graceful-restart")
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -248,8 +247,7 @@ func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, j
 		configSet = append(configSet, setPrefix+"import "+v.(string))
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 

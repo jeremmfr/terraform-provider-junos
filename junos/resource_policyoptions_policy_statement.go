@@ -699,14 +699,12 @@ func resourcePolicyoptionsPolicyStatementCreate(
 		return diag.FromErr(fmt.Errorf("policy-options policy-statement %v already exists", d.Get("name").(string)))
 	}
 
-	err = setPolicyStatement(d, m, jnprSess)
-	if err != nil {
+	if err := setPolicyStatement(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_policyoptions_policy_statement", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_policyoptions_policy_statement", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -758,20 +756,17 @@ func resourcePolicyoptionsPolicyStatementUpdate(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delPolicyStatement(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delPolicyStatement(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setPolicyStatement(d, m, jnprSess)
-	if err != nil {
+	if err := setPolicyStatement(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_policyoptions_policy_statement", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_policyoptions_policy_statement", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -789,14 +784,12 @@ func resourcePolicyoptionsPolicyStatementDelete(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delPolicyStatement(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	if err := delPolicyStatement(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_policyoptions_policy_statement", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_policyoptions_policy_statement", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -890,8 +883,7 @@ func setPolicyStatement(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		}
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -979,32 +971,26 @@ func delPolicyStatement(policyStatement string, m interface{}, jnprSess *Netconf
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete policy-options policy-statement "+policyStatement)
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
 	return nil
 }
 func fillPolicyStatementData(d *schema.ResourceData, policyStatementOptions policyStatementOptions) {
-	tfErr := d.Set("name", policyStatementOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", policyStatementOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("from", policyStatementOptions.from)
-	if tfErr != nil {
+	if tfErr := d.Set("from", policyStatementOptions.from); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("then", policyStatementOptions.then)
-	if tfErr != nil {
+	if tfErr := d.Set("then", policyStatementOptions.then); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("to", policyStatementOptions.to)
-	if tfErr != nil {
+	if tfErr := d.Set("to", policyStatementOptions.to); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("term", policyStatementOptions.term)
-	if tfErr != nil {
+	if tfErr := d.Set("term", policyStatementOptions.term); tfErr != nil {
 		panic(tfErr)
 	}
 }

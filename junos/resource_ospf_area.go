@@ -112,14 +112,12 @@ func resourceOspfAreaCreate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(fmt.Errorf("ospf %v area %v already exists in routing instance %v",
 			d.Get("version").(string), d.Get("area_id").(string), d.Get("routing_instance").(string)))
 	}
-	err = setOspfArea(d, m, jnprSess)
-	if err != nil {
+	if err := setOspfArea(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_ospf_area", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_ospf_area", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -172,20 +170,17 @@ func resourceOspfAreaUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delOspfArea(d, m, jnprSess)
-	if err != nil {
+	if err := delOspfArea(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = setOspfArea(d, m, jnprSess)
-	if err != nil {
+	if err := setOspfArea(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_ospf_area", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_ospf_area", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -202,14 +197,12 @@ func resourceOspfAreaDelete(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	err = delOspfArea(d, m, jnprSess)
-	if err != nil {
+	if err := delOspfArea(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_ospf_area", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_ospf_area", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -315,8 +308,7 @@ func setOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 				strconv.Itoa(ospfInterface["dead_interval"].(int)))
 		}
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -426,8 +418,7 @@ func delOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		configSet = append(configSet, "delete routing-instances "+d.Get("routing_instance").(string)+
 			" protocols "+ospfVersion+" area "+d.Get("area_id").(string))
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
@@ -435,20 +426,16 @@ func delOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 }
 
 func fillOspfAreaData(d *schema.ResourceData, ospfAreaOptions ospfAreaOptions) {
-	tfErr := d.Set("area_id", ospfAreaOptions.areaID)
-	if tfErr != nil {
+	if tfErr := d.Set("area_id", ospfAreaOptions.areaID); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("routing_instance", ospfAreaOptions.routingInstance)
-	if tfErr != nil {
+	if tfErr := d.Set("routing_instance", ospfAreaOptions.routingInstance); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("version", ospfAreaOptions.version)
-	if tfErr != nil {
+	if tfErr := d.Set("version", ospfAreaOptions.version); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("interface", ospfAreaOptions.interFace)
-	if tfErr != nil {
+	if tfErr := d.Set("interface", ospfAreaOptions.interFace); tfErr != nil {
 		panic(tfErr)
 	}
 }
