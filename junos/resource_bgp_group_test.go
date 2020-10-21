@@ -14,6 +14,9 @@ func TestAccJunosBgpGroup_basic(t *testing.T) {
 			Providers: testAccProviders,
 			Steps: []resource.TestStep{
 				{
+					Config: testAccJunosBgpConfigPreCreate(),
+				},
+				{
 					Config: testAccJunosBgpGroupConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",

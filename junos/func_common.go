@@ -199,3 +199,13 @@ func uniqueListString(s []string) []string {
 
 	return r
 }
+
+func checkStringHasPrefixInList(s string, list []string) bool {
+	for _, item := range list {
+		if strings.HasPrefix(s, item) {
+			return true
+		}
+	}
+
+	return false
+}

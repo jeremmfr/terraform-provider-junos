@@ -60,6 +60,8 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
 							"dead_peer_detection.0.threshold", "3"),
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
+							"dead_peer_detection.0.send_mode", "always-send"),
+						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
 							"local_address", "192.0.2.4"),
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
 							"local_identity.#", "1"),
@@ -138,6 +140,15 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 							"remote_identity.0.type", "hostname"),
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
 							"remote_identity.0.value", "testacc_remote"),
+						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
+							"dead_peer_detection.0.send_mode", "optimized"),
+					),
+				},
+				{
+					Config: testAccJunosSecurityIkeIpsecConfigUpdate2(testaccIkeIpsec),
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
+							"dead_peer_detection.0.send_mode", "probe-idle-tunnel"),
 					),
 				},
 				{
@@ -205,8 +216,9 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
   general_ike_id = true
   no_nat_traversal = true
   dead_peer_detection {
-    interval = 10
+    interval  = 10
     threshold = 3
+    send_mode = "always-send"
   }
   local_address = "192.0.2.4"
   local_identity {
@@ -275,8 +287,122 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
   external_interface = junos_interface.testacc_ikegateway.name
   no_nat_traversal = true
   dead_peer_detection {
-    interval = 10
+    interval  = 10
     threshold = 3
+    send_mode = "optimized"
+  }
+  local_address = "192.0.2.4"
+  local_identity {
+    type = "hostname"
+    value = "testacc"
+  }
+  remote_identity {
+    type = "hostname"
+    value = "testacc_remote"
+  }
+}
+
+resource junos_security_ipsec_proposal "testacc_ipsecprop" {
+  name = "testacc_ipsecprop"
+  authentication_algorithm = "hmac-sha1-96"
+  protocol = "esp"
+  encryption_algorithm = "aes-256-cbc"
+}
+resource junos_security_ipsec_policy "testacc_ipsecpol" {
+  name = "testacc_ipsecpol"
+  proposals = [ junos_security_ipsec_proposal.testacc_ipsecprop.name ]
+  pfs_keys = "group1"
+}
+resource junos_security_ipsec_vpn "testacc_ipsecvpn" {
+  name = "testacc_ipsecvpn"
+  bind_interface_auto = false
+  ike {
+    gateway = junos_security_ike_gateway.testacc_ikegateway.name
+    policy = junos_security_ipsec_policy.testacc_ipsecpol.name
+    identity_local = "192.0.2.64/26"
+    identity_remote = "192.0.2.128/26"
+    identity_service = "any"
+  }
+  establish_tunnels = "immediately"
+  df_bit = "clear"
+}
+resource junos_security_zone testacc_secIkeIpsec_local {
+  name = "testacc_secIkeIPsec_local"
+  address_book {
+    name = "testacc_vpnlocal"
+    network = "192.0.2.64/26"
+  }
+}
+resource junos_security_zone testacc_secIkeIpsec_remote {
+  name = "testacc_secIkeIPsec_remote"
+  address_book {
+    name = "testacc_vpnremote"
+    network = "192.0.2.128/26"
+  }
+}
+resource junos_security_policy testacc_policyIpsecLocToRem {
+  from_zone = junos_security_zone.testacc_secIkeIpsec_local.name
+  to_zone = junos_security_zone.testacc_secIkeIpsec_remote.name
+  policy {
+      name = "testacc_vpn-out"
+      match_source_address = [ junos_security_zone.testacc_secIkeIpsec_local.address_book[0].name ]
+      match_destination_address = [ junos_security_zone.testacc_secIkeIpsec_remote.address_book[0].name ]
+      match_application = [ "any" ]
+      permit_tunnel_ipsec_vpn = junos_security_ipsec_vpn.testacc_ipsecvpn.name
+  }
+}
+
+resource junos_security_policy testacc_policyIpsecRemToLoc {
+  from_zone = junos_security_zone.testacc_secIkeIpsec_remote.name
+  to_zone = junos_security_zone.testacc_secIkeIpsec_local.name
+  policy {
+    name = "testacc_vpn-in"
+    match_source_address = [ junos_security_zone.testacc_secIkeIpsec_remote.address_book[0].name ]
+    match_destination_address = [ junos_security_zone.testacc_secIkeIpsec_local.address_book[0].name ]
+    match_application = [ "any" ]
+    permit_tunnel_ipsec_vpn = junos_security_ipsec_vpn.testacc_ipsecvpn.name
+  }
+}
+
+resource junos_security_policy_tunnel_pair_policy testacc_vpn-in-out {
+  zone_a = junos_security_zone.testacc_secIkeIpsec_local.name
+  zone_b =  junos_security_zone.testacc_secIkeIpsec_remote.name
+  policy_a_to_b = junos_security_policy.testacc_policyIpsecLocToRem.policy[0].name
+  policy_b_to_a = junos_security_policy.testacc_policyIpsecRemToLoc.policy[0].name
+}
+`
+}
+func testAccJunosSecurityIkeIpsecConfigUpdate2(interFace string) string {
+	return `
+resource junos_interface "testacc_ikegateway" {
+  name = "` + interFace + `.0"
+  inet_address {
+    address = "192.0.2.4/25"
+  }
+}
+resource junos_security_ike_proposal "testacc_ikeprop" {
+  name = "testacc_ikeprop"
+  authentication_algorithm = "sha1"
+  encryption_algorithm = "aes-256-cbc"
+  dh_group = "group1"
+  lifetime_seconds = 3600
+}
+resource junos_security_ike_policy "testacc_ikepol" {
+  name = "testacc_ikepol"
+  proposals = [ junos_security_ike_proposal.testacc_ikeprop.name ]
+  mode = "main"
+  pre_shared_key_text = "mysecret"
+}
+resource junos_security_ike_gateway "testacc_ikegateway" {
+  name = "testacc_ikegateway"
+  address = [ "192.0.2.4" ]
+  policy = junos_security_ike_policy.testacc_ikepol.name
+  external_interface = junos_interface.testacc_ikegateway.name
+  no_nat_traversal = true
+  dead_peer_detection {
+    interval  = 10
+    threshold = 3
+    send_mode = "probe-idle-tunnel"
   }
   local_address = "192.0.2.4"
   local_identity {
