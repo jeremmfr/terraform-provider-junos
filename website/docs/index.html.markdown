@@ -80,11 +80,17 @@ The following arguments are supported in the `provider` block:
   It can also be sourced from the `JUNOS_USERNAME` environment variable.  
   Defaults to `netconf`.
 
+* `sshkey_pem` - (Optional) This is the ssh key in PEM format for establish ssh connection.  
+  It can also be sourced from the `JUNOS_KEYPEM` environment variable.  
+  Defaults is empty.
+
 * `sshkeyfile` - (Optional) This is the path to ssh key for establish ssh connection.  
+  Used only if `sshkey_pem` is empty.  
   It can also be sourced from the `JUNOS_KEYFILE` environment variable.  
   Defaults is empty.
 
-* `password` - (Optional) This is a password for ssh connection if `sshkeyfile` is not used.  
+* `password` - (Optional) This is a password for ssh connection.  
+  Used only if `sshkey_pem` and `sshkeyfile` is empty.  
   It can also be sourced from the `JUNOS_PASSWORD` environment variable.  
   Defaults is empty.
 

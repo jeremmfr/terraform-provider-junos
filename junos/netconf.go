@@ -42,10 +42,11 @@ type commandXMLConfig struct {
 	Config string `xml:",innerxml"`
 }
 type netconfAuthMethod struct {
-	Password   string
-	Username   string
-	PrivateKey string
-	Passphrase string
+	Password       string
+	Username       string
+	PrivateKeyPEM  string
+	PrivateKeyFile string
+	Passphrase     string
 }
 type versionRouteEngines struct {
 	XMLName xml.Name             `xml:"multi-routing-engine-results"`
@@ -123,8 +124,21 @@ func newSessionFromNetconf(s *netconf.Session) (*NetconfObject, error) {
 func genSSHClientConfig(auth *netconfAuthMethod) (*ssh.ClientConfig, error) {
 	var config *ssh.ClientConfig
 
-	if len(auth.PrivateKey) > 0 {
-		config, err := netconf.SSHConfigPubKeyFile(auth.Username, auth.PrivateKey, auth.Passphrase)
+	if len(auth.PrivateKeyPEM) > 0 {
+		config, err := netconf.SSHConfigPubKeyPem(auth.Username, []byte(auth.PrivateKeyPEM), auth.Passphrase)
+		if err != nil {
+			return config, err
+		}
+		config.Ciphers = append(config.Ciphers,
+			"aes128-gcm@openssh.com", "chacha20-poly1305@openssh.com",
+			"aes128-ctr", "aes192-ctr", "aes256-ctr",
+			"aes128-cbc")
+		config.HostKeyCallback = ssh.InsecureIgnoreHostKey()
+
+		return config, nil
+	}
+	if len(auth.PrivateKeyFile) > 0 {
+		config, err := netconf.SSHConfigPubKeyFile(auth.Username, auth.PrivateKeyFile, auth.Passphrase)
 		if err != nil {
 			return config, err
 		}

@@ -7,6 +7,7 @@ ENHANCEMENTS:
 * add resource `junos_security` (special resource for static configuration in security block) (Fixes [#43](https://github.com/jeremmfr/terraform-provider-junos/issues/43))
 * add resource `junos_system` (special resource for static configuration in system block) (Fixes parts of [#33](https://github.com/jeremmfr/terraform-provider-junos/issues/33))
 * add resource `junos_routing_options` (special resource for static configuration in routing-options block)
+* add `sshkey_pem` argument in provider configuration
 
 BUG FIXES:
 * fix sess.configLock return already nil

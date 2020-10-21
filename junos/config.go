@@ -12,6 +12,7 @@ type Config struct {
 	junosIP                  string
 	junosUserName            string
 	junosPassword            string
+	junosSSHKeyPEM           string
 	junosSSHKeyFile          string
 	junosKeyPass             string
 	junosGroupIntDel         string
@@ -25,6 +26,7 @@ func (c *Config) Session() (*Session, diag.Diagnostics) {
 		junosPort:        c.junosPort,
 		junosUserName:    c.junosUserName,
 		junosPassword:    c.junosPassword,
+		junosSSHKeyPEM:   c.junosSSHKeyPEM,
 		junosSSHKeyFile:  c.junosSSHKeyFile,
 		junosKeyPass:     c.junosKeyPass,
 		junosGroupIntDel: c.junosGroupIntDel,
