@@ -2,6 +2,7 @@
 ENHANCEMENTS:
 
 BUG FIXES:
+* fix compile libraries into release (for alpine linux like hashicorp/terraform docker image)
 
 ## v1.6.0
 FEATURES:
