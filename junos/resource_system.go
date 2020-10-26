@@ -592,21 +592,21 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 						confRead.services[0]["ssh"].([]map[string]interface{})[0]["client_alive_count_max"], err =
 							strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh client-alive-count-max "))
 						if err != nil {
-							return confRead, err
+							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 						}
 					case strings.HasPrefix(itemTrim, "services ssh client-alive-interval "):
 						var err error
 						confRead.services[0]["ssh"].([]map[string]interface{})[0]["client_alive_interval"], err =
 							strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh client-alive-interval "))
 						if err != nil {
-							return confRead, err
+							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 						}
 					case strings.HasPrefix(itemTrim, "services ssh connection-limit "):
 						var err error
 						confRead.services[0]["ssh"].([]map[string]interface{})[0]["connection_limit"], err =
 							strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh connection-limit "))
 						if err != nil {
-							return confRead, err
+							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 						}
 					case strings.HasPrefix(itemTrim, "services ssh fingerprint-hash "):
 						confRead.services[0]["ssh"].([]map[string]interface{})[0]["fingerprint_hash"] = strings.TrimPrefix(
@@ -630,14 +630,14 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 						confRead.services[0]["ssh"].([]map[string]interface{})[0]["max_pre_authentication_packets"], err =
 							strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh max-pre-authentication-packets "))
 						if err != nil {
-							return confRead, err
+							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 						}
 					case strings.HasPrefix(itemTrim, "services ssh max-sessions-per-connection "):
 						var err error
 						confRead.services[0]["ssh"].([]map[string]interface{})[0]["max_sessions_per_connection"], err =
 							strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh max-sessions-per-connection "))
 						if err != nil {
-							return confRead, err
+							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 						}
 					case strings.HasPrefix(itemTrim, "services ssh no-passwords"):
 						confRead.services[0]["ssh"].([]map[string]interface{})[0]["no_passwords"] = true
@@ -648,7 +648,7 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 						confRead.services[0]["ssh"].([]map[string]interface{})[0]["port"], err =
 							strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh port "))
 						if err != nil {
-							return confRead, err
+							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 						}
 					case strings.HasPrefix(itemTrim, "services ssh protocol-version "):
 						confRead.services[0]["ssh"].([]map[string]interface{})[0]["protocol_version"] = append(
@@ -659,7 +659,7 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 						confRead.services[0]["ssh"].([]map[string]interface{})[0]["rate_limit"], err =
 							strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh rate-limit "))
 						if err != nil {
-							return confRead, err
+							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 						}
 					case strings.HasPrefix(itemTrim, "services ssh root-login "):
 						confRead.services[0]["ssh"].([]map[string]interface{})[0]["root_login"] =
@@ -701,14 +701,14 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 						confRead.syslog[0]["archive"].([]map[string]interface{})[0]["files"], err = strconv.Atoi(
 							strings.TrimPrefix(itemTrim, "syslog archive files "))
 						if err != nil {
-							return confRead, err
+							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 						}
 					case strings.HasPrefix(itemTrim, "syslog archive size "):
 						var err error
 						confRead.syslog[0]["archive"].([]map[string]interface{})[0]["size"], err = strconv.Atoi(
 							strings.TrimPrefix(itemTrim, "syslog archive size "))
 						if err != nil {
-							return confRead, err
+							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 						}
 					case strings.HasPrefix(itemTrim, "syslog archive no-world-readable"):
 						confRead.syslog[0]["archive"].([]map[string]interface{})[0]["no_world_readable"] = true
@@ -720,7 +720,7 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 					confRead.syslog[0]["log_rotate_frequency"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrim, "syslog log-rotate-frequency "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "syslog source-address "):
 					confRead.syslog[0]["source_address"] = strings.TrimPrefix(

@@ -338,7 +338,7 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 						confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["files"], err = strconv.Atoi(
 							strings.TrimPrefix(itemTrim, "ike traceoptions file files "))
 						if err != nil {
-							return confRead, err
+							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 						}
 					case strings.HasPrefix(itemTrim, "ike traceoptions file match"):
 						confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["match"] = strings.Trim(
@@ -348,7 +348,7 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 						confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"], err = strconv.Atoi(
 							strings.TrimPrefix(itemTrim, "ike traceoptions file size "))
 						if err != nil {
-							return confRead, err
+							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 						}
 					case strings.HasPrefix(itemTrim, "ike traceoptions file world-readable"):
 						confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["world_readable"] = true
@@ -368,7 +368,7 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 					confRead.ikeTraceoptions[0]["rate_limit"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrim, "ike traceoptions rate-limit "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				}
 			case checkStringHasPrefixInList(itemTrim, listLinessSecurityUtm()):

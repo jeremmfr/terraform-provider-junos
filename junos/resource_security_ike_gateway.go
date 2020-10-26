@@ -419,13 +419,13 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 					deadPeerOptions["interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 						"dead-peer-detection interval "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "dead-peer-detection threshold "):
 					deadPeerOptions["threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 						"dead-peer-detection threshold "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasSuffix(itemTrim, " always-send"):
 					deadPeerOptions["send_mode"] = "always-send"

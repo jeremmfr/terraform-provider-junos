@@ -100,7 +100,7 @@ func netconfNewSession(host string, auth *netconfAuthMethod) (*NetconfObject, er
 func netconfNewSessionWithConfig(host string, clientConfig *ssh.ClientConfig) (*NetconfObject, error) {
 	s, err := netconf.DialSSH(host, clientConfig)
 	if err != nil {
-		return nil, fmt.Errorf("error connecting to %s - %s", host, err)
+		return nil, fmt.Errorf("error connecting to %s - %w", host, err)
 	}
 
 	return newSessionFromNetconf(s)
@@ -127,7 +127,7 @@ func genSSHClientConfig(auth *netconfAuthMethod) (*ssh.ClientConfig, error) {
 	if len(auth.PrivateKeyPEM) > 0 {
 		config, err := netconf.SSHConfigPubKeyPem(auth.Username, []byte(auth.PrivateKeyPEM), auth.Passphrase)
 		if err != nil {
-			return config, err
+			return config, fmt.Errorf("failed to create new SSHConfig with PEM private key : %w", err)
 		}
 		config.Ciphers = append(config.Ciphers,
 			"aes128-gcm@openssh.com", "chacha20-poly1305@openssh.com",
@@ -140,7 +140,7 @@ func genSSHClientConfig(auth *netconfAuthMethod) (*ssh.ClientConfig, error) {
 	if len(auth.PrivateKeyFile) > 0 {
 		config, err := netconf.SSHConfigPubKeyFile(auth.Username, auth.PrivateKeyFile, auth.Passphrase)
 		if err != nil {
-			return config, err
+			return config, fmt.Errorf("failed to create new SSHConfig with file private key : %w", err)
 		}
 		config.Ciphers = append(config.Ciphers,
 			"aes128-gcm@openssh.com", "chacha20-poly1305@openssh.com",
@@ -177,7 +177,7 @@ func (j *NetconfObject) GatherFacts() error {
 
 	reply, err := s.Exec(netconf.RawMethod(rpcVersion))
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to netconf exec : %w", err)
 	}
 
 	if reply.Errors != nil {
@@ -194,7 +194,7 @@ func (j *NetconfObject) GatherFacts() error {
 		var facts versionRouteEngines
 		err = xml.Unmarshal([]byte(formatted), &facts)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to xml unmarshal reply : %w", err)
 		}
 
 		numRE := len(facts.RE)
@@ -217,7 +217,7 @@ func (j *NetconfObject) GatherFacts() error {
 
 	var facts versionRouteEngine
 	if err := xml.Unmarshal([]byte(formatted), &facts); err != nil {
-		return err
+		return fmt.Errorf("failed to xml unmarshal reply : %w", err)
 	}
 
 	// res := make([]RoutingEngine, 0)
@@ -240,7 +240,7 @@ func (j *NetconfObject) netconfCommand(cmd string) (string, error) {
 	command := fmt.Sprintf(rpcCommand, cmd)
 	reply, err := j.Session.Exec(netconf.RawMethod(command))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to netconf exec : %w", err)
 	}
 	if reply.Errors != nil {
 		for _, m := range reply.Errors {
@@ -252,7 +252,7 @@ func (j *NetconfObject) netconfCommand(cmd string) (string, error) {
 	}
 	var output commandXMLConfig
 	if err := xml.Unmarshal([]byte(reply.Data), &output); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to xml unmarshal reply : %w", err)
 	}
 
 	return output.Config, nil
@@ -260,7 +260,7 @@ func (j *NetconfObject) netconfCommand(cmd string) (string, error) {
 func (j *NetconfObject) netconfCommandXML(cmd string) (string, error) {
 	reply, err := j.Session.Exec(netconf.RawMethod(cmd))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to netconf exec : %w", err)
 	}
 	if reply.Errors != nil {
 		for _, m := range reply.Errors {
@@ -275,7 +275,7 @@ func (j *NetconfObject) netconfConfigSet(cmd []string) (string, error) {
 	command := fmt.Sprintf(rpcConfigStringSet, strings.Join(cmd, "\n"))
 	reply, err := j.Session.Exec(netconf.RawMethod(command))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to netconf exec : %w", err)
 	}
 	// logFile("netconfConfigSet.Reply:" + reply.RawReply)
 	message := ""
@@ -307,7 +307,7 @@ func (j *NetconfObject) netconfConfigLock() bool {
 func (j *NetconfObject) netconfConfigUnlock() error {
 	reply, err := j.Session.Exec(netconf.RawMethod(rpcCandidateUnlock))
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to netconf exec : %w", err)
 	}
 	if reply.Errors != nil {
 		for _, m := range reply.Errors {
@@ -320,7 +320,7 @@ func (j *NetconfObject) netconfConfigUnlock() error {
 func (j *NetconfObject) netconfConfigClear() error {
 	reply, err := j.Session.Exec(netconf.RawMethod(rpcClearCandidate))
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to netconf exec : %w", err)
 	}
 	if reply.Errors != nil {
 		for _, m := range reply.Errors {
@@ -336,7 +336,7 @@ func (j *NetconfObject) netconfCommit(logMessage string) error {
 	var errs commitResults
 	reply, err := j.Session.Exec(netconf.RawMethod(fmt.Sprintf(rpcCommit, logMessage)))
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to netconf exec : %w", err)
 	}
 
 	if reply.Errors != nil {
@@ -348,7 +348,7 @@ func (j *NetconfObject) netconfCommit(logMessage string) error {
 	if reply.Data != "\n<ok/>\n" {
 		err = xml.Unmarshal([]byte(reply.Data), &errs)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to xml unmarshal reply : %w", err)
 		}
 
 		if errs.Errors != nil {
@@ -371,7 +371,7 @@ func (j *NetconfObject) Close() error {
 	_, err := j.Session.Exec(netconf.RawMethod(rpcClose))
 	j.Session.Transport.Close()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to netconf exec : %w", err)
 	}
 
 	return nil

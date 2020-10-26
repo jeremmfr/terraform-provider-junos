@@ -993,7 +993,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 				var err error
 				confRead.vlanTaggingID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vlan-id "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "family inet6"):
 				confRead.inet6 = true
@@ -1006,7 +1006,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 				case strings.HasPrefix(itemTrim, "family inet6 mtu"):
 					confRead.inet6Mtu, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "family inet6 mtu "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "family inet6 filter input "):
 					confRead.inet6FilterInput = strings.TrimPrefix(itemTrim, "family inet6 filter input ")
@@ -1024,7 +1024,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 				case strings.HasPrefix(itemTrim, "family inet mtu "):
 					confRead.inetMtu, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "family inet mtu "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "family inet filter input "):
 					confRead.inetFilterInput = strings.TrimPrefix(itemTrim, "family inet filter input ")
@@ -1043,7 +1043,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 			case strings.HasPrefix(itemTrim, "native-vlan-id"):
 				confRead.vlanNative, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "native-vlan-id "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "aggregated-ether-options lacp "):
 				confRead.aeLacp = strings.TrimPrefix(itemTrim, "aggregated-ether-options lacp ")
@@ -1053,7 +1053,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 				confRead.aeMinLink, err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 					"aggregated-ether-options minimum-links "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			default:
 				continue
@@ -1155,11 +1155,12 @@ func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 			}
 			aeInt, err := strconv.Atoi(strings.TrimPrefix(d.Get("ether802_3ad").(string), "ae"))
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to convert AE id of ether802_3ad argument '%s' in integer : %w",
+					d.Get("ether802_3ad").(string), err)
 			}
 			aggregatedCountInt, err := strconv.Atoi(aggregatedCount)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to convert internal variable aggregatedCountInt in integer : %w", err)
 			}
 			if aggregatedCountInt < aeInt+1 {
 				oAEintNC := checkInterfaceNC(d.Get("ether802_3ad").(string), m, jnprSess)
@@ -1405,25 +1406,25 @@ func fillFamilyInetAddress(item string, inetAddress []map[string]interface{},
 			vrrpGroup["advertise_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVrrp,
 				"advertise-interval "))
 			if err != nil {
-				return inetAddress, err
+				return inetAddress, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimVrrp, err)
 			}
 		case strings.HasPrefix(itemTrimVrrp, "inet6-advertise-interval "):
 			vrrpGroup["advertise_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVrrp,
 				"inet6-advertise-interval "))
 			if err != nil {
-				return inetAddress, err
+				return inetAddress, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimVrrp, err)
 			}
 		case strings.HasPrefix(itemTrimVrrp, "advertisements-threshold "):
 			vrrpGroup["advertisements_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVrrp,
 				"advertisements-threshold "))
 			if err != nil {
-				return inetAddress, err
+				return inetAddress, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimVrrp, err)
 			}
 		case strings.HasPrefix(itemTrimVrrp, "authentication-key "):
 			vrrpGroup["authentication_key"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrimVrrp,
 				"authentication-key "), "\""))
 			if err != nil {
-				return inetAddress, err
+				return inetAddress, fmt.Errorf("failed to decode authentication-key : %w", err)
 			}
 		case strings.HasPrefix(itemTrimVrrp, "authentication-type "):
 			vrrpGroup["authentication_type"] = strings.TrimPrefix(itemTrimVrrp, "authentication-type ")
@@ -1436,13 +1437,13 @@ func fillFamilyInetAddress(item string, inetAddress []map[string]interface{},
 		case strings.HasPrefix(itemTrimVrrp, "priority"):
 			vrrpGroup["priority"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVrrp, "priority "))
 			if err != nil {
-				return inetAddress, err
+				return inetAddress, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimVrrp, err)
 			}
 		case strings.HasPrefix(itemTrimVrrp, "track interface "):
 			vrrpSlit := strings.Split(itemTrimVrrp, " ")
 			cost, err := strconv.Atoi(vrrpSlit[len(vrrpSlit)-1])
 			if err != nil {
-				return inetAddress, err
+				return inetAddress, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimVrrp, err)
 			}
 			trackInt := map[string]interface{}{
 				"interface":     vrrpSlit[2],
@@ -1453,7 +1454,7 @@ func fillFamilyInetAddress(item string, inetAddress []map[string]interface{},
 			vrrpSlit := strings.Split(itemTrimVrrp, " ")
 			cost, err := strconv.Atoi(vrrpSlit[len(vrrpSlit)-1])
 			if err != nil {
-				return inetAddress, err
+				return inetAddress, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimVrrp, err)
 			}
 			trackRoute := map[string]interface{}{
 				"route":            vrrpSlit[2],
@@ -1584,7 +1585,7 @@ func aggregatedCountSearchMax(newAE, oldAE, interFace string, m interface{}, jnp
 	newAENum := strings.TrimPrefix(newAE, "ae")
 	newAENumInt, err := strconv.Atoi(newAENum)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to convert internal variable newAENum to integer : %w", err)
 	}
 	intShowInt, err := sess.command("show interfaces terse", jnprSess)
 	if err != nil {
@@ -1615,7 +1616,7 @@ func aggregatedCountSearchMax(newAE, oldAE, interFace string, m interface{}, jnp
 	if len(intShowAE) > 0 {
 		lastAeInt, err := strconv.Atoi(strings.TrimPrefix(intShowAE[len(intShowAE)-1], "ae"))
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("failed to convert internal variable lastAeInt to integer : %w", err)
 		}
 		if lastAeInt > newAENumInt {
 			return strconv.Itoa(lastAeInt + 1), nil

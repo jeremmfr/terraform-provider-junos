@@ -436,7 +436,7 @@ func readUtmPolicy(policy string, m interface{}, jnprSess *NetconfObject) (
 					confRead.trafficSessionsPerClient[0]["limit"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrim, "traffic-options sessions-per-client limit "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				}
 				if strings.HasPrefix(itemTrim, "traffic-options sessions-per-client over-limit ") {

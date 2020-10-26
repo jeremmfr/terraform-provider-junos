@@ -147,7 +147,7 @@ func resourceIpsecVpnCreate(ctx context.Context, d *schema.ResourceData, m inter
 		if err != nil {
 			sess.configClear(jnprSess)
 
-			return diag.FromErr(fmt.Errorf("error for find new bind interface: %q", err))
+			return diag.FromErr(fmt.Errorf("error for find new bind interface: %w", err))
 		}
 		tfErr := d.Set("bind_interface", newSt0)
 		if tfErr != nil {

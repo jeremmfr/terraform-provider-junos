@@ -335,7 +335,7 @@ func readFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject)
 					ifExceeding["bandwidth_percent"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrim, "if-exceeding bandwidth-percent "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "if-exceeding bandwidth-limit "):
 					ifExceeding["bandwidth_limit"] = strings.TrimPrefix(itemTrim, "if-exceeding bandwidth-limit ")

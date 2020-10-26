@@ -361,14 +361,14 @@ func readSystemRadiusServer(address string, m interface{}, jnprSess *NetconfObje
 				confRead.secret, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
 					"secret "), "\""))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to decode secret : %w", err)
 				}
 			case strings.HasPrefix(itemTrim, "preauthentication-secret "):
 				var err error
 				confRead.preauthenticationSecret, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
 					"preauthentication-secret "), "\""))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to decode preauthentication-secret : %w", err)
 				}
 			case strings.HasPrefix(itemTrim, "source-address "):
 				confRead.sourceAddress = strings.TrimPrefix(itemTrim, "source-address ")
@@ -376,55 +376,55 @@ func readSystemRadiusServer(address string, m interface{}, jnprSess *NetconfObje
 				var err error
 				confRead.port, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "port "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "accounting-port "):
 				var err error
 				confRead.accountingPort, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "accounting-port "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "dynamic-request-port "):
 				var err error
 				confRead.dynamicRequestPort, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "dynamic-request-port "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "preauthentication-port "):
 				var err error
 				confRead.preauthenticationPort, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "preauthentication-port "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "timeout "):
 				var err error
 				confRead.timeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "timeout "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "accounting-timeout "):
 				var err error
 				confRead.accoutingTimeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "accounting-timeout "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "retry "):
 				var err error
 				confRead.retry, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "retry "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "accounting-retry "):
 				var err error
 				confRead.accountingRetry, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "accounting-retry "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "max-outstanding-requests "):
 				var err error
 				confRead.maxOutstandingRequests, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-outstanding-requests "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "routing-instance "):
 				confRead.routingInstance = strings.TrimPrefix(itemTrim, "routing-instance ")

@@ -395,14 +395,14 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 			case strings.HasPrefix(itemTrim, "vlan-id "):
 				confRead.vlanID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vlan-id "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "vlan-id-list "):
 				confRead.vlanIDList = append(confRead.vlanIDList, strings.TrimPrefix(itemTrim, "vlan-id-list "))
 			case strings.HasPrefix(itemTrim, "service-id "):
 				confRead.serviceID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "service-id "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "l3-interface "):
 				confRead.l3Interface = strings.TrimPrefix(itemTrim, "l3-interface ")
@@ -417,13 +417,13 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 			case strings.HasPrefix(itemTrim, "community-vlans "):
 				commVlan, err := strconv.Atoi(strings.TrimPrefix(itemTrim, "community-vlans "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 				confRead.communityVlans = append(confRead.communityVlans, commVlan)
 			case strings.HasPrefix(itemTrim, "isolated-vlan "):
 				confRead.isolatedVlan, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "isolated-vlan "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "vxlan "):
 				vxlan := map[string]interface{}{
@@ -443,7 +443,7 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 				case strings.HasPrefix(itemTrim, "vxlan vni "):
 					vxlan["vni"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vxlan vni "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "vxlan encapsulate-inner-vlan"):
 					vxlan["encapsulate_inner_vlan"] = true
@@ -457,7 +457,7 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 					vxlan["unreachable_vtep_aging_timer"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 						"vxlan unreachable-vtep-aging-timer "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				}
 				confRead.vxlan = []map[string]interface{}{vxlan}

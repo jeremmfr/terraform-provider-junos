@@ -273,12 +273,12 @@ func readIpsecProposal(ipsecProposal string, m interface{}, jnprSess *NetconfObj
 			case strings.HasPrefix(itemTrim, "lifetime-kilobytes "):
 				confRead.lifetimeKilobytes, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "lifetime-kilobytes "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "lifetime-seconds "):
 				confRead.lifetimeSeconds, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "lifetime-seconds "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "protocol "):
 				confRead.protocol = strings.TrimPrefix(itemTrim, "protocol ")

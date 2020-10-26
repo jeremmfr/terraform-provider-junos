@@ -372,25 +372,25 @@ func readOspfArea(idArea, version, routingInstance string,
 					interfaceOptions["metric"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "metric "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
 					}
 				case strings.HasPrefix(itemTrimInterface, "hello-interval "):
 					interfaceOptions["hello_interval"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "hello-interval "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
 					}
 				case strings.HasPrefix(itemTrimInterface, "retransmit-interval "):
 					interfaceOptions["retransmit_interval"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "retransmit-interval "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
 					}
 				case strings.HasPrefix(itemTrimInterface, "dead-interval "):
 					interfaceOptions["dead_interval"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "dead-interval "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
 					}
 				}
 				confRead.interFace = append(confRead.interFace, interfaceOptions)
