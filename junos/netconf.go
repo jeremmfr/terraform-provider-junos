@@ -177,7 +177,7 @@ func (j *NetconfObject) GatherFacts() error {
 
 	reply, err := s.Exec(netconf.RawMethod(rpcVersion))
 	if err != nil {
-		return fmt.Errorf("failed to netconf exec : %w", err)
+		return fmt.Errorf("failed to netconf get-software-info : %w", err)
 	}
 
 	if reply.Errors != nil {
@@ -240,7 +240,7 @@ func (j *NetconfObject) netconfCommand(cmd string) (string, error) {
 	command := fmt.Sprintf(rpcCommand, cmd)
 	reply, err := j.Session.Exec(netconf.RawMethod(command))
 	if err != nil {
-		return "", fmt.Errorf("failed to netconf exec : %w", err)
+		return "", fmt.Errorf("failed to netconf command exec : %w", err)
 	}
 	if reply.Errors != nil {
 		for _, m := range reply.Errors {
@@ -260,7 +260,7 @@ func (j *NetconfObject) netconfCommand(cmd string) (string, error) {
 func (j *NetconfObject) netconfCommandXML(cmd string) (string, error) {
 	reply, err := j.Session.Exec(netconf.RawMethod(cmd))
 	if err != nil {
-		return "", fmt.Errorf("failed to netconf exec : %w", err)
+		return "", fmt.Errorf("failed to netconf xml command exec : %w", err)
 	}
 	if reply.Errors != nil {
 		for _, m := range reply.Errors {
@@ -275,7 +275,7 @@ func (j *NetconfObject) netconfConfigSet(cmd []string) (string, error) {
 	command := fmt.Sprintf(rpcConfigStringSet, strings.Join(cmd, "\n"))
 	reply, err := j.Session.Exec(netconf.RawMethod(command))
 	if err != nil {
-		return "", fmt.Errorf("failed to netconf exec : %w", err)
+		return "", fmt.Errorf("failed to netconf set/delete command exec : %w", err)
 	}
 	// logFile("netconfConfigSet.Reply:" + reply.RawReply)
 	message := ""
@@ -307,7 +307,7 @@ func (j *NetconfObject) netconfConfigLock() bool {
 func (j *NetconfObject) netconfConfigUnlock() error {
 	reply, err := j.Session.Exec(netconf.RawMethod(rpcCandidateUnlock))
 	if err != nil {
-		return fmt.Errorf("failed to netconf exec : %w", err)
+		return fmt.Errorf("failed to netconf config unlock : %w", err)
 	}
 	if reply.Errors != nil {
 		for _, m := range reply.Errors {
@@ -320,7 +320,7 @@ func (j *NetconfObject) netconfConfigUnlock() error {
 func (j *NetconfObject) netconfConfigClear() error {
 	reply, err := j.Session.Exec(netconf.RawMethod(rpcClearCandidate))
 	if err != nil {
-		return fmt.Errorf("failed to netconf exec : %w", err)
+		return fmt.Errorf("failed to netconf config clear : %w", err)
 	}
 	if reply.Errors != nil {
 		for _, m := range reply.Errors {
@@ -336,7 +336,7 @@ func (j *NetconfObject) netconfCommit(logMessage string) error {
 	var errs commitResults
 	reply, err := j.Session.Exec(netconf.RawMethod(fmt.Sprintf(rpcCommit, logMessage)))
 	if err != nil {
-		return fmt.Errorf("failed to netconf exec : %w", err)
+		return fmt.Errorf("failed to netconf commit : %w", err)
 	}
 
 	if reply.Errors != nil {
@@ -371,7 +371,7 @@ func (j *NetconfObject) Close() error {
 	_, err := j.Session.Exec(netconf.RawMethod(rpcClose))
 	j.Session.Transport.Close()
 	if err != nil {
-		return fmt.Errorf("failed to netconf exec : %w", err)
+		return fmt.Errorf("failed to netconf close : %w", err)
 	}
 
 	return nil
