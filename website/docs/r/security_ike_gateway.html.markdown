@@ -41,6 +41,10 @@ The following arguments are supported:
   * `type` - (Required)(`String`) Type of IKE identity.
   * `value` - (Optional)(`String`) Value for IKE identity
 * `version` - (Optional)(`String`) Negotiate using either IKE v1 or IKE v2 protocol. Need to be 'v1-only' or 'v2-only'.
+* `aaa` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare aaa configuration.
+  * `access_profile` - (Optional)(`String`) Access profile that contains authentication information. Conflict with `aaa.client_*`.
+  * `client_username` - (Optional)(`String`) AAA client username with 1 to 128 characters. Conflict with `aaa.access_profile`.
+  * `client_password` - (Optional)(`String`) AAA client password with 1 to 128 characters. Conflict with `aaa.access_profile`.
 
 #### dead_peer_detection arguments
 * `interval` - (Optional)(`Int`) The interval at which to send DPD

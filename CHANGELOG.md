@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* add `aaa` argument in resource `security_ike_gateway`
 
 BUG FIXES:
 * fix lint errors from latest golangci-lint

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	jdecode "github.com/jeremmfr/junosdecode"
 )
 
 type ikeGatewayOptions struct {
@@ -20,6 +21,7 @@ type ikeGatewayOptions struct {
 	version           string
 	localAddress      string
 	address           []string
+	aaa               []map[string]interface{}
 	deadPeerDetection []map[string]interface{}
 	localIdentity     []map[string]interface{}
 	remoteIdentity    []map[string]interface{}
@@ -134,6 +136,40 @@ func resourceIkeGateway() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice([]string{"v1-only", "v2-only"}, false),
+			},
+			"aaa": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"access_profile": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateDiagFunc: validateNameObjectJunos([]string{}),
+							ConflictsWith: []string{
+								"aaa.0.client_username",
+								"aaa.0.client_password",
+							},
+						},
+						"client_username": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ConflictsWith: []string{
+								"aaa.0.access_profile",
+							},
+							ValidateFunc: validation.StringLenBetween(1, 128),
+						},
+						"client_password": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ConflictsWith: []string{
+								"aaa.0.access_profile",
+							},
+							ValidateFunc: validation.StringLenBetween(1, 128),
+						},
+					},
+				},
 			},
 		},
 	}
@@ -364,6 +400,20 @@ func setIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 	if d.Get("version").(string) != "" {
 		configSet = append(configSet, setPrefix+" version "+d.Get("version").(string))
 	}
+	for _, v := range d.Get("aaa").([]interface{}) {
+		if v != nil {
+			aaa := v.(map[string]interface{})
+			if aaa["access_profile"].(string) != "" {
+				configSet = append(configSet, setPrefix+" aaa access-profile "+aaa["access_profile"].(string))
+			}
+			if aaa["client_username"].(string) != "" {
+				configSet = append(configSet, setPrefix+" aaa client username "+aaa["client_username"].(string))
+			}
+			if aaa["client_password"].(string) != "" {
+				configSet = append(configSet, setPrefix+" aaa client password "+aaa["client_password"].(string))
+			}
+		}
+	}
 
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
@@ -462,6 +512,26 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 				confRead.remoteIdentity = []map[string]interface{}{remoteIdentityOptions}
 			case strings.HasPrefix(itemTrim, "version "):
 				confRead.version = strings.TrimPrefix(itemTrim, "version ")
+			case strings.HasPrefix(itemTrim, "aaa "):
+				if len(confRead.aaa) == 0 {
+					confRead.aaa = append(confRead.aaa, map[string]interface{}{
+						"access_profile":  "",
+						"client_username": "",
+						"client_password": "",
+					})
+				}
+				switch {
+				case strings.HasPrefix(itemTrim, "aaa access-profile "):
+					confRead.aaa[0]["access_profile"] = strings.TrimPrefix(itemTrim, "aaa access-profile ")
+				case strings.HasPrefix(itemTrim, "aaa client username "):
+					confRead.aaa[0]["client_username"] = strings.TrimPrefix(itemTrim, "aaa client username ")
+				case strings.HasPrefix(itemTrim, "aaa client password "):
+					confRead.aaa[0]["client_password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
+						"aaa client password "), "\""))
+					if err != nil {
+						return confRead, fmt.Errorf("failed to decode aaa client password : %w", err)
+					}
+				}
 			}
 		}
 	} else {
@@ -515,6 +585,9 @@ func fillIkeGatewayData(d *schema.ResourceData, ikeGatewayOptions ikeGatewayOpti
 		panic(tfErr)
 	}
 	if tfErr := d.Set("version", ikeGatewayOptions.version); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("aaa", ikeGatewayOptions.aaa); tfErr != nil {
 		panic(tfErr)
 	}
 }
