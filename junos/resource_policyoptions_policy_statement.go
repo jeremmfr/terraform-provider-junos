@@ -1214,7 +1214,7 @@ func readPolicyStatementOptsFrom(item string,
 	case strings.HasPrefix(item, "local-preference "):
 		fromMap["local_preference"], err = strconv.Atoi(strings.TrimPrefix(item, "local-preference "))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 		}
 	case strings.HasPrefix(item, "instance "):
 		fromMap["routing_instance"] = strings.TrimPrefix(item, "instance ")
@@ -1223,7 +1223,7 @@ func readPolicyStatementOptsFrom(item string,
 	case strings.HasPrefix(item, "metric "):
 		fromMap["metric"], err = strconv.Atoi(strings.TrimPrefix(item, "metric "))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 		}
 	case strings.HasPrefix(item, "neighbor "):
 		fromMap["neighbor"] = append(fromMap["neighbor"].([]string), strings.TrimPrefix(item, "neighbor "))
@@ -1236,7 +1236,7 @@ func readPolicyStatementOptsFrom(item string,
 	case strings.HasPrefix(item, "preference "):
 		fromMap["preference"], err = strconv.Atoi(strings.TrimPrefix(item, "preference "))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 		}
 	case strings.HasPrefix(item, "prefix-list "):
 		fromMap["prefix_list"] = append(fromMap["prefix_list"].([]string), strings.TrimPrefix(item, "prefix-list "))
@@ -1300,13 +1300,13 @@ func readPolicyStatementOptsThen(item string,
 			localPreferenceMap["action"] = actionNoneWord
 			localPreferenceMap["value"], err = strconv.Atoi(itemSplit[1])
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 			}
 		} else {
 			localPreferenceMap["action"] = itemSplit[1]
 			localPreferenceMap["value"], err = strconv.Atoi(itemSplit[2])
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 			}
 		}
 
@@ -1325,13 +1325,13 @@ func readPolicyStatementOptsThen(item string,
 			metricMap["action"] = actionNoneWord
 			metricMap["value"], err = strconv.Atoi(itemSplit[1])
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 			}
 		} else {
 			metricMap["action"] = itemSplit[1]
 			metricMap["value"], err = strconv.Atoi(itemSplit[2])
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 			}
 		}
 		thenMap["metric"] = append(thenMap["metric"].([]map[string]interface{}), metricMap)
@@ -1347,13 +1347,13 @@ func readPolicyStatementOptsThen(item string,
 			preferenceMap["action"] = actionNoneWord
 			preferenceMap["value"], err = strconv.Atoi(itemSplit[1])
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 			}
 		} else {
 			preferenceMap["action"] = itemSplit[1]
 			preferenceMap["value"], err = strconv.Atoi(itemSplit[2])
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 			}
 		}
 		thenMap["preference"] = append(thenMap["preference"].([]map[string]interface{}), preferenceMap)
@@ -1385,7 +1385,7 @@ func readPolicyStatementOptsTo(item string,
 	case strings.HasPrefix(item, "local-preference "):
 		toMap["local_preference"], err = strconv.Atoi(strings.TrimPrefix(item, "local-preference "))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 		}
 	case strings.HasPrefix(item, "instance "):
 		toMap["routing_instance"] = strings.TrimPrefix(item, "instance ")
@@ -1394,7 +1394,7 @@ func readPolicyStatementOptsTo(item string,
 	case strings.HasPrefix(item, "metric "):
 		toMap["metric"], err = strconv.Atoi(strings.TrimPrefix(item, "metric "))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 		}
 	case strings.HasPrefix(item, "neighbor "):
 		toMap["neighbor"] = append(toMap["neighbor"].([]string), strings.TrimPrefix(item, "neighbor "))
@@ -1407,7 +1407,7 @@ func readPolicyStatementOptsTo(item string,
 	case strings.HasPrefix(item, "preference "):
 		toMap["preference"], err = strconv.Atoi(strings.TrimPrefix(item, "preference "))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 		}
 	case strings.HasPrefix(item, "protocol "):
 		toMap["protocol"] = append(toMap["protocol"].([]string), strings.TrimPrefix(item, "protocol "))

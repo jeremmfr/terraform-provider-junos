@@ -37,7 +37,7 @@ func (sess *Session) startNewSession() (*NetconfObject, error) {
 		if strings.HasPrefix(sess.junosSSHKeyFile, "~") {
 			homeDir, err := os.UserHomeDir()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to read user home directory : %w", err)
 			}
 			auth.PrivateKeyFile = homeDir + sess.junosSSHKeyFile[1:]
 		}

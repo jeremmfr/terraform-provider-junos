@@ -262,13 +262,13 @@ func readSystemNtpServer(address string, m interface{}, jnprSess *NetconfObject)
 				var err error
 				confRead.key, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "key "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "version "):
 				var err error
 				confRead.version, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "version "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasSuffix(itemTrim, "prefer"):
 				confRead.prefer = true

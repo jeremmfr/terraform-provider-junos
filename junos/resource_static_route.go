@@ -353,12 +353,12 @@ func readStaticRoute(destination string, instance string, m interface{},
 			case strings.HasPrefix(itemTrim, "preference "):
 				confRead.preference, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "preference "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "metric "):
 				confRead.metric, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "metric "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "community "):
 				confRead.community = append(confRead.community, strings.TrimPrefix(itemTrim, "community "))
@@ -380,13 +380,13 @@ func readStaticRoute(destination string, instance string, m interface{},
 					qualifiedNextHopOptions["metric"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimQnh, "metric "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimQnh, err)
 					}
 				case strings.HasPrefix(itemTrimQnh, "preference "):
 					qualifiedNextHopOptions["preference"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimQnh, "preference "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimQnh, err)
 					}
 				}
 				confRead.qualifiedNextHop = append(confRead.qualifiedNextHop, qualifiedNextHopOptions)

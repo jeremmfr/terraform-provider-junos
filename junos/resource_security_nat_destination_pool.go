@@ -271,7 +271,7 @@ func readSecurityNatDestinationPool(natDestinationPool string,
 			case strings.HasPrefix(itemTrim, "address port"):
 				confRead.addressPort, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "address port "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "address "):
 				confRead.address = strings.TrimPrefix(itemTrim, "address ")

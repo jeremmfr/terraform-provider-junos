@@ -291,7 +291,7 @@ func readSecurityNatSourcePool(natSourcePool string,
 				confRead.portOverloadingFactor, err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 					"port port-overloading-factor "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "port range to"):
 				portRange += "-" + strings.TrimPrefix(itemTrim, "port range to ")

@@ -11,6 +11,7 @@ linters:
     - goerr113 
     - nestif
     - gofumpt
+    - exhaustivestruct
 linters-settings:
   gocyclo:
     # minimal code complexity to report, 30 by default

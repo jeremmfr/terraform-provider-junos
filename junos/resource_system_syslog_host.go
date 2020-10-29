@@ -478,7 +478,7 @@ func readSystemSyslogHost(host string, m interface{}, jnprSess *NetconfObject) (
 				var err error
 				confRead.port, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "port "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "source-address "):
 				confRead.sourceAddress = strings.TrimPrefix(itemTrim, "source-address ")

@@ -398,20 +398,20 @@ func readUtmProfileWebFWebsense(profile string, m interface{}, jnprSess *Netconf
 					var err error
 					confRead.server[0]["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "server port "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				}
 			case strings.HasPrefix(itemTrim, "sockets "):
 				var err error
 				confRead.sockets, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "sockets "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "timeout "):
 				var err error
 				confRead.timeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "timeout "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			}
 		}

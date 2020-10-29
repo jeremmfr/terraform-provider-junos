@@ -2,6 +2,7 @@
 ENHANCEMENTS:
 
 BUG FIXES:
+* fix lint errors from latest golangci-lint
 
 ## v1.6.1
 BUG FIXES:

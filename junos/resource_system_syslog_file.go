@@ -611,19 +611,19 @@ func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObjec
 					var err error
 					archiveM["files"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "archive files "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "archive size "):
 					var err error
 					archiveM["size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "archive size "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "archive transfer-interval "):
 					var err error
 					archiveM["transfer_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "archive transfer-interval "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "archive start-time "):
 					archiveM["start_time"] = strings.TrimPrefix(itemTrim, "archive start-time ")
@@ -644,7 +644,7 @@ func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObjec
 						sitesOptions["password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 							itemTrimArchSites, "password "), "\""))
 						if err != nil {
-							return confRead, err
+							return confRead, fmt.Errorf("failed to decode password : %w", err)
 						}
 					case strings.HasPrefix(itemTrimArchSites, "routing-instance "):
 						sitesOptions["routing_instance"] = strings.TrimPrefix(itemTrimArchSites, "routing-instance ")

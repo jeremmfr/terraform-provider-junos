@@ -2,6 +2,7 @@ package junos
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -250,7 +251,7 @@ func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsO
 					confRead.autonomousSystem[0]["loops"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrim, "autonomous-system loops "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "autonomous-system asdot-notation"):
 					confRead.autonomousSystem[0]["asdot_notation"] = true
@@ -272,7 +273,7 @@ func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsO
 					confRead.gracefulRestart[0]["restart_duration"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrim, "graceful-restart restart-duration "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				}
 			}
