@@ -210,6 +210,7 @@ github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOl
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99/go.mod h1:1lJo3i6rXxKeerYnT8Nvf0QmHCRC1n8sfWVwXF2Frvo=
 github.com/jeremmfr/go-netconf v0.3.0 h1:4mW8DxFRb4H39yzT5rckKiUm4PkS9RAq7HbKn58KCHY=
 github.com/jeremmfr/go-netconf v0.3.0/go.mod h1:1vOGQHfD7yK+kyrMdLYb0qyuSyoIkek3zNQFYbhBmgc=
+github.com/jeremmfr/go-netconf v0.3.1/go.mod h1:1vOGQHfD7yK+kyrMdLYb0qyuSyoIkek3zNQFYbhBmgc=
 github.com/jeremmfr/junosdecode v1.0.0 h1:fk6YD/FM4yk+dcATCswulteHRf2S+PQkznj3YxoAvgI=
 github.com/jeremmfr/junosdecode v1.0.0/go.mod h1:kGZxoTprXFZZ+xKMY5d4KB1UN0w3M3DScaN6ELs31Go=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
