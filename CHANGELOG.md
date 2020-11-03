@@ -1,5 +1,7 @@
 ## upcoming release
 ENHANCEMENTS:
+* add `dynamic_remote` argument in resource `security_ike_gateway` (Fixes [#50](https://github.com/jeremmfr/terraform-provider-junos/issues/50))
+* add `aaa` argument in resource `security_ike_gateway`
 
 BUG FIXES:
 * fix lint errors from latest golangci-lint
