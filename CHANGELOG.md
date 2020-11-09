@@ -1,6 +1,7 @@
 ## upcoming release
 ENHANCEMENTS:
 * add `traffic_selector` argument in resource `security_ipsec_vpn` (Fixes [#53](https://github.com/jeremmfr/terraform-provider-junos/issues/53))
+* add `complete_destroy` argument in resource `interface`
 
 BUG FIXES:
 * remove useless ForceNew for `bind_interface_auto` argument in resource `security_ipsec_vpn`

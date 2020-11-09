@@ -41,6 +41,8 @@ The following arguments are supported:
 
 * `name` - (Required, Forces new resource)(`String`) Name of interface or unit interface (with dot).
 * `description` - (Optional)(`String`) Description for interface.
+* `complete_destroy` - (Optional)(`Bool`) When destroy this resource, delete all configurations => do not add `disable` + `descrition NC` or `apply-groups` with `group_interface_delete` provider argument on **physical** or **st0.x** interfaces.  
+(Usually, `st0.x` interfaces are completely deleted with `bind_interface` argument in `security_ipsec_vpn` resource because of the dependency, but only if st0.x interface is empty or disable.)
 * `vlan_tagging` - (Optional)(`Bool`) Add 802.1q VLAN tagging support.
 * `vlan_tagging_id` - (Optional,Computed)(`Int`) 802.1q VLAN ID for unit interface. If not set, computed with `name` of interface (ge-0/0/0.100 = 100)
 * `inet` - (Optional,Computed)(`Bool`) Enable family inet.
