@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* add `traffic_selector` argument in resource `security_ipsec_vpn` (Fixes [#53](https://github.com/jeremmfr/terraform-provider-junos/issues/53))
 
 BUG FIXES:
 

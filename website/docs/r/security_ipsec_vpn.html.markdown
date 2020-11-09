@@ -45,6 +45,10 @@ The following arguments are supported:
   * `source_interface_auto` - (Optional)(`Bool`) Compute the source_interface to `bind_interface`
   * `destination_ip` - (Optional)(`String`) IP destination for monitor message
   * `optimized` - (Optional)(`Bool`) Optimize for scalability
+* `traffic_selector` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each traffic-selector to declare.
+  * `name` - (Required)(`String`) Name of traffic-selector.
+  * `local_ip` - (Required)(`String`) CIDR for IP addresses of local traffic-selector.
+  * `remote_ip` - (Required)(`String`) CIDR for IP addresses of remote traffic-selector.
 
 ## Import
 
