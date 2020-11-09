@@ -129,7 +129,7 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_policy.testacc_policyIpsecRemToLoc",
 							"policy.#", "1"),
 						resource.TestCheckResourceAttr("junos_security_policy.testacc_policyIpsecRemToLoc",
-							"policy.0.permit_tunnel_ipsec_vpn", "testacc_ipsecvpn"),
+							"policy.0.permit_tunnel_ipsec_vpn", "testacc_ipsecvpn2"),
 						resource.TestCheckResourceAttr("junos_security_policy_tunnel_pair_policy.testacc_vpn-in-out",
 							"policy_a_to_b", "testacc_vpn-out"),
 						resource.TestCheckResourceAttr("junos_security_policy_tunnel_pair_policy.testacc_vpn-in-out",
@@ -170,7 +170,7 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					ResourceName:            "junos_security_ipsec_vpn.testacc_ipsecvpn",
+					ResourceName:            "junos_security_ipsec_vpn.testacc_ipsecvpn2",
 					ImportState:             true,
 					ImportStateVerify:       true,
 					ImportStateVerifyIgnore: []string{"bind_interface_auto"},
@@ -203,6 +203,14 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
 							"dynamic_remote.0.hostname", "host1.example.com"),
+						resource.TestCheckResourceAttr("junos_security_ipsec_vpn.testacc_ipsecvpn",
+							"traffic_selector.#", "2"),
+						resource.TestCheckResourceAttr("junos_security_ipsec_vpn.testacc_ipsecvpn",
+							"traffic_selector.0.name", "ts-1"),
+						resource.TestCheckResourceAttr("junos_security_ipsec_vpn.testacc_ipsecvpn",
+							"traffic_selector.0.local_ip", "192.0.2.0/26"),
+						resource.TestCheckResourceAttr("junos_security_ipsec_vpn.testacc_ipsecvpn",
+							"traffic_selector.0.remote_ip", "192.0.3.64/26"),
 					),
 				},
 				{
@@ -361,9 +369,8 @@ resource junos_security_ipsec_policy "testacc_ipsecpol" {
   proposals = [junos_security_ipsec_proposal.testacc_ipsecprop.name]
   pfs_keys  = "group1"
 }
-resource junos_security_ipsec_vpn "testacc_ipsecvpn" {
-  name                = "testacc_ipsecvpn"
-  bind_interface_auto = false
+resource junos_security_ipsec_vpn "testacc_ipsecvpn2" {
+  name = "testacc_ipsecvpn2"
   ike {
     gateway          = junos_security_ike_gateway.testacc_ikegateway.name
     policy           = junos_security_ipsec_policy.testacc_ipsecpol.name
@@ -396,7 +403,7 @@ resource junos_security_policy testacc_policyIpsecLocToRem {
       match_source_address      = [junos_security_zone.testacc_secIkeIpsec_local.address_book[0].name]
       match_destination_address = [junos_security_zone.testacc_secIkeIpsec_remote.address_book[0].name]
       match_application         = ["any"]
-      permit_tunnel_ipsec_vpn   = junos_security_ipsec_vpn.testacc_ipsecvpn.name
+      permit_tunnel_ipsec_vpn   = junos_security_ipsec_vpn.testacc_ipsecvpn2.name
   }
 }
 
@@ -408,7 +415,7 @@ resource junos_security_policy testacc_policyIpsecRemToLoc {
     match_source_address      = [junos_security_zone.testacc_secIkeIpsec_remote.address_book[0].name]
     match_destination_address = [junos_security_zone.testacc_secIkeIpsec_local.address_book[0].name]
     match_application         = ["any"]
-    permit_tunnel_ipsec_vpn   = junos_security_ipsec_vpn.testacc_ipsecvpn.name
+    permit_tunnel_ipsec_vpn   = junos_security_ipsec_vpn.testacc_ipsecvpn2.name
   }
 }
 
@@ -476,9 +483,8 @@ resource junos_security_ipsec_policy "testacc_ipsecpol" {
   proposals = [junos_security_ipsec_proposal.testacc_ipsecprop.name]
   pfs_keys  = "group1"
 }
-resource junos_security_ipsec_vpn "testacc_ipsecvpn" {
-  name                = "testacc_ipsecvpn"
-  bind_interface_auto = false
+resource junos_security_ipsec_vpn "testacc_ipsecvpn2" {
+  name = "testacc_ipsecvpn2"
   ike {
     gateway          = junos_security_ike_gateway.testacc_ikegateway.name
     policy           = junos_security_ipsec_policy.testacc_ipsecpol.name
@@ -511,7 +517,7 @@ resource junos_security_policy testacc_policyIpsecLocToRem {
       match_source_address      = [junos_security_zone.testacc_secIkeIpsec_local.address_book[0].name]
       match_destination_address = [junos_security_zone.testacc_secIkeIpsec_remote.address_book[0].name]
       match_application         = ["any"]
-      permit_tunnel_ipsec_vpn   = junos_security_ipsec_vpn.testacc_ipsecvpn.name
+      permit_tunnel_ipsec_vpn   = junos_security_ipsec_vpn.testacc_ipsecvpn2.name
   }
 }
 
@@ -523,7 +529,7 @@ resource junos_security_policy testacc_policyIpsecRemToLoc {
     match_source_address      = [junos_security_zone.testacc_secIkeIpsec_remote.address_book[0].name]
     match_destination_address = [junos_security_zone.testacc_secIkeIpsec_local.address_book[0].name]
     match_application         = ["any"]
-    permit_tunnel_ipsec_vpn   = junos_security_ipsec_vpn.testacc_ipsecvpn.name
+    permit_tunnel_ipsec_vpn   = junos_security_ipsec_vpn.testacc_ipsecvpn2.name
   }
 }
 
@@ -563,6 +569,41 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
   }
   policy             = junos_security_ike_policy.testacc_ikepol.name
   external_interface = junos_interface.testacc_ikegateway.name
+}
+resource junos_security_ipsec_proposal "testacc_ipsecprop" {
+  name                     = "testacc_ipsecprop"
+  authentication_algorithm = "hmac-sha1-96"
+  protocol                 = "esp"
+  encryption_algorithm     = "aes-128-cbc"
+}
+resource junos_security_ipsec_policy "testacc_ipsecpol" {
+  name      = "testacc_ipsecpol"
+  proposals = [junos_security_ipsec_proposal.testacc_ipsecprop.name]
+  pfs_keys  = "group2"
+}
+resource junos_security_ipsec_vpn "testacc_ipsecvpn" {
+  name           = "testacc_ipsecvpn"
+  bind_interface = junos_interface.testacc_ipsecvpn_bind.name
+  ike {
+    gateway = junos_security_ike_gateway.testacc_ikegateway.name
+    policy  = junos_security_ipsec_policy.testacc_ipsecpol.name
+  }
+  establish_tunnels = "on-traffic"
+  traffic_selector {
+    name      = "ts-1"
+    local_ip  = "192.0.2.0/26"
+    remote_ip = "192.0.3.64/26"
+  }
+  traffic_selector {
+    name      = "ts-2"
+    local_ip  = "192.0.2.128/26"
+    remote_ip = "192.0.3.192/26"
+  }
+}
+resource junos_interface "testacc_ipsecvpn_bind" {
+  name             = "st0.1"
+  inet             = true
+  complete_destroy = true
 }
 `
 }
