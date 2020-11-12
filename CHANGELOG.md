@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* add `proposal_set` argument in resource `security_ike_policy` and `security_ipsec_policy` (Fixes [#55](https://github.com/jeremmfr/terraform-provider-junos/issues/55))
 
 BUG FIXES:
 
