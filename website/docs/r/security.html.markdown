@@ -31,13 +31,13 @@ resource junos_security "security" {
 The following arguments are supported:
 
 * `ike_traceoptions` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'ike traceoptions' configuration.
-  * `file` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'file' configuration. See the [`file` arguments] (#file-arguments) block.
+  * `file` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'file' configuration. See the [`file` argument] (#file-argument) block.
   * `flag` - (Optional)(`ListOfString`) Tracing parameters for IKE.
   * `rate_limit` - (Optional)(`Int`) Limit the incoming rate of trace messages (0..4294967295)
 * `utm` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'utm' configuration.
   * `feature_profile_web_filtering_type` - (Optional)(`String`) Configuring feature-profile web-filtering type. Need to be 'juniper-enhanced', 'juniper-local', 'web-filtering-none' or 'websense-redirect'.
 
-#### file arguments
+#### file argument
 * `name` - (Optional)(`String`) Name of file in which to write trace information.
 * `files` - (Optional)(`Int`) Maximum number of trace files (2..1000).
 * `match` - (Optional)(`String`) Regular expression for lines to be logged.
