@@ -311,65 +311,9 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
 			case strings.HasPrefix(itemTrim, "ike traceoptions"):
-				if len(confRead.ikeTraceoptions) == 0 {
-					confRead.ikeTraceoptions = append(confRead.ikeTraceoptions, map[string]interface{}{
-						"file":            make([]map[string]interface{}, 0),
-						"flag":            make([]string, 0),
-						"no_remote_trace": false,
-						"rate_limit":      -1,
-					})
-				}
-				switch {
-				case strings.HasPrefix(itemTrim, "ike traceoptions file"):
-					if len(confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})) == 0 {
-						confRead.ikeTraceoptions[0]["file"] = append(
-							confRead.ikeTraceoptions[0]["file"].([]map[string]interface{}), map[string]interface{}{
-								"name":              "",
-								"files":             0,
-								"match":             "",
-								"size":              0,
-								"world_readable":    false,
-								"no_world_readable": false,
-							})
-					}
-					switch {
-					case strings.HasPrefix(itemTrim, "ike traceoptions file files"):
-						var err error
-						confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["files"], err = strconv.Atoi(
-							strings.TrimPrefix(itemTrim, "ike traceoptions file files "))
-						if err != nil {
-							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
-						}
-					case strings.HasPrefix(itemTrim, "ike traceoptions file match"):
-						confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["match"] = strings.Trim(
-							strings.TrimPrefix(itemTrim, "ike traceoptions file match "), "\"")
-					case strings.HasPrefix(itemTrim, "ike traceoptions file size"):
-						var err error
-						confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"], err = strconv.Atoi(
-							strings.TrimPrefix(itemTrim, "ike traceoptions file size "))
-						if err != nil {
-							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
-						}
-					case strings.HasPrefix(itemTrim, "ike traceoptions file world-readable"):
-						confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["world_readable"] = true
-					case strings.HasPrefix(itemTrim, "ike traceoptions file no-world-readable"):
-						confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["no_world_readable"] = true
-					case strings.HasPrefix(itemTrim, "ike traceoptions file "):
-						confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["name"] = strings.Trim(
-							strings.TrimPrefix(itemTrim, "ike traceoptions file "), "\"")
-					}
-				case strings.HasPrefix(itemTrim, "ike traceoptions flag"):
-					confRead.ikeTraceoptions[0]["flag"] = append(confRead.ikeTraceoptions[0]["flag"].([]string),
-						strings.TrimPrefix(itemTrim, "ike traceoptions flag "))
-				case strings.HasPrefix(itemTrim, "ike traceoptions no-remote-trace"):
-					confRead.ikeTraceoptions[0]["no_remote_trace"] = true
-				case strings.HasPrefix(itemTrim, "ike traceoptions rate-limit"):
-					var err error
-					confRead.ikeTraceoptions[0]["rate_limit"], err = strconv.Atoi(
-						strings.TrimPrefix(itemTrim, "ike traceoptions rate-limit "))
-					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
-					}
+				err := readSecurityIkeTraceOptions(&confRead, itemTrim)
+				if err != nil {
+					return confRead, err
 				}
 			case checkStringHasPrefixInList(itemTrim, listLinessSecurityUtm()):
 				if len(confRead.utm) == 0 {
@@ -388,6 +332,70 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 	return confRead, nil
 }
 
+func readSecurityIkeTraceOptions(confRead *securityOptions, itemTrim string) error {
+	if len(confRead.ikeTraceoptions) == 0 {
+		confRead.ikeTraceoptions = append(confRead.ikeTraceoptions, map[string]interface{}{
+			"file":            make([]map[string]interface{}, 0),
+			"flag":            make([]string, 0),
+			"no_remote_trace": false,
+			"rate_limit":      -1,
+		})
+	}
+	switch {
+	case strings.HasPrefix(itemTrim, "ike traceoptions file"):
+		if len(confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})) == 0 {
+			confRead.ikeTraceoptions[0]["file"] = append(
+				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{}), map[string]interface{}{
+					"name":              "",
+					"files":             0,
+					"match":             "",
+					"size":              0,
+					"world_readable":    false,
+					"no_world_readable": false,
+				})
+		}
+		switch {
+		case strings.HasPrefix(itemTrim, "ike traceoptions file files"):
+			var err error
+			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["files"], err = strconv.Atoi(
+				strings.TrimPrefix(itemTrim, "ike traceoptions file files "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "ike traceoptions file match"):
+			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["match"] = strings.Trim(
+				strings.TrimPrefix(itemTrim, "ike traceoptions file match "), "\"")
+		case strings.HasPrefix(itemTrim, "ike traceoptions file size"):
+			var err error
+			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"], err = strconv.Atoi(
+				strings.TrimPrefix(itemTrim, "ike traceoptions file size "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "ike traceoptions file world-readable"):
+			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["world_readable"] = true
+		case strings.HasPrefix(itemTrim, "ike traceoptions file no-world-readable"):
+			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["no_world_readable"] = true
+		case strings.HasPrefix(itemTrim, "ike traceoptions file "):
+			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["name"] = strings.Trim(
+				strings.TrimPrefix(itemTrim, "ike traceoptions file "), "\"")
+		}
+	case strings.HasPrefix(itemTrim, "ike traceoptions flag"):
+		confRead.ikeTraceoptions[0]["flag"] = append(confRead.ikeTraceoptions[0]["flag"].([]string),
+			strings.TrimPrefix(itemTrim, "ike traceoptions flag "))
+	case strings.HasPrefix(itemTrim, "ike traceoptions no-remote-trace"):
+		confRead.ikeTraceoptions[0]["no_remote_trace"] = true
+	case strings.HasPrefix(itemTrim, "ike traceoptions rate-limit"):
+		var err error
+		confRead.ikeTraceoptions[0]["rate_limit"], err = strconv.Atoi(
+			strings.TrimPrefix(itemTrim, "ike traceoptions rate-limit "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	}
+
+	return nil
+}
 func fillSecurity(d *schema.ResourceData, securityOptions securityOptions) {
 	if tfErr := d.Set("ike_traceoptions", securityOptions.ikeTraceoptions); tfErr != nil {
 		panic(tfErr)
