@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* optimize memory usage of functions for resource bgp_*
 
 BUG FIXES:
 

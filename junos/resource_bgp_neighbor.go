@@ -753,7 +753,7 @@ func readBgpNeighbor(ip, instance, group string, m interface{}, jnprSess *Netcon
 					return confRead, err
 				}
 			default:
-				confRead, err = readBgpOptsSimple(itemTrim, confRead)
+				err = readBgpOptsSimple(itemTrim, &confRead)
 				if err != nil {
 					return confRead, err
 				}

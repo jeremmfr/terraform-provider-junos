@@ -749,7 +749,7 @@ func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObj
 					return confRead, err
 				}
 			default:
-				confRead, err = readBgpOptsSimple(itemTrim, confRead)
+				err = readBgpOptsSimple(itemTrim, &confRead)
 				if err != nil {
 					return confRead, err
 				}

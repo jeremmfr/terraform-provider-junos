@@ -253,7 +253,7 @@ func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, j
 
 	return nil
 }
-func readBgpOptsSimple(item string, confRead bgpOptions) (bgpOptions, error) {
+func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 	var err error
 	if item == "accept-remote-nexthop" {
 		confRead.acceptRemoteNexthop = true
@@ -300,13 +300,13 @@ func readBgpOptsSimple(item string, confRead bgpOptions) (bgpOptions, error) {
 	if strings.HasPrefix(item, "hold-time ") {
 		confRead.holdTime, err = strconv.Atoi(strings.TrimPrefix(item, "hold-time "))
 		if err != nil {
-			return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 		}
 	}
 	if strings.HasPrefix(item, "local-preference ") {
 		confRead.localPreference, err = strconv.Atoi(strings.TrimPrefix(item, "local-preference "))
 		if err != nil {
-			return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 		}
 	}
 	if strings.HasPrefix(item, "local-as ") {
@@ -320,7 +320,7 @@ func readBgpOptsSimple(item string, confRead bgpOptions) (bgpOptions, error) {
 		case strings.HasPrefix(item, "local-as loops "):
 			confRead.localAsLoops, err = strconv.Atoi(strings.TrimPrefix(item, "local-as loops "))
 			if err != nil {
-				return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 			}
 		default:
 			confRead.localAs = strings.TrimPrefix(item, "local-as ")
@@ -330,7 +330,7 @@ func readBgpOptsSimple(item string, confRead bgpOptions) (bgpOptions, error) {
 		if !strings.Contains(item, "igp") {
 			confRead.metricOut, err = strconv.Atoi(strings.TrimPrefix(item, "metric-out "))
 			if err != nil {
-				return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 			}
 		} else {
 			if strings.HasPrefix(item, "metric-out igp") {
@@ -340,7 +340,7 @@ func readBgpOptsSimple(item string, confRead bgpOptions) (bgpOptions, error) {
 				} else if strings.HasPrefix(item, "metric-out igp ") {
 					confRead.metricOutIgpOffset, err = strconv.Atoi(strings.TrimPrefix(item, "metric-out igp "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+						return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 					}
 				}
 			} else {
@@ -348,7 +348,7 @@ func readBgpOptsSimple(item string, confRead bgpOptions) (bgpOptions, error) {
 				if strings.HasPrefix(item, "metric-out minimum-igp ") {
 					confRead.metricOutMinimumIgpOffset, err = strconv.Atoi(strings.TrimPrefix(item, "metric-out minimum-igp "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+						return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 					}
 				}
 			}
@@ -357,7 +357,7 @@ func readBgpOptsSimple(item string, confRead bgpOptions) (bgpOptions, error) {
 	if strings.HasPrefix(item, "out-delay ") {
 		confRead.outDelay, err = strconv.Atoi(strings.TrimPrefix(item, "out-delay "))
 		if err != nil {
-			return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 		}
 	}
 	if strings.HasPrefix(item, "peer-as ") {
@@ -366,7 +366,7 @@ func readBgpOptsSimple(item string, confRead bgpOptions) (bgpOptions, error) {
 	if strings.HasPrefix(item, "preference ") {
 		confRead.preference, err = strconv.Atoi(strings.TrimPrefix(item, "preference "))
 		if err != nil {
-			return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 		}
 	}
 	if strings.HasPrefix(item, "authentication-algorithm ") {
@@ -375,7 +375,7 @@ func readBgpOptsSimple(item string, confRead bgpOptions) (bgpOptions, error) {
 	if strings.HasPrefix(item, "authentication-key ") {
 		confRead.authenticationKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(item, "authentication-key "), "\""))
 		if err != nil {
-			return confRead, fmt.Errorf("failed to decode authentication-key : %w", err)
+			return fmt.Errorf("failed to decode authentication-key : %w", err)
 		}
 	}
 	if strings.HasPrefix(item, "authentication-key-chain ") {
@@ -397,7 +397,7 @@ func readBgpOptsSimple(item string, confRead bgpOptions) (bgpOptions, error) {
 		confRead.importPolicy = append(confRead.importPolicy, strings.TrimPrefix(item, "import "))
 	}
 
-	return confRead, nil
+	return nil
 }
 
 func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{},
@@ -572,20 +572,20 @@ func setBgpOptsFamily(setPrefix, familyType string, familyOptsList []interface{}
 		for _, v := range familyOptsM["accepted_prefix_limit"].([]interface{}) {
 			m := v.(map[string]interface{})
 			setP := setPrefixFamily + familyOptsM["nlri_type"].(string) + " accepted-prefix-limit "
-			var err error
-			configSet, err = setBgpOptsFamilyPrefixLimit(configSet, setP, m)
+			configSetBgpOptsFamilyPrefixLimit, err := setBgpOptsFamilyPrefixLimit(setP, m)
 			if err != nil {
 				return err
 			}
+			configSet = append(configSet, configSetBgpOptsFamilyPrefixLimit...)
 		}
 		for _, v := range familyOptsM["prefix_limit"].([]interface{}) {
 			m := v.(map[string]interface{})
 			setP := setPrefixFamily + familyOptsM["nlri_type"].(string) + " prefix-limit "
-			var err error
-			configSet, err = setBgpOptsFamilyPrefixLimit(configSet, setP, m)
+			configSetBgpOptsFamilyPrefixLimit, err := setBgpOptsFamilyPrefixLimit(setP, m)
 			if err != nil {
 				return err
 			}
+			configSet = append(configSet, configSetBgpOptsFamilyPrefixLimit...)
 		}
 	}
 	if len(configSet) > 0 {
@@ -597,8 +597,8 @@ func setBgpOptsFamily(setPrefix, familyType string, familyOptsList []interface{}
 
 	return nil
 }
-func setBgpOptsFamilyPrefixLimit(configSet []string,
-	setPrefix string, prefixLimit map[string]interface{}) ([]string, error) {
+func setBgpOptsFamilyPrefixLimit(setPrefix string, prefixLimit map[string]interface{}) ([]string, error) {
+	configSet := make([]string, 0)
 	if prefixLimit["maximum"].(int) != 0 {
 		configSet = append(configSet, setPrefix+"maximum "+strconv.Itoa(prefixLimit["maximum"].(int)))
 	}
