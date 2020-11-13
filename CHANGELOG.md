@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* add `alg` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
 
 BUG FIXES:
 

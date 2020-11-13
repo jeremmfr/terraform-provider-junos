@@ -46,6 +46,8 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 							"utm.#", "1"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"utm.0.feature_profile_web_filtering_type", "juniper-enhanced"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"alg.#", "1"),
 					),
 				},
 				{
@@ -94,6 +96,15 @@ resource junos_security "testacc_security" {
   }
   utm {
     feature_profile_web_filtering_type = "juniper-enhanced"
+  }
+  alg {
+    dns_disable    = true
+    ftp_disable    = true
+    msrpc_disable  = true
+    pptp_disable   = true
+    sunrpc_disable = true
+    talk_disable   = true
+    tftp_disable   = true
   }
 }
 `

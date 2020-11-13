@@ -14,6 +14,7 @@ import (
 type securityOptions struct {
 	ikeTraceoptions []map[string]interface{}
 	utm             []map[string]interface{}
+	alg             []map[string]interface{}
 }
 
 func resourceSecurity() *schema.Resource {
@@ -97,6 +98,43 @@ func resourceSecurity() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"juniper-enhanced", "juniper-local", "web-filtering-none", "websense-redirect",
 							}, false),
+						},
+					},
+				},
+			},
+			"alg": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"dns_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"ftp_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"msrpc_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"pptp_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"sunrpc_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"talk_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"tftp_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
 						},
 					},
 				},
@@ -261,6 +299,9 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 			}
 		}
 	}
+	for _, alg := range d.Get("alg").([]interface{}) {
+		configSet = append(configSet, setSecurityAlg(alg)...)
+	}
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
@@ -268,16 +309,61 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	return nil
 }
 
+func setSecurityAlg(alg interface{}) []string {
+	setPrefix := "set security alg "
+	configSet := make([]string, 0)
+	if alg != nil {
+		algM := alg.(map[string]interface{})
+		if algM["dns_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"dns disable")
+		}
+		if algM["ftp_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"ftp disable")
+		}
+		if algM["msrpc_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"msrpc disable")
+		}
+		if algM["pptp_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"pptp disable")
+		}
+		if algM["sunrpc_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"sunrpc disable")
+		}
+		if algM["talk_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"talk disable")
+		}
+		if algM["tftp_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"tftp disable")
+		}
+	}
+
+	return configSet
+}
+
 func listLinesSecurityUtm() []string {
 	return []string{
 		"utm feature-profile web-filtering type",
 	}
 }
+
+func listLinesSecurityAlg() []string {
+	return []string{
+		"alg dns disable",
+		"alg ftp disable",
+		"alg msrpc disable",
+		"alg pptp disable",
+		"alg sunrpc disable",
+		"alg talk disable",
+		"alg tftp disable",
+	}
+}
+
 func delSecurity(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete := []string{
 		"ike traceoptions",
 	}
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityUtm()...)
+	listLinesToDelete = append(listLinesToDelete, listLinesSecurityAlg()...)
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	delPrefix := "delete security "
@@ -325,6 +411,8 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 					confRead.utm[0]["feature_profile_web_filtering_type"] = strings.TrimPrefix(itemTrim,
 						"utm feature-profile web-filtering type ")
 				}
+			case checkStringHasPrefixInList(itemTrim, listLinesSecurityAlg()):
+				readSecurityAlg(&confRead, itemTrim)
 			}
 		}
 	}
@@ -396,11 +484,50 @@ func readSecurityIkeTraceOptions(confRead *securityOptions, itemTrim string) err
 
 	return nil
 }
+func readSecurityAlg(confRead *securityOptions, itemTrimAlg string) {
+	itemTrim := strings.TrimPrefix(itemTrimAlg, "alg ")
+	if len(confRead.alg) == 0 {
+		confRead.alg = append(confRead.alg, map[string]interface{}{
+			"dns_disable":    false,
+			"ftp_disable":    false,
+			"msrpc_disable":  false,
+			"pptp_disable":   false,
+			"sunrpc_disable": false,
+			"talk_disable":   false,
+			"tftp_disable":   false,
+		})
+	}
+	if itemTrim == "dns disable" {
+		confRead.alg[0]["dns_disable"] = true
+	}
+	if itemTrim == "ftp disable" {
+		confRead.alg[0]["ftp_disable"] = true
+	}
+	if itemTrim == "msrpc disable" {
+		confRead.alg[0]["msrpc_disable"] = true
+	}
+	if itemTrim == "pptp disable" {
+		confRead.alg[0]["pptp_disable"] = true
+	}
+	if itemTrim == "sunrpc disable" {
+		confRead.alg[0]["sunrpc_disable"] = true
+	}
+	if itemTrim == "talk disable" {
+		confRead.alg[0]["talk_disable"] = true
+	}
+	if itemTrim == "tftp disable" {
+		confRead.alg[0]["tftp_disable"] = true
+	}
+}
+
 func fillSecurity(d *schema.ResourceData, securityOptions securityOptions) {
 	if tfErr := d.Set("ike_traceoptions", securityOptions.ikeTraceoptions); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("utm", securityOptions.utm); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("alg", securityOptions.alg); tfErr != nil {
 		panic(tfErr)
 	}
 }

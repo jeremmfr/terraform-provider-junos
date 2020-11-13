@@ -36,6 +36,7 @@ The following arguments are supported:
   * `rate_limit` - (Optional)(`Int`) Limit the incoming rate of trace messages (0..4294967295)
 * `utm` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'utm' configuration.
   * `feature_profile_web_filtering_type` - (Optional)(`String`) Configuring feature-profile web-filtering type. Need to be 'juniper-enhanced', 'juniper-local', 'web-filtering-none' or 'websense-redirect'.
+* `alg` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'alg' configuration. See the [`alg` argument] (#alg-argument) block.
 
 #### file argument
 * `name` - (Optional)(`String`) Name of file in which to write trace information.
@@ -44,6 +45,15 @@ The following arguments are supported:
 * `no_world_readable` - (Optional)(`Bool`) Don't allow any user to read the log file.
 * `size` - (Optional)(`Int`) Maximum trace file size (10240..1073741824)
 * `world_readable` - (Optional)(`Bool`) Allow any user to read the log file
+
+#### alg argument
+* `dns_disable` - (Optional)(`Bool`) Disable dns alg.
+* `ftp_disable` - (Optional)(`Bool`) Disable ftp alg.
+* `msrpc_disable` - (Optional)(`Bool`) Disable msrpc alg.
+* `pptp_disable` - (Optional)(`Bool`) Disable pptp alg.
+* `sunrpc_disable` - (Optional)(`Bool`) Disable sunrpc alg.
+* `talk_disable` - (Optional)(`Bool`) Disable talk alg.
+* `tftp_disable` - (Optional)(`Bool`) Disable tftp alg.
 
 ## Import
 
