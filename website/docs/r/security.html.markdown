@@ -31,14 +31,15 @@ resource junos_security "security" {
 The following arguments are supported:
 
 * `ike_traceoptions` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'ike traceoptions' configuration.
-  * `file` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'file' configuration. See the [`file` argument] (#file-argument) block.
+  * `file` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'file' configuration. See the [`file` arguments] (#file-arguments) block.
   * `flag` - (Optional)(`ListOfString`) Tracing parameters for IKE.
   * `rate_limit` - (Optional)(`Int`) Limit the incoming rate of trace messages (0..4294967295)
 * `utm` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'utm' configuration.
   * `feature_profile_web_filtering_type` - (Optional)(`String`) Configuring feature-profile web-filtering type. Need to be 'juniper-enhanced', 'juniper-local', 'web-filtering-none' or 'websense-redirect'.
-* `alg` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'alg' configuration. See the [`alg` argument] (#alg-argument) block.
+* `alg` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'alg' configuration. See the [`alg` arguments] (#alg-arguments) block.
+* `flow` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'flow' configuration. See the [`flow` arguments] (#flow-arguments) block.
 
-#### file argument
+#### file arguments
 * `name` - (Optional)(`String`) Name of file in which to write trace information.
 * `files` - (Optional)(`Int`) Maximum number of trace files (2..1000).
 * `match` - (Optional)(`String`) Regular expression for lines to be logged.
@@ -46,7 +47,7 @@ The following arguments are supported:
 * `size` - (Optional)(`Int`) Maximum trace file size (10240..1073741824)
 * `world_readable` - (Optional)(`Bool`) Allow any user to read the log file
 
-#### alg argument
+#### alg arguments
 * `dns_disable` - (Optional)(`Bool`) Disable dns alg.
 * `ftp_disable` - (Optional)(`Bool`) Disable ftp alg.
 * `msrpc_disable` - (Optional)(`Bool`) Disable msrpc alg.
@@ -54,6 +55,58 @@ The following arguments are supported:
 * `sunrpc_disable` - (Optional)(`Bool`) Disable sunrpc alg.
 * `talk_disable` - (Optional)(`Bool`) Disable talk alg.
 * `tftp_disable` - (Optional)(`Bool`) Disable tftp alg.
+
+#### flow arguments
+* `advanced_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'flow advanced-options' configuration.
+  * `drop_matching_reserved_ip_address` - (Optional)(`Bool`) Drop matching reserved source IP address.
+  * `drop_matching_link_local_address` - (Optional)(`Bool`) Drop matching link local address.
+  * `reverse_route_packet_mode_vr` - (Optional)(`Bool`) Allow reverse route lookup with packet mode vr.
+* `aging` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'flow aging' configuration.
+  * `early_ageout` - (Optional)(`Int`) Delay before device declares session invalid (1..65535 seconds).
+  * `high_watermark` - (Optional)(`Bool`) Percentage of session-table capacity at which aggressive aging-out starts (0..100 percent).
+  * `low_watermark` - (Optional)(`Bool`) Percentage of session-table capacity at which aggressive aging-out ends (0..100 percent).
+* `allow_dns_reply` - (Optional)(`Bool`) Allow unmatched incoming DNS reply packet.
+* `allow_embedded_icmp` - (Optional)(`Bool`) Allow embedded ICMP packets not matching a session to pass through.
+* `allow_reverse_ecmp` - (Optional)(`Bool`) Allow reverse ECMP route lookup.
+* `enable_reroute_uniform_link_check_nat` - (Optional)(`Bool`) Enable reroute check with uniform link and NAT check.
+* `ethernet_switching` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'flow ethernet-switching' configuration.
+  * `block_non_ip_all` - (Optional)(`Bool`) Block all non-IP and non-ARP traffic including broadcast/multicast.
+  * `bypass_non_ip_unicast` - (Optional)(`Bool`) Allow all non-IP (including unicast) traffic.
+  * `bpdu_vlan_flooding` - (Optional)(`Bool`) Set 802.1D BPDU flooding based on VLAN.
+  * `no_packet_flooding` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for stop IP flooding, send ARP/ICMP to trigger MAC learning.  
+  There is one argument : `no_trace_route` - (Optional)(`Bool`) Don't send ICMP to trigger MAC learning.
+* `force_ip_reassembly` - (Optional)(`Bool`) Force to reassemble ip fragments.
+* `ipsec_performance_acceleration` - (Optional)(`Bool`) Accelerate the IPSec traffic performance.
+* `mcast_buffer_enhance` - (Optional)(`Bool`) Allow to hold more packets during multicast session creation.
+* `pending_sess_queue_length` - (Optional)(`String`) Maximum queued length per pending session. Need to be 'high', 'moderate' or 'normal'.
+* `preserve_incoming_fragment_size` - (Optional)(`Bool`) Preserve incoming fragment size for egress MTU.
+* `route_change_timeout` - (Optional)(`Int`) Timeout value for route change to nonexistent route (6..1800 seconds).
+* `syn_flood_protection_mode` - (Optional)(`String`) TCP SYN flood protection mode. Need to be 'syn-cookie' or 'syn-proxy'.
+* `sync_icmp_session` - (Optional)(`Bool`) Allow icmp sessions to sync to peer node.
+* `tcp_mss` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'flow tcp-mss' configuration.
+  * `all_tcp_mss` - (Optional)(`Int`) Enable MSS override for all packets with this value.
+  * `gre_in` - Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for enable MSS override for all GRE packets coming out of an IPSec tunnel.
+  There is one argument : `mss` - (Optional)(`Int`) MSS Value.
+  * `gre_out` - Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for enable MSS override for all GRE packets entering an IPsec tunnel.
+  There is one argument : `mss` - (Optional)(`Int`) MSS Value.
+  * `ipsec_vpn` - Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for enable MSS override for all packets entering IPSec tunnel.
+  There is one argument : `mss` - (Optional)(`Int`) MSS Value.
+* `tcp_session` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'flow tcp-session' configuration.
+  * `fin_invalidate_session` - (Optional)(`Bool`) Immediately end session on receipt of fin (FIN) segment.
+  * `maximum_window` -  Maximum TCP proxy scaled receive window. Need to be '64K', '128K', '256K', '512K' or '1M'.
+  * `no_sequence_check` - (Optional)(`Bool`) Disable sequence-number checking.
+  * `no_syn_check` - (Optional)(`Bool`) Disable creation-time SYN-flag check. Conflict with `strict_syn_check`.
+  * `no_syn_check_in_tunnel` - (Optional)(`Bool`) Disable creation-time SYN-flag check for tunnel packets. Conflict with `strict_syn_check`.
+  * `rst_invalidate_session` - (Optional)(`Bool`) Immediately end session on receipt of reset (RST) segment.
+  * `rst_sequence_check` - (Optional)(`Bool`) Check sequence number in reset (RST) segment.
+  * `strict_syn_check` - (Optional)(`Bool`) Enable strict syn check. Conflict with `no_sync_check` and `no_syn_check_in_tunnel`.
+  * `tcp_initial_timeout` - (Optional)(`Int`) Timeout for TCP session when initialization fails (4..300 seconds).
+  * `time_wait_state` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare session timeout value in time-wait state. See the [`flow tcp_session time_wait_state` arguments] (#flow-tcp_session-time_wait_state-arguments) block.
+  
+#### flow tcp_session time_wait_state arguments
+* `apply_to_half_close_state` - (Optional)(`Bool`) Apply time-wait-state timeout to half-close state.
+* `session_ageout` - (Optional)(`Bool`) Allow session to ageout using service based timeout values.
+* `session_timeout` - (Optional)(`Int`) Configure session timeout value for time-wait state (2..600 seconds).
 
 ## Import
 
