@@ -246,49 +246,11 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	configSet := make([]string, 0)
 
 	for _, ikeTrace := range d.Get("ike_traceoptions").([]interface{}) {
-		if ikeTrace != nil {
-			ikeTraceM := ikeTrace.(map[string]interface{})
-			for _, ikeTraceFile := range ikeTraceM["file"].([]interface{}) {
-				if ikeTraceFile != nil {
-					ikeTraceFileM := ikeTraceFile.(map[string]interface{})
-					if ikeTraceFileM["name"].(string) != "" {
-						configSet = append(configSet, setPrefix+"ike traceoptions file "+
-							ikeTraceFileM["name"].(string))
-					}
-					if ikeTraceFileM["files"].(int) > 0 {
-						configSet = append(configSet, setPrefix+"ike traceoptions file files "+
-							strconv.Itoa(ikeTraceFileM["files"].(int)))
-					}
-					if ikeTraceFileM["match"].(string) != "" {
-						configSet = append(configSet, setPrefix+"ike traceoptions file match \""+
-							ikeTraceFileM["match"].(string)+"\"")
-					}
-					if ikeTraceFileM["size"].(int) > 0 {
-						configSet = append(configSet, setPrefix+"ike traceoptions file size "+
-							strconv.Itoa(ikeTraceFileM["size"].(int)))
-					}
-					if ikeTraceFileM["world_readable"].(bool) && ikeTraceFileM["no_world_readable"].(bool) {
-						return fmt.Errorf("conflict between 'world_readable' and 'no_world_readable' for ike_traceoptions file")
-					}
-					if ikeTraceFileM["world_readable"].(bool) {
-						configSet = append(configSet, setPrefix+"ike traceoptions file world-readable")
-					}
-					if ikeTraceFileM["no_world_readable"].(bool) {
-						configSet = append(configSet, setPrefix+"ike traceoptions file no-world-readable")
-					}
-				}
-			}
-			for _, ikeTraceFlag := range ikeTraceM["flag"].([]interface{}) {
-				configSet = append(configSet, setPrefix+"ike traceoptions flag "+ikeTraceFlag.(string))
-			}
-			if ikeTraceM["no_remote_trace"].(bool) {
-				configSet = append(configSet, setPrefix+"ike traceoptions no-remote-trace")
-			}
-			if ikeTraceM["rate_limit"].(int) > -1 {
-				configSet = append(configSet, setPrefix+"ike traceoptions rate-limit "+
-					strconv.Itoa(ikeTraceM["rate_limit"].(int)))
-			}
+		configSetIkeTrace, err := setSecurityIkeTraceOpts(ikeTrace)
+		if err != nil {
+			return err
 		}
+		configSet = append(configSet, configSetIkeTrace...)
 	}
 	for _, utm := range d.Get("utm").([]interface{}) {
 		if utm != nil {
@@ -307,6 +269,56 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	}
 
 	return nil
+}
+
+func setSecurityIkeTraceOpts(ikeTrace interface{}) ([]string, error) {
+	setPrefix := "set security ike traceoptions "
+	configSet := make([]string, 0)
+	if ikeTrace != nil {
+		ikeTraceM := ikeTrace.(map[string]interface{})
+		for _, ikeTraceFile := range ikeTraceM["file"].([]interface{}) {
+			if ikeTraceFile != nil {
+				ikeTraceFileM := ikeTraceFile.(map[string]interface{})
+				if ikeTraceFileM["name"].(string) != "" {
+					configSet = append(configSet, setPrefix+"file "+
+						ikeTraceFileM["name"].(string))
+				}
+				if ikeTraceFileM["files"].(int) > 0 {
+					configSet = append(configSet, setPrefix+"file files "+
+						strconv.Itoa(ikeTraceFileM["files"].(int)))
+				}
+				if ikeTraceFileM["match"].(string) != "" {
+					configSet = append(configSet, setPrefix+"file match \""+
+						ikeTraceFileM["match"].(string)+"\"")
+				}
+				if ikeTraceFileM["size"].(int) > 0 {
+					configSet = append(configSet, setPrefix+"file size "+
+						strconv.Itoa(ikeTraceFileM["size"].(int)))
+				}
+				if ikeTraceFileM["world_readable"].(bool) && ikeTraceFileM["no_world_readable"].(bool) {
+					return configSet, fmt.Errorf("conflict between 'world_readable' and 'no_world_readable' for ike_traceoptions file")
+				}
+				if ikeTraceFileM["world_readable"].(bool) {
+					configSet = append(configSet, setPrefix+"file world-readable")
+				}
+				if ikeTraceFileM["no_world_readable"].(bool) {
+					configSet = append(configSet, setPrefix+"file no-world-readable")
+				}
+			}
+		}
+		for _, ikeTraceFlag := range ikeTraceM["flag"].([]interface{}) {
+			configSet = append(configSet, setPrefix+"flag "+ikeTraceFlag.(string))
+		}
+		if ikeTraceM["no_remote_trace"].(bool) {
+			configSet = append(configSet, setPrefix+"no-remote-trace")
+		}
+		if ikeTraceM["rate_limit"].(int) > -1 {
+			configSet = append(configSet, setPrefix+"rate-limit "+
+				strconv.Itoa(ikeTraceM["rate_limit"].(int)))
+		}
+	}
+
+	return configSet, nil
 }
 
 func setSecurityAlg(alg interface{}) []string {
@@ -420,7 +432,8 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 	return confRead, nil
 }
 
-func readSecurityIkeTraceOptions(confRead *securityOptions, itemTrim string) error {
+func readSecurityIkeTraceOptions(confRead *securityOptions, itemTrimIkeTraceOpts string) error {
+	itemTrim := strings.TrimPrefix(itemTrimIkeTraceOpts, "ike traceoptions ")
 	if len(confRead.ikeTraceoptions) == 0 {
 		confRead.ikeTraceoptions = append(confRead.ikeTraceoptions, map[string]interface{}{
 			"file":            make([]map[string]interface{}, 0),
@@ -430,7 +443,7 @@ func readSecurityIkeTraceOptions(confRead *securityOptions, itemTrim string) err
 		})
 	}
 	switch {
-	case strings.HasPrefix(itemTrim, "ike traceoptions file"):
+	case strings.HasPrefix(itemTrim, "file"):
 		if len(confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})) == 0 {
 			confRead.ikeTraceoptions[0]["file"] = append(
 				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{}), map[string]interface{}{
@@ -443,40 +456,40 @@ func readSecurityIkeTraceOptions(confRead *securityOptions, itemTrim string) err
 				})
 		}
 		switch {
-		case strings.HasPrefix(itemTrim, "ike traceoptions file files"):
+		case strings.HasPrefix(itemTrim, "file files"):
 			var err error
 			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["files"], err = strconv.Atoi(
-				strings.TrimPrefix(itemTrim, "ike traceoptions file files "))
+				strings.TrimPrefix(itemTrim, "file files "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "ike traceoptions file match"):
+		case strings.HasPrefix(itemTrim, "file match"):
 			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["match"] = strings.Trim(
-				strings.TrimPrefix(itemTrim, "ike traceoptions file match "), "\"")
-		case strings.HasPrefix(itemTrim, "ike traceoptions file size"):
+				strings.TrimPrefix(itemTrim, "file match "), "\"")
+		case strings.HasPrefix(itemTrim, "file size"):
 			var err error
 			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"], err = strconv.Atoi(
-				strings.TrimPrefix(itemTrim, "ike traceoptions file size "))
+				strings.TrimPrefix(itemTrim, "file size "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "ike traceoptions file world-readable"):
+		case strings.HasPrefix(itemTrim, "file world-readable"):
 			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["world_readable"] = true
-		case strings.HasPrefix(itemTrim, "ike traceoptions file no-world-readable"):
+		case strings.HasPrefix(itemTrim, "file no-world-readable"):
 			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["no_world_readable"] = true
-		case strings.HasPrefix(itemTrim, "ike traceoptions file "):
+		case strings.HasPrefix(itemTrim, "file "):
 			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["name"] = strings.Trim(
-				strings.TrimPrefix(itemTrim, "ike traceoptions file "), "\"")
+				strings.TrimPrefix(itemTrim, "file "), "\"")
 		}
-	case strings.HasPrefix(itemTrim, "ike traceoptions flag"):
+	case strings.HasPrefix(itemTrim, "flag"):
 		confRead.ikeTraceoptions[0]["flag"] = append(confRead.ikeTraceoptions[0]["flag"].([]string),
-			strings.TrimPrefix(itemTrim, "ike traceoptions flag "))
-	case strings.HasPrefix(itemTrim, "ike traceoptions no-remote-trace"):
+			strings.TrimPrefix(itemTrim, "flag "))
+	case strings.HasPrefix(itemTrim, "no-remote-trace"):
 		confRead.ikeTraceoptions[0]["no_remote_trace"] = true
-	case strings.HasPrefix(itemTrim, "ike traceoptions rate-limit"):
+	case strings.HasPrefix(itemTrim, "rate-limit"):
 		var err error
 		confRead.ikeTraceoptions[0]["rate_limit"], err = strconv.Atoi(
-			strings.TrimPrefix(itemTrim, "ike traceoptions rate-limit "))
+			strings.TrimPrefix(itemTrim, "rate-limit "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
