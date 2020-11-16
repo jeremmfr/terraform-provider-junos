@@ -69,6 +69,8 @@ The following arguments are supported:
   * `tcp_flags` - (Optional)(`String`) Match TCP flags (in symbolic or hex formats).
   * `tcp_initial` - (Optional)(`Bool`) Match initial packet of a TCP connection.
   * `tcp_established` - (Optional)(`Bool`) Match packet of an established TCP connection.
+  * `icmp_code` - (Optional)(`ListOfString`) Match ICMP message code.
+  * `icmp_code_except` - (Optional)(`ListOfString`) Do not match ICMP message code.
   * `icmp_type` - (Optional)(`ListOfString`) Match ICMP message type.
   * `icmp_type_except` - (Optional)(`ListOfString`) Do not match ICMP message type.
   * `is_fragment` - (Optional)(`Bool`) Match if packet is a fragment.

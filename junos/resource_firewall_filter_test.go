@@ -21,7 +21,7 @@ func TestAccJunosFirewallFilter_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"interface_specific", "true"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.#", "1"),
+							"term.#", "2"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"term.0.name", "testacc_fwFilter_term1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
@@ -66,13 +66,23 @@ func TestAccJunosFirewallFilter_basic(t *testing.T) {
 							"term.0.then.0.port_mirror", "true"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"term.0.then.0.service_accounting", "true"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
+							"term.1.from.#", "1"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
+							"term.1.from.0.icmp_code.#", "1"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
+							"term.1.from.0.icmp_code.0", "network-unreachable"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
+							"term.1.from.0.icmp_type.#", "1"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
+							"term.1.from.0.icmp_type.0", "router-advertisement"),
 					),
 				},
 				{
 					Config: testAccJunosFirewallFilterConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.#", "4"),
+							"term.#", "5"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"term.1.from.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
@@ -125,6 +135,12 @@ func TestAccJunosFirewallFilter_basic(t *testing.T) {
 							"term.3.then.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"term.3.then.0.action", "reject"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
+							"term.4.from.#", "1"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
+							"term.4.from.0.icmp_code_except.#", "1"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
+							"term.4.from.0.icmp_type_except.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
 							"family", "inet6"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
@@ -167,7 +183,7 @@ resource junos_firewall_filter "testacc_fwFilter" {
       prefix_list_except = [ junos_policyoptions_prefix_list.testacc_fwFilter2.name ]
       protocol = [ "tcp" ]
       tcp_flags = "!0x3"
-	 is_fragment = true
+	  is_fragment = true
     }
     then {
       action = "next term"
@@ -175,6 +191,16 @@ resource junos_firewall_filter "testacc_fwFilter" {
       log = true
       port_mirror = true
       service_accounting = true
+    }
+  }
+  term {
+    name = "testacc_fwFilter_term2"
+    from {
+	  icmp_code = ["network-unreachable"]
+	  icmp_type = ["router-advertisement"]
+    }
+    then {
+      action = "accept"
     }
   }
 }
@@ -249,6 +275,16 @@ resource junos_firewall_filter "testacc_fwFilter" {
     from {
       source_port = [ "22-23" ]
       destination_port_except = [ "23" ]
+    }
+    then {
+      action = "reject"
+    }
+  }
+  term {
+    name = "testacc_fwFilter_term5"
+    from {
+	  icmp_code_except = ["network-unreachable"]
+	  icmp_type_except = ["router-advertisement"]
     }
     then {
       action = "reject"

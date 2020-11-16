@@ -1,6 +1,7 @@
 ## upcoming release
 ENHANCEMENTS:
 * optimize memory usage of functions for resource bgp_*
+* add `icmp_code` and `icmp_code_except` sub-arguments for 'term.N.from' to resource `firewall_filter` (Fixes [#58](https://github.com/jeremmfr/terraform-provider-junos/issues/58))
 
 BUG FIXES:
 
