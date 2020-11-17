@@ -17,6 +17,7 @@ type securityOptions struct {
 	alg             []map[string]interface{}
 	flow            []map[string]interface{}
 	log             []map[string]interface{}
+	forwardingOpts  []map[string]interface{}
 }
 
 func listFacilityChoice() []string {
@@ -540,6 +541,31 @@ func resourceSecurity() *schema.Resource {
 					},
 				},
 			},
+			"forwarding_options": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"mpls_mode": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"flow-based", "packet-based"}, false),
+						},
+						"inet6_mode": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"drop", "flow-based", "packet-based"}, false),
+						},
+						"iso_mode_packet_based": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -670,6 +696,9 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	}
 	for _, log := range d.Get("log").([]interface{}) {
 		configSet = append(configSet, setSecurityLog(log)...)
+	}
+	for _, forwOpts := range d.Get("forwarding_options").([]interface{}) {
+		configSet = append(configSet, setSecurityForwOpts(forwOpts)...)
 	}
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
@@ -1025,6 +1054,25 @@ func setSecurityLog(log interface{}) []string {
 	return configSet
 }
 
+func setSecurityForwOpts(forwOpts interface{}) []string {
+	setPrefix := "set security forwarding-options "
+	configSet := make([]string, 0)
+	if forwOpts != nil {
+		forwOptsM := forwOpts.(map[string]interface{})
+		if forwOptsM["mpls_mode"].(string) != "" {
+			configSet = append(configSet, setPrefix+"family mpls mode "+forwOptsM["mpls_mode"].(string))
+		}
+		if forwOptsM["inet6_mode"].(string) != "" {
+			configSet = append(configSet, setPrefix+"family inet6 mode "+forwOptsM["inet6_mode"].(string))
+		}
+		if forwOptsM["iso_mode_packet_based"].(bool) {
+			configSet = append(configSet, setPrefix+"family iso mode packet-based")
+		}
+	}
+
+	return configSet
+}
+
 func listLinesSecurityUtm() []string {
 	return []string{
 		"utm feature-profile web-filtering type",
@@ -1082,6 +1130,14 @@ func listLinesSecurityLog() []string {
 	}
 }
 
+func listLinesSecurityForwardingOptions() []string {
+	return []string{
+		"forwarding-options family mpls mode",
+		"forwarding-options family inet6 mode",
+		"forwarding-options family iso mode",
+	}
+}
+
 func delSecurity(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete := []string{
 		"ike traceoptions",
@@ -1090,6 +1146,7 @@ func delSecurity(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityAlg()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityFlow()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityLog()...)
+	listLinesToDelete = append(listLinesToDelete, listLinesSecurityForwardingOptions()...)
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	delPrefix := "delete security "
@@ -1149,6 +1206,8 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 				if err != nil {
 					return confRead, err
 				}
+			case checkStringHasPrefixInList(itemTrim, listLinesSecurityForwardingOptions()):
+				readSecurityForwardingOpts(&confRead, itemTrim)
 			}
 		}
 	}
@@ -1636,6 +1695,25 @@ func readSecurityLog(confRead *securityOptions, itemTrimLog string) error {
 	return nil
 }
 
+func readSecurityForwardingOpts(confRead *securityOptions, itemTrimFwOpts string) {
+	itemTrim := strings.TrimPrefix(itemTrimFwOpts, "forwarding-options ")
+	if len(confRead.forwardingOpts) == 0 {
+		confRead.forwardingOpts = append(confRead.forwardingOpts, map[string]interface{}{
+			"mpls_mode":             "",
+			"inet6_mode":            "",
+			"iso_mode_packet_based": false,
+		})
+	}
+	switch {
+	case strings.HasPrefix(itemTrim, "family mpls mode "):
+		confRead.forwardingOpts[0]["mpls_mode"] = strings.TrimPrefix(itemTrim, "family mpls mode ")
+	case strings.HasPrefix(itemTrim, "family inet6 mode "):
+		confRead.forwardingOpts[0]["inet6_mode"] = strings.TrimPrefix(itemTrim, "family inet6 mode ")
+	case itemTrim == "family iso mode packet-based":
+		confRead.forwardingOpts[0]["iso_mode_packet_based"] = true
+	}
+}
+
 func fillSecurity(d *schema.ResourceData, securityOptions securityOptions) {
 	if tfErr := d.Set("ike_traceoptions", securityOptions.ikeTraceoptions); tfErr != nil {
 		panic(tfErr)
@@ -1650,6 +1728,9 @@ func fillSecurity(d *schema.ResourceData, securityOptions securityOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("log", securityOptions.log); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("forwarding_options", securityOptions.forwardingOpts); tfErr != nil {
 		panic(tfErr)
 	}
 }

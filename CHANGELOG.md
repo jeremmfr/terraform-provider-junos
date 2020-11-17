@@ -3,6 +3,7 @@ ENHANCEMENTS:
 * add `alg` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
 * add `flow` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
 * add `log` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
+* add `forwarding_options` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
 
 BUG FIXES:
 

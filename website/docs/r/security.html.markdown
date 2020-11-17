@@ -39,6 +39,7 @@ The following arguments are supported:
 * `alg` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'alg' configuration. See the [`alg` arguments] (#alg-arguments) block.
 * `flow` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'flow' configuration. See the [`flow` arguments] (#flow-arguments) block.
 * `log` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'log' configuration. See the [`log` arguments] (#log-arguments) block.
+* `forwarding_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'forwarding-options' configuration. See the [`forwarding_options` arguments] (#forwarding_options-arguments) block.
 
 #### file arguments
 * `name` - (Optional)(`String`) Name of file in which to write trace information.
@@ -130,6 +131,11 @@ The following arguments are supported:
   * `tcp_connections` - (Optional)(`Int`) Set tcp connection number per-stream (1..5)
   * `tls_profile` - (Optional)(`String`) TLS profile.
 * `utc_timestamp` - (Optional)(`Bool`) Use UTC time for security log timestamps.
+
+#### forwarding_options arguments
+* `inet6_mode` - (Optional)(`String`) Forwarding mode for inet6 family. Need to be 'drop', 'flow-based' or 'packet-based'.
+* `mpls_mode` - (Optional)(`String`) Forwarding mode for mpls family. Need to be 'flow-based' or 'packet-based'.
+* `iso_mode_packet_based` - (Optional)(`Bool`) Forwarding mode packet-based for iso family.
 
 ## Import
 

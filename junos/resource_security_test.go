@@ -166,6 +166,14 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 							"log.0.transport.0.tls_profile", "testacc"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"log.0.utc_timestamp", "true"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"forwarding_options.#", "1"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"forwarding_options.0.mpls_mode", "flow-based"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"forwarding_options.0.inet6_mode", "flow-based"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"forwarding_options.0.iso_mode_packet_based", "true"),
 					),
 				},
 				{
@@ -353,6 +361,11 @@ resource junos_security "testacc_security" {
       tls_profile     = "testacc"
     }
     utc_timestamp = true
+  }
+  forwarding_options {
+    inet6_mode            = "flow-based"
+    mpls_mode             = "flow-based"
+    iso_mode_packet_based = "true"
   }
 }
 `
