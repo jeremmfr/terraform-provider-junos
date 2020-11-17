@@ -69,10 +69,9 @@ func resourceSystemSyslogHost() *schema.Resource {
 				Optional: true,
 			},
 			"facility_override": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{"authorization", "daemon", "ftp", "kernel", "user",
-					"local0", "local1", "local2", "local3", "local4", "local5", "local6", "local7"}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(listFacilityChoice(), false),
 			},
 			"log_prefix": {
 				Type:             schema.TypeString,

@@ -38,6 +38,7 @@ The following arguments are supported:
   * `feature_profile_web_filtering_type` - (Optional)(`String`) Configuring feature-profile web-filtering type. Need to be 'juniper-enhanced', 'juniper-local', 'web-filtering-none' or 'websense-redirect'.
 * `alg` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'alg' configuration. See the [`alg` arguments] (#alg-arguments) block.
 * `flow` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'flow' configuration. See the [`flow` arguments] (#flow-arguments) block.
+* `log` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'log' configuration. See the [`log` arguments] (#log-arguments) block.
 
 #### file arguments
 * `name` - (Optional)(`String`) Name of file in which to write trace information.
@@ -107,6 +108,28 @@ The following arguments are supported:
 * `apply_to_half_close_state` - (Optional)(`Bool`) Apply time-wait-state timeout to half-close state.
 * `session_ageout` - (Optional)(`Bool`) Allow session to ageout using service based timeout values.
 * `session_timeout` - (Optional)(`Int`) Configure session timeout value for time-wait state (2..600 seconds).
+
+#### log arguments
+* `disable` - (Optional)(`Bool`) Disable security logging for the device.
+* `event_rate` - (Optional)(`Int`) Control plane event rate (0..1500 logs per second).
+* `facility_override` - (Optional)(`String`) Alternate facility for logging to remote host.
+* `file` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for `security log file' block.
+  * `files` - (Optional)(`Int`) Maximum number of binary log files (2..10).
+  * `name` - (Optional)(`String`) Name of binary log file.
+  * `path` - (Optional)(`String`) Path to binary log files.
+  * `size` - (Optional)(`Int`)  Maximum size of binary log file in megabytes (1..10).
+* `format` - (Optional)(`String`) Set security log format for the device. Need to be 'binary', 'sd-syslog' or 'syslog'.
+* `max_database_record` - (Optional)(`Int`) Maximum records in database (0..1000000).
+* `mode` - (Optional)(`String`) Controls how security logs are processed and exported. Need to be 'event' or 'stream'.
+* `rate_cap` - (Optional)(`Int`) Data plane event rate (0..5000 logs per second).
+* `report` - (Optional)(`Bool`) Set security log report settings.
+* `source_address` - (Optional)(`String`) Source ip address used when exporting security logs. Conflict with `source_interface`.
+* `source_interface`- (Optional)(`String`) Source interface used when exporting security logs. Conflict with `source_address`.
+* `transport` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for `security log transport' block.
+  * `protocol` - (Optional)(`String`) Set security log transport protocol for the device. Need to be 'tcp', 'tls' or 'udp'.
+  * `tcp_connections` - (Optional)(`Int`) Set tcp connection number per-stream (1..5)
+  * `tls_profile` - (Optional)(`String`) TLS profile.
+* `utc_timestamp` - (Optional)(`Bool`) Use UTC time for security log timestamps.
 
 ## Import
 

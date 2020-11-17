@@ -8,6 +8,12 @@ import (
 )
 
 func TestAccJunosSecurity_basic(t *testing.T) {
+	var testaccSecurity string
+	if os.Getenv("TESTACC_INTERFACE") != "" {
+		testaccSecurity = os.Getenv("TESTACC_INTERFACE")
+	} else {
+		testaccSecurity = defaultInterfaceTestAcc
+	}
 	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:  func() { testAccPreCheck(t) },
@@ -18,7 +24,7 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 					ExpectNonEmptyPlan: true,
 				},
 				{
-					Config: testAccJunosSecurityConfigCreate(),
+					Config: testAccJunosSecurityConfigCreate(testaccSecurity),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"ike_traceoptions.#", "1"),
@@ -126,6 +132,40 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 							"flow.0.tcp_session.0.tcp_initial_timeout", "10"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"flow.0.tcp_session.0.time_wait_state.#", "1"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"log.#", "1"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"log.0.disable", "true"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"log.0.facility_override", "local7"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"log.0.file.#", "1"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"log.0.file.0.files", "10"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"log.0.file.0.name", "security.log"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"log.0.file.0.path", "/"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"log.0.file.0.size", "10"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"log.0.format", "syslog"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"log.0.mode", "event"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"log.0.report", "true"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"log.0.source_interface", testaccSecurity+".0"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"log.0.transport.#", "1"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"log.0.transport.0.protocol", "tcp"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"log.0.transport.0.tcp_connections", "5"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"log.0.transport.0.tls_profile", "testacc"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"log.0.utc_timestamp", "true"),
 					),
 				},
 				{
@@ -134,7 +174,7 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosSecurityConfigUpdate(),
+					Config: testAccJunosSecurityConfigUpdate(testaccSecurity),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"ike_traceoptions.#", "1"),
@@ -182,6 +222,14 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 							"flow.0.tcp_session.0.time_wait_state.0.apply_to_half_close_state", "true"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"flow.0.tcp_session.0.time_wait_state.0.session_ageout", "true"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"log.0.event_rate", "100"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"log.0.max_database_record", "1000"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"log.0.rate_cap", "100"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"log.0.source_address", "192.0.2.1"),
 					),
 				},
 				{
@@ -210,8 +258,12 @@ resource junos_system "system" {
 `
 }
 
-func testAccJunosSecurityConfigCreate() string {
+func testAccJunosSecurityConfigCreate(interFace string) string {
 	return `
+resource junos_interface "testacc_security" {
+  name        = "` + interFace + `.0"
+  description = "testacc_security"
+}
 resource junos_security "testacc_security" {
   ike_traceoptions {
     file {
@@ -282,11 +334,35 @@ resource junos_security "testacc_security" {
       time_wait_state {}  
     }
   }
+  log {
+    disable           = true
+    facility_override = "local7"
+    file {
+      files = 10
+      name  = "security.log"
+      path  = "/"
+      size  = 10
+    }
+    format           = "syslog"
+    mode             = "event"
+	report           = true
+	source_interface = junos_interface.testacc_security.name
+    transport {
+      protocol        = "tcp"
+      tcp_connections = 5
+      tls_profile     = "testacc"
+    }
+    utc_timestamp = true
+  }
 }
 `
 }
-func testAccJunosSecurityConfigUpdate() string {
+func testAccJunosSecurityConfigUpdate(interFace string) string {
 	return `
+resource junos_interface "testacc_security" {
+  name        = "` + interFace + `.0"
+  description = "testacc_security"
+}
 resource junos_security "testacc_security" {
   ike_traceoptions {
     file {
@@ -325,6 +401,13 @@ resource junos_security "testacc_security" {
         session_ageout            = true
       }
     }
+  }
+  log {
+	mode                = "event"
+    event_rate          = 100
+    max_database_record = 1000
+	rate_cap            = 100
+	source_address      = "192.0.2.1"
   }
 }
 `

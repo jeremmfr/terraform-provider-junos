@@ -16,6 +16,14 @@ type securityOptions struct {
 	utm             []map[string]interface{}
 	alg             []map[string]interface{}
 	flow            []map[string]interface{}
+	log             []map[string]interface{}
+}
+
+func listFacilityChoice() []string {
+	return []string{
+		"authorization", "daemon", "ftp", "kernel", "user",
+		"local0", "local1", "local2", "local3", "local4", "local5", "local6", "local7",
+	}
 }
 
 func resourceSecurity() *schema.Resource {
@@ -414,6 +422,124 @@ func resourceSecurity() *schema.Resource {
 					},
 				},
 			},
+			"log": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"event_rate": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      -1,
+							ValidateFunc: validation.IntBetween(0, 1500),
+						},
+						"facility_override": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(listFacilityChoice(), false),
+						},
+						"file": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"files": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(2, 10),
+									},
+									"name": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"path": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"size": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 10),
+									},
+								},
+							},
+						},
+						"format": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"binary", "sd-syslog", "syslog"}, false),
+						},
+						"max_database_record": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      -1,
+							ValidateFunc: validation.IntBetween(0, 1000000),
+						},
+						"mode": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"event", "stream"}, false),
+						},
+						"rate_cap": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      -1,
+							ValidateFunc: validation.IntBetween(0, 5000),
+						},
+						"report": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"source_address": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							ValidateFunc:  validation.IsIPAddress,
+							ConflictsWith: []string{"log.0.source_interface"},
+						},
+						"source_interface": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"log.0.source_address"},
+						},
+						"transport": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"protocol": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"tcp", "tls", "udp"}, false),
+									},
+									"tcp_connections": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 5),
+									},
+									"tls_profile": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
+						},
+						"utc_timestamp": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -541,6 +667,9 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	}
 	for _, flow := range d.Get("flow").([]interface{}) {
 		configSet = append(configSet, setSecurityFlow(flow)...)
+	}
+	for _, log := range d.Get("log").([]interface{}) {
+		configSet = append(configSet, setSecurityLog(log)...)
 	}
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
@@ -821,6 +950,80 @@ func setSecurityFlow(flow interface{}) []string { // nolint: gocognit
 
 	return configSet
 }
+func setSecurityLog(log interface{}) []string {
+	setPrefix := "set security log "
+	configSet := make([]string, 0)
+	if log != nil {
+		logM := log.(map[string]interface{})
+		if logM["disable"].(bool) {
+			configSet = append(configSet, setPrefix+"disable")
+		}
+		if logM["event_rate"].(int) != -1 {
+			configSet = append(configSet, setPrefix+"event-rate "+strconv.Itoa(logM["event_rate"].(int)))
+		}
+		if logM["facility_override"].(string) != "" {
+			configSet = append(configSet, setPrefix+"facility-override "+logM["facility_override"].(string))
+		}
+		for _, file := range logM["file"].([]interface{}) {
+			if file != nil {
+				fileM := file.(map[string]interface{})
+				if fileM["files"].(int) != 0 {
+					configSet = append(configSet, setPrefix+"file files "+strconv.Itoa(fileM["files"].(int)))
+				}
+				if fileM["name"].(string) != "" {
+					configSet = append(configSet, setPrefix+"file name "+fileM["name"].(string))
+				}
+				if fileM["path"].(string) != "" {
+					configSet = append(configSet, setPrefix+"file path "+fileM["path"].(string))
+				}
+				if fileM["size"].(int) != 0 {
+					configSet = append(configSet, setPrefix+"file size "+strconv.Itoa(fileM["size"].(int)))
+				}
+			}
+		}
+		if logM["format"].(string) != "" {
+			configSet = append(configSet, setPrefix+"format "+logM["format"].(string))
+		}
+		if logM["max_database_record"].(int) != -1 {
+			configSet = append(configSet, setPrefix+"max-database-record "+strconv.Itoa(logM["max_database_record"].(int)))
+		}
+		if logM["mode"].(string) != "" {
+			configSet = append(configSet, setPrefix+"mode "+logM["mode"].(string))
+		}
+		if logM["rate_cap"].(int) != -1 {
+			configSet = append(configSet, setPrefix+"rate-cap "+strconv.Itoa(logM["rate_cap"].(int)))
+		}
+		if logM["report"].(bool) {
+			configSet = append(configSet, setPrefix+"report")
+		}
+		if logM["source_address"].(string) != "" {
+			configSet = append(configSet, setPrefix+"source-address "+logM["source_address"].(string))
+		}
+		if logM["source_interface"].(string) != "" {
+			configSet = append(configSet, setPrefix+"source-interface "+logM["source_interface"].(string))
+		}
+		for _, trans := range logM["transport"].([]interface{}) {
+			configSet = append(configSet, setPrefix+"transport")
+			if trans != nil {
+				transM := trans.(map[string]interface{})
+				if transM["protocol"].(string) != "" {
+					configSet = append(configSet, setPrefix+"transport protocol "+transM["protocol"].(string))
+				}
+				if transM["tcp_connections"].(int) != 0 {
+					configSet = append(configSet, setPrefix+"transport tcp-connections "+strconv.Itoa(transM["tcp_connections"].(int)))
+				}
+				if transM["tls_profile"].(string) != "" {
+					configSet = append(configSet, setPrefix+"transport tls-profile "+transM["tls_profile"].(string))
+				}
+			}
+		}
+		if logM["utc_timestamp"].(bool) {
+			configSet = append(configSet, setPrefix+"utc-timestamp")
+		}
+	}
+
+	return configSet
+}
 
 func listLinesSecurityUtm() []string {
 	return []string{
@@ -861,6 +1064,23 @@ func listLinesSecurityFlow() []string {
 		"flow tcp-session",
 	}
 }
+func listLinesSecurityLog() []string {
+	return []string{
+		"log disable",
+		"log event-rate",
+		"log facility-override",
+		"log file",
+		"log format",
+		"log max-database-record",
+		"log mode",
+		"log rate-cap",
+		"log report",
+		"log source-address",
+		"log source-interface",
+		"log transport",
+		"log utc-timestamp",
+	}
+}
 
 func delSecurity(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete := []string{
@@ -869,6 +1089,7 @@ func delSecurity(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityUtm()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityAlg()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityFlow()...)
+	listLinesToDelete = append(listLinesToDelete, listLinesSecurityLog()...)
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	delPrefix := "delete security "
@@ -920,6 +1141,11 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 				readSecurityAlg(&confRead, itemTrim)
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityFlow()):
 				err := readSecurityFlow(&confRead, itemTrim)
+				if err != nil {
+					return confRead, err
+				}
+			case checkStringHasPrefixInList(itemTrim, listLinesSecurityLog()):
+				err := readSecurityLog(&confRead, itemTrim)
 				if err != nil {
 					return confRead, err
 				}
@@ -1298,6 +1524,118 @@ func readSecurityFlow(confRead *securityOptions, itemTrimFlow string) error {
 	return nil
 }
 
+func readSecurityLog(confRead *securityOptions, itemTrimLog string) error {
+	itemTrim := strings.TrimPrefix(itemTrimLog, "log ")
+	if len(confRead.log) == 0 {
+		confRead.log = append(confRead.log, map[string]interface{}{
+			"disable":             false,
+			"event_rate":          -1,
+			"facility_override":   "",
+			"file":                make([]map[string]interface{}, 0),
+			"format":              "",
+			"max_database_record": -1,
+			"mode":                "",
+			"rate_cap":            -1,
+			"report":              false,
+			"source_address":      "",
+			"source_interface":    "",
+			"transport":           make([]map[string]interface{}, 0),
+			"utc_timestamp":       false,
+		})
+	}
+	switch {
+	case itemTrim == "disable":
+		confRead.log[0]["disable"] = true
+	case strings.HasPrefix(itemTrim, "event-rate "):
+		var err error
+		confRead.log[0]["event_rate"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "event-rate "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "facility-override "):
+		confRead.log[0]["facility_override"] = strings.TrimPrefix(itemTrim, "facility-override ")
+	case strings.HasPrefix(itemTrim, "file"):
+		if len(confRead.log[0]["file"].([]map[string]interface{})) == 0 {
+			confRead.log[0]["file"] = append(confRead.log[0]["file"].([]map[string]interface{}), map[string]interface{}{
+				"files": 0,
+				"name":  "",
+				"path":  "",
+				"size":  0,
+			})
+		}
+		switch {
+		case strings.HasPrefix(itemTrim, "file files "):
+			var err error
+			confRead.log[0]["file"].([]map[string]interface{})[0]["files"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "file files "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "file name "):
+			confRead.log[0]["file"].([]map[string]interface{})[0]["name"] = strings.TrimPrefix(itemTrim, "file name ")
+		case strings.HasPrefix(itemTrim, "file path "):
+			confRead.log[0]["file"].([]map[string]interface{})[0]["path"] = strings.TrimPrefix(itemTrim, "file path ")
+		case strings.HasPrefix(itemTrim, "file size "):
+			var err error
+			confRead.log[0]["file"].([]map[string]interface{})[0]["size"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "file size "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		}
+	case strings.HasPrefix(itemTrim, "format "):
+		confRead.log[0]["format"] = strings.TrimPrefix(itemTrim, "format ")
+	case strings.HasPrefix(itemTrim, "max-database-record "):
+		var err error
+		confRead.log[0]["max_database_record"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-database-record "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "mode "):
+		confRead.log[0]["mode"] = strings.TrimPrefix(itemTrim, "mode ")
+	case strings.HasPrefix(itemTrim, "rate-cap "):
+		var err error
+		confRead.log[0]["rate_cap"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "rate-cap "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case itemTrim == "report":
+		confRead.log[0]["report"] = true
+	case strings.HasPrefix(itemTrim, "source-address "):
+		confRead.log[0]["source_address"] = strings.TrimPrefix(itemTrim, "source-address ")
+	case strings.HasPrefix(itemTrim, "source-interface "):
+		confRead.log[0]["source_interface"] = strings.TrimPrefix(itemTrim, "source-interface ")
+	case strings.HasPrefix(itemTrim, "transport"):
+		if len(confRead.log[0]["transport"].([]map[string]interface{})) == 0 {
+			confRead.log[0]["transport"] = append(
+				confRead.log[0]["transport"].([]map[string]interface{}), map[string]interface{}{
+					"protocol":        "",
+					"tcp_connections": 0,
+					"tls_profile":     "",
+				})
+		}
+		switch {
+		case strings.HasPrefix(itemTrim, "transport protocol "):
+			confRead.log[0]["transport"].([]map[string]interface{})[0]["protocol"] =
+				strings.TrimPrefix(itemTrim, "transport protocol ")
+		case strings.HasPrefix(itemTrim, "transport tcp-connections "):
+			var err error
+			confRead.log[0]["transport"].([]map[string]interface{})[0]["tcp_connections"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "transport tcp-connections "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "transport tls-profile "):
+			confRead.log[0]["transport"].([]map[string]interface{})[0]["tls_profile"] =
+				strings.TrimPrefix(itemTrim, "transport tls-profile ")
+		}
+	case itemTrim == "utc-timestamp":
+		confRead.log[0]["utc_timestamp"] = true
+	}
+
+	return nil
+}
+
 func fillSecurity(d *schema.ResourceData, securityOptions securityOptions) {
 	if tfErr := d.Set("ike_traceoptions", securityOptions.ikeTraceoptions); tfErr != nil {
 		panic(tfErr)
@@ -1309,6 +1647,9 @@ func fillSecurity(d *schema.ResourceData, securityOptions securityOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("flow", securityOptions.flow); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("log", securityOptions.log); tfErr != nil {
 		panic(tfErr)
 	}
 }
