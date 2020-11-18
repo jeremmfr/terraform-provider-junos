@@ -20,13 +20,6 @@ type securityOptions struct {
 	forwardingOpts  []map[string]interface{}
 }
 
-func listFacilityChoice() []string {
-	return []string{
-		"authorization", "daemon", "ftp", "kernel", "user",
-		"local0", "local1", "local2", "local3", "local4", "local5", "local6", "local7",
-	}
-}
-
 func resourceSecurity() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceSecurityCreate,
@@ -442,7 +435,7 @@ func resourceSecurity() *schema.Resource {
 						"facility_override": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.StringInSlice(listFacilityChoice(), false),
+							ValidateFunc: validation.StringInSlice(listOfSyslogFacility(), false),
 						},
 						"file": {
 							Type:     schema.TypeList,

@@ -71,7 +71,7 @@ func resourceSystemSyslogHost() *schema.Resource {
 			"facility_override": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(listFacilityChoice(), false),
+				ValidateFunc: validation.StringInSlice(listOfSyslogFacility(), false),
 			},
 			"log_prefix": {
 				Type:             schema.TypeString,
@@ -113,77 +113,77 @@ func resourceSystemSyslogHost() *schema.Resource {
 			"any_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
 			},
 			"authorization_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
 			},
 			"changelog_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
 			},
 			"conflictlog_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
 			},
 			"daemon_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
 			},
 			"dfc_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
 			},
 			"external_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
 			},
 			"firewall_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
 			},
 			"ftp_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
 			},
 			"interactivecommands_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
 			},
 			"kernel_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
 			},
 			"ntp_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
 			},
 			"pfe_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
 			},
 			"security_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
 			},
 			"user_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(listOfSyslogSeveryty(), false),
+				ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
 			},
 		},
 	}
