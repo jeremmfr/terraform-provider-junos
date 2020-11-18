@@ -672,26 +672,44 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		}
 		configSet = append(configSet, configSetIkeTrace...)
 	}
-	for _, utm := range d.Get("utm").([]interface{}) {
-		if utm != nil {
-			utmM := utm.(map[string]interface{})
-			if utmM["feature_profile_web_filtering_type"].(string) != "" {
+	for _, v := range d.Get("utm").([]interface{}) {
+		if v != nil {
+			utm := v.(map[string]interface{})
+			if utm["feature_profile_web_filtering_type"].(string) != "" {
 				configSet = append(configSet, setPrefix+"utm feature-profile web-filtering type "+
-					utmM["feature_profile_web_filtering_type"].(string))
+					utm["feature_profile_web_filtering_type"].(string))
 			}
+		} else {
+			return fmt.Errorf("utm block is empty")
 		}
 	}
-	for _, alg := range d.Get("alg").([]interface{}) {
-		configSet = append(configSet, setSecurityAlg(alg)...)
+	for _, v := range d.Get("alg").([]interface{}) {
+		configSetAlg, err := setSecurityAlg(v)
+		if err != nil {
+			return err
+		}
+		configSet = append(configSet, configSetAlg...)
 	}
-	for _, flow := range d.Get("flow").([]interface{}) {
-		configSet = append(configSet, setSecurityFlow(flow)...)
+	for _, v := range d.Get("flow").([]interface{}) {
+		configSetFlow, err := setSecurityFlow(v)
+		if err != nil {
+			return err
+		}
+		configSet = append(configSet, configSetFlow...)
 	}
-	for _, log := range d.Get("log").([]interface{}) {
-		configSet = append(configSet, setSecurityLog(log)...)
+	for _, v := range d.Get("log").([]interface{}) {
+		configSetLog, err := setSecurityLog(v)
+		if err != nil {
+			return err
+		}
+		configSet = append(configSet, configSetLog...)
 	}
-	for _, forwOpts := range d.Get("forwarding_options").([]interface{}) {
-		configSet = append(configSet, setSecurityForwOpts(forwOpts)...)
+	for _, v := range d.Get("forwarding_options").([]interface{}) {
+		configSetForwOpts, err := setSecurityForwOpts(v)
+		if err != nil {
+			return err
+		}
+		configSet = append(configSet, configSetForwOpts...)
 	}
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
@@ -705,34 +723,36 @@ func setSecurityIkeTraceOpts(ikeTrace interface{}) ([]string, error) {
 	configSet := make([]string, 0)
 	if ikeTrace != nil {
 		ikeTraceM := ikeTrace.(map[string]interface{})
-		for _, ikeTraceFile := range ikeTraceM["file"].([]interface{}) {
-			if ikeTraceFile != nil {
-				ikeTraceFileM := ikeTraceFile.(map[string]interface{})
-				if ikeTraceFileM["name"].(string) != "" {
+		for _, v := range ikeTraceM["file"].([]interface{}) {
+			if v != nil {
+				ikeTraceFile := v.(map[string]interface{})
+				if ikeTraceFile["name"].(string) != "" {
 					configSet = append(configSet, setPrefix+"file "+
-						ikeTraceFileM["name"].(string))
+						ikeTraceFile["name"].(string))
 				}
-				if ikeTraceFileM["files"].(int) > 0 {
+				if ikeTraceFile["files"].(int) > 0 {
 					configSet = append(configSet, setPrefix+"file files "+
-						strconv.Itoa(ikeTraceFileM["files"].(int)))
+						strconv.Itoa(ikeTraceFile["files"].(int)))
 				}
-				if ikeTraceFileM["match"].(string) != "" {
+				if ikeTraceFile["match"].(string) != "" {
 					configSet = append(configSet, setPrefix+"file match \""+
-						ikeTraceFileM["match"].(string)+"\"")
+						ikeTraceFile["match"].(string)+"\"")
 				}
-				if ikeTraceFileM["size"].(int) > 0 {
+				if ikeTraceFile["size"].(int) > 0 {
 					configSet = append(configSet, setPrefix+"file size "+
-						strconv.Itoa(ikeTraceFileM["size"].(int)))
+						strconv.Itoa(ikeTraceFile["size"].(int)))
 				}
-				if ikeTraceFileM["world_readable"].(bool) && ikeTraceFileM["no_world_readable"].(bool) {
+				if ikeTraceFile["world_readable"].(bool) && ikeTraceFile["no_world_readable"].(bool) {
 					return configSet, fmt.Errorf("conflict between 'world_readable' and 'no_world_readable' for ike_traceoptions file")
 				}
-				if ikeTraceFileM["world_readable"].(bool) {
+				if ikeTraceFile["world_readable"].(bool) {
 					configSet = append(configSet, setPrefix+"file world-readable")
 				}
-				if ikeTraceFileM["no_world_readable"].(bool) {
+				if ikeTraceFile["no_world_readable"].(bool) {
 					configSet = append(configSet, setPrefix+"file no-world-readable")
 				}
+			} else {
+				return configSet, fmt.Errorf("ike_traceoptions file block is empty")
 			}
 		}
 		for _, ikeTraceFlag := range ikeTraceM["flag"].([]interface{}) {
@@ -745,12 +765,14 @@ func setSecurityIkeTraceOpts(ikeTrace interface{}) ([]string, error) {
 			configSet = append(configSet, setPrefix+"rate-limit "+
 				strconv.Itoa(ikeTraceM["rate_limit"].(int)))
 		}
+	} else {
+		return configSet, fmt.Errorf("ike_traceoptions block is empty")
 	}
 
 	return configSet, nil
 }
 
-func setSecurityAlg(alg interface{}) []string {
+func setSecurityAlg(alg interface{}) ([]string, error) {
 	setPrefix := "set security alg "
 	configSet := make([]string, 0)
 	if alg != nil {
@@ -776,45 +798,51 @@ func setSecurityAlg(alg interface{}) []string {
 		if algM["tftp_disable"].(bool) {
 			configSet = append(configSet, setPrefix+"tftp disable")
 		}
+	} else {
+		return configSet, fmt.Errorf("alg block is empty")
 	}
 
-	return configSet
+	return configSet, nil
 }
 
-func setSecurityFlow(flow interface{}) []string { // nolint: gocognit
+func setSecurityFlow(flow interface{}) ([]string, error) { // nolint: gocognit
 	setPrefix := "set security flow "
 	configSet := make([]string, 0)
 	if flow != nil {
 		flowM := flow.(map[string]interface{})
-		for _, advOpt := range flowM["advanced_options"].([]interface{}) {
-			if advOpt != nil {
-				advOptM := advOpt.(map[string]interface{})
-				if advOptM["drop_matching_reserved_ip_address"].(bool) {
+		for _, v := range flowM["advanced_options"].([]interface{}) {
+			if v != nil {
+				advOpt := v.(map[string]interface{})
+				if advOpt["drop_matching_reserved_ip_address"].(bool) {
 					configSet = append(configSet, setPrefix+"advanced-options drop-matching-reserved-ip-address")
 				}
-				if advOptM["drop_matching_link_local_address"].(bool) {
+				if advOpt["drop_matching_link_local_address"].(bool) {
 					configSet = append(configSet, setPrefix+"advanced-options drop-matching-link-local-address")
 				}
-				if advOptM["reverse_route_packet_mode_vr"].(bool) {
+				if advOpt["reverse_route_packet_mode_vr"].(bool) {
 					configSet = append(configSet, setPrefix+"advanced-options reverse-route-packet-mode-vr")
 				}
+			} else {
+				return configSet, fmt.Errorf("flow advanced_options block is empty")
 			}
 		}
-		for _, aging := range flowM["aging"].([]interface{}) {
-			if aging != nil {
-				agingM := aging.(map[string]interface{})
-				if agingM["early_ageout"].(int) != 0 {
+		for _, v := range flowM["aging"].([]interface{}) {
+			if v != nil {
+				aging := v.(map[string]interface{})
+				if aging["early_ageout"].(int) != 0 {
 					configSet = append(configSet, setPrefix+"aging early-ageout "+
-						strconv.Itoa(agingM["early_ageout"].(int)))
+						strconv.Itoa(aging["early_ageout"].(int)))
 				}
-				if agingM["high_watermark"].(int) != -1 {
+				if aging["high_watermark"].(int) != -1 {
 					configSet = append(configSet, setPrefix+"aging high-watermark "+
-						strconv.Itoa(agingM["high_watermark"].(int)))
+						strconv.Itoa(aging["high_watermark"].(int)))
 				}
-				if agingM["low_watermark"].(int) != -1 {
+				if aging["low_watermark"].(int) != -1 {
 					configSet = append(configSet, setPrefix+"aging low-watermark "+
-						strconv.Itoa(agingM["low_watermark"].(int)))
+						strconv.Itoa(aging["low_watermark"].(int)))
 				}
+			} else {
+				return configSet, fmt.Errorf("flow aging block is empty")
 			}
 		}
 		if flowM["allow_dns_reply"].(bool) {
@@ -829,27 +857,29 @@ func setSecurityFlow(flow interface{}) []string { // nolint: gocognit
 		if flowM["enable_reroute_uniform_link_check_nat"].(bool) {
 			configSet = append(configSet, setPrefix+"enable-reroute-uniform-link-check nat")
 		}
-		for _, ethSwitch := range flowM["ethernet_switching"].([]interface{}) {
-			if ethSwitch != nil {
-				ethSwitchM := ethSwitch.(map[string]interface{})
-				if ethSwitchM["block_non_ip_all"].(bool) {
+		for _, v := range flowM["ethernet_switching"].([]interface{}) {
+			if v != nil {
+				ethSwitch := v.(map[string]interface{})
+				if ethSwitch["block_non_ip_all"].(bool) {
 					configSet = append(configSet, setPrefix+"ethernet-switching block-non-ip-all")
 				}
-				if ethSwitchM["bypass_non_ip_unicast"].(bool) {
+				if ethSwitch["bypass_non_ip_unicast"].(bool) {
 					configSet = append(configSet, setPrefix+"ethernet-switching bypass-non-ip-unicast")
 				}
-				if ethSwitchM["bpdu_vlan_flooding"].(bool) {
+				if ethSwitch["bpdu_vlan_flooding"].(bool) {
 					configSet = append(configSet, setPrefix+"ethernet-switching bpdu-vlan-flooding")
 				}
-				for _, noPktFlo := range ethSwitchM["no_packet_flooding"].([]interface{}) {
+				for _, v2 := range ethSwitch["no_packet_flooding"].([]interface{}) {
 					configSet = append(configSet, setPrefix+"ethernet-switching no-packet-flooding")
-					if noPktFlo != nil {
-						noPktFloM := noPktFlo.(map[string]interface{})
-						if noPktFloM["no_trace_route"].(bool) {
+					if v2 != nil {
+						noPktFlo := v2.(map[string]interface{})
+						if noPktFlo["no_trace_route"].(bool) {
 							configSet = append(configSet, setPrefix+"ethernet-switching no-packet-flooding no-trace-route")
 						}
 					}
 				}
+			} else {
+				return configSet, fmt.Errorf("flow ethernet_switching block is empty")
 			}
 		}
 		if flowM["force_ip_reassembly"].(bool) {
@@ -879,100 +909,106 @@ func setSecurityFlow(flow interface{}) []string { // nolint: gocognit
 		if flowM["sync_icmp_session"].(bool) {
 			configSet = append(configSet, setPrefix+"sync-icmp-session")
 		}
-		for _, tcpMss := range flowM["tcp_mss"].([]interface{}) {
-			if tcpMss != nil {
-				tcpMssM := tcpMss.(map[string]interface{})
-				if tcpMssM["all_tcp_mss"].(int) != 0 {
+		for _, v := range flowM["tcp_mss"].([]interface{}) {
+			if v != nil {
+				tcpMss := v.(map[string]interface{})
+				if tcpMss["all_tcp_mss"].(int) != 0 {
 					configSet = append(configSet, setPrefix+"tcp-mss all-tcp mss "+
-						strconv.Itoa(tcpMssM["all_tcp_mss"].(int)))
+						strconv.Itoa(tcpMss["all_tcp_mss"].(int)))
 				}
-				for _, greIn := range tcpMssM["gre_in"].([]interface{}) {
+				for _, v2 := range tcpMss["gre_in"].([]interface{}) {
 					configSet = append(configSet, setPrefix+"tcp-mss gre-in")
-					if greIn != nil {
-						greInM := greIn.(map[string]interface{})
-						if greInM["mss"].(int) != 0 {
+					if v2 != nil {
+						greIn := v2.(map[string]interface{})
+						if greIn["mss"].(int) != 0 {
 							configSet = append(configSet, setPrefix+"tcp-mss gre-in mss "+
-								strconv.Itoa(greInM["mss"].(int)))
+								strconv.Itoa(greIn["mss"].(int)))
 						}
 					}
 				}
-				for _, greOut := range tcpMssM["gre_out"].([]interface{}) {
+				for _, v2 := range tcpMss["gre_out"].([]interface{}) {
 					configSet = append(configSet, setPrefix+"tcp-mss gre-out")
-					if greOut != nil {
-						greOutM := greOut.(map[string]interface{})
-						if greOutM["mss"].(int) != 0 {
+					if v2 != nil {
+						greOut := v2.(map[string]interface{})
+						if greOut["mss"].(int) != 0 {
 							configSet = append(configSet, setPrefix+"tcp-mss gre-out mss "+
-								strconv.Itoa(greOutM["mss"].(int)))
+								strconv.Itoa(greOut["mss"].(int)))
 						}
 					}
 				}
-				for _, ipsecVpn := range tcpMssM["ipsec_vpn"].([]interface{}) {
+				for _, v2 := range tcpMss["ipsec_vpn"].([]interface{}) {
 					configSet = append(configSet, setPrefix+"tcp-mss ipsec-vpn")
-					if ipsecVpn != nil {
-						ipsecVpnM := ipsecVpn.(map[string]interface{})
-						if ipsecVpnM["mss"].(int) != 0 {
+					if v2 != nil {
+						ipsecVpn := v2.(map[string]interface{})
+						if ipsecVpn["mss"].(int) != 0 {
 							configSet = append(configSet, setPrefix+"tcp-mss ipsec-vpn mss "+
-								strconv.Itoa(ipsecVpnM["mss"].(int)))
+								strconv.Itoa(ipsecVpn["mss"].(int)))
 						}
 					}
 				}
+			} else {
+				return configSet, fmt.Errorf("flow tcp_mss block is empty")
 			}
 		}
-		for _, tcpSess := range flowM["tcp_session"].([]interface{}) {
-			if tcpSess != nil {
-				tcpSessM := tcpSess.(map[string]interface{})
-				if tcpSessM["fin_invalidate_session"].(bool) {
+		for _, v := range flowM["tcp_session"].([]interface{}) {
+			if v != nil {
+				tcpSess := v.(map[string]interface{})
+				if tcpSess["fin_invalidate_session"].(bool) {
 					configSet = append(configSet, setPrefix+"tcp-session fin-invalidate-session")
 				}
-				if tcpSessM["maximum_window"].(string) != "" {
+				if tcpSess["maximum_window"].(string) != "" {
 					configSet = append(configSet, setPrefix+"tcp-session maximum-window "+
-						tcpSessM["maximum_window"].(string))
+						tcpSess["maximum_window"].(string))
 				}
-				if tcpSessM["no_sequence_check"].(bool) {
+				if tcpSess["no_sequence_check"].(bool) {
 					configSet = append(configSet, setPrefix+"tcp-session no-sequence-check")
 				}
-				if tcpSessM["no_syn_check"].(bool) {
+				if tcpSess["no_syn_check"].(bool) {
 					configSet = append(configSet, setPrefix+"tcp-session no-syn-check")
 				}
-				if tcpSessM["no_syn_check_in_tunnel"].(bool) {
+				if tcpSess["no_syn_check_in_tunnel"].(bool) {
 					configSet = append(configSet, setPrefix+"tcp-session no-syn-check-in-tunnel")
 				}
-				if tcpSessM["rst_invalidate_session"].(bool) {
+				if tcpSess["rst_invalidate_session"].(bool) {
 					configSet = append(configSet, setPrefix+"tcp-session rst-invalidate-session")
 				}
-				if tcpSessM["rst_sequence_check"].(bool) {
+				if tcpSess["rst_sequence_check"].(bool) {
 					configSet = append(configSet, setPrefix+"tcp-session rst-sequence-check")
 				}
-				if tcpSessM["strict_syn_check"].(bool) {
+				if tcpSess["strict_syn_check"].(bool) {
 					configSet = append(configSet, setPrefix+"tcp-session strict-syn-check")
 				}
-				if tcpSessM["tcp_initial_timeout"].(int) != 0 {
+				if tcpSess["tcp_initial_timeout"].(int) != 0 {
 					configSet = append(configSet, setPrefix+"tcp-session tcp-initial-timeout "+
-						strconv.Itoa(tcpSessM["tcp_initial_timeout"].(int)))
+						strconv.Itoa(tcpSess["tcp_initial_timeout"].(int)))
 				}
-				for _, timWaiSta := range tcpSessM["time_wait_state"].([]interface{}) {
+				for _, v2 := range tcpSess["time_wait_state"].([]interface{}) {
 					configSet = append(configSet, setPrefix+"tcp-session time-wait-state")
-					if timWaiSta != nil {
-						timWaiStaM := timWaiSta.(map[string]interface{})
-						if timWaiStaM["apply_to_half_close_state"].(bool) {
+					if v2 != nil {
+						timWaiSta := v2.(map[string]interface{})
+						if timWaiSta["apply_to_half_close_state"].(bool) {
 							configSet = append(configSet, setPrefix+"tcp-session time-wait-state apply-to-half-close-state")
 						}
-						if timWaiStaM["session_ageout"].(bool) {
+						if timWaiSta["session_ageout"].(bool) {
 							configSet = append(configSet, setPrefix+"tcp-session time-wait-state session-ageout")
 						}
-						if timWaiStaM["session_timeout"].(int) != 0 {
+						if timWaiSta["session_timeout"].(int) != 0 {
 							configSet = append(configSet, setPrefix+"tcp-session time-wait-state session-timeout "+
-								strconv.Itoa(timWaiStaM["session_timeout"].(int)))
+								strconv.Itoa(timWaiSta["session_timeout"].(int)))
 						}
 					}
 				}
+			} else {
+				return configSet, fmt.Errorf("flow tcp_session block is empty")
 			}
 		}
+	} else {
+		return configSet, fmt.Errorf("flow block is empty")
 	}
 
-	return configSet
+	return configSet, nil
 }
-func setSecurityLog(log interface{}) []string {
+func setSecurityLog(log interface{}) ([]string, error) {
 	setPrefix := "set security log "
 	configSet := make([]string, 0)
 	if log != nil {
@@ -986,21 +1022,23 @@ func setSecurityLog(log interface{}) []string {
 		if logM["facility_override"].(string) != "" {
 			configSet = append(configSet, setPrefix+"facility-override "+logM["facility_override"].(string))
 		}
-		for _, file := range logM["file"].([]interface{}) {
-			if file != nil {
-				fileM := file.(map[string]interface{})
-				if fileM["files"].(int) != 0 {
-					configSet = append(configSet, setPrefix+"file files "+strconv.Itoa(fileM["files"].(int)))
+		for _, v := range logM["file"].([]interface{}) {
+			if v != nil {
+				file := v.(map[string]interface{})
+				if file["files"].(int) != 0 {
+					configSet = append(configSet, setPrefix+"file files "+strconv.Itoa(file["files"].(int)))
 				}
-				if fileM["name"].(string) != "" {
-					configSet = append(configSet, setPrefix+"file name "+fileM["name"].(string))
+				if file["name"].(string) != "" {
+					configSet = append(configSet, setPrefix+"file name "+file["name"].(string))
 				}
-				if fileM["path"].(string) != "" {
-					configSet = append(configSet, setPrefix+"file path "+fileM["path"].(string))
+				if file["path"].(string) != "" {
+					configSet = append(configSet, setPrefix+"file path "+file["path"].(string))
 				}
-				if fileM["size"].(int) != 0 {
-					configSet = append(configSet, setPrefix+"file size "+strconv.Itoa(fileM["size"].(int)))
+				if file["size"].(int) != 0 {
+					configSet = append(configSet, setPrefix+"file size "+strconv.Itoa(file["size"].(int)))
 				}
+			} else {
+				return configSet, fmt.Errorf("log file block is empty")
 			}
 		}
 		if logM["format"].(string) != "" {
@@ -1024,30 +1062,32 @@ func setSecurityLog(log interface{}) []string {
 		if logM["source_interface"].(string) != "" {
 			configSet = append(configSet, setPrefix+"source-interface "+logM["source_interface"].(string))
 		}
-		for _, trans := range logM["transport"].([]interface{}) {
+		for _, v := range logM["transport"].([]interface{}) {
 			configSet = append(configSet, setPrefix+"transport")
-			if trans != nil {
-				transM := trans.(map[string]interface{})
-				if transM["protocol"].(string) != "" {
-					configSet = append(configSet, setPrefix+"transport protocol "+transM["protocol"].(string))
+			if v != nil {
+				trans := v.(map[string]interface{})
+				if trans["protocol"].(string) != "" {
+					configSet = append(configSet, setPrefix+"transport protocol "+trans["protocol"].(string))
 				}
-				if transM["tcp_connections"].(int) != 0 {
-					configSet = append(configSet, setPrefix+"transport tcp-connections "+strconv.Itoa(transM["tcp_connections"].(int)))
+				if trans["tcp_connections"].(int) != 0 {
+					configSet = append(configSet, setPrefix+"transport tcp-connections "+strconv.Itoa(trans["tcp_connections"].(int)))
 				}
-				if transM["tls_profile"].(string) != "" {
-					configSet = append(configSet, setPrefix+"transport tls-profile "+transM["tls_profile"].(string))
+				if trans["tls_profile"].(string) != "" {
+					configSet = append(configSet, setPrefix+"transport tls-profile "+trans["tls_profile"].(string))
 				}
 			}
 		}
 		if logM["utc_timestamp"].(bool) {
 			configSet = append(configSet, setPrefix+"utc-timestamp")
 		}
+	} else {
+		return configSet, fmt.Errorf("log block is empty")
 	}
 
-	return configSet
+	return configSet, nil
 }
 
-func setSecurityForwOpts(forwOpts interface{}) []string {
+func setSecurityForwOpts(forwOpts interface{}) ([]string, error) {
 	setPrefix := "set security forwarding-options "
 	configSet := make([]string, 0)
 	if forwOpts != nil {
@@ -1061,9 +1101,11 @@ func setSecurityForwOpts(forwOpts interface{}) []string {
 		if forwOptsM["iso_mode_packet_based"].(bool) {
 			configSet = append(configSet, setPrefix+"family iso mode packet-based")
 		}
+	} else {
+		return configSet, fmt.Errorf("forwarding_options block is empty")
 	}
 
-	return configSet
+	return configSet, nil
 }
 
 func listLinesSecurityUtm() []string {
