@@ -120,6 +120,7 @@ func Provider() *schema.Provider {
 			"junos_security_ipsec_policy":                                resourceIpsecPolicy(),
 			"junos_security_ipsec_proposal":                              resourceIpsecProposal(),
 			"junos_security_ipsec_vpn":                                   resourceIpsecVpn(),
+			"junos_security_log_stream":                                  resourceSecurityLogStream(),
 			"junos_security_nat_destination_pool":                        resourceSecurityNatDestinationPool(),
 			"junos_security_nat_destination":                             resourceSecurityNatDestination(),
 			"junos_security_nat_source_pool":                             resourceSecurityNatSourcePool(),

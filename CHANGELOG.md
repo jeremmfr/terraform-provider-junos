@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* add resource `junos_security_log_stream` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
 * add `alg` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
 * add `flow` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
 * add `log` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
