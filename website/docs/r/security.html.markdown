@@ -114,7 +114,7 @@ The following arguments are supported:
 * `disable` - (Optional)(`Bool`) Disable security logging for the device.
 * `event_rate` - (Optional)(`Int`) Control plane event rate (0..1500 logs per second).
 * `facility_override` - (Optional)(`String`) Alternate facility for logging to remote host.
-* `file` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for `security log file' block.
+* `file` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for 'security log file' block.
   * `files` - (Optional)(`Int`) Maximum number of binary log files (2..10).
   * `name` - (Optional)(`String`) Name of binary log file.
   * `path` - (Optional)(`String`) Path to binary log files.
@@ -126,7 +126,7 @@ The following arguments are supported:
 * `report` - (Optional)(`Bool`) Set security log report settings.
 * `source_address` - (Optional)(`String`) Source ip address used when exporting security logs. Conflict with `source_interface`.
 * `source_interface`- (Optional)(`String`) Source interface used when exporting security logs. Conflict with `source_address`.
-* `transport` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for `security log transport' block.
+* `transport` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for 'security log transport' block.
   * `protocol` - (Optional)(`String`) Set security log transport protocol for the device. Need to be 'tcp', 'tls' or 'udp'.
   * `tcp_connections` - (Optional)(`Int`) Set tcp connection number per-stream (1..5)
   * `tls_profile` - (Optional)(`String`) TLS profile.
