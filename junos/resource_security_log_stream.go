@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-type logStreamOptions struct {
+type securityLogStreamOptions struct {
 	filterThreatAttack bool
 	rateLimit          int
 	name               string
@@ -133,19 +133,19 @@ func resourceSecurityLogStreamCreate(ctx context.Context, d *schema.ResourceData
 			"not compatible with Junos device %s", jnprSess.Platform[0].Model))
 	}
 	sess.configLock(jnprSess)
-	logStreamExists, err := checkLogStreamsExists(d.Get("name").(string), m, jnprSess)
+	securityLogStreamExists, err := checkSecurityLogStreamExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	if logStreamExists {
+	if securityLogStreamExists {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(fmt.Errorf("security log stream %v already exists", d.Get("name").(string)))
 	}
 
-	if err := setLogStream(d, m, jnprSess); err != nil {
+	if err := setSecurityLogStream(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -156,12 +156,12 @@ func resourceSecurityLogStreamCreate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	mutex.Lock()
-	logStreamExists, err = checkLogStreamsExists(d.Get("name").(string), m, jnprSess)
+	securityLogStreamExists, err = checkSecurityLogStreamExists(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	if logStreamExists {
+	if securityLogStreamExists {
 		d.SetId(d.Get("name").(string))
 	} else {
 		return diag.FromErr(fmt.Errorf("security log stream %v "+
@@ -180,15 +180,15 @@ func resourceSecurityLogStreamRead(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	logStreamOptions, err := readLogStream(d.Get("name").(string), m, jnprSess)
+	securityLogStreamOptions, err := readSecurityLogStream(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	if logStreamOptions.name == "" {
+	if securityLogStreamOptions.name == "" {
 		d.SetId("")
 	} else {
-		fillLogStreamData(d, logStreamOptions)
+		fillSecurityLogStreamData(d, securityLogStreamOptions)
 	}
 
 	return nil
@@ -207,7 +207,7 @@ func resourceSecurityLogStreamUpdate(ctx context.Context, d *schema.ResourceData
 
 		return diag.FromErr(err)
 	}
-	if err := setLogStream(d, m, jnprSess); err != nil {
+	if err := setSecurityLogStream(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -250,42 +250,42 @@ func resourceSecurityLogStreamImport(d *schema.ResourceData, m interface{}) ([]*
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-	logStreamExists, err := checkLogStreamsExists(d.Id(), m, jnprSess)
+	securityLogStreamExists, err := checkSecurityLogStreamExists(d.Id(), m, jnprSess)
 	if err != nil {
 		return nil, err
 	}
-	if !logStreamExists {
+	if !securityLogStreamExists {
 		return nil, fmt.Errorf("don't find security log stream with id '%v' (id must be <name>)", d.Id())
 	}
-	logStreamOptions, err := readLogStream(d.Id(), m, jnprSess)
+	securityLogStreamOptions, err := readSecurityLogStream(d.Id(), m, jnprSess)
 	if err != nil {
 		return nil, err
 	}
-	fillLogStreamData(d, logStreamOptions)
+	fillSecurityLogStreamData(d, securityLogStreamOptions)
 
 	result[0] = d
 
 	return result, nil
 }
 
-func checkLogStreamsExists(logStream string, m interface{}, jnprSess *NetconfObject) (bool, error) {
+func checkSecurityLogStreamExists(securityLogStream string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	logStreamConfig, err := sess.command("show configuration security log stream \""+
-		logStream+"\" | display set", jnprSess)
+	securityLogStreamConfig, err := sess.command("show configuration security log stream \""+
+		securityLogStream+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if logStreamConfig == emptyWord {
+	if securityLogStreamConfig == emptyWord {
 		return false, nil
 	}
 
 	return true, nil
 }
-func setLogStream(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
+func setSecurityLogStream(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 
-	setPrefix := "set security log stream " + d.Get("name").(string) + " "
+	setPrefix := "set security log stream \"" + d.Get("name").(string) + "\" "
 	for _, v := range d.Get("category").([]interface{}) {
 		configSet = append(configSet, setPrefix+"category "+v.(string))
 	}
@@ -335,19 +335,19 @@ func setLogStream(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 
 	return nil
 }
-func readLogStream(logStream string, m interface{}, jnprSess *NetconfObject) (
-	logStreamOptions, error) {
+func readSecurityLogStream(securityLogStream string, m interface{}, jnprSess *NetconfObject) (
+	securityLogStreamOptions, error) {
 	sess := m.(*Session)
-	var confRead logStreamOptions
+	var confRead securityLogStreamOptions
 
-	logStreamConfig, err := sess.command("show configuration"+
-		" security log stream \""+logStream+"\" | display set relative", jnprSess)
+	securityLogStreamConfig, err := sess.command("show configuration"+
+		" security log stream \""+securityLogStream+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if logStreamConfig != emptyWord {
-		confRead.name = logStream
-		for _, item := range strings.Split(logStreamConfig, "\n") {
+	if securityLogStreamConfig != emptyWord {
+		confRead.name = securityLogStream
+		for _, item := range strings.Split(securityLogStreamConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
@@ -428,10 +428,10 @@ func readLogStream(logStream string, m interface{}, jnprSess *NetconfObject) (
 	return confRead, nil
 }
 
-func delLogStream(logStream string, m interface{}, jnprSess *NetconfObject) error {
+func delLogStream(securityLogStream string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security log stream \""+logStream+"\"")
+	configSet = append(configSet, "delete security log stream \""+securityLogStream+"\"")
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
@@ -439,29 +439,29 @@ func delLogStream(logStream string, m interface{}, jnprSess *NetconfObject) erro
 	return nil
 }
 
-func fillLogStreamData(d *schema.ResourceData, logStreamOptions logStreamOptions) {
-	if tfErr := d.Set("name", logStreamOptions.name); tfErr != nil {
+func fillSecurityLogStreamData(d *schema.ResourceData, securityLogStreamOptions securityLogStreamOptions) {
+	if tfErr := d.Set("name", securityLogStreamOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("category", logStreamOptions.category); tfErr != nil {
+	if tfErr := d.Set("category", securityLogStreamOptions.category); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("file", logStreamOptions.file); tfErr != nil {
+	if tfErr := d.Set("file", securityLogStreamOptions.file); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("filter_threat_attack", logStreamOptions.filterThreatAttack); tfErr != nil {
+	if tfErr := d.Set("filter_threat_attack", securityLogStreamOptions.filterThreatAttack); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("format", logStreamOptions.format); tfErr != nil {
+	if tfErr := d.Set("format", securityLogStreamOptions.format); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("host", logStreamOptions.host); tfErr != nil {
+	if tfErr := d.Set("host", securityLogStreamOptions.host); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("rate_limit", logStreamOptions.rateLimit); tfErr != nil {
+	if tfErr := d.Set("rate_limit", securityLogStreamOptions.rateLimit); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("severity", logStreamOptions.severity); tfErr != nil {
+	if tfErr := d.Set("severity", securityLogStreamOptions.severity); tfErr != nil {
 		panic(tfErr)
 	}
 }
