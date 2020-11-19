@@ -51,5 +51,5 @@ The following arguments are supported:
 Junos security log stream can be imported using an id made up of `<name>`, e.g.
 
 ```
-$ terraform import junos_security_log_stream.demo_stream "demo_logstream"
+$ terraform import junos_security_log_stream.demo_logstream "demo_logstream"
 ```
