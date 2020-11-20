@@ -177,6 +177,16 @@ func resourceFirewallFilter() *schema.Resource {
 										Type:     schema.TypeBool,
 										Optional: true,
 									},
+									"icmp_code": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"icmp_code_except": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
 									"icmp_type": {
 										Type:     schema.TypeList,
 										Optional: true,
@@ -642,6 +652,15 @@ func setFirewallFilterOptsFrom(setPrefixTermFrom string,
 	if fromMap["tcp_established"].(bool) {
 		configSet = append(configSet, setPrefixTermFrom+"tcp-established")
 	}
+	if len(fromMap["icmp_code"].([]interface{})) > 0 && len(fromMap["icmp_code_except"].([]interface{})) > 0 {
+		return nil, fmt.Errorf("conflict between icmp_code and icmp_code_except")
+	}
+	for _, icmp := range fromMap["icmp_code"].([]interface{}) {
+		configSet = append(configSet, setPrefixTermFrom+"icmp-code "+icmp.(string))
+	}
+	for _, icmp := range fromMap["icmp_code_except"].([]interface{}) {
+		configSet = append(configSet, setPrefixTermFrom+"icmp-code-except "+icmp.(string))
+	}
 	if len(fromMap["icmp_type"].([]interface{})) > 0 && len(fromMap["icmp_type_except"].([]interface{})) > 0 {
 		return nil, fmt.Errorf("conflict between icmp_type and icmp_type_except")
 	}
@@ -783,6 +802,11 @@ func readFirewallFilterOptsFrom(item string,
 		fromMap["tcp_initial"] = true
 	case strings.HasSuffix(item, "tcp-established"):
 		fromMap["tcp_established"] = true
+	case strings.HasPrefix(item, "icmp-code "):
+		fromMap["icmp_code"] = append(fromMap["icmp_code"].([]string), strings.TrimPrefix(item, "icmp-code "))
+	case strings.HasPrefix(item, "icmp-code-except "):
+		fromMap["icmp_code_except"] = append(fromMap["icmp_code_except"].([]string),
+			strings.TrimPrefix(item, "icmp-code-except "))
 	case strings.HasPrefix(item, "icmp-type "):
 		fromMap["icmp_type"] = append(fromMap["icmp_type"].([]string), strings.TrimPrefix(item, "icmp-type "))
 	case strings.HasPrefix(item, "icmp-type-except "):
@@ -861,6 +885,8 @@ func genMapFirewallFilterOptsFrom() map[string]interface{} {
 		"tcp_flags":                      "",
 		"tcp_initial":                    false,
 		"tcp_established":                false,
+		"icmp_code":                      make([]string, 0),
+		"icmp_code_except":               make([]string, 0),
 		"icmp_type":                      make([]string, 0),
 		"icmp_type_except":               make([]string, 0),
 		"is_fragment":                    false,

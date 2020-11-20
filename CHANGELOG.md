@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * add `log` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
 * add `forwarding_options` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
 * add `proposal_set` argument in resource `security_ike_policy` and `security_ipsec_policy` (Fixes [#55](https://github.com/jeremmfr/terraform-provider-junos/issues/55))
+* add `icmp_code` and `icmp_code_except` sub-arguments for 'term.N.from' to resource `firewall_filter` (Fixes [#58](https://github.com/jeremmfr/terraform-provider-junos/issues/58))
 
 BUG FIXES:
 * remove useless ForceNew for `bind_interface_auto` argument in resource `security_ipsec_vpn`
