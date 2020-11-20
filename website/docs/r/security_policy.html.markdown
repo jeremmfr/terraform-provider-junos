@@ -40,12 +40,12 @@ The following arguments are supported:
   * `match_application` - (Required)(`ListOfString`) List of applications match
   * `then` - (Optional)(`String`) action of policy. Defaults to `permit`
   * `permit_tunnel_ipsec_vpn` - (Optional)(`String`) Name of vpn to permit with a tunnel ipsec
-  * `permit_application_services` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html) Define application services for permit. See the [`permit_application_services` arguments](#permit_application_services-arguments) block. Max of 1.
+  * `permit_application_services` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html) Define application services for permit. See the [`permit_application_services` arguments for policy](#permit_application_services-arguments-for-policy) block. Max of 1.
   * `count` - (Optional)(`Bool`) Enable count
   * `log_init` - (Optional)(`Bool`) Log at session init time
   * `log_close` - (Optional)(`Bool`) Log at session close time
 
-#### permit_application_services arguments
+#### permit_application_services arguments for policy
 * `application_firewall_rule_set` - (Optional)(`String`) Servie rule-set Name for Application firewall.
 * `application_traffic_control_rule_set` - (Optional)(`String`) Service rule-set name Application traffic control.
 * `gprs_gtp_profile` - (Optional)(`String`) Specify GPRS Tunneling Protocol profile name.

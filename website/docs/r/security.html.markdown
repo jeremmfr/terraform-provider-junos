@@ -31,7 +31,7 @@ resource junos_security "security" {
 The following arguments are supported:
 
 * `ike_traceoptions` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'ike traceoptions' configuration.
-  * `file` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'file' configuration. See the [`file` arguments] (#file-arguments) block.
+  * `file` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'file' configuration. See the [`file` arguments for ike_traceoptions] (#file-arguments-for-ike_traceoptions) block.
   * `flag` - (Optional)(`ListOfString`) Tracing parameters for IKE.
   * `rate_limit` - (Optional)(`Int`) Limit the incoming rate of trace messages (0..4294967295)
 * `utm` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'utm' configuration.
@@ -41,7 +41,7 @@ The following arguments are supported:
 * `log` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'log' configuration. See the [`log` arguments] (#log-arguments) block.
 * `forwarding_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'forwarding-options' configuration. See the [`forwarding_options` arguments] (#forwarding_options-arguments) block.
 
-#### file arguments
+#### file arguments for ike_traceoptions
 * `name` - (Optional)(`String`) Name of file in which to write trace information.
 * `files` - (Optional)(`Int`) Maximum number of trace files (2..1000).
 * `match` - (Optional)(`String`) Regular expression for lines to be logged.
@@ -103,9 +103,9 @@ The following arguments are supported:
   * `rst_sequence_check` - (Optional)(`Bool`) Check sequence number in reset (RST) segment.
   * `strict_syn_check` - (Optional)(`Bool`) Enable strict syn check. Conflict with `no_sync_check` and `no_syn_check_in_tunnel`.
   * `tcp_initial_timeout` - (Optional)(`Int`) Timeout for TCP session when initialization fails (4..300 seconds).
-  * `time_wait_state` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare session timeout value in time-wait state. See the [`flow tcp_session time_wait_state` arguments] (#flow-tcp_session-time_wait_state-arguments) block.
+  * `time_wait_state` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare session timeout value in time-wait state. See the [`time_wait_state` arguments for tcp_session in flow] (#time_wait_state-arguments-for-tcp_session-in-flow) block.
   
-#### flow tcp_session time_wait_state arguments
+#### time_wait_state arguments for tcp_session in flow
 * `apply_to_half_close_state` - (Optional)(`Bool`) Apply time-wait-state timeout to half-close state.
 * `session_ageout` - (Optional)(`Bool`) Allow session to ageout using service based timeout values.
 * `session_timeout` - (Optional)(`Int`) Configure session timeout value for time-wait state (2..600 seconds).

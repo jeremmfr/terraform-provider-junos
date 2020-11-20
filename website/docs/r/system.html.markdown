@@ -38,14 +38,14 @@ The following arguments are supported:
 
 * `name_server` - (Optional)(`ListOfString`) DNS name servers.
 * `services` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'services' configuration.
-  * `ssh` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'ssh' configuration. See the [`ssh` arguments] (#ssh-arguments) block.
+  * `ssh` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'ssh' configuration. See the [`ssh` arguments for services] (#ssh-arguments-for-services) block.
 * `syslog` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'syslog' configuration.
-  * `archive` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'archive' configuration. See the [`archive` arguments] (#archive-arguments) block.
+  * `archive` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'archive' configuration. See the [`archive` arguments for syslog] (#archive-arguments-for-syslog) block.
   * `log_rotate_frequency` - (Optional)(`Int`) Rotate log frequency (1..59 minutes).
   * `source_address` - (Optional)(`String`) Use specified address as source address.
 * `tracing_dest_override_syslog_host` - (Optional)(`String`) Send trace messages to remote syslog server.
 
-#### ssh arguments
+#### ssh arguments for services
 * `authentication_order` - (Optional)(`ListOfString`) Order in which authentication methods are invoked.
 * `ciphers` - (Optional)(`ListOfString`) Specify the ciphers allowed for protocol version 2.
 * `client_alive_count_max` - (Optional)(`Int`) Threshold of missing client-alive responses that triggers a disconnect (0..255).
@@ -66,7 +66,7 @@ The following arguments are supported:
 * `no_tcp_forwarding` - (Optional)(`Bool`) Do not allow forwarding TCP connections via SSH.
 * `tcp_forwarding` - (Optional)(`Bool`) Allow forwarding TCP connections via SSH.
 
-#### archive arguments
+#### archive arguments for syslog
 * `binary_data` - (Optional)(`Bool`) Mark file as if it contains binary data.
 * `no_binary_data` - (Optional)(`Bool`) Don't mark file as if it contains binary data.
 * `files` - (Optional)(`Int`) Number of files to be archived (1..1000).

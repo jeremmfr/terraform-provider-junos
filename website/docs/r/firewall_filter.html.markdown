@@ -41,11 +41,10 @@ The following arguments are supported:
 * `term` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each term.
   * `name` - (Required)(`String`) Name of term.
   * `filter` - (Optional)(`String`) Filter to include.
-  * `from` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Define match criteria.
-  See the [`from` arguments](#from-arguments) block. Max of 1.
-  * `then` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Define action to take if the `from` condition is matched. See the [`then` arguments](#then-arguments) block. Max of 1.
+  * `from` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Define match criteria. See the [`from` arguments for term](#from-arguments-for-term) block. Max of 1.
+  * `then` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Define action to take if the `from` condition is matched. See the [`then` arguments for term](#then-arguments-for-term) block. Max of 1.
 
-#### from arguments
+#### from arguments for term
   * `address` - (Optional)(`ListOfString`) Match IP source or destination address.
   * `address_except` - (Optional)(`ListOfString`) Match address not in this list of prefix.
   * `port` - (Optional)(`ListOfString`) Match TCP/UDP source or destination port
@@ -77,7 +76,7 @@ The following arguments are supported:
   * `next_header` - (Optional)(`ListOfString`) Match next header protocol type. Conflict with `next_header_except`.
   * `next_header_except` - (Optional)(`ListOfString`) Do not match next header protocol type. Conflict with `next_header`.
 
-#### then arguments
+#### then arguments for term
   * `action` - (Optional)(`String`) Action for term if needed. Need to be 'accept', 'reject', 'discard' or 'next term'.
   * `count` - (Optional)(`String`) Count the packet in the named counter.
   * `routing_instance` - (Optional)(`String`) Packets are directed to specified routing stance.
