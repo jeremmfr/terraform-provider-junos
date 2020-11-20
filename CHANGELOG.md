@@ -3,6 +3,11 @@ ENHANCEMENTS:
 * optimize memory usage of functions for resource bgp_*
 * add `traffic_selector` argument in resource `security_ipsec_vpn` (Fixes [#53](https://github.com/jeremmfr/terraform-provider-junos/issues/53))
 * add `complete_destroy` argument in resource `interface`
+* add resource `junos_security_log_stream` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
+* add `alg` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
+* add `flow` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
+* add `log` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
+* add `forwarding_options` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
 
 BUG FIXES:
 * remove useless ForceNew for `bind_interface_auto` argument in resource `security_ipsec_vpn`
