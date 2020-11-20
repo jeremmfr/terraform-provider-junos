@@ -118,6 +118,8 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 							"dh_group", "group1"),
 						resource.TestCheckResourceAttr("junos_security_ike_policy.testacc_ikepol",
 							"pre_shared_key_text", "mysecret"),
+						resource.TestCheckResourceAttr("junos_security_ike_policy.testacc_ikepol",
+							"proposal_set", "standard"),
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
 							"address.#", "1"),
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
@@ -126,6 +128,8 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 							"encryption_algorithm", "aes-256-cbc"),
 						resource.TestCheckResourceAttr("junos_security_ipsec_policy.testacc_ipsecpol",
 							"pfs_keys", "group1"),
+						resource.TestCheckResourceAttr("junos_security_ipsec_policy.testacc_ipsecpol",
+							"proposal_set", "standard"),
 						resource.TestCheckResourceAttr("junos_security_policy.testacc_policyIpsecRemToLoc",
 							"policy.#", "1"),
 						resource.TestCheckResourceAttr("junos_security_policy.testacc_policyIpsecRemToLoc",
@@ -332,7 +336,7 @@ resource junos_security_ike_proposal "testacc_ikeprop" {
 }
 resource junos_security_ike_policy "testacc_ikepol" {
   name                = "testacc_ikepol"
-  proposals           = [junos_security_ike_proposal.testacc_ikeprop.name]
+  proposal_set        = "standard"
   mode                = "main"
   pre_shared_key_text = "mysecret"
 }
@@ -365,9 +369,9 @@ resource junos_security_ipsec_proposal "testacc_ipsecprop" {
   encryption_algorithm     = "aes-256-cbc"
 }
 resource junos_security_ipsec_policy "testacc_ipsecpol" {
-  name      = "testacc_ipsecpol"
-  proposals = [junos_security_ipsec_proposal.testacc_ipsecprop.name]
-  pfs_keys  = "group1"
+  name         = "testacc_ipsecpol"
+  proposal_set = "standard"
+  pfs_keys     = "group1"
 }
 resource junos_security_ipsec_vpn "testacc_ipsecvpn2" {
   name = "testacc_ipsecvpn2"

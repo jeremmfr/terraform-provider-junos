@@ -7,12 +7,14 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type ipsecPolicyOptions struct {
-	name      string
-	pfsKeys   string
-	proposals []string
+	name        string
+	pfsKeys     string
+	proposalSet string
+	proposals   []string
 }
 
 func resourceIpsecPolicy() *schema.Resource {
@@ -32,10 +34,17 @@ func resourceIpsecPolicy() *schema.Resource {
 				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"proposals": {
-				Type:     schema.TypeList,
-				Required: true,
-				MinItems: 1,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:         schema.TypeList,
+				Optional:     true,
+				MinItems:     1,
+				Elem:         &schema.Schema{Type: schema.TypeString},
+				ExactlyOneOf: []string{"proposals", "proposal_set"},
+			},
+			"proposal_set": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(listProposalSet(), false),
+				ExactlyOneOf: []string{"proposals", "proposal_set"},
 			},
 			"pfs_keys": {
 				Type:     schema.TypeString,
@@ -212,6 +221,9 @@ func setIpsecPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	for _, v := range d.Get("proposals").([]interface{}) {
 		configSet = append(configSet, setPrefix+" proposals "+v.(string))
 	}
+	if d.Get("proposal_set").(string) != "" {
+		configSet = append(configSet, setPrefix+" proposal-set "+d.Get("proposal_set").(string))
+	}
 
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
@@ -241,6 +253,8 @@ func readIpsecPolicy(ipsecPolicy string, m interface{}, jnprSess *NetconfObject)
 			switch {
 			case strings.HasPrefix(itemTrim, "proposals "):
 				confRead.proposals = append(confRead.proposals, strings.TrimPrefix(itemTrim, "proposals "))
+			case strings.HasPrefix(itemTrim, "proposal-set "):
+				confRead.proposalSet = strings.TrimPrefix(itemTrim, "proposal-set ")
 			case strings.HasPrefix(itemTrim, "perfect-forward-secrecy keys "):
 				confRead.pfsKeys = strings.TrimPrefix(itemTrim, "perfect-forward-secrecy keys ")
 			}
@@ -269,6 +283,9 @@ func fillIpsecPolicyData(d *schema.ResourceData, ipsecPolicyOptions ipsecPolicyO
 		panic(tfErr)
 	}
 	if tfErr := d.Set("proposals", ipsecPolicyOptions.proposals); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("proposal_set", ipsecPolicyOptions.proposalSet); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("pfs_keys", ipsecPolicyOptions.pfsKeys); tfErr != nil {

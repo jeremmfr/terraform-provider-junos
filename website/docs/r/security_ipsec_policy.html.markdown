@@ -26,7 +26,8 @@ resource junos_security_ipsec_policy "demo_vpn_policy" {
 The following arguments are supported:
 
 * `name` - (Required, Forces new resource)(`String`) The name of ipsec policy.
-* `proposals` - (Required)(`ListOfString`) Ipsec proposal list.
+* `proposals` - (Optional)(`ListOfString`) Ipsec proposal list.
+* `proposal_set` - (Optional)(`String`) Types of default IPSEC proposal-set. Need to be `basic`, `compatible`, `prime-128`, `prime-256`, `standard`, `suiteb-gcm-128` or `suiteb-gcm-256`.
 * `pfs_keys` - (Optional)(`String`) Diffie-Hellman Group.
 
 ## Import

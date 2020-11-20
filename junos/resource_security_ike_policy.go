@@ -16,7 +16,20 @@ type ikePolicyOptions struct {
 	mode             string
 	preSharedKeyText string
 	preSharedKeyHexa string
+	proposalSet      string
 	proposals        []string
+}
+
+func listProposalSet() []string {
+	return []string{
+		"basic",
+		"compatible",
+		"prime-128",
+		"prime-256",
+		"standard",
+		"suiteb-gcm-128",
+		"suiteb-gcm-256",
+	}
 }
 
 func resourceIkePolicy() *schema.Resource {
@@ -36,10 +49,17 @@ func resourceIkePolicy() *schema.Resource {
 				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"proposals": {
-				Type:     schema.TypeList,
-				Required: true,
-				MinItems: 1,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:         schema.TypeList,
+				Optional:     true,
+				MinItems:     1,
+				Elem:         &schema.Schema{Type: schema.TypeString},
+				ExactlyOneOf: []string{"proposals", "proposal_set"},
+			},
+			"proposal_set": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(listProposalSet(), false),
+				ExactlyOneOf: []string{"proposals", "proposal_set"},
 			},
 			"mode": {
 				Type:         schema.TypeString,
@@ -231,6 +251,9 @@ func setIkePolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 	for _, v := range d.Get("proposals").([]interface{}) {
 		configSet = append(configSet, setPrefix+" proposals "+v.(string))
 	}
+	if d.Get("proposal_set").(string) != "" {
+		configSet = append(configSet, setPrefix+" proposal-set "+d.Get("proposal_set").(string))
+	}
 	if d.Get("pre_shared_key_text").(string) != "" {
 		configSet = append(configSet, setPrefix+" pre-shared-key ascii-text "+d.Get("pre_shared_key_text").(string))
 	}
@@ -268,6 +291,8 @@ func readIkePolicy(ikePolicy string, m interface{}, jnprSess *NetconfObject) (ik
 				confRead.mode = strings.TrimPrefix(itemTrim, "mode ")
 			case strings.HasPrefix(itemTrim, "proposals "):
 				confRead.proposals = append(confRead.proposals, strings.TrimPrefix(itemTrim, "proposals "))
+			case strings.HasPrefix(itemTrim, "proposal-set "):
+				confRead.proposalSet = strings.TrimPrefix(itemTrim, "proposal-set ")
 			case strings.HasPrefix(itemTrim, "pre-shared-key hexadecimal "):
 				confRead.preSharedKeyHexa, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
 					"pre-shared-key hexadecimal "), "\""))
@@ -315,6 +340,9 @@ func fillIkePolicyData(d *schema.ResourceData, ikePolicyOptions ikePolicyOptions
 		panic(tfErr)
 	}
 	if tfErr := d.Set("proposals", ikePolicyOptions.proposals); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("proposal_set", ikePolicyOptions.proposalSet); tfErr != nil {
 		panic(tfErr)
 	}
 }
