@@ -1,15 +1,23 @@
 ## upcoming release
 ENHANCEMENTS:
-* optimize memory usage of functions for resource bgp_*
+
+BUG FIXES:
+
+## v1.8.0
+FEATURES:
+* add resource `junos_security_log_stream` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
+
+ENHANCEMENTS:
 * add `traffic_selector` argument in resource `security_ipsec_vpn` (Fixes [#53](https://github.com/jeremmfr/terraform-provider-junos/issues/53))
 * add `complete_destroy` argument in resource `interface`
-* add resource `junos_security_log_stream` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
 * add `alg` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
 * add `flow` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
 * add `log` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
 * add `forwarding_options` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
 * add `proposal_set` argument in resource `security_ike_policy` and `security_ipsec_policy` (Fixes [#55](https://github.com/jeremmfr/terraform-provider-junos/issues/55))
 * add `icmp_code` and `icmp_code_except` sub-arguments for 'term.N.from' to resource `firewall_filter` (Fixes [#58](https://github.com/jeremmfr/terraform-provider-junos/issues/58))
+* optimize memory usage of functions for resource bgp_*
+* release now with golang 1.15
 
 BUG FIXES:
 * remove useless ForceNew for `bind_interface_auto` argument in resource `security_ipsec_vpn`
