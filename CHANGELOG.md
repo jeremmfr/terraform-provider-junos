@@ -1,8 +1,11 @@
 ## upcoming release
 ENHANCEMENTS:
 * optimize memory usage of functions for resource bgp_*
+* add `traffic_selector` argument in resource `security_ipsec_vpn` (Fixes [#53](https://github.com/jeremmfr/terraform-provider-junos/issues/53))
+* add `complete_destroy` argument in resource `interface`
 
 BUG FIXES:
+* remove useless ForceNew for `bind_interface_auto` argument in resource `security_ipsec_vpn`
 
 ## v1.7.0
 ENHANCEMENTS:

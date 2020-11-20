@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -17,6 +18,7 @@ type ipsecVpnOptions struct {
 	bindInterface    string
 	dfBit            string
 	ike              []map[string]interface{}
+	trafficSelector  []map[string]interface{}
 	vpnMonitor       []map[string]interface{}
 }
 
@@ -47,9 +49,9 @@ func resourceIpsecVpn() *schema.Resource {
 				Computed: true,
 			},
 			"bind_interface_auto": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				ForceNew: true,
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"traffic_selector"},
 			},
 			"df_bit": {
 				Type:         schema.TypeString,
@@ -112,6 +114,30 @@ func resourceIpsecVpn() *schema.Resource {
 						"optimized": {
 							Type:     schema.TypeBool,
 							Optional: true,
+						},
+					},
+				},
+			},
+			"traffic_selector": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				ConflictsWith: []string{"bind_interface_auto"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateNameObjectJunos([]string{}),
+						},
+						"local_ip": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsCIDRNetwork(0, 128),
+						},
+						"remote_ip": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsCIDRNetwork(0, 128),
 						},
 					},
 				},
@@ -212,32 +238,51 @@ func resourceIpsecVpnRead(ctx context.Context, d *schema.ResourceData, m interfa
 	return nil
 }
 func resourceIpsecVpnUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	var diagsReturn diag.Diagnostics
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagsReturn, diag.FromErr(err)...)
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	if err := delIpsecVpnConf(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagsReturn, diag.FromErr(err)...)
+	}
+	if d.HasChanges("bind_interface_auto") {
+		diagsReturn = append(diagsReturn, diag.Diagnostic{
+			Severity:      diag.Warning,
+			Summary:       "Modifying bind_interface_auto on resource already created has no effect",
+			AttributePath: cty.Path{cty.GetAttrStep{Name: "bind_interface_auto"}},
+		})
+	}
+	if d.HasChanges("bind_interface") {
+		oldInt, _ := d.GetChange("bind_interface")
+		empty := checkInterfaceNC(oldInt.(string), m, jnprSess)
+		if empty == nil {
+			if err := sess.configSet([]string{"delete interfaces " + oldInt.(string)}, jnprSess); err != nil {
+				sess.configClear(jnprSess)
+
+				return append(diagsReturn, diag.FromErr(err)...)
+			}
+		}
 	}
 	if err := setIpsecVpn(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagsReturn, diag.FromErr(err)...)
 	}
 	if err := sess.commitConf("update resource junos_security_ipsec_vpn", jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagsReturn, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceIpsecVpnRead(ctx, d, m)
+	return append(diagsReturn, resourceIpsecVpnRead(ctx, d, m)...)
 }
 func resourceIpsecVpnDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -301,7 +346,7 @@ func setIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 
-	if d.Get("bind_interface_auto").(bool) {
+	if d.Get("bind_interface").(string) != "" {
 		configSet = append(configSet, "set interfaces "+d.Get("bind_interface").(string))
 	}
 	setPrefix := "set security ipsec vpn " + d.Get("name").(string)
@@ -346,6 +391,13 @@ func setIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		if monitor["optimized"].(bool) {
 			configSet = append(configSet, setPrefix+" vpn-monitor optimized")
 		}
+	}
+	for _, v := range d.Get("traffic_selector").([]interface{}) {
+		tS := v.(map[string]interface{})
+		configSet = append(configSet, "set security ipsec vpn "+d.Get("name").(string)+" traffic-selector "+
+			tS["name"].(string)+" local-ip "+tS["local_ip"].(string))
+		configSet = append(configSet, "set security ipsec vpn "+d.Get("name").(string)+" traffic-selector "+
+			tS["name"].(string)+" remote-ip "+tS["remote_ip"].(string))
 	}
 
 	if err := sess.configSet(configSet, jnprSess); err != nil {
@@ -428,6 +480,24 @@ func readIpsecVpn(ipsecVpn string, m interface{}, jnprSess *NetconfObject) (ipse
 				}
 				// override (maxItem = 1)
 				confRead.vpnMonitor = []map[string]interface{}{monitorOptions}
+			case strings.HasPrefix(itemTrim, "traffic-selector "):
+				tsSplit := strings.Split(strings.TrimPrefix(itemTrim, "traffic-selector "), " ")
+				tsOptions := map[string]interface{}{
+					"name":      tsSplit[0],
+					"local_ip":  "",
+					"remote_ip": "",
+				}
+				itemTrimTS := strings.TrimPrefix(itemTrim, "traffic-selector "+tsSplit[0]+" ")
+				if len(confRead.trafficSelector) > 0 {
+					tsOptions, confRead.trafficSelector = copyAndRemoveItemMapList("name", false, tsOptions, confRead.trafficSelector)
+				}
+				switch {
+				case strings.HasPrefix(itemTrimTS, "local-ip "):
+					tsOptions["local_ip"] = strings.TrimPrefix(itemTrimTS, "local-ip ")
+				case strings.HasPrefix(itemTrimTS, "remote-ip "):
+					tsOptions["remote_ip"] = strings.TrimPrefix(itemTrimTS, "remote-ip ")
+				}
+				confRead.trafficSelector = append(confRead.trafficSelector, tsOptions)
 			}
 		}
 	} else {
@@ -452,9 +522,8 @@ func delIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ipsec vpn "+d.Get("name").(string))
-	if d.Get("bind_interface_auto").(bool) {
-		empty := checkInterfaceNC(d.Get("bind_interface").(string), m, jnprSess)
-		if empty == nil {
+	if d.Get("bind_interface").(string) != "" {
+		if empty := checkInterfaceNC(d.Get("bind_interface").(string), m, jnprSess); empty == nil {
 			configSet = append(configSet, "delete interfaces "+d.Get("bind_interface").(string))
 		}
 	}
@@ -482,6 +551,9 @@ func fillIpsecVpnData(d *schema.ResourceData, ipsecVpnOptions ipsecVpnOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("vpn_monitor", ipsecVpnOptions.vpnMonitor); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("traffic_selector", ipsecVpnOptions.trafficSelector); tfErr != nil {
 		panic(tfErr)
 	}
 }

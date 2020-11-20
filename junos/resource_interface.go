@@ -62,6 +62,10 @@ func resourceInterface() *schema.Resource {
 					return
 				},
 			},
+			"complete_destroy": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -677,22 +681,24 @@ func resourceInterfaceDelete(ctx context.Context, d *schema.ResourceData, m inte
 
 		return diag.FromErr(err)
 	}
-	intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	if intExists {
-		err = addInterfaceNC(d.Get("name").(string), m, jnprSess)
+	if !d.Get("complete_destroy").(bool) {
+		intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
 		if err != nil {
-			sess.configClear(jnprSess)
-
 			return diag.FromErr(err)
 		}
-		err = sess.commitConf("disable(NC) resource junos_interface", jnprSess)
-		if err != nil {
-			sess.configClear(jnprSess)
+		if intExists {
+			err = addInterfaceNC(d.Get("name").(string), m, jnprSess)
+			if err != nil {
+				sess.configClear(jnprSess)
 
-			return diag.FromErr(err)
+				return diag.FromErr(err)
+			}
+			err = sess.commitConf("disable(NC) resource junos_interface", jnprSess)
+			if err != nil {
+				sess.configClear(jnprSess)
+
+				return diag.FromErr(err)
+			}
 		}
 	}
 
@@ -1122,8 +1128,8 @@ func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 	if err := sess.configSet([]string{"delete interfaces " + setName}, jnprSess); err != nil {
 		return err
 	}
-	if strings.Contains(d.Get("name").(string), "st0.") {
-		// interface totally delete by resource_security_ipsec_vpn when bind_interface_auto
+	if strings.Contains(d.Get("name").(string), "st0.") && !d.Get("complete_destroy").(bool) {
+		// interface totally delete by resource_security_ipsec_vpn with bind_interface
 		// else there is an interface st0.x empty
 		err := sess.configSet([]string{"set interfaces " + setName}, jnprSess)
 		if err != nil {
