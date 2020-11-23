@@ -212,6 +212,7 @@ github.com/imdario/mergo v0.3.9 h1:UauaLniWCFHWd+Jp9oCEkTBj8VO/9DKg3PV3VCNMDIg=
 github.com/imdario/mergo v0.3.9/go.mod h1:2EnlNZ0deacrJVfApfmtdGgDfMuh/nq6Ok1EcJh5FfA=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOlocH6Fxy8MmwDt+yVQYULKfN0RoTN8A=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99/go.mod h1:1lJo3i6rXxKeerYnT8Nvf0QmHCRC1n8sfWVwXF2Frvo=
+github.com/jeremmfr/go-netconf v0.3.1 h1:nfrGreKm6Tw4NpH6dJTWnOUWdG0CP7XvOcYtAh+apjM=
 github.com/jeremmfr/go-netconf v0.3.1/go.mod h1:1vOGQHfD7yK+kyrMdLYb0qyuSyoIkek3zNQFYbhBmgc=
 github.com/jeremmfr/junosdecode v1.0.0 h1:fk6YD/FM4yk+dcATCswulteHRf2S+PQkznj3YxoAvgI=
 github.com/jeremmfr/junosdecode v1.0.0/go.mod h1:kGZxoTprXFZZ+xKMY5d4KB1UN0w3M3DScaN6ELs31Go=
