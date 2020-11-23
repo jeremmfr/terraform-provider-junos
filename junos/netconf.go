@@ -17,6 +17,7 @@ var (
 	rpcConfigStringSet = "<load-configuration action=\"set\" format=\"text\">" +
 		"<configuration-set>%s</configuration-set></load-configuration>"
 	rpcVersion         = "<get-software-information/>"
+	rpcSystemInfo      = "<get-system-information/>"
 	rpcCommit          = "<commit-configuration><log>%s</log></commit-configuration>"
 	rpcCandidateLock   = "<lock><target><candidate/></target></lock>"
 	rpcCandidateUnlock = "<unlock><target><candidate/></target></unlock>"
@@ -26,11 +27,21 @@ var (
 
 // NetconfObject : store Junos device info and session.
 type NetconfObject struct {
-	Session        *netconf.Session
-	Hostname       string
-	RoutingEngines int
-	Platform       []RoutingEngine
-	CommitTimeout  time.Duration
+	Session           *netconf.Session
+	Hostname          string
+	RoutingEngines    int
+	Platform          []RoutingEngine
+	CommitTimeout     time.Duration
+	SystemInformation sysInfo `xml:"system-information"`
+}
+
+type sysInfo struct {
+	HardwareModel string `xml:"hardware-model"`
+	OsName        string `xml:"os-name"`
+	OsVersion     string `xml:"os-version"`
+	SerialNumber  string `xml:"serial-number"`
+	HostName      string `xml:"host-name"`
+	ClusterNode   *bool  `xml:"cluster-node"`
 }
 
 // RoutingEngine : store Platform information.
@@ -231,6 +242,25 @@ func (j *NetconfObject) GatherFacts() error {
 	j.RoutingEngines = 1
 	j.Platform = res
 	j.CommitTimeout = 0
+
+	// Get info for get-system-information and populate SystemInformation Struct
+	val, err := s.Exec(netconf.RawMethod(rpcSystemInfo))
+	if err != nil {
+		return fmt.Errorf("failed to netconf get-system-information : %w", err)
+	}
+
+	if val.Errors != nil {
+		var errorsMsg []string
+		for _, m := range val.Errors {
+			errorsMsg = append(errorsMsg, fmt.Sprintf("%v", m))
+		}
+
+		return fmt.Errorf(strings.Join(errorsMsg, "\n"))
+	}
+	err = xml.Unmarshal([]byte(val.RawReply), &j)
+	if err != nil {
+		return fmt.Errorf("failed to xml unmarshal reply : %w", err)
+	}
 
 	return nil
 }
