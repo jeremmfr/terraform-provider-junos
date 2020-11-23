@@ -93,7 +93,8 @@ func Provider() *schema.Provider {
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"junos_interface": dataSourceInterface(),
+			"junos_interface":          dataSourceInterface(),
+			"junos_system_information": dataSourceSystemInformation(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"junos_aggregate_route":                                      resourceAggregateRoute(),
