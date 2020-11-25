@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* Add `junos_system_information` data source for accessing system information i.e. - Serial Number, Hardware Type, etc (Fixes [#60](https://github.com/jeremmfr/terraform-provider-junos/issues/60)) Thanks [@tagur87](https://github.com/tagur87)
 
 BUG FIXES:
 
