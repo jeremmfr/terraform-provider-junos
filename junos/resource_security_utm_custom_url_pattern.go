@@ -50,7 +50,7 @@ func resourceSecurityUtmCustomURLPatternCreate(
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
 		return diag.FromErr(fmt.Errorf("security utm custom-objects url-pattern "+
-			"not compatible with Junos device %s", jnprSess.Platform[0].Model))
+			"not compatible with Junos device %s", jnprSess.SystemInformation.HardwareModel))
 	}
 	sess.configLock(jnprSess)
 	utmCustomURLPatternExists, err := checkUtmCustomURLPatternsExists(d.Get("name").(string), m, jnprSess)

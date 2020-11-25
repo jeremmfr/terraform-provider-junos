@@ -91,7 +91,8 @@ func resourceIkePolicyCreate(ctx context.Context, d *schema.ResourceData, m inte
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return diag.FromErr(fmt.Errorf("security ike policy not compatible with Junos device %s", jnprSess.Platform[0].Model))
+		return diag.FromErr(fmt.Errorf("security ike policy not compatible with Junos device %s",
+			jnprSess.SystemInformation.HardwareModel))
 	}
 	sess.configLock(jnprSess)
 	ikePolicyExists, err := checkIkePolicyExists(d.Get("name").(string), m, jnprSess)

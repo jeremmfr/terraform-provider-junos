@@ -279,7 +279,7 @@ func resourceIkeGatewayCreate(ctx context.Context, d *schema.ResourceData, m int
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
 		return diag.FromErr(fmt.Errorf("security ike gateway not compatible with Junos device %s",
-			jnprSess.Platform[0].Model))
+			jnprSess.SystemInformation.HardwareModel))
 	}
 	sess.configLock(jnprSess)
 	ikeGatewayExists, err := checkIkeGatewayExists(d.Get("name").(string), m, jnprSess)

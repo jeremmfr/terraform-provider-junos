@@ -432,7 +432,8 @@ func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 		if !checkCompatibilitySecurity(jnprSess) {
 			sess.configClear(jnprSess)
 
-			return diag.FromErr(fmt.Errorf("security zone not compatible with Junos device %s", jnprSess.Platform[0].Model))
+			return diag.FromErr(fmt.Errorf("security zone not compatible with Junos device %s",
+				jnprSess.SystemInformation.HardwareModel))
 		}
 		zonesExists, err := checkSecurityZonesExists(d.Get("security_zone").(string), m, jnprSess)
 		if err != nil {
@@ -602,7 +603,8 @@ func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m inte
 			if !checkCompatibilitySecurity(jnprSess) {
 				sess.configClear(jnprSess)
 
-				return diag.FromErr(fmt.Errorf("security zone not compatible with Junos device %s", jnprSess.Platform[0].Model))
+				return diag.FromErr(fmt.Errorf("security zone not compatible with Junos device %s",
+					jnprSess.SystemInformation.HardwareModel))
 			}
 			zonesExists, err := checkSecurityZonesExists(nSecurityZone.(string), m, jnprSess)
 			if err != nil {

@@ -52,8 +52,8 @@ func (sess *Session) startNewSession() (*NetconfObject, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(jnpr.Platform) == 0 {
-		return jnpr, fmt.Errorf("can't read platform junos with <get-software-information/>")
+	if jnpr.SystemInformation.HardwareModel == "" {
+		return jnpr, fmt.Errorf("can't read model of device with <get-system-information/> netconf command")
 	}
 	if sess.junosLogFile != "" {
 		logFile("[startNewSession] started", sess.junosLogFile)
