@@ -261,8 +261,13 @@ func resourceIpsecVpnUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	if d.HasChanges("bind_interface") {
 		oldInt, _ := d.GetChange("bind_interface")
-		empty := checkInterfaceNC(oldInt.(string), m, jnprSess)
-		if empty == nil {
+		st0NC, st0Emtpy, err := checkInterfaceNC(oldInt.(string), m, jnprSess)
+		if err != nil {
+			sess.configClear(jnprSess)
+
+			return append(diagsReturn, diag.FromErr(err)...)
+		}
+		if st0NC || st0Emtpy {
 			if err := sess.configSet([]string{"delete interfaces " + oldInt.(string)}, jnprSess); err != nil {
 				sess.configClear(jnprSess)
 
@@ -523,7 +528,11 @@ func delIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ipsec vpn "+d.Get("name").(string))
 	if d.Get("bind_interface").(string) != "" {
-		if empty := checkInterfaceNC(d.Get("bind_interface").(string), m, jnprSess); empty == nil {
+		st0NC, st0Emtpy, err := checkInterfaceNC(d.Get("bind_interface").(string), m, jnprSess)
+		if err != nil {
+			return err
+		}
+		if st0NC || st0Emtpy {
 			configSet = append(configSet, "delete interfaces "+d.Get("bind_interface").(string))
 		}
 	}
