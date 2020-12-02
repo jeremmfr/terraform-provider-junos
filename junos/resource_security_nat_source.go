@@ -141,7 +141,8 @@ func resourceSecurityNatSourceCreate(ctx context.Context, d *schema.ResourceData
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return diag.FromErr(fmt.Errorf("security nat source not compatible with Junos device %s", jnprSess.Platform[0].Model))
+		return diag.FromErr(fmt.Errorf("security nat source not compatible with Junos device %s",
+			jnprSess.SystemInformation.HardwareModel))
 	}
 	sess.configLock(jnprSess)
 	securityNatSourceExists, err := checkSecurityNatSourceExists(d.Get("name").(string), m, jnprSess)

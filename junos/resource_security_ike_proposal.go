@@ -71,7 +71,7 @@ func resourceIkeProposalCreate(ctx context.Context, d *schema.ResourceData, m in
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
 		return diag.FromErr(fmt.Errorf("security ike proposal not compatible with Junos device %s",
-			jnprSess.Platform[0].Model))
+			jnprSess.SystemInformation.HardwareModel))
 	}
 	sess.configLock(jnprSess)
 	ikeProposalExists, err := checkIkeProposalExists(d.Get("name").(string), m, jnprSess)

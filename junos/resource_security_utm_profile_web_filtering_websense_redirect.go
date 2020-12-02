@@ -115,7 +115,7 @@ func resourceSecurityUtmProfileWebFilteringWebsenseCreate(
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
 		return diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering websense-redirect "+
-			"not compatible with Junos device %s", jnprSess.Platform[0].Model))
+			"not compatible with Junos device %s", jnprSess.SystemInformation.HardwareModel))
 	}
 	sess.configLock(jnprSess)
 	utmProfileWebFWebsenseExists, err := checkUtmProfileWebFWebsenseExists(d.Get("name").(string), m, jnprSess)

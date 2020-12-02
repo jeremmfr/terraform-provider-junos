@@ -102,7 +102,7 @@ func resourceSecurityNatDestinationCreate(ctx context.Context, d *schema.Resourc
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
 		return diag.FromErr(fmt.Errorf("security nat destination not compatible with Junos device %s",
-			jnprSess.Platform[0].Model))
+			jnprSess.SystemInformation.HardwareModel))
 	}
 	sess.configLock(jnprSess)
 	securityNatDestinationExists, err := checkSecurityNatDestinationExists(d.Get("name").(string), m, jnprSess)

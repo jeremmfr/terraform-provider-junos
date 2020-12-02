@@ -93,7 +93,8 @@ func resourceSecurityZoneCreate(ctx context.Context, d *schema.ResourceData, m i
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return diag.FromErr(fmt.Errorf("security zone not compatible with Junos device %s", jnprSess.Platform[0].Model))
+		return diag.FromErr(fmt.Errorf("security zone not compatible with Junos device %s",
+			jnprSess.SystemInformation.HardwareModel))
 	}
 	sess.configLock(jnprSess)
 	securityZoneExists, err := checkSecurityZonesExists(d.Get("name").(string), m, jnprSess)

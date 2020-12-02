@@ -72,7 +72,7 @@ func resourceIpsecProposalCreate(ctx context.Context, d *schema.ResourceData, m 
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
 		return diag.FromErr(fmt.Errorf("security ipsec proposal not compatible with Junos device %s",
-			jnprSess.Platform[0].Model))
+			jnprSess.SystemInformation.HardwareModel))
 	}
 	sess.configLock(jnprSess)
 	ipsecProposalExists, err := checkIpsecProposalExists(d.Get("name").(string), m, jnprSess)

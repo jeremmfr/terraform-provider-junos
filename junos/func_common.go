@@ -169,13 +169,13 @@ func copyAndRemoveItemMapList(identifier string, integer bool,
 }
 
 func checkCompatibilitySecurity(jnprSess *NetconfObject) bool {
-	if strings.HasPrefix(strings.ToLower(jnprSess.Platform[0].Model), "srx") {
+	if strings.HasPrefix(strings.ToLower(jnprSess.SystemInformation.HardwareModel), "srx") {
 		return true
 	}
-	if strings.HasPrefix(strings.ToLower(jnprSess.Platform[0].Model), "vsrx") {
+	if strings.HasPrefix(strings.ToLower(jnprSess.SystemInformation.HardwareModel), "vsrx") {
 		return true
 	}
-	if strings.HasPrefix(strings.ToLower(jnprSess.Platform[0].Model), "j") {
+	if strings.HasPrefix(strings.ToLower(jnprSess.SystemInformation.HardwareModel), "j") {
 		return true
 	}
 

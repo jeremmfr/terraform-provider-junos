@@ -571,7 +571,8 @@ func resourceSecurityCreate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return diag.FromErr(fmt.Errorf("security not compatible with Junos device %s", jnprSess.Platform[0].Model))
+		return diag.FromErr(fmt.Errorf("security not compatible with Junos device %s",
+			jnprSess.SystemInformation.HardwareModel))
 	}
 	sess.configLock(jnprSess)
 

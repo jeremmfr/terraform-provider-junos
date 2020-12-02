@@ -71,7 +71,7 @@ func resourceSecurityNatDestinationPoolCreate(
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
 		return diag.FromErr(fmt.Errorf("security nat destination pool not compatible with Junos device %s",
-			jnprSess.Platform[0].Model))
+			jnprSess.SystemInformation.HardwareModel))
 	}
 	sess.configLock(jnprSess)
 	securityNatDestinationPoolExists, err := checkSecurityNatDestinationPoolExists(d.Get("name").(string), m, jnprSess)
