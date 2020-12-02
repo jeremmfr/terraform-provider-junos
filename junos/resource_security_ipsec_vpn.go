@@ -3,7 +3,6 @@ package junos
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/hashicorp/go-cty/cty"
@@ -52,6 +51,7 @@ func resourceIpsecVpn() *schema.Resource {
 				Type:          schema.TypeBool,
 				Optional:      true,
 				ConflictsWith: []string{"traffic_selector"},
+				Deprecated:    "Use the junos_interface_st0_unit resource instead",
 			},
 			"df_bit": {
 				Type:         schema.TypeString,
@@ -170,7 +170,7 @@ func resourceIpsecVpnCreate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(fmt.Errorf("security ipsec vpn %v already exists", d.Get("name").(string)))
 	}
 	if d.Get("bind_interface_auto").(bool) {
-		newSt0, err := searchInterfaceSt0ToCreate(m, jnprSess)
+		newSt0, err := searchInterfaceSt0UnitToCreate(m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
 
@@ -260,7 +260,7 @@ func resourceIpsecVpnUpdate(ctx context.Context, d *schema.ResourceData, m inter
 			AttributePath: cty.Path{cty.GetAttrStep{Name: "bind_interface_auto"}},
 		})
 	}
-	if d.HasChanges("bind_interface") {
+	if d.HasChanges("bind_interface") && d.Get("bind_interfaces_auto").(bool) {
 		oldInt, _ := d.GetChange("bind_interface")
 		st0NC, st0Emtpy, err := checkInterfaceNC(oldInt.(string), m, jnprSess)
 		if err != nil {
@@ -528,7 +528,7 @@ func delIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ipsec vpn "+d.Get("name").(string))
-	if d.Get("bind_interface").(string) != "" {
+	if d.Get("bind_interface_auto").(bool) {
 		st0NC, st0Emtpy, err := checkInterfaceNC(d.Get("bind_interface").(string), m, jnprSess)
 		if err != nil {
 			return err
@@ -566,27 +566,4 @@ func fillIpsecVpnData(d *schema.ResourceData, ipsecVpnOptions ipsecVpnOptions) {
 	if tfErr := d.Set("traffic_selector", ipsecVpnOptions.trafficSelector); tfErr != nil {
 		panic(tfErr)
 	}
-}
-
-func searchInterfaceSt0ToCreate(m interface{}, jnprSess *NetconfObject) (string, error) {
-	sess := m.(*Session)
-	st0, err := sess.command("show interfaces st0 terse", jnprSess)
-	if err != nil {
-		return "", err
-	}
-	st0Line := strings.Split(st0, "\n")
-	st0int := make([]string, 0)
-	for _, line := range st0Line {
-		if strings.HasPrefix(line, "st0.") {
-			lineSplit := strings.Split(line, " ")
-			st0int = append(st0int, lineSplit[0])
-		}
-	}
-	for i := 0; i <= 1073741823; i++ {
-		if !stringInSlice("st0."+strconv.Itoa(i), st0int) {
-			return "st0." + strconv.Itoa(i), nil
-		}
-	}
-
-	return "", fmt.Errorf("error for find st0 unit to create")
 }
