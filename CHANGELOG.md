@@ -4,6 +4,7 @@ ENHANCEMENTS:
 * simplify gather system/software information when create new netconf session
 
 BUG FIXES:
+* fix inconsistent result after creating `junos_interface` resource with only `name` argument (Fixes [#65](https://github.com/jeremmfr/terraform-provider-junos/issues/65))
 
 ## v1.8.0
 FEATURES:

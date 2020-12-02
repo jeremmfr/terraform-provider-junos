@@ -400,11 +400,14 @@ func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 	}
 	sess.configLock(jnprSess)
 	if intExists {
-		err = checkInterfaceNC(d.Get("name").(string), m, jnprSess)
+		ncInt, emptyInt, err := checkInterfaceNC(d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
 
 			return diag.FromErr(err)
+		}
+		if !ncInt && !emptyInt {
+			return diag.FromErr(fmt.Errorf("interface %s already configured", d.Get("name").(string)))
 		}
 		if sess.junosGroupIntDel != "" {
 			err = delInterfaceElement("apply-groups "+sess.junosGroupIntDel, d, m, jnprSess)
@@ -475,6 +478,16 @@ func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 	if intExists {
+		ncInt, _, err := checkInterfaceNC(d.Get("name").(string), m, jnprSess)
+		if err != nil {
+			sess.configClear(jnprSess)
+
+			return diag.FromErr(err)
+		}
+		if ncInt {
+			return diag.FromErr(fmt.Errorf("interface %v exists (because is a physical or internal default interface)"+
+				" but always disable after commit => check your config", d.Get("name").(string)))
+		}
 		d.SetId(d.Get("name").(string))
 	} else {
 		return diag.FromErr(fmt.Errorf("interface %v not exists after commit => check your config", d.Get("name").(string)))
@@ -504,7 +517,13 @@ func resourceInterfaceRead(ctx context.Context, d *schema.ResourceData, m interf
 
 		return nil
 	}
-	if err := checkInterfaceNC(d.Get("name").(string), m, jnprSess); err == nil {
+	ncInt, _, err := checkInterfaceNC(d.Get("name").(string), m, jnprSess)
+	if err != nil {
+		mutex.Unlock()
+
+		return diag.FromErr(err)
+	}
+	if ncInt {
 		d.SetId("")
 		mutex.Unlock()
 
@@ -560,8 +579,13 @@ func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m inte
 
 						return diag.FromErr(err)
 					}
-					oAEintNC := checkInterfaceNC(oAE.(string), m, jnprSess)
-					if oAEintNC == nil {
+					oAEintNC, oAEintEmpty, err := checkInterfaceNC(oAE.(string), m, jnprSess)
+					if err != nil {
+						sess.configClear(jnprSess)
+
+						return diag.FromErr(err)
+					}
+					if oAEintNC || oAEintEmpty {
 						err = sess.configSet([]string{"delete interfaces " + oAE.(string)}, jnprSess)
 						if err != nil {
 							sess.configClear(jnprSess)
@@ -583,8 +607,13 @@ func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m inte
 						return diag.FromErr(err)
 					}
 					if aggregatedCountInt < oldAEInt+1 {
-						oAEintNC := checkInterfaceNC(oAE.(string), m, jnprSess)
-						if oAEintNC == nil {
+						oAEintNC, oAEintEmpty, err := checkInterfaceNC(oAE.(string), m, jnprSess)
+						if err != nil {
+							sess.configClear(jnprSess)
+
+							return diag.FromErr(err)
+						}
+						if oAEintNC || oAEintEmpty {
 							err = sess.configSet([]string{"delete interfaces " + oAE.(string)}, jnprSess)
 							if err != nil {
 								sess.configClear(jnprSess)
@@ -735,13 +764,14 @@ func resourceInterfaceImport(d *schema.ResourceData, m interface{}) ([]*schema.R
 	return result, nil
 }
 
-func checkInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) error {
+func checkInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) (
+	ncInt bool, emtyInt bool, errFunc error) {
 	sess := m.(*Session)
-	intConfigLines := make([]string, 0)
 	intConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
 	if err != nil {
-		return err
+		return false, false, err
 	}
+	intConfigLines := make([]string, 0)
 	// remove unused lines
 	for _, item := range strings.Split(intConfig, "\n") {
 		// show parameters root on interface exclude unit parameters (except ethernet-switching)
@@ -761,23 +791,26 @@ func checkInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) 
 		intConfigLines = append(intConfigLines, item)
 	}
 	if len(intConfigLines) == 0 {
-		return nil
+		return false, true, nil
 	}
 	intConfig = strings.Join(intConfigLines, "\n")
 	if sess.junosGroupIntDel != "" {
 		if intConfig == "set apply-groups "+sess.junosGroupIntDel {
-			return nil
+			return true, false, nil
 		}
 	}
 	if intConfig == "set description NC\nset disable" ||
-		intConfig == "set disable\nset description NC" ||
-		intConfig == emptyWord ||
-		intConfig == setLineStart {
-		return nil
+		intConfig == "set disable\nset description NC" {
+		return true, false, nil
+	}
+	if intConfig == setLineStart ||
+		intConfig == emptyWord {
+		return false, true, nil
 	}
 
-	return fmt.Errorf("interface %s already configured", interFace)
+	return false, false, nil
 }
+
 func addInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	intCut := make([]string, 0, 2)
@@ -845,6 +878,7 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 		return err
 	}
 	setPrefix := "set interfaces " + setName + " "
+	configSet = append(configSet, setPrefix)
 	if d.Get("description").(string) != "" {
 		configSet = append(configSet, setPrefix+"description \""+d.Get("description").(string)+"\"")
 	}
@@ -1171,8 +1205,11 @@ func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 				return fmt.Errorf("failed to convert internal variable aggregatedCountInt in integer : %w", err)
 			}
 			if aggregatedCountInt < aeInt+1 {
-				oAEintNC := checkInterfaceNC(d.Get("ether802_3ad").(string), m, jnprSess)
-				if oAEintNC == nil {
+				oAEintNC, oAEintEmpty, err := checkInterfaceNC(d.Get("ether802_3ad").(string), m, jnprSess)
+				if err != nil {
+					return err
+				}
+				if oAEintNC || oAEintEmpty {
 					err = sess.configSet([]string{"delete interfaces " + d.Get("ether802_3ad").(string)}, jnprSess)
 					if err != nil {
 						return err
