@@ -256,16 +256,32 @@ func checkStaticRouteExists(destination string, instance string, m interface{}, 
 	var staticRouteConfig string
 	var err error
 	if instance == defaultWord {
-		staticRouteConfig, err = sess.command("show configuration"+
-			" routing-options static route "+destination+" | display set", jnprSess)
-		if err != nil {
-			return false, err
+		if !strings.Contains(destination, ":") {
+			staticRouteConfig, err = sess.command("show configuration"+
+				" routing-options static route "+destination+" | display set", jnprSess)
+			if err != nil {
+				return false, err
+			}
+		} else {
+			staticRouteConfig, err = sess.command("show configuration routing-options rib inet6.0 "+
+				"static route "+destination+" | display set", jnprSess)
+			if err != nil {
+				return false, err
+			}
 		}
 	} else {
-		staticRouteConfig, err = sess.command("show configuration routing-instances "+instance+
-			" routing-options static route "+destination+" | display set", jnprSess)
-		if err != nil {
-			return false, err
+		if !strings.Contains(destination, ":") {
+			staticRouteConfig, err = sess.command("show configuration routing-instances "+instance+
+				" routing-options static route "+destination+" | display set", jnprSess)
+			if err != nil {
+				return false, err
+			}
+		} else {
+			staticRouteConfig, err = sess.command("show configuration routing-instances "+instance+
+				" routing-options rib "+instance+".inet6.0 static route "+destination+" | display set", jnprSess)
+			if err != nil {
+				return false, err
+			}
 		}
 	}
 
@@ -281,10 +297,20 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 
 	var setPrefix string
 	if d.Get("routing_instance").(string) == defaultWord {
-		setPrefix = "set routing-options static route " + d.Get("destination").(string)
+		if !strings.Contains(d.Get("destination").(string), ":") {
+			setPrefix = "set routing-options static route " + d.Get("destination").(string)
+		} else {
+			setPrefix = "set routing-options rib inet6.0 static route " + d.Get("destination").(string)
+		}
 	} else {
-		setPrefix = "set routing-instances " + d.Get("routing_instance").(string) +
-			" routing-options static route " + d.Get("destination").(string)
+		if !strings.Contains(d.Get("destination").(string), ":") {
+			setPrefix = "set routing-instances " + d.Get("routing_instance").(string) +
+				" routing-options static route " + d.Get("destination").(string)
+		} else {
+			setPrefix = "set routing-instances " + d.Get("routing_instance").(string) +
+				" routing-options rib " + d.Get("routing_instance").(string) + ".inet6.0 " +
+				"static route " + d.Get("destination").(string)
+		}
 	}
 	if d.Get("preference").(int) > 0 {
 		configSet = append(configSet, setPrefix+" preference "+strconv.Itoa(d.Get("preference").(int)))
@@ -328,11 +354,22 @@ func readStaticRoute(destination string, instance string, m interface{},
 	var err error
 
 	if instance == defaultWord {
-		destinationConfig, err = sess.command("show configuration"+
-			" routing-options static route "+destination+" | display set relative", jnprSess)
+		if !strings.Contains(destination, ":") {
+			destinationConfig, err = sess.command("show configuration routing-options "+
+				"static route "+destination+" | display set relative", jnprSess)
+		} else {
+			destinationConfig, err = sess.command("show configuration routing-options rib inet6.0 "+
+				"static route "+destination+" | display set relative", jnprSess)
+		}
 	} else {
-		destinationConfig, err = sess.command("show configuration routing-instances "+instance+
-			" routing-options static route "+destination+" | display set relative", jnprSess)
+		if !strings.Contains(destination, ":") {
+			destinationConfig, err = sess.command("show configuration routing-instances "+instance+
+				" routing-options static route "+destination+" | display set relative", jnprSess)
+		} else {
+			destinationConfig, err = sess.command("show configuration routing-instances "+instance+
+				" routing-options rib "+instance+".inet6.0 "+
+				"static route "+destination+" | display set relative", jnprSess)
+		}
 	}
 	if err != nil {
 		return confRead, err
@@ -406,9 +443,18 @@ func delStaticRouteOpts(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	configSet := make([]string, 0)
 	delPrefix := "delete "
 	if d.Get("routing_instance").(string) == defaultWord {
-		delPrefix += "routing-options static route "
+		if !strings.Contains(d.Get("destination").(string), ":") {
+			delPrefix += "routing-options static route "
+		} else {
+			delPrefix += "routing-options rib inet6.0 static route "
+		}
 	} else {
-		delPrefix += "routing-instances " + d.Get("routing_instance").(string) + " routing-options static route "
+		if !strings.Contains(d.Get("destination").(string), ":") {
+			delPrefix += "routing-instances " + d.Get("routing_instance").(string) + " routing-options static route "
+		} else {
+			delPrefix += "routing-instances " + d.Get("routing_instance").(string) +
+				" routing-options rib " + d.Get("routing_instance").(string) + ".inet6.0 static route "
+		}
 	}
 	delPrefix += d.Get("destination").(string) + " "
 	configSet = append(configSet,
@@ -433,9 +479,18 @@ func delStaticRoute(destination string, instance string, m interface{}, jnprSess
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	if instance == defaultWord {
-		configSet = append(configSet, "delete routing-options static route "+destination)
+		if !strings.Contains(destination, ":") {
+			configSet = append(configSet, "delete routing-options static route "+destination)
+		} else {
+			configSet = append(configSet, "delete routing-options rib inet6.0 static route "+destination)
+		}
 	} else {
-		configSet = append(configSet, "delete routing-instances "+instance+" routing-options static route "+destination)
+		if !strings.Contains(destination, ":") {
+			configSet = append(configSet, "delete routing-instances "+instance+" routing-options static route "+destination)
+		} else {
+			configSet = append(configSet, "delete routing-instances "+instance+
+				" routing-options rib "+instance+".inet6.0 static route "+destination)
+		}
 	}
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
