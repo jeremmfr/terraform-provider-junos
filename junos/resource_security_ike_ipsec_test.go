@@ -608,7 +608,6 @@ resource junos_security_ipsec_vpn "testacc_ipsecvpn" {
 resource junos_interface "testacc_ipsecvpn_bind" {
   name             = junos_interface_st0_unit.testacc_ipsec_vpn.id
   inet             = true
-  complete_destroy = true
 }
 resource junos_interface_st0_unit testacc_ipsec_vpn {}
 `
