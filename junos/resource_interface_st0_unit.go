@@ -75,8 +75,6 @@ func resourceInterfaceSt0UnitRead(ctx context.Context, d *schema.ResourceData, m
 	}
 	if !intExists {
 		d.SetId("")
-
-		return nil
 	}
 
 	return nil

@@ -6,7 +6,7 @@ description: |-
   Find st0 unit available and create interface.
 ---
 
-# junos_interface
+# junos_interface_st0_unit
 
 Find st0 unit available and create interface.
 

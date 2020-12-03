@@ -1166,7 +1166,7 @@ func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 	}
 	if strings.Contains(d.Get("name").(string), "st0.") && !d.Get("complete_destroy").(bool) {
 		// interface totally delete by
-		// - junos_security_ipsec_vpn resource with bind_interface_auto argument (deprecated)
+		// - junos_security_ipsec_vpn resource with the bind_interface_auto argument (deprecated)
 		// or by
 		// - junos_interface_st0_unit resource
 		// else there is an interface st0.x empty
