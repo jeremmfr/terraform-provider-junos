@@ -2,6 +2,7 @@
 ENHANCEMENTS:
 * add `junos_system_information` data source (Fixes [#60](https://github.com/jeremmfr/terraform-provider-junos/issues/60)) Thanks [@tagur87](https://github.com/tagur87)
 * simplify gather system/software information when create new netconf session
+* add `junos_interface_st0_unit` resource (Fixes [#64](https://github.com/jeremmfr/terraform-provider-junos/issues/64))
 
 BUG FIXES:
 * fix inconsistent result after creating `junos_interface` resource with only `name` argument (Fixes [#65](https://github.com/jeremmfr/terraform-provider-junos/issues/65))

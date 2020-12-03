@@ -299,9 +299,10 @@ resource junos_security_ipsec_policy "testacc_ipsecpol" {
   proposals = [junos_security_ipsec_proposal.testacc_ipsecprop.name]
   pfs_keys  = "group2"
 }
+resource junos_interface_st0_unit testacc_ipsecvpn {}
 resource junos_security_ipsec_vpn "testacc_ipsecvpn" {
-  name                = "testacc_ipsecvpn"
-  bind_interface_auto = true
+  name           = "testacc_ipsecvpn"
+  bind_interface = junos_interface_st0_unit.testacc_ipsecvpn.id
   ike {
     gateway          = junos_security_ike_gateway.testacc_ikegateway.name
     policy           = junos_security_ipsec_policy.testacc_ipsecpol.name
@@ -605,10 +606,11 @@ resource junos_security_ipsec_vpn "testacc_ipsecvpn" {
   }
 }
 resource junos_interface "testacc_ipsecvpn_bind" {
-  name             = "st0.1"
+  name             = junos_interface_st0_unit.testacc_ipsec_vpn.id
   inet             = true
   complete_destroy = true
 }
+resource junos_interface_st0_unit testacc_ipsec_vpn {}
 `
 }
 func testAccJunosSecurityIkeIpsecConfigUpdate4(interFace string) string {

@@ -17,12 +17,13 @@ Provides a security ipsec vpn resource.
 resource junos_security_ipsec_vpn "demo_vpn" {
   name                = "first-vpn"
   establish_tunnels   = "immediately"
-  bind_interface_auto = true
+  bind_interface      = junos_interface_st0_unit.demo.id
   ike {
     gateway = "ike-gateway"
     policy  = "ipsec-policy"
   }
 }
+resource junos_interface_st0_unit demo {}
 ```
 
 ## Argument Reference
@@ -32,7 +33,8 @@ The following arguments are supported:
 * `name` - (Required, Forces new resource)(`String`) The name of vpn.
 * `establish_tunnels` - (Optional)(`String`) When the VPN comes up. Need to be 'immediately' or 'on-traffic'
 * `bind_interface` - (Optional)(`String`) Interface st0 to bind vpn for route-based vpn. Computed when `bind_interface_auto` = true.
-* `bind_interface_auto` - (Optional)(`Bool`) Find st0 available for compute bind_interface automaticaly.
+* `bind_interface_auto` - (Optional,**DEPRECATED**)(`Bool`) Find st0 available for compute bind_interface automaticaly.  
+Deprecated argument, use the `junos_interface_st0_unit` resource to find st0 unit available instead.
 * `df_bit` - (Optional)(`String`) Specifies how to handle the Don't Fragment bit. Need to be 'clear', 'copy' or 'set'
 * `ike` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare ike configuration.
   * `gateway` - (Required)(`String`) The name of security ike gateway (phase-1)
