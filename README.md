@@ -16,13 +16,13 @@ for provider and resources documentation.
 
 Requirements
 ---
--	[Terraform](https://www.terraform.io/downloads.html) 0.12.x or 0.13.x
+-	[Terraform](https://www.terraform.io/downloads.html) 0.12.x (manual install) or >= 0.13.x (manual or automatic install)
 
 Optional
 ---
 -	[Go](https://golang.org/doc/install) 1.14 (to build the provider plugin)
 
-Install automatic
+Automatic install
 ---
 With terraform >= 0.13, add source information inside the terraform configuration block for automatic provider installation :
 ```hcl
@@ -35,8 +35,7 @@ terraform {
 }
 ```
 
-
-Install binary on disk
+Manual install (download and copy binary on disk in a plugin location for terraform)
 ---
 Download latest version in [releases](https://github.com/jeremmfr/terraform-provider-junos/releases)
 ##### terraform 0.13
