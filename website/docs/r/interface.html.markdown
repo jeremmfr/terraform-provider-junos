@@ -46,7 +46,9 @@ The following arguments are supported:
 * `vlan_tagging` - (Optional)(`Bool`) Add 802.1q VLAN tagging support.
 * `vlan_tagging_id` - (Optional,Computed)(`Int`) 802.1q VLAN ID for unit interface. If not set, computed with `name` of interface (ge-0/0/0.100 = 100)
 * `inet` - (Optional,Computed)(`Bool`) Enable family inet.
+* `inet_rpf` - (Optional)(`Bool`) Enable reverse-path-forwarding checks on this inet interface.
 * `inet6` - (Optional,Computed)(`Bool`) Enable family inet6.
+* `inet6_rpf` - (Optional)(`Bool`) Enable reverse-path-forwarding checks on this inet6 interface.
 * `inet_address` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each address to declare.
   * `address` - (Required)(`String`) Address IP/Mask v4.
   * `vrrp_group` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each vrrp group to declare. See the [`vrrp_group` arguments for inet_address](#vrrp_group-arguments-for-inet_address) block.

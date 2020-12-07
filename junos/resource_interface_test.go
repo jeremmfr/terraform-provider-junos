@@ -96,7 +96,11 @@ func TestAccJunosInterface_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
 							"inet", "true"),
 						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
+							"inet_rpf", "true"),
+						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
 							"inet6", "true"),
+						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
+							"inet6_rpf", "true"),
 						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
 							"inet_mtu", "1400"),
 						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
@@ -200,6 +204,10 @@ func TestAccJunosInterface_basic(t *testing.T) {
 							"ae_minimum_links", "0"),
 						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
 							"vlan_tagging_id", "101"),
+						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
+							"inet_rpf", "false"),
+						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
+							"inet6_rpf", "false"),
 						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
 							"inet_mtu", "1500"),
 						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
@@ -317,6 +325,7 @@ resource junos_interface testacc_interfaceAEunit {
   security_zone      = junos_security_zone.testacc_interface.name
   routing_instance   = junos_routing_instance.testacc_interface.name
   inet_mtu           = 1400
+  inet_rpf			 = true
   inet_filter_input  = junos_firewall_filter.testacc_interfaceInet.name
   inet_filter_output = junos_firewall_filter.testacc_interfaceInet.name
   inet_address {
@@ -343,6 +352,7 @@ resource junos_interface testacc_interfaceAEunit {
     }
   }
   inet6_mtu           = 1400
+  inet6_rpf			  = true
   inet6_filter_input  = junos_firewall_filter.testacc_interfaceInet6.name
   inet6_filter_output = junos_firewall_filter.testacc_interfaceInet6.name
   inet6_address {

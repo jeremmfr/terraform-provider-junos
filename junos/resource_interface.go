@@ -16,7 +16,9 @@ import (
 type interfaceOptions struct {
 	vlanTagging       bool
 	inet              bool
+	inetRpf           bool
 	inet6             bool
+	inet6Rpf          bool
 	trunk             bool
 	vlanNative        int
 	aeMinLink         int
@@ -85,10 +87,18 @@ func resourceInterface() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"inet_rpf": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"inet6": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
+			},
+			"inet6_rpf": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 			"inet_address": {
 				Type:     schema.TypeList,
@@ -910,6 +920,13 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 			return err
 		}
 	}
+
+	if d.Get("inet_rpf").(bool) {
+		configSet = append(configSet, setPrefix+"family inet rpf-check")
+	}
+	if d.Get("inet6_rpf").(bool) {
+		configSet = append(configSet, setPrefix+"family inet6 rpf-check")
+	}
 	if d.Get("inet_mtu").(int) > 0 {
 		configSet = append(configSet, setPrefix+"family inet mtu "+
 			strconv.Itoa(d.Get("inet_mtu").(int)))
@@ -1040,6 +1057,8 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 			case strings.HasPrefix(itemTrim, "family inet6"):
 				confRead.inet6 = true
 				switch {
+				case strings.HasPrefix(itemTrim, "family inet6 rpf-check"):
+					confRead.inet6Rpf = true
 				case strings.HasPrefix(itemTrim, "family inet6 address "):
 					inet6Address, err = fillFamilyInetAddress(itemTrim, inet6Address, inet6Word)
 					if err != nil {
@@ -1058,6 +1077,8 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 			case strings.HasPrefix(itemTrim, "family inet"):
 				confRead.inet = true
 				switch {
+				case strings.HasPrefix(itemTrim, "family inet rpf-check"):
+					confRead.inetRpf = true
 				case strings.HasPrefix(itemTrim, "family inet address "):
 					inetAddress, err = fillFamilyInetAddress(itemTrim, inetAddress, inetWord)
 					if err != nil {
@@ -1354,7 +1375,13 @@ func fillInterfaceData(d *schema.ResourceData, interfaceOpt interfaceOptions) {
 	if tfErr := d.Set("inet", interfaceOpt.inet); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("inet_rpf", interfaceOpt.inetRpf); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("inet6", interfaceOpt.inet6); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("inet6_rpf", interfaceOpt.inet6Rpf); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("inet_address", interfaceOpt.inetAddress); tfErr != nil {
@@ -1711,8 +1738,14 @@ func checkResourceInterfaceConfigAndName(length int, d *schema.ResourceData) err
 		if d.Get("inet").(bool) {
 			return fmt.Errorf("inet invalid for this interface")
 		}
+		if d.Get("inet_rpf").(bool) {
+			return fmt.Errorf("inet_rpf invalid for this interface")
+		}
 		if d.Get("inet6").(bool) {
 			return fmt.Errorf("inet6 invalid for this interface")
+		}
+		if d.Get("inet6_rpf").(bool) {
+			return fmt.Errorf("inet6_rpf invalid for this interface")
 		}
 		if len(d.Get("inet_address").([]interface{})) > 0 {
 			return fmt.Errorf("inet address invalid for this interface")
