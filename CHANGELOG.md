@@ -20,24 +20,24 @@ FEATURES:
 * add `junos_security_log_stream` resource (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
 
 ENHANCEMENTS:
-* add `traffic_selector` argument in resource `security_ipsec_vpn` (Fixes [#53](https://github.com/jeremmfr/terraform-provider-junos/issues/53))
-* add `complete_destroy` argument in resource `interface`
-* add `alg` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
-* add `flow` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
-* add `log` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
-* add `forwarding_options` argument in resource `security` (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
-* add `proposal_set` argument in resource `security_ike_policy` and `security_ipsec_policy` (Fixes [#55](https://github.com/jeremmfr/terraform-provider-junos/issues/55))
-* add `icmp_code` and `icmp_code_except` sub-arguments for 'term.N.from' to resource `firewall_filter` (Fixes [#58](https://github.com/jeremmfr/terraform-provider-junos/issues/58))
-* optimize memory usage of functions for resource bgp_*
+* add `traffic_selector` argument in `junos_security_ipsec_vpn` resource (Fixes [#53](https://github.com/jeremmfr/terraform-provider-junos/issues/53))
+* add `complete_destroy` argument in `junos_interface` resource
+* add `alg` argument in `junos_security` resource (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
+* add `flow` argument in `junos_security` resource (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
+* add `log` argument in `junos_security` resource (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
+* add `forwarding_options` argument in `junos_security` resource (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
+* add `proposal_set` argument in `junos_security_ike_policy` and `junos_security_ipsec_policy` resource (Fixes [#55](https://github.com/jeremmfr/terraform-provider-junos/issues/55))
+* add `icmp_code` and `icmp_code_except` sub-arguments for 'term.N.from' to `junos_firewall_filter` resource (Fixes [#58](https://github.com/jeremmfr/terraform-provider-junos/issues/58))
+* optimize memory usage of functions for bgp_* resource
 * release now with golang 1.15
 
 BUG FIXES:
-* remove useless ForceNew for `bind_interface_auto` argument in resource `security_ipsec_vpn`
+* remove useless ForceNew for `bind_interface_auto` argument in `junos_security_ipsec_vpn` resource
 
 ## v1.7.0
 ENHANCEMENTS:
-* add `dynamic_remote` argument in resource `security_ike_gateway` (Fixes [#50](https://github.com/jeremmfr/terraform-provider-junos/issues/50))
-* add `aaa` argument in resource `security_ike_gateway`
+* add `dynamic_remote` argument in `junos_security_ike_gateway` resource (Fixes [#50](https://github.com/jeremmfr/terraform-provider-junos/issues/50))
+* add `aaa` argument in `junos_security_ike_gateway` resource
 
 BUG FIXES:
 * fix lint errors from latest golangci-lint
@@ -54,7 +54,7 @@ FEATURES:
 
 ENHANCEMENTS:
 * add `sshkey_pem` argument in provider configuration
-* add `send_mode` for `dead_peer_detection` in resource `security_ike_gateway` (Fixes [#43](https://github.com/jeremmfr/terraform-provider-junos/issues/43))
+* add `send_mode` for `dead_peer_detection` in `junos_security_ike_gateway` resource (Fixes [#43](https://github.com/jeremmfr/terraform-provider-junos/issues/43))
 * upgrade to terraform-plugin-sdk v2
 * switch to sdk for part of ValidateFunc and rewrite the others to ValidateDiagFunc
 * code optimization (compact test err func if not nil)
@@ -71,7 +71,7 @@ FEATURES:
 * add `junos_interface` data source
 
 ENHANCEMENTS:
-* add `vlan_tagging_id` argument in resource `junos_interface`
+* add `vlan_tagging_id` argument in `junos_interface` resource
 
 ## v1.4.0
 FEATURES:
@@ -101,7 +101,7 @@ ENHANCEMENTS:
 BUG FIXES:
 * fix typo in errors and commits messages
 * [workflows] fix compile freebsd/arm64 on release
-* fix rule/policy with space in name for application-services in resource `junos_security_policy`
+* fix rule/policy with space in name for application-services in `junos_security_policy` resource
 * fix no empty List if Required for many resource
 
 ## 1.2.1
@@ -126,11 +126,11 @@ BUG FIXES:
 
 ## 1.1.1
 BUG FIXES:
-* Allow usage of ~ in sshkeyfile path (Fixes [#22](https://github.com/jeremmfr/terraform-provider-junos/issues/22))
+* allow usage of ~ in sshkeyfile path (Fixes [#22](https://github.com/jeremmfr/terraform-provider-junos/issues/22))
 
 ## 1.1.0
 ENHANCEMENTS:
-*  add `application-services` argument in `security_policy` resource (Fixes [#20](https://github.com/jeremmfr/terraform-provider-junos/issues/20))
+* add `application-services` argument in `junos_security_policy` resource (Fixes [#20](https://github.com/jeremmfr/terraform-provider-junos/issues/20))
 
 ## 1.0.6
 BUG FIXES:

@@ -827,7 +827,7 @@ func addInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) er
 	case 1:
 		setName = intCut[0]
 	default:
-		return fmt.Errorf("the name %s contains too dot", interFace)
+		return fmt.Errorf("the name %s contains too dots", interFace)
 	}
 	if intCut[0] == st0Word || sess.junosGroupIntDel == "" {
 		err = sess.configSet([]string{"set interfaces " + setName + " disable description NC"}, jnprSess)
@@ -872,7 +872,7 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 	case 1:
 		setName = intCut[0]
 	default:
-		return fmt.Errorf("the name %s contains too dot", d.Get("name").(string))
+		return fmt.Errorf("the name %s contains too dots", d.Get("name").(string))
 	}
 	if err := checkResourceInterfaceConfigAndName(len(intCut), d); err != nil {
 		return err
@@ -1158,7 +1158,7 @@ func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 			return err
 		}
 	default:
-		return fmt.Errorf("the name %s contains too dot", d.Get("name").(string))
+		return fmt.Errorf("the name %s contains too dots", d.Get("name").(string))
 	}
 
 	if err := sess.configSet([]string{"delete interfaces " + setName}, jnprSess); err != nil {
@@ -1275,7 +1275,7 @@ func delInterfaceElement(element string, d *schema.ResourceData, m interface{}, 
 	case 1:
 		setName = intCut[0]
 	default:
-		return fmt.Errorf("the name %s contains too dot", d.Get("name").(string))
+		return fmt.Errorf("the name %s contains too dots", d.Get("name").(string))
 	}
 	configSet = append(configSet, "delete interfaces "+setName+" "+element)
 	if err := sess.configSet(configSet, jnprSess); err != nil {
@@ -1300,7 +1300,7 @@ func delInterfaceOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 	case 1:
 		setName = intCut[0]
 	default:
-		return fmt.Errorf("the name %s contains too dot", d.Get("name").(string))
+		return fmt.Errorf("the name %s contains too dots", d.Get("name").(string))
 	}
 	delPrefix := "delete interfaces " + setName + " "
 	configSet = append(configSet,
