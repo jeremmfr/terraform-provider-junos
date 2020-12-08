@@ -3,6 +3,7 @@ ENHANCEMENTS:
 * add `inet_rpf_check` and `inet6_rpf_check` arguments in `junos_interface` resource (Fixes [#72](https://github.com/jeremmfr/terraform-provider-junos/issues/72))
 
 BUG FIXES:
+* fix missing compatibility argument checks when apply `junos_interface` resource (unit interface or not)
 
 ## v1.9.0
 FEATURES:

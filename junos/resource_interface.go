@@ -1822,6 +1822,24 @@ func checkResourceInterfaceConfigAndName(length int, d *schema.ResourceData) err
 		if d.Get("inet6_mtu").(int) > 0 {
 			return fmt.Errorf("inet6_mtu invalid for this interface")
 		}
+		if d.Get("inet_filter_input").(string) != "" {
+			return fmt.Errorf("inet_filter_input invalid for this interface")
+		}
+		if d.Get("inet_filter_output").(string) != "" {
+			return fmt.Errorf("inet_filter_output invalid for this interface")
+		}
+		if d.Get("inet6_filter_input").(string) != "" {
+			return fmt.Errorf("inet6_filter_input invalid for this interface")
+		}
+		if d.Get("inet6_filter_output").(string) != "" {
+			return fmt.Errorf("inet6_filter_output invalid for this interface")
+		}
+		if len(d.Get("inet_rpf_check").([]interface{})) > 0 {
+			return fmt.Errorf("inet_rpf_check invalid for this interface")
+		}
+		if len(d.Get("inet6_rpf_check").([]interface{})) > 0 {
+			return fmt.Errorf("inet6_rpf_check invalid for this interface")
+		}
 		if d.Get("security_zone").(string) != "" {
 			return fmt.Errorf("security_zone invalid for this interface")
 		}
