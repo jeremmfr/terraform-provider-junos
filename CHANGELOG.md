@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* add `inet_rpf_check` and `inet6_rpf_check` arguments in `junos_interface` resource (Fixes [#72](https://github.com/jeremmfr/terraform-provider-junos/issues/72))
 
 BUG FIXES:
 
