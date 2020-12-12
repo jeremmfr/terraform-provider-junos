@@ -61,6 +61,7 @@ The following arguments are supported:
   * `action` - (Required)(`String`) Action for site-reputation. Need to be 'block', 'log-and-permit', 'permit' or 'quarantine'.
 * `timeout` - (Optional)(`Int`) Set timeout. Need to be between 1 and 1800.
 
+---
 #### category arguments
 * `name` - (Required)(`String`) Name of category.
 * `action` - (Required)(`String`) Action when web traffic matches category. Need to be 'block', 'log-and-permit', 'permit' or 'quarantine'.

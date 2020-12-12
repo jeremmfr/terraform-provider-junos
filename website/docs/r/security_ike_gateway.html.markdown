@@ -48,6 +48,7 @@ The following arguments are supported:
   * `client_username` - (Optional)(`String`) AAA client username with 1 to 128 characters. Conflict with `aaa.access_profile`.
   * `client_password` - (Optional)(`String`) AAA client password with 1 to 128 characters. Conflict with `aaa.access_profile`.
 
+---
 #### dynamic_remote arguments
 -> **Note:** You can only choose one argument between `distinguished_name`, `hostname`, `inet`, `inet6` and `user_at_hostname`.
 * `connections_limit` - (Optional)(`Int`) Maximum number of users connected to gateway.
@@ -61,6 +62,7 @@ The following arguments are supported:
 * `reject_duplicate_connection` - (Optional)(`Bool`) Reject new connection from duplicate IKE-id.
 * `user_at_hostname` - (Optional)(`String`) Use an e-mail address.
  
+---
 #### dead_peer_detection arguments
 * `interval` - (Optional)(`Int`) The interval at which to send DPD
 * `threshold` - (Optional)(`Int`) Maximum number of DPD retransmissions

@@ -48,6 +48,7 @@ The following arguments are supported:
 * `security_severity` - (Optional)(`String`) Security related severity.
 * `user_severity` - (Optional)(`String`) User processes severity.
 
+---
 #### archive arguments
 * `binary_data` - (Optional)(`Bool`) Mark file as if it contains binary data. Conflict with `no_binary_data`.
 * `no_binary_data` - (Optional)(`Bool`) Don't mark file as if it contains binary data. Conflict with `binary_data`.

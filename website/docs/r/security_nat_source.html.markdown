@@ -50,6 +50,7 @@ The following arguments are supported:
   * `value`  - (Required)(`String`) Name of interface, routing-instance or zone for to options
 * `rule` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each rule to declare. See the [`rule` arguments](#rule-arguments) block.
 
+---
 #### rule arguments
 * `name` - (Required)(`String`) Name of rule
 * `match` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'match' configuration.

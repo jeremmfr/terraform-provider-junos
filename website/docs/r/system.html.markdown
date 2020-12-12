@@ -45,6 +45,7 @@ The following arguments are supported:
   * `source_address` - (Optional)(`String`) Use specified address as source address.
 * `tracing_dest_override_syslog_host` - (Optional)(`String`) Send trace messages to remote syslog server.
 
+---
 #### ssh arguments for services
 * `authentication_order` - (Optional)(`ListOfString`) Order in which authentication methods are invoked.
 * `ciphers` - (Optional)(`ListOfString`) Specify the ciphers allowed for protocol version 2.
@@ -66,6 +67,7 @@ The following arguments are supported:
 * `no_tcp_forwarding` - (Optional)(`Bool`) Do not allow forwarding TCP connections via SSH.
 * `tcp_forwarding` - (Optional)(`Bool`) Allow forwarding TCP connections via SSH.
 
+---
 #### archive arguments for syslog
 * `binary_data` - (Optional)(`Bool`) Mark file as if it contains binary data.
 * `no_binary_data` - (Optional)(`Bool`) Don't mark file as if it contains binary data.

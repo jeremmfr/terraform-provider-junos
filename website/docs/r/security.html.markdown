@@ -41,6 +41,7 @@ The following arguments are supported:
 * `log` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'log' configuration. See the [`log` arguments] (#log-arguments) block.
 * `forwarding_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'forwarding-options' configuration. See the [`forwarding_options` arguments] (#forwarding_options-arguments) block.
 
+---
 #### file arguments for ike_traceoptions
 * `name` - (Optional)(`String`) Name of file in which to write trace information.
 * `files` - (Optional)(`Int`) Maximum number of trace files (2..1000).
@@ -49,6 +50,7 @@ The following arguments are supported:
 * `size` - (Optional)(`Int`) Maximum trace file size (10240..1073741824)
 * `world_readable` - (Optional)(`Bool`) Allow any user to read the log file
 
+---
 #### alg arguments
 * `dns_disable` - (Optional)(`Bool`) Disable dns alg.
 * `ftp_disable` - (Optional)(`Bool`) Disable ftp alg.
@@ -58,6 +60,7 @@ The following arguments are supported:
 * `talk_disable` - (Optional)(`Bool`) Disable talk alg.
 * `tftp_disable` - (Optional)(`Bool`) Disable tftp alg.
 
+---
 #### flow arguments
 * `advanced_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'flow advanced-options' configuration.
   * `drop_matching_reserved_ip_address` - (Optional)(`Bool`) Drop matching reserved source IP address.
@@ -105,11 +108,13 @@ The following arguments are supported:
   * `tcp_initial_timeout` - (Optional)(`Int`) Timeout for TCP session when initialization fails (4..300 seconds).
   * `time_wait_state` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare session timeout value in time-wait state. See the [`time_wait_state` arguments for tcp_session in flow] (#time_wait_state-arguments-for-tcp_session-in-flow) block.
   
+---
 #### time_wait_state arguments for tcp_session in flow
 * `apply_to_half_close_state` - (Optional)(`Bool`) Apply time-wait-state timeout to half-close state.
 * `session_ageout` - (Optional)(`Bool`) Allow session to ageout using service based timeout values.
 * `session_timeout` - (Optional)(`Int`) Configure session timeout value for time-wait state (2..600 seconds).
 
+---
 #### log arguments
 * `disable` - (Optional)(`Bool`) Disable security logging for the device.
 * `event_rate` - (Optional)(`Int`) Control plane event rate (0..1500 logs per second).
@@ -132,6 +137,7 @@ The following arguments are supported:
   * `tls_profile` - (Optional)(`String`) TLS profile.
 * `utc_timestamp` - (Optional)(`Bool`) Use UTC time for security log timestamps.
 
+---
 #### forwarding_options arguments
 * `inet6_mode` - (Optional)(`String`) Forwarding mode for inet6 family. Need to be 'drop', 'flow-based' or 'packet-based'.
 * `mpls_mode` - (Optional)(`String`) Forwarding mode for mpls family. Need to be 'flow-based' or 'packet-based'.
