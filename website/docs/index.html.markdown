@@ -107,6 +107,7 @@ The following arguments are supported in the `provider` block:
   It can also be sourced from the `JUNOS_GROUP_INTERFACE_DELETE` environment variable.  
   Default to empty.
 
+---
 #### Command options
 * `cmd_sleep_short` - (Optional) Number of milliseconds to wait after Terraform executes an action on the Junos device.  
   It can also be sourced from the `JUNOS_SLEEP_SHORT` environment variable.  
@@ -116,6 +117,7 @@ The following arguments are supported in the `provider` block:
   It can also be sourced from the `JUNOS_SLEEP_LOCK` environment variable.  
   Defaults to `10`.
 
+---
 #### Debug options
 * `debug_netconf_log_path` - (Optional) more detailed log (netconf) in the specified file.  
   It can also be sourced from the `JUNOS_LOG_PATH` environment variable.
