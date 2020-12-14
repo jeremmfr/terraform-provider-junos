@@ -60,6 +60,10 @@ The following arguments are supported:
 * `inet_filter_output` - (Optional)(`String`) Filter to be applied to transmitted packets for family inet.
 * `inet6_filter_input` - (Optional)(`String`) Filter to be applied to received packets for family inet6.
 * `inet6_filter_output` - (Optional)(`String`) Filter to be applied to transmitted packets for family inet6.
+* `inet_rpf_check` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for enable reverse-path-forwarding checks with family inet on this interface with optional arguments.
+  * `fail_filter` - (Optional)(`String`) Name of filter applied to packets failing RPF check.
+  * `mode_loose` - (Optional)(`Bool`) Use reverse-path-forwarding loose mode instead the strict mode.
+* `inet6_rpf_check` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for enable reverse-path-forwarding checks with family inet6 on this interface with optional arguments. Arguments is same as `inet_rpf_check`.
 * `ether802_3ad` - (Optional)(`String`) Name of aggregated device for add this interface to link of 802.3ad interface.
 * `trunk` - (Optional)(`Bool`) Interface mode is trunk.
 * `vlan_members` - (Optional)(`ListOfString`) List of vlan for membership for this interface.

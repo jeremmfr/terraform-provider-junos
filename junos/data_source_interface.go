@@ -273,6 +273,38 @@ func dataSourceInterface() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"inet_rpf_check": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"fail_filter": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"mode_loose": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"inet6_rpf_check": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"fail_filter": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"mode_loose": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"ether802_3ad": {
 				Type:     schema.TypeString,
 				Computed: true,

@@ -34,6 +34,8 @@ type interfaceOptions struct {
 	securityZones     string
 	routingInstances  string
 	vlanMembers       []string
+	inetRpfCheck      []map[string]interface{}
+	inet6RpfCheck     []map[string]interface{}
 	inetAddress       []map[string]interface{}
 	inet6Address      []map[string]interface{}
 }
@@ -330,6 +332,40 @@ func resourceInterface() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}),
+			},
+			"inet_rpf_check": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"fail_filter": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"mode_loose": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
+			"inet6_rpf_check": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"fail_filter": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"mode_loose": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
+				},
 			},
 			"ether802_3ad": {
 				Type:     schema.TypeString,
@@ -918,6 +954,32 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 		configSet = append(configSet, setPrefix+"family inet6 mtu "+
 			strconv.Itoa(d.Get("inet6_mtu").(int)))
 	}
+	for _, v := range d.Get("inet_rpf_check").([]interface{}) {
+		configSet = append(configSet, setPrefix+"family inet rpf-check")
+		if v != nil {
+			rpfCheck := v.(map[string]interface{})
+			if rpfCheck["fail_filter"].(string) != "" {
+				configSet = append(configSet, setPrefix+"family inet rpf-check fail-filter "+
+					"\""+rpfCheck["fail_filter"].(string)+"\"")
+			}
+			if rpfCheck["mode_loose"].(bool) {
+				configSet = append(configSet, setPrefix+"family inet rpf-check mode loose ")
+			}
+		}
+	}
+	for _, v := range d.Get("inet6_rpf_check").([]interface{}) {
+		configSet = append(configSet, setPrefix+"family inet6 rpf-check")
+		if v != nil {
+			rpfCheck := v.(map[string]interface{})
+			if rpfCheck["fail_filter"].(string) != "" {
+				configSet = append(configSet, setPrefix+"family inet6 rpf-check fail-filter "+
+					"\""+rpfCheck["fail_filter"].(string)+"\"")
+			}
+			if rpfCheck["mode_loose"].(bool) {
+				configSet = append(configSet, setPrefix+"family inet6 rpf-check mode loose ")
+			}
+		}
+	}
 	if d.Get("inet_filter_input").(string) != "" {
 		configSet = append(configSet, setPrefix+"family inet filter input "+
 			d.Get("inet_filter_input").(string))
@@ -1054,6 +1116,20 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 					confRead.inet6FilterInput = strings.TrimPrefix(itemTrim, "family inet6 filter input ")
 				case strings.HasPrefix(itemTrim, "family inet6 filter output "):
 					confRead.inet6FilterOutput = strings.TrimPrefix(itemTrim, "family inet6 filter output ")
+				case strings.HasPrefix(itemTrim, "family inet6 rpf-check"):
+					if len(confRead.inet6RpfCheck) == 0 {
+						confRead.inet6RpfCheck = append(confRead.inet6RpfCheck, map[string]interface{}{
+							"fail_filter": "",
+							"mode_loose":  false,
+						})
+					}
+					switch {
+					case strings.HasPrefix(itemTrim, "family inet6 rpf-check fail-filter "):
+						confRead.inet6RpfCheck[0]["fail_filter"] = strings.Trim(
+							strings.TrimPrefix(itemTrim, "family inet6 rpf-check fail-filter "), "\"")
+					case itemTrim == "family inet6 rpf-check mode loose":
+						confRead.inet6RpfCheck[0]["mode_loose"] = true
+					}
 				}
 			case strings.HasPrefix(itemTrim, "family inet"):
 				confRead.inet = true
@@ -1072,6 +1148,20 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 					confRead.inetFilterInput = strings.TrimPrefix(itemTrim, "family inet filter input ")
 				case strings.HasPrefix(itemTrim, "family inet filter output "):
 					confRead.inetFilterOutput = strings.TrimPrefix(itemTrim, "family inet filter output ")
+				case strings.HasPrefix(itemTrim, "family inet rpf-check"):
+					if len(confRead.inetRpfCheck) == 0 {
+						confRead.inetRpfCheck = append(confRead.inetRpfCheck, map[string]interface{}{
+							"fail_filter": "",
+							"mode_loose":  false,
+						})
+					}
+					switch {
+					case strings.HasPrefix(itemTrim, "family inet rpf-check fail-filter "):
+						confRead.inetRpfCheck[0]["fail_filter"] = strings.Trim(
+							strings.TrimPrefix(itemTrim, "family inet rpf-check fail-filter "), "\"")
+					case itemTrim == "family inet rpf-check mode loose":
+						confRead.inetRpfCheck[0]["mode_loose"] = true
+					}
 				}
 			case strings.HasPrefix(itemTrim, "ether-options 802.3ad "):
 				confRead.v8023ad = strings.TrimPrefix(itemTrim, "ether-options 802.3ad ")
@@ -1379,6 +1469,12 @@ func fillInterfaceData(d *schema.ResourceData, interfaceOpt interfaceOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("inet6_filter_output", interfaceOpt.inet6FilterOutput); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("inet_rpf_check", interfaceOpt.inetRpfCheck); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("inet6_rpf_check", interfaceOpt.inet6RpfCheck); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("ether802_3ad", interfaceOpt.v8023ad); tfErr != nil {
@@ -1725,6 +1821,24 @@ func checkResourceInterfaceConfigAndName(length int, d *schema.ResourceData) err
 		}
 		if d.Get("inet6_mtu").(int) > 0 {
 			return fmt.Errorf("inet6_mtu invalid for this interface")
+		}
+		if d.Get("inet_filter_input").(string) != "" {
+			return fmt.Errorf("inet_filter_input invalid for this interface")
+		}
+		if d.Get("inet_filter_output").(string) != "" {
+			return fmt.Errorf("inet_filter_output invalid for this interface")
+		}
+		if d.Get("inet6_filter_input").(string) != "" {
+			return fmt.Errorf("inet6_filter_input invalid for this interface")
+		}
+		if d.Get("inet6_filter_output").(string) != "" {
+			return fmt.Errorf("inet6_filter_output invalid for this interface")
+		}
+		if len(d.Get("inet_rpf_check").([]interface{})) > 0 {
+			return fmt.Errorf("inet_rpf_check invalid for this interface")
+		}
+		if len(d.Get("inet6_rpf_check").([]interface{})) > 0 {
+			return fmt.Errorf("inet6_rpf_check invalid for this interface")
 		}
 		if d.Get("security_zone").(string) != "" {
 			return fmt.Errorf("security_zone invalid for this interface")

@@ -104,6 +104,8 @@ func TestAccJunosInterface_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
 							"inet_filter_output", "testacc_interfaceInet"),
 						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
+							"inet_rpf_check.#", "1"),
+						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
 							"inet_address.#", "1"),
 						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
 							"inet_address.0.address", "192.0.2.1/25"),
@@ -204,6 +206,10 @@ func TestAccJunosInterface_basic(t *testing.T) {
 							"inet_mtu", "1500"),
 						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
 							"inet6_mtu", "1500"),
+						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
+							"inet_rpf_check.#", "1"),
+						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
+							"inet_rpf_check.0.mode_loose", "true"),
 						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
 							"inet_address.#", "1"),
 						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
@@ -319,6 +325,7 @@ resource junos_interface testacc_interfaceAEunit {
   inet_mtu           = 1400
   inet_filter_input  = junos_firewall_filter.testacc_interfaceInet.name
   inet_filter_output = junos_firewall_filter.testacc_interfaceInet.name
+  inet_rpf_check {}
   inet_address {
     address = "192.0.2.1/25"
     vrrp_group {
@@ -419,6 +426,9 @@ resource junos_interface testacc_interfaceAEunit {
   inet_mtu           = 1500
   inet_filter_input  = junos_firewall_filter.testacc_interfaceInet.name
   inet_filter_output = junos_firewall_filter.testacc_interfaceInet.name
+  inet_rpf_check {
+    mode_loose = true
+  }
   inet_address {
     address = "192.0.2.1/25"
     vrrp_group {
