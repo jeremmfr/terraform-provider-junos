@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* add `interface` option to `qualified_next_hop` on `static_route` resource (Fixes #71) Thanks [@tagur87](https://github.com/tagur87)
 
 BUG FIXES:
 
