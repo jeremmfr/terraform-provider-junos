@@ -98,7 +98,7 @@ The following arguments are supported in the `provider` block:
   It can also be sourced from the `JUNOS_PORT` environment variable.  
   Defaults to `830`.
 
-* `keypass` - (Optional) This is the passphrase for open ssh key file.  
+* `keypass` - (Optional) This is the passphrase for open `sshkeyfile` or `sshkey_pem`.  
   It can also be sourced from the `JUNOS_KEYPASS` environment variable.  
   Defaults is empty.
 
