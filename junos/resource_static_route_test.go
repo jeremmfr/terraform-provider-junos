@@ -27,13 +27,17 @@ func TestAccJunosStaticRoute_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_static_route.testacc_staticRoute_instance",
 							"next_hop.0", "st0.0"),
 						resource.TestCheckResourceAttr("junos_static_route.testacc_staticRoute_instance",
-							"qualified_next_hop.#", "1"),
+							"qualified_next_hop.#", "2"),
 						resource.TestCheckResourceAttr("junos_static_route.testacc_staticRoute_instance",
 							"qualified_next_hop.0.next_hop", "st0.0"),
 						resource.TestCheckResourceAttr("junos_static_route.testacc_staticRoute_instance",
 							"qualified_next_hop.0.preference", "101"),
 						resource.TestCheckResourceAttr("junos_static_route.testacc_staticRoute_instance",
 							"qualified_next_hop.0.metric", "101"),
+						resource.TestCheckResourceAttr("junos_static_route.testacc_staticRoute_instance",
+							"qualified_next_hop.1.next_hop", "192.0.2.250"),
+						resource.TestCheckResourceAttr("junos_static_route.testacc_staticRoute_instance",
+							"qualified_next_hop.1.interface", "st0.0"),
 						resource.TestCheckResourceAttr("junos_static_route.testacc_staticRoute_instance",
 							"community.#", "1"),
 						resource.TestCheckResourceAttr("junos_static_route.testacc_staticRoute_instance",
@@ -69,13 +73,17 @@ func TestAccJunosStaticRoute_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_static_route.testacc_staticRoute_ipv6_instance",
 							"next_hop.0", "st0.0"),
 						resource.TestCheckResourceAttr("junos_static_route.testacc_staticRoute_ipv6_instance",
-							"qualified_next_hop.#", "1"),
+							"qualified_next_hop.#", "2"),
 						resource.TestCheckResourceAttr("junos_static_route.testacc_staticRoute_ipv6_instance",
 							"qualified_next_hop.0.next_hop", "st0.0"),
 						resource.TestCheckResourceAttr("junos_static_route.testacc_staticRoute_ipv6_instance",
 							"qualified_next_hop.0.preference", "101"),
 						resource.TestCheckResourceAttr("junos_static_route.testacc_staticRoute_ipv6_instance",
 							"qualified_next_hop.0.metric", "101"),
+						resource.TestCheckResourceAttr("junos_static_route.testacc_staticRoute_ipv6_instance",
+							"qualified_next_hop.1.next_hop", "2001:db8:85a4::1"),
+						resource.TestCheckResourceAttr("junos_static_route.testacc_staticRoute_ipv6_instance",
+							"qualified_next_hop.1.preference", "st0.0"),
 						resource.TestCheckResourceAttr("junos_static_route.testacc_staticRoute_ipv6_instance",
 							"community.#", "1"),
 						resource.TestCheckResourceAttr("junos_static_route.testacc_staticRoute_ipv6_instance",
@@ -149,6 +157,10 @@ resource junos_static_route testacc_staticRoute_instance {
     preference = 101
     metric     = 101
   }
+  qualified_next_hop {
+	next_hop   = "192.0.2.250"
+	interface  = "st0.0"
+  }
   community = ["no-advertise"]
 }
 resource junos_static_route testacc_staticRoute_default {
@@ -186,6 +198,10 @@ resource junos_static_route testacc_staticRoute_ipv6_instance {
     preference = 101
     metric = 101
   }
+  qualified_next_hop {
+  next_hop   = "2001:db8:85a4::1"
+  interface  = "st0.0"
+}
   community = ["no-advertise"]
 }
 `
