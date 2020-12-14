@@ -5,6 +5,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 * fix missing compatibility argument checks when apply `junos_interface` resource (unit interface or not)
+* fix `advertisements_threshold` argument missing for vrrp in family inet6 address in `junos_interface` resource
 
 ## v1.9.0
 FEATURES:
