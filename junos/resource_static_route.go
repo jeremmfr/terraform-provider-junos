@@ -79,6 +79,10 @@ func resourceStaticRoute() *schema.Resource {
 							Type:     schema.TypeInt,
 							Optional: true,
 						},
+						"interface": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -339,6 +343,11 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 				" qualified-next-hop "+qualifiedNextHopMap["next_hop"].(string)+
 				" metric "+strconv.Itoa(qualifiedNextHopMap["metric"].(int)))
 		}
+		if qualifiedNextHopMap["interface"] != "" {
+			configSet = append(configSet, setPrefix+
+				" qualified-next-hop "+qualifiedNextHopMap["next_hop"].(string)+
+				" interface "+qualifiedNextHopMap["interface"].(string))
+		}
 	}
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
@@ -408,6 +417,7 @@ func readStaticRoute(destination string, instance string, m interface{},
 					"next_hop":   nextHopWords[0],
 					"metric":     0,
 					"preference": 0,
+					"interface":  "",
 				}
 				qualifiedNextHopOptions, confRead.qualifiedNextHop = copyAndRemoveItemMapList("next_hop",
 					false, qualifiedNextHopOptions, confRead.qualifiedNextHop)
@@ -425,6 +435,8 @@ func readStaticRoute(destination string, instance string, m interface{},
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimQnh, err)
 					}
+				case strings.HasPrefix(itemTrimQnh, "interface "):
+					qualifiedNextHopOptions["interface"] = strings.TrimPrefix(itemTrimQnh, "interface ")
 				}
 				confRead.qualifiedNextHop = append(confRead.qualifiedNextHop, qualifiedNextHopOptions)
 			}

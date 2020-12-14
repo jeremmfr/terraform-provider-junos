@@ -35,6 +35,7 @@ The following arguments are supported:
   * `next_hop` - (Required)(`String`) Target for qualified-next-hop
   * `preference` - (Optional)(`Int`) Preference of qualified next hop
   * `metric` - (Optional)(`Int`) Metric of qualified next hop
+  * `interface` - (Optional)(`String`) Interface of qualified next hop (Cannot be used with interface set as next-hop)
 
 ## Import
 
