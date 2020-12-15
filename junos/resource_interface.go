@@ -49,6 +49,7 @@ func resourceInterface() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: resourceInterfaceImport,
 		},
+		DeprecationMessage: "use junos_interface_physical or junos_interface_logical resource instead",
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,

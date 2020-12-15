@@ -10,6 +10,8 @@ description: |-
 
 Get information on an Interface
 
+!> **NOTE:** Since v1.11.0, this data soure is **deprecated**. For more consistency, functionalities of this data source have been splitted in two new data source `junos_interface_physical` and `junos_interface_logical`.
+
 ## Example Usage
 
 ```hcl
