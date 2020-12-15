@@ -436,7 +436,7 @@ func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
+	intExists, err := checkInterfaceExistsOld(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -515,7 +515,7 @@ func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 
 		return diag.FromErr(err)
 	}
-	intExists, err = checkInterfaceExists(d.Get("name").(string), m, jnprSess)
+	intExists, err = checkInterfaceExistsOld(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -547,7 +547,7 @@ func resourceInterfaceRead(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
+	intExists, err := checkInterfaceExistsOld(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		mutex.Unlock()
 
@@ -597,7 +597,7 @@ func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m inte
 	if d.HasChange("ether802_3ad") {
 		oAE, nAE := d.GetChange("ether802_3ad")
 		if oAE.(string) != "" {
-			newAE := "ae-1"
+			newAE := "ae-1" // nolint: goconst
 			if nAE.(string) != "" {
 				newAE = nAE.(string)
 			}
@@ -755,7 +755,7 @@ func resourceInterfaceDelete(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 	if !d.Get("complete_destroy").(bool) {
-		intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
+		intExists, err := checkInterfaceExistsOld(d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -785,7 +785,7 @@ func resourceInterfaceImport(d *schema.ResourceData, m interface{}) ([]*schema.R
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-	intExists, err := checkInterfaceExists(d.Id(), m, jnprSess)
+	intExists, err := checkInterfaceExistsOld(d.Id(), m, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -884,7 +884,7 @@ func addInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) er
 	return nil
 }
 
-func checkInterfaceExists(interFace string, m interface{}, jnprSess *NetconfObject) (bool, error) {
+func checkInterfaceExistsOld(interFace string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	rpcIntName := "<get-interface-information><interface-name>" + interFace +
 		"</interface-name></get-interface-information>"

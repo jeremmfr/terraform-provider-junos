@@ -2,6 +2,8 @@
 ENHANCEMENTS:
 * deprecate `junos_interface` resource for two new resources (split physical and logical interface into separate resources)
 * deprecate `junos_interface` data source for two new data sources (split physical and logical interface into separate data sources)
+* add `junos_interface_physical` resource for replace the parts of physical interface in deprecated `junos_interface` resource
+* add `junos_interface_physical` data source for replace the parts of physical interface in deprecated `junos_interface` data source
 
 BUG FIXES:
 
