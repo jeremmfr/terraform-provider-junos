@@ -242,6 +242,11 @@ func resourceInterface() *schema.Resource {
 										Optional:     true,
 										ValidateFunc: validation.IntBetween(100, 40000),
 									},
+									"advertisements_threshold": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 15),
+									},
 									"no_accept_data": {
 										Type:     schema.TypeBool,
 										Optional: true,
@@ -1648,10 +1653,6 @@ func setFamilyAddress(inetAddress interface{}, intCut []string, configSet []stri
 				configSet = append(configSet, setNameAddVrrp+" advertise-interval "+
 					strconv.Itoa(vrrpGroupMap["advertise_interval"].(int)))
 			}
-			if vrrpGroupMap["advertisements_threshold"].(int) != 0 {
-				configSet = append(configSet, setNameAddVrrp+" advertisements-threshold "+
-					strconv.Itoa(vrrpGroupMap["advertisements_threshold"].(int)))
-			}
 			if vrrpGroupMap["authentication_key"].(string) != "" {
 				configSet = append(configSet, setNameAddVrrp+" authentication-key \""+
 					vrrpGroupMap["authentication_key"].(string)+"\"")
@@ -1679,6 +1680,10 @@ func setFamilyAddress(inetAddress interface{}, intCut []string, configSet []stri
 		}
 		if vrrpGroupMap["accept_data"].(bool) {
 			configSet = append(configSet, setNameAddVrrp+" accept-data")
+		}
+		if vrrpGroupMap["advertisements_threshold"].(int) != 0 {
+			configSet = append(configSet, setNameAddVrrp+" advertisements-threshold "+
+				strconv.Itoa(vrrpGroupMap["advertisements_threshold"].(int)))
 		}
 		if vrrpGroupMap["no_accept_data"].(bool) {
 			configSet = append(configSet, setNameAddVrrp+" no-accept-data")
@@ -1777,19 +1782,19 @@ func genFamilyInetAddress(address string) map[string]interface{} {
 }
 func genVRRPGroup(family string) map[string]interface{} {
 	m := map[string]interface{}{
-		"identifier":         0,
-		"virtual_address":    make([]string, 0),
-		"accept_data":        false,
-		"advertise_interval": 0,
-		"no_accept_data":     false,
-		"no_preempt":         false,
-		"preempt":            false,
-		"priority":           0,
-		"track_interface":    make([]map[string]interface{}, 0),
-		"track_route":        make([]map[string]interface{}, 0),
+		"identifier":               0,
+		"virtual_address":          make([]string, 0),
+		"accept_data":              false,
+		"advertise_interval":       0,
+		"advertisements_threshold": 0,
+		"no_accept_data":           false,
+		"no_preempt":               false,
+		"preempt":                  false,
+		"priority":                 0,
+		"track_interface":          make([]map[string]interface{}, 0),
+		"track_route":              make([]map[string]interface{}, 0),
 	}
 	if family == inetWord {
-		m["advertisements_threshold"] = 0
 		m["authentication_key"] = ""
 		m["authentication_type"] = ""
 	}

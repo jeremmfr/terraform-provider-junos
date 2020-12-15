@@ -172,6 +172,8 @@ func TestAccJunosInterface_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
 							"inet6_address.0.vrrp_group.0.advertise_interval", "100"),
 						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
+							"inet6_address.0.vrrp_group.0.advertisements_threshold", "3"),
+						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
 							"inet6_address.0.vrrp_group.0.preempt", "true"),
 						resource.TestCheckResourceAttr("junos_interface.testacc_interfaceAEunit",
 							"inet6_address.0.vrrp_group.0.priority", "100"),
@@ -359,7 +361,8 @@ resource junos_interface testacc_interfaceAEunit {
       virtual_address            = ["2001:db8::2"]
       virtual_link_local_address = "fe80::2"
       accept_data                = true
-      advertise_interval         = 100
+	  advertise_interval         = 100
+	  advertisements_threshold   = 3
       preempt                    = true
       priority                   = 100
       track_interface {
