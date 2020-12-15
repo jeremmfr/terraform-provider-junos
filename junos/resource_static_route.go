@@ -12,10 +12,24 @@ import (
 )
 
 type staticRouteOptions struct {
+	discard          bool
+	receive          bool
+	reject           bool
+	active           bool
+	passive          bool
+	install          bool
+	noInstall        bool
+	readvertise      bool
+	noReadvertise    bool
+	resolve          bool
+	noResolve        bool
+	retain           bool
+	noRetain         bool
 	preference       int
 	metric           int
 	destination      string
 	routingInstance  string
+	nextTable        string
 	nextHop          []string
 	community        []string
 	qualifiedNextHop []map[string]interface{}
@@ -57,14 +71,36 @@ func resourceStaticRoute() *schema.Resource {
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+			"discard": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"receive", "reject", "next_hop", "next_table", "qualified_next_hop"},
+			},
+			"receive": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"discard", "reject", "next_hop", "next_table", "qualified_next_hop"},
+			},
+			"reject": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"discard", "receive", "next_hop", "next_table", "qualified_next_hop"},
+			},
 			"next_hop": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:          schema.TypeList,
+				Optional:      true,
+				Elem:          &schema.Schema{Type: schema.TypeString},
+				ConflictsWith: []string{"next_table", "discard", "receive", "reject"},
+			},
+			"next_table": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"next_hop", "qualified_next_hop", "discard", "receive", "reject"},
 			},
 			"qualified_next_hop": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:          schema.TypeList,
+				Optional:      true,
+				ConflictsWith: []string{"next_table", "discard", "receive", "reject"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"next_hop": {
@@ -85,6 +121,56 @@ func resourceStaticRoute() *schema.Resource {
 						},
 					},
 				},
+			},
+			"active": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"passive"},
+			},
+			"passive": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"active"},
+			},
+			"install": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"no_install"},
+			},
+			"no_install": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"install"},
+			},
+			"readvertise": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"no_readvertise"},
+			},
+			"no_readvertise": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"readvertise"},
+			},
+			"resolve": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"no_resolve", "retain", "no_retain"},
+			},
+			"no_resolve": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"resolve"},
+			},
+			"retain": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"no_retain", "resolve"},
+			},
+			"no_retain": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"retain", "resolve"},
 			},
 		},
 	}
@@ -327,8 +413,21 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 			configSet = append(configSet, setPrefix+" community "+v.(string))
 		}
 	}
+	if d.Get("discard").(bool) {
+		configSet = append(configSet, setPrefix+" discard")
+	}
+	if d.Get("receive").(bool) {
+		configSet = append(configSet, setPrefix+" receive")
+	}
+	if d.Get("reject").(bool) {
+		configSet = append(configSet, setPrefix+" reject")
+	}
+
 	for _, nextHop := range d.Get("next_hop").([]interface{}) {
 		configSet = append(configSet, setPrefix+" next-hop "+nextHop.(string))
+	}
+	if d.Get("next_table").(string) != "" {
+		configSet = append(configSet, setPrefix+" next-table "+d.Get("next_table").(string))
 	}
 	for _, qualifiedNextHop := range d.Get("qualified_next_hop").([]interface{}) {
 		qualifiedNextHopMap := qualifiedNextHop.(map[string]interface{})
@@ -348,6 +447,36 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 				" qualified-next-hop "+qualifiedNextHopMap["next_hop"].(string)+
 				" interface "+qualifiedNextHopMap["interface"].(string))
 		}
+	}
+	if d.Get("active").(bool) {
+		configSet = append(configSet, setPrefix+" active")
+	}
+	if d.Get("passive").(bool) {
+		configSet = append(configSet, setPrefix+" passive")
+	}
+	if d.Get("install").(bool) {
+		configSet = append(configSet, setPrefix+" install")
+	}
+	if d.Get("no_install").(bool) {
+		configSet = append(configSet, setPrefix+" no-install")
+	}
+	if d.Get("readvertise").(bool) {
+		configSet = append(configSet, setPrefix+" readvertise")
+	}
+	if d.Get("no_readvertise").(bool) {
+		configSet = append(configSet, setPrefix+" no-readvertise")
+	}
+	if d.Get("resolve").(bool) {
+		configSet = append(configSet, setPrefix+" resolve")
+	}
+	if d.Get("no_resolve").(bool) {
+		configSet = append(configSet, setPrefix+" no-resolve")
+	}
+	if d.Get("retain").(bool) {
+		configSet = append(configSet, setPrefix+" retain")
+	}
+	if d.Get("no_retain").(bool) {
+		configSet = append(configSet, setPrefix+" no-retain")
 	}
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
@@ -408,8 +537,16 @@ func readStaticRoute(destination string, instance string, m interface{},
 				}
 			case strings.HasPrefix(itemTrim, "community "):
 				confRead.community = append(confRead.community, strings.TrimPrefix(itemTrim, "community "))
+			case strings.HasSuffix(itemTrim, "discard"):
+				confRead.discard = true
+			case strings.HasSuffix(itemTrim, "receive"):
+				confRead.receive = true
+			case strings.HasSuffix(itemTrim, "reject"):
+				confRead.reject = true
 			case strings.HasPrefix(itemTrim, "next-hop "):
 				confRead.nextHop = append(confRead.nextHop, strings.TrimPrefix(itemTrim, "next-hop "))
+			case strings.HasPrefix(itemTrim, "next-table "):
+				confRead.nextTable = strings.TrimPrefix(itemTrim, "next-table ")
 			case strings.HasPrefix(itemTrim, "qualified-next-hop "):
 				nextHop := strings.TrimPrefix(itemTrim, "qualified-next-hop ")
 				nextHopWords := strings.Split(nextHop, " ")
@@ -439,6 +576,26 @@ func readStaticRoute(destination string, instance string, m interface{},
 					qualifiedNextHopOptions["interface"] = strings.TrimPrefix(itemTrimQnh, "interface ")
 				}
 				confRead.qualifiedNextHop = append(confRead.qualifiedNextHop, qualifiedNextHopOptions)
+			case strings.HasSuffix(itemTrim, "active"):
+				confRead.active = true
+			case strings.HasSuffix(itemTrim, "passive"):
+				confRead.passive = true
+			case strings.HasSuffix(itemTrim, "no-install"):
+				confRead.noInstall = true
+			case strings.HasSuffix(itemTrim, "install"):
+				confRead.install = true
+			case strings.HasSuffix(itemTrim, "no-readvertise"):
+				confRead.noReadvertise = true
+			case strings.HasSuffix(itemTrim, "readvertise"):
+				confRead.readvertise = true
+			case strings.HasSuffix(itemTrim, "no-resolve"):
+				confRead.noResolve = true
+			case strings.HasSuffix(itemTrim, "resolve"):
+				confRead.resolve = true
+			case strings.HasSuffix(itemTrim, "no-retain"):
+				confRead.noRetain = true
+			case strings.HasSuffix(itemTrim, "retain"):
+				confRead.retain = true
 			}
 		}
 	} else {
@@ -473,7 +630,21 @@ func delStaticRouteOpts(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		delPrefix+"preference",
 		delPrefix+"metric",
 		delPrefix+"community",
-		delPrefix+"next-hop")
+		delPrefix+"discard",
+		delPrefix+"receive",
+		delPrefix+"reject",
+		delPrefix+"next-hop",
+		delPrefix+"next-table",
+		delPrefix+"active",
+		delPrefix+"passive",
+		delPrefix+"install",
+		delPrefix+"no-install",
+		delPrefix+"readvertise",
+		delPrefix+"no-readvertise",
+		delPrefix+"resolve",
+		delPrefix+"no-resolve",
+		delPrefix+"retain",
+		delPrefix+"no-retain")
 	if d.HasChange("qualified_next_hop") {
 		oQualifiedNextHop, _ := d.GetChange("qualified_next_hop")
 		for _, v := range oQualifiedNextHop.([]interface{}) {
@@ -527,10 +698,52 @@ func fillStaticRouteData(d *schema.ResourceData, staticRouteOptions staticRouteO
 	if tfErr := d.Set("community", staticRouteOptions.community); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("discard", staticRouteOptions.discard); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("receive", staticRouteOptions.receive); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("reject", staticRouteOptions.reject); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("next_hop", staticRouteOptions.nextHop); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("next_table", staticRouteOptions.nextTable); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("qualified_next_hop", staticRouteOptions.qualifiedNextHop); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("active", staticRouteOptions.active); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("passive", staticRouteOptions.passive); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("install", staticRouteOptions.install); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("no_install", staticRouteOptions.noInstall); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("readvertise", staticRouteOptions.readvertise); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("no_readvertise", staticRouteOptions.noReadvertise); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("resolve", staticRouteOptions.resolve); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("no_resolve", staticRouteOptions.noResolve); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("retain", staticRouteOptions.retain); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("no_retain", staticRouteOptions.noRetain); tfErr != nil {
 		panic(tfErr)
 	}
 }

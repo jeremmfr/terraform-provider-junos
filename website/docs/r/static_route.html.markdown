@@ -30,12 +30,26 @@ The following arguments are supported:
 * `preference` - (Optional)(`Int`) Preference for static route
 * `metric` - (Optional)(`Int`) Metric for static route
 * `community` - (Optional)(`ListOfString`) List of BGP community
-* `next_hop` - (Optional)(`ListOfString`) List of next-hop
-* `qualified_next_hop` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) List of qualified-next-hop with options. Can be specified multiple times for each qualified-next-hop.
+* `next_hop` - (Optional)(`ListOfString`) List of next-hop. Conflict with `next_table`, `discard`, `receive` and `reject`.
+* `next_table` - (Optional)(`String`) Next hop to another table. Conflict with `next_hop`, `qualified_next_hop`, `discard`, `receive` and `reject`.
+* `discard` - (Optional)(`Bool`) Drop packets to destination; send no ICMP unreachables. Conflict with `next_hop`, `next_table`, `qualified_next_hop`, `receive` and `reject`.
+* `receive` - (Optional)(`Bool`) Install a receive route for the destination. Conflict with `next_hop`, `next_table`, `qualified_next_hop`, `discard` and `reject`.
+* `reject` - (Optional)(`Bool`) Drop packets to destination; send ICMP unreachables. Conflict with `next_hop`, `next_table`, `qualified_next_hop`, `discard` and `receive`.
+* `qualified_next_hop` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) List of qualified-next-hop with options. Can be specified multiple times for each qualified-next-hop. Conflict with `next_table`, `discard`, `receive` and `reject`.
   * `next_hop` - (Required)(`String`) Target for qualified-next-hop
   * `preference` - (Optional)(`Int`) Preference of qualified next hop
   * `metric` - (Optional)(`Int`) Metric of qualified next hop
   * `interface` - (Optional)(`String`) Interface of qualified next hop (Cannot be used with interface set as next-hop)
+* `active` - (Optional)(`Bool`) Remove inactive route from forwarding table. Conflict with `passive`.
+* `passive` - (Optional)(`Bool`) Retain inactive route in forwarding table. Conflict with `active`.
+* `install` - (Optional)(`Bool`) Install route into forwarding table. Conflict with `no_install`.
+* `no_install` - (Optional)(`Bool`) Don't install route into forwarding table. Conflict with `install`.
+* `readvertise` - (Optional)(`Bool`) Mark route as eligible to be readvertised. Conflict with `no_readvertise`.
+* `no_readvertise` - (Optional)(`Bool`) Don't mark route as eligible to be readvertised. Conflict with `readvertise`.
+* `resolve` - (Optional)(`Bool`) Allow resolution of indirectly connected next hops. Conflict with `no_resolve`, `retain` and `no_retain`.
+* `no_resolve` - (Optional)(`Bool`) Don't allow resolution of indirectly connected next hops. Conflict with `resolve`.
+* `retain` - (Optional)(`Bool`) Always keep route in forwarding table. Conflict with `no_retain` and `resolve`.
+* `no_retain` - (Optional)(`Bool`) Don't always keep route in forwarding table. Conflict with `retain` and `resolve`.
 
 ## Import
 
