@@ -841,8 +841,8 @@ func checkInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) 
 			return true, false, nil
 		}
 	}
-	if intConfig == "set description NC\nset disable" ||
-		intConfig == "set disable\nset description NC" {
+	if intConfig == "set description NC\nset disable" || // nolint: goconst
+		intConfig == "set disable\nset description NC" { // nolint: goconst
 		return true, false, nil
 	}
 	if intConfig == setLineStart ||
@@ -940,14 +940,14 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 	}
 	for _, address := range d.Get("inet_address").([]interface{}) {
 		var err error
-		configSet, err = setFamilyAddress(address, intCut, configSet, setName, inetWord)
+		configSet, err = setFamilyAddressOld(address, intCut, configSet, setName, inetWord)
 		if err != nil {
 			return err
 		}
 	}
 	for _, address := range d.Get("inet6_address").([]interface{}) {
 		var err error
-		configSet, err = setFamilyAddress(address, intCut, configSet, setName, inet6Word)
+		configSet, err = setFamilyAddressOld(address, intCut, configSet, setName, inet6Word)
 		if err != nil {
 			return err
 		}
@@ -1109,7 +1109,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 				confRead.inet6 = true
 				switch {
 				case strings.HasPrefix(itemTrim, "family inet6 address "):
-					inet6Address, err = fillFamilyInetAddress(itemTrim, inet6Address, inet6Word)
+					inet6Address, err = fillFamilyInetAddressOld(itemTrim, inet6Address, inet6Word)
 					if err != nil {
 						return confRead, err
 					}
@@ -1141,7 +1141,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 				confRead.inet = true
 				switch {
 				case strings.HasPrefix(itemTrim, "family inet address "):
-					inetAddress, err = fillFamilyInetAddress(itemTrim, inetAddress, inetWord)
+					inetAddress, err = fillFamilyInetAddressOld(itemTrim, inetAddress, inetWord)
 					if err != nil {
 						return confRead, err
 					}
@@ -1511,7 +1511,7 @@ func fillInterfaceData(d *schema.ResourceData, interfaceOpt interfaceOptions) {
 		panic(tfErr)
 	}
 }
-func fillFamilyInetAddress(item string, inetAddress []map[string]interface{},
+func fillFamilyInetAddressOld(item string, inetAddress []map[string]interface{},
 	family string) ([]map[string]interface{}, error) {
 	var addressConfig []string
 	var itemTrim string
@@ -1524,11 +1524,11 @@ func fillFamilyInetAddress(item string, inetAddress []map[string]interface{},
 		itemTrim = strings.TrimPrefix(item, "family inet6 address "+addressConfig[0]+" ")
 	}
 
-	m := genFamilyInetAddress(addressConfig[0])
+	m := genFamilyInetAddressOld(addressConfig[0])
 	m, inetAddress = copyAndRemoveItemMapList("address", false, m, inetAddress)
 
 	if strings.HasPrefix(itemTrim, "vrrp-group ") || strings.HasPrefix(itemTrim, "vrrp-inet6-group ") {
-		vrrpGroup := genVRRPGroup(family)
+		vrrpGroup := genVRRPGroupOld(family)
 		vrrpID, err := strconv.Atoi(addressConfig[2])
 		if err != nil {
 			return inetAddress, nil
@@ -1619,10 +1619,10 @@ func fillFamilyInetAddress(item string, inetAddress []map[string]interface{},
 
 	return inetAddress, nil
 }
-func setFamilyAddress(inetAddress interface{}, intCut []string, configSet []string, setName string,
+func setFamilyAddressOld(inetAddress interface{}, intCut []string, configSet []string, setName string,
 	family string) ([]string, error) {
 	if family != inetWord && family != inet6Word {
-		return configSet, fmt.Errorf("setFamilyAddress() unknown family %v", family)
+		return configSet, fmt.Errorf("setFamilyAddressOld() unknown family %v", family)
 	}
 	inetAddressMap := inetAddress.(map[string]interface{})
 	configSet = append(configSet, "set interfaces "+setName+" family "+family+
@@ -1775,13 +1775,13 @@ func aggregatedCountSearchMax(newAE, oldAE, interFace string, m interface{}, jnp
 
 	return strconv.Itoa(newAENumInt + 1), nil
 }
-func genFamilyInetAddress(address string) map[string]interface{} {
+func genFamilyInetAddressOld(address string) map[string]interface{} {
 	return map[string]interface{}{
 		"address":    address,
 		"vrrp_group": make([]map[string]interface{}, 0),
 	}
 }
-func genVRRPGroup(family string) map[string]interface{} {
+func genVRRPGroupOld(family string) map[string]interface{} {
 	m := map[string]interface{}{
 		"identifier":               0,
 		"virtual_address":          make([]string, 0),

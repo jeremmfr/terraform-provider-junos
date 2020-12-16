@@ -94,6 +94,7 @@ func Provider() *schema.Provider {
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"junos_interface":          dataSourceInterface(),
+			"junos_interface_logical":  dataSourceInterfaceLogical(),
 			"junos_interface_physical": dataSourceInterfacePhysical(),
 			"junos_system_information": dataSourceSystemInformation(),
 		},
@@ -106,6 +107,7 @@ func Provider() *schema.Provider {
 			"junos_firewall_filter":                                      resourceFirewallFilter(),
 			"junos_firewall_policer":                                     resourceFirewallPolicer(),
 			"junos_interface_physical":                                   resourceInterfacePhysical(),
+			"junos_interface_logical":                                    resourceInterfaceLogical(),
 			"junos_interface_st0_unit":                                   resourceInterfaceSt0Unit(),
 			"junos_interface":                                            resourceInterface(),
 			"junos_ospf_area":                                            resourceOspfArea(),
