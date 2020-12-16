@@ -1,14 +1,19 @@
-package junos
+package junos_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccJunosOspfArea_basic(t *testing.T) {
+	var testaccOspfArea string
+	if os.Getenv("TESTACC_INTERFACE") != "" {
+		testaccOspfArea = os.Getenv("TESTACC_INTERFACE")
+	} else {
+		testaccOspfArea = defaultInterfaceTestAcc
+	}
 	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:  func() { testAccPreCheck(t) },
@@ -42,7 +47,7 @@ func TestAccJunosOspfArea_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosOspfAreaConfigUpdate(),
+					Config: testAccJunosOspfAreaConfigUpdate(testaccOspfArea),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea",
 							"routing_instance", "testacc_ospfarea"),
@@ -51,7 +56,7 @@ func TestAccJunosOspfArea_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea",
 							"interface.#", "2"),
 						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea",
-							"interface.1.name", "vlan.100"),
+							"interface.1.name", testaccOspfArea+".0"),
 						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea",
 							"interface.1.disable", "true"),
 					),
@@ -67,7 +72,7 @@ func TestAccJunosOspfArea_basic(t *testing.T) {
 }
 
 func testAccJunosOspfAreaConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_ospf_area "testacc_ospfarea" {
   area_id = "0.0.0.0"
   interface {
@@ -80,12 +85,13 @@ resource junos_ospf_area "testacc_ospfarea" {
     dead_interval = 10
   }
 }
-`)
+`
 }
-func testAccJunosOspfAreaConfigUpdate() string {
-	return fmt.Sprintf(`
+func testAccJunosOspfAreaConfigUpdate(interFace string) string {
+	return `
 resource junos_interface "testacc_ospfarea" {
-  name = "vlan.100"
+  name             = "` + interFace + `.0"
+  description      = "testacc_ospfarea"
   routing_instance = junos_routing_instance.testacc_ospfarea.name
 }
 resource junos_routing_instance "testacc_ospfarea" {
@@ -108,5 +114,5 @@ resource junos_ospf_area "testacc_ospfarea" {
     disable = true
   }
 }
-`)
+`
 }

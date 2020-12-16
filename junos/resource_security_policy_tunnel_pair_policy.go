@@ -1,10 +1,12 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type policyPairPolicyOptions struct {
@@ -16,116 +18,125 @@ type policyPairPolicyOptions struct {
 
 func resourceSecurityPolicyTunnelPairPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSecurityPolicyTunnelPairPolicyCreate,
-		Read:   resourceSecurityPolicyTunnelPairPolicyRead,
-		Delete: resourceSecurityPolicyTunnelPairPolicyDelete,
+		CreateContext: resourceSecurityPolicyTunnelPairPolicyCreate,
+		ReadContext:   resourceSecurityPolicyTunnelPairPolicyRead,
+		DeleteContext: resourceSecurityPolicyTunnelPairPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceSecurityPolicyTunnelPairPolicyImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"zone_a": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"zone_b": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"policy_a_to_b": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"policy_b_to_a": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 		},
 	}
 }
 
-func resourceSecurityPolicyTunnelPairPolicyCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityPolicyTunnelPairPolicyCreate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security policy tunnel pair policy not compatible with Junos device %s",
-			jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security policy tunnel pair policy not compatible with Junos device %s",
+			jnprSess.SystemInformation.HardwareModel))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	securityPolicyExists, err := checkSecurityPolicyExists(d.Get("zone_a").(string), d.Get("zone_b").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	if !securityPolicyExists {
 		sess.configClear(jnprSess)
-		return fmt.Errorf("security policy from %v to %v not exists", d.Get("zone_a").(string), d.Get("zone_b").(string))
+
+		return diag.FromErr(fmt.Errorf("security policy from %v to %v not exists",
+			d.Get("zone_a").(string), d.Get("zone_b").(string)))
 	}
 	securityPolicyExists, err = checkSecurityPolicyExists(d.Get("zone_b").(string), d.Get("zone_a").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	if !securityPolicyExists {
 		sess.configClear(jnprSess)
-		return fmt.Errorf("security policy from %v to %v not exists", d.Get("zone_b").(string), d.Get("zone_a").(string))
+
+		return diag.FromErr(fmt.Errorf("security policy from %v to %v not exists",
+			d.Get("zone_b").(string), d.Get("zone_a").(string)))
 	}
 	pairPolicyExists, err := checkSecurityPolicyPairExists(d.Get("zone_a").(string), d.Get("policy_a_to_b").(string),
 		d.Get("zone_b").(string), d.Get("policy_b_to_a").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	if pairPolicyExists {
 		sess.configClear(jnprSess)
-		return fmt.Errorf("security policy pair policy %v(%v) / %v(%v) already exists",
+
+		return diag.FromErr(fmt.Errorf("security policy pair policy %v(%v) / %v(%v) already exists",
 			d.Get("zone_a").(string), d.Get("policy_a_to_b").(string),
-			d.Get("zone_b").(string), d.Get("policy_b_to_a").(string))
+			d.Get("zone_b").(string), d.Get("policy_b_to_a").(string)))
 	}
-	err = setSecurityPolicyTunnelPairPolicy(d, m, jnprSess)
-	if err != nil {
+	if err := setSecurityPolicyTunnelPairPolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security_policy_tunnel_pair_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_policy_tunnel_pair_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	pairPolicyExists, err = checkSecurityPolicyPairExists(d.Get("zone_a").(string), d.Get("policy_a_to_b").(string),
 		d.Get("zone_b").(string), d.Get("policy_b_to_a").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if pairPolicyExists {
 		d.SetId(d.Get("zone_a").(string) + idSeparator + d.Get("policy_a_to_b").(string) +
 			idSeparator + d.Get("zone_b").(string) + idSeparator + d.Get("policy_b_to_a").(string))
 	} else {
-		return fmt.Errorf("security policy pair policy not exists after commit => check your config")
+		return diag.FromErr(fmt.Errorf("security policy pair policy not exists after commit => check your config"))
 	}
-	return resourceSecurityPolicyTunnelPairPolicyRead(d, m)
+
+	return resourceSecurityPolicyTunnelPairPolicyRead(ctx, d, m)
 }
-func resourceSecurityPolicyTunnelPairPolicyRead(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityPolicyTunnelPairPolicyRead(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
-		return err
+
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	policyPairPolicyOptions, err := readSecurityPolicyTunnelPairPolicy(d.Get("zone_a").(string)+idSeparator+
@@ -134,36 +145,36 @@ func resourceSecurityPolicyTunnelPairPolicyRead(d *schema.ResourceData, m interf
 		d.Get("policy_b_to_a").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if policyPairPolicyOptions.policyAtoB == "" && policyPairPolicyOptions.policyBtoA == "" {
 		d.SetId("")
 	} else {
 		fillSecurityPolicyPairData(d, policyPairPolicyOptions)
 	}
+
 	return nil
 }
-func resourceSecurityPolicyTunnelPairPolicyDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityPolicyTunnelPairPolicyDelete(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delSecurityPolicyTunnelPairPolicy(d, m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delSecurityPolicyTunnelPairPolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_security_policy_tunnel_pair_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_policy_tunnel_pair_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
+
 	return nil
 }
 func resourceSecurityPolicyTunnelPairPolicyImport(d *schema.ResourceData,
@@ -196,6 +207,7 @@ func resourceSecurityPolicyTunnelPairPolicyImport(d *schema.ResourceData,
 	fillSecurityPolicyPairData(d, policyPairPolicyOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -218,6 +230,7 @@ func checkSecurityPolicyPairExists(zoneA, policyAtoB, zoneB, policyBtoA string,
 	if pairAtoBConfig == emptyWord && pairBtoAConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -227,16 +240,16 @@ func setSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, m interface{}, jn
 	configSet = append(configSet, "set security policies from-zone "+
 		d.Get("zone_a").(string)+" to-zone "+d.Get("zone_b").(string)+
 		" policy "+d.Get("policy_a_to_b").(string)+
-		" then permit tunnel pair-policy "+d.Get("policy_b_to_a").(string)+"\n")
+		" then permit tunnel pair-policy "+d.Get("policy_b_to_a").(string))
 	configSet = append(configSet, "set security policies from-zone "+
 		d.Get("zone_b").(string)+" to-zone "+d.Get("zone_a").(string)+
 		" policy "+d.Get("policy_b_to_a").(string)+
-		" then permit tunnel pair-policy "+d.Get("policy_a_to_b").(string)+"\n")
+		" then permit tunnel pair-policy "+d.Get("policy_a_to_b").(string))
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 func readSecurityPolicyTunnelPairPolicy(idRessource string,
@@ -296,6 +309,7 @@ func readSecurityPolicyTunnelPairPolicy(idRessource string,
 			}
 		}
 	}
+
 	return confRead, nil
 }
 func delSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -304,33 +318,29 @@ func delSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, m interface{}, jn
 	configSet = append(configSet, "delete security policies"+
 		" from-zone "+d.Get("zone_a").(string)+" to-zone "+d.Get("zone_b").(string)+
 		" policy "+d.Get("policy_a_to_b").(string)+
-		" then permit tunnel pair-policy "+d.Get("policy_b_to_a").(string)+"\n")
+		" then permit tunnel pair-policy "+d.Get("policy_b_to_a").(string))
 	configSet = append(configSet, "delete security policies"+
 		" from-zone "+d.Get("zone_b").(string)+" to-zone "+d.Get("zone_a").(string)+
 		" policy "+d.Get("policy_b_to_a").(string)+
-		" then permit tunnel pair-policy "+d.Get("policy_a_to_b").(string)+"\n")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+		" then permit tunnel pair-policy "+d.Get("policy_a_to_b").(string))
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func fillSecurityPolicyPairData(d *schema.ResourceData, policyPairPolicyOptions policyPairPolicyOptions) {
-	tfErr := d.Set("zone_a", policyPairPolicyOptions.zoneA)
-	if tfErr != nil {
+	if tfErr := d.Set("zone_a", policyPairPolicyOptions.zoneA); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("zone_b", policyPairPolicyOptions.zoneB)
-	if tfErr != nil {
+	if tfErr := d.Set("zone_b", policyPairPolicyOptions.zoneB); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("policy_a_to_b", policyPairPolicyOptions.policyAtoB)
-	if tfErr != nil {
+	if tfErr := d.Set("policy_a_to_b", policyPairPolicyOptions.policyAtoB); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("policy_b_to_a", policyPairPolicyOptions.policyBtoA)
-	if tfErr != nil {
+	if tfErr := d.Set("policy_b_to_a", policyPairPolicyOptions.policyBtoA); tfErr != nil {
 		panic(tfErr)
 	}
 }

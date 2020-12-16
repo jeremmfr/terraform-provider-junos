@@ -1,11 +1,14 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/jeremmfr/junosdecode/jdecode"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	jdecode "github.com/jeremmfr/junosdecode"
 )
 
 type ikePolicyOptions struct {
@@ -13,42 +16,56 @@ type ikePolicyOptions struct {
 	mode             string
 	preSharedKeyText string
 	preSharedKeyHexa string
+	proposalSet      string
 	proposals        []string
+}
+
+func listProposalSet() []string {
+	return []string{
+		"basic",
+		"compatible",
+		"prime-128",
+		"prime-256",
+		"standard",
+		"suiteb-gcm-128",
+		"suiteb-gcm-256",
+	}
 }
 
 func resourceIkePolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceIkePolicyCreate,
-		Read:   resourceIkePolicyRead,
-		Update: resourceIkePolicyUpdate,
-		Delete: resourceIkePolicyDelete,
+		CreateContext: resourceIkePolicyCreate,
+		ReadContext:   resourceIkePolicyRead,
+		UpdateContext: resourceIkePolicyUpdate,
+		DeleteContext: resourceIkePolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceIkePolicyImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"proposals": {
-				Type:     schema.TypeList,
-				Required: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:         schema.TypeList,
+				Optional:     true,
+				MinItems:     1,
+				Elem:         &schema.Schema{Type: schema.TypeString},
+				ExactlyOneOf: []string{"proposals", "proposal_set"},
+			},
+			"proposal_set": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(listProposalSet(), false),
+				ExactlyOneOf: []string{"proposals", "proposal_set"},
 			},
 			"mode": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "main",
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if !stringInSlice(value, []string{"main", "aggressive"}) {
-						errors = append(errors, fmt.Errorf(
-							"%q for %q is not 'main' or 'aggressive'", value, k))
-					}
-					return
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "main",
+				ValidateFunc: validation.StringInSlice([]string{"main", "aggressive"}, false),
 			},
 			"pre_shared_key_text": {
 				Type:          schema.TypeString,
@@ -66,122 +83,122 @@ func resourceIkePolicy() *schema.Resource {
 	}
 }
 
-func resourceIkePolicyCreate(d *schema.ResourceData, m interface{}) error {
+func resourceIkePolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security ike policy not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security ike policy not compatible with Junos device %s",
+			jnprSess.SystemInformation.HardwareModel))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	ikePolicyExists, err := checkIkePolicyExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	if ikePolicyExists {
 		sess.configClear(jnprSess)
-		return fmt.Errorf("ike policy %v already exists", d.Get("name").(string))
+
+		return diag.FromErr(fmt.Errorf("security ike policy %v already exists", d.Get("name").(string)))
 	}
-	err = setIkePolicy(d, m, jnprSess)
-	if err != nil {
+	if err := setIkePolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_ike_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_ike_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	ikePolicyExists, err = checkIkePolicyExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if ikePolicyExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("ike policy %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security ike policy %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
-	return resourceIkePolicyRead(d, m)
+
+	return resourceIkePolicyRead(ctx, d, m)
 }
-func resourceIkePolicyRead(d *schema.ResourceData, m interface{}) error {
+func resourceIkePolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
-		return err
+
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	ikePolicyOptions, err := readIkePolicy(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if ikePolicyOptions.name == "" {
 		d.SetId("")
 	} else {
 		fillIkePolicyData(d, ikePolicyOptions)
 	}
+
 	return nil
 }
-func resourceIkePolicyUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceIkePolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delIkePolicy(d, m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delIkePolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = setIkePolicy(d, m, jnprSess)
-	if err != nil {
+	if err := setIkePolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_ike_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_security_ike_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
-	return resourceIkePolicyRead(d, m)
+
+	return resourceIkePolicyRead(ctx, d, m)
 }
-func resourceIkePolicyDelete(d *schema.ResourceData, m interface{}) error {
+func resourceIkePolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delIkePolicy(d, m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delIkePolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_ike_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_ike_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
+
 	return nil
 }
 func resourceIkePolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -197,7 +214,7 @@ func resourceIkePolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.R
 		return nil, err
 	}
 	if !ikePolicyExists {
-		return nil, fmt.Errorf("don't find ike policy with id '%v' (id must be <name>)", d.Id())
+		return nil, fmt.Errorf("don't find security ike policy with id '%v' (id must be <name>)", d.Id())
 	}
 	ikePolicyOptions, err := readIkePolicy(d.Id(), m, jnprSess)
 	if err != nil {
@@ -205,6 +222,7 @@ func resourceIkePolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.R
 	}
 	fillIkePolicyData(d, ikePolicyOptions)
 	result[0] = d
+
 	return result, nil
 }
 
@@ -217,6 +235,7 @@ func checkIkePolicyExists(ikePolicy string, m interface{}, jnprSess *NetconfObje
 	if ikePolicyConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setIkePolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -228,22 +247,25 @@ func setIkePolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 		if d.Get("mode").(string) != "main" && d.Get("mode").(string) != "aggressive" {
 			return fmt.Errorf("unknown ike mode %v", d.Get("mode").(string))
 		}
-		configSet = append(configSet, setPrefix+" mode "+d.Get("mode").(string)+"\n")
+		configSet = append(configSet, setPrefix+" mode "+d.Get("mode").(string))
 	}
 	for _, v := range d.Get("proposals").([]interface{}) {
-		configSet = append(configSet, setPrefix+" proposals "+v.(string)+"\n")
+		configSet = append(configSet, setPrefix+" proposals "+v.(string))
+	}
+	if d.Get("proposal_set").(string) != "" {
+		configSet = append(configSet, setPrefix+" proposal-set "+d.Get("proposal_set").(string))
 	}
 	if d.Get("pre_shared_key_text").(string) != "" {
-		configSet = append(configSet, setPrefix+" pre-shared-key ascii-text "+d.Get("pre_shared_key_text").(string)+"\n")
+		configSet = append(configSet, setPrefix+" pre-shared-key ascii-text "+d.Get("pre_shared_key_text").(string))
 	}
 	if d.Get("pre_shared_key_hexa").(string) != "" {
-		configSet = append(configSet, setPrefix+" pre-shared-key hexadecimal "+d.Get("pre_shared_key_hexa").(string)+"\n")
+		configSet = append(configSet, setPrefix+" pre-shared-key hexadecimal "+d.Get("pre_shared_key_hexa").(string))
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 func readIkePolicy(ikePolicy string, m interface{}, jnprSess *NetconfObject) (ikePolicyOptions, error) {
@@ -270,56 +292,58 @@ func readIkePolicy(ikePolicy string, m interface{}, jnprSess *NetconfObject) (ik
 				confRead.mode = strings.TrimPrefix(itemTrim, "mode ")
 			case strings.HasPrefix(itemTrim, "proposals "):
 				confRead.proposals = append(confRead.proposals, strings.TrimPrefix(itemTrim, "proposals "))
+			case strings.HasPrefix(itemTrim, "proposal-set "):
+				confRead.proposalSet = strings.TrimPrefix(itemTrim, "proposal-set ")
 			case strings.HasPrefix(itemTrim, "pre-shared-key hexadecimal "):
 				confRead.preSharedKeyHexa, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
 					"pre-shared-key hexadecimal "), "\""))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to decode pre-shared-key hexadecimal : %w", err)
 				}
 			case strings.HasPrefix(itemTrim, "pre-shared-key ascii-text "):
 				confRead.preSharedKeyText, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
 					"pre-shared-key ascii-text "), "\""))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to decode pre-shared-key ascii-text : %w", err)
 				}
 			}
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 func delIkePolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security ike policy "+d.Get("name").(string)+"\n")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	configSet = append(configSet, "delete security ike policy "+d.Get("name").(string))
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func fillIkePolicyData(d *schema.ResourceData, ikePolicyOptions ikePolicyOptions) {
-	tfErr := d.Set("name", ikePolicyOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", ikePolicyOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("mode", ikePolicyOptions.mode)
-	if tfErr != nil {
+	if tfErr := d.Set("mode", ikePolicyOptions.mode); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("pre_shared_key_text", ikePolicyOptions.preSharedKeyText)
-	if tfErr != nil {
+	if tfErr := d.Set("pre_shared_key_text", ikePolicyOptions.preSharedKeyText); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("pre_shared_key_hexa", ikePolicyOptions.preSharedKeyHexa)
-	if tfErr != nil {
+	if tfErr := d.Set("pre_shared_key_hexa", ikePolicyOptions.preSharedKeyHexa); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("proposals", ikePolicyOptions.proposals)
-	if tfErr != nil {
+	if tfErr := d.Set("proposals", ikePolicyOptions.proposals); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("proposal_set", ikePolicyOptions.proposalSet); tfErr != nil {
 		panic(tfErr)
 	}
 }

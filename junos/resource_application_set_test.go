@@ -1,11 +1,10 @@
-package junos
+package junos_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccJunosApplicationSet_basic(t *testing.T) {
@@ -40,18 +39,18 @@ func TestAccJunosApplicationSet_basic(t *testing.T) {
 }
 
 func testAccJunosApplicationSetConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource "junos_application_set" "testacc_app_set" {
   name = "testacc_app_set"
   applications = [ "junos-ssh" ]
 }
-`)
+`
 }
 func testAccJunosApplicationSetConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource "junos_application_set" "testacc_app_set" {
   name = "testacc_app_set"
   applications = [ "junos-ssh", "junos-telnet" ]
 }
-`)
+`
 }

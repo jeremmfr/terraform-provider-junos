@@ -1,11 +1,10 @@
-package junos
+package junos_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccJunosFirewallFilter_basic(t *testing.T) {
@@ -22,7 +21,7 @@ func TestAccJunosFirewallFilter_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"interface_specific", "true"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.#", "1"),
+							"term.#", "2"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"term.0.name", "testacc_fwFilter_term1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
@@ -54,6 +53,8 @@ func TestAccJunosFirewallFilter_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"term.0.from.0.tcp_flags", "!0x3"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
+							"term.0.from.0.is_fragment", "true"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"term.0.then.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"term.0.then.0.action", "next term"),
@@ -65,13 +66,23 @@ func TestAccJunosFirewallFilter_basic(t *testing.T) {
 							"term.0.then.0.port_mirror", "true"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"term.0.then.0.service_accounting", "true"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
+							"term.1.from.#", "1"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
+							"term.1.from.0.icmp_code.#", "1"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
+							"term.1.from.0.icmp_code.0", "network-unreachable"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
+							"term.1.from.0.icmp_type.#", "1"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
+							"term.1.from.0.icmp_type.0", "router-advertisement"),
 					),
 				},
 				{
 					Config: testAccJunosFirewallFilterConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
-							"term.#", "4"),
+							"term.#", "5"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"term.1.from.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
@@ -124,6 +135,26 @@ func TestAccJunosFirewallFilter_basic(t *testing.T) {
 							"term.3.then.#", "1"),
 						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
 							"term.3.then.0.action", "reject"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
+							"term.4.from.#", "1"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
+							"term.4.from.0.icmp_code_except.#", "1"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter",
+							"term.4.from.0.icmp_type_except.#", "1"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
+							"family", "inet6"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
+							"term.#", "1"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
+							"term.0.from.#", "1"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
+							"term.0.from.0.next_header.#", "1"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
+							"term.0.from.0.next_header.0", "icmp6"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
+							"term.0.then.#", "1"),
+						resource.TestCheckResourceAttr("junos_firewall_filter.testacc_fwFilter6",
+							"term.0.then.0.action", "discard"),
 					),
 				},
 				{
@@ -137,7 +168,7 @@ func TestAccJunosFirewallFilter_basic(t *testing.T) {
 }
 
 func testAccJunosFirewallFilterConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_firewall_filter "testacc_fwFilter" {
   name = "testacc_fwFilter"
   family = "inet"
@@ -152,6 +183,7 @@ resource junos_firewall_filter "testacc_fwFilter" {
       prefix_list_except = [ junos_policyoptions_prefix_list.testacc_fwFilter2.name ]
       protocol = [ "tcp" ]
       tcp_flags = "!0x3"
+	  is_fragment = true
     }
     then {
       action = "next term"
@@ -159,6 +191,16 @@ resource junos_firewall_filter "testacc_fwFilter" {
       log = true
       port_mirror = true
       service_accounting = true
+    }
+  }
+  term {
+    name = "testacc_fwFilter_term2"
+    from {
+	  icmp_code = ["network-unreachable"]
+	  icmp_type = ["router-advertisement"]
+    }
+    then {
+      action = "accept"
     }
   }
 }
@@ -170,10 +212,10 @@ resource junos_policyoptions_prefix_list "testacc_fwFilter2" {
   name = "testacc_fwFilter2"
   prefix = [ "192.0.2.128/25" ]
 }
-`)
+`
 }
 func testAccJunosFirewallFilterConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_firewall_filter "testacc_fwFilter" {
   name = "testacc_fwFilter"
   family = "inet"
@@ -238,6 +280,29 @@ resource junos_firewall_filter "testacc_fwFilter" {
       action = "reject"
     }
   }
+  term {
+    name = "testacc_fwFilter_term5"
+    from {
+	  icmp_code_except = ["network-unreachable"]
+	  icmp_type_except = ["router-advertisement"]
+    }
+    then {
+      action = "reject"
+    }
+  }
+}
+resource junos_firewall_filter "testacc_fwFilter6" {
+  name = "testacc_fwFilter6"
+  family = "inet6"
+  term {
+    name = "testacc_fwFilter6_term1"
+    from {
+      next_header = ["icmp6"]
+    }
+    then {
+      action = "discard"
+    }
+  }
 }
 resource junos_policyoptions_prefix_list "testacc_fwFilter" {
   name = "testacc_fwFilter"
@@ -257,5 +322,5 @@ resource junos_firewall_policer testacc_fwfilter {
     discard = true
   }
 }
-`)
+`
 }

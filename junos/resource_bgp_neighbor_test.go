@@ -1,11 +1,10 @@
-package junos
+package junos_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccJunosBgpNeighbor_basic(t *testing.T) {
@@ -14,6 +13,9 @@ func TestAccJunosBgpNeighbor_basic(t *testing.T) {
 			PreCheck:  func() { testAccPreCheck(t) },
 			Providers: testAccProviders,
 			Steps: []resource.TestStep{
+				{
+					Config: testAccJunosBgpConfigPreCreate(),
+				},
 				{
 					Config: testAccJunosBgpNeighborConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
@@ -130,6 +132,11 @@ func TestAccJunosBgpNeighbor_basic(t *testing.T) {
 					),
 				},
 				{
+					ResourceName:      "junos_bgp_neighbor.testacc_bgpneighbor",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				{
 					Config: testAccJunosBgpNeighborConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
@@ -157,39 +164,42 @@ func TestAccJunosBgpNeighbor_basic(t *testing.T) {
 				{
 					Config: testAccJunosBgpNeighborConfigUpdate2(),
 					Check: resource.ComposeTestCheckFunc(
-						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
+						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor2",
 							"advertise_external", "true"),
-						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
+						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor2",
 							"accept_remote_nexthop", "true"),
-						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
+						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor2",
 							"multihop", "true"),
-						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
+						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor2",
 							"local_as_no_prepend_global_as", "true"),
-						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
+						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor2",
 							"metric_out_minimum_igp_offset", "-10"),
 					),
 				},
 				{
 					Config: testAccJunosBgpNeighborConfigUpdate3(),
 					Check: resource.ComposeTestCheckFunc(
-						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
+						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor3",
 							"local_as_alias", "true"),
-						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
+						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor3",
 							"metric_out_minimum_igp", "true"),
 					),
-				},
-				{
-					ResourceName:      "junos_bgp_neighbor.testacc_bgpneighbor",
-					ImportState:       true,
-					ImportStateVerify: true,
 				},
 			},
 		})
 	}
 }
 
+func testAccJunosBgpConfigPreCreate() string {
+	return `
+resource junos_routing_options "testacc_routing_options" {
+  graceful_restart {}
+}
+`
+}
+
 func testAccJunosBgpNeighborConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_routing_instance "testacc_bgpneighbor" {
   name = "testacc_bgpneighbor"
   as = "65000"
@@ -284,10 +294,10 @@ resource junos_bgp_neighbor "testacc_bgpneighbor" {
     disable = true
   }
 }
-`)
+`
 }
 func testAccJunosBgpNeighborConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_routing_instance "testacc_bgpneighbor" {
   name = "testacc_bgpneighbor"
   as = "65000"
@@ -318,23 +328,23 @@ resource junos_bgp_neighbor "testacc_bgpneighbor" {
   }
 }
 
-`)
+`
 }
 func testAccJunosBgpNeighborConfigUpdate2() string {
-	return fmt.Sprintf(`
-resource junos_routing_instance "testacc_bgpneighbor" {
-  name = "testacc_bgpneighbor"
+	return `
+resource junos_routing_instance "testacc_bgpneighbor2" {
+  name = "testacc_bgpneighbor2"
   as = "65000"
 }
-resource junos_bgp_group "testacc_bgpneighbor" {
-  name = "testacc_bgpneighbor"
-  routing_instance = junos_routing_instance.testacc_bgpneighbor.name
+resource junos_bgp_group "testacc_bgpneighbor2" {
+  name = "testacc_bgpneighbor2"
+  routing_instance = junos_routing_instance.testacc_bgpneighbor2.name
   type = "internal"
 }
-resource junos_bgp_neighbor "testacc_bgpneighbor" {
+resource junos_bgp_neighbor "testacc_bgpneighbor2" {
   ip = "192.0.2.4"
-  routing_instance = junos_routing_instance.testacc_bgpneighbor.name
-  group = junos_bgp_group.testacc_bgpneighbor.name
+  routing_instance = junos_routing_instance.testacc_bgpneighbor2.name
+  group = junos_bgp_group.testacc_bgpneighbor2.name
   advertise_external = true
   accept_remote_nexthop = true
   multihop = true
@@ -342,26 +352,26 @@ resource junos_bgp_neighbor "testacc_bgpneighbor" {
   local_as_no_prepend_global_as = true
   metric_out_minimum_igp_offset = -10
 }
-`)
+`
 }
 func testAccJunosBgpNeighborConfigUpdate3() string {
-	return fmt.Sprintf(`
-resource junos_routing_instance "testacc_bgpneighbor" {
-  name = "testacc_bgpneighbor"
+	return `
+resource junos_routing_instance "testacc_bgpneighbor3" {
+  name = "testacc_bgpneighbor3"
   as = "65000"
 }
-resource junos_bgp_group "testacc_bgpneighbor" {
-  name = "testacc_bgpneighbor"
-  routing_instance = junos_routing_instance.testacc_bgpneighbor.name
+resource junos_bgp_group "testacc_bgpneighbor3" {
+  name = "testacc_bgpneighbor3"
+  routing_instance = junos_routing_instance.testacc_bgpneighbor3.name
   type = "internal"
 }
-resource junos_bgp_neighbor "testacc_bgpneighbor" {
+resource junos_bgp_neighbor "testacc_bgpneighbor3" {
   ip = "192.0.2.4"
-  routing_instance = junos_routing_instance.testacc_bgpneighbor.name
-  group = junos_bgp_group.testacc_bgpneighbor.name
+  routing_instance = junos_routing_instance.testacc_bgpneighbor3.name
+  group = junos_bgp_group.testacc_bgpneighbor3.name
   local_as = "65000"
   local_as_alias = true
   metric_out_minimum_igp = true
 }
-`)
+`
 }

@@ -1,11 +1,14 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type policerOptions struct {
@@ -17,19 +20,19 @@ type policerOptions struct {
 
 func resourceFirewallPolicer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceFirewallPolicerCreate,
-		Read:   resourceFirewallPolicerRead,
-		Update: resourceFirewallPolicerUpdate,
-		Delete: resourceFirewallPolicerDelete,
+		CreateContext: resourceFirewallPolicerCreate,
+		ReadContext:   resourceFirewallPolicerRead,
+		UpdateContext: resourceFirewallPolicerUpdate,
+		DeleteContext: resourceFirewallPolicerDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceFirewallPolicerImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"filter_specific": {
 				Type:     schema.TypeBool,
@@ -44,7 +47,7 @@ func resourceFirewallPolicer() *schema.Resource {
 						"bandwidth_percent": {
 							Type:          schema.TypeInt,
 							Optional:      true,
-							ValidateFunc:  validateIntRange(1, 100),
+							ValidateFunc:  validation.IntBetween(1, 100),
 							ConflictsWith: []string{"if_exceeding.0.bandwidth_limit"},
 						},
 						"bandwidth_limit": {
@@ -92,120 +95,119 @@ func resourceFirewallPolicer() *schema.Resource {
 	}
 }
 
-func resourceFirewallPolicerCreate(d *schema.ResourceData, m interface{}) error {
+func resourceFirewallPolicerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	firewallPolicerExists, err := checkFirewallPolicerExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	if firewallPolicerExists {
 		sess.configClear(jnprSess)
-		return fmt.Errorf("firewall policer %v already exists", d.Get("name").(string))
+
+		return diag.FromErr(fmt.Errorf("firewall policer %v already exists", d.Get("name").(string)))
 	}
 
-	err = setFirewallPolicer(d, m, jnprSess)
-	if err != nil {
+	if err := setFirewallPolicer(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_firewall_policer", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_firewall_policer", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	firewallPolicerExists, err = checkFirewallPolicerExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if firewallPolicerExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("firewall policer %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("firewall policer %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
-	return resourceFirewallPolicerRead(d, m)
+
+	return resourceFirewallPolicerRead(ctx, d, m)
 }
-func resourceFirewallPolicerRead(d *schema.ResourceData, m interface{}) error {
+func resourceFirewallPolicerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
-		return err
+
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	policerOptions, err := readFirewallPolicer(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if policerOptions.name == "" {
 		d.SetId("")
 	} else {
 		fillFirewallPolicerData(d, policerOptions)
 	}
+
 	return nil
 }
-func resourceFirewallPolicerUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceFirewallPolicerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delFirewallPolicer(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delFirewallPolicer(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = setFirewallPolicer(d, m, jnprSess)
-	if err != nil {
+	if err := setFirewallPolicer(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_firewall_policer", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_firewall_policer", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
-	return resourceFirewallPolicerRead(d, m)
+
+	return resourceFirewallPolicerRead(ctx, d, m)
 }
-func resourceFirewallPolicerDelete(d *schema.ResourceData, m interface{}) error {
+func resourceFirewallPolicerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delFirewallPolicer(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delFirewallPolicer(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_firewall_policer", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_firewall_policer", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
+
 	return nil
 }
 func resourceFirewallPolicerImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -231,6 +233,7 @@ func resourceFirewallPolicerImport(d *schema.ResourceData, m interface{}) ([]*sc
 	fillFirewallPolicerData(d, policerOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -243,6 +246,7 @@ func checkFirewallPolicerExists(name string, m interface{}, jnprSess *NetconfObj
 	if policerConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setFirewallPolicer(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -251,45 +255,47 @@ func setFirewallPolicer(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 
 	setPrefix := "set firewall policer " + d.Get("name").(string)
 	if d.Get("filter_specific").(bool) {
-		configSet = append(configSet, setPrefix+" filter-specific\n")
+		configSet = append(configSet, setPrefix+" filter-specific")
 	}
 	for _, ifExceeding := range d.Get("if_exceeding").([]interface{}) {
 		ifExceedingMap := ifExceeding.(map[string]interface{})
 		if ifExceedingMap["bandwidth_percent"].(int) != 0 {
 			configSet = append(configSet, setPrefix+
-				" if-exceeding bandwidth-percent "+strconv.Itoa(ifExceedingMap["bandwidth_percent"].(int))+"\n")
+				" if-exceeding bandwidth-percent "+strconv.Itoa(ifExceedingMap["bandwidth_percent"].(int)))
 		}
 		if ifExceedingMap["bandwidth_limit"].(string) != "" {
 			configSet = append(configSet, setPrefix+
-				" if-exceeding bandwidth-limit "+ifExceedingMap["bandwidth_limit"].(string)+"\n")
+				" if-exceeding bandwidth-limit "+ifExceedingMap["bandwidth_limit"].(string))
 		}
 		configSet = append(configSet, setPrefix+
-			" if-exceeding burst-size-limit "+ifExceedingMap["burst_size_limit"].(string)+"\n")
+			" if-exceeding burst-size-limit "+ifExceedingMap["burst_size_limit"].(string))
 	}
 	for _, then := range d.Get("then").([]interface{}) {
-		thenMap := then.(map[string]interface{})
-		if thenMap["discard"].(bool) {
-			configSet = append(configSet, setPrefix+
-				" then discard\n")
-		}
-		if thenMap["forwarding_class"].(string) != "" {
-			configSet = append(configSet, setPrefix+
-				" then forwarding-class "+thenMap["forwarding_class"].(string)+"\n")
-		}
-		if thenMap["loss_priority"].(string) != "" {
-			configSet = append(configSet, setPrefix+
-				" then loss-priority "+thenMap["loss_priority"].(string)+"\n")
-		}
-		if thenMap["out_of_profile"].(bool) {
-			configSet = append(configSet, setPrefix+
-				" then out-of-profile\n")
+		if then != nil {
+			thenMap := then.(map[string]interface{})
+			if thenMap["discard"].(bool) {
+				configSet = append(configSet, setPrefix+
+					" then discard")
+			}
+			if thenMap["forwarding_class"].(string) != "" {
+				configSet = append(configSet, setPrefix+
+					" then forwarding-class "+thenMap["forwarding_class"].(string))
+			}
+			if thenMap["loss_priority"].(string) != "" {
+				configSet = append(configSet, setPrefix+
+					" then loss-priority "+thenMap["loss_priority"].(string))
+			}
+			if thenMap["out_of_profile"].(bool) {
+				configSet = append(configSet, setPrefix+
+					" then out-of-profile")
+			}
 		}
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 func readFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject) (policerOptions, error) {
@@ -329,7 +335,7 @@ func readFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject)
 					ifExceeding["bandwidth_percent"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrim, "if-exceeding bandwidth-percent "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "if-exceeding bandwidth-limit "):
 					ifExceeding["bandwidth_limit"] = strings.TrimPrefix(itemTrim, "if-exceeding bandwidth-limit ")
@@ -365,36 +371,34 @@ func readFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject)
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 
 func delFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete firewall policer "+policer+"\n")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	configSet = append(configSet, "delete firewall policer "+policer)
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 func fillFirewallPolicerData(d *schema.ResourceData, policerOptions policerOptions) {
-	tfErr := d.Set("name", policerOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", policerOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("filter_specific", policerOptions.filterSpecific)
-	if tfErr != nil {
+	if tfErr := d.Set("filter_specific", policerOptions.filterSpecific); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("if_exceeding", policerOptions.ifExceeding)
-	if tfErr != nil {
+	if tfErr := d.Set("if_exceeding", policerOptions.ifExceeding); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("then", policerOptions.then)
-	if tfErr != nil {
+	if tfErr := d.Set("then", policerOptions.then); tfErr != nil {
 		panic(tfErr)
 	}
 }

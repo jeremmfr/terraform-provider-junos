@@ -1,11 +1,14 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type natDestinationPoolOptions struct {
@@ -18,164 +21,167 @@ type natDestinationPoolOptions struct {
 
 func resourceSecurityNatDestinationPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSecurityNatDestinationPoolCreate,
-		Read:   resourceSecurityNatDestinationPoolRead,
-		Update: resourceSecurityNatDestinationPoolUpdate,
-		Delete: resourceSecurityNatDestinationPoolDelete,
+		CreateContext: resourceSecurityNatDestinationPoolCreate,
+		ReadContext:   resourceSecurityNatDestinationPoolRead,
+		UpdateContext: resourceSecurityNatDestinationPoolUpdate,
+		DeleteContext: resourceSecurityNatDestinationPoolDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceSecurityNatDestinationPoolImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"address": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validateIPMaskFunc(),
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: validateIPMaskFunc(),
 			},
 			"address_to": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ValidateFunc:  validateIPMaskFunc(),
-				ConflictsWith: []string{"address_port"},
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateIPMaskFunc(),
+				ConflictsWith:    []string{"address_port"},
 			},
 			"address_port": {
 				Type:          schema.TypeInt,
 				Optional:      true,
-				ValidateFunc:  validateIntRange(1, 65535),
+				ValidateFunc:  validation.IntBetween(1, 65535),
 				ConflictsWith: []string{"address_to"},
 			},
 			"routing_instance": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 		},
 	}
 }
 
-func resourceSecurityNatDestinationPoolCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatDestinationPoolCreate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security nat destination pool not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security nat destination pool not compatible with Junos device %s",
+			jnprSess.SystemInformation.HardwareModel))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	securityNatDestinationPoolExists, err := checkSecurityNatDestinationPoolExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	if securityNatDestinationPoolExists {
 		sess.configClear(jnprSess)
-		return fmt.Errorf("security nat destination pool %v already exists", d.Get("name").(string))
+
+		return diag.FromErr(fmt.Errorf("security nat destination pool %v already exists", d.Get("name").(string)))
 	}
 
-	err = setSecurityNatDestinationPool(d, m, jnprSess)
-	if err != nil {
+	if err := setSecurityNatDestinationPool(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security_nat_destination_pool", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_nat_destination_pool", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	securityNatDestinationPoolExists, err = checkSecurityNatDestinationPoolExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if securityNatDestinationPoolExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("security nat destination pool %v not exists after commit "+
-			"=> check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security nat destination pool %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
-	return resourceSecurityNatDestinationPoolRead(d, m)
+
+	return resourceSecurityNatDestinationPoolRead(ctx, d, m)
 }
-func resourceSecurityNatDestinationPoolRead(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatDestinationPoolRead(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
-		return err
+
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	natDestinationPoolOptions, err := readSecurityNatDestinationPool(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if natDestinationPoolOptions.name == "" {
 		d.SetId("")
 	} else {
 		fillSecurityNatDestinationPoolData(d, natDestinationPoolOptions)
 	}
+
 	return nil
 }
-func resourceSecurityNatDestinationPoolUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatDestinationPoolUpdate(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delSecurityNatDestinationPool(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delSecurityNatDestinationPool(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = setSecurityNatDestinationPool(d, m, jnprSess)
-	if err != nil {
+	if err := setSecurityNatDestinationPool(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_security_nat_destination_pool", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_security_nat_destination_pool", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
-	return resourceSecurityNatDestinationPoolRead(d, m)
+
+	return resourceSecurityNatDestinationPoolRead(ctx, d, m)
 }
-func resourceSecurityNatDestinationPoolDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatDestinationPoolDelete(
+	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delSecurityNatDestinationPool(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delSecurityNatDestinationPool(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_security_nat_destination_pool", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_nat_destination_pool", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
+
 	return nil
 }
 func resourceSecurityNatDestinationPoolImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -201,6 +207,7 @@ func resourceSecurityNatDestinationPoolImport(d *schema.ResourceData, m interfac
 	fillSecurityNatDestinationPoolData(d, natDestinationPoolOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -214,6 +221,7 @@ func checkSecurityNatDestinationPoolExists(name string, m interface{}, jnprSess 
 	if natDestinationPoolConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setSecurityNatDestinationPool(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -221,20 +229,20 @@ func setSecurityNatDestinationPool(d *schema.ResourceData, m interface{}, jnprSe
 	configSet := make([]string, 0)
 
 	setPrefix := "set security nat destination pool " + d.Get("name").(string)
-	configSet = append(configSet, setPrefix+" address "+d.Get("address").(string)+"\n")
+	configSet = append(configSet, setPrefix+" address "+d.Get("address").(string))
 	if d.Get("address_to").(string) != "" {
-		configSet = append(configSet, setPrefix+" address to "+d.Get("address_to").(string)+"\n")
+		configSet = append(configSet, setPrefix+" address to "+d.Get("address_to").(string))
 	}
 	if d.Get("address_port").(int) != 0 {
-		configSet = append(configSet, setPrefix+" address port "+strconv.Itoa(d.Get("address_port").(int))+"\n")
+		configSet = append(configSet, setPrefix+" address port "+strconv.Itoa(d.Get("address_port").(int)))
 	}
 	if d.Get("routing_instance").(string) != "" {
-		configSet = append(configSet, setPrefix+" routing-instance "+d.Get("routing_instance").(string)+"\n")
+		configSet = append(configSet, setPrefix+" routing-instance "+d.Get("routing_instance").(string))
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 func readSecurityNatDestinationPool(natDestinationPool string,
@@ -263,7 +271,7 @@ func readSecurityNatDestinationPool(natDestinationPool string,
 			case strings.HasPrefix(itemTrim, "address port"):
 				confRead.addressPort, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "address port "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "address "):
 				confRead.address = strings.TrimPrefix(itemTrim, "address ")
@@ -273,40 +281,37 @@ func readSecurityNatDestinationPool(natDestinationPool string,
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 
 func delSecurityNatDestinationPool(natDestinationPool string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security nat destination pool "+natDestinationPool+"\n")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	configSet = append(configSet, "delete security nat destination pool "+natDestinationPool)
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 func fillSecurityNatDestinationPoolData(d *schema.ResourceData, natDestinationPoolOptions natDestinationPoolOptions) {
-	tfErr := d.Set("name", natDestinationPoolOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", natDestinationPoolOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("address", natDestinationPoolOptions.address)
-	if tfErr != nil {
+	if tfErr := d.Set("address", natDestinationPoolOptions.address); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("address_to", natDestinationPoolOptions.addressTo)
-	if tfErr != nil {
+	if tfErr := d.Set("address_to", natDestinationPoolOptions.addressTo); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("address_port", natDestinationPoolOptions.addressPort)
-	if tfErr != nil {
+	if tfErr := d.Set("address_port", natDestinationPoolOptions.addressPort); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("routing_instance", natDestinationPoolOptions.routingInstance)
-	if tfErr != nil {
+	if tfErr := d.Set("routing_instance", natDestinationPoolOptions.routingInstance); tfErr != nil {
 		panic(tfErr)
 	}
 }

@@ -1,0 +1,17 @@
+name: GolangCI-Lint-Latest
+on:
+  push:
+    branches:
+      - master
+jobs:
+  run:
+    name: Run
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: latest
+          args: -c .golangci.yml -v

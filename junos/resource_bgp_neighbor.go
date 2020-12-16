@@ -1,18 +1,21 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceBgpNeighbor() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBgpNeighborCreate,
-		Read:   resourceBgpNeighborRead,
-		Update: resourceBgpNeighborUpdate,
-		Delete: resourceBgpNeighborDelete,
+		CreateContext: resourceBgpNeighborCreate,
+		ReadContext:   resourceBgpNeighborRead,
+		UpdateContext: resourceBgpNeighborUpdate,
+		DeleteContext: resourceBgpNeighborDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceBgpNeighborImport,
 		},
@@ -21,20 +24,20 @@ func resourceBgpNeighbor() *schema.Resource {
 				Type:         schema.TypeString,
 				ForceNew:     true,
 				Required:     true,
-				ValidateFunc: validateIPFunc(),
+				ValidateFunc: validation.IsIPAddress,
 			},
 			"routing_instance": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				Default:      defaultWord,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				Default:          defaultWord,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"group": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"accept_remote_nexthop": {
 				Type:     schema.TypeBool,
@@ -99,7 +102,7 @@ func resourceBgpNeighbor() *schema.Resource {
 			"hold_time": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(3, 65535),
+				ValidateFunc: validation.IntBetween(3, 65535),
 			},
 			"local_as": {
 				Type:     schema.TypeString,
@@ -123,18 +126,18 @@ func resourceBgpNeighbor() *schema.Resource {
 			"local_as_loops": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 10),
+				ValidateFunc: validation.IntBetween(1, 10),
 			},
 			"local_preference": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(0, 4294967295),
+				ValidateFunc: validation.IntBetween(0, 4294967295),
 				Default:      -1,
 			},
 			"metric_out": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(0, 4294967295),
+				ValidateFunc: validation.IntBetween(0, 4294967295),
 				Default:      -1,
 				ConflictsWith: []string{"metric_out_igp",
 					"metric_out_igp_offset",
@@ -153,7 +156,7 @@ func resourceBgpNeighbor() *schema.Resource {
 			"metric_out_igp_offset": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(-2147483648, 2147483647),
+				ValidateFunc: validation.IntBetween(-2147483648, 2147483647),
 				ConflictsWith: []string{"metric_out",
 					"metric_out_minimum_igp",
 					"metric_out_minimum_igp_offset"},
@@ -177,7 +180,7 @@ func resourceBgpNeighbor() *schema.Resource {
 			"metric_out_minimum_igp_offset": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(-2147483648, 2147483647),
+				ValidateFunc: validation.IntBetween(-2147483648, 2147483647),
 				ConflictsWith: []string{"metric_out",
 					"metric_out_igp",
 					"metric_out_igp_offset",
@@ -186,7 +189,7 @@ func resourceBgpNeighbor() *schema.Resource {
 			"out_delay": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 65535),
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"peer_as": {
 				Type:     schema.TypeString,
@@ -195,7 +198,7 @@ func resourceBgpNeighbor() *schema.Resource {
 			"preference": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(0, 4294967295),
+				ValidateFunc: validation.IntBetween(0, 4294967295),
 				Default:      -1,
 			},
 			"authentication_algorithm": {
@@ -216,7 +219,7 @@ func resourceBgpNeighbor() *schema.Resource {
 			"local_address": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateIPFunc(),
+				ValidateFunc: validation.IsIPAddress,
 			},
 			"local_interface": {
 				Type:     schema.TypeString,
@@ -253,49 +256,42 @@ func resourceBgpNeighbor() *schema.Resource {
 						"detection_time_threshold": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 4294967295),
+							ValidateFunc: validation.IntBetween(1, 4294967295),
 						},
 						"transmit_interval_threshold": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 4294967295),
+							ValidateFunc: validation.IntBetween(1, 4294967295),
 						},
 						"transmit_interval_minimum_interval": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 255000),
+							ValidateFunc: validation.IntBetween(1, 255000),
 						},
 						"holddown_interval": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 255000),
+							ValidateFunc: validation.IntBetween(1, 255000),
 						},
 						"minimum_interval": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 255000),
+							ValidateFunc: validation.IntBetween(1, 255000),
 						},
 						"minimum_receive_interval": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 255000),
+							ValidateFunc: validation.IntBetween(1, 255000),
 						},
 						"multiplier": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 255),
+							ValidateFunc: validation.IntBetween(1, 255),
 						},
 						"session_mode": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"automatic", "multihop", "single-hop"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not 'automatic', 'multihop' or 'single-hop'", value, k))
-								}
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"automatic", "multihop", "single-hop"}, false),
 						},
 						"version": {
 							Type:     schema.TypeString,
@@ -312,14 +308,8 @@ func resourceBgpNeighbor() *schema.Resource {
 						"nlri_type": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"any", "flow", "labeled-unicast", "unicast", "multicast"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not valid nlri type", value, k))
-								}
-								return
-							},
+							ValidateFunc: validation.StringInSlice([]string{
+								"any", "flow", "labeled-unicast", "unicast", "multicast"}, false),
 						},
 						"accepted_prefix_limit": {
 							Type:     schema.TypeList,
@@ -330,17 +320,17 @@ func resourceBgpNeighbor() *schema.Resource {
 									"maximum": {
 										Type:         schema.TypeInt,
 										Required:     true,
-										ValidateFunc: validateIntRange(1, 4294967295),
+										ValidateFunc: validation.IntBetween(1, 4294967295),
 									},
 									"teardown": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(1, 100),
+										ValidateFunc: validation.IntBetween(1, 100),
 									},
 									"teardown_idle_timeout": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(1, 2400),
+										ValidateFunc: validation.IntBetween(1, 2400),
 									},
 									"teardown_idle_timeout_forever": {
 										Type:     schema.TypeBool,
@@ -358,17 +348,17 @@ func resourceBgpNeighbor() *schema.Resource {
 									"maximum": {
 										Type:         schema.TypeInt,
 										Required:     true,
-										ValidateFunc: validateIntRange(1, 4294967295),
+										ValidateFunc: validation.IntBetween(1, 4294967295),
 									},
 									"teardown": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(1, 100),
+										ValidateFunc: validation.IntBetween(1, 100),
 									},
 									"teardown_idle_timeout": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(1, 2400),
+										ValidateFunc: validation.IntBetween(1, 2400),
 									},
 									"teardown_idle_timeout_forever": {
 										Type:     schema.TypeBool,
@@ -388,14 +378,8 @@ func resourceBgpNeighbor() *schema.Resource {
 						"nlri_type": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"any", "flow", "labeled-unicast", "unicast", "multicast"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not valid nlri type", value, k))
-								}
-								return
-							},
+							ValidateFunc: validation.StringInSlice([]string{
+								"any", "flow", "labeled-unicast", "unicast", "multicast"}, false),
 						},
 						"accepted_prefix_limit": {
 							Type:     schema.TypeList,
@@ -406,17 +390,17 @@ func resourceBgpNeighbor() *schema.Resource {
 									"maximum": {
 										Type:         schema.TypeInt,
 										Required:     true,
-										ValidateFunc: validateIntRange(1, 4294967295),
+										ValidateFunc: validation.IntBetween(1, 4294967295),
 									},
 									"teardown": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(1, 100),
+										ValidateFunc: validation.IntBetween(1, 100),
 									},
 									"teardown_idle_timeout": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(1, 2400),
+										ValidateFunc: validation.IntBetween(1, 2400),
 									},
 									"teardown_idle_timeout_forever": {
 										Type:     schema.TypeBool,
@@ -434,17 +418,17 @@ func resourceBgpNeighbor() *schema.Resource {
 									"maximum": {
 										Type:         schema.TypeInt,
 										Required:     true,
-										ValidateFunc: validateIntRange(1, 4294967295),
+										ValidateFunc: validation.IntBetween(1, 4294967295),
 									},
 									"teardown": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(1, 100),
+										ValidateFunc: validation.IntBetween(1, 100),
 									},
 									"teardown_idle_timeout": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validateIntRange(1, 2400),
+										ValidateFunc: validation.IntBetween(1, 2400),
 									},
 									"teardown_idle_timeout_forever": {
 										Type:     schema.TypeBool,
@@ -469,12 +453,12 @@ func resourceBgpNeighbor() *schema.Resource {
 						"restart_time": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 600),
+							ValidateFunc: validation.IntBetween(1, 600),
 						},
 						"stale_route_time": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 600),
+							ValidateFunc: validation.IntBetween(1, 600),
 						},
 					},
 				},
@@ -483,146 +467,148 @@ func resourceBgpNeighbor() *schema.Resource {
 	}
 }
 
-func resourceBgpNeighborCreate(d *schema.ResourceData, m interface{}) error {
+func resourceBgpNeighborCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	if d.Get("routing_instance").(string) != defaultWord {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
-			return err
+
+			return diag.FromErr(err)
 		}
 		if !instanceExists {
 			sess.configClear(jnprSess)
-			return fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string))
+
+			return diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))
 		}
 	}
 	bgpGroupExists, err := checkBgpGroupExists(d.Get("group").(string), d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	if !bgpGroupExists {
 		sess.configClear(jnprSess)
-		return fmt.Errorf("bgp group %v doesn't exist", d.Get("group").(string))
+
+		return diag.FromErr(fmt.Errorf("bgp group %v doesn't exist", d.Get("group").(string)))
 	}
 	bgpNeighborxists, err := checkBgpNeighborExists(d.Get("ip").(string),
 		d.Get("routing_instance").(string), d.Get("group").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	if bgpNeighborxists {
 		sess.configClear(jnprSess)
-		return fmt.Errorf("bgp neighbor %v already exists in group %v (routing-instance %v)",
-			d.Get("ip").(string), d.Get("group").(string), d.Get("routing_instance").(string))
+
+		return diag.FromErr(fmt.Errorf("bgp neighbor %v already exists in group %v (routing-instance %v)",
+			d.Get("ip").(string), d.Get("group").(string), d.Get("routing_instance").(string)))
 	}
-	err = setBgpNeighbor(d, m, jnprSess)
-	if err != nil {
+	if err := setBgpNeighbor(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_bgp_neighbor", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_bgp_neighbor", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	bgpNeighborxists, err = checkBgpNeighborExists(d.Get("ip").(string),
 		d.Get("routing_instance").(string), d.Get("group").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if bgpNeighborxists {
 		d.SetId(d.Get("ip").(string) +
 			idSeparator + d.Get("routing_instance").(string) +
 			idSeparator + d.Get("group").(string))
 	} else {
-		return fmt.Errorf("bgp neighbor %v not exists in group %v (routing-instance %v) after commit "+
-			"=> check your config", d.Get("ip").(string), d.Get("group").(string), d.Get("routing_instance").(string))
+		return diag.FromErr(fmt.Errorf("bgp neighbor %v not exists in group %v (routing-instance %v) after commit "+
+			"=> check your config", d.Get("ip").(string), d.Get("group").(string), d.Get("routing_instance").(string)))
 	}
-	return resourceBgpNeighborRead(d, m)
+
+	return resourceBgpNeighborRead(ctx, d, m)
 }
-func resourceBgpNeighborRead(d *schema.ResourceData, m interface{}) error {
+func resourceBgpNeighborRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
-		return err
+
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	bgpNeighborOptions, err := readBgpNeighbor(d.Get("ip").(string),
 		d.Get("routing_instance").(string), d.Get("group").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if bgpNeighborOptions.ip == "" {
 		d.SetId("")
 	} else {
 		fillBgpNeighborData(d, bgpNeighborOptions)
 	}
+
 	return nil
 }
-func resourceBgpNeighborUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceBgpNeighborUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delBgpOpts(d, "neighbor", m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delBgpOpts(d, "neighbor", m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = setBgpNeighbor(d, m, jnprSess)
-	if err != nil {
+	if err := setBgpNeighbor(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_bgp_neighbor", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_bgp_neighbor", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
-	return resourceBgpNeighborRead(d, m)
+
+	return resourceBgpNeighborRead(ctx, d, m)
 }
-func resourceBgpNeighborDelete(d *schema.ResourceData, m interface{}) error {
+func resourceBgpNeighborDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delBgpNeighbor(d, m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delBgpNeighbor(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_bgp_neighbor", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_bgp_neighbor", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
+
 	return nil
 }
 func resourceBgpNeighborImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -651,6 +637,7 @@ func resourceBgpNeighborImport(d *schema.ResourceData, m interface{}) ([]*schema
 	}
 	fillBgpNeighborData(d, bgpNeighborOptions)
 	result[0] = d
+
 	return result, nil
 }
 
@@ -674,6 +661,7 @@ func checkBgpNeighborExists(ip, instance, group string, m interface{}, jnprSess 
 	if bgpNeighborConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -686,24 +674,19 @@ func setBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 			" protocols bgp group " + d.Get("group").(string) +
 			" neighbor " + d.Get("ip").(string) + " "
 	}
-	err := setBgpOptsSimple(setPrefix, d, m, jnprSess)
-	if err != nil {
+	if err := setBgpOptsSimple(setPrefix, d, m, jnprSess); err != nil {
 		return err
 	}
-	err = setBgpOptsBfd(setPrefix, d.Get("bfd_liveness_detection").([]interface{}), m, jnprSess)
-	if err != nil {
+	if err := setBgpOptsBfd(setPrefix, d.Get("bfd_liveness_detection").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
-	err = setBgpOptsFamily(setPrefix, inetWord, d.Get("family_inet").([]interface{}), m, jnprSess)
-	if err != nil {
+	if err := setBgpOptsFamily(setPrefix, inetWord, d.Get("family_inet").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
-	err = setBgpOptsFamily(setPrefix, inet6Word, d.Get("family_inet6").([]interface{}), m, jnprSess)
-	if err != nil {
+	if err := setBgpOptsFamily(setPrefix, inet6Word, d.Get("family_inet6").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
-	err = setBgpOptsGrafefulRestart(setPrefix, d.Get("graceful_restart").([]interface{}), m, jnprSess)
-	if err != nil {
+	if err := setBgpOptsGrafefulRestart(setPrefix, d.Get("graceful_restart").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
 
@@ -770,7 +753,7 @@ func readBgpNeighbor(ip, instance, group string, m interface{}, jnprSess *Netcon
 					return confRead, err
 				}
 			default:
-				confRead, err = readBgpOptsSimple(itemTrim, confRead)
+				err = readBgpOptsSimple(itemTrim, &confRead)
 				if err != nil {
 					return confRead, err
 				}
@@ -778,8 +761,10 @@ func readBgpNeighbor(ip, instance, group string, m interface{}, jnprSess *Netcon
 		}
 	} else {
 		confRead.ip = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 func delBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -788,195 +773,151 @@ func delBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	if d.Get("routing_instance").(string) == defaultWord {
 		configSet = append(configSet, "delete protocols bgp"+
 			" group "+d.Get("group").(string)+
-			" neighbor "+d.Get("ip").(string)+"\n")
+			" neighbor "+d.Get("ip").(string))
 	} else {
-		configSet = append(configSet, "delete"+
+		configSet = append(configSet, deleteWord+
 			" routing-instances "+d.Get("routing_instance").(string)+
 			" protocols bgp group "+d.Get("group").(string)+
-			" neighbor "+d.Get("ip").(string)+"\n")
+			" neighbor "+d.Get("ip").(string))
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func fillBgpNeighborData(d *schema.ResourceData, bgpNeighborOptions bgpOptions) {
-	tfErr := d.Set("ip", bgpNeighborOptions.ip)
-	if tfErr != nil {
+	if tfErr := d.Set("ip", bgpNeighborOptions.ip); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("routing_instance", bgpNeighborOptions.routingInstance)
-	if tfErr != nil {
+	if tfErr := d.Set("routing_instance", bgpNeighborOptions.routingInstance); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("group", bgpNeighborOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("group", bgpNeighborOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("accept_remote_nexthop", bgpNeighborOptions.acceptRemoteNexthop)
-	if tfErr != nil {
+	if tfErr := d.Set("accept_remote_nexthop", bgpNeighborOptions.acceptRemoteNexthop); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("advertise_external", bgpNeighborOptions.advertiseExternal)
-	if tfErr != nil {
+	if tfErr := d.Set("advertise_external", bgpNeighborOptions.advertiseExternal); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("advertise_external_conditional", bgpNeighborOptions.advertiseExternalConditional)
-	if tfErr != nil {
+	if tfErr := d.Set("advertise_external_conditional", bgpNeighborOptions.advertiseExternalConditional); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("advertise_inactive", bgpNeighborOptions.advertiseInactive)
-	if tfErr != nil {
+	if tfErr := d.Set("advertise_inactive", bgpNeighborOptions.advertiseInactive); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("advertise_peer_as", bgpNeighborOptions.advertisePeerAs)
-	if tfErr != nil {
+	if tfErr := d.Set("advertise_peer_as", bgpNeighborOptions.advertisePeerAs); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("as_override", bgpNeighborOptions.asOverride)
-	if tfErr != nil {
+	if tfErr := d.Set("as_override", bgpNeighborOptions.asOverride); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("damping", bgpNeighborOptions.damping)
-	if tfErr != nil {
+	if tfErr := d.Set("damping", bgpNeighborOptions.damping); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_as_private", bgpNeighborOptions.localAsPrivate)
-	if tfErr != nil {
+	if tfErr := d.Set("local_as_private", bgpNeighborOptions.localAsPrivate); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_as_alias", bgpNeighborOptions.localAsAlias)
-	if tfErr != nil {
+	if tfErr := d.Set("local_as_alias", bgpNeighborOptions.localAsAlias); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_as_no_prepend_global_as", bgpNeighborOptions.localAsNoPrependGlobalAs)
-	if tfErr != nil {
+	if tfErr := d.Set("local_as_no_prepend_global_as", bgpNeighborOptions.localAsNoPrependGlobalAs); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("log_updown", bgpNeighborOptions.logUpdown)
-	if tfErr != nil {
+	if tfErr := d.Set("log_updown", bgpNeighborOptions.logUpdown); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("metric_out_igp", bgpNeighborOptions.metricOutIgp)
-	if tfErr != nil {
+	if tfErr := d.Set("metric_out_igp", bgpNeighborOptions.metricOutIgp); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("metric_out_igp_delay_med_update", bgpNeighborOptions.metricOutIgpDelayMedUpdate)
-	if tfErr != nil {
+	if tfErr := d.Set("metric_out_igp_delay_med_update", bgpNeighborOptions.metricOutIgpDelayMedUpdate); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("metric_out_minimum_igp", bgpNeighborOptions.metricOutMinimumIgp)
-	if tfErr != nil {
+	if tfErr := d.Set("metric_out_minimum_igp", bgpNeighborOptions.metricOutMinimumIgp); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("mtu_discovery", bgpNeighborOptions.mtuDiscovery)
-	if tfErr != nil {
+	if tfErr := d.Set("mtu_discovery", bgpNeighborOptions.mtuDiscovery); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("multihop", bgpNeighborOptions.multihop)
-	if tfErr != nil {
+	if tfErr := d.Set("multihop", bgpNeighborOptions.multihop); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("multipath", bgpNeighborOptions.multipath)
-	if tfErr != nil {
+	if tfErr := d.Set("multipath", bgpNeighborOptions.multipath); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("no_advertise_peer_as", bgpNeighborOptions.noAdvertisePeerAs)
-	if tfErr != nil {
+	if tfErr := d.Set("no_advertise_peer_as", bgpNeighborOptions.noAdvertisePeerAs); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("remove_private", bgpNeighborOptions.removePrivate)
-	if tfErr != nil {
+	if tfErr := d.Set("remove_private", bgpNeighborOptions.removePrivate); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("passive", bgpNeighborOptions.passive)
-	if tfErr != nil {
+	if tfErr := d.Set("passive", bgpNeighborOptions.passive); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("hold_time", bgpNeighborOptions.holdTime)
-	if tfErr != nil {
+	if tfErr := d.Set("hold_time", bgpNeighborOptions.holdTime); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_as_loops", bgpNeighborOptions.localAsLoops)
-	if tfErr != nil {
+	if tfErr := d.Set("local_as_loops", bgpNeighborOptions.localAsLoops); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_preference", bgpNeighborOptions.localPreference)
-	if tfErr != nil {
+	if tfErr := d.Set("local_preference", bgpNeighborOptions.localPreference); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("metric_out", bgpNeighborOptions.metricOut)
-	if tfErr != nil {
+	if tfErr := d.Set("metric_out", bgpNeighborOptions.metricOut); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("metric_out_igp_offset", bgpNeighborOptions.metricOutIgpOffset)
-	if tfErr != nil {
+	if tfErr := d.Set("metric_out_igp_offset", bgpNeighborOptions.metricOutIgpOffset); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("metric_out_minimum_igp_offset", bgpNeighborOptions.metricOutMinimumIgpOffset)
-	if tfErr != nil {
+	if tfErr := d.Set("metric_out_minimum_igp_offset", bgpNeighborOptions.metricOutMinimumIgpOffset); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("out_delay", bgpNeighborOptions.outDelay)
-	if tfErr != nil {
+	if tfErr := d.Set("out_delay", bgpNeighborOptions.outDelay); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("preference", bgpNeighborOptions.preference)
-	if tfErr != nil {
+	if tfErr := d.Set("preference", bgpNeighborOptions.preference); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("authentication_algorithm", bgpNeighborOptions.authenticationAlgorithm)
-	if tfErr != nil {
+	if tfErr := d.Set("authentication_algorithm", bgpNeighborOptions.authenticationAlgorithm); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("authentication_key", bgpNeighborOptions.authenticationKey)
-	if tfErr != nil {
+	if tfErr := d.Set("authentication_key", bgpNeighborOptions.authenticationKey); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("authentication_key_chain", bgpNeighborOptions.authenticationKeyChain)
-	if tfErr != nil {
+	if tfErr := d.Set("authentication_key_chain", bgpNeighborOptions.authenticationKeyChain); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_address", bgpNeighborOptions.localAddress)
-	if tfErr != nil {
+	if tfErr := d.Set("local_address", bgpNeighborOptions.localAddress); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_as", bgpNeighborOptions.localAs)
-	if tfErr != nil {
+	if tfErr := d.Set("local_as", bgpNeighborOptions.localAs); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_interface", bgpNeighborOptions.localInterface)
-	if tfErr != nil {
+	if tfErr := d.Set("local_interface", bgpNeighborOptions.localInterface); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("peer_as", bgpNeighborOptions.peerAs)
-	if tfErr != nil {
+	if tfErr := d.Set("peer_as", bgpNeighborOptions.peerAs); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("export", bgpNeighborOptions.exportPolicy)
-	if tfErr != nil {
+	if tfErr := d.Set("export", bgpNeighborOptions.exportPolicy); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("import", bgpNeighborOptions.importPolicy)
-	if tfErr != nil {
+	if tfErr := d.Set("import", bgpNeighborOptions.importPolicy); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("bfd_liveness_detection", bgpNeighborOptions.bfdLivenessDetection)
-	if tfErr != nil {
+	if tfErr := d.Set("bfd_liveness_detection", bgpNeighborOptions.bfdLivenessDetection); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("family_inet", bgpNeighborOptions.familyInet)
-	if tfErr != nil {
+	if tfErr := d.Set("family_inet", bgpNeighborOptions.familyInet); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("family_inet6", bgpNeighborOptions.familyInet6)
-	if tfErr != nil {
+	if tfErr := d.Set("family_inet6", bgpNeighborOptions.familyInet6); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("graceful_restart", bgpNeighborOptions.gracefulRestart)
-	if tfErr != nil {
+	if tfErr := d.Set("graceful_restart", bgpNeighborOptions.gracefulRestart); tfErr != nil {
 		panic(tfErr)
 	}
 }

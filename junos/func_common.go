@@ -8,63 +8,42 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func logFile(message string, file string) {
-	//create your file with desired read/write permissions
+	// create your file with desired read/write permissions
 	f, err := os.OpenFile(file, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	//defer to close when you're done with it, not because you think it's idiomatic!
+	// defer to close when you're done with it, not because you think it's idiomatic!
 	defer f.Close()
 
-	//set output of logs to f
+	// set output of logs to f
 	log.SetOutput(f)
 	log.SetPrefix(time.Now().Format("2006-01-02 15:04:05"))
 
 	log.Printf("%s", message)
 }
-func validateIPMaskFunc() schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (s []string, es []error) {
+func validateIPMaskFunc() schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
 		v := i.(string)
 		err := validateIPwithMask(v)
 		if err != nil {
-			es = append(es, err)
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       err.Error(),
+				AttributePath: path,
+			})
 		}
-		return
-	}
-}
-func validateIPFunc() schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (s []string, es []error) {
-		v := i.(string)
-		err := validateIP(v)
-		if err != nil {
-			es = append(es, err)
-		}
-		return
-	}
-}
-func validateNetworkFunc() schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (s []string, es []error) {
-		v := i.(string)
-		err := validateNetwork(v)
-		if err != nil {
-			es = append(es, err)
-		}
-		return
-	}
-}
 
-func validateIP(ip string) error {
-	ipMask := ip + "/32"
-	_, ipnet, err := net.ParseCIDR(ipMask)
-	if err != nil || ipnet == nil {
-		return fmt.Errorf("%v is not a valid IP", ip)
+		return diags
 	}
-	return nil
 }
 
 func validateIPwithMask(ip string) error {
@@ -82,49 +61,74 @@ func validateIPwithMask(ip string) error {
 	if ip == ipnet.String() {
 		return fmt.Errorf("%v is not a valide IP/mask, is a network", ip)
 	}
+
 	return nil
 }
 
-func validateNetwork(network string) error {
+func validateCIDRNetwork(network string) error {
 	if !strings.Contains(network, "/") {
 		return fmt.Errorf("%v missing mask", network)
 	}
 	_, ipnet, err := net.ParseCIDR(network)
 	if err != nil || ipnet == nil {
-		return fmt.Errorf("%v is not a valid IP/mask", network)
+		return fmt.Errorf("%v is not a valid CIDR", network)
 	}
 	if network != ipnet.String() {
-		return fmt.Errorf("%v is not a network, is a IP/mask", network)
+		return fmt.Errorf("%v is not a valid network CIDR", network)
 	}
+
 	return nil
 }
 
-func validateNameObjectJunos() schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (s []string, es []error) {
+func validateNameObjectJunos(exclude []string) schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
 		v := i.(string)
 		if strings.Count(v, "") > 32 {
-			es = append(es, fmt.Errorf(
-				"%q %q invalid name (too long)", k, i))
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("%s invalid name (too long)", i),
+				AttributePath: path,
+			})
 		}
 		f := func(r rune) bool {
 			return (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') && r != '-' && r != '_'
 		}
 		if strings.IndexFunc(v, f) != -1 {
-			es = append(es, fmt.Errorf(
-				"%q %q invalid name (bad character)", k, i))
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("%s invalid name (bad character)", i),
+				AttributePath: path,
+			})
 		}
-		return
+		if stringInSlice(v, exclude) {
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("expected value to not be one of %q, got %v", exclude, i),
+				AttributePath: path,
+			})
+		}
+
+		return diags
 	}
 }
+func validateAddress() schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
+		v := i.(string)
 
-func validateIntRange(start int, end int) schema.SchemaValidateFunc {
-	return func(v interface{}, k string) (ws []string, errors []error) {
-		value := v.(int)
-		if value < start || value > end {
-			errors = append(errors, fmt.Errorf(
-				"%q for %q is not valid (1-%d)", value, k, end))
+		f := func(r rune) bool {
+			return (r < 'a' || r > 'z') && (r < '0' || r > '9') && r != '-' && r != '.'
 		}
-		return
+		if strings.IndexFunc(v, f) != -1 {
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("%s invalid address (bad character)", v),
+				AttributePath: path,
+			})
+		}
+
+		return diags
 	}
 }
 
@@ -134,6 +138,7 @@ func stringInSlice(str string, list []string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 func copyAndRemoveItemMapList(identifier string, integer bool,
@@ -145,6 +150,7 @@ func copyAndRemoveItemMapList(identifier string, integer bool,
 					m[key] = value
 				}
 				list = append(list[:i], list[i+1:]...)
+
 				break
 			}
 		} else {
@@ -153,22 +159,61 @@ func copyAndRemoveItemMapList(identifier string, integer bool,
 					m[key] = value
 				}
 				list = append(list[:i], list[i+1:]...)
+
 				break
 			}
 		}
 	}
+
 	return m, list
 }
 
 func checkCompatibilitySecurity(jnprSess *NetconfObject) bool {
-	if strings.HasPrefix(strings.ToLower(jnprSess.Platform[0].Model), "srx") {
+	if strings.HasPrefix(strings.ToLower(jnprSess.SystemInformation.HardwareModel), "srx") {
 		return true
 	}
-	if strings.HasPrefix(strings.ToLower(jnprSess.Platform[0].Model), "vsrx") {
+	if strings.HasPrefix(strings.ToLower(jnprSess.SystemInformation.HardwareModel), "vsrx") {
 		return true
 	}
-	if strings.HasPrefix(strings.ToLower(jnprSess.Platform[0].Model), "j") {
+	if strings.HasPrefix(strings.ToLower(jnprSess.SystemInformation.HardwareModel), "j") {
 		return true
 	}
+
+	return false
+}
+
+func listOfSyslogSeverity() []string {
+	return []string{
+		"alert", "any", "critical",
+		"emergency", "error", "info", "none", "notice", "warning",
+	}
+}
+func listOfSyslogFacility() []string {
+	return []string{
+		"authorization", "daemon", "ftp", "kernel", "user",
+		"local0", "local1", "local2", "local3", "local4", "local5", "local6", "local7",
+	}
+}
+
+func uniqueListString(s []string) []string {
+	k := make(map[string]bool)
+	r := []string{}
+	for _, v := range s {
+		if _, value := k[v]; !value {
+			k[v] = true
+			r = append(r, v)
+		}
+	}
+
+	return r
+}
+
+func checkStringHasPrefixInList(s string, list []string) bool {
+	for _, item := range list {
+		if strings.HasPrefix(s, item) {
+			return true
+		}
+	}
+
 	return false
 }

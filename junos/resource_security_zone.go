@@ -1,10 +1,13 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type zoneOptions struct {
@@ -17,19 +20,19 @@ type zoneOptions struct {
 
 func resourceSecurityZone() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSecurityZoneCreate,
-		Read:   resourceSecurityZoneRead,
-		Update: resourceSecurityZoneUpdate,
-		Delete: resourceSecurityZoneDelete,
+		CreateContext: resourceSecurityZoneCreate,
+		ReadContext:   resourceSecurityZoneRead,
+		UpdateContext: resourceSecurityZoneUpdate,
+		DeleteContext: resourceSecurityZoneDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceSecurityZoneImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"inbound_services": {
 				Type:     schema.TypeList,
@@ -47,22 +50,14 @@ func resourceSecurityZone() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validateNameObjectJunos(),
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateNameObjectJunos([]string{}),
 						},
 						"network": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								err := validateNetwork(value)
-								if err != nil {
-									errors = append(errors, fmt.Errorf(
-										"%q error for validate %q : %q", k, value, err))
-								}
-								return
-							},
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsCIDRNetwork(0, 128),
 						},
 					},
 				},
@@ -73,13 +68,14 @@ func resourceSecurityZone() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validateNameObjectJunos(),
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateNameObjectJunos([]string{}),
 						},
 						"address": {
 							Type:     schema.TypeList,
 							Required: true,
+							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 					},
@@ -89,141 +85,144 @@ func resourceSecurityZone() *schema.Resource {
 	}
 }
 
-func resourceSecurityZoneCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityZoneCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security zone not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security zone not compatible with Junos device %s",
+			jnprSess.SystemInformation.HardwareModel))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	securityZoneExists, err := checkSecurityZonesExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	if securityZoneExists {
 		sess.configClear(jnprSess)
-		return fmt.Errorf("security zone %v already exists", d.Get("name").(string))
+
+		return diag.FromErr(fmt.Errorf("security zone %v already exists", d.Get("name").(string)))
 	}
 
-	err = setSecurityZone(d, m, jnprSess)
-	if err != nil {
+	if err := setSecurityZone(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security_zone", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_zone", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	mutex.Lock()
 	securityZoneExists, err = checkSecurityZonesExists(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if securityZoneExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("security zone %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security zone %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
-	return resourceSecurityZoneRead(d, m)
+
+	return resourceSecurityZoneRead(ctx, d, m)
 }
-func resourceSecurityZoneRead(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityZoneRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
-		return err
+
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	zoneOptions, err := readSecurityZone(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if zoneOptions.name == "" {
 		d.SetId("")
 	} else {
 		fillSecurityZoneData(d, zoneOptions)
 	}
+
 	return nil
 }
-func resourceSecurityZoneUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityZoneUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	if d.HasChange("inbound_services") {
 		err = delSecurityZoneElement("host-inbound-traffic system-services", d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
-			return err
+
+			return diag.FromErr(err)
 		}
 	}
 	if d.HasChange("inbound_protocols") {
 		err = delSecurityZoneElement("host-inbound-traffic protocols", d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
-			return err
+
+			return diag.FromErr(err)
 		}
 	}
 	if d.HasChange("address_book") || d.HasChange("address_book_set") {
 		err = delSecurityZoneElement("address-book", d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
-			return err
+
+			return diag.FromErr(err)
 		}
 	}
-	err = setSecurityZone(d, m, jnprSess)
-	if err != nil {
+	if err := setSecurityZone(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_security_zone", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_security_zone", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
-	return resourceSecurityZoneRead(d, m)
+
+	return resourceSecurityZoneRead(ctx, d, m)
 }
-func resourceSecurityZoneDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityZoneDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delSecurityZone(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delSecurityZone(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_security_zone", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_zone", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
+
 	return nil
 }
 func resourceSecurityZoneImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -248,6 +247,7 @@ func resourceSecurityZoneImport(d *schema.ResourceData, m interface{}) ([]*schem
 	fillSecurityZoneData(d, zoneOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -260,6 +260,7 @@ func checkSecurityZonesExists(zone string, m interface{}, jnprSess *NetconfObjec
 	if zoneConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -267,33 +268,33 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 	configSet := make([]string, 0)
 
 	setPrefix := "set security zones security-zone " + d.Get("name").(string)
-	configSet = append(configSet, setPrefix+"\n")
+	configSet = append(configSet, setPrefix)
 
 	for _, v := range d.Get("inbound_services").([]interface{}) {
-		configSet = append(configSet, setPrefix+" host-inbound-traffic system-services "+v.(string)+"\n")
+		configSet = append(configSet, setPrefix+" host-inbound-traffic system-services "+v.(string))
 	}
 	for _, v := range d.Get("inbound_protocols").([]interface{}) {
-		configSet = append(configSet, setPrefix+" host-inbound-traffic protocols "+v.(string)+"\n")
+		configSet = append(configSet, setPrefix+" host-inbound-traffic protocols "+v.(string))
 	}
 
 	for _, v := range d.Get("address_book").([]interface{}) {
 		addressBook := v.(map[string]interface{})
 		configSet = append(configSet, setPrefix+" address-book address "+
-			addressBook["name"].(string)+" "+addressBook["network"].(string)+"\n")
+			addressBook["name"].(string)+" "+addressBook["network"].(string))
 	}
 
 	for _, v := range d.Get("address_book_set").([]interface{}) {
 		addressBookSet := v.(map[string]interface{})
 		for _, addressBookSetAddress := range addressBookSet["address"].([]interface{}) {
 			configSet = append(configSet, setPrefix+" address-book address-set "+addressBookSet["name"].(string)+
-				" address "+addressBookSetAddress.(string)+"\n")
+				" address "+addressBookSetAddress.(string))
 		}
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zoneOptions, error) {
@@ -354,6 +355,7 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
 	confRead.inboundServices = inboundServices
@@ -366,43 +368,38 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 func delSecurityZoneElement(element string, zone string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security zones security-zone "+zone+" "+element+"\n")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	configSet = append(configSet, "delete security zones security-zone "+zone+" "+element)
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 func delSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security zones security-zone "+zone+"\n")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	configSet = append(configSet, "delete security zones security-zone "+zone)
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func fillSecurityZoneData(d *schema.ResourceData, zoneOptions zoneOptions) {
-	tfErr := d.Set("name", zoneOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", zoneOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("inbound_services", zoneOptions.inboundServices)
-	if tfErr != nil {
+	if tfErr := d.Set("inbound_services", zoneOptions.inboundServices); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("inbound_protocols", zoneOptions.inboundProtocols)
-	if tfErr != nil {
+	if tfErr := d.Set("inbound_protocols", zoneOptions.inboundProtocols); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("address_book", zoneOptions.addressBook)
-	if tfErr != nil {
+	if tfErr := d.Set("address_book", zoneOptions.addressBook); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("address_book_set", zoneOptions.addressBookSet)
-	if tfErr != nil {
+	if tfErr := d.Set("address_book_set", zoneOptions.addressBookSet); tfErr != nil {
 		panic(tfErr)
 	}
 }

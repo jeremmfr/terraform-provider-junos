@@ -1,11 +1,10 @@
-package junos
+package junos_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccJunosRoutingInstance_basic(t *testing.T) {
@@ -41,18 +40,18 @@ func TestAccJunosRoutingInstance_basic(t *testing.T) {
 }
 
 func testAccJunosRoutingInstanceConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_routing_instance "testacc_routingInst" {
   name = "testacc_routingInst"
   as = "65000"
 }
-`)
+`
 }
 func testAccJunosRoutingInstanceConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_routing_instance "testacc_routingInst" {
   name = "testacc_routingInst"
   as = "65001"
 }
-`)
+`
 }

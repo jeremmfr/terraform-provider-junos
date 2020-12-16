@@ -1,51 +1,38 @@
 package junos
 
 import (
-	"os"
-	"strconv"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 )
 
+// Config : provider config.
 type Config struct {
-	junosPort        int
-	junosIP          string
-	junosUserName    string
-	junosSSHKeyFile  string
-	junosKeyPass     string
-	junosGroupIntDel string
+	junosPort                int
+	junosCmdSleepShort       int
+	junosCmdSleepLock        int
+	junosIP                  string
+	junosUserName            string
+	junosPassword            string
+	junosSSHKeyPEM           string
+	junosSSHKeyFile          string
+	junosKeyPass             string
+	junosGroupIntDel         string
+	junosDebugNetconfLogPath string
 }
 
-func (c *Config) Session() (*Session, error) {
-	junosLogFile, _ := os.LookupEnv("TFJUNOS_LOG_PATH")
-	var junosSleep, junosSleepShort int
-	var err error
-	junosSleepEnv, _ := os.LookupEnv("TFJUNOS_SLEEP")
-	if junosSleepEnv == "" {
-		junosSleep = 10
-	} else {
-		junosSleep, err = strconv.Atoi(junosSleepEnv)
-		if err != nil {
-			return nil, err
-		}
-	}
-	junosSleepShortEnv, _ := os.LookupEnv("TFJUNOS_SLEEP_SHORT")
-	if junosSleepShortEnv == "" {
-		junosSleepShort = 100
-	} else {
-		junosSleepShort, err = strconv.Atoi(junosSleepShortEnv)
-		if err != nil {
-			return nil, err
-		}
-	}
+// Session : read session information for Junos Device.
+func (c *Config) Session() (*Session, diag.Diagnostics) {
 	sess := &Session{
 		junosIP:          c.junosIP,
 		junosPort:        c.junosPort,
 		junosUserName:    c.junosUserName,
+		junosPassword:    c.junosPassword,
+		junosSSHKeyPEM:   c.junosSSHKeyPEM,
 		junosSSHKeyFile:  c.junosSSHKeyFile,
 		junosKeyPass:     c.junosKeyPass,
 		junosGroupIntDel: c.junosGroupIntDel,
-		junosLogFile:     junosLogFile,
-		junosSleep:       junosSleep,
-		junosSleepShort:  junosSleepShort,
+		junosLogFile:     c.junosDebugNetconfLogPath,
+		junosSleep:       c.junosCmdSleepLock,
+		junosSleepShort:  c.junosCmdSleepShort,
 	}
 
 	return sess, nil

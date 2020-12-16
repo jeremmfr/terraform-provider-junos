@@ -1,11 +1,10 @@
-package junos
+package junos_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccJunosRibGroup_basic(t *testing.T) {
@@ -51,7 +50,7 @@ func TestAccJunosRibGroup_basic(t *testing.T) {
 }
 
 func testAccJunosRibGroupConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_routing_instance "testacc_ribGroup1" {
   name = "testacc_ribGroup1"
 }
@@ -69,10 +68,10 @@ resource junos_rib_group testacc_ribGroup {
   ]
   export_rib = "${junos_routing_instance.testacc_ribGroup1.name}.inet.0"
 }
-`)
+`
 }
 func testAccJunosRibGroupConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_routing_instance "testacc_ribGroup1" {
   name = "testacc_ribGroup1"
 }
@@ -94,5 +93,5 @@ resource junos_rib_group testacc_ribGroup {
   ]
   export_rib = "${junos_routing_instance.testacc_ribGroup2.name}.inet.0"
 }
-`)
+`
 }

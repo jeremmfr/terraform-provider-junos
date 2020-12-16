@@ -1,10 +1,12 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type applicationOptions struct {
@@ -16,19 +18,19 @@ type applicationOptions struct {
 
 func resourceApplication() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceApplicationCreate,
-		Read:   resourceApplicationRead,
-		Update: resourceApplicationUpdate,
-		Delete: resourceApplicationDelete,
+		CreateContext: resourceApplicationCreate,
+		ReadContext:   resourceApplicationRead,
+		UpdateContext: resourceApplicationUpdate,
+		DeleteContext: resourceApplicationDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceApplicationImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"protocol": {
 				Type:     schema.TypeString,
@@ -46,119 +48,117 @@ func resourceApplication() *schema.Resource {
 	}
 }
 
-func resourceApplicationCreate(d *schema.ResourceData, m interface{}) error {
+func resourceApplicationCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	appExists, err := checkApplicationExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	if appExists {
 		sess.configClear(jnprSess)
-		return fmt.Errorf("application %v already exists", d.Get("name").(string))
+
+		return diag.FromErr(fmt.Errorf("application %v already exists", d.Get("name").(string)))
 	}
-	err = setApplication(d, m, jnprSess)
-	if err != nil {
+	if err := setApplication(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_application", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_application", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	appExists, err = checkApplicationExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if appExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("application %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("application %v not exists after commit => check your config", d.Get("name").(string)))
 	}
-	return resourceApplicationRead(d, m)
+
+	return resourceApplicationRead(ctx, d, m)
 }
-func resourceApplicationRead(d *schema.ResourceData, m interface{}) error {
+func resourceApplicationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
-		return err
+
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	applicationOptions, err := readApplication(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if applicationOptions.name == "" {
 		d.SetId("")
 	} else {
 		fillApplicationData(d, applicationOptions)
 	}
+
 	return nil
 }
-func resourceApplicationUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceApplicationUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delApplication(d, m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delApplication(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = setApplication(d, m, jnprSess)
-	if err != nil {
+	if err := setApplication(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_application", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_application", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
-	return resourceApplicationRead(d, m)
+
+	return resourceApplicationRead(ctx, d, m)
 }
-func resourceApplicationDelete(d *schema.ResourceData, m interface{}) error {
+func resourceApplicationDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delApplication(d, m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delApplication(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_application", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_application", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
+
 	return nil
 }
 func resourceApplicationImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -182,6 +182,7 @@ func resourceApplicationImport(d *schema.ResourceData, m interface{}) ([]*schema
 	}
 	fillApplicationData(d, applicationOptions)
 	result[0] = d
+
 	return result, nil
 }
 
@@ -195,6 +196,7 @@ func checkApplicationExists(application string, m interface{}, jnprSess *Netconf
 	if applicationConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setApplication(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -203,19 +205,19 @@ func setApplication(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 
 	setPrefix := "set applications application " + d.Get("name").(string)
 	if d.Get("protocol").(string) != "" {
-		configSet = append(configSet, setPrefix+" protocol "+d.Get("protocol").(string)+"\n")
+		configSet = append(configSet, setPrefix+" protocol "+d.Get("protocol").(string))
 	}
 	if d.Get("destination_port").(string) != "" {
-		configSet = append(configSet, setPrefix+" destination-port "+d.Get("destination_port").(string)+"\n")
+		configSet = append(configSet, setPrefix+" destination-port "+d.Get("destination_port").(string))
 	}
 	if d.Get("source_port").(string) != "" {
-		configSet = append(configSet, setPrefix+" source-port "+d.Get("source_port").(string)+"\n")
+		configSet = append(configSet, setPrefix+" source-port "+d.Get("source_port").(string))
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 func readApplication(application string, m interface{}, jnprSess *NetconfObject) (applicationOptions, error) {
@@ -248,36 +250,34 @@ func readApplication(application string, m interface{}, jnprSess *NetconfObject)
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 func delApplication(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete applications application "+d.Get("name").(string)+"\n")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	configSet = append(configSet, "delete applications application "+d.Get("name").(string))
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func fillApplicationData(d *schema.ResourceData, applicationOptions applicationOptions) {
-	tfErr := d.Set("name", applicationOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", applicationOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("protocol", applicationOptions.protocol)
-	if tfErr != nil {
+	if tfErr := d.Set("protocol", applicationOptions.protocol); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("destination_port", applicationOptions.destinationPort)
-	if tfErr != nil {
+	if tfErr := d.Set("destination_port", applicationOptions.destinationPort); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("source_port", applicationOptions.sourcePort)
-	if tfErr != nil {
+	if tfErr := d.Set("source_port", applicationOptions.sourcePort); tfErr != nil {
 		panic(tfErr)
 	}
 }

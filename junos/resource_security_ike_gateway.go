@@ -1,11 +1,15 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	jdecode "github.com/jeremmfr/junosdecode"
 )
 
 type ikeGatewayOptions struct {
@@ -17,6 +21,8 @@ type ikeGatewayOptions struct {
 	version           string
 	localAddress      string
 	address           []string
+	aaa               []map[string]interface{}
+	dynamicRemote     []map[string]interface{}
 	deadPeerDetection []map[string]interface{}
 	localIdentity     []map[string]interface{}
 	remoteIdentity    []map[string]interface{}
@@ -24,29 +30,123 @@ type ikeGatewayOptions struct {
 
 func resourceIkeGateway() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceIkeGatewayCreate,
-		Read:   resourceIkeGatewayRead,
-		Update: resourceIkeGatewayUpdate,
-		Delete: resourceIkeGatewayDelete,
+		CreateContext: resourceIkeGatewayCreate,
+		ReadContext:   resourceIkeGatewayRead,
+		UpdateContext: resourceIkeGatewayUpdate,
+		DeleteContext: resourceIkeGatewayDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceIkeGatewayImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"address": {
-				Type:     schema.TypeList,
-				Required: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:         schema.TypeList,
+				Optional:     true,
+				MinItems:     1,
+				MaxItems:     5,
+				Elem:         &schema.Schema{Type: schema.TypeString},
+				ExactlyOneOf: []string{"address", "dynamic_remote"},
+			},
+			"dynamic_remote": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ExactlyOneOf:  []string{"address", "dynamic_remote"},
+				ConflictsWith: []string{"general_ike_id"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"connections_limit": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 4294967295),
+						},
+						"distinguished_name": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							ConflictsWith: []string{
+								"dynamic_remote.0.hostname",
+								"dynamic_remote.0.inet",
+								"dynamic_remote.0.inet6",
+								"dynamic_remote.0.user_at_hostname",
+							},
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"container": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"wildcard": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
+						},
+						"hostname": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateDiagFunc: validateAddress(),
+							ConflictsWith: []string{
+								"dynamic_remote.0.distinguished_name",
+								"dynamic_remote.0.inet",
+								"dynamic_remote.0.inet6",
+								"dynamic_remote.0.user_at_hostname",
+							},
+						},
+						"ike_user_type": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"shared-ike-id", "group-ike-id"}, false),
+						},
+						"inet": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsIPAddress,
+							ConflictsWith: []string{
+								"dynamic_remote.0.distinguished_name",
+								"dynamic_remote.0.hostname",
+								"dynamic_remote.0.inet6",
+								"dynamic_remote.0.user_at_hostname",
+							},
+						},
+						"inet6": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsIPAddress,
+							ConflictsWith: []string{
+								"dynamic_remote.0.distinguished_name",
+								"dynamic_remote.0.hostname",
+								"dynamic_remote.0.inet",
+								"dynamic_remote.0.user_at_hostname",
+							},
+						},
+						"reject_duplicate_connection": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"user_at_hostname": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ConflictsWith: []string{
+								"dynamic_remote.0.distinguished_name",
+								"dynamic_remote.0.hostname",
+								"dynamic_remote.0.inet",
+								"dynamic_remote.0.inet6",
+							},
+						},
+					},
+				},
 			},
 			"local_address": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateIPFunc(),
+				ValidateFunc: validation.IsIPAddress,
 			},
 			"policy": {
 				Type:     schema.TypeString,
@@ -57,8 +157,9 @@ func resourceIkeGateway() *schema.Resource {
 				Required: true,
 			},
 			"general_ike_id": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"dynamic_remote"},
 			},
 			"no_nat_traversal": {
 				Type:     schema.TypeBool,
@@ -73,12 +174,17 @@ func resourceIkeGateway() *schema.Resource {
 						"interval": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(10, 60),
+							ValidateFunc: validation.IntBetween(10, 60),
 						},
 						"threshold": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(1, 5),
+							ValidateFunc: validation.IntBetween(1, 5),
+						},
+						"send_mode": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"always-send", "optimized", "probe-idle-tunnel"}, false),
 						},
 					},
 				},
@@ -92,14 +198,8 @@ func resourceIkeGateway() *schema.Resource {
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"distinguished-name", "hostname", "inet", "inet6", "user-at-hostname"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not valid", value, k))
-								}
-								return
-							},
+							ValidateFunc: validation.StringInSlice([]string{
+								"distinguished-name", "hostname", "inet", "inet6", "user-at-hostname"}, false),
 						},
 						"value": {
 							Type:     schema.TypeString,
@@ -117,14 +217,8 @@ func resourceIkeGateway() *schema.Resource {
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"distinguished-name", "hostname", "inet", "inet6", "user-at-hostname"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not valid", value, k))
-								}
-								return
-							},
+							ValidateFunc: validation.StringInSlice([]string{
+								"distinguished-name", "hostname", "inet", "inet6", "user-at-hostname"}, false),
 						},
 						"value": {
 							Type:     schema.TypeString,
@@ -134,137 +228,164 @@ func resourceIkeGateway() *schema.Resource {
 				},
 			},
 			"version": {
-				Type:     schema.TypeString,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"v1-only", "v2-only"}, false),
+			},
+			"aaa": {
+				Type:     schema.TypeList,
 				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if !stringInSlice(value, []string{"v1-only", "v2-only"}) {
-						errors = append(errors, fmt.Errorf(
-							"%q for %q is not 'v1-only' or 'v2-only'", value, k))
-					}
-					return
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"access_profile": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateDiagFunc: validateNameObjectJunos([]string{}),
+							ConflictsWith: []string{
+								"aaa.0.client_username",
+								"aaa.0.client_password",
+							},
+						},
+						"client_username": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ConflictsWith: []string{
+								"aaa.0.access_profile",
+							},
+							ValidateFunc: validation.StringLenBetween(1, 128),
+						},
+						"client_password": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ConflictsWith: []string{
+								"aaa.0.access_profile",
+							},
+							ValidateFunc: validation.StringLenBetween(1, 128),
+						},
+					},
 				},
 			},
 		},
 	}
 }
 
-func resourceIkeGatewayCreate(d *schema.ResourceData, m interface{}) error {
+func resourceIkeGatewayCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security ike gateway not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security ike gateway not compatible with Junos device %s",
+			jnprSess.SystemInformation.HardwareModel))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	ikeGatewayExists, err := checkIkeGatewayExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	if ikeGatewayExists {
 		sess.configClear(jnprSess)
-		return fmt.Errorf("ike gateway %v already exists", d.Get("name").(string))
+
+		return diag.FromErr(fmt.Errorf("security ike gateway %v already exists", d.Get("name").(string)))
 	}
-	err = setIkeGateway(d, m, jnprSess)
-	if err != nil {
+	if err := setIkeGateway(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_ike_gateway", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_ike_gateway", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	ikeGatewayExists, err = checkIkeGatewayExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if ikeGatewayExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("ike gateway %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security ike gateway %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
-	return resourceIkeGatewayRead(d, m)
+
+	return resourceIkeGatewayRead(ctx, d, m)
 }
-func resourceIkeGatewayRead(d *schema.ResourceData, m interface{}) error {
+func resourceIkeGatewayRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
-		return err
+
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	ikeGatewayOptions, err := readIkeGateway(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if ikeGatewayOptions.name == "" {
 		d.SetId("")
 	} else {
 		fillIkeGatewayData(d, ikeGatewayOptions)
 	}
+
 	return nil
 }
-func resourceIkeGatewayUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceIkeGatewayUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delIkeGateway(d, m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delIkeGateway(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = setIkeGateway(d, m, jnprSess)
-	if err != nil {
+	if err := setIkeGateway(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_ike_gateway", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_security_ike_gateway", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
-	return resourceIkeGatewayRead(d, m)
+
+	return resourceIkeGatewayRead(ctx, d, m)
 }
-func resourceIkeGatewayDelete(d *schema.ResourceData, m interface{}) error {
+func resourceIkeGatewayDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delIkeGateway(d, m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delIkeGateway(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_ike_gateway", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_ike_gateway", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
+
 	return nil
 }
 func resourceIkeGatewayImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -280,7 +401,7 @@ func resourceIkeGatewayImport(d *schema.ResourceData, m interface{}) ([]*schema.
 		return nil, err
 	}
 	if !ikeGatewayExists {
-		return nil, fmt.Errorf("don't find ike gateway with id '%v' (id must be <name>)", d.Id())
+		return nil, fmt.Errorf("don't find security ike gateway with id '%v' (id must be <name>)", d.Id())
 	}
 	ikeGatewayOptions, err := readIkeGateway(d.Id(), m, jnprSess)
 	if err != nil {
@@ -288,6 +409,7 @@ func resourceIkeGatewayImport(d *schema.ResourceData, m interface{}) ([]*schema.
 	}
 	fillIkeGatewayData(d, ikeGatewayOptions)
 	result[0] = d
+
 	return result, nil
 }
 
@@ -300,6 +422,7 @@ func checkIkeGatewayExists(ikeGateway string, m interface{}, jnprSess *NetconfOb
 	if ikeGatewayConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -308,38 +431,90 @@ func setIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 
 	setPrefix := "set security ike gateway " + d.Get("name").(string)
 	for _, v := range d.Get("address").([]interface{}) {
-		err := validateIP(v.(string))
-		if err != nil {
-			return err
+		_, errs := validation.IsIPAddress(v, "address")
+		if len(errs) > 0 {
+			return errs[0]
 		}
-		configSet = append(configSet, setPrefix+" address "+v.(string)+"\n")
+		configSet = append(configSet, setPrefix+" address "+v.(string))
+	}
+	for _, v := range d.Get("dynamic_remote").([]interface{}) {
+		if v != nil {
+			dynamicRemote := v.(map[string]interface{})
+			if dynamicRemote["connections_limit"].(int) > 0 {
+				configSet = append(configSet, setPrefix+" dynamic connections-limit "+
+					strconv.Itoa(dynamicRemote["connections_limit"].(int)))
+			}
+			for _, v2 := range dynamicRemote["distinguished_name"].([]interface{}) {
+				configSet = append(configSet, setPrefix+" dynamic distinguished-name")
+				if v2 != nil {
+					distinguishedName := v2.(map[string]interface{})
+					if distinguishedName["container"].(string) != "" {
+						configSet = append(configSet, setPrefix+" dynamic distinguished-name container \""+
+							distinguishedName["container"].(string)+"\"")
+					}
+					if distinguishedName["wildcard"].(string) != "" {
+						configSet = append(configSet, setPrefix+" dynamic distinguished-name wildcard \""+
+							distinguishedName["container"].(string)+"\"")
+					}
+				}
+			}
+			if dynamicRemote["hostname"].(string) != "" {
+				configSet = append(configSet, setPrefix+" dynamic hostname "+
+					dynamicRemote["hostname"].(string))
+			}
+			if dynamicRemote["ike_user_type"].(string) != "" {
+				configSet = append(configSet, setPrefix+" dynamic ike-user-type "+
+					dynamicRemote["ike_user_type"].(string))
+			}
+			if dynamicRemote["inet"].(string) != "" {
+				configSet = append(configSet, setPrefix+" dynamic inet "+
+					dynamicRemote["inet"].(string))
+			}
+			if dynamicRemote["inet6"].(string) != "" {
+				configSet = append(configSet, setPrefix+" dynamic inet6 "+
+					dynamicRemote["inet6"].(string))
+			}
+			if dynamicRemote["reject_duplicate_connection"].(bool) {
+				configSet = append(configSet, setPrefix+" dynamic reject-duplicate-connection")
+			}
+			if dynamicRemote["user_at_hostname"].(string) != "" {
+				configSet = append(configSet, setPrefix+" dynamic user-at-hostname \""+
+					dynamicRemote["user_at_hostname"].(string)+"\"")
+			}
+		}
 	}
 	if d.Get("local_address").(string) != "" {
-		configSet = append(configSet, setPrefix+" local-address "+d.Get("local_address").(string)+"\n")
+		configSet = append(configSet, setPrefix+" local-address "+d.Get("local_address").(string))
 	}
 	if d.Get("policy").(string) != "" {
-		configSet = append(configSet, setPrefix+" ike-policy "+d.Get("policy").(string)+"\n")
+		configSet = append(configSet, setPrefix+" ike-policy "+d.Get("policy").(string))
 	}
 	if d.Get("external_interface").(string) != "" {
-		configSet = append(configSet, setPrefix+" external-interface "+d.Get("external_interface").(string)+"\n")
+		configSet = append(configSet, setPrefix+" external-interface "+d.Get("external_interface").(string))
 	}
 	if d.Get("general_ike_id").(bool) {
-		configSet = append(configSet, setPrefix+" general-ikeid\n")
+		configSet = append(configSet, setPrefix+" general-ikeid")
 	}
 	if d.Get("no_nat_traversal").(bool) {
-		configSet = append(configSet, setPrefix+" no-nat-traversal\n")
+		configSet = append(configSet, setPrefix+" no-nat-traversal")
 	}
 	if len(d.Get("dead_peer_detection").([]interface{})) != 0 {
-		configSet = append(configSet, setPrefix+" dead-peer-detection\n")
+		configSet = append(configSet, setPrefix+" dead-peer-detection")
 		for _, v := range d.Get("dead_peer_detection").([]interface{}) {
-			deadPeerOptions := v.(map[string]interface{})
-			if deadPeerOptions["interval"].(int) != 0 {
-				configSet = append(configSet, setPrefix+" dead-peer-detection interval "+
-					strconv.Itoa(deadPeerOptions["interval"].(int))+"\n")
-			}
-			if deadPeerOptions["threshold"].(int) != 0 {
-				configSet = append(configSet, setPrefix+" dead-peer-detection threshold "+
-					strconv.Itoa(deadPeerOptions["threshold"].(int))+"\n")
+			if v != nil {
+				deadPeerOptions := v.(map[string]interface{})
+				if deadPeerOptions["interval"].(int) != 0 {
+					configSet = append(configSet, setPrefix+" dead-peer-detection interval "+
+						strconv.Itoa(deadPeerOptions["interval"].(int)))
+				}
+				if deadPeerOptions["threshold"].(int) != 0 {
+					configSet = append(configSet, setPrefix+" dead-peer-detection threshold "+
+						strconv.Itoa(deadPeerOptions["threshold"].(int)))
+				}
+				if deadPeerOptions["send_mode"].(string) != "" {
+					configSet = append(configSet, setPrefix+" dead-peer-detection "+
+						deadPeerOptions["send_mode"].(string))
+				}
 			}
 		}
 	}
@@ -347,30 +522,44 @@ func setIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 		localIdentity := v.(map[string]interface{})
 		if localIdentity["type"].(string) == "distinguished-name" {
 			if localIdentity["value"].(string) != "" {
-				return fmt.Errorf("no value for option distinguished-name in ike gateway confifg")
+				return fmt.Errorf("no value for option distinguished-name in security ike gateway config")
 			}
 		} else {
 			if localIdentity["value"].(string) == "" {
-				return fmt.Errorf("missing value for option local-identity %s in ike gateway confifg",
+				return fmt.Errorf("missing value for option local-identity %s in security ike gateway config",
 					localIdentity["type"].(string))
 			}
 		}
 		configSet = append(configSet, setPrefix+" local-identity "+
-			localIdentity["type"].(string)+" "+localIdentity["value"].(string)+"\n")
+			localIdentity["type"].(string)+" "+localIdentity["value"].(string))
 	}
 	for _, v := range d.Get("remote_identity").([]interface{}) {
 		remoteIdentity := v.(map[string]interface{})
 		configSet = append(configSet, setPrefix+" remote-identity "+
-			remoteIdentity["type"].(string)+" "+remoteIdentity["value"].(string)+"\n")
+			remoteIdentity["type"].(string)+" "+remoteIdentity["value"].(string))
 	}
 	if d.Get("version").(string) != "" {
-		configSet = append(configSet, setPrefix+" version "+d.Get("version").(string)+"\n")
+		configSet = append(configSet, setPrefix+" version "+d.Get("version").(string))
+	}
+	for _, v := range d.Get("aaa").([]interface{}) {
+		if v != nil {
+			aaa := v.(map[string]interface{})
+			if aaa["access_profile"].(string) != "" {
+				configSet = append(configSet, setPrefix+" aaa access-profile "+aaa["access_profile"].(string))
+			}
+			if aaa["client_username"].(string) != "" {
+				configSet = append(configSet, setPrefix+" aaa client username "+aaa["client_username"].(string))
+			}
+			if aaa["client_password"].(string) != "" {
+				configSet = append(configSet, setPrefix+" aaa client password "+aaa["client_password"].(string))
+			}
+		}
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (ikeGatewayOptions, error) {
@@ -395,6 +584,56 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 			switch {
 			case strings.HasPrefix(itemTrim, "address "):
 				confRead.address = append(confRead.address, strings.TrimPrefix(itemTrim, "address "))
+			case strings.HasPrefix(itemTrim, "dynamic "):
+				if len(confRead.dynamicRemote) == 0 {
+					confRead.dynamicRemote = append(confRead.dynamicRemote, map[string]interface{}{
+						"connections_limit":           0,
+						"distinguished_name":          make([]map[string]interface{}, 0),
+						"hostname":                    "",
+						"ike_user_type":               "",
+						"inet":                        "",
+						"inet6":                       "",
+						"reject_duplicate_connection": false,
+						"user_at_hostname":            "",
+					})
+				}
+				switch {
+				case strings.HasPrefix(itemTrim, "dynamic connections-limit "):
+					confRead.dynamicRemote[0]["connections_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
+						"dynamic connections-limit "))
+					if err != nil {
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					}
+				case strings.HasPrefix(itemTrim, "dynamic distinguished-name"):
+					if len(confRead.dynamicRemote[0]["distinguished_name"].([]map[string]interface{})) == 0 {
+						confRead.dynamicRemote[0]["distinguished_name"] = append(
+							confRead.dynamicRemote[0]["distinguished_name"].([]map[string]interface{}), map[string]interface{}{
+								"container": "",
+								"wildcard":  "",
+							})
+					}
+					switch {
+					case strings.HasPrefix(itemTrim, "dynamic distinguished-name container "):
+						confRead.dynamicRemote[0]["distinguished_name"].([]map[string]interface{})[0]["container"] =
+							strings.Trim(strings.TrimPrefix(itemTrim, "dynamic distinguished-name container "), "\"")
+					case strings.HasPrefix(itemTrim, "dynamic distinguished-name wildcard "):
+						confRead.dynamicRemote[0]["distinguished_name"].([]map[string]interface{})[0]["wildcard"] =
+							strings.Trim(strings.TrimPrefix(itemTrim, "dynamic distinguished-name wildcard "), "\"")
+					}
+				case strings.HasPrefix(itemTrim, "dynamic hostname "):
+					confRead.dynamicRemote[0]["hostname"] = strings.TrimPrefix(itemTrim, "dynamic hostname ")
+				case strings.HasPrefix(itemTrim, "dynamic ike-user-type "):
+					confRead.dynamicRemote[0]["ike_user_type"] = strings.TrimPrefix(itemTrim, "dynamic ike-user-type ")
+				case strings.HasPrefix(itemTrim, "dynamic inet "):
+					confRead.dynamicRemote[0]["inet"] = strings.TrimPrefix(itemTrim, "dynamic inet ")
+				case strings.HasPrefix(itemTrim, "dynamic inet6 "):
+					confRead.dynamicRemote[0]["inet6"] = strings.TrimPrefix(itemTrim, "dynamic inet6 ")
+				case strings.HasPrefix(itemTrim, "dynamic reject-duplicate-connection"):
+					confRead.dynamicRemote[0]["reject_duplicate_connection"] = true
+				case strings.HasPrefix(itemTrim, "dynamic user-at-hostname "):
+					confRead.dynamicRemote[0]["user_at_hostname"] = strings.Trim(strings.TrimPrefix(
+						itemTrim, "dynamic user-at-hostname "), "\"")
+				}
 			case strings.HasPrefix(itemTrim, "local-address "):
 				confRead.localAddress = strings.TrimPrefix(itemTrim, "local-address ")
 			case strings.HasPrefix(itemTrim, "ike-policy "):
@@ -409,6 +648,7 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 				deadPeerOptions := map[string]interface{}{
 					"interval":  0,
 					"threshold": 0,
+					"send_mode": "",
 				}
 				if len(confRead.deadPeerDetection) > 0 {
 					for k, v := range confRead.deadPeerDetection[0] {
@@ -420,14 +660,20 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 					deadPeerOptions["interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 						"dead-peer-detection interval "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "dead-peer-detection threshold "):
 					deadPeerOptions["threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 						"dead-peer-detection threshold "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
+				case strings.HasSuffix(itemTrim, " always-send"):
+					deadPeerOptions["send_mode"] = "always-send"
+				case strings.HasSuffix(itemTrim, " optimized"):
+					deadPeerOptions["send_mode"] = "optimized"
+				case strings.HasSuffix(itemTrim, " probe-idle-tunnel"):
+					deadPeerOptions["send_mode"] = "probe-idle-tunnel"
 				}
 				// override (maxItem = 1)
 				confRead.deadPeerDetection = []map[string]interface{}{deadPeerOptions}
@@ -457,68 +703,85 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 				confRead.remoteIdentity = []map[string]interface{}{remoteIdentityOptions}
 			case strings.HasPrefix(itemTrim, "version "):
 				confRead.version = strings.TrimPrefix(itemTrim, "version ")
+			case strings.HasPrefix(itemTrim, "aaa "):
+				if len(confRead.aaa) == 0 {
+					confRead.aaa = append(confRead.aaa, map[string]interface{}{
+						"access_profile":  "",
+						"client_username": "",
+						"client_password": "",
+					})
+				}
+				switch {
+				case strings.HasPrefix(itemTrim, "aaa access-profile "):
+					confRead.aaa[0]["access_profile"] = strings.TrimPrefix(itemTrim, "aaa access-profile ")
+				case strings.HasPrefix(itemTrim, "aaa client username "):
+					confRead.aaa[0]["client_username"] = strings.TrimPrefix(itemTrim, "aaa client username ")
+				case strings.HasPrefix(itemTrim, "aaa client password "):
+					confRead.aaa[0]["client_password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
+						"aaa client password "), "\""))
+					if err != nil {
+						return confRead, fmt.Errorf("failed to decode aaa client password : %w", err)
+					}
+				}
 			}
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 func delIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security ike gateway "+d.Get("name").(string)+"\n")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	configSet = append(configSet, "delete security ike gateway "+d.Get("name").(string))
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func fillIkeGatewayData(d *schema.ResourceData, ikeGatewayOptions ikeGatewayOptions) {
-	tfErr := d.Set("name", ikeGatewayOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", ikeGatewayOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("address", ikeGatewayOptions.address)
-	if tfErr != nil {
+	if tfErr := d.Set("address", ikeGatewayOptions.address); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_address", ikeGatewayOptions.localAddress)
-	if tfErr != nil {
+	if tfErr := d.Set("dynamic_remote", ikeGatewayOptions.dynamicRemote); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("policy", ikeGatewayOptions.policy)
-	if tfErr != nil {
+	if tfErr := d.Set("local_address", ikeGatewayOptions.localAddress); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("external_interface", ikeGatewayOptions.externalInterface)
-	if tfErr != nil {
+	if tfErr := d.Set("policy", ikeGatewayOptions.policy); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("general_ike_id", ikeGatewayOptions.generalIkeid)
-	if tfErr != nil {
+	if tfErr := d.Set("external_interface", ikeGatewayOptions.externalInterface); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("no_nat_traversal", ikeGatewayOptions.noNatTraversal)
-	if tfErr != nil {
+	if tfErr := d.Set("general_ike_id", ikeGatewayOptions.generalIkeid); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("dead_peer_detection", ikeGatewayOptions.deadPeerDetection)
-	if tfErr != nil {
+	if tfErr := d.Set("no_nat_traversal", ikeGatewayOptions.noNatTraversal); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("local_identity", ikeGatewayOptions.localIdentity)
-	if tfErr != nil {
+	if tfErr := d.Set("dead_peer_detection", ikeGatewayOptions.deadPeerDetection); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("remote_identity", ikeGatewayOptions.remoteIdentity)
-	if tfErr != nil {
+	if tfErr := d.Set("local_identity", ikeGatewayOptions.localIdentity); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("version", ikeGatewayOptions.version)
-	if tfErr != nil {
+	if tfErr := d.Set("remote_identity", ikeGatewayOptions.remoteIdentity); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("version", ikeGatewayOptions.version); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("aaa", ikeGatewayOptions.aaa); tfErr != nil {
 		panic(tfErr)
 	}
 }

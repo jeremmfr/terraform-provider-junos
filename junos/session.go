@@ -2,16 +2,21 @@ package junos
 
 import (
 	"fmt"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
+// Session information for connect to Junos Device.
 type Session struct {
 	junosPort        int
 	junosSleep       int
 	junosSleepShort  int
 	junosIP          string
 	junosUserName    string
+	junosPassword    string
+	junosSSHKeyPEM   string
 	junosSSHKeyFile  string
 	junosKeyPass     string
 	junosGroupIntDel string
@@ -21,20 +26,39 @@ type Session struct {
 func (sess *Session) startNewSession() (*NetconfObject, error) {
 	var auth netconfAuthMethod
 	auth.Username = sess.junosUserName
-	auth.PrivateKey = sess.junosSSHKeyFile
-	if sess.junosKeyPass != "" {
-		auth.Passphrase = sess.junosKeyPass
+	if sess.junosSSHKeyPEM != "" {
+		auth.PrivateKeyPEM = sess.junosSSHKeyPEM
+		if sess.junosKeyPass != "" {
+			auth.Passphrase = sess.junosKeyPass
+		}
+	}
+	if sess.junosSSHKeyFile != "" {
+		auth.PrivateKeyFile = sess.junosSSHKeyFile
+		if strings.HasPrefix(sess.junosSSHKeyFile, "~") {
+			homeDir, err := os.UserHomeDir()
+			if err != nil {
+				return nil, fmt.Errorf("failed to read user home directory : %w", err)
+			}
+			auth.PrivateKeyFile = homeDir + sess.junosSSHKeyFile[1:]
+		}
+		if sess.junosKeyPass != "" {
+			auth.Passphrase = sess.junosKeyPass
+		}
+	}
+	if sess.junosPassword != "" {
+		auth.Password = sess.junosPassword
 	}
 	jnpr, err := netconfNewSession(sess.junosIP+":"+strconv.Itoa(sess.junosPort), &auth)
 	if err != nil {
 		return nil, err
 	}
-	if len(jnpr.Platform) == 0 {
-		return jnpr, fmt.Errorf("can't read platform junos with <get-software-information/>")
+	if jnpr.SystemInformation.HardwareModel == "" {
+		return jnpr, fmt.Errorf("can't read model of device with <get-system-information/> netconf command")
 	}
 	if sess.junosLogFile != "" {
-		logFile(fmt.Sprintf("[startNewSession] started"), sess.junosLogFile)
+		logFile("[startNewSession] started", sess.junosLogFile)
 	}
+
 	return jnpr, nil
 }
 func (sess *Session) closeSession(jnpr *NetconfObject) {
@@ -43,7 +67,7 @@ func (sess *Session) closeSession(jnpr *NetconfObject) {
 		if err != nil {
 			logFile(fmt.Sprintf("[closeSession] err: %q", err), sess.junosLogFile)
 		} else {
-			logFile(fmt.Sprintf("[closeSession] closed"), sess.junosLogFile)
+			logFile("[closeSession] closed", sess.junosLogFile)
 		}
 	}
 }
@@ -58,8 +82,10 @@ func (sess *Session) command(cmd string, jnpr *NetconfObject) (string, error) {
 		if sess.junosLogFile != "" {
 			logFile(fmt.Sprintf("[command] err: %q", err), sess.junosLogFile)
 		}
+
 		return "", err
 	}
+
 	return read, nil
 }
 func (sess *Session) commandXML(cmd string, jnpr *NetconfObject) (string, error) {
@@ -73,8 +99,10 @@ func (sess *Session) commandXML(cmd string, jnpr *NetconfObject) (string, error)
 		if sess.junosLogFile != "" {
 			logFile(fmt.Sprintf("[commandXML] err: %q", err), sess.junosLogFile)
 		}
+
 		return "", err
 	}
+
 	return read, nil
 }
 func (sess *Session) configSet(cmd []string, jnpr *NetconfObject) error {
@@ -88,60 +116,53 @@ func (sess *Session) configSet(cmd []string, jnpr *NetconfObject) error {
 		if sess.junosLogFile != "" {
 			logFile(fmt.Sprintf("[configSet] err: %q", err), sess.junosLogFile)
 		}
+
 		return err
 	}
+
 	return nil
 }
 func (sess *Session) commitConf(logMessage string, jnpr *NetconfObject) error {
 	if sess.junosLogFile != "" {
-		logFile(fmt.Sprintf("[commitConf] commit check"), sess.junosLogFile)
-	}
-	err := jnpr.netconfCommitCheck()
-	sleepShort(sess.junosSleepShort)
-	if err != nil {
-		if sess.junosLogFile != "" {
-			logFile(fmt.Sprintf("[commitConf] commit check error: %q", err), sess.junosLogFile)
-		}
-		return err
-	}
-	if sess.junosLogFile != "" {
 		logFile(fmt.Sprintf("[commitConf] commit %q", logMessage), sess.junosLogFile)
 	}
-	err = jnpr.netconfCommit(logMessage)
+	err := jnpr.netconfCommit(logMessage)
 	sleepShort(sess.junosSleepShort)
 	if err != nil {
 		if sess.junosLogFile != "" {
 			logFile(fmt.Sprintf("[commitConf] commit error: %q", err), sess.junosLogFile)
 		}
+
 		return err
 	}
+
 	return nil
 }
 
-func (sess *Session) configLock(jnpr *NetconfObject) error {
+func (sess *Session) configLock(jnpr *NetconfObject) {
 	var lock bool
 	for {
 		lock = jnpr.netconfConfigLock()
 		if lock {
 			if sess.junosLogFile != "" {
-				logFile(fmt.Sprintf("[configLock] locked"), sess.junosLogFile)
+				logFile("[configLock] locked", sess.junosLogFile)
 			}
 			sleepShort(sess.junosSleepShort)
+
 			break
 		} else {
 			if sess.junosLogFile != "" {
-				logFile(fmt.Sprintf("[configLock] sleep for wait lock"), sess.junosLogFile)
+				logFile("[configLock] sleep for wait lock", sess.junosLogFile)
 			}
 			sleep(sess.junosSleep)
 		}
 	}
-	return nil
 }
 func (sess *Session) configClear(jnpr *NetconfObject) {
 	err := jnpr.netconfConfigClear()
 	sleepShort(sess.junosSleepShort)
 	if sess.junosLogFile != "" {
-		logFile(fmt.Sprintf("[configClear] config clear"), sess.junosLogFile)
+		logFile("[configClear] config clear", sess.junosLogFile)
 	}
 	if err != nil {
 		err := jnpr.Close()
@@ -153,7 +174,7 @@ func (sess *Session) configClear(jnpr *NetconfObject) {
 	err = jnpr.netconfConfigUnlock()
 	sleepShort(sess.junosSleepShort)
 	if sess.junosLogFile != "" {
-		logFile(fmt.Sprintf("[configClear] config unlock"), sess.junosLogFile)
+		logFile("[configClear] config unlock", sess.junosLogFile)
 	}
 	if err != nil {
 		err := jnpr.Close()

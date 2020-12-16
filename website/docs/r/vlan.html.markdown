@@ -27,11 +27,8 @@ The following arguments are supported:
 
 * `name` - (Required, Forces new resource)(`String`) The name of vlan.
 * `description` - (Optional)(`String`) A description for vlan
-* `vlan_id` - (Optional)(`Int`) 802.1q VLAN identifier.
-  ConflictsWith `vlan_id_list`
-* `vlan_id_list` - (Optional)(`ListOfString`) List of vlan ID.
-  Can be a ID or range (exemple: 10-20)
-  ConflictsWith `vlan_id`
+* `vlan_id` - (Optional)(`Int`) 802.1q VLAN identifier. Conflict with `vlan_id_list`
+* `vlan_id_list` - (Optional)(`ListOfString`) List of vlan ID. Can be a ID or range (exemple: 10-20). Conflict with `vlan_id`
 * `service_id` - (Optional)(`Int`) Service id (when Junos device supports it)
 * `l3_interface` - (Optional)(`String`) L3 interface name for this vlans. Must be start with irb.
 * `forward_filter_input` - (Optional)(`String`) input filter to apply for forwarded packets (when Junos device supports it)

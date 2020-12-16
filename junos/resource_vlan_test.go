@@ -1,11 +1,10 @@
-package junos
+package junos_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccJunosVlan_basic(t *testing.T) {
@@ -65,7 +64,7 @@ func TestAccJunosVlan_basic(t *testing.T) {
 }
 
 func testAccJunosVlanSwConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_firewall_filter "testacc_vlansw" {
   name = "testacc_vlansw"
   family = "ethernet-switching"
@@ -86,10 +85,10 @@ resource junos_vlan "testacc_vlansw" {
   forward_filter_output = junos_firewall_filter.testacc_vlansw.name
   forward_flood_input = junos_firewall_filter.testacc_vlansw.name
 }
-`)
+`
 }
 func testAccJunosVlanSwConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_firewall_filter "testacc_vlansw" {
   name = "testacc_vlansw"
   family = "ethernet-switching"
@@ -106,5 +105,5 @@ resource junos_vlan "testacc_vlansw" {
   vlan_id_list = [ "1001-1002" ]
   private_vlan = "community"
 }
-`)
+`
 }

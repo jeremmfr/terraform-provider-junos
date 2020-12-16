@@ -1,11 +1,14 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type ipsecProposalOptions struct {
@@ -19,19 +22,19 @@ type ipsecProposalOptions struct {
 
 func resourceIpsecProposal() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceIpsecProposalCreate,
-		Read:   resourceIpsecProposalRead,
-		Update: resourceIpsecProposalUpdate,
-		Delete: resourceIpsecProposalDelete,
+		CreateContext: resourceIpsecProposalCreate,
+		ReadContext:   resourceIpsecProposalRead,
+		UpdateContext: resourceIpsecProposalUpdate,
+		DeleteContext: resourceIpsecProposalDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceIpsecProposalImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"authentication_algorithm": {
 				Type:     schema.TypeString,
@@ -44,145 +47,138 @@ func resourceIpsecProposal() *schema.Resource {
 			"lifetime_seconds": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(180, 86400),
+				ValidateFunc: validation.IntBetween(180, 86400),
 			},
 			"lifetime_kilobytes": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(64, 4294967294),
+				ValidateFunc: validation.IntBetween(64, 4294967294),
 			},
 			"protocol": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if !stringInSlice(value, []string{"esp", "ah"}) {
-						errors = append(errors, fmt.Errorf(
-							"%q for %q is not 'esp' or 'ah'", value, k))
-					}
-					return
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"esp", "ah"}, false),
 			},
 		},
 	}
 }
 
-func resourceIpsecProposalCreate(d *schema.ResourceData, m interface{}) error {
+func resourceIpsecProposalCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security ipsec proposal not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security ipsec proposal not compatible with Junos device %s",
+			jnprSess.SystemInformation.HardwareModel))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	ipsecProposalExists, err := checkIpsecProposalExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	if ipsecProposalExists {
 		sess.configClear(jnprSess)
-		return fmt.Errorf("ipsec proposal %v already exists", d.Get("name").(string))
+
+		return diag.FromErr(fmt.Errorf("security ipsec proposal %v already exists", d.Get("name").(string)))
 	}
-	err = setIpsecProposal(d, m, jnprSess)
-	if err != nil {
+	if err := setIpsecProposal(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_ipsec_proposal", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_ipsec_proposal", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	ipsecProposalExists, err = checkIpsecProposalExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if ipsecProposalExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("ipsec proposal %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security ipsec proposal %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
-	return resourceIpsecProposalRead(d, m)
+
+	return resourceIpsecProposalRead(ctx, d, m)
 }
-func resourceIpsecProposalRead(d *schema.ResourceData, m interface{}) error {
+func resourceIpsecProposalRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
-		return err
+
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	ipsecProposalOptions, err := readIpsecProposal(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if ipsecProposalOptions.name == "" {
 		d.SetId("")
 	} else {
 		fillIpsecProposalData(d, ipsecProposalOptions)
 	}
+
 	return nil
 }
-func resourceIpsecProposalUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceIpsecProposalUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delIpsecProposal(d, m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delIpsecProposal(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = setIpsecProposal(d, m, jnprSess)
-	if err != nil {
+	if err := setIpsecProposal(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_ipsec_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_security_ipsec_proposal", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
-	return resourceIpsecProposalRead(d, m)
+
+	return resourceIpsecProposalRead(ctx, d, m)
 }
-func resourceIpsecProposalDelete(d *schema.ResourceData, m interface{}) error {
+func resourceIpsecProposalDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delIpsecProposal(d, m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delIpsecProposal(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_ipsec_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_ipsec_proposal", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
+
 	return nil
 }
 func resourceIpsecProposalImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -198,7 +194,7 @@ func resourceIpsecProposalImport(d *schema.ResourceData, m interface{}) ([]*sche
 		return nil, err
 	}
 	if !ipsecProposalExists {
-		return nil, fmt.Errorf("don't find ipsec proposal with id '%v' (id must be <name>)", d.Id())
+		return nil, fmt.Errorf("don't find security ipsec proposal with id '%v' (id must be <name>)", d.Id())
 	}
 	ipsecProposalOptions, err := readIpsecProposal(d.Id(), m, jnprSess)
 	if err != nil {
@@ -206,6 +202,7 @@ func resourceIpsecProposalImport(d *schema.ResourceData, m interface{}) ([]*sche
 	}
 	fillIpsecProposalData(d, ipsecProposalOptions)
 	result[0] = d
+
 	return result, nil
 }
 
@@ -219,6 +216,7 @@ func checkIpsecProposalExists(ipsecProposal string, m interface{}, jnprSess *Net
 	if ipsecProposalConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setIpsecProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -227,25 +225,25 @@ func setIpsecProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 
 	setPrefix := "set security ipsec proposal " + d.Get("name").(string)
 	if d.Get("authentication_algorithm").(string) != "" {
-		configSet = append(configSet, setPrefix+" authentication-algorithm "+d.Get("authentication_algorithm").(string)+"\n")
+		configSet = append(configSet, setPrefix+" authentication-algorithm "+d.Get("authentication_algorithm").(string))
 	}
 	if d.Get("encryption_algorithm").(string) != "" {
-		configSet = append(configSet, setPrefix+" encryption-algorithm "+d.Get("encryption_algorithm").(string)+"\n")
+		configSet = append(configSet, setPrefix+" encryption-algorithm "+d.Get("encryption_algorithm").(string))
 	}
 	if d.Get("lifetime_seconds").(int) != 0 {
-		configSet = append(configSet, setPrefix+" lifetime-seconds "+strconv.Itoa(d.Get("lifetime_seconds").(int))+"\n")
+		configSet = append(configSet, setPrefix+" lifetime-seconds "+strconv.Itoa(d.Get("lifetime_seconds").(int)))
 	}
 	if d.Get("lifetime_kilobytes").(int) != 0 {
-		configSet = append(configSet, setPrefix+" lifetime-kilobytes "+strconv.Itoa(d.Get("lifetime_kilobytes").(int))+"\n")
+		configSet = append(configSet, setPrefix+" lifetime-kilobytes "+strconv.Itoa(d.Get("lifetime_kilobytes").(int)))
 	}
 	if d.Get("protocol").(string) != "" {
-		configSet = append(configSet, setPrefix+" protocol "+d.Get("protocol").(string)+"\n")
+		configSet = append(configSet, setPrefix+" protocol "+d.Get("protocol").(string))
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 func readIpsecProposal(ipsecProposal string, m interface{}, jnprSess *NetconfObject) (ipsecProposalOptions, error) {
@@ -275,12 +273,12 @@ func readIpsecProposal(ipsecProposal string, m interface{}, jnprSess *NetconfObj
 			case strings.HasPrefix(itemTrim, "lifetime-kilobytes "):
 				confRead.lifetimeKilobytes, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "lifetime-kilobytes "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "lifetime-seconds "):
 				confRead.lifetimeSeconds, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "lifetime-seconds "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "protocol "):
 				confRead.protocol = strings.TrimPrefix(itemTrim, "protocol ")
@@ -288,44 +286,40 @@ func readIpsecProposal(ipsecProposal string, m interface{}, jnprSess *NetconfObj
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 func delIpsecProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security ipsec proposal "+d.Get("name").(string)+"\n")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	configSet = append(configSet, "delete security ipsec proposal "+d.Get("name").(string))
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func fillIpsecProposalData(d *schema.ResourceData, ipsecProposalOptions ipsecProposalOptions) {
-	tfErr := d.Set("name", ipsecProposalOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", ipsecProposalOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("authentication_algorithm", ipsecProposalOptions.authenticatioAlgorithm)
-	if tfErr != nil {
+	if tfErr := d.Set("authentication_algorithm", ipsecProposalOptions.authenticatioAlgorithm); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("encryption_algorithm", ipsecProposalOptions.encryptionAlgorithm)
-	if tfErr != nil {
+	if tfErr := d.Set("encryption_algorithm", ipsecProposalOptions.encryptionAlgorithm); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("lifetime_kilobytes", ipsecProposalOptions.lifetimeKilobytes)
-	if tfErr != nil {
+	if tfErr := d.Set("lifetime_kilobytes", ipsecProposalOptions.lifetimeKilobytes); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("lifetime_seconds", ipsecProposalOptions.lifetimeSeconds)
-	if tfErr != nil {
+	if tfErr := d.Set("lifetime_seconds", ipsecProposalOptions.lifetimeSeconds); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("protocol", ipsecProposalOptions.protocol)
-	if tfErr != nil {
+	if tfErr := d.Set("protocol", ipsecProposalOptions.protocol); tfErr != nil {
 		panic(tfErr)
 	}
 }

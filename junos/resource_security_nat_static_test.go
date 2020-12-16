@@ -1,11 +1,10 @@
-package junos
+package junos_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccJunosSecurityNatStatic_basic(t *testing.T) {
@@ -69,7 +68,7 @@ func TestAccJunosSecurityNatStatic_basic(t *testing.T) {
 }
 
 func testAccJunosSecurityNatStaticConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_security_nat_static testacc_securityNATStt {
   name = "testacc_securityNATStt"
   from {
@@ -93,10 +92,10 @@ resource junos_security_zone testacc_securityNATStt {
 resource junos_routing_instance testacc_securityNATStt {
   name = "testacc_securityNATStt"
 }
-`)
+`
 }
 func testAccJunosSecurityNatStaticConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_security_nat_static testacc_securityNATStt {
   name = "testacc_securityNATStt"
   from {
@@ -129,5 +128,5 @@ resource junos_security_zone testacc_securityNATStt {
 resource junos_routing_instance testacc_securityNATStt {
   name = "testacc_securityNATStt"
 }
-`)
+`
 }

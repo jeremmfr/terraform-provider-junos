@@ -1,10 +1,12 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type applicationSetOptions struct {
@@ -14,142 +16,142 @@ type applicationSetOptions struct {
 
 func resourceApplicationSet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceApplicationSetCreate,
-		Read:   resourceApplicationSetRead,
-		Update: resourceApplicationSetUpdate,
-		Delete: resourceApplicationSetDelete,
+		CreateContext: resourceApplicationSetCreate,
+		ReadContext:   resourceApplicationSetRead,
+		UpdateContext: resourceApplicationSetUpdate,
+		DeleteContext: resourceApplicationSetDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceApplicationSetImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"applications": {
 				Type:     schema.TypeList,
 				Required: true,
+				MinItems: 1,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}
 }
 
-func resourceApplicationSetCreate(d *schema.ResourceData, m interface{}) error {
+func resourceApplicationSetCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	appSetExists, err := checkApplicationSetExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	if appSetExists {
 		sess.configClear(jnprSess)
-		return fmt.Errorf("application-set %v already exists", d.Get("name").(string))
+
+		return diag.FromErr(fmt.Errorf("application-set %v already exists", d.Get("name").(string)))
 	}
-	err = setApplicationSet(d, m, jnprSess)
-	if err != nil {
+	if err := setApplicationSet(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_application_set", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_application_set", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	appSetExists, err = checkApplicationSetExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if appSetExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("application-set %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("application-set %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
-	return resourceApplicationSetRead(d, m)
+
+	return resourceApplicationSetRead(ctx, d, m)
 }
-func resourceApplicationSetRead(d *schema.ResourceData, m interface{}) error {
+func resourceApplicationSetRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
-		return err
+
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	applicationSetOptions, err := readApplicationSet(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if applicationSetOptions.name == "" {
 		d.SetId("")
 	} else {
 		fillApplicationSetData(d, applicationSetOptions)
 	}
+
 	return nil
 }
-func resourceApplicationSetUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceApplicationSetUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delApplicationSet(d, m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delApplicationSet(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = setApplicationSet(d, m, jnprSess)
-	if err != nil {
+	if err := setApplicationSet(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_application_set", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_application_set", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
-	return resourceApplicationSetRead(d, m)
+
+	return resourceApplicationSetRead(ctx, d, m)
 }
-func resourceApplicationSetDelete(d *schema.ResourceData, m interface{}) error {
+func resourceApplicationSetDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delApplicationSet(d, m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delApplicationSet(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_application_set", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_application_set", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
+
 	return nil
 }
 func resourceApplicationSetImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -173,6 +175,7 @@ func resourceApplicationSetImport(d *schema.ResourceData, m interface{}) ([]*sch
 	}
 	fillApplicationSetData(d, applicationSetOptions)
 	result[0] = d
+
 	return result, nil
 }
 
@@ -186,6 +189,7 @@ func checkApplicationSetExists(applicationSet string, m interface{}, jnprSess *N
 	if applicationSetConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setApplicationSet(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -194,13 +198,13 @@ func setApplicationSet(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 
 	setPrefix := "set applications application-set " + d.Get("name").(string)
 	for _, v := range d.Get("applications").([]interface{}) {
-		configSet = append(configSet, setPrefix+" application "+v.(string)+"\n")
+		configSet = append(configSet, setPrefix+" application "+v.(string))
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 func readApplicationSet(applicationSet string, m interface{}, jnprSess *NetconfObject) (applicationSetOptions, error) {
@@ -228,28 +232,28 @@ func readApplicationSet(applicationSet string, m interface{}, jnprSess *NetconfO
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 func delApplicationSet(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete applications application-set "+d.Get("name").(string)+"\n")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	configSet = append(configSet, "delete applications application-set "+d.Get("name").(string))
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func fillApplicationSetData(d *schema.ResourceData, applicationSetOptions applicationSetOptions) {
-	tfErr := d.Set("name", applicationSetOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", applicationSetOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("applications", applicationSetOptions.applications)
-	if tfErr != nil {
+	if tfErr := d.Set("applications", applicationSetOptions.applications); tfErr != nil {
 		panic(tfErr)
 	}
 }

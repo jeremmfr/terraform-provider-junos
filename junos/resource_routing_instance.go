@@ -1,10 +1,12 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type instanceOptions struct {
@@ -15,19 +17,19 @@ type instanceOptions struct {
 
 func resourceRoutingInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceRoutingInstanceCreate,
-		Read:   resourceRoutingInstanceRead,
-		Update: resourceRoutingInstanceUpdate,
-		Delete: resourceRoutingInstanceDelete,
+		CreateContext: resourceRoutingInstanceCreate,
+		ReadContext:   resourceRoutingInstanceRead,
+		UpdateContext: resourceRoutingInstanceUpdate,
+		DeleteContext: resourceRoutingInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceRoutingInstanceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{"default"}),
 			},
 			"type": {
 				Type:     schema.TypeString,
@@ -42,123 +44,119 @@ func resourceRoutingInstance() *schema.Resource {
 	}
 }
 
-func resourceRoutingInstanceCreate(d *schema.ResourceData, m interface{}) error {
-	if d.Get("name").(string) == "default" {
-		return fmt.Errorf("name default isn't valid")
-	}
+func resourceRoutingInstanceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	routingInstanceExists, err := checkRoutingInstanceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	if routingInstanceExists {
 		sess.configClear(jnprSess)
-		return fmt.Errorf("routing-instance %v already exists", d.Get("name").(string))
+
+		return diag.FromErr(fmt.Errorf("routing-instance %v already exists", d.Get("name").(string)))
 	}
-	err = setRoutingInstance(d, m, jnprSess)
-	if err != nil {
+	if err := setRoutingInstance(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_routing_instance", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_routing_instance", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	routingInstanceExists, err = checkRoutingInstanceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if routingInstanceExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("routing-instance %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("routing-instance %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
-	return resourceRoutingInstanceRead(d, m)
+
+	return resourceRoutingInstanceRead(ctx, d, m)
 }
-func resourceRoutingInstanceRead(d *schema.ResourceData, m interface{}) error {
+func resourceRoutingInstanceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
-		return err
+
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	instanceOptions, err := readRoutingInstance(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if instanceOptions.name == "" {
 		d.SetId("")
 	} else {
 		fillRoutingInstanceData(d, instanceOptions)
 	}
+
 	return nil
 }
-func resourceRoutingInstanceUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceRoutingInstanceUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 
-	err = delRoutingInstanceOpts(d, m, jnprSess)
-	if err != nil {
+	if err := delRoutingInstanceOpts(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = setRoutingInstance(d, m, jnprSess)
-	if err != nil {
+	if err := setRoutingInstance(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_routing_instance", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_routing_instance", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
-	return resourceRoutingInstanceRead(d, m)
+
+	return resourceRoutingInstanceRead(ctx, d, m)
 }
-func resourceRoutingInstanceDelete(d *schema.ResourceData, m interface{}) error {
+func resourceRoutingInstanceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delRoutingInstance(d, m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delRoutingInstance(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_routing_instance", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_routing_instance", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
+
 	return nil
 }
 func resourceRoutingInstanceImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -182,6 +180,7 @@ func resourceRoutingInstanceImport(d *schema.ResourceData, m interface{}) ([]*sc
 	}
 	fillRoutingInstanceData(d, instanceOptions)
 	result[0] = d
+
 	return result, nil
 }
 
@@ -194,6 +193,7 @@ func checkRoutingInstanceExists(instance string, m interface{}, jnprSess *Netcon
 	if routingInstanceConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -202,18 +202,18 @@ func setRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 
 	setPrefix := "set routing-instances " + d.Get("name").(string) + " "
 	if d.Get("type").(string) != "" {
-		configSet = append(configSet, setPrefix+"instance-type "+d.Get("type").(string)+"\n")
+		configSet = append(configSet, setPrefix+"instance-type "+d.Get("type").(string))
 	} else {
-		configSet = append(configSet, setPrefix+"\n")
+		configSet = append(configSet, setPrefix)
 	}
 	if d.Get("as").(string) != "" {
 		configSet = append(configSet, setPrefix+
-			"routing-options autonomous-system "+d.Get("as").(string)+"\n")
+			"routing-options autonomous-system "+d.Get("as").(string))
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject) (instanceOptions, error) {
@@ -244,8 +244,10 @@ func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 func delRoutingInstanceOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -253,36 +255,33 @@ func delRoutingInstanceOpts(d *schema.ResourceData, m interface{}, jnprSess *Net
 	configSet := make([]string, 0)
 	setPrefix := "delete routing-instances " + d.Get("name").(string) + " "
 	configSet = append(configSet,
-		setPrefix+"instance-type\n",
-		setPrefix+"routing-options autonomous-system\n")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+		setPrefix+"instance-type",
+		setPrefix+"routing-options autonomous-system")
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 func delRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete routing-instances "+d.Get("name").(string)+"\n")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	configSet = append(configSet, "delete routing-instances "+d.Get("name").(string))
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func fillRoutingInstanceData(d *schema.ResourceData, instanceOptions instanceOptions) {
-	tfErr := d.Set("name", instanceOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", instanceOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("type", instanceOptions.instanceType)
-	if tfErr != nil {
+	if tfErr := d.Set("type", instanceOptions.instanceType); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("as", instanceOptions.as)
-	if tfErr != nil {
+	if tfErr := d.Set("as", instanceOptions.as); tfErr != nil {
 		panic(tfErr)
 	}
 }

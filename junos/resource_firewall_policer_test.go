@@ -1,11 +1,10 @@
-package junos
+package junos_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccJunosFirewallPolicer_basic(t *testing.T) {
@@ -59,7 +58,7 @@ func TestAccJunosFirewallPolicer_basic(t *testing.T) {
 }
 
 func testAccJunosFirewallPolicerConfigCreate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_firewall_policer testacc_fwPolic {
   name = "testacc_fwPolic"
   filter_specific = true
@@ -71,10 +70,10 @@ resource junos_firewall_policer testacc_fwPolic {
     discard = true
   }
 }
-`)
+`
 }
 func testAccJunosFirewallPolicerConfigUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource junos_firewall_policer testacc_fwPolic {
   name = "testacc_fwPolic"
   if_exceeding {
@@ -87,5 +86,5 @@ resource junos_firewall_policer testacc_fwPolic {
     out_of_profile = true
   }
 }
-`)
+`
 }

@@ -1,10 +1,12 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type communityOptions struct {
@@ -15,23 +17,24 @@ type communityOptions struct {
 
 func resourcePolicyoptionsCommunity() *schema.Resource {
 	return &schema.Resource{
-		Create: resourcePolicyoptionsCommunityCreate,
-		Read:   resourcePolicyoptionsCommunityRead,
-		Update: resourcePolicyoptionsCommunityUpdate,
-		Delete: resourcePolicyoptionsCommunityDelete,
+		CreateContext: resourcePolicyoptionsCommunityCreate,
+		ReadContext:   resourcePolicyoptionsCommunityRead,
+		UpdateContext: resourcePolicyoptionsCommunityUpdate,
+		DeleteContext: resourcePolicyoptionsCommunityDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourcePolicyoptionsCommunityImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"members": {
 				Type:     schema.TypeList,
 				Required: true,
+				MinItems: 1,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"invert_match": {
@@ -42,120 +45,119 @@ func resourcePolicyoptionsCommunity() *schema.Resource {
 	}
 }
 
-func resourcePolicyoptionsCommunityCreate(d *schema.ResourceData, m interface{}) error {
+func resourcePolicyoptionsCommunityCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	policyoptsCommunityExists, err := checkPolicyoptionsCommunityExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	if policyoptsCommunityExists {
 		sess.configClear(jnprSess)
-		return fmt.Errorf("policy-options community %v already exists", d.Get("name").(string))
+
+		return diag.FromErr(fmt.Errorf("policy-options community %v already exists", d.Get("name").(string)))
 	}
 
-	err = setPolicyoptionsCommunity(d, m, jnprSess)
-	if err != nil {
+	if err := setPolicyoptionsCommunity(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_policyoptions_community", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_policyoptions_community", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	policyoptsCommunityExists, err = checkPolicyoptionsCommunityExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if policyoptsCommunityExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("policy-options community %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("policy-options community %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
-	return resourcePolicyoptionsCommunityRead(d, m)
+
+	return resourcePolicyoptionsCommunityRead(ctx, d, m)
 }
-func resourcePolicyoptionsCommunityRead(d *schema.ResourceData, m interface{}) error {
+func resourcePolicyoptionsCommunityRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
-		return err
+
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	communityOptions, err := readPolicyoptionsCommunity(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if communityOptions.name == "" {
 		d.SetId("")
 	} else {
 		fillPolicyoptionsCommunityData(d, communityOptions)
 	}
+
 	return nil
 }
-func resourcePolicyoptionsCommunityUpdate(d *schema.ResourceData, m interface{}) error {
+func resourcePolicyoptionsCommunityUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delPolicyoptionsCommunity(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delPolicyoptionsCommunity(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = setPolicyoptionsCommunity(d, m, jnprSess)
-	if err != nil {
+	if err := setPolicyoptionsCommunity(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_policyoptions_community", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_policyoptions_community", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
-	return resourcePolicyoptionsCommunityRead(d, m)
+
+	return resourcePolicyoptionsCommunityRead(ctx, d, m)
 }
-func resourcePolicyoptionsCommunityDelete(d *schema.ResourceData, m interface{}) error {
+func resourcePolicyoptionsCommunityDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delPolicyoptionsCommunity(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delPolicyoptionsCommunity(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_policyoptions_community", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_policyoptions_community", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
+
 	return nil
 }
 func resourcePolicyoptionsCommunityImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -181,6 +183,7 @@ func resourcePolicyoptionsCommunityImport(d *schema.ResourceData, m interface{})
 	fillPolicyoptionsCommunityData(d, communityOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -193,6 +196,7 @@ func checkPolicyoptionsCommunityExists(name string, m interface{}, jnprSess *Net
 	if communityConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setPolicyoptionsCommunity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -201,15 +205,15 @@ func setPolicyoptionsCommunity(d *schema.ResourceData, m interface{}, jnprSess *
 
 	setPrefix := "set policy-options community " + d.Get("name").(string) + " "
 	for _, v := range d.Get("members").([]interface{}) {
-		configSet = append(configSet, setPrefix+"members "+v.(string)+"\n")
+		configSet = append(configSet, setPrefix+"members "+v.(string))
 	}
 	if d.Get("invert_match").(bool) {
-		configSet = append(configSet, setPrefix+"invert-match\n")
+		configSet = append(configSet, setPrefix+"invert-match")
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 func readPolicyoptionsCommunity(community string, m interface{}, jnprSess *NetconfObject) (communityOptions, error) {
@@ -240,32 +244,31 @@ func readPolicyoptionsCommunity(community string, m interface{}, jnprSess *Netco
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 
 func delPolicyoptionsCommunity(community string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete policy-options community "+community+"\n")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	configSet = append(configSet, "delete policy-options community "+community)
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 func fillPolicyoptionsCommunityData(d *schema.ResourceData, communityOptions communityOptions) {
-	tfErr := d.Set("name", communityOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", communityOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("members", communityOptions.members)
-	if tfErr != nil {
+	if tfErr := d.Set("members", communityOptions.members); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("invert_match", communityOptions.invertMatch)
-	if tfErr != nil {
+	if tfErr := d.Set("invert_match", communityOptions.invertMatch); tfErr != nil {
 		panic(tfErr)
 	}
 }

@@ -1,10 +1,13 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type natSourceOptions struct {
@@ -16,19 +19,19 @@ type natSourceOptions struct {
 
 func resourceSecurityNatSource() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSecurityNatSourceCreate,
-		Read:   resourceSecurityNatSourceRead,
-		Update: resourceSecurityNatSourceUpdate,
-		Delete: resourceSecurityNatSourceDelete,
+		CreateContext: resourceSecurityNatSourceCreate,
+		ReadContext:   resourceSecurityNatSourceRead,
+		UpdateContext: resourceSecurityNatSourceUpdate,
+		DeleteContext: resourceSecurityNatSourceDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceSecurityNatSourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"from": {
 				Type:     schema.TypeList,
@@ -37,20 +40,14 @@ func resourceSecurityNatSource() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"interface", "routing-instance", "zone"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not 'interface', 'routing-instance' or 'zone'", value, k))
-								}
-								return
-							},
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice([]string{"interface", "routing-instance", "zone"}, false),
 						},
 						"value": {
 							Type:     schema.TypeList,
 							Required: true,
+							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 					},
@@ -63,20 +60,14 @@ func resourceSecurityNatSource() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if !stringInSlice(value, []string{"interface", "routing-instance", "zone"}) {
-									errors = append(errors, fmt.Errorf(
-										"%q for %q is not 'interface', 'routing-instance' or 'zone'", value, k))
-								}
-								return
-							},
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice([]string{"interface", "routing-instance", "zone"}, false),
 						},
 						"value": {
 							Type:     schema.TypeList,
 							Required: true,
+							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 					},
@@ -88,9 +79,9 @@ func resourceSecurityNatSource() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validateNameObjectJunos(),
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateNameObjectJunos([]string{}),
 						},
 						"match": {
 							Type:     schema.TypeList,
@@ -123,21 +114,14 @@ func resourceSecurityNatSource() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"type": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-											value := v.(string)
-											if !stringInSlice(value, []string{"interface", "pool", "off"}) {
-												errors = append(errors, fmt.Errorf(
-													"%q for %q is not 'interface', 'pool' or 'off'", value, k))
-											}
-											return
-										},
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice([]string{"interface", "pool", "off"}, false),
 									},
 									"pool": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validateNameObjectJunos(),
+										Type:             schema.TypeString,
+										Optional:         true,
+										ValidateDiagFunc: validateNameObjectJunos([]string{}),
 									},
 								},
 							},
@@ -149,123 +133,123 @@ func resourceSecurityNatSource() *schema.Resource {
 	}
 }
 
-func resourceSecurityNatSourceCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatSourceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security nat source not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security nat source not compatible with Junos device %s",
+			jnprSess.SystemInformation.HardwareModel))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	securityNatSourceExists, err := checkSecurityNatSourceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	if securityNatSourceExists {
 		sess.configClear(jnprSess)
-		return fmt.Errorf("security nat source %v already exists", d.Get("name").(string))
+
+		return diag.FromErr(fmt.Errorf("security nat source %v already exists", d.Get("name").(string)))
 	}
 
-	err = setSecurityNatSource(d, m, jnprSess)
-	if err != nil {
+	if err := setSecurityNatSource(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_security_nat_source", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_nat_source", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	securityNatSourceExists, err = checkSecurityNatSourceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if securityNatSourceExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("security nat source %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security nat source %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
-	return resourceSecurityNatSourceRead(d, m)
+
+	return resourceSecurityNatSourceRead(ctx, d, m)
 }
-func resourceSecurityNatSourceRead(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatSourceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
-		return err
+
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	natSourceOptions, err := readSecurityNatSource(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if natSourceOptions.name == "" {
 		d.SetId("")
 	} else {
 		fillSecurityNatSourceData(d, natSourceOptions)
 	}
+
 	return nil
 }
-func resourceSecurityNatSourceUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatSourceUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delSecurityNatSource(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delSecurityNatSource(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = setSecurityNatSource(d, m, jnprSess)
-	if err != nil {
+	if err := setSecurityNatSource(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_security_nat_source", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_security_nat_source", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
-	return resourceSecurityNatSourceRead(d, m)
+
+	return resourceSecurityNatSourceRead(ctx, d, m)
 }
-func resourceSecurityNatSourceDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSecurityNatSourceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delSecurityNatSource(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delSecurityNatSource(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_security_nat_source", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_nat_source", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
+
 	return nil
 }
 func resourceSecurityNatSourceImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -291,6 +275,7 @@ func resourceSecurityNatSourceImport(d *schema.ResourceData, m interface{}) ([]*
 	fillSecurityNatSourceData(d, natSourceOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -304,6 +289,7 @@ func checkSecurityNatSourceExists(name string, m interface{}, jnprSess *NetconfO
 	if natSourceConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -314,13 +300,13 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	for _, v := range d.Get("from").([]interface{}) {
 		from := v.(map[string]interface{})
 		for _, value := range from["value"].([]interface{}) {
-			configSet = append(configSet, setPrefix+" from "+from["type"].(string)+" "+value.(string)+"\n")
+			configSet = append(configSet, setPrefix+" from "+from["type"].(string)+" "+value.(string))
 		}
 	}
 	for _, v := range d.Get("to").([]interface{}) {
 		to := v.(map[string]interface{})
 		for _, value := range to["value"].([]interface{}) {
-			configSet = append(configSet, setPrefix+" to "+to["type"].(string)+" "+value.(string)+"\n")
+			configSet = append(configSet, setPrefix+" to "+to["type"].(string)+" "+value.(string))
 		}
 	}
 	for _, v := range d.Get("rule").([]interface{}) {
@@ -329,44 +315,44 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 		for _, matchV := range rule[matchWord].([]interface{}) {
 			match := matchV.(map[string]interface{})
 			for _, address := range match["source_address"].([]interface{}) {
-				err := validateNetwork(address.(string))
+				err := validateCIDRNetwork(address.(string))
 				if err != nil {
 					return err
 				}
-				configSet = append(configSet, setPrefixRule+" match source-address "+address.(string)+"\n")
+				configSet = append(configSet, setPrefixRule+" match source-address "+address.(string))
 			}
 			for _, address := range match["destination_address"].([]interface{}) {
-				err := validateNetwork(address.(string))
+				err := validateCIDRNetwork(address.(string))
 				if err != nil {
 					return err
 				}
-				configSet = append(configSet, setPrefixRule+" match destination-address "+address.(string)+"\n")
+				configSet = append(configSet, setPrefixRule+" match destination-address "+address.(string))
 			}
 			for _, proto := range match["protocol"].([]interface{}) {
-				configSet = append(configSet, setPrefixRule+" match protocol "+proto.(string)+"\n")
+				configSet = append(configSet, setPrefixRule+" match protocol "+proto.(string))
 			}
 		}
 		for _, thenV := range rule[thenWord].([]interface{}) {
 			then := thenV.(map[string]interface{})
 			if then["type"].(string) == "interface" {
-				configSet = append(configSet, setPrefixRule+" then source-nat interface\n")
+				configSet = append(configSet, setPrefixRule+" then source-nat interface")
 			}
 			if then["type"].(string) == "off" {
-				configSet = append(configSet, setPrefixRule+" then source-nat off\n")
+				configSet = append(configSet, setPrefixRule+" then source-nat off")
 			}
 			if then["type"].(string) == "pool" {
 				if then["pool"].(string) == "" {
 					return fmt.Errorf("missing pool for source-nat pool for rule %v in %v",
 						rule["name"].(string), d.Get("name").(string))
 				}
-				configSet = append(configSet, setPrefixRule+" then source-nat pool "+then["pool"].(string)+"\n")
+				configSet = append(configSet, setPrefixRule+" then source-nat pool "+then["pool"].(string))
 			}
 		}
 	}
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObject) (natSourceOptions, error) {
@@ -478,36 +464,34 @@ func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObj
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 
 func delSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security nat source rule-set "+natSource+"\n")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	configSet = append(configSet, "delete security nat source rule-set "+natSource)
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 func fillSecurityNatSourceData(d *schema.ResourceData, natSourceOptions natSourceOptions) {
-	tfErr := d.Set("name", natSourceOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", natSourceOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("from", natSourceOptions.from)
-	if tfErr != nil {
+	if tfErr := d.Set("from", natSourceOptions.from); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("to", natSourceOptions.to)
-	if tfErr != nil {
+	if tfErr := d.Set("to", natSourceOptions.to); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("rule", natSourceOptions.rule)
-	if tfErr != nil {
+	if tfErr := d.Set("rule", natSourceOptions.rule); tfErr != nil {
 		panic(tfErr)
 	}
 }

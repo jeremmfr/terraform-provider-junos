@@ -1,38 +1,50 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type ipsecPolicyOptions struct {
-	name      string
-	pfsKeys   string
-	proposals []string
+	name        string
+	pfsKeys     string
+	proposalSet string
+	proposals   []string
 }
 
 func resourceIpsecPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceIpsecPolicyCreate,
-		Read:   resourceIpsecPolicyRead,
-		Update: resourceIpsecPolicyUpdate,
-		Delete: resourceIpsecPolicyDelete,
+		CreateContext: resourceIpsecPolicyCreate,
+		ReadContext:   resourceIpsecPolicyRead,
+		UpdateContext: resourceIpsecPolicyUpdate,
+		DeleteContext: resourceIpsecPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceIpsecPolicyImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"proposals": {
-				Type:     schema.TypeList,
-				Required: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:         schema.TypeList,
+				Optional:     true,
+				MinItems:     1,
+				Elem:         &schema.Schema{Type: schema.TypeString},
+				ExactlyOneOf: []string{"proposals", "proposal_set"},
+			},
+			"proposal_set": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(listProposalSet(), false),
+				ExactlyOneOf: []string{"proposals", "proposal_set"},
 			},
 			"pfs_keys": {
 				Type:     schema.TypeString,
@@ -42,122 +54,122 @@ func resourceIpsecPolicy() *schema.Resource {
 	}
 }
 
-func resourceIpsecPolicyCreate(d *schema.ResourceData, m interface{}) error {
+func resourceIpsecPolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	if !checkCompatibilitySecurity(jnprSess) {
-		return fmt.Errorf("security ipsec policy not compatible with Junos device %s", jnprSess.Platform[0].Model)
+		return diag.FromErr(fmt.Errorf("security ipsec policy not compatible with Junos device %s",
+			jnprSess.SystemInformation.HardwareModel))
 	}
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	ipsecPolicyExists, err := checkIpsecPolicyExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	if ipsecPolicyExists {
 		sess.configClear(jnprSess)
-		return fmt.Errorf("ipsec policy %v already exists", d.Get("name").(string))
+
+		return diag.FromErr(fmt.Errorf("security ipsec policy %v already exists", d.Get("name").(string)))
 	}
-	err = setIpsecPolicy(d, m, jnprSess)
-	if err != nil {
+	if err := setIpsecPolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_ipsec_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_security_ipsec_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	ipsecPolicyExists, err = checkIpsecPolicyExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if ipsecPolicyExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("ipsec policy %v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("security ipsec policy %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))
 	}
-	return resourceIpsecPolicyRead(d, m)
+
+	return resourceIpsecPolicyRead(ctx, d, m)
 }
-func resourceIpsecPolicyRead(d *schema.ResourceData, m interface{}) error {
+func resourceIpsecPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
-		return err
+
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	ipsecPolicyOptions, err := readIpsecPolicy(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if ipsecPolicyOptions.name == "" {
 		d.SetId("")
 	} else {
 		fillIpsecPolicyData(d, ipsecPolicyOptions)
 	}
+
 	return nil
 }
-func resourceIpsecPolicyUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceIpsecPolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delIpsecPolicy(d, m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delIpsecPolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = setIpsecPolicy(d, m, jnprSess)
-	if err != nil {
+	if err := setIpsecPolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_ipsec_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_security_ipsec_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
-	return resourceIpsecPolicyRead(d, m)
+
+	return resourceIpsecPolicyRead(ctx, d, m)
 }
-func resourceIpsecPolicyDelete(d *schema.ResourceData, m interface{}) error {
+func resourceIpsecPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delIpsecPolicy(d, m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delIpsecPolicy(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_ipsec_policy", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_security_ipsec_policy", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
+
 	return nil
 }
 func resourceIpsecPolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -173,7 +185,7 @@ func resourceIpsecPolicyImport(d *schema.ResourceData, m interface{}) ([]*schema
 		return nil, err
 	}
 	if !ipsecPolicyExists {
-		return nil, fmt.Errorf("don't find ipsec policy with id '%v' (id must be <name>)", d.Id())
+		return nil, fmt.Errorf("don't find security ipsec policy with id '%v' (id must be <name>)", d.Id())
 	}
 	ipsecPolicyOptions, err := readIpsecPolicy(d.Id(), m, jnprSess)
 	if err != nil {
@@ -181,6 +193,7 @@ func resourceIpsecPolicyImport(d *schema.ResourceData, m interface{}) ([]*schema
 	}
 	fillIpsecPolicyData(d, ipsecPolicyOptions)
 	result[0] = d
+
 	return result, nil
 }
 
@@ -194,6 +207,7 @@ func checkIpsecPolicyExists(ipsecPolicy string, m interface{}, jnprSess *Netconf
 	if ipsecPolicyConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setIpsecPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -202,16 +216,19 @@ func setIpsecPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 
 	setPrefix := "set security ipsec policy " + d.Get("name").(string)
 	if d.Get("pfs_keys").(string) != "" {
-		configSet = append(configSet, setPrefix+" perfect-forward-secrecy keys "+d.Get("pfs_keys").(string)+"\n")
+		configSet = append(configSet, setPrefix+" perfect-forward-secrecy keys "+d.Get("pfs_keys").(string))
 	}
 	for _, v := range d.Get("proposals").([]interface{}) {
-		configSet = append(configSet, setPrefix+" proposals "+v.(string)+"\n")
+		configSet = append(configSet, setPrefix+" proposals "+v.(string))
+	}
+	if d.Get("proposal_set").(string) != "" {
+		configSet = append(configSet, setPrefix+" proposal-set "+d.Get("proposal_set").(string))
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 func readIpsecPolicy(ipsecPolicy string, m interface{}, jnprSess *NetconfObject) (ipsecPolicyOptions, error) {
@@ -236,38 +253,42 @@ func readIpsecPolicy(ipsecPolicy string, m interface{}, jnprSess *NetconfObject)
 			switch {
 			case strings.HasPrefix(itemTrim, "proposals "):
 				confRead.proposals = append(confRead.proposals, strings.TrimPrefix(itemTrim, "proposals "))
+			case strings.HasPrefix(itemTrim, "proposal-set "):
+				confRead.proposalSet = strings.TrimPrefix(itemTrim, "proposal-set ")
 			case strings.HasPrefix(itemTrim, "perfect-forward-secrecy keys "):
 				confRead.pfsKeys = strings.TrimPrefix(itemTrim, "perfect-forward-secrecy keys ")
 			}
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 func delIpsecPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security ipsec policy "+d.Get("name").(string)+"\n")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	configSet = append(configSet, "delete security ipsec policy "+d.Get("name").(string))
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func fillIpsecPolicyData(d *schema.ResourceData, ipsecPolicyOptions ipsecPolicyOptions) {
-	tfErr := d.Set("name", ipsecPolicyOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", ipsecPolicyOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("proposals", ipsecPolicyOptions.proposals)
-	if tfErr != nil {
+	if tfErr := d.Set("proposals", ipsecPolicyOptions.proposals); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("pfs_keys", ipsecPolicyOptions.pfsKeys)
-	if tfErr != nil {
+	if tfErr := d.Set("proposal_set", ipsecPolicyOptions.proposalSet); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("pfs_keys", ipsecPolicyOptions.pfsKeys); tfErr != nil {
 		panic(tfErr)
 	}
 }

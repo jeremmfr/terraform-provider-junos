@@ -6,14 +6,29 @@
           <a href="/docs/providers/junos/index.html">Junos Provider</a>
         </li>
 
+        <li<%= sidebar_current("docs-junos-data-source") %>>
+        <a href="#">Data Sources</a>
+        <ul class="nav nav-visible">
+          <li<%= sidebar_current("docs-junos-data-source-interface") %>>
+            <a href="/docs/providers/junos/d/interface.html">junos_interface</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-data-source-system-information") %>>
+            <a href="/docs/providers/junos/d/system_information.html">junos_system_information</a>
+          </li>
+        </ul>
+        </li>
+
         <li<%= sidebar_current("docs-junos-resource") %>>
         <a href="#">Resources</a>
         <ul class="nav nav-visible">
-          <li<%= sidebar_current("docs-junos-resource-application-set") %>>
-            <a href="/docs/providers/junos/r/application_set.html">junos_application_set</a>
+          <li<%= sidebar_current("docs-junos-resource-aggregate-route") %>>
+            <a href="/docs/providers/junos/r/aggregate_route.html">junos_aggregate_route</a>
           </li>
           <li<%= sidebar_current("docs-junos-resource-application") %>>
             <a href="/docs/providers/junos/r/application.html">junos_application</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-application-set") %>>
+            <a href="/docs/providers/junos/r/application_set.html">junos_application_set</a>
           </li>
           <li<%= sidebar_current("docs-junos-resource-bgp-group") %>>
             <a href="/docs/providers/junos/r/bgp_group.html">junos_bgp_group</a>
@@ -24,84 +39,126 @@
           <li<%= sidebar_current("docs-junos-resource-firewall-filter") %>>
             <a href="/docs/providers/junos/r/firewall_filter.html">junos_firewall_filter</a>
           </li>
-		<li<%= sidebar_current("docs-junos-resource-firewall-policer") %>>
+          <li<%= sidebar_current("docs-junos-resource-firewall-policer") %>>
             <a href="/docs/providers/junos/r/firewall_policer.html">junos_firewall_policer</a>
           </li>
-		<li<%= sidebar_current("docs-junos-resource-interface") %>>
+          <li<%= sidebar_current("docs-junos-resource-interface") %>>
             <a href="/docs/providers/junos/r/interface.html">junos_interface</a>
           </li>
-		<li<%= sidebar_current("docs-junos-resource-ospf-area") %>>
+          <li<%= sidebar_current("docs-junos-resource-interface-st0-unit") %>>
+            <a href="/docs/providers/junos/r/interface_st0_unit.html">junos_interface_st0_unit</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-ospf-area") %>>
             <a href="/docs/providers/junos/r/ospf_area.html">junos_ospf_area</a>
           </li>
-		<li<%= sidebar_current("docs-junos-resource-policyoptions-as-path-group") %>>
-		  <a href="/docs/providers/junos/r/policyoptions_as_path_group.html">junos_policyoptions_as_path_group</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-policyoptions-as-path") %>>
-		  <a href="/docs/providers/junos/r/policyoptions_as_path.html">junos_policyoptions_as_path</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-policyoptions-community") %>>
-		  <a href="/docs/providers/junos/r/policyoptions_community.html">junos_policyoptions_community</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-policyoptions-policy-statement") %>>
-		  <a href="/docs/providers/junos/r/policyoptions_policy_statement.html">junos_policyoptions_policy_statement</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-policyoptions-prefix-list") %>>
-		  <a href="/docs/providers/junos/r/policyoptions_prefix_list.html">junos_policyoptions_prefix_list</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-rib-group") %>>
-		  <a href="/docs/providers/junos/r/rib_group.html">junos_rib_group</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-routing-instance") %>>
-		  <a href="/docs/providers/junos/r/routing_instance.html">junos_routing_instance</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-security-ike-gateway") %>>
-		  <a href="/docs/providers/junos/r/security_ike_gateway.html">junos_security_ike_gateway</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-security-ike-policy") %>>
-		  <a href="/docs/providers/junos/r/security_ike_policy.html">junos_security_ike_policy</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-security-ike-proposal") %>>
-		  <a href="/docs/providers/junos/r/security_ike_proposal.html">junos_security_ike_proposal</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-security-ipsec-policy") %>>
-		  <a href="/docs/providers/junos/r/security_ipsec_policy.html">junos_security_ipsec_policy</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-security-ipsec-proposal") %>>
-		  <a href="/docs/providers/junos/r/security_ipsec_proposal.html">junos_security_ipsec_proposal</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-security-ipsec-vpn") %>>
-		  <a href="/docs/providers/junos/r/security_ipsec_vpn.html">junos_security_ipsec_vpn</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-security-nat-destination-pool") %>>
-		  <a href="/docs/providers/junos/r/security_nat_destination_pool.html">junos_security_nat_destination_pool</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-security-nat-destination") %>>
-		  <a href="/docs/providers/junos/r/security_nat_destination.html">junos_security_nat_destination</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-security-nat-source-pool") %>>
-		  <a href="/docs/providers/junos/r/security_nat_source_pool.html">junos_security_nat_source_pool</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-security-nat-source") %>>
-		  <a href="/docs/providers/junos/r/security_nat_source.html">junos_security_nat_source</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-security-nat-static") %>>
-		  <a href="/docs/providers/junos/r/security_nat_static.html">junos_security_nat_static</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-security-policy-tunnel-pair-policy") %>>
-		  <a href="/docs/providers/junos/r/security_policy_tunnel_pair_policy.html">junos_security_policy_tunnel_pair_policy</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-security-policy") %>>
-		  <a href="/docs/providers/junos/r/security_policy.html">junos_security_policy</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-security-zone") %>>
-		  <a href="/docs/providers/junos/r/security_zone.html">junos_security_zone</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-static-route") %>>
-		  <a href="/docs/providers/junos/r/static_route.html">junos_static_route</a>
-		</li>
-		<li<%= sidebar_current("docs-junos-resource-vlan") %>>
-		  <a href="/docs/providers/junos/r/vlan.html">junos_vlan</a>
-		</li>
+          <li<%= sidebar_current("docs-junos-resource-policyoptions-as-path") %>>
+            <a href="/docs/providers/junos/r/policyoptions_as_path.html">junos_policyoptions_as_path</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-policyoptions-as-path-group") %>>
+            <a href="/docs/providers/junos/r/policyoptions_as_path_group.html">junos_policyoptions_as_path_group</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-policyoptions-community") %>>
+            <a href="/docs/providers/junos/r/policyoptions_community.html">junos_policyoptions_community</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-policyoptions-policy-statement") %>>
+            <a href="/docs/providers/junos/r/policyoptions_policy_statement.html">junos_policyoptions_policy_statement</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-policyoptions-prefix-list") %>>
+            <a href="/docs/providers/junos/r/policyoptions_prefix_list.html">junos_policyoptions_prefix_list</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-rib-group") %>>
+            <a href="/docs/providers/junos/r/rib_group.html">junos_rib_group</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-routing-instance") %>>
+            <a href="/docs/providers/junos/r/routing_instance.html">junos_routing_instance</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-routing-options") %>>
+            <a href="/docs/providers/junos/r/routing_options.html">junos_routing_options</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-security") %>>
+            <a href="/docs/providers/junos/r/security.html">junos_security</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-security-ike-gateway") %>>
+            <a href="/docs/providers/junos/r/security_ike_gateway.html">junos_security_ike_gateway</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-security-ike-policy") %>>
+            <a href="/docs/providers/junos/r/security_ike_policy.html">junos_security_ike_policy</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-security-ike-proposal") %>>
+            <a href="/docs/providers/junos/r/security_ike_proposal.html">junos_security_ike_proposal</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-security-ipsec-policy") %>>
+            <a href="/docs/providers/junos/r/security_ipsec_policy.html">junos_security_ipsec_policy</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-security-ipsec-proposal") %>>
+            <a href="/docs/providers/junos/r/security_ipsec_proposal.html">junos_security_ipsec_proposal</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-security-ipsec-vpn") %>>
+            <a href="/docs/providers/junos/r/security_ipsec_vpn.html">junos_security_ipsec_vpn</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-security-log-stream") %>>
+            <a href="/docs/providers/junos/r/security_log_stream.html">junos_security_log_stream</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-security-nat-destination") %>>
+            <a href="/docs/providers/junos/r/security_nat_destination.html">junos_security_nat_destination</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-security-nat-destination-pool") %>>
+            <a href="/docs/providers/junos/r/security_nat_destination_pool.html">junos_security_nat_destination_pool</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-security-nat-source") %>>
+            <a href="/docs/providers/junos/r/security_nat_source.html">junos_security_nat_source</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-security-nat-source-pool") %>>
+            <a href="/docs/providers/junos/r/security_nat_source_pool.html">junos_security_nat_source_pool</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-security-nat-static") %>>
+            <a href="/docs/providers/junos/r/security_nat_static.html">junos_security_nat_static</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-security-policy") %>>
+            <a href="/docs/providers/junos/r/security_policy.html">junos_security_policy</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-security-policy-tunnel-pair-policy") %>>
+            <a href="/docs/providers/junos/r/security_policy_tunnel_pair_policy.html">junos_security_policy_tunnel_pair_policy</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-security-utm-custom-url-pattern") %>>
+            <a href="/docs/providers/junos/r/security_utm_custom_url_pattern.html">junos_security_utm_custom_url_pattern</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-security-utm-policy") %>>
+            <a href="/docs/providers/junos/r/security_utm_policy.html">junos_security_utm_policy</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-security-utm-profile-web-filtering-juniper-enhanced") %>>
+            <a href="/docs/providers/junos/r/security_utm_profile_web_filtering_juniper_enhanced.html">junos_security_utm_profile_web_filtering_juniper_enhanced</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-security-utm-profile-web-filtering-juniper-local") %>>
+            <a href="/docs/providers/junos/r/security_utm_profile_web_filtering_juniper_local.html">junos_security_utm_profile_web_filtering_juniper_local</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-security-utm-profile-web-filtering-websense-redirect") %>>
+            <a href="/docs/providers/junos/r/security_utm_profile_web_filtering_websense_redirect.html">junos_security_utm_profile_web_filtering_websense_redirect</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-security-zone") %>>
+            <a href="/docs/providers/junos/r/security_zone.html">junos_security_zone</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-static-route") %>>
+            <a href="/docs/providers/junos/r/static_route.html">junos_static_route</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-system") %>>
+            <a href="/docs/providers/junos/r/system.html">junos_system</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-system-ntp-server") %>>
+            <a href="/docs/providers/junos/r/system_ntp_server.html">junos_system_ntp_server</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-system-radius-server") %>>
+            <a href="/docs/providers/junos/r/system_radius_server.html">junos_system_radius_server</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-system-syslog-file") %>>
+            <a href="/docs/providers/junos/r/system_syslog_file.html">junos_system_syslog_file</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-system-syslog-host") %>>
+            <a href="/docs/providers/junos/r/system_syslog_host.html">junos_system_syslog_host</a>
+          </li>
+          <li<%= sidebar_current("docs-junos-resource-vlan") %>>
+            <a href="/docs/providers/junos/r/vlan.html">junos_vlan</a>
+          </li>
         </ul>
         </li>
       </ul>

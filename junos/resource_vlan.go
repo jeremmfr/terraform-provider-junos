@@ -1,11 +1,14 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type vlanOptions struct {
@@ -26,19 +29,19 @@ type vlanOptions struct {
 
 func resourceVlan() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceVlanCreate,
-		Read:   resourceVlanRead,
-		Update: resourceVlanUpdate,
-		Delete: resourceVlanDelete,
+		CreateContext: resourceVlanCreate,
+		ReadContext:   resourceVlanRead,
+		UpdateContext: resourceVlanUpdate,
+		DeleteContext: resourceVlanDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceVlanImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Required:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -47,7 +50,7 @@ func resourceVlan() *schema.Resource {
 			"vlan_id": {
 				Type:          schema.TypeInt,
 				Optional:      true,
-				ValidateFunc:  validateIntRange(1, 4094),
+				ValidateFunc:  validation.IntBetween(1, 4094),
 				ConflictsWith: []string{"vlan_id_list"},
 			},
 			"vlan_id_list": {
@@ -59,7 +62,7 @@ func resourceVlan() *schema.Resource {
 			"service_id": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 65535),
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"l3_interface": {
 				Type:     schema.TypeString,
@@ -70,35 +73,29 @@ func resourceVlan() *schema.Resource {
 						errors = append(errors, fmt.Errorf(
 							"%q for %q is not start with 'irb.'", value, k))
 					}
+
 					return
 				},
 			},
 			"forward_filter_input": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"forward_filter_output": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"forward_flood_input": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateNameObjectJunos(),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}),
 			},
 			"private_vlan": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if value != "community" && value != "isolated" {
-						errors = append(errors, fmt.Errorf(
-							"%q for %q is not 'community' or 'isolated'", value, k))
-					}
-					return
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"community", "isolated"}, false),
 			},
 			"community_vlans": {
 				Type:     schema.TypeList,
@@ -108,7 +105,7 @@ func resourceVlan() *schema.Resource {
 			"isolated_vlan": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntRange(1, 65535),
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 			"vxlan": {
 				Type:     schema.TypeList,
@@ -119,7 +116,7 @@ func resourceVlan() *schema.Resource {
 						"vni": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validateIntRange(0, 16777214),
+							ValidateFunc: validation.IntBetween(0, 16777214),
 						},
 						"encapsulate_inner_vlan": {
 							Type:     schema.TypeBool,
@@ -132,7 +129,7 @@ func resourceVlan() *schema.Resource {
 						"multicast_group": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validateIPFunc(),
+							ValidateFunc: validation.IsIPAddress,
 						},
 						"ovsdb_managed": {
 							Type:     schema.TypeBool,
@@ -141,7 +138,7 @@ func resourceVlan() *schema.Resource {
 						"unreachable_vtep_aging_timer": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateIntRange(300, 1800),
+							ValidateFunc: validation.IntBetween(300, 1800),
 						},
 					},
 				},
@@ -150,122 +147,120 @@ func resourceVlan() *schema.Resource {
 	}
 }
 
-func resourceVlanCreate(d *schema.ResourceData, m interface{}) error {
+func resourceVlanCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
+	sess.configLock(jnprSess)
 	vlanExists, err := checkVlansExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	if vlanExists {
 		sess.configClear(jnprSess)
-		return fmt.Errorf("vlan %v already exists", d.Get("name").(string))
+
+		return diag.FromErr(fmt.Errorf("vlan %v already exists", d.Get("name").(string)))
 	}
 
-	err = setVlan(d, m, jnprSess)
-	if err != nil {
+	if err := setVlan(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("create resource junos_vlan", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("create resource junos_vlan", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	mutex.Lock()
 	vlanExists, err = checkVlansExists(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if vlanExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return fmt.Errorf("vlan%v not exists after commit => check your config", d.Get("name").(string))
+		return diag.FromErr(fmt.Errorf("vlan %v not exists after commit => check your config", d.Get("name").(string)))
 	}
-	return resourceVlanRead(d, m)
+
+	return resourceVlanRead(ctx, d, m)
 }
-func resourceVlanRead(d *schema.ResourceData, m interface{}) error {
+func resourceVlanRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		mutex.Unlock()
-		return err
+
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	vlanOptions, err := readVlan(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if vlanOptions.name == "" {
 		d.SetId("")
 	} else {
 		fillVlanData(d, vlanOptions)
 	}
+
 	return nil
 }
-func resourceVlanUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceVlanUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delVlan(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delVlan(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = setVlan(d, m, jnprSess)
-	if err != nil {
+	if err := setVlan(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("update resource junos_vlan", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("update resource junos_vlan", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
 	d.Partial(false)
-	return resourceVlanRead(d, m)
+
+	return resourceVlanRead(ctx, d, m)
 }
-func resourceVlanDelete(d *schema.ResourceData, m interface{}) error {
+func resourceVlanDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	err = sess.configLock(jnprSess)
-	if err != nil {
-		return err
-	}
-	err = delVlan(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	sess.configLock(jnprSess)
+	if err := delVlan(d.Get("name").(string), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
-	err = sess.commitConf("delete resource junos_vlan", jnprSess)
-	if err != nil {
+	if err := sess.commitConf("delete resource junos_vlan", jnprSess); err != nil {
 		sess.configClear(jnprSess)
-		return err
+
+		return diag.FromErr(err)
 	}
+
 	return nil
 }
 func resourceVlanImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -290,6 +285,7 @@ func resourceVlanImport(d *schema.ResourceData, m interface{}) ([]*schema.Resour
 	fillVlanData(d, vlanOptions)
 
 	result[0] = d
+
 	return result, nil
 }
 
@@ -302,6 +298,7 @@ func checkVlansExists(vlan string, m interface{}, jnprSess *NetconfObject) (bool
 	if vlanConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 func setVlan(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -310,67 +307,67 @@ func setVlan(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 
 	setPrefix := "set vlans " + d.Get("name").(string) + " "
 	if d.Get("description").(string) != "" {
-		configSet = append(configSet, setPrefix+"description \""+d.Get("description").(string)+"\"\n")
+		configSet = append(configSet, setPrefix+"description \""+d.Get("description").(string)+"\"")
 	}
 	if d.Get("vlan_id").(int) != 0 {
-		configSet = append(configSet, setPrefix+"vlan-id "+strconv.Itoa(d.Get("vlan_id").(int))+"\n")
+		configSet = append(configSet, setPrefix+"vlan-id "+strconv.Itoa(d.Get("vlan_id").(int)))
 	}
 	for _, v := range d.Get("vlan_id_list").([]interface{}) {
-		configSet = append(configSet, setPrefix+"vlan-id-list "+v.(string)+"\n")
+		configSet = append(configSet, setPrefix+"vlan-id-list "+v.(string))
 	}
 	if d.Get("service_id").(int) != 0 {
-		configSet = append(configSet, setPrefix+"service-id "+strconv.Itoa(d.Get("service_id").(int))+"\n")
+		configSet = append(configSet, setPrefix+"service-id "+strconv.Itoa(d.Get("service_id").(int)))
 	}
 	if d.Get("l3_interface").(string) != "" {
-		configSet = append(configSet, setPrefix+"l3-interface "+d.Get("l3_interface").(string)+"\n")
+		configSet = append(configSet, setPrefix+"l3-interface "+d.Get("l3_interface").(string))
 	}
 	if d.Get("forward_filter_input").(string) != "" {
 		configSet = append(configSet, setPrefix+
-			"forwarding-options filter input "+d.Get("forward_filter_input").(string)+"\n")
+			"forwarding-options filter input "+d.Get("forward_filter_input").(string))
 	}
 	if d.Get("forward_filter_output").(string) != "" {
 		configSet = append(configSet, setPrefix+
-			"forwarding-options filter output "+d.Get("forward_filter_output").(string)+"\n")
+			"forwarding-options filter output "+d.Get("forward_filter_output").(string))
 	}
 	if d.Get("forward_flood_input").(string) != "" {
 		configSet = append(configSet, setPrefix+
-			"forwarding-options flood input "+d.Get("forward_flood_input").(string)+"\n")
+			"forwarding-options flood input "+d.Get("forward_flood_input").(string))
 	}
 	if d.Get("private_vlan").(string) != "" {
-		configSet = append(configSet, setPrefix+"private-vlan "+d.Get("private_vlan").(string)+"\n")
+		configSet = append(configSet, setPrefix+"private-vlan "+d.Get("private_vlan").(string))
 	}
 	for _, v := range d.Get("community_vlans").([]interface{}) {
-		configSet = append(configSet, setPrefix+"community-vlans "+strconv.Itoa(v.(int))+"\n")
+		configSet = append(configSet, setPrefix+"community-vlans "+strconv.Itoa(v.(int)))
 	}
 	if d.Get("isolated_vlan").(int) != 0 {
-		configSet = append(configSet, setPrefix+"isolated-vlan "+strconv.Itoa(d.Get("isolated_vlan").(int))+"\n")
+		configSet = append(configSet, setPrefix+"isolated-vlan "+strconv.Itoa(d.Get("isolated_vlan").(int)))
 	}
 	for _, v := range d.Get("vxlan").([]interface{}) {
 		vxlan := v.(map[string]interface{})
-		configSet = append(configSet, setPrefix+"vxlan vni "+strconv.Itoa(vxlan["vni"].(int))+"\n")
+		configSet = append(configSet, setPrefix+"vxlan vni "+strconv.Itoa(vxlan["vni"].(int)))
 
 		if vxlan["encapsulate_inner_vlan"].(bool) {
-			configSet = append(configSet, setPrefix+"vxlan encapsulate-inner-vlan\n")
+			configSet = append(configSet, setPrefix+"vxlan encapsulate-inner-vlan")
 		}
 		if vxlan["ingress_node_replication"].(bool) {
-			configSet = append(configSet, setPrefix+"vxlan ingress-node-replication\n")
+			configSet = append(configSet, setPrefix+"vxlan ingress-node-replication")
 		}
 		if vxlan["multicast_group"].(string) != "" {
-			configSet = append(configSet, setPrefix+"vxlan multicast-group "+vxlan["multicast_group"].(string)+"\n")
+			configSet = append(configSet, setPrefix+"vxlan multicast-group "+vxlan["multicast_group"].(string))
 		}
 		if vxlan["ovsdb_managed"].(bool) {
-			configSet = append(configSet, setPrefix+"vxlan ovsdb-managed\n")
+			configSet = append(configSet, setPrefix+"vxlan ovsdb-managed")
 		}
 		if vxlan["unreachable_vtep_aging_timer"].(int) != 0 {
 			configSet = append(configSet, setPrefix+
-				"vxlan unreachable-vtep-aging-timer "+strconv.Itoa(vxlan["unreachable_vtep_aging_timer"].(int))+"\n")
+				"vxlan unreachable-vtep-aging-timer "+strconv.Itoa(vxlan["unreachable_vtep_aging_timer"].(int)))
 		}
 	}
 
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions, error) {
@@ -398,14 +395,14 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 			case strings.HasPrefix(itemTrim, "vlan-id "):
 				confRead.vlanID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vlan-id "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "vlan-id-list "):
 				confRead.vlanIDList = append(confRead.vlanIDList, strings.TrimPrefix(itemTrim, "vlan-id-list "))
 			case strings.HasPrefix(itemTrim, "service-id "):
 				confRead.serviceID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "service-id "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "l3-interface "):
 				confRead.l3Interface = strings.TrimPrefix(itemTrim, "l3-interface ")
@@ -420,13 +417,13 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 			case strings.HasPrefix(itemTrim, "community-vlans "):
 				commVlan, err := strconv.Atoi(strings.TrimPrefix(itemTrim, "community-vlans "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 				confRead.communityVlans = append(confRead.communityVlans, commVlan)
 			case strings.HasPrefix(itemTrim, "isolated-vlan "):
 				confRead.isolatedVlan, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "isolated-vlan "))
 				if err != nil {
-					return confRead, err
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "vxlan "):
 				vxlan := map[string]interface{}{
@@ -446,7 +443,7 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 				case strings.HasPrefix(itemTrim, "vxlan vni "):
 					vxlan["vni"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vxlan vni "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "vxlan encapsulate-inner-vlan"):
 					vxlan["encapsulate_inner_vlan"] = true
@@ -460,7 +457,7 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 					vxlan["unreachable_vtep_aging_timer"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 						"vxlan unreachable-vtep-aging-timer "))
 					if err != nil {
-						return confRead, err
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				}
 				confRead.vxlan = []map[string]interface{}{vxlan}
@@ -468,73 +465,62 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 		}
 	} else {
 		confRead.name = ""
+
 		return confRead, nil
 	}
+
 	return confRead, nil
 }
 
 func delVlan(vlan string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete vlans "+vlan+"\n")
-	err := sess.configSet(configSet, jnprSess)
-	if err != nil {
+	configSet = append(configSet, "delete vlans "+vlan)
+	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func fillVlanData(d *schema.ResourceData, vlanOptions vlanOptions) {
-	tfErr := d.Set("name", vlanOptions.name)
-	if tfErr != nil {
+	if tfErr := d.Set("name", vlanOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("description", vlanOptions.description)
-	if tfErr != nil {
+	if tfErr := d.Set("description", vlanOptions.description); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("vlan_id", vlanOptions.vlanID)
-	if tfErr != nil {
+	if tfErr := d.Set("vlan_id", vlanOptions.vlanID); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("vlan_id_list", vlanOptions.vlanIDList)
-	if tfErr != nil {
+	if tfErr := d.Set("vlan_id_list", vlanOptions.vlanIDList); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("service_id", vlanOptions.serviceID)
-	if tfErr != nil {
+	if tfErr := d.Set("service_id", vlanOptions.serviceID); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("l3_interface", vlanOptions.l3Interface)
-	if tfErr != nil {
+	if tfErr := d.Set("l3_interface", vlanOptions.l3Interface); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("forward_filter_input", vlanOptions.forwardFilterInput)
-	if tfErr != nil {
+	if tfErr := d.Set("forward_filter_input", vlanOptions.forwardFilterInput); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("forward_filter_output", vlanOptions.forwardFilterOutput)
-	if tfErr != nil {
+	if tfErr := d.Set("forward_filter_output", vlanOptions.forwardFilterOutput); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("forward_flood_input", vlanOptions.forwardFloodInput)
-	if tfErr != nil {
+	if tfErr := d.Set("forward_flood_input", vlanOptions.forwardFloodInput); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("private_vlan", vlanOptions.privateVlan)
-	if tfErr != nil {
+	if tfErr := d.Set("private_vlan", vlanOptions.privateVlan); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("community_vlans", vlanOptions.communityVlans)
-	if tfErr != nil {
+	if tfErr := d.Set("community_vlans", vlanOptions.communityVlans); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("isolated_vlan", vlanOptions.isolatedVlan)
-	if tfErr != nil {
+	if tfErr := d.Set("isolated_vlan", vlanOptions.isolatedVlan); tfErr != nil {
 		panic(tfErr)
 	}
-	tfErr = d.Set("vxlan", vlanOptions.vxlan)
-	if tfErr != nil {
+	if tfErr := d.Set("vxlan", vlanOptions.vxlan); tfErr != nil {
 		panic(tfErr)
 	}
 }

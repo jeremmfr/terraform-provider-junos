@@ -39,9 +39,12 @@ resource junos_interface "interface_fw_demo_100" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) Name of interface or unit interface.
+* `name` - (Required, Forces new resource)(`String`) Name of interface or unit interface (with dot).
 * `description` - (Optional)(`String`) Description for interface.
+* `complete_destroy` - (Optional)(`Bool`) When destroy this resource, delete all configurations => do not add `disable` + `descrition NC` or `apply-groups` with `group_interface_delete` provider argument on **physical** or **st0.x** interfaces.  
+(Usually, `st0.x` interfaces are completely deleted with `bind_interface_auto` argument in `junos_security_ipsec_vpn` resource or by `junos_interface_st0_unit` resource because of the dependency, but only if st0.x interface is empty or disable.)
 * `vlan_tagging` - (Optional)(`Bool`) Add 802.1q VLAN tagging support.
+* `vlan_tagging_id` - (Optional,Computed)(`Int`) 802.1q VLAN ID for unit interface. If not set, computed with `name` of interface (ge-0/0/0.100 = 100)
 * `inet` - (Optional,Computed)(`Bool`) Enable family inet.
 * `inet6` - (Optional,Computed)(`Bool`) Enable family inet6.
 * `inet_address` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each address to declare.
@@ -54,9 +57,13 @@ The following arguments are supported:
 * `inet_mtu` - (Optional)(`Int`) Protocol family inet maximum transmission unit.
 * `inet6_mtu` - (Optional)(`Int`) Protocol family inet6 maximum transmission unit.
 * `inet_filter_input` - (Optional)(`String`) Filter to be applied to received packets for family inet.
-* `inet_filter_output` - (Optional)(`String`)Filter to be applied to transmitted packets for family inet.
+* `inet_filter_output` - (Optional)(`String`) Filter to be applied to transmitted packets for family inet.
 * `inet6_filter_input` - (Optional)(`String`) Filter to be applied to received packets for family inet6.
-* `inet6_filter_output` - (Optional)(`String`)Filter to be applied to transmitted packets for family inet6.
+* `inet6_filter_output` - (Optional)(`String`) Filter to be applied to transmitted packets for family inet6.
+* `inet_rpf_check` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for enable reverse-path-forwarding checks with family inet on this interface with optional arguments.
+  * `fail_filter` - (Optional)(`String`) Name of filter applied to packets failing RPF check.
+  * `mode_loose` - (Optional)(`Bool`) Use reverse-path-forwarding loose mode instead the strict mode.
+* `inet6_rpf_check` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for enable reverse-path-forwarding checks with family inet6 on this interface with optional arguments. Arguments is same as `inet_rpf_check`.
 * `ether802_3ad` - (Optional)(`String`) Name of aggregated device for add this interface to link of 802.3ad interface.
 * `trunk` - (Optional)(`Bool`) Interface mode is trunk.
 * `vlan_members` - (Optional)(`ListOfString`) List of vlan for membership for this interface.
@@ -67,7 +74,8 @@ The following arguments are supported:
 * `security_zone` - (Optional)(`String`) Add this interface in security_zone. Need to be created before.
 * `routing_instance` - (Optional)(`String`) Add this interface in routing_instance. Need to be created before.
 
-#### `vrrp_group` arguments for inet_address
+---
+#### vrrp_group arguments for inet_address
 * `identifier` - (Required)(`Int`) ID for vrrp
 * `virtual_address` - (Required)(`ListOfString`) List of address IP v4.
 * `accept_data` - (Optional)(`Bool`) Accept packets destined for virtual IP address. Conflict with `no_accept_data` when apply.
@@ -87,7 +95,8 @@ The following arguments are supported:
   * `routing_instance` - (Required)(`String`) Routing instance to which route belongs, or 'default'.
   * `priority_cost` - (Required)(`Int`) Value to subtract from priority when route is down.
 
-#### `vrrp_group` arguments for inet6_address
+---
+#### vrrp_group arguments for inet6_address
 Same as [`vrrp_group` arguments for inet_address](#vrrp_group-arguments-for-inet_address) block but without `authentication_key`, `authentication_type` and with
 
  * `virtual_link_local_address` - (Required)(`String`) Address IPv6 for Virtual link-local addresses.

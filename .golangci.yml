@@ -7,18 +7,24 @@ linters:
     - gochecknoglobals
     - dupl
     - wsl
+    - gomnd
+    - goerr113 
+    - nestif
+    - gofumpt
+    - exhaustivestruct
+    - paralleltest
 linters-settings:
   gocyclo:
     # minimal code complexity to report, 30 by default
-    min-complexity: 50
+    min-complexity: 90
   gocognit:
     # minimal code complexity to report, 30 by default
-    min-complexity: 110
+    min-complexity: 180
 issues:
   exclude-rules:
     - text: "Use of ssh InsecureIgnoreHostKey"
       linters:
         - gosec
-    - text: "`jnpr` can be `github.com/hashicorp/terraform-plugin-sdk/terraform.ResourceProviderCloser`"
+    - text: "`jnpr` can be `io.Closer`"
       linters:
         - interfacer
