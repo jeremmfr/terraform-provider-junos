@@ -53,6 +53,10 @@ The following arguments are supported:
 * `inet_filter_output` - Filter applied to transmitted packets for family inet.
 * `inet6_filter_input` - Filter applied to received packets for family inet6.
 * `inet6_filter_output` - Filter applied to transmitted packets for family inet6.
+* `inet_rpf_check` - Reverse-path-forwarding checks enabled and possible configuration for family inet.
+  * `fail_filter` - Name of filter applied to packets failing RPF check.
+  * `mode_loose` - Reverse-path-forwarding use loose mode instead the strict mode.
+* `inet6_rpf_check` - Reverse-path-forwarding checks enabled and possible configuration for family inet6. Attributes is same as `inet_rpf_check`.
 * `ether802_3ad` - Link of 802.3ad interface.
 * `trunk` - Interface mode is trunk.
 * `vlan_members` - List of vlan membership for this interface.
