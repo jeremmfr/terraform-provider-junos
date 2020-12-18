@@ -89,7 +89,7 @@ resource junos_ospf_area "testacc_ospfarea" {
 }
 func testAccJunosOspfAreaConfigUpdate(interFace string) string {
 	return `
-resource junos_interface "testacc_ospfarea" {
+resource junos_interface_logical "testacc_ospfarea" {
   name             = "` + interFace + `.0"
   description      = "testacc_ospfarea"
   routing_instance = junos_routing_instance.testacc_ospfarea.name
@@ -110,7 +110,7 @@ resource junos_ospf_area "testacc_ospfarea" {
     dead_interval = 10
   }
   interface {
-    name = junos_interface.testacc_ospfarea.name
+    name = junos_interface_logical.testacc_ospfarea.name
     disable = true
   }
 }
