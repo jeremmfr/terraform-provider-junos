@@ -91,7 +91,7 @@ func dataSourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	if nameFound == "" {
-		return diag.FromErr(fmt.Errorf("no interface found with arguments provided"))
+		return diag.FromErr(fmt.Errorf("no physical interface found with arguments provided"))
 	}
 	interfaceOpt, err := readInterfacePhysical(nameFound, m, jnprSess)
 	if err != nil {
@@ -133,35 +133,18 @@ func searchInterfacePhysicalID(configInterface string, match string,
 			continue
 		}
 		itemTrimSplit := strings.Split(itemTrim, " ")
-		switch len(itemTrimSplit) {
-		case 0:
+		if len(itemTrimSplit) == 0 {
 			continue
-		case 1:
-			intConfigList = append(intConfigList, itemTrimSplit[0])
-		case 2:
-			intConfigList = append(intConfigList, itemTrimSplit[0])
-		default:
-			if itemTrimSplit[1] == "unit" {
-				intConfigList = append(intConfigList, itemTrimSplit[0]+"."+itemTrimSplit[2])
-			} else {
-				intConfigList = append(intConfigList, itemTrimSplit[0])
-			}
 		}
+		intConfigList = append(intConfigList, itemTrimSplit[0])
 	}
 	intConfigList = uniqueListString(intConfigList)
-	// remove logical
-	intPhysicalList := make([]string, 0)
-	for _, intFace := range intConfigList {
-		if !strings.Contains(intFace, ".") {
-			intPhysicalList = append(intPhysicalList, intFace)
-		}
-	}
-	if len(intPhysicalList) == 0 {
+	if len(intConfigList) == 0 {
 		return "", nil
 	}
-	if len(intPhysicalList) > 1 {
-		return "", fmt.Errorf("too many different interfaces found")
+	if len(intConfigList) > 1 {
+		return "", fmt.Errorf("too many different physical interfaces found")
 	}
 
-	return intPhysicalList[0], nil
+	return intConfigList[0], nil
 }

@@ -407,12 +407,10 @@ func searchInterfaceID(configInterface string, match string,
 		switch len(itemTrimSplit) {
 		case 0:
 			continue
-		case 1:
-			intConfigList = append(intConfigList, itemTrimSplit[0])
-		case 2:
+		case 1, 2:
 			intConfigList = append(intConfigList, itemTrimSplit[0])
 		default:
-			if itemTrimSplit[1] == "unit" { // nolint: goconst
+			if itemTrimSplit[1] == "unit" {
 				intConfigList = append(intConfigList, itemTrimSplit[0]+"."+itemTrimSplit[2])
 			} else {
 				intConfigList = append(intConfigList, itemTrimSplit[0])

@@ -336,7 +336,7 @@ func dataSourceInterfaceLogicalRead(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	if nameFound == "" {
-		return diag.FromErr(fmt.Errorf("no interface found with arguments provided"))
+		return diag.FromErr(fmt.Errorf("no logical interface found with arguments provided"))
 	}
 	interfaceOpt, err := readInterfaceLogical(nameFound, m, jnprSess)
 	if err != nil {
@@ -379,34 +379,21 @@ func searchInterfaceLogicalID(configInterface string, match string,
 		}
 		itemTrimSplit := strings.Split(itemTrim, " ")
 		switch len(itemTrimSplit) {
-		case 0:
+		case 0, 1, 2:
 			continue
-		case 1:
-			intConfigList = append(intConfigList, itemTrimSplit[0])
-		case 2:
-			intConfigList = append(intConfigList, itemTrimSplit[0])
 		default:
-			if itemTrimSplit[1] == "unit" {
+			if itemTrimSplit[1] == "unit" && !stringInSlice("ethernet-switching", itemTrimSplit) {
 				intConfigList = append(intConfigList, itemTrimSplit[0]+"."+itemTrimSplit[2])
-			} else {
-				intConfigList = append(intConfigList, itemTrimSplit[0])
 			}
 		}
 	}
 	intConfigList = uniqueListString(intConfigList)
-	// remove physical
-	intLogicalList := make([]string, 0)
-	for _, intFace := range intConfigList {
-		if strings.Contains(intFace, ".") {
-			intLogicalList = append(intLogicalList, intFace)
-		}
-	}
-	if len(intLogicalList) == 0 {
+	if len(intConfigList) == 0 {
 		return "", nil
 	}
-	if len(intLogicalList) > 1 {
-		return "", fmt.Errorf("too many different interfaces found")
+	if len(intConfigList) > 1 {
+		return "", fmt.Errorf("too many different logical interfaces found")
 	}
 
-	return intLogicalList[0], nil
+	return intConfigList[0], nil
 }
