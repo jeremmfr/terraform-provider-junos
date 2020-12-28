@@ -494,11 +494,9 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	if d.Get("trunk").(bool) {
 		configSet = append(configSet, setPrefix+"unit 0 family ethernet-switching interface-mode trunk")
 	}
-	if len(d.Get("vlan_members").([]interface{})) > 0 {
-		for _, v := range d.Get("vlan_members").([]interface{}) {
-			configSet = append(configSet, setPrefix+
-				"unit 0 family ethernet-switching vlan members "+v.(string))
-		}
+	for _, v := range d.Get("vlan_members").([]interface{}) {
+		configSet = append(configSet, setPrefix+
+			"unit 0 family ethernet-switching vlan members "+v.(string))
 	}
 	if d.Get("vlan_native").(int) != 0 {
 		configSet = append(configSet, setPrefix+"native-vlan-id "+strconv.Itoa(d.Get("vlan_native").(int)))
