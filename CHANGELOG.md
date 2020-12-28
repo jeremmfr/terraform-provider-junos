@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* code optimization (remove useless list length check before loop on)
 
 BUG FIXES:
 

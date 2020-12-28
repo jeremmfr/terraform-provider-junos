@@ -318,15 +318,11 @@ func setAggregateRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	if d.Get("metric").(int) > 0 {
 		configSet = append(configSet, setPrefix+" metric "+strconv.Itoa(d.Get("metric").(int)))
 	}
-	if len(d.Get("community").([]interface{})) > 0 {
-		for _, v := range d.Get("community").([]interface{}) {
-			configSet = append(configSet, setPrefix+" community "+v.(string))
-		}
+	for _, v := range d.Get("community").([]interface{}) {
+		configSet = append(configSet, setPrefix+" community "+v.(string))
 	}
-	if len(d.Get("policy").([]interface{})) > 0 {
-		for _, v := range d.Get("policy").([]interface{}) {
-			configSet = append(configSet, setPrefix+" policy "+v.(string))
-		}
+	for _, v := range d.Get("policy").([]interface{}) {
+		configSet = append(configSet, setPrefix+" policy "+v.(string))
 	}
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err

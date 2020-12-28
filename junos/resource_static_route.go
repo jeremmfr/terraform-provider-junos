@@ -408,10 +408,8 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	if d.Get("metric").(int) > 0 {
 		configSet = append(configSet, setPrefix+" metric "+strconv.Itoa(d.Get("metric").(int)))
 	}
-	if len(d.Get("community").([]interface{})) > 0 {
-		for _, v := range d.Get("community").([]interface{}) {
-			configSet = append(configSet, setPrefix+" community "+v.(string))
-		}
+	for _, v := range d.Get("community").([]interface{}) {
+		configSet = append(configSet, setPrefix+" community "+v.(string))
 	}
 	if d.Get("discard").(bool) {
 		configSet = append(configSet, setPrefix+" discard")

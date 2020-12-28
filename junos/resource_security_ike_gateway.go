@@ -498,23 +498,21 @@ func setIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 	if d.Get("no_nat_traversal").(bool) {
 		configSet = append(configSet, setPrefix+" no-nat-traversal")
 	}
-	if len(d.Get("dead_peer_detection").([]interface{})) != 0 {
+	for _, v := range d.Get("dead_peer_detection").([]interface{}) {
 		configSet = append(configSet, setPrefix+" dead-peer-detection")
-		for _, v := range d.Get("dead_peer_detection").([]interface{}) {
-			if v != nil {
-				deadPeerOptions := v.(map[string]interface{})
-				if deadPeerOptions["interval"].(int) != 0 {
-					configSet = append(configSet, setPrefix+" dead-peer-detection interval "+
-						strconv.Itoa(deadPeerOptions["interval"].(int)))
-				}
-				if deadPeerOptions["threshold"].(int) != 0 {
-					configSet = append(configSet, setPrefix+" dead-peer-detection threshold "+
-						strconv.Itoa(deadPeerOptions["threshold"].(int)))
-				}
-				if deadPeerOptions["send_mode"].(string) != "" {
-					configSet = append(configSet, setPrefix+" dead-peer-detection "+
-						deadPeerOptions["send_mode"].(string))
-				}
+		if v != nil {
+			deadPeerOptions := v.(map[string]interface{})
+			if deadPeerOptions["interval"].(int) != 0 {
+				configSet = append(configSet, setPrefix+" dead-peer-detection interval "+
+					strconv.Itoa(deadPeerOptions["interval"].(int)))
+			}
+			if deadPeerOptions["threshold"].(int) != 0 {
+				configSet = append(configSet, setPrefix+" dead-peer-detection threshold "+
+					strconv.Itoa(deadPeerOptions["threshold"].(int)))
+			}
+			if deadPeerOptions["send_mode"].(string) != "" {
+				configSet = append(configSet, setPrefix+" dead-peer-detection "+
+					deadPeerOptions["send_mode"].(string))
 			}
 		}
 	}
