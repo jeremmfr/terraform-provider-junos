@@ -321,46 +321,48 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 		return err
 	}
 	for _, syslog := range d.Get("syslog").([]interface{}) {
-		if syslog != nil {
-			syslogM := syslog.(map[string]interface{})
-			for _, archive := range syslogM["archive"].([]interface{}) {
-				configSet = append(configSet, setPrefix+"syslog archive")
-				if archive != nil {
-					archiveM := archive.(map[string]interface{})
-					if archiveM["binary_data"].(bool) && archiveM["no_binary_data"].(bool) {
-						return fmt.Errorf("conflict between 'binary_data' and 'no_binary_data' for syslog archive")
-					}
-					if archiveM["binary_data"].(bool) {
-						configSet = append(configSet, setPrefix+"syslog archive binary-data")
-					}
-					if archiveM["no_binary_data"].(bool) {
-						configSet = append(configSet, setPrefix+"syslog archive no-binary-data")
-					}
-					if archiveM["files"].(int) > 0 {
-						configSet = append(configSet, setPrefix+"syslog archive files "+strconv.Itoa(archiveM["files"].(int)))
-					}
-					if archiveM["size"].(int) > 0 {
-						configSet = append(configSet, setPrefix+"syslog archive size "+strconv.Itoa(archiveM["size"].(int)))
-					}
-					if archiveM["no_world_readable"].(bool) && archiveM["world_readable"].(bool) {
-						return fmt.Errorf("conflict between 'world_readable' and 'no_world_readable' for syslog archive")
-					}
-					if archiveM["no_world_readable"].(bool) {
-						configSet = append(configSet, setPrefix+"syslog archive no-world-readable")
-					}
-					if archiveM["world_readable"].(bool) {
-						configSet = append(configSet, setPrefix+"syslog archive world-readable")
-					}
+		if syslog == nil {
+			return fmt.Errorf("syslog block is empty")
+		}
+		syslogM := syslog.(map[string]interface{})
+		for _, archive := range syslogM["archive"].([]interface{}) {
+			configSet = append(configSet, setPrefix+"syslog archive")
+			if archive != nil {
+				archiveM := archive.(map[string]interface{})
+				if archiveM["binary_data"].(bool) && archiveM["no_binary_data"].(bool) {
+					return fmt.Errorf("conflict between 'binary_data' and 'no_binary_data' for syslog archive")
+				}
+				if archiveM["binary_data"].(bool) {
+					configSet = append(configSet, setPrefix+"syslog archive binary-data")
+				}
+				if archiveM["no_binary_data"].(bool) {
+					configSet = append(configSet, setPrefix+"syslog archive no-binary-data")
+				}
+				if archiveM["files"].(int) > 0 {
+					configSet = append(configSet, setPrefix+"syslog archive files "+strconv.Itoa(archiveM["files"].(int)))
+				}
+				if archiveM["size"].(int) > 0 {
+					configSet = append(configSet, setPrefix+"syslog archive size "+strconv.Itoa(archiveM["size"].(int)))
+				}
+				if archiveM["no_world_readable"].(bool) && archiveM["world_readable"].(bool) {
+					return fmt.Errorf("conflict between 'world_readable' and 'no_world_readable' for syslog archive")
+				}
+				if archiveM["no_world_readable"].(bool) {
+					configSet = append(configSet, setPrefix+"syslog archive no-world-readable")
+				}
+				if archiveM["world_readable"].(bool) {
+					configSet = append(configSet, setPrefix+"syslog archive world-readable")
 				}
 			}
-			if syslogM["log_rotate_frequency"].(int) > 0 {
-				configSet = append(configSet, setPrefix+"syslog log-rotate-frequency "+
-					strconv.Itoa(syslogM["log_rotate_frequency"].(int)))
-			}
-			if syslogM["source_address"].(string) != "" {
-				configSet = append(configSet, setPrefix+"syslog source-address "+syslogM["source_address"].(string))
-			}
 		}
+		if syslogM["log_rotate_frequency"].(int) > 0 {
+			configSet = append(configSet, setPrefix+"syslog log-rotate-frequency "+
+				strconv.Itoa(syslogM["log_rotate_frequency"].(int)))
+		}
+		if syslogM["source_address"].(string) != "" {
+			configSet = append(configSet, setPrefix+"syslog source-address "+syslogM["source_address"].(string))
+		}
+	}
 	}
 	if d.Get("tracing_dest_override_syslog_host").(string) != "" {
 		configSet = append(configSet, setPrefix+"tracing destination-override syslog host "+
@@ -380,83 +382,85 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	configSet := make([]string, 0)
 
 	for _, services := range d.Get("services").([]interface{}) {
-		if services != nil {
-			servicesM := services.(map[string]interface{})
-			for _, servicesSSH := range servicesM["ssh"].([]interface{}) {
-				if servicesSSH != nil {
-					servicesSSHM := servicesSSH.(map[string]interface{})
-					for _, auth := range servicesSSHM["authentication_order"].([]interface{}) {
-						configSet = append(configSet, setPrefix+"ssh authentication-order "+auth.(string))
-					}
-					for _, ciphers := range servicesSSHM["ciphers"].([]interface{}) {
-						configSet = append(configSet, setPrefix+"ssh ciphers "+ciphers.(string))
-					}
-					if servicesSSHM["client_alive_count_max"].(int) > -1 {
-						configSet = append(configSet, setPrefix+"ssh client-alive-count-max "+
-							strconv.Itoa(servicesSSHM["client_alive_count_max"].(int)))
-					}
-					if servicesSSHM["client_alive_interval"].(int) > -1 {
-						configSet = append(configSet, setPrefix+"ssh client-alive-interval "+
-							strconv.Itoa(servicesSSHM["client_alive_interval"].(int)))
-					}
-					if servicesSSHM["connection_limit"].(int) > 0 {
-						configSet = append(configSet, setPrefix+"ssh connection-limit "+
-							strconv.Itoa(servicesSSHM["connection_limit"].(int)))
-					}
-					if servicesSSHM["fingerprint_hash"].(string) != "" {
-						configSet = append(configSet, setPrefix+"ssh fingerprint-hash "+
-							servicesSSHM["fingerprint_hash"].(string))
-					}
-					for _, hostkeyAlgo := range servicesSSHM["hostkey_algorithm"].([]interface{}) {
-						configSet = append(configSet, setPrefix+"ssh hostkey-algorithm "+hostkeyAlgo.(string))
-					}
-					for _, keyExchange := range servicesSSHM["key_exchange"].([]interface{}) {
-						configSet = append(configSet, setPrefix+"ssh key-exchange "+keyExchange.(string))
-					}
-					if servicesSSHM["log_key_changes"].(bool) {
-						configSet = append(configSet, setPrefix+"ssh log-key-changes")
-					}
-					for _, macs := range servicesSSHM["macs"].([]interface{}) {
-						configSet = append(configSet, setPrefix+"ssh macs "+macs.(string))
-					}
-					if servicesSSHM["max_pre_authentication_packets"].(int) > 0 {
-						configSet = append(configSet, setPrefix+"ssh max-pre-authentication-packets "+
-							strconv.Itoa(servicesSSHM["max_pre_authentication_packets"].(int)))
-					}
-					if servicesSSHM["max_sessions_per_connection"].(int) > 0 {
-						configSet = append(configSet, setPrefix+"ssh max-sessions-per-connection "+
-							strconv.Itoa(servicesSSHM["max_sessions_per_connection"].(int)))
-					}
-					if servicesSSHM["no_passwords"].(bool) {
-						configSet = append(configSet, setPrefix+"ssh no-passwords")
-					}
-					if servicesSSHM["no_public_keys"].(bool) {
-						configSet = append(configSet, setPrefix+"ssh no-public-keys")
-					}
-					if servicesSSHM["port"].(int) > 0 {
-						configSet = append(configSet, setPrefix+"ssh port "+
-							strconv.Itoa(servicesSSHM["port"].(int)))
-					}
-					for _, version := range servicesSSHM["protocol_version"].([]interface{}) {
-						configSet = append(configSet, setPrefix+"ssh protocol-version "+version.(string))
-					}
-					if servicesSSHM["rate_limit"].(int) > 0 {
-						configSet = append(configSet, setPrefix+"ssh rate-limit "+
-							strconv.Itoa(servicesSSHM["rate_limit"].(int)))
-					}
-					if servicesSSHM["root_login"].(string) != "" {
-						configSet = append(configSet, setPrefix+"ssh root-login "+servicesSSHM["root_login"].(string))
-					}
-					if servicesSSHM["no_tcp_forwarding"].(bool) && servicesSSHM["tcp_forwarding"].(bool) {
-						return fmt.Errorf("conflict between 'no_tcp_forwarding' and 'tcp_forwarding' for services ssh")
-					}
-					if servicesSSHM["no_tcp_forwarding"].(bool) {
-						configSet = append(configSet, setPrefix+"ssh no-tcp-forwarding")
-					}
-					if servicesSSHM["tcp_forwarding"].(bool) {
-						configSet = append(configSet, setPrefix+"ssh tcp-forwarding")
-					}
-				}
+		if services == nil {
+			return fmt.Errorf("services block is empty")
+		}
+		servicesM := services.(map[string]interface{})
+		for _, servicesSSH := range servicesM["ssh"].([]interface{}) {
+			if servicesSSH == nil {
+				return fmt.Errorf("services.0.ssh block is empty")
+			}
+			servicesSSHM := servicesSSH.(map[string]interface{})
+			for _, auth := range servicesSSHM["authentication_order"].([]interface{}) {
+				configSet = append(configSet, setPrefix+"ssh authentication-order "+auth.(string))
+			}
+			for _, ciphers := range servicesSSHM["ciphers"].([]interface{}) {
+				configSet = append(configSet, setPrefix+"ssh ciphers "+ciphers.(string))
+			}
+			if servicesSSHM["client_alive_count_max"].(int) > -1 {
+				configSet = append(configSet, setPrefix+"ssh client-alive-count-max "+
+					strconv.Itoa(servicesSSHM["client_alive_count_max"].(int)))
+			}
+			if servicesSSHM["client_alive_interval"].(int) > -1 {
+				configSet = append(configSet, setPrefix+"ssh client-alive-interval "+
+					strconv.Itoa(servicesSSHM["client_alive_interval"].(int)))
+			}
+			if servicesSSHM["connection_limit"].(int) > 0 {
+				configSet = append(configSet, setPrefix+"ssh connection-limit "+
+					strconv.Itoa(servicesSSHM["connection_limit"].(int)))
+			}
+			if servicesSSHM["fingerprint_hash"].(string) != "" {
+				configSet = append(configSet, setPrefix+"ssh fingerprint-hash "+
+					servicesSSHM["fingerprint_hash"].(string))
+			}
+			for _, hostkeyAlgo := range servicesSSHM["hostkey_algorithm"].([]interface{}) {
+				configSet = append(configSet, setPrefix+"ssh hostkey-algorithm "+hostkeyAlgo.(string))
+			}
+			for _, keyExchange := range servicesSSHM["key_exchange"].([]interface{}) {
+				configSet = append(configSet, setPrefix+"ssh key-exchange "+keyExchange.(string))
+			}
+			if servicesSSHM["log_key_changes"].(bool) {
+				configSet = append(configSet, setPrefix+"ssh log-key-changes")
+			}
+			for _, macs := range servicesSSHM["macs"].([]interface{}) {
+				configSet = append(configSet, setPrefix+"ssh macs "+macs.(string))
+			}
+			if servicesSSHM["max_pre_authentication_packets"].(int) > 0 {
+				configSet = append(configSet, setPrefix+"ssh max-pre-authentication-packets "+
+					strconv.Itoa(servicesSSHM["max_pre_authentication_packets"].(int)))
+			}
+			if servicesSSHM["max_sessions_per_connection"].(int) > 0 {
+				configSet = append(configSet, setPrefix+"ssh max-sessions-per-connection "+
+					strconv.Itoa(servicesSSHM["max_sessions_per_connection"].(int)))
+			}
+			if servicesSSHM["no_passwords"].(bool) {
+				configSet = append(configSet, setPrefix+"ssh no-passwords")
+			}
+			if servicesSSHM["no_public_keys"].(bool) {
+				configSet = append(configSet, setPrefix+"ssh no-public-keys")
+			}
+			if servicesSSHM["port"].(int) > 0 {
+				configSet = append(configSet, setPrefix+"ssh port "+
+					strconv.Itoa(servicesSSHM["port"].(int)))
+			}
+			for _, version := range servicesSSHM["protocol_version"].([]interface{}) {
+				configSet = append(configSet, setPrefix+"ssh protocol-version "+version.(string))
+			}
+			if servicesSSHM["rate_limit"].(int) > 0 {
+				configSet = append(configSet, setPrefix+"ssh rate-limit "+
+					strconv.Itoa(servicesSSHM["rate_limit"].(int)))
+			}
+			if servicesSSHM["root_login"].(string) != "" {
+				configSet = append(configSet, setPrefix+"ssh root-login "+servicesSSHM["root_login"].(string))
+			}
+			if servicesSSHM["no_tcp_forwarding"].(bool) && servicesSSHM["tcp_forwarding"].(bool) {
+				return fmt.Errorf("conflict between 'no_tcp_forwarding' and 'tcp_forwarding' for services ssh")
+			}
+			if servicesSSHM["no_tcp_forwarding"].(bool) {
+				configSet = append(configSet, setPrefix+"ssh no-tcp-forwarding")
+			}
+			if servicesSSHM["tcp_forwarding"].(bool) {
+				configSet = append(configSet, setPrefix+"ssh tcp-forwarding")
 			}
 		}
 	}

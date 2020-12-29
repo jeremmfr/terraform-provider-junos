@@ -4,6 +4,7 @@ ENHANCEMENTS:
 * code optimization (remove useless strings mod usage to compare fixed string)
 
 BUG FIXES:
+* generate errors on apply if `syslog`, `services` or `services.0.ssh` block is set but empty in `junos_system` resource
 
 ## v1.10.0
 ENHANCEMENTS:
