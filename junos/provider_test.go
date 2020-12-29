@@ -34,6 +34,7 @@ func TestProvider_impl(t *testing.T) {
 // Few resources and parameters works on both devices, but most tested without TESTACC_SWITCH
 
 func testAccPreCheck(t *testing.T) {
+	t.Helper()
 	if os.Getenv("JUNOS_HOST") == "" && os.Getenv("JUNOS_KEYFILE") == "" {
 		t.Fatal("JUNOS_HOST must be set for acceptance tests")
 	}
