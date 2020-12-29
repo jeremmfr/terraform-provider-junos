@@ -360,15 +360,15 @@ func readAggregateRoute(destination string, instance string, m interface{},
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case strings.HasSuffix(itemTrim, "active"):
+			case itemTrim == "active":
 				confRead.active = true
-			case strings.HasSuffix(itemTrim, "passive"):
+			case itemTrim == passiveW:
 				confRead.passive = true
-			case strings.HasSuffix(itemTrim, "brief"):
+			case itemTrim == "brief":
 				confRead.brief = true
-			case strings.HasSuffix(itemTrim, "full"):
+			case itemTrim == "full":
 				confRead.full = true
-			case strings.HasSuffix(itemTrim, "discard"):
+			case itemTrim == discardW:
 				confRead.discard = true
 			case strings.HasPrefix(itemTrim, "preference "):
 				confRead.preference, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "preference "))

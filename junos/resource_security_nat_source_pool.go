@@ -285,7 +285,7 @@ func readSecurityNatSourcePool(natSourcePool string,
 			switch {
 			case strings.HasPrefix(itemTrim, "address "):
 				confRead.address = append(confRead.address, strings.TrimPrefix(itemTrim, "address "))
-			case strings.HasPrefix(itemTrim, "port no-translation"):
+			case itemTrim == "port no-translation":
 				confRead.portNoTranslation = true
 			case strings.HasPrefix(itemTrim, "port port-overloading-factor"):
 				confRead.portOverloadingFactor, err = strconv.Atoi(strings.TrimPrefix(itemTrim,

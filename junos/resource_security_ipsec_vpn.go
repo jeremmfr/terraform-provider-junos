@@ -481,7 +481,7 @@ func readIpsecVpn(ipsecVpn string, m interface{}, jnprSess *NetconfObject) (ipse
 					monitorOptions["source_interface"] = strings.TrimPrefix(itemTrim, "vpn-monitor source-interface ")
 				case strings.HasPrefix(itemTrim, "vpn-monitor destination-ip "):
 					monitorOptions["destination_ip"] = strings.TrimPrefix(itemTrim, "vpn-monitor destination-ip ")
-				case strings.HasPrefix(itemTrim, "vpn-monitor optimized"):
+				case itemTrim == "vpn-monitor optimized":
 					monitorOptions["optimized"] = true
 				}
 				// override (maxItem = 1)

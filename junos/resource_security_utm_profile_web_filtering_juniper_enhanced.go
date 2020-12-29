@@ -478,7 +478,7 @@ func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *Netconf
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "block-message type custom-redirect-url"):
+				case itemTrim == "block-message type custom-redirect-url":
 					confRead.blockMessage[0]["type_custom_redirect_url"] = true
 				case strings.HasPrefix(itemTrim, "block-message url "):
 					confRead.blockMessage[0]["url"] = strings.Trim(strings.TrimPrefix(itemTrim, "block-message url "), "\"")
@@ -527,7 +527,7 @@ func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *Netconf
 				case strings.HasPrefix(itemTrimFallback, "too-many-requests "):
 					confRead.fallbackSettings[0]["too_many_requests"] = strings.TrimPrefix(itemTrimFallback, "too-many-requests ")
 				}
-			case strings.HasSuffix(itemTrim, "no-safe-search"):
+			case itemTrim == "no-safe-search":
 				confRead.noSafeSearch = true
 			case strings.HasPrefix(itemTrim, "quarantine-custom-message "):
 				confRead.quarantineCustomMessage = strings.Trim(strings.TrimPrefix(itemTrim, "quarantine-custom-message "), "\"")
@@ -539,7 +539,7 @@ func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *Netconf
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "quarantine-message type custom-redirect-url"):
+				case itemTrim == "quarantine-message type custom-redirect-url":
 					confRead.quarantineMessage[0]["type_custom_redirect_url"] = true
 				case strings.HasPrefix(itemTrim, "quarantine-message url "):
 					confRead.quarantineMessage[0]["url"] = strings.Trim(strings.TrimPrefix(itemTrim, "quarantine-message url "), "\"")

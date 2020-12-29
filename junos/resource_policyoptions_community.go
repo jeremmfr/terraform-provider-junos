@@ -238,7 +238,7 @@ func readPolicyoptionsCommunity(community string, m interface{}, jnprSess *Netco
 			switch {
 			case strings.HasPrefix(itemTrim, "members "):
 				confRead.members = append(confRead.members, strings.TrimPrefix(itemTrim, "members "))
-			case strings.HasPrefix(itemTrim, "invert-match"):
+			case itemTrim == "invert-match":
 				confRead.invertMatch = true
 			}
 		}

@@ -619,7 +619,7 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 						confRead.services[0]["ssh"].([]map[string]interface{})[0]["key_exchange"] = append(
 							confRead.services[0]["ssh"].([]map[string]interface{})[0]["key_exchange"].([]string),
 							strings.TrimPrefix(itemTrim, "services ssh key-exchange "))
-					case strings.HasPrefix(itemTrim, "services ssh log-key-changes"):
+					case itemTrim == "services ssh log-key-changes":
 						confRead.services[0]["ssh"].([]map[string]interface{})[0]["log_key_changes"] = true
 					case strings.HasPrefix(itemTrim, "services ssh macs "):
 						confRead.services[0]["ssh"].([]map[string]interface{})[0]["macs"] = append(
@@ -639,9 +639,9 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 						if err != nil {
 							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 						}
-					case strings.HasPrefix(itemTrim, "services ssh no-passwords"):
+					case itemTrim == "services ssh no-passwords":
 						confRead.services[0]["ssh"].([]map[string]interface{})[0]["no_passwords"] = true
-					case strings.HasPrefix(itemTrim, "services ssh no-public-keys"):
+					case itemTrim == "services ssh no-public-keys":
 						confRead.services[0]["ssh"].([]map[string]interface{})[0]["no_public_keys"] = true
 					case strings.HasPrefix(itemTrim, "services ssh port "):
 						var err error
@@ -664,9 +664,9 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 					case strings.HasPrefix(itemTrim, "services ssh root-login "):
 						confRead.services[0]["ssh"].([]map[string]interface{})[0]["root_login"] =
 							strings.TrimPrefix(itemTrim, "services ssh root-login ")
-					case strings.HasPrefix(itemTrim, "services ssh no-tcp-forwarding"):
+					case itemTrim == "services ssh no-tcp-forwarding":
 						confRead.services[0]["ssh"].([]map[string]interface{})[0]["no_tcp_forwarding"] = true
-					case strings.HasPrefix(itemTrim, "services ssh tcp-forwarding"):
+					case itemTrim == "services ssh tcp-forwarding":
 						confRead.services[0]["ssh"].([]map[string]interface{})[0]["tcp_forwarding"] = true
 					}
 				}
@@ -692,9 +692,9 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 							})
 					}
 					switch {
-					case strings.HasPrefix(itemTrim, "syslog archive binary-data"):
+					case itemTrim == "syslog archive binary-data":
 						confRead.syslog[0]["archive"].([]map[string]interface{})[0]["binary_data"] = true
-					case strings.HasPrefix(itemTrim, "syslog archive no-binary-data"):
+					case itemTrim == "syslog archive no-binary-data":
 						confRead.syslog[0]["archive"].([]map[string]interface{})[0]["no_binary_data"] = true
 					case strings.HasPrefix(itemTrim, "syslog archive files "):
 						var err error
@@ -710,9 +710,9 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 						if err != nil {
 							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 						}
-					case strings.HasPrefix(itemTrim, "syslog archive no-world-readable"):
+					case itemTrim == "syslog archive no-world-readable":
 						confRead.syslog[0]["archive"].([]map[string]interface{})[0]["no_world_readable"] = true
-					case strings.HasPrefix(itemTrim, "syslog archive world-readable"):
+					case itemTrim == "syslog archive world-readable":
 						confRead.syslog[0]["archive"].([]map[string]interface{})[0]["world_readable"] = true
 					}
 				case strings.HasPrefix(itemTrim, "syslog log-rotate-frequency "):

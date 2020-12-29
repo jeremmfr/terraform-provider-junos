@@ -458,11 +458,11 @@ func readSystemSyslogHost(host string, m interface{}, jnprSess *NetconfObject) (
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case strings.HasSuffix(itemTrim, "allow-duplicates"):
+			case itemTrim == "allow-duplicates":
 				confRead.allowDuplicates = true
-			case strings.HasSuffix(itemTrim, "exclude-hostname"):
+			case itemTrim == "exclude-hostname":
 				confRead.excludeHostname = true
-			case strings.HasSuffix(itemTrim, "explicit-priority"):
+			case itemTrim == "explicit-priority":
 				confRead.explicitPriority = true
 			case strings.HasPrefix(itemTrim, "facility-override "):
 				confRead.facilityOverride = strings.TrimPrefix(itemTrim, "facility-override ")
@@ -485,7 +485,7 @@ func readSystemSyslogHost(host string, m interface{}, jnprSess *NetconfObject) (
 				structuredData := map[string]interface{}{
 					"brief": false,
 				}
-				if strings.HasSuffix(itemTrim, "brief") {
+				if itemTrim == "structured-data brief" {
 					structuredData["brief"] = true
 				}
 				// override (maxItem = 1)

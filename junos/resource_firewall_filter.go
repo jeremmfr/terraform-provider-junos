@@ -480,7 +480,7 @@ func readFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfO
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case strings.HasPrefix(itemTrim, "interface-specific"):
+			case itemTrim == "interface-specific":
 				confRead.interfaceSpecific = true
 			case strings.HasPrefix(itemTrim, "term "):
 				termSplit := strings.Split(strings.TrimPrefix(itemTrim, "term "), " ")
@@ -798,9 +798,9 @@ func readFirewallFilterOptsFrom(item string,
 			strings.TrimPrefix(item, "protocol-except "))
 	case strings.HasPrefix(item, "tcp-flags "):
 		fromMap["tcp_flags"] = strings.Trim(strings.TrimPrefix(item, "tcp-flags "), "\"")
-	case strings.HasSuffix(item, "tcp-initial"):
+	case item == "tcp-initial":
 		fromMap["tcp_initial"] = true
-	case strings.HasSuffix(item, "tcp-established"):
+	case item == "tcp-established":
 		fromMap["tcp_established"] = true
 	case strings.HasPrefix(item, "icmp-code "):
 		fromMap["icmp_code"] = append(fromMap["icmp_code"].([]string), strings.TrimPrefix(item, "icmp-code "))
@@ -812,7 +812,7 @@ func readFirewallFilterOptsFrom(item string,
 	case strings.HasPrefix(item, "icmp-type-except "):
 		fromMap["icmp_type_except"] = append(fromMap["icmp_type_except"].([]string),
 			strings.TrimPrefix(item, "icmp-type-except "))
-	case strings.HasSuffix(item, "is-fragment"):
+	case item == "is-fragment":
 		fromMap["is_fragment"] = true
 	case strings.HasPrefix(item, "next-header "):
 		fromMap["next_header"] = append(fromMap["next_header"].([]string),
@@ -834,10 +834,10 @@ func readFirewallFilterOptsThen(item string,
 		}
 	}
 	switch {
-	case strings.HasSuffix(item, "accept"),
-		strings.HasSuffix(item, "reject"),
-		strings.HasSuffix(item, "discard"),
-		strings.HasSuffix(item, "next term"):
+	case item == "accept",
+		item == "reject",
+		item == discardW,
+		item == "next term":
 		thenMap["action"] = item
 	case strings.HasPrefix(item, "count "):
 		thenMap["count"] = strings.TrimPrefix(item, "count ")
@@ -845,15 +845,15 @@ func readFirewallFilterOptsThen(item string,
 		thenMap["routing_instance"] = strings.TrimPrefix(item, "routing-instance ")
 	case strings.HasPrefix(item, "policer "):
 		thenMap["policer"] = strings.TrimPrefix(item, "policer ")
-	case strings.HasSuffix(item, "syslog"):
+	case item == "syslog":
 		thenMap["syslog"] = true
-	case strings.HasSuffix(item, "log"):
+	case item == "log":
 		thenMap["log"] = true
-	case strings.HasSuffix(item, "port-mirror"):
+	case item == "port-mirror":
 		thenMap["port_mirror"] = true
-	case strings.HasSuffix(item, "sample"):
+	case item == "sample":
 		thenMap["sample"] = true
-	case strings.HasSuffix(item, "service-accounting"):
+	case item == "service-accounting":
 		thenMap["service_accounting"] = true
 	}
 	// override (maxItem = 1)

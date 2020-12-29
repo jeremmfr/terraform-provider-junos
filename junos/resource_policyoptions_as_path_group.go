@@ -255,7 +255,7 @@ func readPolicyoptionsAsPathGroup(asPathGroup string,
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case strings.HasPrefix(itemTrim, "dynamic-db"):
+			case itemTrim == dynamicDB:
 				confRead.dynamicDB = true
 			case strings.HasPrefix(itemTrim, "as-path "):
 				asPath := map[string]interface{}{

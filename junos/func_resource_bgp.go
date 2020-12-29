@@ -294,7 +294,7 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 	if item == "remove-private" {
 		confRead.removePrivate = true
 	}
-	if item == "passive" {
+	if item == passiveW {
 		confRead.passive = true
 	}
 	if strings.HasPrefix(item, "hold-time ") {
@@ -335,7 +335,7 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 		} else {
 			if strings.HasPrefix(item, "metric-out igp") {
 				confRead.metricOutIgp = true
-				if strings.HasSuffix(item, "igp delay-med-update") {
+				if item == "metric-out igp delay-med-update" {
 					confRead.metricOutIgpDelayMedUpdate = true
 				} else if strings.HasPrefix(item, "metric-out igp ") {
 					confRead.metricOutIgpOffset, err = strconv.Atoi(strings.TrimPrefix(item, "metric-out igp "))
@@ -760,7 +760,7 @@ func readBgpOptsGracefulRestart(item string, grOpts []map[string]interface{}) ([
 		}
 	}
 	var err error
-	if itemTrim == "disable" {
+	if itemTrim == disableW {
 		grRead["disable"] = true
 	}
 	if strings.HasPrefix(itemTrim, "restart-time ") {

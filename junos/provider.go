@@ -26,6 +26,10 @@ const (
 	st0Word        = "st0"
 	opsfV2         = "ospf"
 	ospfV3         = "ospf3"
+	passiveW       = "passive"
+	discardW       = "discard"
+	disableW       = "disable"
+	dynamicDB      = "dynamic-db"
 )
 
 var (
