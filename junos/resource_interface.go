@@ -1095,7 +1095,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
 
-			case strings.HasPrefix(itemTrim, "vlan-tagging"):
+			case itemTrim == "vlan-tagging":
 				confRead.vlanTagging = true
 			case strings.HasPrefix(itemTrim, "vlan-id "):
 				var err error
@@ -1171,7 +1171,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 				confRead.v8023ad = strings.TrimPrefix(itemTrim, "ether-options 802.3ad ")
 			case strings.HasPrefix(itemTrim, "gigether-options 802.3ad "):
 				confRead.v8023ad = strings.TrimPrefix(itemTrim, "gigether-options 802.3ad ")
-			case strings.HasPrefix(itemTrim, "unit 0 family ethernet-switching interface-mode trunk"):
+			case itemTrim == "unit 0 family ethernet-switching interface-mode trunk":
 				confRead.trunk = true
 			case strings.HasPrefix(itemTrim, "unit 0 family ethernet-switching vlan members"):
 				confRead.vlanMembers = append(confRead.vlanMembers, strings.TrimPrefix(itemTrim,
@@ -1548,7 +1548,7 @@ func fillFamilyInetAddressOld(item string, inetAddress []map[string]interface{},
 		case strings.HasPrefix(itemTrimVrrp, "virtual-link-local-address "):
 			vrrpGroup["virtual_link_local_address"] = strings.TrimPrefix(itemTrimVrrp,
 				"virtual-link-local-address ")
-		case strings.HasPrefix(itemTrimVrrp, "accept-data"):
+		case itemTrimVrrp == "accept-data":
 			vrrpGroup["accept_data"] = true
 		case strings.HasPrefix(itemTrimVrrp, "advertise-interval "):
 			vrrpGroup["advertise_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVrrp,
@@ -1576,11 +1576,11 @@ func fillFamilyInetAddressOld(item string, inetAddress []map[string]interface{},
 			}
 		case strings.HasPrefix(itemTrimVrrp, "authentication-type "):
 			vrrpGroup["authentication_type"] = strings.TrimPrefix(itemTrimVrrp, "authentication-type ")
-		case strings.HasPrefix(itemTrimVrrp, "no-accept-data"):
+		case itemTrimVrrp == "no-accept-data":
 			vrrpGroup["no_accept_data"] = true
-		case strings.HasPrefix(itemTrimVrrp, "no-preempt"):
+		case itemTrimVrrp == "no-preempt":
 			vrrpGroup["no_preempt"] = true
-		case strings.HasPrefix(itemTrimVrrp, "preempt"):
+		case itemTrimVrrp == "preempt":
 			vrrpGroup["preempt"] = true
 		case strings.HasPrefix(itemTrimVrrp, "priority"):
 			vrrpGroup["priority"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVrrp, "priority "))

@@ -553,13 +553,13 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
 
-			case strings.HasPrefix(itemTrim, "vlan-tagging"):
+			case itemTrim == "vlan-tagging":
 				confRead.vlanTagging = true
 			case strings.HasPrefix(itemTrim, "ether-options 802.3ad "):
 				confRead.v8023ad = strings.TrimPrefix(itemTrim, "ether-options 802.3ad ")
 			case strings.HasPrefix(itemTrim, "gigether-options 802.3ad "):
 				confRead.v8023ad = strings.TrimPrefix(itemTrim, "gigether-options 802.3ad ")
-			case strings.HasPrefix(itemTrim, "unit 0 family ethernet-switching interface-mode trunk"):
+			case itemTrim == "unit 0 family ethernet-switching interface-mode trunk":
 				confRead.trunk = true
 			case strings.HasPrefix(itemTrim, "unit 0 family ethernet-switching vlan members"):
 				confRead.vlanMembers = append(confRead.vlanMembers, strings.TrimPrefix(itemTrim,
