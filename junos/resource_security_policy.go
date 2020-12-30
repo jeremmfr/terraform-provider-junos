@@ -449,11 +449,11 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 						strings.HasSuffix(itemTrimPolicy, "deny"),
 						strings.HasSuffix(itemTrimPolicy, "reject"):
 						m["then"] = strings.TrimPrefix(itemTrimPolicy, "then ")
-					case strings.HasSuffix(itemTrimPolicy, "count"):
+					case itemTrimPolicy == "then count":
 						m["count"] = true
-					case strings.HasSuffix(itemTrimPolicy, "log session-init"):
+					case itemTrimPolicy == "then log session-init":
 						m["log_init"] = true
-					case strings.HasSuffix(itemTrimPolicy, "log session-close"):
+					case itemTrimPolicy == "then log session-close":
 						m["log_close"] = true
 					case strings.HasPrefix(itemTrimPolicy, "then permit tunnel ipsec-vpn "):
 						m["then"] = permitWord
@@ -545,11 +545,11 @@ func readPolicyPermitApplicationServices(itemTrimPolicy string,
 	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "gprs-sctp-profile "):
 		applicationServices["gprs_sctp_profile"] = strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
 			"gprs-sctp-profile "), "\"")
-	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "idp"):
+	case itemTrimPolicyPermitAppSvc == "idp":
 		applicationServices["idp"] = true
-	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "redirect-wx"):
+	case itemTrimPolicyPermitAppSvc == "redirect-wx":
 		applicationServices["redirect_wx"] = true
-	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "reverse-redirect-wx"):
+	case itemTrimPolicyPermitAppSvc == "reverse-redirect-wx":
 		applicationServices["reverse_redirect_wx"] = true
 	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "security-intelligence-policy "):
 		applicationServices["security_intelligence_policy"] = strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc,

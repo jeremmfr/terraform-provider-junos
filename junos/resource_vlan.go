@@ -445,13 +445,13 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "vxlan encapsulate-inner-vlan"):
+				case itemTrim == "vxlan encapsulate-inner-vlan":
 					vxlan["encapsulate_inner_vlan"] = true
-				case strings.HasPrefix(itemTrim, "vxlan ingress-node-replication"):
+				case itemTrim == "vxlan ingress-node-replication":
 					vxlan["ingress_node_replication"] = true
 				case strings.HasPrefix(itemTrim, "vxlan multicast-group "):
 					vxlan["multicast_group"] = strings.TrimPrefix(itemTrim, "vxlan multicast-group ")
-				case strings.HasPrefix(itemTrim, "vxlan ovsdb-managed"):
+				case itemTrim == "vxlan ovsdb-managed":
 					vxlan["ovsdb_managed"] = true
 				case strings.HasPrefix(itemTrim, "vxlan unreachable-vtep-aging-timer "):
 					vxlan["unreachable_vtep_aging_timer"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,

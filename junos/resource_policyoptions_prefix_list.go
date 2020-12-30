@@ -258,7 +258,7 @@ func readPolicyoptionsPrefixList(prefixList string, m interface{}, jnprSess *Net
 				replaceSign := strings.ReplaceAll(strings.Trim(strings.TrimPrefix(itemTrim, "apply-path "), "\""), "&lt;", "<")
 				replaceSign = strings.ReplaceAll(replaceSign, "&gt;", ">")
 				confRead.applyPath = replaceSign
-			case strings.HasSuffix(itemTrim, "dynamic-db"):
+			case itemTrim == dynamicDB:
 				confRead.dynamicDB = true
 			case strings.Contains(itemTrim, "/"):
 				confRead.prefix = append(confRead.prefix, itemTrim)

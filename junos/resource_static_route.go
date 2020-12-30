@@ -535,11 +535,11 @@ func readStaticRoute(destination string, instance string, m interface{},
 				}
 			case strings.HasPrefix(itemTrim, "community "):
 				confRead.community = append(confRead.community, strings.TrimPrefix(itemTrim, "community "))
-			case strings.HasSuffix(itemTrim, "discard"):
+			case itemTrim == discardW:
 				confRead.discard = true
-			case strings.HasSuffix(itemTrim, "receive"):
+			case itemTrim == "receive":
 				confRead.receive = true
-			case strings.HasSuffix(itemTrim, "reject"):
+			case itemTrim == "reject":
 				confRead.reject = true
 			case strings.HasPrefix(itemTrim, "next-hop "):
 				confRead.nextHop = append(confRead.nextHop, strings.TrimPrefix(itemTrim, "next-hop "))
@@ -574,25 +574,25 @@ func readStaticRoute(destination string, instance string, m interface{},
 					qualifiedNextHopOptions["interface"] = strings.TrimPrefix(itemTrimQnh, "interface ")
 				}
 				confRead.qualifiedNextHop = append(confRead.qualifiedNextHop, qualifiedNextHopOptions)
-			case strings.HasSuffix(itemTrim, "active"):
+			case itemTrim == "active":
 				confRead.active = true
-			case strings.HasSuffix(itemTrim, "passive"):
+			case itemTrim == passiveW:
 				confRead.passive = true
-			case strings.HasSuffix(itemTrim, "no-install"):
+			case itemTrim == "no-install":
 				confRead.noInstall = true
-			case strings.HasSuffix(itemTrim, "install"):
+			case itemTrim == "install":
 				confRead.install = true
-			case strings.HasSuffix(itemTrim, "no-readvertise"):
+			case itemTrim == "no-readvertise":
 				confRead.noReadvertise = true
-			case strings.HasSuffix(itemTrim, "readvertise"):
+			case itemTrim == "readvertise":
 				confRead.readvertise = true
-			case strings.HasSuffix(itemTrim, "no-resolve"):
+			case itemTrim == "no-resolve":
 				confRead.noResolve = true
-			case strings.HasSuffix(itemTrim, "resolve"):
+			case itemTrim == "resolve":
 				confRead.resolve = true
-			case strings.HasSuffix(itemTrim, "no-retain"):
+			case itemTrim == "no-retain":
 				confRead.noRetain = true
-			case strings.HasSuffix(itemTrim, "retain"):
+			case itemTrim == "retain":
 				confRead.retain = true
 			}
 		}
