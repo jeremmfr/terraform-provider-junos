@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* add `authentication_order`, `auto_snapshot`, `domain_name`, `host_name`, `inet6_backup_router`, `internet_options`, `max_configuration_rollbacks`, `max_configurations_on_flash`, `no_ping_record_route`, `no_ping_time_stamp`, `no_redirects`, `no_redirects_ipv6` and `time_zone` arguments in `junos_system` resource (Fixes [#81](https://github.com/jeremmfr/terraform-provider-junos/issues/81))
 * code optimization (remove useless list length check before loop on)
 * code optimization (remove useless strings mod usage to compare fixed string)
 
