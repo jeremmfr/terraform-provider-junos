@@ -14,7 +14,8 @@ The `junos_interface` resource is **deprecated** since v1.11.0.
 
 ## Rewrite resource for physical interface
 
-For physical interface (without dot in name) : 
+For physical interface (without dot in name) :
+
 * rename the type of resource `junos_interface` to `junos_interface_physical`
 * rename `complete_destroy` argument to `no_disable_on_destroy`
 
@@ -41,6 +42,7 @@ resource junos_interface_physical "interface_physical_demo" {
 ## Rewrite resource for logical interface
 
 For logical interface (with dot in name) :
+
 * rename type of resource `junos_interface`to `junos_interface_logical`
 * rename `vlan_tagging_id` argument to `vlan_id`
 * rename `complete_destroy` argument to `st0_also_on_destroy`
