@@ -61,8 +61,8 @@ resource junos_policyoptions_policy_statement "testacc_ribGroup" {
   }
 }
 resource junos_rib_group testacc_ribGroup {
-  name = "testacc_ribGroup-test"
-  import_policy = [ junos_policyoptions_policy_statement.testacc_ribGroup.name, ]
+  name          = "testacc_ribGroup-test"
+  import_policy = [junos_policyoptions_policy_statement.testacc_ribGroup.name, ]
   import_rib = [
     "${junos_routing_instance.testacc_ribGroup1.name}.inet.0",
   ]
@@ -85,8 +85,8 @@ resource junos_policyoptions_policy_statement "testacc_ribGroup" {
   }
 }
 resource junos_rib_group testacc_ribGroup {
-  name = "testacc_ribGroup-test"
-  import_policy = [ junos_policyoptions_policy_statement.testacc_ribGroup.name, ]
+  name          = "testacc_ribGroup-test"
+  import_policy = [junos_policyoptions_policy_statement.testacc_ribGroup.name, ]
   import_rib = [
     "${junos_routing_instance.testacc_ribGroup1.name}.inet.0",
     "${junos_routing_instance.testacc_ribGroup2.name}.inet.0",

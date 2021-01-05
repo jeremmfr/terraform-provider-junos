@@ -76,13 +76,13 @@ func testAccJunosOspfAreaConfigCreate() string {
 resource junos_ospf_area "testacc_ospfarea" {
   area_id = "0.0.0.0"
   interface {
-    name = "all"
-    disable = true
-    passive = true
-    metric = 100
+    name                = "all"
+    disable             = true
+    passive             = true
+    metric              = 100
     retransmit_interval = 10
-    hello_interval = 10
-    dead_interval = 10
+    hello_interval      = 10
+    dead_interval       = 10
   }
 }
 `
@@ -98,19 +98,19 @@ resource junos_routing_instance "testacc_ospfarea" {
   name = "testacc_ospfarea"
 }
 resource junos_ospf_area "testacc_ospfarea" {
-  area_id = "0.0.0.0"
-  version = "v3"
+  area_id          = "0.0.0.0"
+  version          = "v3"
   routing_instance = junos_routing_instance.testacc_ospfarea.name
   interface {
-    name = "all"
-    passive = true
-    metric = 100
+    name                = "all"
+    passive             = true
+    metric              = 100
     retransmit_interval = 10
-    hello_interval = 10
-    dead_interval = 10
+    hello_interval      = 10
+    dead_interval       = 10
   }
   interface {
-    name = junos_interface_logical.testacc_ospfarea.name
+    name    = junos_interface_logical.testacc_ospfarea.name
     disable = true
   }
 }

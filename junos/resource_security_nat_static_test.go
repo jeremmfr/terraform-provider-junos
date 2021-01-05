@@ -72,16 +72,16 @@ func testAccJunosSecurityNatStaticConfigCreate() string {
 resource junos_security_nat_static testacc_securityNATStt {
   name = "testacc_securityNATStt"
   from {
-    type = "zone"
-    value = [ junos_security_zone.testacc_securityNATStt.name ]
+    type  = "zone"
+    value = [junos_security_zone.testacc_securityNATStt.name]
   }
   rule {
-    name = "testacc_securityNATSttRule"
+    name                = "testacc_securityNATSttRule"
     destination_address = "192.0.2.0/25"
     then {
-      type = "prefix"
+      type             = "prefix"
       routing_instance = junos_routing_instance.testacc_securityNATStt.name
-      prefix = "192.0.2.128/25"
+      prefix           = "192.0.2.128/25"
     }
   }
 }
@@ -99,25 +99,25 @@ func testAccJunosSecurityNatStaticConfigUpdate() string {
 resource junos_security_nat_static testacc_securityNATStt {
   name = "testacc_securityNATStt"
   from {
-    type = "zone"
-    value = [ junos_security_zone.testacc_securityNATStt.name ]
+    type  = "zone"
+    value = [junos_security_zone.testacc_securityNATStt.name]
   }
   rule {
-    name = "testacc_securityNATSttRule"
+    name                = "testacc_securityNATSttRule"
     destination_address = "192.0.2.0/26"
     then {
-      type = "prefix"
+      type             = "prefix"
       routing_instance = junos_routing_instance.testacc_securityNATStt.name
-      prefix = "192.0.2.64/26"
+      prefix           = "192.0.2.64/26"
     }
   }
   rule {
-    name = "testacc_securityNATSttRule2"
+    name                = "testacc_securityNATSttRule2"
     destination_address = "192.0.2.128/26"
     then {
       routing_instance = junos_routing_instance.testacc_securityNATStt.name
-      type = "prefix"
-       prefix = "192.0.2.192/26"
+      type             = "prefix"
+      prefix           = "192.0.2.192/26"
     }
   }
 }

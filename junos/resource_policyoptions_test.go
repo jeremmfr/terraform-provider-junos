@@ -494,168 +494,168 @@ resource junos_policyoptions_as_path_group "testacc_policyOptions" {
   }
 }
 resource junos_policyoptions_community "testacc_policyOptions" {
-  name = "testacc_policyOptions"
-  members = [ "65000:100" ]
+  name    = "testacc_policyOptions"
+  members = ["65000:100"]
 }
 resource junos_policyoptions_prefix_list "testacc_policyOptions" {
-  name = "testacc_policyOptions"
-  prefix = [ "192.0.2.0/25" ]
+  name   = "testacc_policyOptions"
+  prefix = ["192.0.2.0/25"]
 }
 resource junos_policyoptions_policy_statement "testacc_policyOptions" {
   name = "testacc_policyOptions"
   from {
     aggregate_contributor = true
-    bgp_as_path = [ junos_policyoptions_as_path.testacc_policyOptions.name ]
-    bgp_community = [ junos_policyoptions_community.testacc_policyOptions.name ]
-    bgp_origin = "igp"
-    family = "inet"
-    local_preference = 100
-    routing_instance = junos_routing_instance.testacc_policyOptions.name
-    interface = [ "st0.0" ]
-    metric = 5
-    neighbor = [ "192.0.2.4" ]
-    next_hop = [ "192.0.2.4" ]
-    ospf_area = "0.0.0.0"
-    preference = 100
-    prefix_list = [ junos_policyoptions_prefix_list.testacc_policyOptions.name ]
-    protocol = [ "bgp" ]
+    bgp_as_path           = [junos_policyoptions_as_path.testacc_policyOptions.name]
+    bgp_community         = [junos_policyoptions_community.testacc_policyOptions.name]
+    bgp_origin            = "igp"
+    family                = "inet"
+    local_preference      = 100
+    routing_instance      = junos_routing_instance.testacc_policyOptions.name
+    interface             = ["st0.0"]
+    metric                = 5
+    neighbor              = ["192.0.2.4"]
+    next_hop              = ["192.0.2.4"]
+    ospf_area             = "0.0.0.0"
+    preference            = 100
+    prefix_list           = [junos_policyoptions_prefix_list.testacc_policyOptions.name]
+    protocol              = ["bgp"]
     route_filter {
-      route = "192.0.2.0/25"
+      route  = "192.0.2.0/25"
       option = "exact"
     }
     route_filter {
-      route = "192.0.2.128/25"
-      option = "prefix-length-range"
+      route        = "192.0.2.128/25"
+      option       = "prefix-length-range"
       option_value = "/26-/27"
     }
   }
   to {
-    bgp_as_path =  [ junos_policyoptions_as_path.testacc_policyOptions.name ]
-    bgp_community = [  junos_policyoptions_community.testacc_policyOptions.name ]
-    bgp_origin = "igp"
-    family = "inet"
+    bgp_as_path      = [junos_policyoptions_as_path.testacc_policyOptions.name]
+    bgp_community    = [junos_policyoptions_community.testacc_policyOptions.name]
+    bgp_origin       = "igp"
+    family           = "inet"
     local_preference = 100
     routing_instance = junos_routing_instance.testacc_policyOptions.name
-    interface = [ "st0.0" ]
-    metric = 5
-    neighbor = [ "192.0.2.5" ]
-    next_hop = [ "192.0.2.5" ]
-    ospf_area = "0.0.0.0"
-    policy = [ junos_policyoptions_policy_statement.testacc_policyOptions2.name ]
-    preference = 100
-    protocol = [ "bgp" ]
+    interface        = ["st0.0"]
+    metric           = 5
+    neighbor         = ["192.0.2.5"]
+    next_hop         = ["192.0.2.5"]
+    ospf_area        = "0.0.0.0"
+    policy           = [junos_policyoptions_policy_statement.testacc_policyOptions2.name]
+    preference       = 100
+    protocol         = ["bgp"]
   }
   then {
-    action = "accept"
-    as_path_expand = "65000 65000"
+    action          = "accept"
+    as_path_expand  = "65000 65000"
     as_path_prepend = "65000 65000"
     community {
       action = "set"
-      value = junos_policyoptions_community.testacc_policyOptions.name
+      value  = junos_policyoptions_community.testacc_policyOptions.name
     }
     community {
       action = "delete"
-      value = junos_policyoptions_community.testacc_policyOptions.name
+      value  = junos_policyoptions_community.testacc_policyOptions.name
     }
     community {
       action = "add"
-      value = junos_policyoptions_community.testacc_policyOptions.name
+      value  = junos_policyoptions_community.testacc_policyOptions.name
     }
     default_action = "reject"
-    load_balance = "per-packet"
+    load_balance   = "per-packet"
     local_preference {
       action = "add"
-      value = 10
+      value  = 10
     }
-    next = "policy"
+    next     = "policy"
     next_hop = "192.0.2.4"
     metric {
       action = "add"
-      value = 10
+      value  = 10
     }
     origin = "igp"
     preference {
       action = "add"
-      value = 10
+      value  = 10
     }
   }
   term {
     name = "term"
     from {
       aggregate_contributor = true
-      bgp_as_path = [ junos_policyoptions_as_path.testacc_policyOptions.name ]
-      bgp_community = [ junos_policyoptions_community.testacc_policyOptions.name ]
-      bgp_origin = "igp"
-      family = "inet"
-      local_preference = 100
-      routing_instance = junos_routing_instance.testacc_policyOptions.name
-      interface = [ "st0.0" ]
-      metric = 5
-      neighbor = [ "192.0.2.4" ]
-      next_hop = [ "192.0.2.4" ]
-      ospf_area = "0.0.0.0"
-      policy = [ junos_policyoptions_policy_statement.testacc_policyOptions2.name ]
-      preference = 100
-      prefix_list = [ junos_policyoptions_prefix_list.testacc_policyOptions.name ]
-      protocol = [ "bgp" ]
+      bgp_as_path           = [junos_policyoptions_as_path.testacc_policyOptions.name]
+      bgp_community         = [junos_policyoptions_community.testacc_policyOptions.name]
+      bgp_origin            = "igp"
+      family                = "inet"
+      local_preference      = 100
+      routing_instance      = junos_routing_instance.testacc_policyOptions.name
+      interface             = ["st0.0"]
+      metric                = 5
+      neighbor              = ["192.0.2.4"]
+      next_hop              = ["192.0.2.4"]
+      ospf_area             = "0.0.0.0"
+      policy                = [junos_policyoptions_policy_statement.testacc_policyOptions2.name]
+      preference            = 100
+      prefix_list           = [junos_policyoptions_prefix_list.testacc_policyOptions.name]
+      protocol              = ["bgp"]
       route_filter {
-        route = "192.0.2.0/25"
+        route  = "192.0.2.0/25"
         option = "exact"
       }
       route_filter {
-        route = "192.0.2.128/25"
-        option = "prefix-length-range"
+        route        = "192.0.2.128/25"
+        option       = "prefix-length-range"
         option_value = "/26-/27"
       }
     }
     to {
-      bgp_as_path =  [ junos_policyoptions_as_path.testacc_policyOptions.name ]
-      bgp_community = [  junos_policyoptions_community.testacc_policyOptions.name ]
-      bgp_origin = "igp"
-      family = "inet"
+      bgp_as_path      = [junos_policyoptions_as_path.testacc_policyOptions.name]
+      bgp_community    = [junos_policyoptions_community.testacc_policyOptions.name]
+      bgp_origin       = "igp"
+      family           = "inet"
       local_preference = 100
       routing_instance = junos_routing_instance.testacc_policyOptions.name
-      interface = [ "st0.0" ]
-      metric = 5
-      neighbor = [ "192.0.2.5" ]
-      next_hop = [ "192.0.2.5" ]
-      ospf_area = "0.0.0.0"
-      policy = [ junos_policyoptions_policy_statement.testacc_policyOptions2.name ]
-      preference = 100
-      protocol = [ "bgp" ]
+      interface        = ["st0.0"]
+      metric           = 5
+      neighbor         = ["192.0.2.5"]
+      next_hop         = ["192.0.2.5"]
+      ospf_area        = "0.0.0.0"
+      policy           = [junos_policyoptions_policy_statement.testacc_policyOptions2.name]
+      preference       = 100
+      protocol         = ["bgp"]
     }
     then {
-      action = "accept"
-      as_path_expand = "last-as count 1"
+      action          = "accept"
+      as_path_expand  = "last-as count 1"
       as_path_prepend = "65000 65000"
       community {
         action = "set"
-        value = junos_policyoptions_community.testacc_policyOptions.name
+        value  = junos_policyoptions_community.testacc_policyOptions.name
       }
       community {
         action = "delete"
-        value = junos_policyoptions_community.testacc_policyOptions.name
+        value  = junos_policyoptions_community.testacc_policyOptions.name
       }
       community {
         action = "add"
-        value = junos_policyoptions_community.testacc_policyOptions.name
+        value  = junos_policyoptions_community.testacc_policyOptions.name
       }
       default_action = "reject"
-      load_balance = "per-packet"
+      load_balance   = "per-packet"
       local_preference {
         action = "add"
-        value = 10
+        value  = 10
       }
-      next = "policy"
+      next     = "policy"
       next_hop = "192.0.2.4"
       metric {
         action = "add"
-        value = 10
+        value  = 10
       }
       origin = "igp"
       preference {
         action = "add"
-        value = 10
+        value  = 10
       }
     }
   }
@@ -663,23 +663,23 @@ resource junos_policyoptions_policy_statement "testacc_policyOptions" {
 resource junos_policyoptions_policy_statement "testacc_policyOptions2" {
   name = "testacc_policyOptions2"
   from {
-    bgp_as_path_group = [ junos_policyoptions_as_path_group.testacc_policyOptions.name ]
+    bgp_as_path_group = [junos_policyoptions_as_path_group.testacc_policyOptions.name]
   }
   to {
-    bgp_as_path_group = [ junos_policyoptions_as_path_group.testacc_policyOptions.name ]
+    bgp_as_path_group = [junos_policyoptions_as_path_group.testacc_policyOptions.name]
   }
   then {
     local_preference {
       action = "subtract"
-      value = 10
+      value  = 10
     }
     metric {
       action = "subtract"
-      value = 10
+      value  = 10
     }
     preference {
       action = "subtract"
-      value = 10
+      value  = 10
     }
     action = "accept"
   }
@@ -688,15 +688,15 @@ resource junos_policyoptions_policy_statement "testacc_policyOptions2" {
     then {
       local_preference {
         action = "subtract"
-        value = 10
+        value  = 10
       }
       metric {
         action = "subtract"
-        value = 10
+        value  = 10
       }
       preference {
         action = "subtract"
-        value = 10
+        value  = 10
       }
     }
   }
@@ -720,144 +720,144 @@ resource junos_policyoptions_as_path_group "testacc_policyOptions" {
   }
 }
 resource junos_policyoptions_community "testacc_policyOptions" {
-  name = "testacc_policyOptions"
-  members = [ "65000:200" ]
+  name    = "testacc_policyOptions"
+  members = ["65000:200"]
 }
 resource junos_policyoptions_prefix_list "testacc_policyOptions" {
-  name = "testacc_policyOptions"
-  prefix = [ "192.0.2.0/26", "192.0.2.64/26" ]
+  name   = "testacc_policyOptions"
+  prefix = ["192.0.2.0/26", "192.0.2.64/26"]
 }
 resource junos_policyoptions_prefix_list "testacc_policyOptions2" {
-  name = "testacc_policyOptions2"
+  name       = "testacc_policyOptions2"
   apply_path = "system radius-server <*>"
 }
 resource junos_policyoptions_policy_statement "testacc_policyOptions" {
   name = "testacc_policyOptions"
   from {
     aggregate_contributor = true
-    bgp_as_path = [ junos_policyoptions_as_path.testacc_policyOptions.name ]
-    bgp_community = [ junos_policyoptions_community.testacc_policyOptions.name ]
-    bgp_origin = "igp"
-    family = "inet"
-    local_preference = 100
-    routing_instance = junos_routing_instance.testacc_policyOptions.name
-    interface = [ "st0.0" ]
-    metric = 5
-    neighbor = [ "192.0.2.4" ]
-    next_hop = [ "192.0.2.4" ]
-    ospf_area = "0.0.0.0"
-    preference = 100
-    prefix_list = [ junos_policyoptions_prefix_list.testacc_policyOptions.name,
+    bgp_as_path           = [junos_policyoptions_as_path.testacc_policyOptions.name]
+    bgp_community         = [junos_policyoptions_community.testacc_policyOptions.name]
+    bgp_origin            = "igp"
+    family                = "inet"
+    local_preference      = 100
+    routing_instance      = junos_routing_instance.testacc_policyOptions.name
+    interface             = ["st0.0"]
+    metric                = 5
+    neighbor              = ["192.0.2.4"]
+    next_hop              = ["192.0.2.4"]
+    ospf_area             = "0.0.0.0"
+    preference            = 100
+    prefix_list = [junos_policyoptions_prefix_list.testacc_policyOptions.name,
       junos_policyoptions_prefix_list.testacc_policyOptions2.name,
     ]
-    protocol = [ "bgp" ]
+    protocol = ["bgp"]
     route_filter {
-      route = "192.0.2.0/25"
+      route  = "192.0.2.0/25"
       option = "exact"
     }
   }
   to {
-    bgp_as_path =  [ junos_policyoptions_as_path.testacc_policyOptions.name ]
-    bgp_community = [  junos_policyoptions_community.testacc_policyOptions.name ]
-    bgp_origin = "igp"
-    family = "inet"
+    bgp_as_path      = [junos_policyoptions_as_path.testacc_policyOptions.name]
+    bgp_community    = [junos_policyoptions_community.testacc_policyOptions.name]
+    bgp_origin       = "igp"
+    family           = "inet"
     local_preference = 100
     routing_instance = junos_routing_instance.testacc_policyOptions.name
-    interface = [ "st0.0" ]
-    metric = 5
-    neighbor = [ "192.0.2.5" ]
-    next_hop = [ "192.0.2.5" ]
-    ospf_area = "0.0.0.0"
-    policy = [ junos_policyoptions_policy_statement.testacc_policyOptions2.name ]
-    preference = 100
-    protocol = [ "ospf" ]
+    interface        = ["st0.0"]
+    metric           = 5
+    neighbor         = ["192.0.2.5"]
+    next_hop         = ["192.0.2.5"]
+    ospf_area        = "0.0.0.0"
+    policy           = [junos_policyoptions_policy_statement.testacc_policyOptions2.name]
+    preference       = 100
+    protocol         = ["ospf"]
   }
   then {
-    action = "accept"
-    as_path_expand = "65000 65000"
+    action          = "accept"
+    as_path_expand  = "65000 65000"
     as_path_prepend = "65000 65000"
     community {
       action = "set"
-      value = junos_policyoptions_community.testacc_policyOptions.name
+      value  = junos_policyoptions_community.testacc_policyOptions.name
     }
     default_action = "reject"
-    load_balance = "per-packet"
-    next = "policy"
-    next_hop = "192.0.2.4"
-    origin = "igp"
+    load_balance   = "per-packet"
+    next           = "policy"
+    next_hop       = "192.0.2.4"
+    origin         = "igp"
   }
   term {
     name = "term"
     from {
       aggregate_contributor = true
-      bgp_as_path = [ junos_policyoptions_as_path.testacc_policyOptions.name ]
-      bgp_community = [ junos_policyoptions_community.testacc_policyOptions.name ]
-      bgp_origin = "igp"
-      family = "inet"
-      local_preference = 100
-      routing_instance = junos_routing_instance.testacc_policyOptions.name
-      interface = [ "st0.0" ]
-      metric = 5
-      neighbor = [ "192.0.2.4" ]
-      next_hop = [ "192.0.2.4" ]
-      ospf_area = "0.0.0.0"
-      policy = [ junos_policyoptions_policy_statement.testacc_policyOptions2.name ]
-      preference = 100
-      prefix_list = [ junos_policyoptions_prefix_list.testacc_policyOptions.name ]
-      protocol = [ "bgp" ]
+      bgp_as_path           = [junos_policyoptions_as_path.testacc_policyOptions.name]
+      bgp_community         = [junos_policyoptions_community.testacc_policyOptions.name]
+      bgp_origin            = "igp"
+      family                = "inet"
+      local_preference      = 100
+      routing_instance      = junos_routing_instance.testacc_policyOptions.name
+      interface             = ["st0.0"]
+      metric                = 5
+      neighbor              = ["192.0.2.4"]
+      next_hop              = ["192.0.2.4"]
+      ospf_area             = "0.0.0.0"
+      policy                = [junos_policyoptions_policy_statement.testacc_policyOptions2.name]
+      preference            = 100
+      prefix_list           = [junos_policyoptions_prefix_list.testacc_policyOptions.name]
+      protocol              = ["bgp"]
       route_filter {
-        route = "192.0.2.0/25"
+        route  = "192.0.2.0/25"
         option = "exact"
       }
     }
     to {
-      bgp_as_path =  [ junos_policyoptions_as_path.testacc_policyOptions.name ]
-      bgp_community = [  junos_policyoptions_community.testacc_policyOptions.name ]
-      bgp_origin = "igp"
-      family = "inet"
+      bgp_as_path      = [junos_policyoptions_as_path.testacc_policyOptions.name]
+      bgp_community    = [junos_policyoptions_community.testacc_policyOptions.name]
+      bgp_origin       = "igp"
+      family           = "inet"
       local_preference = 100
       routing_instance = junos_routing_instance.testacc_policyOptions.name
-      interface = [ "st0.0" ]
-      metric = 5
-      neighbor = [ "192.0.2.5" ]
-      next_hop = [ "192.0.2.5" ]
-      ospf_area = "0.0.0.0"
-      policy = [ junos_policyoptions_policy_statement.testacc_policyOptions2.name ]
-      preference = 100
-      protocol = [ "ospf" ]
+      interface        = ["st0.0"]
+      metric           = 5
+      neighbor         = ["192.0.2.5"]
+      next_hop         = ["192.0.2.5"]
+      ospf_area        = "0.0.0.0"
+      policy           = [junos_policyoptions_policy_statement.testacc_policyOptions2.name]
+      preference       = 100
+      protocol         = ["ospf"]
     }
     then {
-      action = "accept"
-      as_path_expand = "last-as count 1"
+      action          = "accept"
+      as_path_expand  = "last-as count 1"
       as_path_prepend = "65000 65000"
-      default_action = "accept"
-      load_balance = "per-packet"
-      next = "policy"
-      next_hop = "192.0.2.4"
-      origin = "igp"
+      default_action  = "accept"
+      load_balance    = "per-packet"
+      next            = "policy"
+      next_hop        = "192.0.2.4"
+      origin          = "igp"
     }
   }
 }
 resource junos_policyoptions_policy_statement "testacc_policyOptions2" {
   name = "testacc_policyOptions2"
   from {
-    bgp_as_path_group = [ junos_policyoptions_as_path_group.testacc_policyOptions.name ]
+    bgp_as_path_group = [junos_policyoptions_as_path_group.testacc_policyOptions.name]
   }
   to {
-    bgp_as_path_group = [ junos_policyoptions_as_path_group.testacc_policyOptions.name ]
+    bgp_as_path_group = [junos_policyoptions_as_path_group.testacc_policyOptions.name]
   }
   then {
     local_preference {
       action = "none"
-      value = 10
+      value  = 10
     }
     metric {
       action = "none"
-      value = 10
+      value  = 10
     }
     preference {
       action = "none"
-      value = 10
+      value  = 10
     }
     action = "accept"
   }
@@ -866,15 +866,15 @@ resource junos_policyoptions_policy_statement "testacc_policyOptions2" {
     then {
       local_preference {
         action = "none"
-        value = 10
+        value  = 10
       }
       metric {
         action = "none"
-        value = 10
+        value  = 10
       }
       preference {
         action = "none"
-        value = 10
+        value  = 10
       }
     }
   }

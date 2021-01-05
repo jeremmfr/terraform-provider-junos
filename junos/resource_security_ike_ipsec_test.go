@@ -408,11 +408,11 @@ resource junos_security_policy testacc_policyIpsecLocToRem {
   from_zone = junos_security_zone.testacc_secIkeIpsec_local.name
   to_zone   = junos_security_zone.testacc_secIkeIpsec_remote.name
   policy {
-      name                      = "testacc_vpn-out"
-      match_source_address      = [junos_security_zone.testacc_secIkeIpsec_local.address_book[0].name]
-      match_destination_address = [junos_security_zone.testacc_secIkeIpsec_remote.address_book[0].name]
-      match_application         = ["any"]
-      permit_tunnel_ipsec_vpn   = junos_security_ipsec_vpn.testacc_ipsecvpn2.name
+    name                      = "testacc_vpn-out"
+    match_source_address      = [junos_security_zone.testacc_secIkeIpsec_local.address_book[0].name]
+    match_destination_address = [junos_security_zone.testacc_secIkeIpsec_remote.address_book[0].name]
+    match_application         = ["any"]
+    permit_tunnel_ipsec_vpn   = junos_security_ipsec_vpn.testacc_ipsecvpn2.name
   }
 }
 
@@ -466,7 +466,7 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
       container = "dc=example,dc=com"
       wildcard  = "dc=example,dc=com"
     }
-    connections_limit           = 10
+    connections_limit = 10
   }
   aaa {
     client_username = "user"
@@ -524,11 +524,11 @@ resource junos_security_policy testacc_policyIpsecLocToRem {
   from_zone = junos_security_zone.testacc_secIkeIpsec_local.name
   to_zone   = junos_security_zone.testacc_secIkeIpsec_remote.name
   policy {
-      name                      = "testacc_vpn-out"
-      match_source_address      = [junos_security_zone.testacc_secIkeIpsec_local.address_book[0].name]
-      match_destination_address = [junos_security_zone.testacc_secIkeIpsec_remote.address_book[0].name]
-      match_application         = ["any"]
-      permit_tunnel_ipsec_vpn   = junos_security_ipsec_vpn.testacc_ipsecvpn2.name
+    name                      = "testacc_vpn-out"
+    match_source_address      = [junos_security_zone.testacc_secIkeIpsec_local.address_book[0].name]
+    match_destination_address = [junos_security_zone.testacc_secIkeIpsec_remote.address_book[0].name]
+    match_application         = ["any"]
+    permit_tunnel_ipsec_vpn   = junos_security_ipsec_vpn.testacc_ipsecvpn2.name
   }
 }
 

@@ -15,9 +15,9 @@ Provides a security ipsec vpn resource.
 ```hcl
 # Add a route-based ipsec vpn
 resource junos_security_ipsec_vpn "demo_vpn" {
-  name                = "first-vpn"
-  establish_tunnels   = "immediately"
-  bind_interface      = junos_interface_st0_unit.demo.id
+  name              = "first-vpn"
+  establish_tunnels = "immediately"
+  bind_interface    = junos_interface_st0_unit.demo.id
   ike {
     gateway = "ike-gateway"
     policy  = "ipsec-policy"

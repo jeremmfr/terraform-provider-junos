@@ -41,8 +41,8 @@ func TestAccJunosApplication_basic(t *testing.T) {
 func testAccJunosApplicationConfigCreate() string {
 	return `
 resource "junos_application" "testacc_app" {
-  name = "testacc_app"
-  protocol = "tcp"
+  name             = "testacc_app"
+  protocol         = "tcp"
   destination_port = 22
 }
 `
@@ -50,10 +50,10 @@ resource "junos_application" "testacc_app" {
 func testAccJunosApplicationConfigUpdate() string {
 	return `
 resource "junos_application" "testacc_app" {
-  name = "testacc_app"
-  protocol = "tcp"
+  name             = "testacc_app"
+  protocol         = "tcp"
   destination_port = "22"
-  source_port = "1024-65535"
+  source_port      = "1024-65535"
 }
 `
 }

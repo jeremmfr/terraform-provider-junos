@@ -66,7 +66,7 @@ func TestAccJunosVlan_basic(t *testing.T) {
 func testAccJunosVlanSwConfigCreate() string {
 	return `
 resource junos_firewall_filter "testacc_vlansw" {
-  name = "testacc_vlansw"
+  name   = "testacc_vlansw"
   family = "ethernet-switching"
   term {
     name = "testacc_vlansw_term1"
@@ -76,21 +76,21 @@ resource junos_firewall_filter "testacc_vlansw" {
   }
 }
 resource junos_vlan "testacc_vlansw" {
-  name = "testacc_vlansw"
-  description = "testacc_vlansw"
-  vlan_id = 1000
-  service_id = 1000
-  l3_interface = "irb.1000"
-  forward_filter_input = junos_firewall_filter.testacc_vlansw.name
+  name                  = "testacc_vlansw"
+  description           = "testacc_vlansw"
+  vlan_id               = 1000
+  service_id            = 1000
+  l3_interface          = "irb.1000"
+  forward_filter_input  = junos_firewall_filter.testacc_vlansw.name
   forward_filter_output = junos_firewall_filter.testacc_vlansw.name
-  forward_flood_input = junos_firewall_filter.testacc_vlansw.name
+  forward_flood_input   = junos_firewall_filter.testacc_vlansw.name
 }
 `
 }
 func testAccJunosVlanSwConfigUpdate() string {
 	return `
 resource junos_firewall_filter "testacc_vlansw" {
-  name = "testacc_vlansw"
+  name   = "testacc_vlansw"
   family = "ethernet-switching"
   term {
     name = "testacc_vlansw_term1"
@@ -100,9 +100,9 @@ resource junos_firewall_filter "testacc_vlansw" {
   }
 }
 resource junos_vlan "testacc_vlansw" {
-  name = "testacc_vlansw"
-  description = "testacc_vlansw"
-  vlan_id_list = [ "1001-1002" ]
+  name         = "testacc_vlansw"
+  description  = "testacc_vlansw"
+  vlan_id_list = ["1001-1002"]
   private_vlan = "community"
 }
 `

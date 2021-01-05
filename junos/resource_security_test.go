@@ -281,8 +281,8 @@ resource junos_security "testacc_security" {
       size           = 100000
       world_readable = true
     }
-    flag       = ["all"]
-    rate_limit = 100
+    flag            = ["all"]
+    rate_limit      = 100
     no_remote_trace = true
   }
   utm {
@@ -313,7 +313,7 @@ resource junos_security "testacc_security" {
     allow_reverse_ecmp                    = true
     enable_reroute_uniform_link_check_nat = true
     ethernet_switching {
-      block_non_ip_all = true
+      block_non_ip_all   = true
       bpdu_vlan_flooding = true
       no_packet_flooding {}
     }
@@ -339,7 +339,7 @@ resource junos_security "testacc_security" {
       rst_sequence_check     = true
       strict_syn_check       = true
       tcp_initial_timeout    = 10
-      time_wait_state {}  
+      time_wait_state {}
     }
   }
   log {
@@ -353,8 +353,8 @@ resource junos_security "testacc_security" {
     }
     format           = "syslog"
     mode             = "event"
-	report           = true
-	source_interface = junos_interface_logical.testacc_security.name
+    report           = true
+    source_interface = junos_interface_logical.testacc_security.name
     transport {
       protocol        = "tcp"
       tcp_connections = 5
@@ -379,9 +379,9 @@ resource junos_interface_logical "testacc_security" {
 resource junos_security "testacc_security" {
   ike_traceoptions {
     file {
-      name           = "ike.log"
-      files          = 5
-      size           = 100000
+      name              = "ike.log"
+      files             = 5
+      size              = 100000
       no_world_readable = true
     }
     rate_limit = 100
@@ -416,11 +416,11 @@ resource junos_security "testacc_security" {
     }
   }
   log {
-	mode                = "event"
+    mode                = "event"
     event_rate          = 100
     max_database_record = 1000
-	rate_cap            = 100
-	source_address      = "192.0.2.1"
+    rate_cap            = 100
+    source_address      = "192.0.2.1"
   }
 }
 `
