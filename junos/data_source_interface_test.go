@@ -82,7 +82,7 @@ data junos_interface testacc_datainterface {
 }
 
 data junos_interface testacc_datainterface2 {
-  match      = "192.0.2.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
+  match = "192.0.2.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
 }
 `
 }

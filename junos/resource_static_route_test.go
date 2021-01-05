@@ -244,8 +244,8 @@ resource junos_static_route testacc_staticRoute_instance {
     metric     = 101
   }
   qualified_next_hop {
-    next_hop   = "192.0.2.250"
-    interface  = "st0.0"
+    next_hop  = "192.0.2.250"
+    interface = "st0.0"
   }
   community = ["no-advertise"]
 }
@@ -300,8 +300,8 @@ resource junos_static_route testacc_staticRoute_ipv6_instance {
     metric     = 101
   }
   qualified_next_hop {
-    next_hop   = "2001:db8:85a4::1"
-    interface  = "st0.0"
+    next_hop  = "2001:db8:85a4::1"
+    interface = "st0.0"
   }
   community = ["no-advertise"]
 }
@@ -381,7 +381,7 @@ resource junos_static_route testacc_staticRoute_instance2 {
 }
 resource junos_static_route testacc_staticRoute_ipv6_default2 {
   destination = "2001:db8:85a3::/52"
-  discard          = true
+  discard     = true
 }
 resource junos_static_route testacc_staticRoute_default {
   destination = "192.0.2.0/27"

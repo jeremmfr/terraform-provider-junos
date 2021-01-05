@@ -41,16 +41,16 @@ func TestAccJunosApplicationSet_basic(t *testing.T) {
 func testAccJunosApplicationSetConfigCreate() string {
 	return `
 resource "junos_application_set" "testacc_app_set" {
-  name = "testacc_app_set"
-  applications = [ "junos-ssh" ]
+  name         = "testacc_app_set"
+  applications = ["junos-ssh"]
 }
 `
 }
 func testAccJunosApplicationSetConfigUpdate() string {
 	return `
 resource "junos_application_set" "testacc_app_set" {
-  name = "testacc_app_set"
-  applications = [ "junos-ssh", "junos-telnet" ]
+  name         = "testacc_app_set"
+  applications = ["junos-ssh", "junos-telnet"]
 }
 `
 }

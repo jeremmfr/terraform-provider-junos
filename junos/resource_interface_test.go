@@ -345,9 +345,9 @@ resource junos_interface testacc_interfaceAEunit {
         priority_cost = 20
       }
       track_route {
-	     route            = "192.0.2.128/25"
-	     routing_instance = "default"
-	     priority_cost    = 20
+        route            = "192.0.2.128/25"
+        routing_instance = "default"
+        priority_cost    = 20
       }
     }
   }
@@ -361,8 +361,8 @@ resource junos_interface testacc_interfaceAEunit {
       virtual_address            = ["2001:db8::2"]
       virtual_link_local_address = "fe80::2"
       accept_data                = true
-	  advertise_interval         = 100
-	  advertisements_threshold   = 3
+      advertise_interval         = 100
+      advertisements_threshold   = 3
       preempt                    = true
       priority                   = 100
       track_interface {
@@ -370,9 +370,9 @@ resource junos_interface testacc_interfaceAEunit {
         priority_cost = 20
       }
       track_route {
-	    route            = "192.0.2.128/25"
-	    routing_instance = "default"
-	    priority_cost    = 20
+        route            = "192.0.2.128/25"
+        routing_instance = "default"
+        priority_cost    = 20
       }
     }
   }

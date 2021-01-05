@@ -64,15 +64,15 @@ func TestAccJunosSecurityZone_basic(t *testing.T) {
 func testAccJunosSecurityZoneConfigCreate() string {
 	return `
 resource junos_security_zone "testacc_securityZone" {
-  name = "testacc_securityZone"
-  inbound_protocols = [ "bgp" ]
+  name              = "testacc_securityZone"
+  inbound_protocols = ["bgp"]
   address_book {
-    name = "testacc_address1"
+    name    = "testacc_address1"
     network = "192.0.2.0/25"
   }
   address_book_set {
-    name = "testacc_addressSet"
-    address = [ "testacc_address1" ]
+    name    = "testacc_addressSet"
+    address = ["testacc_address1"]
   }
 }
 `
@@ -80,20 +80,20 @@ resource junos_security_zone "testacc_securityZone" {
 func testAccJunosSecurityZoneConfigUpdate() string {
 	return `
 resource junos_security_zone "testacc_securityZone" {
-  name = "testacc_securityZone"
-  inbound_protocols = [ "bgp" ]
-  inbound_services = [ "ssh"]
+  name              = "testacc_securityZone"
+  inbound_protocols = ["bgp"]
+  inbound_services  = ["ssh"]
   address_book {
-    name = "testacc_address1"
+    name    = "testacc_address1"
     network = "192.0.2.0/25"
   }
   address_book {
-    name = "testacc_address2"
+    name    = "testacc_address2"
     network = "192.0.2.128/25"
   }
   address_book_set {
-    name = "testacc_addressSet"
-    address = [ "testacc_address1", "testacc_address2" ]
+    name    = "testacc_addressSet"
+    address = ["testacc_address1", "testacc_address2"]
   }
 }
 `

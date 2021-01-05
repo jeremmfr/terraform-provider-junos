@@ -96,19 +96,19 @@ func testAccJunosSecurityNatSourceConfigCreate() string {
 resource junos_security_nat_source testacc_securitySNAT {
   name = "testacc_securitySNAT"
   from {
-    type = "zone"
-    value = [ junos_security_zone.testacc_securitySNAT.name ]
+    type  = "zone"
+    value = [junos_security_zone.testacc_securitySNAT.name]
   }
   to {
-    type = "zone"
-    value = [ junos_security_zone.testacc_securitySNAT.name ]
+    type  = "zone"
+    value = [junos_security_zone.testacc_securitySNAT.name]
   }
   rule {
     name = "testacc_securitySNATRule"
     match {
-      source_address = [ "192.0.2.0/25" ]
-      destination_address = [ "192.0.2.128/25"]
-      protocol = [ "tcp" ]
+      source_address      = ["192.0.2.0/25"]
+      destination_address = ["192.0.2.128/25"]
+      protocol            = ["tcp"]
     }
     then {
       type = "pool"
@@ -117,9 +117,9 @@ resource junos_security_nat_source testacc_securitySNAT {
   }
 }
 resource junos_security_nat_source_pool testacc_securitySNATPool {
-  name = "testacc_securitySNATPool"
-  address = [ "192.0.2.1/32", "192.0.2.2/32"  ]
-  routing_instance = junos_routing_instance.testacc_securitySNAT.name
+  name                = "testacc_securitySNATPool"
+  address             = ["192.0.2.1/32", "192.0.2.2/32"]
+  routing_instance    = junos_routing_instance.testacc_securitySNAT.name
   port_no_translation = true
 }
 
@@ -136,19 +136,19 @@ func testAccJunosSecurityNatSourceConfigUpdate() string {
 resource junos_security_nat_source testacc_securitySNAT {
   name = "testacc_securitySNAT"
   from {
-    type = "zone"
-    value = [ junos_security_zone.testacc_securitySNAT.name ]
+    type  = "zone"
+    value = [junos_security_zone.testacc_securitySNAT.name]
   }
   to {
-    type = "zone"
-    value = [ junos_security_zone.testacc_securitySNAT.name ]
+    type  = "zone"
+    value = [junos_security_zone.testacc_securitySNAT.name]
   }
   rule {
     name = "testacc_securitySNATRule"
     match {
-      source_address = [ "192.0.2.0/25" ]
-      destination_address = [ "192.0.2.128/25"]
-      protocol = [ "tcp" ]
+      source_address      = ["192.0.2.0/25"]
+      destination_address = ["192.0.2.128/25"]
+      protocol            = ["tcp"]
     }
     then {
       type = "pool"
@@ -158,9 +158,9 @@ resource junos_security_nat_source testacc_securitySNAT {
   rule {
     name = "testacc_securitySNATRule2"
     match {
-      source_address = [ "192.0.2.0/25" ]
-      destination_address = [ "192.0.2.128/25"]
-      protocol = [ "udp" ]
+      source_address      = ["192.0.2.0/25"]
+      destination_address = ["192.0.2.128/25"]
+      protocol            = ["udp"]
     }
     then {
       type = "off"
@@ -168,9 +168,9 @@ resource junos_security_nat_source testacc_securitySNAT {
   }
 }
 resource junos_security_nat_source_pool testacc_securitySNATPool {
-  name = "testacc_securitySNATPool"
-  address = [ "192.0.2.1/32" ]
-  routing_instance = junos_routing_instance.testacc_securitySNAT.name
+  name                    = "testacc_securitySNATPool"
+  address                 = ["192.0.2.1/32"]
+  routing_instance        = junos_routing_instance.testacc_securitySNAT.name
   port_overloading_factor = 3
 }
 
