@@ -21,7 +21,7 @@ resource junos_security_utm_profile_web_filtering_websense_redirect "demo_profil
     host = "10.0.0.1"
     port = 1024
   }
-  timeout              = 3
+  timeout = 3
 }
 ```
 

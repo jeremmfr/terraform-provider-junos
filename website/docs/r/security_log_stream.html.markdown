@@ -16,7 +16,7 @@ Provides a security log stream resource.
 # Add a security log stream
 resource junos_security_log_stream "demo_logstream" {
   name     = "demo_logstream"
-  category = ["idp","screen"]
+  category = ["idp", "screen"]
   format   = "sd-syslog"
   host {
     ip_address = "192.0.2.10"

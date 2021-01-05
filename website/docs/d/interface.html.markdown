@@ -21,7 +21,7 @@ data junos_interface "demo_ip" {
 }
 # Search interface with name
 data junos_interface "interface_fw_demo" {
-  config_interface         = "ge-0/0/3.0"
+  config_interface = "ge-0/0/3.0"
 }
 ```
 
