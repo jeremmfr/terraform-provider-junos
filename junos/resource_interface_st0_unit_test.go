@@ -18,7 +18,7 @@ func TestAccJunosInterfaceSt0Unit_basic(t *testing.T) {
 				{
 					Config: testAccJunosInterfaceSt0UnitConfig(),
 					Check: resource.ComposeTestCheckFunc(
-						resource.TestMatchResourceAttr("resource.junos_interface_st0_unit.testacc", "id", regexpSt0),
+						resource.TestMatchResourceAttr("junos_interface_st0_unit.testacc", "id", regexpSt0),
 					),
 				},
 			},
