@@ -535,9 +535,9 @@ func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObjec
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case strings.HasSuffix(itemTrim, "allow-duplicates"):
+			case itemTrim == "allow-duplicates":
 				confRead.allowDuplicates = true
-			case strings.HasSuffix(itemTrim, "explicit-priority"):
+			case itemTrim == "explicit-priority":
 				confRead.explicitPriority = true
 			case strings.HasPrefix(itemTrim, "match "):
 				confRead.match = strings.Trim(strings.TrimPrefix(itemTrim, "match "), "\"")
@@ -548,7 +548,7 @@ func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObjec
 				structuredData := map[string]interface{}{
 					"brief": false,
 				}
-				if strings.HasSuffix(itemTrim, "brief") {
+				if itemTrim == "structured-data brief" {
 					structuredData["brief"] = true
 				}
 				// override (maxItem = 1)
@@ -599,13 +599,13 @@ func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObjec
 					archiveM = confRead.archive[0]
 				}
 				switch {
-				case strings.HasSuffix(itemTrim, "archive binary-data"):
+				case itemTrim == "archive binary-data":
 					archiveM["binary_data"] = true
-				case strings.HasSuffix(itemTrim, "archive no-binary-data"):
+				case itemTrim == "archive no-binary-data":
 					archiveM["no_binary_data"] = true
-				case strings.HasSuffix(itemTrim, "archive world-readable"):
+				case itemTrim == "archive world-readable":
 					archiveM["world_readable"] = true
-				case strings.HasSuffix(itemTrim, "archive no-world-readable"):
+				case itemTrim == "archive no-world-readable":
 					archiveM["no_world_readable"] = true
 				case strings.HasPrefix(itemTrim, "archive files "):
 					var err error

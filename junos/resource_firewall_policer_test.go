@@ -60,11 +60,11 @@ func TestAccJunosFirewallPolicer_basic(t *testing.T) {
 func testAccJunosFirewallPolicerConfigCreate() string {
 	return `
 resource junos_firewall_policer testacc_fwPolic {
-  name = "testacc_fwPolic"
+  name            = "testacc_fwPolic"
   filter_specific = true
   if_exceeding {
     bandwidth_percent = 80
-    burst_size_limit = "50k"
+    burst_size_limit  = "50k"
   }
   then {
     discard = true
@@ -77,13 +77,13 @@ func testAccJunosFirewallPolicerConfigUpdate() string {
 resource junos_firewall_policer testacc_fwPolic {
   name = "testacc_fwPolic"
   if_exceeding {
-    bandwidth_limit = "32k"
+    bandwidth_limit  = "32k"
     burst_size_limit = "50k"
   }
   then {
     forwarding_class = "best-effort"
-    loss_priority = "high"
-    out_of_profile = true
+    loss_priority    = "high"
+    out_of_profile   = true
   }
 }
 `

@@ -12,7 +12,8 @@ import (
 
 func dataSourceInterface() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceInterfaceRead,
+		ReadContext:        dataSourceInterfaceRead,
+		DeprecationMessage: "use junos_interface_physical or junos_interface_logical data source instead",
 		Schema: map[string]*schema.Schema{
 			"config_interface": {
 				Type:     schema.TypeString,
@@ -406,9 +407,7 @@ func searchInterfaceID(configInterface string, match string,
 		switch len(itemTrimSplit) {
 		case 0:
 			continue
-		case 1:
-			intConfigList = append(intConfigList, itemTrimSplit[0])
-		case 2:
+		case 1, 2:
 			intConfigList = append(intConfigList, itemTrimSplit[0])
 		default:
 			if itemTrimSplit[1] == "unit" {

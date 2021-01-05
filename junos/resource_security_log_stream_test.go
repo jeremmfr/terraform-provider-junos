@@ -85,7 +85,7 @@ resource junos_routing_instance "testacc_logstream" {
 resource junos_security_log_stream "testacc_logstream" {
   name     = "testacc_logstream"
   category = ["idp"]
-  format = "syslog"
+  format   = "syslog"
   host {
     ip_address       = "192.0.2.1"
     port             = 514
@@ -102,9 +102,9 @@ resource junos_routing_instance "testacc_logstream" {
   name = "testacclogstream"
 }
 resource junos_security_log_stream "testacc_logstream" {
-  name     = "testacc_logstream"
+  name = "testacc_logstream"
   file {
-	name             = "test"
+    name             = "test"
     allow_duplicates = true
     size             = 3
     rotation         = 3

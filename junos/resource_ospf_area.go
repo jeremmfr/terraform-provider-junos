@@ -364,9 +364,9 @@ func readOspfArea(idArea, version, routingInstance string,
 				itemTrimInterface := strings.TrimPrefix(itemTrim, "interface "+itemInterfaceList[0]+" ")
 				interfaceOptions, confRead.interFace = copyAndRemoveItemMapList("name", false, interfaceOptions, confRead.interFace)
 				switch {
-				case strings.HasPrefix(itemTrimInterface, "disable"):
+				case itemTrimInterface == disableW:
 					interfaceOptions["disable"] = true
-				case strings.HasPrefix(itemTrimInterface, "passive"):
+				case itemTrimInterface == passiveW:
 					interfaceOptions["passive"] = true
 				case strings.HasPrefix(itemTrimInterface, "metric "):
 					interfaceOptions["metric"], err = strconv.Atoi(

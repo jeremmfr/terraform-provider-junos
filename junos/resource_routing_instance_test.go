@@ -43,7 +43,7 @@ func testAccJunosRoutingInstanceConfigCreate() string {
 	return `
 resource junos_routing_instance "testacc_routingInst" {
   name = "testacc_routingInst"
-  as = "65000"
+  as   = "65000"
 }
 `
 }
@@ -51,7 +51,7 @@ func testAccJunosRoutingInstanceConfigUpdate() string {
 	return `
 resource junos_routing_instance "testacc_routingInst" {
   name = "testacc_routingInst"
-  as = "65001"
+  as   = "65001"
 }
 `
 }

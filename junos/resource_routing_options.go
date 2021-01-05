@@ -253,7 +253,7 @@ func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsO
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "autonomous-system asdot-notation"):
+				case itemTrim == "autonomous-system asdot-notation":
 					confRead.autonomousSystem[0]["asdot_notation"] = true
 				default:
 					confRead.autonomousSystem[0]["number"] = strings.TrimPrefix(itemTrim, "autonomous-system ")
@@ -266,7 +266,7 @@ func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsO
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "graceful-restart disable"):
+				case itemTrim == "graceful-restart disable":
 					confRead.gracefulRestart[0]["disable"] = true
 				case strings.HasPrefix(itemTrim, "graceful-restart restart-duration "):
 					var err error

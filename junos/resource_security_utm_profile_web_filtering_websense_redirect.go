@@ -310,10 +310,8 @@ func setUtmProfileWebFWebsense(d *schema.ResourceData, m interface{}, jnprSess *
 			configSet = append(configSet, setPrefix+"fallback-settings")
 		}
 	}
-	if len(d.Get("server").([]interface{})) != 0 {
-		configSet = append(configSet, setPrefix+"server")
-	}
 	for _, v := range d.Get("server").([]interface{}) {
+		configSet = append(configSet, setPrefix+"server")
 		if v != nil {
 			server := v.(map[string]interface{})
 			if server["host"].(string) != "" {

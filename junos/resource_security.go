@@ -1292,9 +1292,9 @@ func readSecurityIkeTraceOptions(confRead *securityOptions, itemTrimIkeTraceOpts
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "file world-readable"):
+		case itemTrim == "file world-readable":
 			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["world_readable"] = true
-		case strings.HasPrefix(itemTrim, "file no-world-readable"):
+		case itemTrim == "file no-world-readable":
 			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["no_world_readable"] = true
 		case strings.HasPrefix(itemTrim, "file "):
 			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["name"] = strings.Trim(
@@ -1303,7 +1303,7 @@ func readSecurityIkeTraceOptions(confRead *securityOptions, itemTrimIkeTraceOpts
 	case strings.HasPrefix(itemTrim, "flag"):
 		confRead.ikeTraceoptions[0]["flag"] = append(confRead.ikeTraceoptions[0]["flag"].([]string),
 			strings.TrimPrefix(itemTrim, "flag "))
-	case strings.HasPrefix(itemTrim, "no-remote-trace"):
+	case itemTrim == "no-remote-trace":
 		confRead.ikeTraceoptions[0]["no_remote_trace"] = true
 	case strings.HasPrefix(itemTrim, "rate-limit"):
 		var err error
@@ -1639,7 +1639,7 @@ func readSecurityLog(confRead *securityOptions, itemTrimLog string) error {
 		})
 	}
 	switch {
-	case itemTrim == "disable":
+	case itemTrim == disableW:
 		confRead.log[0]["disable"] = true
 	case strings.HasPrefix(itemTrim, "event-rate "):
 		var err error

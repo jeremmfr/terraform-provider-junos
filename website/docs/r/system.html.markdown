@@ -17,7 +17,8 @@ Configure static configuration in `system` block
 ```hcl
 # Configure system
 resource junos_system "system" {
-  name_server = ["192.0.2.10","192.0.2.11"]
+  host_name   = "MyJunOS-device"
+  name_server = ["192.0.2.10", "192.0.2.11"]
   services {
     ssh {
       root_login = "deny"
@@ -36,14 +37,58 @@ resource junos_system "system" {
 
 The following arguments are supported:
 
+* `authentication_order` - (Optional)(`ListOfString`) Order in which authentication methods are invoked.
+* `auto_snapshot` - (Optional)(`Bool`) Enable auto-snapshot when boots from alternate slice.
+* `domain_name` - (Optional)(`String`) Domain name.
+* `host_name` - (Optional)(`String`) Hostname.
+* `inet6_backup_router` (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'inet6-backup-router' configuration.
+  * `address` - (Optional)(`String`) Address of router to use while booting.
+  * `destination` - (Optional)(`ListOfString`) Destination networks reachable through the router.
+* `internet_options` (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'internet-options configuration. See the [`internet_options` arguments] (#internet_options-arguments) block.
+* `max_configuration_rollbacks` - (Optional)(`Int`) Maximum rollback configuration (0..49).
+* `max_configurations_on_flash` - (Optional)(`Int`) Number of configuration files stored on flash (0..49).
 * `name_server` - (Optional)(`ListOfString`) DNS name servers.
+* `no_ping_record_route` - (Optional)(`Bool`) Do not insert IP address in ping replies.
+* `no_ping_time_stamp` - (Optional)(`Bool`) Do not insert time stamp in ping replies.
+* `no_redirects` - (Optional)(`Bool`) Disable ICMP redirects.
+* `no_redirects_ipv6` - (Optional)(`Bool`) Disable IPV6 ICMP redirects.
 * `services` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'services' configuration.
   * `ssh` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'ssh' configuration. See the [`ssh` arguments for services] (#ssh-arguments-for-services) block.
 * `syslog` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'syslog' configuration.
   * `archive` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'archive' configuration. See the [`archive` arguments for syslog] (#archive-arguments-for-syslog) block.
   * `log_rotate_frequency` - (Optional)(`Int`) Rotate log frequency (1..59 minutes).
   * `source_address` - (Optional)(`String`) Use specified address as source address.
+* `time_zone` - (Optional)(`String`) Time zone name or POSIX-compliant time zone string (<continent>/<major-city> or <time-zone>).
 * `tracing_dest_override_syslog_host` - (Optional)(`String`) Send trace messages to remote syslog server.
+
+---
+#### internet_options arguments
+* `gre_path_mtu_discovery` - (Optional)(`Bool`) Enable path MTU discovery for GRE tunnels. Conflict with `no_gre_path_mtu_discovery`.
+* `icmpv4_rate_limit` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'icmpv4-rate-limit' configuration.
+  * `bucket_size` - (Optional)(`Int`) ICMP rate-limiting maximum bucket size (seconds).
+  * `packet-rate` - (Optional)(`Int`) ICMP rate-limiting packets earned per second.
+* `icmpv6_rate_limit` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'icmpv6-rate-limit' configuration.
+  * `bucket_size` - (Optional)(`Int`) ICMPv6 rate-limiting maximum bucket size (seconds).
+  * `packet-rate` - (Optional)(`Int`) ICMPv6 rate-limiting packets earned per second.
+* `ipip_path_mtu_discovery` - (Optional)(`Bool`) Enable path MTU discovery for IP-IP tunnels. Conflict with `no_ipip_path_mtu_discovery`.
+* `ipv6_duplicate_addr_detection_transmits` - (Optional)(`Int`) IPv6 Duplicate address detection transmits (0..20).
+* `ipv6_path_mtu_discovery` - (Optional)(`Bool`) Enable IPv6 Path MTU discovery. Conflict with `no_ipv6_path_mtu_discovery`.
+* `ipv6_path_mtu_discovery_timeout` - (Optional)(`Int`) IPv6 Path MTU Discovery timeout (5..71582788 minutes).
+* `ipv6_reject_zero_hop_limit` - (Optional)(`Bool`) Enable dropping IPv6 packets with zero hop-limit. Conflict with `no_ipv6_reject_zero_hop_limit`.
+* `no_gre_path_mtu_discovery` - (Optional)(`Bool`) Don't enable path MTU discovery for GRE tunnels. Conflict with `gre_path_mtu_discovery`.
+* `no_ipip_path_mtu_discovery` - (Optional)(`Bool`) Don't enable path MTU discovery for IP-IP tunnels. Conflict with `ipip_path_mtu_discovery`.
+* `no_ipv6_path_mtu_discovery` - (Optional)(`Bool`) Don't enable IPv6 Path MTU discovery. Conflict with `ipv6_path_mtu_discovery`.
+* `no_ipv6_reject_zero_hop_limit` - (Optional)(`Bool`) Don't enable dropping IPv6 packets with zero hop-limit. Conflict with `ipv6_reject_zero_hop_limit`.
+* `no_path_mtu_discovery` - (Optional)(`Bool`) Don't enable Path MTU discovery on TCP connections. Conflict with `path_mtu_discovery`.
+* `no_source_quench` - (Optional)(`Bool`) Don't react to incoming ICMP Source Quench messages. Conflict with `source_quench`
+* `no_tcp_reset` - (Optional)(`String`) Do not send RST TCP packet for packets sent to non-listening ports. Need to be `drop-all-tcp` or `drop-tcp-with-syn-only`.
+* `no_tcp_rfc1323` - (Optional)(`Bool`) Disable RFC 1323 TCP extensions.
+* `no_tcp_rfc1323_paws` - (Optional)(`Bool`) Disable RFC 1323 Protection Against Wrapped Sequence Number extension.
+* `path_mtu_discovery` - (Optional)(`Bool`) Enable Path MTU discovery on TCP connections. Conflict with `no_path_mtu_discovery`.
+* `source_port_upper_limit` - (Optional)(`Int`) Specify upper limit of source port selection range (5000..65535).
+* `source_quench` - (Optional)(`Bool`) React to incoming ICMP Source Quench messages. Conflict with `no_source_quench`.
+* `tcp_drop_synfin_set` - (Optional)(`Bool`) Drop TCP packets that have both SYN and FIN flags.
+* `tcp_mss` - (Optional)(`Int`) Maximum value of TCP MSS for IPV4 traffic (64..65535 bytes).
 
 ---
 #### ssh arguments for services

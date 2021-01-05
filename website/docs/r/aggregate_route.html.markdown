@@ -17,7 +17,7 @@ Provides a aggregate route resource for destination.
 resource junos_aggregate_route "demo_aggregate_route" {
   destination      = "192.0.2.0/25"
   routing_instance = "prod-vr"
-  brief = true
+  brief            = true
 }
 ```
 

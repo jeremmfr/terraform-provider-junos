@@ -53,13 +53,13 @@ func testAccJunosRoutingOptionsConfigCreate() string {
 	return `
 resource junos_routing_options "testacc_routing_options" {
   autonomous_system {
-	number = "65000"
-	asdot_notation = true
-	loops = 5
+    number         = "65000"
+    asdot_notation = true
+    loops          = 5
   }
   graceful_restart {
-	restart_duration = 120
-	disable = true
+    restart_duration = 120
+    disable          = true
   }
 }
 `

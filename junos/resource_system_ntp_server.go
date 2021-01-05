@@ -270,7 +270,7 @@ func readSystemNtpServer(address string, m interface{}, jnprSess *NetconfObject)
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
-			case strings.HasSuffix(itemTrim, "prefer"):
+			case itemTrim == "prefer":
 				confRead.prefer = true
 			case strings.HasPrefix(itemTrim, "routing-instance "):
 				confRead.routingInstance = strings.TrimPrefix(itemTrim, "routing-instance ")

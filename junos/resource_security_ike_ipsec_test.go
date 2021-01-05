@@ -249,10 +249,12 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 
 func testAccJunosSecurityIkeIpsecConfigCreate(interFace string) string {
 	return `
-resource junos_interface "testacc_ikegateway" {
+resource junos_interface_logical "testacc_ikegateway" {
   name = "` + interFace + `.0"
-  inet_address {
-    address = "192.0.2.4/25"
+  family_inet {
+    address {
+      cidr_ip = "192.0.2.4/25"
+    }
   }
 }
 resource junos_security_ike_proposal "testacc_ikeprop" {
@@ -272,7 +274,7 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
   name               = "testacc_ikegateway"
   address            = ["192.0.2.3"]
   policy             = junos_security_ike_policy.testacc_ikepol.name
-  external_interface = junos_interface.testacc_ikegateway.name
+  external_interface = junos_interface_logical.testacc_ikegateway.name
   general_ike_id     = true
   no_nat_traversal   = true
   dead_peer_detection {
@@ -322,10 +324,12 @@ resource junos_security_ipsec_vpn "testacc_ipsecvpn" {
 }
 func testAccJunosSecurityIkeIpsecConfigUpdate(interFace string) string {
 	return `
-resource junos_interface "testacc_ikegateway" {
+resource junos_interface_logical "testacc_ikegateway" {
   name = "` + interFace + `.0"
-  inet_address {
-    address = "192.0.2.4/25"
+  family_inet {
+    address {
+      cidr_ip = "192.0.2.4/25"
+    }
   }
 }
 resource junos_security_ike_proposal "testacc_ikeprop" {
@@ -345,7 +349,7 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
   name               = "testacc_ikegateway"
   address            = ["192.0.2.4"]
   policy             = junos_security_ike_policy.testacc_ikepol.name
-  external_interface = junos_interface.testacc_ikegateway.name
+  external_interface = junos_interface_logical.testacc_ikegateway.name
   no_nat_traversal   = true
   dead_peer_detection {
     interval  = 10
@@ -404,11 +408,11 @@ resource junos_security_policy testacc_policyIpsecLocToRem {
   from_zone = junos_security_zone.testacc_secIkeIpsec_local.name
   to_zone   = junos_security_zone.testacc_secIkeIpsec_remote.name
   policy {
-      name                      = "testacc_vpn-out"
-      match_source_address      = [junos_security_zone.testacc_secIkeIpsec_local.address_book[0].name]
-      match_destination_address = [junos_security_zone.testacc_secIkeIpsec_remote.address_book[0].name]
-      match_application         = ["any"]
-      permit_tunnel_ipsec_vpn   = junos_security_ipsec_vpn.testacc_ipsecvpn2.name
+    name                      = "testacc_vpn-out"
+    match_source_address      = [junos_security_zone.testacc_secIkeIpsec_local.address_book[0].name]
+    match_destination_address = [junos_security_zone.testacc_secIkeIpsec_remote.address_book[0].name]
+    match_application         = ["any"]
+    permit_tunnel_ipsec_vpn   = junos_security_ipsec_vpn.testacc_ipsecvpn2.name
   }
 }
 
@@ -434,10 +438,12 @@ resource junos_security_policy_tunnel_pair_policy testacc_vpn-in-out {
 }
 func testAccJunosSecurityIkeIpsecConfigUpdate2(interFace string) string {
 	return `
-resource junos_interface "testacc_ikegateway" {
+resource junos_interface_logical "testacc_ikegateway" {
   name = "` + interFace + `.0"
-  inet_address {
-    address = "192.0.2.4/25"
+  family_inet {
+    address {
+      cidr_ip = "192.0.2.4/25"
+    }
   }
 }
 resource junos_security_ike_proposal "testacc_ikeprop" {
@@ -460,14 +466,14 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
       container = "dc=example,dc=com"
       wildcard  = "dc=example,dc=com"
     }
-    connections_limit           = 10
+    connections_limit = 10
   }
   aaa {
     client_username = "user"
     client_password = "password"
   }
   policy             = junos_security_ike_policy.testacc_ikepol.name
-  external_interface = junos_interface.testacc_ikegateway.name
+  external_interface = junos_interface_logical.testacc_ikegateway.name
   no_nat_traversal   = true
   dead_peer_detection {
     interval  = 10
@@ -518,11 +524,11 @@ resource junos_security_policy testacc_policyIpsecLocToRem {
   from_zone = junos_security_zone.testacc_secIkeIpsec_local.name
   to_zone   = junos_security_zone.testacc_secIkeIpsec_remote.name
   policy {
-      name                      = "testacc_vpn-out"
-      match_source_address      = [junos_security_zone.testacc_secIkeIpsec_local.address_book[0].name]
-      match_destination_address = [junos_security_zone.testacc_secIkeIpsec_remote.address_book[0].name]
-      match_application         = ["any"]
-      permit_tunnel_ipsec_vpn   = junos_security_ipsec_vpn.testacc_ipsecvpn2.name
+    name                      = "testacc_vpn-out"
+    match_source_address      = [junos_security_zone.testacc_secIkeIpsec_local.address_book[0].name]
+    match_destination_address = [junos_security_zone.testacc_secIkeIpsec_remote.address_book[0].name]
+    match_application         = ["any"]
+    permit_tunnel_ipsec_vpn   = junos_security_ipsec_vpn.testacc_ipsecvpn2.name
   }
 }
 
@@ -548,10 +554,12 @@ resource junos_security_policy_tunnel_pair_policy testacc_vpn-in-out {
 }
 func testAccJunosSecurityIkeIpsecConfigUpdate3(interFace string) string {
 	return `
-resource junos_interface "testacc_ikegateway" {
+resource junos_interface_logical "testacc_ikegateway" {
   name = "` + interFace + `.0"
-  inet_address {
-    address = "192.0.2.4/25"
+  family_inet {
+    address {
+      cidr_ip = "192.0.2.4/25"
+    }
   }
 }
 resource junos_security_ike_proposal "testacc_ikeprop" {
@@ -573,7 +581,7 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
     hostname = "host1.example.com"
   }
   policy             = junos_security_ike_policy.testacc_ikepol.name
-  external_interface = junos_interface.testacc_ikegateway.name
+  external_interface = junos_interface_logical.testacc_ikegateway.name
 }
 resource junos_security_ipsec_proposal "testacc_ipsecprop" {
   name                     = "testacc_ipsecprop"
@@ -588,7 +596,7 @@ resource junos_security_ipsec_policy "testacc_ipsecpol" {
 }
 resource junos_security_ipsec_vpn "testacc_ipsecvpn" {
   name           = "testacc_ipsecvpn"
-  bind_interface = junos_interface.testacc_ipsecvpn_bind.name
+  bind_interface = junos_interface_logical.testacc_ipsecvpn_bind.name
   ike {
     gateway = junos_security_ike_gateway.testacc_ikegateway.name
     policy  = junos_security_ipsec_policy.testacc_ipsecpol.name
@@ -605,19 +613,21 @@ resource junos_security_ipsec_vpn "testacc_ipsecvpn" {
     remote_ip = "192.0.3.192/26"
   }
 }
-resource junos_interface "testacc_ipsecvpn_bind" {
-  name             = junos_interface_st0_unit.testacc_ipsec_vpn.id
-  inet             = true
+resource junos_interface_logical "testacc_ipsecvpn_bind" {
+  name = junos_interface_st0_unit.testacc_ipsec_vpn.id
+  family_inet {}
 }
 resource junos_interface_st0_unit testacc_ipsec_vpn {}
 `
 }
 func testAccJunosSecurityIkeIpsecConfigUpdate4(interFace string) string {
 	return `
-resource junos_interface "testacc_ikegateway" {
+resource junos_interface_logical "testacc_ikegateway" {
   name = "` + interFace + `.0"
-  inet_address {
-    address = "192.0.2.4/25"
+  family_inet {
+    address {
+      cidr_ip = "192.0.2.4/25"
+    }
   }
 }
 resource junos_security_ike_proposal "testacc_ikeprop" {
@@ -639,16 +649,18 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
     inet = "192.168.0.4"
   }
   policy             = junos_security_ike_policy.testacc_ikepol.name
-  external_interface = junos_interface.testacc_ikegateway.name
+  external_interface = junos_interface_logical.testacc_ikegateway.name
 }
 `
 }
 func testAccJunosSecurityIkeIpsecConfigUpdate5(interFace string) string {
 	return `
-resource junos_interface "testacc_ikegateway" {
+resource junos_interface_logical "testacc_ikegateway" {
   name = "` + interFace + `.0"
-  inet_address {
-    address = "192.0.2.4/25"
+  family_inet {
+    address {
+      cidr_ip = "192.0.2.4/25"
+    }
   }
 }
 resource junos_security_ike_proposal "testacc_ikeprop" {
@@ -670,16 +682,18 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
     inet6 = "2001:db8::1"
   }
   policy             = junos_security_ike_policy.testacc_ikepol.name
-  external_interface = junos_interface.testacc_ikegateway.name
+  external_interface = junos_interface_logical.testacc_ikegateway.name
 }
 `
 }
 func testAccJunosSecurityIkeIpsecConfigUpdate6(interFace string) string {
 	return `
-resource junos_interface "testacc_ikegateway" {
+resource junos_interface_logical "testacc_ikegateway" {
   name = "` + interFace + `.0"
-  inet_address {
-    address = "192.0.2.4/25"
+  family_inet {
+    address {
+      cidr_ip = "192.0.2.4/25"
+    }
   }
 }
 resource junos_security_ike_proposal "testacc_ikeprop" {
@@ -703,7 +717,7 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
     user_at_hostname            = "user@example.com"
   }
   policy             = junos_security_ike_policy.testacc_ikepol.name
-  external_interface = junos_interface.testacc_ikegateway.name
+  external_interface = junos_interface_logical.testacc_ikegateway.name
 }
 `
 }

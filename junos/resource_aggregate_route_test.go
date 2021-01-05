@@ -74,15 +74,15 @@ resource junos_policyoptions_policy_statement "testacc_aggregateRoute" {
 }
 
 resource junos_aggregate_route testacc_aggregateRoute {
-  destination = "192.0.2.0/24"
+  destination      = "192.0.2.0/24"
   routing_instance = junos_routing_instance.testacc_aggregateRoute.name
-  preference = 100
-  metric = 100
-  active = true
-  full = true
-  discard = true
-  community = ["no-advertise"]
-  policy = [junos_policyoptions_policy_statement.testacc_aggregateRoute.name]
+  preference       = 100
+  metric           = 100
+  active           = true
+  full             = true
+  discard          = true
+  community        = ["no-advertise"]
+  policy           = [junos_policyoptions_policy_statement.testacc_aggregateRoute.name]
 
 }
 `
@@ -100,10 +100,10 @@ resource junos_policyoptions_policy_statement "testacc_aggregateRoute" {
 }
 
 resource junos_aggregate_route testacc_aggregateRoute {
-  destination = "192.0.2.0/24"
+  destination      = "192.0.2.0/24"
   routing_instance = junos_routing_instance.testacc_aggregateRoute.name
-  passive = true
-  brief = true
+  passive          = true
+  brief            = true
 }
 `
 }

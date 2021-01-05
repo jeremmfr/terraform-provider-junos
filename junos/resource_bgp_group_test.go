@@ -200,7 +200,7 @@ func testAccJunosBgpGroupConfigCreate() string {
 	return `
 resource junos_routing_instance "testacc_bgpgroup" {
   name = "testacc_bgpgroup"
-  as = "65000"
+  as   = "65000"
 }
 resource junos_policyoptions_policy_statement "testacc_bgpgroup" {
   name = "testacc_bgpgroup"
@@ -209,74 +209,74 @@ resource junos_policyoptions_policy_statement "testacc_bgpgroup" {
   }
 }
 resource junos_bgp_group "testacc_bgpgroup" {
-  name = "testacc_bgpgroup"
-  routing_instance = junos_routing_instance.testacc_bgpgroup.name
-  advertise_inactive = true
-  advertise_peer_as = true
-  as_override = true
-  damping = true
-  log_updown = true
-  mtu_discovery = true
-  multipath = true
-  remove_private = true
-  passive = true
-  hold_time = 30
-  local_as = "65001"
-  local_as_private = true
-  local_as_loops = 1
-  local_preference = 100
-  metric_out = 100
-  out_delay = 30
-  peer_as = "65002"
-  preference = 100
+  name                     = "testacc_bgpgroup"
+  routing_instance         = junos_routing_instance.testacc_bgpgroup.name
+  advertise_inactive       = true
+  advertise_peer_as        = true
+  as_override              = true
+  damping                  = true
+  log_updown               = true
+  mtu_discovery            = true
+  multipath                = true
+  remove_private           = true
+  passive                  = true
+  hold_time                = 30
+  local_as                 = "65001"
+  local_as_private         = true
+  local_as_loops           = 1
+  local_preference         = 100
+  metric_out               = 100
+  out_delay                = 30
+  peer_as                  = "65002"
+  preference               = 100
   authentication_algorithm = "md5"
-  local_address = "192.0.2.3"
-  export = [ junos_policyoptions_policy_statement.testacc_bgpgroup.name ]
-  import = [ junos_policyoptions_policy_statement.testacc_bgpgroup.name ]
+  local_address            = "192.0.2.3"
+  export                   = [junos_policyoptions_policy_statement.testacc_bgpgroup.name]
+  import                   = [junos_policyoptions_policy_statement.testacc_bgpgroup.name]
   bfd_liveness_detection {
-    detection_time_threshold = 60
-    transmit_interval_threshold = 30
+    detection_time_threshold           = 60
+    transmit_interval_threshold        = 30
     transmit_interval_minimum_interval = 10
-    holddown_interval = 10
-    minimum_interval = 10
-    minimum_receive_interval = 10
-    multiplier = 2
-    session_mode = "automatic"
+    holddown_interval                  = 10
+    minimum_interval                   = 10
+    minimum_receive_interval           = 10
+    multiplier                         = 2
+    session_mode                       = "automatic"
   }
   family_inet {
     nlri_type = "unicast"
     accepted_prefix_limit {
-      maximum = 2
-      teardown = 50
+      maximum               = 2
+      teardown              = 50
       teardown_idle_timeout = 30
     }
     prefix_limit {
-      maximum = 2
-      teardown = 50
+      maximum               = 2
+      teardown              = 50
       teardown_idle_timeout = 30
     }
   }
   family_inet {
     nlri_type = "multicast"
     accepted_prefix_limit {
-      maximum = 2
+      maximum                       = 2
       teardown_idle_timeout_forever = true
     }
     prefix_limit {
-      maximum = 2
+      maximum                       = 2
       teardown_idle_timeout_forever = true
     }
   }
   family_inet6 {
     nlri_type = "unicast"
     accepted_prefix_limit {
-      maximum = 2
-      teardown = 50
+      maximum               = 2
+      teardown              = 50
       teardown_idle_timeout = 30
     }
     prefix_limit {
-      maximum = 2
-      teardown = 50
+      maximum               = 2
+      teardown              = 50
       teardown_idle_timeout = 30
     }
   }
@@ -293,7 +293,7 @@ func testAccJunosBgpGroupConfigUpdate() string {
 	return `
 resource junos_routing_instance "testacc_bgpgroup" {
   name = "testacc_bgpgroup"
-  as = "65000"
+  as   = "65000"
 }
 resource junos_policyoptions_policy_statement "testacc_bgpgroup" {
   name = "testacc_bgpgroup"
@@ -302,16 +302,16 @@ resource junos_policyoptions_policy_statement "testacc_bgpgroup" {
   }
 }
 resource junos_bgp_group "testacc_bgpgroup" {
-  name = "testacc_bgpgroup"
-  routing_instance = junos_routing_instance.testacc_bgpgroup.name
-  advertise_external_conditional = true
-  no_advertise_peer_as = true
-  metric_out_igp_offset = -10
+  name                            = "testacc_bgpgroup"
+  routing_instance                = junos_routing_instance.testacc_bgpgroup.name
+  advertise_external_conditional  = true
+  no_advertise_peer_as            = true
+  metric_out_igp_offset           = -10
   metric_out_igp_delay_med_update = true
-  authentication_key = "password"
-  type = "internal"
+  authentication_key              = "password"
+  type                            = "internal"
   graceful_restart {
-    restart_time = 10
+    restart_time     = 10
     stale_route_time = 10
   }
 }
@@ -321,23 +321,23 @@ resource junos_bgp_group "testacc_bgpgroup" {
 func testAccJunosBgpGroupConfigUpdate2() string {
 	return `
 resource junos_bgp_group "testacc_bgpgroup" {
-  name = "testacc_bgpgroup"
-  advertise_external = true
-  accept_remote_nexthop = true
-  multihop = true
-  local_as = "65000"
+  name                          = "testacc_bgpgroup"
+  advertise_external            = true
+  accept_remote_nexthop         = true
+  multihop                      = true
+  local_as                      = "65000"
   local_as_no_prepend_global_as = true
   metric_out_minimum_igp_offset = -10
-  type = "internal"
+  type                          = "internal"
 }
 `
 }
 func testAccJunosBgpGroupConfigUpdate3() string {
 	return `
 resource junos_bgp_group "testacc_bgpgroup" {
-  name = "testacc_bgpgroup"
-  local_as = "65000"
-  local_as_alias = true
+  name                   = "testacc_bgpgroup"
+  local_as               = "65000"
+  local_as_alias         = true
   metric_out_minimum_igp = true
 }
 `

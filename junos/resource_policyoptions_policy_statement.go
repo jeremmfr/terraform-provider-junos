@@ -1198,7 +1198,7 @@ func readPolicyStatementOptsFrom(item string,
 		}
 	}
 	switch {
-	case strings.HasPrefix(item, "aggregate-contributor"):
+	case item == "aggregate-contributor":
 		fromMap["aggregate_contributor"] = true
 	case strings.HasPrefix(item, "as-path "):
 		fromMap["bgp_as_path"] = append(fromMap["bgp_as_path"].([]string), strings.TrimPrefix(item, "as-path "))

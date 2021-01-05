@@ -11,7 +11,7 @@ description: |-
 Find st0 unit available and create interface.
 
 It's useful for bind_interface in `junos_security_ipsec_vpn` resource.  
-New st0 unit interface can be configured with `junos_interface` resource.
+New st0 unit interface can be configured with `junos_interface_logical` resource.
 
 ## Example Usage
 

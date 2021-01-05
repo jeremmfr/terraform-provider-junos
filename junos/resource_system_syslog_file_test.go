@@ -187,17 +187,17 @@ resource junos_system_syslog_file testacc_syslogFile {
   security_severity            = "error"
   user_severity                = "error"
   structured_data {
-  	brief = true
+    brief = true
   }
   archive {
-  	binary_data       = true
-  	world_readable     = true
-	size              = 1073741823
-	files             = 5
-	transfer_interval = 5
-	sites {
+    binary_data       = true
+    world_readable    = true
+    size              = 1073741823
+    files             = 5
+    transfer_interval = 5
+    sites {
       url = "example.fr"
-	}
+    }
     sites {
       url              = "example.com"
       password         = "password"

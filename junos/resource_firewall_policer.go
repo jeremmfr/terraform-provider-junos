@@ -317,7 +317,7 @@ func readFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject)
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case strings.HasPrefix(itemTrim, "filter-specific"):
+			case itemTrim == "filter-specific":
 				confRead.filterSpecific = true
 			case strings.HasPrefix(itemTrim, "if-exceeding "):
 				ifExceeding := map[string]interface{}{
@@ -357,13 +357,13 @@ func readFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject)
 					}
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "then discard"):
+				case itemTrim == "then discard":
 					then["discard"] = true
 				case strings.HasPrefix(itemTrim, "then forwarding-class "):
 					then["forwarding_class"] = strings.TrimPrefix(itemTrim, "then forwarding-class ")
 				case strings.HasPrefix(itemTrim, "then loss-priority "):
 					then["loss_priority"] = strings.TrimPrefix(itemTrim, "then loss-priority ")
-				case strings.HasPrefix(itemTrim, "then out-of-profile"):
+				case itemTrim == "then out-of-profile":
 					then["out_of_profile"] = true
 				}
 				confRead.then = []map[string]interface{}{then}

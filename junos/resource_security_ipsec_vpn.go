@@ -262,7 +262,7 @@ func resourceIpsecVpnUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	if d.HasChanges("bind_interface") && d.Get("bind_interfaces_auto").(bool) {
 		oldInt, _ := d.GetChange("bind_interface")
-		st0NC, st0Emtpy, err := checkInterfaceNC(oldInt.(string), m, jnprSess)
+		st0NC, st0Emtpy, err := checkInterfaceLogicalNC(oldInt.(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
 
@@ -481,7 +481,7 @@ func readIpsecVpn(ipsecVpn string, m interface{}, jnprSess *NetconfObject) (ipse
 					monitorOptions["source_interface"] = strings.TrimPrefix(itemTrim, "vpn-monitor source-interface ")
 				case strings.HasPrefix(itemTrim, "vpn-monitor destination-ip "):
 					monitorOptions["destination_ip"] = strings.TrimPrefix(itemTrim, "vpn-monitor destination-ip ")
-				case strings.HasPrefix(itemTrim, "vpn-monitor optimized"):
+				case itemTrim == "vpn-monitor optimized":
 					monitorOptions["optimized"] = true
 				}
 				// override (maxItem = 1)
@@ -529,7 +529,7 @@ func delIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ipsec vpn "+d.Get("name").(string))
 	if d.Get("bind_interface_auto").(bool) {
-		st0NC, st0Emtpy, err := checkInterfaceNC(d.Get("bind_interface").(string), m, jnprSess)
+		st0NC, st0Emtpy, err := checkInterfaceLogicalNC(d.Get("bind_interface").(string), m, jnprSess)
 		if err != nil {
 			return err
 		}

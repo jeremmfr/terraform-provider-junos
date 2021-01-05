@@ -498,23 +498,21 @@ func setIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 	if d.Get("no_nat_traversal").(bool) {
 		configSet = append(configSet, setPrefix+" no-nat-traversal")
 	}
-	if len(d.Get("dead_peer_detection").([]interface{})) != 0 {
+	for _, v := range d.Get("dead_peer_detection").([]interface{}) {
 		configSet = append(configSet, setPrefix+" dead-peer-detection")
-		for _, v := range d.Get("dead_peer_detection").([]interface{}) {
-			if v != nil {
-				deadPeerOptions := v.(map[string]interface{})
-				if deadPeerOptions["interval"].(int) != 0 {
-					configSet = append(configSet, setPrefix+" dead-peer-detection interval "+
-						strconv.Itoa(deadPeerOptions["interval"].(int)))
-				}
-				if deadPeerOptions["threshold"].(int) != 0 {
-					configSet = append(configSet, setPrefix+" dead-peer-detection threshold "+
-						strconv.Itoa(deadPeerOptions["threshold"].(int)))
-				}
-				if deadPeerOptions["send_mode"].(string) != "" {
-					configSet = append(configSet, setPrefix+" dead-peer-detection "+
-						deadPeerOptions["send_mode"].(string))
-				}
+		if v != nil {
+			deadPeerOptions := v.(map[string]interface{})
+			if deadPeerOptions["interval"].(int) != 0 {
+				configSet = append(configSet, setPrefix+" dead-peer-detection interval "+
+					strconv.Itoa(deadPeerOptions["interval"].(int)))
+			}
+			if deadPeerOptions["threshold"].(int) != 0 {
+				configSet = append(configSet, setPrefix+" dead-peer-detection threshold "+
+					strconv.Itoa(deadPeerOptions["threshold"].(int)))
+			}
+			if deadPeerOptions["send_mode"].(string) != "" {
+				configSet = append(configSet, setPrefix+" dead-peer-detection "+
+					deadPeerOptions["send_mode"].(string))
 			}
 		}
 	}
@@ -628,7 +626,7 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 					confRead.dynamicRemote[0]["inet"] = strings.TrimPrefix(itemTrim, "dynamic inet ")
 				case strings.HasPrefix(itemTrim, "dynamic inet6 "):
 					confRead.dynamicRemote[0]["inet6"] = strings.TrimPrefix(itemTrim, "dynamic inet6 ")
-				case strings.HasPrefix(itemTrim, "dynamic reject-duplicate-connection"):
+				case itemTrim == "dynamic reject-duplicate-connection":
 					confRead.dynamicRemote[0]["reject_duplicate_connection"] = true
 				case strings.HasPrefix(itemTrim, "dynamic user-at-hostname "):
 					confRead.dynamicRemote[0]["user_at_hostname"] = strings.Trim(strings.TrimPrefix(
@@ -640,9 +638,9 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 				confRead.policy = strings.TrimPrefix(itemTrim, "ike-policy ")
 			case strings.HasPrefix(itemTrim, "external-interface "):
 				confRead.externalInterface = strings.TrimPrefix(itemTrim, "external-interface ")
-			case strings.HasPrefix(itemTrim, "general-ikeid"):
+			case itemTrim == "general-ikeid":
 				confRead.generalIkeid = true
-			case strings.HasPrefix(itemTrim, "no-nat-traversal"):
+			case itemTrim == "no-nat-traversal":
 				confRead.noNatTraversal = true
 			case strings.HasPrefix(itemTrim, "dead-peer-detection"):
 				deadPeerOptions := map[string]interface{}{

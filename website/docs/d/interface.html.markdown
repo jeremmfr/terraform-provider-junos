@@ -10,6 +10,8 @@ description: |-
 
 Get information on an Interface
 
+!> **NOTE:** Since v1.11.0, this data soure is **deprecated**. For more consistency, functionalities of this data source have been splitted in two new data source `junos_interface_physical` and `junos_interface_logical`.
+
 ## Example Usage
 
 ```hcl
@@ -19,7 +21,7 @@ data junos_interface "demo_ip" {
 }
 # Search interface with name
 data junos_interface "interface_fw_demo" {
-  config_interface         = "ge-0/0/3.0"
+  config_interface = "ge-0/0/3.0"
 }
 ```
 

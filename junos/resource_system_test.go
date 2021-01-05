@@ -17,11 +17,75 @@ func TestAccJunosSystem_basic(t *testing.T) {
 					Config: testAccJunosSystemConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"host_name", "testacc-terraform"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"authentication_order.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"authentication_order.0", "password"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"auto_snapshot", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"inet6_backup_router.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"inet6_backup_router.0.destination.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"inet6_backup_router.0.destination.0", "::/0"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"inet6_backup_router.0.address", "fe80::1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.gre_path_mtu_discovery", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.icmpv4_rate_limit.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.icmpv4_rate_limit.0.bucket_size", "10"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.icmpv4_rate_limit.0.packet_rate", "10"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.icmpv6_rate_limit.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.icmpv6_rate_limit.0.bucket_size", "10"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.icmpv6_rate_limit.0.packet_rate", "10"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.ipip_path_mtu_discovery", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.ipv6_duplicate_addr_detection_transmits", "10"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.ipv6_path_mtu_discovery", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.ipv6_path_mtu_discovery_timeout", "10"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.ipv6_reject_zero_hop_limit", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.path_mtu_discovery", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.source_port_upper_limit", "50000"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.source_quench", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.tcp_drop_synfin_set", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.tcp_mss", "1400"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"max_configuration_rollbacks", "49"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"max_configurations_on_flash", "49"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"name_server.#", "2"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"name_server.0", "192.0.2.10"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"name_server.1", "192.0.2.11"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"no_ping_record_route", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"no_ping_time_stamp", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"no_redirects", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"no_redirects_ipv6", "true"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"services.#", "1"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
@@ -89,6 +153,8 @@ func TestAccJunosSystem_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"syslog.0.source_address", "192.0.2.1"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"time_zone", "Europe/Paris"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"tracing_dest_override_syslog_host", "192.0.2.50"),
 					),
 				},
@@ -100,6 +166,26 @@ func TestAccJunosSystem_basic(t *testing.T) {
 				{
 					Config: testAccJunosSystemConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.no_gre_path_mtu_discovery", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.no_ipip_path_mtu_discovery", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.no_ipv6_path_mtu_discovery", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.no_ipv6_reject_zero_hop_limit", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.no_path_mtu_discovery", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.no_source_quench", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.no_tcp_reset", "drop-tcp-with-syn-only"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.no_tcp_rfc1323", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"internet_options.0.no_tcp_rfc1323_paws", "true"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"services.#", "1"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
@@ -118,6 +204,9 @@ func TestAccJunosSystem_basic(t *testing.T) {
 							"syslog.0.archive.0.world_readable", "true"),
 					),
 				},
+				{
+					Config: testAccJunosSystemPostTest(),
+				},
 			},
 		})
 	}
@@ -126,37 +215,73 @@ func TestAccJunosSystem_basic(t *testing.T) {
 func testAccJunosSystemConfigCreate() string {
 	return `
 resource junos_system "testacc_system" {
-  name_server = ["192.0.2.10","192.0.2.11"]
+  host_name            = "testacc-terraform"
+  authentication_order = ["password"]
+  auto_snapshot        = true
+  domain_name          = "domain.local"
+  inet6_backup_router {
+    destination = ["::/0"]
+    address     = "fe80::1"
+  }
+  internet_options {
+    gre_path_mtu_discovery = true
+    icmpv4_rate_limit {
+      bucket_size = 10
+      packet_rate = 10
+    }
+    icmpv6_rate_limit {
+      bucket_size = 10
+      packet_rate = 10
+    }
+    ipip_path_mtu_discovery                 = true
+    ipv6_duplicate_addr_detection_transmits = 10
+    ipv6_path_mtu_discovery                 = true
+    ipv6_path_mtu_discovery_timeout         = 10
+    ipv6_reject_zero_hop_limit              = true
+    path_mtu_discovery                      = true
+    source_port_upper_limit                 = 50000
+    source_quench                           = true
+    tcp_drop_synfin_set                     = true
+    tcp_mss                                 = 1400
+  }
+  max_configuration_rollbacks = 49
+  max_configurations_on_flash = 49
+  name_server                 = ["192.0.2.10", "192.0.2.11"]
+  no_ping_record_route        = true
+  no_ping_time_stamp          = true
+  no_redirects                = true
+  no_redirects_ipv6           = true
   services {
     ssh {
-	  authentication_order           = ["password"]
-	  ciphers                        = ["aes256-ctr","aes256-cbc"]
-	  client_alive_count_max         = 10
-	  client_alive_interval          = 30
-	  connection_limit               = 10
-	  fingerprint_hash               = "md5"
-	  hostkey_algorithm              = ["no-ssh-dss"]
-	  key_exchange                   = ["ecdh-sha2-nistp256"]
-	  macs                           = ["hmac-sha2-256"]
-	  max_pre_authentication_packets = 10000
-	  max_sessions_per_connection    = 100
-	  port                           = 22
-	  protocol_version               = ["v2"]
-	  rate_limit                     = 200
-	  root_login                     = "deny"
-	  tcp_forwarding                 = true
+      authentication_order           = ["password"]
+      ciphers                        = ["aes256-ctr", "aes256-cbc"]
+      client_alive_count_max         = 10
+      client_alive_interval          = 30
+      connection_limit               = 10
+      fingerprint_hash               = "md5"
+      hostkey_algorithm              = ["no-ssh-dss"]
+      key_exchange                   = ["ecdh-sha2-nistp256"]
+      macs                           = ["hmac-sha2-256"]
+      max_pre_authentication_packets = 10000
+      max_sessions_per_connection    = 100
+      port                           = 22
+      protocol_version               = ["v2"]
+      rate_limit                     = 200
+      root_login                     = "deny"
+      tcp_forwarding                 = true
     }
   }
   syslog {
     archive {
       binary_data       = true
-	  files             = 5
-	  size              = 10000000
+      files             = 5
+      size              = 10000000
       no_world_readable = true
-	}
-	log_rotate_frequency = 30
-	source_address       = "192.0.2.1"
+    }
+    log_rotate_frequency = 30
+    source_address       = "192.0.2.1"
   }
+  time_zone                         = "Europe/Paris"
   tracing_dest_override_syslog_host = "192.0.2.50"
 }
 `
@@ -164,11 +289,23 @@ resource junos_system "testacc_system" {
 func testAccJunosSystemConfigUpdate() string {
 	return `
 resource junos_system "testacc_system" {
+  host_name   = "testacc-terraform"
   name_server = ["192.0.2.10"]
+  internet_options {
+    no_gre_path_mtu_discovery     = true
+    no_ipip_path_mtu_discovery    = true
+    no_ipv6_path_mtu_discovery    = true
+    no_ipv6_reject_zero_hop_limit = true
+    no_path_mtu_discovery         = true
+    no_source_quench              = true
+    no_tcp_reset                  = "drop-tcp-with-syn-only"
+    no_tcp_rfc1323                = true
+    no_tcp_rfc1323_paws           = true
+  }
   services {
     ssh {
-       ciphers                = ["aes256-ctr"]
-       no_tcp_forwarding      = true
+      ciphers           = ["aes256-ctr"]
+      no_tcp_forwarding = true
     }
   }
   syslog {
@@ -179,6 +316,21 @@ resource junos_system "testacc_system" {
       world_readable = true
     }
   }
+  time_zone = "Europe/Paris"
+}
+`
+}
+
+func testAccJunosSystemPostTest() string {
+	return `
+resource "junos_system" "testacc_system" {
+  host_name = "testacc-terraform"
+  services {
+    ssh {
+      root_login = "allow"
+    }
+  }
+  time_zone = "Europe/Paris"
 }
 `
 }
