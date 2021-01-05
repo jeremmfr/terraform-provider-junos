@@ -268,7 +268,7 @@ resource junos_system "system" {
 
 func testAccJunosSecurityConfigCreate(interFace string) string {
 	return `
-resource junos_interface "testacc_security" {
+resource junos_interface_logical "testacc_security" {
   name        = "` + interFace + `.0"
   description = "testacc_security"
 }
@@ -354,7 +354,7 @@ resource junos_security "testacc_security" {
     format           = "syslog"
     mode             = "event"
 	report           = true
-	source_interface = junos_interface.testacc_security.name
+	source_interface = junos_interface_logical.testacc_security.name
     transport {
       protocol        = "tcp"
       tcp_connections = 5
@@ -372,7 +372,7 @@ resource junos_security "testacc_security" {
 }
 func testAccJunosSecurityConfigUpdate(interFace string) string {
 	return `
-resource junos_interface "testacc_security" {
+resource junos_interface_logical "testacc_security" {
   name        = "` + interFace + `.0"
   description = "testacc_security"
 }

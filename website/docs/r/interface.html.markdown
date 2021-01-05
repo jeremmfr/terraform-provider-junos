@@ -10,6 +10,9 @@ description: |-
 
 Provides a interface resource.
 
+!> **NOTE:** Since v1.11.0, this resource is **deprecated**. For more consistency, functionalities of this resource have been splitted in two new resource `junos_interface_physical` and `junos_interface_logical`.
+There is a guide for help migrating to the new resources.
+
 ## Example Usage
 
 ```hcl

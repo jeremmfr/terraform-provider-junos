@@ -65,7 +65,7 @@ provider "junos" {
 }
 
 # Configure an interface
-resource "junos_interface" "server1" {
+resource junos_interface_physical "server1" {
   name = "ge-0/0/3"
   # ...
 }

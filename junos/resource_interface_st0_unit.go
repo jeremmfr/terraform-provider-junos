@@ -88,7 +88,7 @@ func resourceInterfaceSt0UnitDelete(ctx context.Context, d *schema.ResourceData,
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	ncInt, emptyInt, err := checkInterfaceNC(d.Id(), m, jnprSess)
+	ncInt, emptyInt, err := checkInterfaceLogicalNC(d.Id(), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 

@@ -2,6 +2,12 @@
 ENHANCEMENTS:
 * code optimization (remove useless list length check before loop on)
 * code optimization (remove useless strings mod usage to compare fixed string)
+* deprecate `junos_interface` resource for two new resources (split physical and logical interface into separate resources)
+* deprecate `junos_interface` data source for two new data sources (split physical and logical interface into separate data sources)
+* add `junos_interface_physical` resource for replace the parts of physical interface in deprecated `junos_interface` resource
+* add `junos_interface_physical` data source for replace the parts of physical interface in deprecated `junos_interface` data source
+* add `junos_interface_logical` resource for replace the parts of logical interface in deprecated `junos_interface` resource
+* add `junos_interface_logical` data source for replace the parts of logical interface in deprecated `junos_interface` data source
 
 BUG FIXES:
 
