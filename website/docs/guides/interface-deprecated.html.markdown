@@ -19,6 +19,7 @@ For physical interface (without dot in name) :
 * rename `complete_destroy` argument to `no_disable_on_destroy`
 
 For example :
+
 ```hcl
 # deprecated junos_interface
 resource junos_interface "interface_physical_demo" {
@@ -49,6 +50,7 @@ For logical interface (with dot in name) :
 * rename `address` in old `inet6_address` argument to `cidr_ip`
 
 For example :
+
 ```hcl
 # deprecated junos_interface 
 resource junos_interface "interface_logical_demo_100" {
@@ -88,12 +90,15 @@ resource junos_interface_logical "st0_100" {
 For upgrade to the new resource without destroy deprecated resource and recreate resource, you need to import the new resource and delete the old resource in Terraform state.
 
 After rewrite resource with new type, import each resources :
+
 ```
 terraform import junos_interface_physical.interface_physical_demo ge-0/0/0
 terraform import junos_interface_logical.interface_logical_demo_100 ge-0/0/2.100
 terraform import junos_interface_logical.st0_100 st0.100
 ```
+
 then now delete deprecated resource :
+
 ```
 terraform state rm junos_interface.interface_physical_demo
 terraform state rm junos_interface.interface_logical_demo_100
