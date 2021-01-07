@@ -15,8 +15,8 @@ jobs:
       - name: Check out terrafmt code
         uses: actions/checkout@v2
         with:
-          repository: jeremmfr/terrafmt
-          ref: support-return-back-quote
+          repository: katbyte/terrafmt
+          ref: v0.3.0
           path: terrafmt
       - name: Build terrafmt bin
         run: cd terrafmt && go install ./... && cd ${GITHUB_WORKSPACE}
