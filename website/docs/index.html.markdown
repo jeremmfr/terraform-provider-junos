@@ -111,13 +111,19 @@ The following arguments are supported in the `provider` block:
 
 ---
 #### Command options
-* `cmd_sleep_short` - (Optional) Number of milliseconds to wait after Terraform executes an action on the Junos device.  
+* `cmd_sleep_short` - (Optional) Number of milliseconds to wait after Terraform provider executes an action on the Junos device.  
   It can also be sourced from the `JUNOS_SLEEP_SHORT` environment variable.  
   Defaults to `100`.
 
-* `cmd_sleep_lock` - (Optional) Number of seconds of standby while waiting for Terraform to lock candidate configuration on a Junos device.  
+* `cmd_sleep_lock` - (Optional) Number of seconds of standby while waiting for Terraform provider to lock candidate configuration on a Junos device.  
   It can also be sourced from the `JUNOS_SLEEP_LOCK` environment variable.  
   Defaults to `10`.
+
+---
+#### SSH options
+* `ssh_sleep_closed` - (Optional) Number of seconds to wait after Terraform provider closed a ssh connection.  
+  It can also be sourced from the `JUNOS_SLEEP_SSH_CLOSED` environment variable.  
+  Defaults to `0`.
 
 ---
 #### Debug options

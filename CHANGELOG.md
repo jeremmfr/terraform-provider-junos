@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* add ssh_sleep_closed argument in provider configuration (Fixes part of [#87](https://github.com/jeremmfr/terraform-provider-junos/issues/87))
 
 BUG FIXES:
 
