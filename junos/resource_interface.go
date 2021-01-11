@@ -522,8 +522,6 @@ func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 	if intExists {
 		ncInt, _, err := checkInterfaceNC(d.Get("name").(string), m, jnprSess)
 		if err != nil {
-			sess.configClear(jnprSess)
-
 			return diag.FromErr(err)
 		}
 		if ncInt {

@@ -167,9 +167,7 @@ func resourceSecurityUtmPolicyCreate(ctx context.Context, d *schema.ResourceData
 
 		return diag.FromErr(err)
 	}
-	mutex.Lock()
 	utmPolicyExists, err = checkUtmPolicysExists(d.Get("name").(string), m, jnprSess)
-	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

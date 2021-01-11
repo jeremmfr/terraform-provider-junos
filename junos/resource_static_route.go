@@ -223,8 +223,6 @@ func resourceStaticRouteCreate(ctx context.Context, d *schema.ResourceData, m in
 	staticRouteExists, err = checkStaticRouteExists(d.Get("destination").(string), d.Get("routing_instance").(string),
 		m, jnprSess)
 	if err != nil {
-		sess.configClear(jnprSess)
-
 		return diag.FromErr(err)
 	}
 	if staticRouteExists {

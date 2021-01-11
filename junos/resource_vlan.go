@@ -177,9 +177,7 @@ func resourceVlanCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 		return diag.FromErr(err)
 	}
-	mutex.Lock()
 	vlanExists, err = checkVlansExists(d.Get("name").(string), m, jnprSess)
-	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

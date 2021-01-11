@@ -151,8 +151,6 @@ func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData
 	if intExists {
 		ncInt, _, err := checkInterfacePhysicalNC(d.Get("name").(string), m, jnprSess)
 		if err != nil {
-			sess.configClear(jnprSess)
-
 			return diag.FromErr(err)
 		}
 		if ncInt {

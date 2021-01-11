@@ -449,8 +449,6 @@ func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData,
 	if intExists {
 		ncInt, _, err := checkInterfaceLogicalNC(d.Get("name").(string), m, jnprSess)
 		if err != nil {
-			sess.configClear(jnprSess)
-
 			return diag.FromErr(err)
 		}
 		if ncInt {

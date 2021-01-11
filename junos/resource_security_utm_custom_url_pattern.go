@@ -75,9 +75,7 @@ func resourceSecurityUtmCustomURLPatternCreate(
 
 		return diag.FromErr(err)
 	}
-	mutex.Lock()
 	utmCustomURLPatternExists, err = checkUtmCustomURLPatternsExists(d.Get("name").(string), m, jnprSess)
-	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

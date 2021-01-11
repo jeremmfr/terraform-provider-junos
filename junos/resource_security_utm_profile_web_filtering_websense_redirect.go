@@ -142,9 +142,7 @@ func resourceSecurityUtmProfileWebFilteringWebsenseCreate(
 
 		return diag.FromErr(err)
 	}
-	mutex.Lock()
 	utmProfileWebFWebsenseExists, err = checkUtmProfileWebFWebsenseExists(d.Get("name").(string), m, jnprSess)
-	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

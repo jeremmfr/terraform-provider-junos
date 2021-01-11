@@ -118,9 +118,7 @@ func resourceSecurityUtmProfileWebFilteringLocalCreate(
 
 		return diag.FromErr(err)
 	}
-	mutex.Lock()
 	utmProfileWebFLocalExists, err = checkUtmProfileWebFLocalExists(d.Get("name").(string), m, jnprSess)
-	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

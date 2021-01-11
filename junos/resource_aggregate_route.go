@@ -141,8 +141,6 @@ func resourceAggregateRouteCreate(ctx context.Context, d *schema.ResourceData, m
 	aggregateRouteExists, err = checkAggregateRouteExists(
 		d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
-		sess.configClear(jnprSess)
-
 		return diag.FromErr(err)
 	}
 	if aggregateRouteExists {

@@ -119,9 +119,7 @@ func resourceSecurityZoneCreate(ctx context.Context, d *schema.ResourceData, m i
 
 		return diag.FromErr(err)
 	}
-	mutex.Lock()
 	securityZoneExists, err = checkSecurityZonesExists(d.Get("name").(string), m, jnprSess)
-	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}
