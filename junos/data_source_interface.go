@@ -357,14 +357,20 @@ func dataSourceInterfaceRead(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+	mutex.Lock()
 	nameFound, err := searchInterfaceID(d.Get("config_interface").(string), d.Get("match").(string), m, jnprSess)
 	if err != nil {
+		mutex.Unlock()
+
 		return diag.FromErr(err)
 	}
 	if nameFound == "" {
+		mutex.Unlock()
+
 		return diag.FromErr(fmt.Errorf("no interface found with arguments provided"))
 	}
 	interfaceOpt, err := readInterface(nameFound, m, jnprSess)
+	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

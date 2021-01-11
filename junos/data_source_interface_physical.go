@@ -86,14 +86,20 @@ func dataSourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+	mutex.Lock()
 	nameFound, err := searchInterfacePhysicalID(d.Get("config_interface").(string), d.Get("match").(string), m, jnprSess)
 	if err != nil {
+		mutex.Unlock()
+
 		return diag.FromErr(err)
 	}
 	if nameFound == "" {
+		mutex.Unlock()
+
 		return diag.FromErr(fmt.Errorf("no physical interface found with arguments provided"))
 	}
 	interfaceOpt, err := readInterfacePhysical(nameFound, m, jnprSess)
+	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}
