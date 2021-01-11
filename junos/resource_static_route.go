@@ -234,18 +234,20 @@ func resourceStaticRouteCreate(ctx context.Context, d *schema.ResourceData, m in
 			"=> check your config", d.Get("destination").(string), d.Get("routing_instance").(string)))
 	}
 
-	return resourceStaticRouteRead(ctx, d, m)
+	return resourceStaticRouteReadWJnprSess(d, m, jnprSess)
 }
 func resourceStaticRouteRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceStaticRouteReadWJnprSess(d, m, jnprSess)
+}
+func resourceStaticRouteReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	staticRouteOptions, err := readStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string),
 		m, jnprSess)
 	mutex.Unlock()
@@ -287,7 +289,7 @@ func resourceStaticRouteUpdate(ctx context.Context, d *schema.ResourceData, m in
 	}
 	d.Partial(false)
 
-	return resourceStaticRouteRead(ctx, d, m)
+	return resourceStaticRouteReadWJnprSess(d, m, jnprSess)
 }
 func resourceStaticRouteDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

@@ -158,18 +158,21 @@ func resourceSystemRadiusServerCreate(ctx context.Context, d *schema.ResourceDat
 			"=> check your config", d.Get("address").(string)))
 	}
 
-	return resourceSystemRadiusServerRead(ctx, d, m)
+	return resourceSystemRadiusServerReadWJnprSess(d, m, jnprSess)
 }
 func resourceSystemRadiusServerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceSystemRadiusServerReadWJnprSess(d, m, jnprSess)
+}
+func resourceSystemRadiusServerReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	radiusServerOptions, err := readSystemRadiusServer(d.Get("address").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -209,7 +212,7 @@ func resourceSystemRadiusServerUpdate(ctx context.Context, d *schema.ResourceDat
 	}
 	d.Partial(false)
 
-	return resourceSystemRadiusServerRead(ctx, d, m)
+	return resourceSystemRadiusServerReadWJnprSess(d, m, jnprSess)
 }
 func resourceSystemRadiusServerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

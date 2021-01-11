@@ -720,19 +720,22 @@ func resourcePolicyoptionsPolicyStatementCreate(
 			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourcePolicyoptionsPolicyStatementRead(ctx, d, m)
+	return resourcePolicyoptionsPolicyStatementReadWJnprSess(d, m, jnprSess)
 }
 func resourcePolicyoptionsPolicyStatementRead(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourcePolicyoptionsPolicyStatementReadWJnprSess(d, m, jnprSess)
+}
+func resourcePolicyoptionsPolicyStatementReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	policyStatementOptions, err := readPolicyStatement(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -773,7 +776,7 @@ func resourcePolicyoptionsPolicyStatementUpdate(
 	}
 	d.Partial(false)
 
-	return resourcePolicyoptionsPolicyStatementRead(ctx, d, m)
+	return resourcePolicyoptionsPolicyStatementReadWJnprSess(d, m, jnprSess)
 }
 func resourcePolicyoptionsPolicyStatementDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

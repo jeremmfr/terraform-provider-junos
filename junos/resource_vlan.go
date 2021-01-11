@@ -189,18 +189,20 @@ func resourceVlanCreate(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(fmt.Errorf("vlan %v not exists after commit => check your config", d.Get("name").(string)))
 	}
 
-	return resourceVlanRead(ctx, d, m)
+	return resourceVlanReadWJnprSess(d, m, jnprSess)
 }
 func resourceVlanRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceVlanReadWJnprSess(d, m, jnprSess)
+}
+func resourceVlanReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	vlanOptions, err := readVlan(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -240,7 +242,7 @@ func resourceVlanUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	}
 	d.Partial(false)
 
-	return resourceVlanRead(ctx, d, m)
+	return resourceVlanReadWJnprSess(d, m, jnprSess)
 }
 func resourceVlanDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

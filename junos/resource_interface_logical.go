@@ -462,18 +462,21 @@ func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(fmt.Errorf("interface %v not exists after commit => check your config", d.Get("name").(string)))
 	}
 
-	return resourceInterfaceLogicalRead(ctx, d, m)
+	return resourceInterfaceLogicalReadWJnprSess(d, m, jnprSess)
 }
 func resourceInterfaceLogicalRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceInterfaceLogicalReadWJnprSess(d, m, jnprSess)
+}
+func resourceInterfaceLogicalReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		mutex.Unlock()
@@ -587,7 +590,7 @@ func resourceInterfaceLogicalUpdate(ctx context.Context, d *schema.ResourceData,
 	}
 	d.Partial(false)
 
-	return resourceInterfaceLogicalRead(ctx, d, m)
+	return resourceInterfaceLogicalReadWJnprSess(d, m, jnprSess)
 }
 func resourceInterfaceLogicalDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

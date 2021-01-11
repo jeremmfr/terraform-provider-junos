@@ -155,19 +155,22 @@ func resourceSecurityUtmProfileWebFilteringWebsenseCreate(
 			"not exists after commit => check your config", d.Get("name").(string)))
 	}
 
-	return resourceSecurityUtmProfileWebFilteringWebsenseRead(ctx, d, m)
+	return resourceSecurityUtmProfileWebFilteringWebsenseReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityUtmProfileWebFilteringWebsenseRead(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceSecurityUtmProfileWebFilteringWebsenseReadWJnprSess(d, m, jnprSess)
+}
+func resourceSecurityUtmProfileWebFilteringWebsenseReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	utmProfileWebFWebsenseOptions, err := readUtmProfileWebFWebsense(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -209,7 +212,7 @@ func resourceSecurityUtmProfileWebFilteringWebsenseUpdate(
 	}
 	d.Partial(false)
 
-	return resourceSecurityUtmProfileWebFilteringWebsenseRead(ctx, d, m)
+	return resourceSecurityUtmProfileWebFilteringWebsenseReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityUtmProfileWebFilteringWebsenseDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

@@ -84,18 +84,21 @@ func resourceRoutingInstanceCreate(ctx context.Context, d *schema.ResourceData, 
 			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceRoutingInstanceRead(ctx, d, m)
+	return resourceRoutingInstanceReadWJnprSess(d, m, jnprSess)
 }
 func resourceRoutingInstanceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceRoutingInstanceReadWJnprSess(d, m, jnprSess)
+}
+func resourceRoutingInstanceReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	instanceOptions, err := readRoutingInstance(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -136,7 +139,7 @@ func resourceRoutingInstanceUpdate(ctx context.Context, d *schema.ResourceData, 
 	}
 	d.Partial(false)
 
-	return resourceRoutingInstanceRead(ctx, d, m)
+	return resourceRoutingInstanceReadWJnprSess(d, m, jnprSess)
 }
 func resourceRoutingInstanceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

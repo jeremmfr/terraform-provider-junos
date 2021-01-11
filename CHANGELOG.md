@@ -3,6 +3,9 @@ ENHANCEMENTS:
 * add ssh_sleep_closed argument in provider configuration (Fixes part of [#87](https://github.com/jeremmfr/terraform-provider-junos/issues/87))
 
 BUG FIXES:
+* use only one ssh connection per action and per resource (Fixes part of #87(https://github.com/jeremmfr/terraform-provider-junos/issues/87))
+* add missing lock in data source to reduce netconf commands parallelism
+* use only one ssh connection per action and per resource (Fixes part of [#87](https://github.com/jeremmfr/terraform-provider-junos/issues/87))
 
 ## v1.11.0
 FEATURES:

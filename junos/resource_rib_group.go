@@ -92,18 +92,20 @@ func resourceRibGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(fmt.Errorf("rib-group %v not exists after commit => check your config", d.Get("name").(string)))
 	}
 
-	return resourceRibGroupRead(ctx, d, m)
+	return resourceRibGroupReadWJnprSess(d, m, jnprSess)
 }
 func resourceRibGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceRibGroupReadWJnprSess(d, m, jnprSess)
+}
+func resourceRibGroupReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	ribGroupOptions, err := readRibGroup(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -165,7 +167,7 @@ func resourceRibGroupUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	d.Partial(false)
 
-	return resourceRibGroupRead(ctx, d, m)
+	return resourceRibGroupReadWJnprSess(d, m, jnprSess)
 }
 func resourceRibGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

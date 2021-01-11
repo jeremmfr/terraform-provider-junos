@@ -88,19 +88,22 @@ func resourceSecurityUtmCustomURLPatternCreate(
 			"not exists after commit => check your config", d.Get("name").(string)))
 	}
 
-	return resourceSecurityUtmCustomURLPatternRead(ctx, d, m)
+	return resourceSecurityUtmCustomURLPatternReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityUtmCustomURLPatternRead(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceSecurityUtmCustomURLPatternReadWJnprSess(d, m, jnprSess)
+}
+func resourceSecurityUtmCustomURLPatternReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	utmCustomURLPatternOptions, err := readUtmCustomURLPattern(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -141,7 +144,7 @@ func resourceSecurityUtmCustomURLPatternUpdate(
 	}
 	d.Partial(false)
 
-	return resourceSecurityUtmCustomURLPatternRead(ctx, d, m)
+	return resourceSecurityUtmCustomURLPatternReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityUtmCustomURLPatternDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

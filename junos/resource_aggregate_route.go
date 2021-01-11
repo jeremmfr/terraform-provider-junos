@@ -152,18 +152,21 @@ func resourceAggregateRouteCreate(ctx context.Context, d *schema.ResourceData, m
 			"=> check your config", d.Get("destination").(string), d.Get("routing_instance").(string)))
 	}
 
-	return resourceAggregateRouteRead(ctx, d, m)
+	return resourceAggregateRouteReadWJnprSess(d, m, jnprSess)
 }
 func resourceAggregateRouteRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceAggregateRouteReadWJnprSess(d, m, jnprSess)
+}
+func resourceAggregateRouteReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	aggregateRouteOptions, err := readAggregateRoute(d.Get("destination").(string), d.Get("routing_instance").(string),
 		m, jnprSess)
 	mutex.Unlock()
@@ -205,7 +208,7 @@ func resourceAggregateRouteUpdate(ctx context.Context, d *schema.ResourceData, m
 	}
 	d.Partial(false)
 
-	return resourceAggregateRouteRead(ctx, d, m)
+	return resourceAggregateRouteReadWJnprSess(d, m, jnprSess)
 }
 func resourceAggregateRouteDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

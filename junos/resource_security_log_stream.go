@@ -168,18 +168,21 @@ func resourceSecurityLogStreamCreate(ctx context.Context, d *schema.ResourceData
 			"not exists after commit => check your config", d.Get("name").(string)))
 	}
 
-	return resourceSecurityLogStreamRead(ctx, d, m)
+	return resourceSecurityLogStreamReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityLogStreamRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceSecurityLogStreamReadWJnprSess(d, m, jnprSess)
+}
+func resourceSecurityLogStreamReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	securityLogStreamOptions, err := readSecurityLogStream(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -219,7 +222,7 @@ func resourceSecurityLogStreamUpdate(ctx context.Context, d *schema.ResourceData
 	}
 	d.Partial(false)
 
-	return resourceSecurityLogStreamRead(ctx, d, m)
+	return resourceSecurityLogStreamReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityLogStreamDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

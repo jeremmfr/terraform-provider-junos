@@ -138,18 +138,21 @@ func resourceSecurityNatDestinationCreate(ctx context.Context, d *schema.Resourc
 			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceSecurityNatDestinationRead(ctx, d, m)
+	return resourceSecurityNatDestinationReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityNatDestinationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceSecurityNatDestinationReadWJnprSess(d, m, jnprSess)
+}
+func resourceSecurityNatDestinationReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	natDestinationOptions, err := readSecurityNatDestination(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -189,7 +192,7 @@ func resourceSecurityNatDestinationUpdate(ctx context.Context, d *schema.Resourc
 	}
 	d.Partial(false)
 
-	return resourceSecurityNatDestinationRead(ctx, d, m)
+	return resourceSecurityNatDestinationReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityNatDestinationDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

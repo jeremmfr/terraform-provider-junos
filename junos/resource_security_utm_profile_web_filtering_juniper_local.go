@@ -131,19 +131,22 @@ func resourceSecurityUtmProfileWebFilteringLocalCreate(
 			"not exists after commit => check your config", d.Get("name").(string)))
 	}
 
-	return resourceSecurityUtmProfileWebFilteringLocalRead(ctx, d, m)
+	return resourceSecurityUtmProfileWebFilteringLocalReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityUtmProfileWebFilteringLocalRead(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceSecurityUtmProfileWebFilteringLocalReadWJnprSess(d, m, jnprSess)
+}
+func resourceSecurityUtmProfileWebFilteringLocalReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	utmProfileWebFLocalOptions, err := readUtmProfileWebFLocal(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -185,7 +188,7 @@ func resourceSecurityUtmProfileWebFilteringLocalUpdate(
 	}
 	d.Partial(false)
 
-	return resourceSecurityUtmProfileWebFilteringLocalRead(ctx, d, m)
+	return resourceSecurityUtmProfileWebFilteringLocalReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityUtmProfileWebFilteringLocalDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

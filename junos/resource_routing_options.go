@@ -92,18 +92,21 @@ func resourceRoutingOptionsCreate(ctx context.Context, d *schema.ResourceData, m
 
 	d.SetId("routing_options")
 
-	return resourceRoutingOptionsRead(ctx, d, m)
+	return resourceRoutingOptionsReadWJnprSess(d, m, jnprSess)
 }
 func resourceRoutingOptionsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceRoutingOptionsReadWJnprSess(d, m, jnprSess)
+}
+func resourceRoutingOptionsReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	routingOptionsOptions, err := readRoutingOptions(m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -139,7 +142,7 @@ func resourceRoutingOptionsUpdate(ctx context.Context, d *schema.ResourceData, m
 	}
 	d.Partial(false)
 
-	return resourceRoutingOptionsRead(ctx, d, m)
+	return resourceRoutingOptionsReadWJnprSess(d, m, jnprSess)
 }
 func resourceRoutingOptionsDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	return nil

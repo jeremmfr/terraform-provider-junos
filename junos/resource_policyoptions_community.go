@@ -86,18 +86,21 @@ func resourcePolicyoptionsCommunityCreate(ctx context.Context, d *schema.Resourc
 			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourcePolicyoptionsCommunityRead(ctx, d, m)
+	return resourcePolicyoptionsCommunityReadWJnprSess(d, m, jnprSess)
 }
 func resourcePolicyoptionsCommunityRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourcePolicyoptionsCommunityReadWJnprSess(d, m, jnprSess)
+}
+func resourcePolicyoptionsCommunityReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	communityOptions, err := readPolicyoptionsCommunity(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -137,7 +140,7 @@ func resourcePolicyoptionsCommunityUpdate(ctx context.Context, d *schema.Resourc
 	}
 	d.Partial(false)
 
-	return resourcePolicyoptionsCommunityRead(ctx, d, m)
+	return resourcePolicyoptionsCommunityReadWJnprSess(d, m, jnprSess)
 }
 func resourcePolicyoptionsCommunityDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

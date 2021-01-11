@@ -80,18 +80,21 @@ func resourceApplicationSetCreate(ctx context.Context, d *schema.ResourceData, m
 			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceApplicationSetRead(ctx, d, m)
+	return resourceApplicationSetReadWJnprSess(d, m, jnprSess)
 }
 func resourceApplicationSetRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceApplicationSetReadWJnprSess(d, m, jnprSess)
+}
+func resourceApplicationSetReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	applicationSetOptions, err := readApplicationSet(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -131,7 +134,7 @@ func resourceApplicationSetUpdate(ctx context.Context, d *schema.ResourceData, m
 	}
 	d.Partial(false)
 
-	return resourceApplicationSetRead(ctx, d, m)
+	return resourceApplicationSetReadWJnprSess(d, m, jnprSess)
 }
 func resourceApplicationSetDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
