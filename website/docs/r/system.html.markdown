@@ -41,10 +41,11 @@ The following arguments are supported:
 * `auto_snapshot` - (Optional)(`Bool`) Enable auto-snapshot when boots from alternate slice.
 * `domain_name` - (Optional)(`String`) Domain name.
 * `host_name` - (Optional)(`String`) Hostname.
-* `inet6_backup_router` (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'inet6-backup-router' configuration.
+* `inet6_backup_router` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'inet6-backup-router' configuration.
   * `address` - (Optional)(`String`) Address of router to use while booting.
   * `destination` - (Optional)(`ListOfString`) Destination networks reachable through the router.
-* `internet_options` (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'internet-options configuration. See the [`internet_options` arguments] (#internet_options-arguments) block.
+* `internet_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'internet-options' configuration. See the [`internet_options` arguments] (#internet_options-arguments) block.
+* `login` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'login' configuration. See the [`login` arguments] (#login-arguments) block.
 * `max_configuration_rollbacks` - (Optional)(`Int`) Maximum rollback configuration (0..49).
 * `max_configurations_on_flash` - (Optional)(`Int`) Number of configuration files stored on flash (0..49).
 * `name_server` - (Optional)(`ListOfString`) DNS name servers.
@@ -89,6 +90,32 @@ The following arguments are supported:
 * `source_quench` - (Optional)(`Bool`) React to incoming ICMP Source Quench messages. Conflict with `no_source_quench`.
 * `tcp_drop_synfin_set` - (Optional)(`Bool`) Drop TCP packets that have both SYN and FIN flags.
 * `tcp_mss` - (Optional)(`Int`) Maximum value of TCP MSS for IPV4 traffic (64..65535 bytes).
+
+---
+#### login arguments
+* `announcement` - (Optional)(`String`) System announcement message (displayed after login).
+* `deny_sources_address` - (Optional)(`ListOfString`) Sources from which logins are denied.
+* `idle_timeout` - (Optional)(`Int`) Maximum idle time before logout (1..60 minutes).
+* `message` - (Optional)(`String`) System login message.
+* `password` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'password' configuration.
+  * `change_type` - (Optional)(`String`) Password change type.
+  * `format` - (Optional)(`String`) Encryption method to use for password.
+  * `maximum_length` - (Optional)(`Int`) Maximum password length for all users (20..128).
+  * `minimum_changes` - (Optional)(`Int`) Minimum number of changes in password (1..128).
+  * `minimum_character_changes` - (Optional)(`Int`) Minimum number of character changes between old and new passwords (4..15).
+  * `minimum_length` - (Optional)(`Int`) Minimum password length for all users (6..20).
+  * `minimum_lower_cases` - (Optional)(`Int`) Minimum number of lower-case class characters in password (1..128)
+  * `minimum_numerics` - (Optional)(`Int`) Minimum number of numeric class characters in password (1..128).
+  * `minimum_punctuations` - (Optional)(`Int`) Minimum number of punctuation class characters in password (1..128).
+  * `minimum_reuse` - (Optional)(`Int`) Minimum number of old passwords which should not be same as the new password (1..20).
+  * `minimum_upper_cases` - (Optional)(`Int`) Minimum number of upper-case class characters in password (1..128).
+* `retry_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'retry-options' configuration.
+  * `backoff_factor` - (Optional)(`Int`) Delay factor after 'backoff-threshold' password failures (5..10).
+  * `backoff_threshold` - (Optional)(`Int`) Number of password failures before delay is introduced (1..3).
+  * `lockout_period` - (Optional)(`Int`) Amount of time user account is locked after 'tries-before-disconnect' failures (1..43200 minutes).
+  * `maximum_time` - (Optional)(`Int`) Maximum time the connection will remain for user to enter username and password (20..300).
+  * `minimum_time` - (Optional)(`Int`) Minimum total connection time if all attempts fail (20..60).
+  * `tries_before_disconnect` - (Optional)(`Int`) Number of times user is allowed to try password (2..10).
 
 ---
 #### ssh arguments for services

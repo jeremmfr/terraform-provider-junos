@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* add `login` argument in `junos_system` resource (Fixes parts of [#88](https://github.com/jeremmfr/terraform-provider-junos/issues/88))
 
 BUG FIXES:
 
