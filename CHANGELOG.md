@@ -2,6 +2,7 @@
 ENHANCEMENTS:
 * add `login` argument in `junos_system` resource (Fixes parts of [#88](https://github.com/jeremmfr/terraform-provider-junos/issues/88))
 * add `junos_system_login_class` resource (Fixes parts of [#88](https://github.com/jeremmfr/terraform-provider-junos/issues/88))
+* add `junos_system_login_user` resource (Fixes parts of [#88](https://github.com/jeremmfr/terraform-provider-junos/issues/88))
 
 BUG FIXES:
 

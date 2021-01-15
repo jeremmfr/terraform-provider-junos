@@ -147,6 +147,7 @@ func Provider() *schema.Provider {
 			"junos_static_route":                                         resourceStaticRoute(),
 			"junos_system":                                               resourceSystem(),
 			"junos_system_login_class":                                   resourceSystemLoginClass(),
+			"junos_system_login_user":                                    resourceSystemLoginUser(),
 			"junos_system_ntp_server":                                    resourceSystemNtpServer(),
 			"junos_system_radius_server":                                 resourceSystemRadiusServer(),
 			"junos_system_syslog_host":                                   resourceSystemSyslogHost(),
