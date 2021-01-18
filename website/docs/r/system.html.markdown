@@ -8,9 +8,10 @@ description: |-
 
 # junos_system
 
--> **Note:** This resource should only create **once**. It's used to configure static (not object) options in `system` block. Destroy this resource as no effect on Junos configuration.
+-> **Note:** This resource should only be created **once**. It's used to configure static (not object) options in `system` block. Destroy this resource has no effect on the Junos configuration.  
+There is an exception for `system root-authentication` static block. It's can be configured with the dedicated `junos_system_root_authentication` resource.
 
-Configure static configuration in `system` block
+Configure static configuration in `system` block (except `system root-authentication` block)
 
 ## Example Usage
 
