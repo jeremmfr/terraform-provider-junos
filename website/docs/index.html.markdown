@@ -165,8 +165,10 @@ With N for terraform's [`-parallelism`](https://www.terraform.io/docs/commands/p
 
 To reduce :
 
-* rate of parallel ssh connections, reduce parallelism with terraform's [`-parallelism`](https://www.terraform.io/docs/commands/plan.html#parallelism-n) argument.
-* rate of new ssh connections by second, increase the provider's [`ssh_sleep_closed`](#ssh_sleep_closed) argument.
-* rate of netconf commands by second on ssh connections, increase the provider's [`cmd_sleep_short`](#cmd_sleep_short) argument.
+* the rate of parallel ssh connections, reduce parallelism with terraform's [`-parallelism`](https://www.terraform.io/docs/commands/plan.html#parallelism-n) argument.
+* the rate of new ssh connections by second, increase the provider's [`ssh_sleep_closed`](#ssh_sleep_closed) argument.
+* the rate of netconf commands by second on ssh connections, increase the provider's [`cmd_sleep_short`](#cmd_sleep_short) argument.
 
-To increase the speed of `commit` (if your Junos device is quick to commit), decrease the provider's [`cmd_sleep_lock`](#cmd_sleep_lock) argument (be safe, too small is counterproductive).
+To increase :
+
+* the speed of `commit` (if your Junos device is quick to commit), decrease the provider's [`cmd_sleep_lock`](#cmd_sleep_lock) argument (be safe, too small is counterproductive).
