@@ -1,10 +1,17 @@
 ## upcoming release
 ENHANCEMENTS:
-* add `ssh_sleep_closed` argument in provider configuration (Fixes part of [#87](https://github.com/jeremmfr/terraform-provider-junos/issues/87))
-* add `login` argument in `junos_system` resource (Fixes parts of [#88](https://github.com/jeremmfr/terraform-provider-junos/issues/88))
+
+BUG FIXES:
+
+## 1.12.0 (January 20, 2021)
+FEATURES:
 * add `junos_system_login_class` resource (Fixes parts of [#88](https://github.com/jeremmfr/terraform-provider-junos/issues/88))
 * add `junos_system_login_user` resource (Fixes parts of [#88](https://github.com/jeremmfr/terraform-provider-junos/issues/88))
 * add `junos_system_root_authentication` resource
+
+ENHANCEMENTS:
+* add `ssh_sleep_closed` argument in provider configuration (Fixes part of [#87](https://github.com/jeremmfr/terraform-provider-junos/issues/87))
+* add `login` argument in `junos_system` resource (Fixes parts of [#88](https://github.com/jeremmfr/terraform-provider-junos/issues/88))
 
 BUG FIXES:
 * add missing lock in data source to reduce netconf commands parallelism
