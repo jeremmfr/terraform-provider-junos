@@ -167,9 +167,7 @@ func resourceSecurityUtmPolicyCreate(ctx context.Context, d *schema.ResourceData
 
 		return diag.FromErr(err)
 	}
-	mutex.Lock()
 	utmPolicyExists, err = checkUtmPolicysExists(d.Get("name").(string), m, jnprSess)
-	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -180,18 +178,21 @@ func resourceSecurityUtmPolicyCreate(ctx context.Context, d *schema.ResourceData
 			"not exists after commit => check your config", d.Get("name").(string)))
 	}
 
-	return resourceSecurityUtmPolicyRead(ctx, d, m)
+	return resourceSecurityUtmPolicyReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityUtmPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceSecurityUtmPolicyReadWJnprSess(d, m, jnprSess)
+}
+func resourceSecurityUtmPolicyReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	utmPolicyOptions, err := readUtmPolicy(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -231,7 +232,7 @@ func resourceSecurityUtmPolicyUpdate(ctx context.Context, d *schema.ResourceData
 	}
 	d.Partial(false)
 
-	return resourceSecurityUtmPolicyRead(ctx, d, m)
+	return resourceSecurityUtmPolicyReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityUtmPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

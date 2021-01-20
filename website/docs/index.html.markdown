@@ -111,13 +111,19 @@ The following arguments are supported in the `provider` block:
 
 ---
 #### Command options
-* `cmd_sleep_short` - (Optional) Number of milliseconds to wait after Terraform executes an action on the Junos device.  
+* `cmd_sleep_short` - (Optional) Number of milliseconds to wait after Terraform provider executes an action on the Junos device.  
   It can also be sourced from the `JUNOS_SLEEP_SHORT` environment variable.  
   Defaults to `100`.
 
-* `cmd_sleep_lock` - (Optional) Number of seconds of standby while waiting for Terraform to lock candidate configuration on a Junos device.  
+* `cmd_sleep_lock` - (Optional) Number of seconds of standby while waiting for Terraform provider to lock candidate configuration on a Junos device.  
   It can also be sourced from the `JUNOS_SLEEP_LOCK` environment variable.  
   Defaults to `10`.
+
+---
+#### SSH options
+* `ssh_sleep_closed` - (Optional) Number of seconds to wait after Terraform provider closed a ssh connection.  
+  It can also be sourced from the `JUNOS_SLEEP_SSH_CLOSED` environment variable.  
+  Defaults to `0`.
 
 ---
 #### Debug options
@@ -148,3 +154,21 @@ ge-0/0/3 {
 ```
 
 and considers the interface available if the is this lines and only this lines on interface.
+
+## Number of ssh connections and netconf commands
+
+By default, terraform run with 10 parrallel actions, cf [walks the graph](https://www.terraform.io/docs/internals/graph.html#walking-the-graph).
+
+With N for terraform's [`-parallelism`](https://www.terraform.io/docs/commands/plan.html#parallelism-n) argument, this provider :
+
+* open N ssh connections.
+* reduce the parrallelism of netconf `show` commands parrallelism under N with a mutex lock.
+* lock the Junos configuration before adding `set` lines and execute `commit` so one `commit` at a time (other threads wait for locking).
+
+To reduce :
+
+* rate of parallel ssh connections, reduce parallelism with terraform's [`-parallelism`](https://www.terraform.io/docs/commands/plan.html#parallelism-n) argument.
+* rate of new ssh connections by second, increase the provider's [`ssh_sleep_closed`](#ssh_sleep_closed) argument.
+* rate of netconf commands by second on ssh connections, increase the provider's [`cmd_sleep_short`](#cmd_sleep_short) argument.
+
+To increase the speed of `commit` (if your Junos device is quick to commit), decrease the provider's [`cmd_sleep_lock`](#cmd_sleep_lock) argument (be safe, too small is counterproductive).

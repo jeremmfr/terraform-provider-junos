@@ -87,18 +87,20 @@ func resourceApplicationCreate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(fmt.Errorf("application %v not exists after commit => check your config", d.Get("name").(string)))
 	}
 
-	return resourceApplicationRead(ctx, d, m)
+	return resourceApplicationReadWJnprSess(d, m, jnprSess)
 }
 func resourceApplicationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceApplicationReadWJnprSess(d, m, jnprSess)
+}
+func resourceApplicationReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	applicationOptions, err := readApplication(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -138,7 +140,7 @@ func resourceApplicationUpdate(ctx context.Context, d *schema.ResourceData, m in
 	}
 	d.Partial(false)
 
-	return resourceApplicationRead(ctx, d, m)
+	return resourceApplicationReadWJnprSess(d, m, jnprSess)
 }
 func resourceApplicationDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

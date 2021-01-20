@@ -99,18 +99,21 @@ func resourceSystemNtpServerCreate(ctx context.Context, d *schema.ResourceData, 
 			"=> check your config", d.Get("address").(string)))
 	}
 
-	return resourceSystemNtpServerRead(ctx, d, m)
+	return resourceSystemNtpServerReadWJnprSess(d, m, jnprSess)
 }
 func resourceSystemNtpServerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceSystemNtpServerReadWJnprSess(d, m, jnprSess)
+}
+func resourceSystemNtpServerReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	ntpServerOptions, err := readSystemNtpServer(d.Get("address").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -150,7 +153,7 @@ func resourceSystemNtpServerUpdate(ctx context.Context, d *schema.ResourceData, 
 	}
 	d.Partial(false)
 
-	return resourceSystemNtpServerRead(ctx, d, m)
+	return resourceSystemNtpServerReadWJnprSess(d, m, jnprSess)
 }
 func resourceSystemNtpServerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

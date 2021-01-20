@@ -468,18 +468,20 @@ func resourceSystemCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	d.SetId("system")
 
-	return resourceSystemRead(ctx, d, m)
+	return resourceSystemReadWJnprSess(d, m, jnprSess)
 }
 func resourceSystemRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceSystemReadWJnprSess(d, m, jnprSess)
+}
+func resourceSystemReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	systemOptions, err := readSystem(m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -515,7 +517,7 @@ func resourceSystemUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 	d.Partial(false)
 
-	return resourceSystemRead(ctx, d, m)
+	return resourceSystemReadWJnprSess(d, m, jnprSess)
 }
 func resourceSystemDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	return nil

@@ -211,18 +211,21 @@ func resourceSecurityPolicyCreate(ctx context.Context, d *schema.ResourceData, m
 			"=> check your config", d.Get("from_zone").(string), d.Get("to_zone").(string)))
 	}
 
-	return resourceSecurityPolicyRead(ctx, d, m)
+	return resourceSecurityPolicyReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceSecurityPolicyReadWJnprSess(d, m, jnprSess)
+}
+func resourceSecurityPolicyReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	policyOptions, err := readSecurityPolicy(d.Get("from_zone").(string)+idSeparator+d.Get("to_zone").(string),
 		m, jnprSess)
 	mutex.Unlock()
@@ -265,7 +268,7 @@ func resourceSecurityPolicyUpdate(ctx context.Context, d *schema.ResourceData, m
 	}
 	d.Partial(false)
 
-	return resourceSecurityPolicyRead(ctx, d, m)
+	return resourceSecurityPolicyReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

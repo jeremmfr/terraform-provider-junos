@@ -126,19 +126,22 @@ func resourceSecurityPolicyTunnelPairPolicyCreate(
 		return diag.FromErr(fmt.Errorf("security policy pair policy not exists after commit => check your config"))
 	}
 
-	return resourceSecurityPolicyTunnelPairPolicyRead(ctx, d, m)
+	return resourceSecurityPolicyTunnelPairPolicyReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityPolicyTunnelPairPolicyRead(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceSecurityPolicyTunnelPairPolicyReadWJnprSess(d, m, jnprSess)
+}
+func resourceSecurityPolicyTunnelPairPolicyReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	policyPairPolicyOptions, err := readSecurityPolicyTunnelPairPolicy(d.Get("zone_a").(string)+idSeparator+
 		d.Get("policy_a_to_b").(string)+idSeparator+
 		d.Get("zone_b").(string)+idSeparator+

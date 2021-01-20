@@ -142,18 +142,21 @@ func resourceSecurityNatStaticCreate(ctx context.Context, d *schema.ResourceData
 			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceSecurityNatStaticRead(ctx, d, m)
+	return resourceSecurityNatStaticReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityNatStaticRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceSecurityNatStaticReadWJnprSess(d, m, jnprSess)
+}
+func resourceSecurityNatStaticReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	natStaticOptions, err := readSecurityNatStatic(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -193,7 +196,7 @@ func resourceSecurityNatStaticUpdate(ctx context.Context, d *schema.ResourceData
 	}
 	d.Partial(false)
 
-	return resourceSecurityNatStaticRead(ctx, d, m)
+	return resourceSecurityNatStaticReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityNatStaticDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

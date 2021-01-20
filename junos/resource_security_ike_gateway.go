@@ -314,18 +314,20 @@ func resourceIkeGatewayCreate(ctx context.Context, d *schema.ResourceData, m int
 			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceIkeGatewayRead(ctx, d, m)
+	return resourceIkeGatewayReadWJnprSess(d, m, jnprSess)
 }
 func resourceIkeGatewayRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceIkeGatewayReadWJnprSess(d, m, jnprSess)
+}
+func resourceIkeGatewayReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	ikeGatewayOptions, err := readIkeGateway(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -365,7 +367,7 @@ func resourceIkeGatewayUpdate(ctx context.Context, d *schema.ResourceData, m int
 	}
 	d.Partial(false)
 
-	return resourceIkeGatewayRead(ctx, d, m)
+	return resourceIkeGatewayReadWJnprSess(d, m, jnprSess)
 }
 func resourceIkeGatewayDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

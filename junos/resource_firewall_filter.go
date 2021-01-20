@@ -309,18 +309,21 @@ func resourceFirewallFilterCreate(ctx context.Context, d *schema.ResourceData, m
 			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceFirewallFilterRead(ctx, d, m)
+	return resourceFirewallFilterReadWJnprSess(d, m, jnprSess)
 }
 func resourceFirewallFilterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceFirewallFilterReadWJnprSess(d, m, jnprSess)
+}
+func resourceFirewallFilterReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	filterOptions, err := readFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -360,7 +363,7 @@ func resourceFirewallFilterUpdate(ctx context.Context, d *schema.ResourceData, m
 	}
 	d.Partial(false)
 
-	return resourceFirewallFilterRead(ctx, d, m)
+	return resourceFirewallFilterReadWJnprSess(d, m, jnprSess)
 }
 func resourceFirewallFilterDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

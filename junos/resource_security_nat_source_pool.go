@@ -114,18 +114,21 @@ func resourceSecurityNatSourcePoolCreate(ctx context.Context, d *schema.Resource
 			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceSecurityNatSourcePoolRead(ctx, d, m)
+	return resourceSecurityNatSourcePoolReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityNatSourcePoolRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceSecurityNatSourcePoolReadWJnprSess(d, m, jnprSess)
+}
+func resourceSecurityNatSourcePoolReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	natSourcePoolOptions, err := readSecurityNatSourcePool(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -165,7 +168,7 @@ func resourceSecurityNatSourcePoolUpdate(ctx context.Context, d *schema.Resource
 	}
 	d.Partial(false)
 
-	return resourceSecurityNatSourcePoolRead(ctx, d, m)
+	return resourceSecurityNatSourcePoolReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityNatSourcePoolDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
