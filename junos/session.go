@@ -10,17 +10,18 @@ import (
 
 // Session information for connect to Junos Device.
 type Session struct {
-	junosPort        int
-	junosSleep       int
-	junosSleepShort  int
-	junosIP          string
-	junosUserName    string
-	junosPassword    string
-	junosSSHKeyPEM   string
-	junosSSHKeyFile  string
-	junosKeyPass     string
-	junosGroupIntDel string
-	junosLogFile     string
+	junosPort           int
+	junosSleepLock      int
+	junosSleepShort     int
+	junosSleepSSHClosed int
+	junosIP             string
+	junosUserName       string
+	junosPassword       string
+	junosSSHKeyPEM      string
+	junosSSHKeyFile     string
+	junosKeyPass        string
+	junosGroupIntDel    string
+	junosLogFile        string
 }
 
 func (sess *Session) startNewSession() (*NetconfObject, error) {
@@ -62,7 +63,7 @@ func (sess *Session) startNewSession() (*NetconfObject, error) {
 	return jnpr, nil
 }
 func (sess *Session) closeSession(jnpr *NetconfObject) {
-	err := jnpr.Close()
+	err := jnpr.Close(sess.junosSleepSSHClosed)
 	if sess.junosLogFile != "" {
 		if err != nil {
 			logFile(fmt.Sprintf("[closeSession] err: %q", err), sess.junosLogFile)
@@ -154,7 +155,7 @@ func (sess *Session) configLock(jnpr *NetconfObject) {
 			if sess.junosLogFile != "" {
 				logFile("[configLock] sleep for wait lock", sess.junosLogFile)
 			}
-			sleep(sess.junosSleep)
+			sleep(sess.junosSleepLock)
 		}
 	}
 }
@@ -165,7 +166,7 @@ func (sess *Session) configClear(jnpr *NetconfObject) {
 		logFile("[configClear] config clear", sess.junosLogFile)
 	}
 	if err != nil {
-		err := jnpr.Close()
+		err := jnpr.Close(sess.junosSleepSSHClosed)
 		if err != nil && sess.junosLogFile != "" {
 			logFile(fmt.Sprintf("[configClear] close err: %q", err), sess.junosLogFile)
 		}
@@ -177,7 +178,7 @@ func (sess *Session) configClear(jnpr *NetconfObject) {
 		logFile("[configClear] config unlock", sess.junosLogFile)
 	}
 	if err != nil {
-		err := jnpr.Close()
+		err := jnpr.Close(sess.junosSleepSSHClosed)
 		if err != nil && sess.junosLogFile != "" {
 			logFile(fmt.Sprintf("[configClear] close err: %q", err), sess.junosLogFile)
 		}

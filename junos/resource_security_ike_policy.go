@@ -127,18 +127,20 @@ func resourceIkePolicyCreate(ctx context.Context, d *schema.ResourceData, m inte
 			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceIkePolicyRead(ctx, d, m)
+	return resourceIkePolicyReadWJnprSess(d, m, jnprSess)
 }
 func resourceIkePolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceIkePolicyReadWJnprSess(d, m, jnprSess)
+}
+func resourceIkePolicyReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	ikePolicyOptions, err := readIkePolicy(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -178,7 +180,7 @@ func resourceIkePolicyUpdate(ctx context.Context, d *schema.ResourceData, m inte
 	}
 	d.Partial(false)
 
-	return resourceIkePolicyRead(ctx, d, m)
+	return resourceIkePolicyReadWJnprSess(d, m, jnprSess)
 }
 func resourceIkePolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

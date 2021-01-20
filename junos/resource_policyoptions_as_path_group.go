@@ -98,18 +98,21 @@ func resourcePolicyoptionsAsPathGroupCreate(
 			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourcePolicyoptionsAsPathGroupRead(ctx, d, m)
+	return resourcePolicyoptionsAsPathGroupReadWJnprSess(d, m, jnprSess)
 }
 func resourcePolicyoptionsAsPathGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourcePolicyoptionsAsPathGroupReadWJnprSess(d, m, jnprSess)
+}
+func resourcePolicyoptionsAsPathGroupReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	asPathGroupOptions, err := readPolicyoptionsAsPathGroup(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -150,7 +153,7 @@ func resourcePolicyoptionsAsPathGroupUpdate(
 	}
 	d.Partial(false)
 
-	return resourcePolicyoptionsAsPathGroupRead(ctx, d, m)
+	return resourcePolicyoptionsAsPathGroupReadWJnprSess(d, m, jnprSess)
 }
 func resourcePolicyoptionsAsPathGroupDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

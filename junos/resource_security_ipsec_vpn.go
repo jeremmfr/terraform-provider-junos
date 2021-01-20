@@ -202,19 +202,22 @@ func resourceIpsecVpnCreate(ctx context.Context, d *schema.ResourceData, m inter
 			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceIpsecVpnRead(ctx, d, m)
+	return resourceIpsecVpnReadWJnprSess(d, m, jnprSess)
 }
 func resourceIpsecVpnRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceIpsecVpnReadWJnprSess(d, m, jnprSess)
+}
+func resourceIpsecVpnReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	ipsecVpnOptions, err := readIpsecVpn(d.Get("name").(string), m, jnprSess)
+	mutex.Unlock()
 	// copy state vpn_monitor.0.source_interface_auto to struct
 	if len(ipsecVpnOptions.vpnMonitor) > 0 {
 		for _, v := range d.Get("vpn_monitor").([]interface{}) {
@@ -226,7 +229,6 @@ func resourceIpsecVpnRead(ctx context.Context, d *schema.ResourceData, m interfa
 			}
 		}
 	}
-	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -288,7 +290,7 @@ func resourceIpsecVpnUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	d.Partial(false)
 
-	return append(diagsReturn, resourceIpsecVpnRead(ctx, d, m)...)
+	return append(diagsReturn, resourceIpsecVpnReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceIpsecVpnDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

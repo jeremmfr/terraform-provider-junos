@@ -8,7 +8,7 @@ description: |-
 
 # junos_routing_options
 
--> **Note:** This resource should only create **once**. It's used to configure static (not object) options in `routing-options` block. Destroy this resource as no effect on Junos configuration.
+-> **Note:** This resource should only be created **once**. It's used to configure static (not object) options in `routing-options` block. Destroy this resource has no effect on the Junos configuration.
 
 Configure static configuration in `routing-options` block
 

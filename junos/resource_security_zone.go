@@ -119,9 +119,7 @@ func resourceSecurityZoneCreate(ctx context.Context, d *schema.ResourceData, m i
 
 		return diag.FromErr(err)
 	}
-	mutex.Lock()
 	securityZoneExists, err = checkSecurityZonesExists(d.Get("name").(string), m, jnprSess)
-	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -132,18 +130,21 @@ func resourceSecurityZoneCreate(ctx context.Context, d *schema.ResourceData, m i
 			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceSecurityZoneRead(ctx, d, m)
+	return resourceSecurityZoneReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityZoneRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceSecurityZoneReadWJnprSess(d, m, jnprSess)
+}
+func resourceSecurityZoneReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	zoneOptions, err := readSecurityZone(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -202,7 +203,7 @@ func resourceSecurityZoneUpdate(ctx context.Context, d *schema.ResourceData, m i
 	}
 	d.Partial(false)
 
-	return resourceSecurityZoneRead(ctx, d, m)
+	return resourceSecurityZoneReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityZoneDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

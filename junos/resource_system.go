@@ -27,6 +27,7 @@ type systemOptions struct {
 	nameServer                           []string
 	inet6BackupRouter                    []map[string]interface{}
 	internetOptions                      []map[string]interface{}
+	login                                []map[string]interface{}
 	services                             []map[string]interface{}
 	syslog                               []map[string]interface{}
 }
@@ -223,6 +224,138 @@ func resourceSystem() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(64, 65535),
+						},
+					},
+				},
+			},
+			"login": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"announcement": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"deny_sources_address": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"idle_timeout": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 60),
+						},
+						"message": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"password": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"change_type": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"character-sets", "set-transitions"}, false),
+									},
+									"format": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"sha1", "sha256", "sha512"}, false),
+									},
+									"maximum_length": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(20, 128),
+									},
+									"minimum_changes": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 128),
+									},
+									"minimum_character_changes": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(4, 15),
+									},
+									"minimum_length": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(6, 20),
+									},
+									"minimum_lower_cases": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 128),
+									},
+									"minimum_numerics": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 128),
+									},
+									"minimum_punctuations": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 128),
+									},
+									"minimum_reuse": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 20),
+									},
+									"minimum_upper_cases": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 128),
+									},
+								},
+							},
+						},
+						"retry_options": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"backoff_factor": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(5, 10),
+									},
+									"backoff_threshold": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 3),
+									},
+									"lockout_period": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 43200),
+									},
+									"maximum_time": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(20, 300),
+									},
+									"minimum_time": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(20, 60),
+									},
+									"tries_before_disconnect": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(2, 10),
+									},
+								},
+							},
 						},
 					},
 				},
@@ -468,18 +601,20 @@ func resourceSystemCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	d.SetId("system")
 
-	return resourceSystemRead(ctx, d, m)
+	return resourceSystemReadWJnprSess(d, m, jnprSess)
 }
 func resourceSystemRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceSystemReadWJnprSess(d, m, jnprSess)
+}
+func resourceSystemReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	systemOptions, err := readSystem(m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -515,7 +650,7 @@ func resourceSystemUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 	d.Partial(false)
 
-	return resourceSystemRead(ctx, d, m)
+	return resourceSystemReadWJnprSess(d, m, jnprSess)
 }
 func resourceSystemDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	return nil
@@ -565,6 +700,9 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 		}
 	}
 	if err := setSystemInternetOptions(d, m, jnprSess); err != nil {
+		return err
+	}
+	if err := setSystemLogin(d, m, jnprSess); err != nil {
 		return err
 	}
 	if d.Get("max_configuration_rollbacks").(int) != -1 {
@@ -855,6 +993,125 @@ func setSystemInternetOptions(d *schema.ResourceData, m interface{}, jnprSess *N
 	return nil
 }
 
+func setSystemLogin(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
+	sess := m.(*Session)
+	setPrefix := "set system login "
+	configSet := make([]string, 0)
+	for _, v := range d.Get("login").([]interface{}) {
+		if v == nil {
+			return fmt.Errorf("login block is empty")
+		}
+		login := v.(map[string]interface{})
+		if login["announcement"].(string) != "" {
+			configSet = append(configSet, setPrefix+"announcement \""+login["announcement"].(string)+"\"")
+		}
+		for _, denySrcAddress := range login["deny_sources_address"].([]interface{}) {
+			configSet = append(configSet, setPrefix+"deny-sources address "+denySrcAddress.(string))
+		}
+		if login["idle_timeout"].(int) != 0 {
+			configSet = append(configSet, setPrefix+"idle-timeout "+strconv.Itoa(login["idle_timeout"].(int)))
+		}
+		if login["message"].(string) != "" {
+			configSet = append(configSet, setPrefix+"message \""+login["message"].(string)+"\"")
+		}
+		for _, v2 := range login["password"].([]interface{}) {
+			if v2 == nil {
+				return fmt.Errorf("login.0.password block is empty")
+			}
+			loginPassword := v2.(map[string]interface{})
+			if loginPassword["change_type"].(string) != "" {
+				configSet = append(configSet,
+					setPrefix+"password change-type "+loginPassword["change_type"].(string))
+			}
+			if loginPassword["format"].(string) != "" {
+				configSet = append(configSet,
+					setPrefix+"password format "+loginPassword["format"].(string))
+			}
+			if loginPassword["maximum_length"].(int) != 0 {
+				configSet = append(configSet,
+					setPrefix+"password maximum-length "+strconv.Itoa(loginPassword["maximum_length"].(int)))
+			}
+			if loginPassword["minimum_changes"].(int) != 0 {
+				configSet = append(configSet,
+					setPrefix+"password minimum-changes "+strconv.Itoa(loginPassword["minimum_changes"].(int)))
+			}
+			if loginPassword["minimum_character_changes"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"password minimum-character-changes "+
+					strconv.Itoa(loginPassword["minimum_character_changes"].(int)))
+			}
+			if loginPassword["minimum_length"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"password minimum-length "+
+					strconv.Itoa(loginPassword["minimum_length"].(int)))
+			}
+			if loginPassword["minimum_lower_cases"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"password minimum-lower-cases "+
+					strconv.Itoa(loginPassword["minimum_lower_cases"].(int)))
+			}
+			if loginPassword["minimum_numerics"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"password minimum-numerics "+
+					strconv.Itoa(loginPassword["minimum_numerics"].(int)))
+			}
+			if loginPassword["minimum_punctuations"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"password minimum-punctuations "+
+					strconv.Itoa(loginPassword["minimum_punctuations"].(int)))
+			}
+			if loginPassword["minimum_reuse"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"password minimum-reuse "+
+					strconv.Itoa(loginPassword["minimum_reuse"].(int)))
+			}
+			if loginPassword["minimum_upper_cases"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"password minimum-upper-cases "+
+					strconv.Itoa(loginPassword["minimum_upper_cases"].(int)))
+			}
+		}
+		for _, v2 := range login["retry_options"].([]interface{}) {
+			if v2 == nil {
+				return fmt.Errorf("login.0.retry_options block is empty")
+			}
+			loginRetryOptions := v2.(map[string]interface{})
+			if loginRetryOptions["backoff_factor"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"retry-options backoff-factor "+
+					strconv.Itoa(loginRetryOptions["backoff_factor"].(int)))
+			}
+			if loginRetryOptions["backoff_threshold"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"retry-options backoff-threshold "+
+					strconv.Itoa(loginRetryOptions["backoff_threshold"].(int)))
+			}
+			if loginRetryOptions["lockout_period"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"retry-options lockout-period "+
+					strconv.Itoa(loginRetryOptions["lockout_period"].(int)))
+			}
+			if loginRetryOptions["maximum_time"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"retry-options maximum-time "+
+					strconv.Itoa(loginRetryOptions["maximum_time"].(int)))
+			}
+			if loginRetryOptions["minimum_time"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"retry-options minimum-time "+
+					strconv.Itoa(loginRetryOptions["minimum_time"].(int)))
+			}
+			if loginRetryOptions["tries_before_disconnect"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"retry-options tries-before-disconnect "+
+					strconv.Itoa(loginRetryOptions["tries_before_disconnect"].(int)))
+			}
+		}
+	}
+	if err := sess.configSet(configSet, jnprSess); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func listLinesLogin() []string {
+	return []string{
+		"login announcement",
+		"login deny-sources",
+		"login idle-timeout",
+		"login message",
+		"login password",
+		"login retry-options",
+	}
+}
 func listLinesServices() []string {
 	ls := make([]string, 0)
 	ls = append(ls, listLinesServicesSSH()...)
@@ -900,6 +1157,7 @@ func delSystem(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete = append(listLinesToDelete, "host-name")
 	listLinesToDelete = append(listLinesToDelete, "inet6-backup-router")
 	listLinesToDelete = append(listLinesToDelete, "internet-options")
+	listLinesToDelete = append(listLinesToDelete, listLinesLogin()...)
 	listLinesToDelete = append(listLinesToDelete, "max-configuration-rollbacks")
 	listLinesToDelete = append(listLinesToDelete, "max-configurations-on-flash")
 	listLinesToDelete = append(listLinesToDelete, "name-server")
@@ -975,6 +1233,10 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 				if err := readSystemInternetOptions(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
+			case checkStringHasPrefixInList(itemTrim, listLinesLogin()):
+				if err := readSystemLogin(&confRead, itemTrim); err != nil {
+					return confRead, err
+				}
 			case strings.HasPrefix(itemTrim, "max-configuration-rollbacks "):
 				var err error
 				confRead.maxConfigurationRollbacks, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-configuration-rollbacks "))
@@ -1022,6 +1284,180 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 	}
 
 	return confRead, nil
+}
+
+func readSystemLogin(confRead *systemOptions, itemTrim string) error {
+	if len(confRead.login) == 0 {
+		confRead.login = append(confRead.login, map[string]interface{}{
+			"announcement":         "",
+			"deny_sources_address": make([]string, 0),
+			"idle_timeout":         0,
+			"message":              "",
+			"password":             make([]map[string]interface{}, 0),
+			"retry_options":        make([]map[string]interface{}, 0),
+		})
+	}
+	switch {
+	case strings.HasPrefix(itemTrim, "login announcement "):
+		confRead.login[0]["announcement"] = strings.Trim(strings.TrimPrefix(itemTrim, "login announcement "), "\"")
+	case strings.HasPrefix(itemTrim, "login deny-sources address "):
+		confRead.login[0]["deny_sources_address"] = append(confRead.login[0]["deny_sources_address"].([]string),
+			strings.TrimPrefix(itemTrim, "login deny-sources address "))
+	case strings.HasPrefix(itemTrim, "login idle-timeout "):
+		var err error
+		confRead.login[0]["idle_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "login idle-timeout "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "login message "):
+		confRead.login[0]["message"] = strings.Trim(strings.TrimPrefix(itemTrim, "login message "), "\"")
+	case strings.HasPrefix(itemTrim, "login password "):
+		if len(confRead.login[0]["password"].([]map[string]interface{})) == 0 {
+			confRead.login[0]["password"] = append(confRead.login[0]["password"].([]map[string]interface{}),
+				map[string]interface{}{
+					"change_type":               "",
+					"format":                    "",
+					"maximum_length":            0,
+					"minimum_changes":           0,
+					"minimum_character_changes": 0,
+					"minimum_length":            0,
+					"minimum_lower_cases":       0,
+					"minimum_numerics":          0,
+					"minimum_punctuations":      0,
+					"minimum_reuse":             0,
+					"minimum_upper_cases":       0,
+				})
+		}
+		switch {
+		case strings.HasPrefix(itemTrim, "login password change-type "):
+			confRead.login[0]["password"].([]map[string]interface{})[0]["change_type"] =
+				strings.TrimPrefix(itemTrim, "login password change-type ")
+		case strings.HasPrefix(itemTrim, "login password format "):
+			confRead.login[0]["password"].([]map[string]interface{})[0]["format"] =
+				strings.TrimPrefix(itemTrim, "login password format ")
+		case strings.HasPrefix(itemTrim, "login password maximum-length "):
+			var err error
+			confRead.login[0]["password"].([]map[string]interface{})[0]["maximum_length"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "login password maximum-length "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "login password minimum-changes "):
+			var err error
+			confRead.login[0]["password"].([]map[string]interface{})[0]["minimum_changes"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "login password minimum-changes "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "login password minimum-character-changes "):
+			var err error
+			confRead.login[0]["password"].([]map[string]interface{})[0]["minimum_character_changes"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "login password minimum-character-changes "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "login password minimum-length "):
+			var err error
+			confRead.login[0]["password"].([]map[string]interface{})[0]["minimum_length"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "login password minimum-length "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "login password minimum-lower-cases "):
+			var err error
+			confRead.login[0]["password"].([]map[string]interface{})[0]["minimum_lower_cases"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "login password minimum-lower-cases "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "login password minimum-numerics "):
+			var err error
+			confRead.login[0]["password"].([]map[string]interface{})[0]["minimum_numerics"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "login password minimum-numerics "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "login password minimum-punctuations "):
+			var err error
+			confRead.login[0]["password"].([]map[string]interface{})[0]["minimum_punctuations"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "login password minimum-punctuations "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "login password minimum-reuse "):
+			var err error
+			confRead.login[0]["password"].([]map[string]interface{})[0]["minimum_reuse"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "login password minimum-reuse "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "login password minimum-upper-cases "):
+			var err error
+			confRead.login[0]["password"].([]map[string]interface{})[0]["minimum_upper_cases"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "login password minimum-upper-cases "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		}
+	case strings.HasPrefix(itemTrim, "login retry-options "):
+		if len(confRead.login[0]["retry_options"].([]map[string]interface{})) == 0 {
+			confRead.login[0]["retry_options"] = append(confRead.login[0]["retry_options"].([]map[string]interface{}),
+				map[string]interface{}{
+					"backoff_factor":          0,
+					"backoff_threshold":       0,
+					"lockout_period":          0,
+					"maximum_time":            0,
+					"minimum_time":            0,
+					"tries_before_disconnect": 0,
+				})
+		}
+		switch {
+		case strings.HasPrefix(itemTrim, "login retry-options backoff-factor "):
+			var err error
+			confRead.login[0]["retry_options"].([]map[string]interface{})[0]["backoff_factor"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "login retry-options backoff-factor "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "login retry-options backoff-threshold "):
+			var err error
+			confRead.login[0]["retry_options"].([]map[string]interface{})[0]["backoff_threshold"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "login retry-options backoff-threshold "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "login retry-options lockout-period "):
+			var err error
+			confRead.login[0]["retry_options"].([]map[string]interface{})[0]["lockout_period"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "login retry-options lockout-period "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "login retry-options maximum-time "):
+			var err error
+			confRead.login[0]["retry_options"].([]map[string]interface{})[0]["maximum_time"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "login retry-options maximum-time "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "login retry-options minimum-time "):
+			var err error
+			confRead.login[0]["retry_options"].([]map[string]interface{})[0]["minimum_time"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "login retry-options minimum-time "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "login retry-options tries-before-disconnect "):
+			var err error
+			confRead.login[0]["retry_options"].([]map[string]interface{})[0]["tries_before_disconnect"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "login retry-options tries-before-disconnect "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		}
+	}
+
+	return nil
 }
 
 func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
@@ -1363,6 +1799,9 @@ func fillSystem(d *schema.ResourceData, systemOptions systemOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("internet_options", systemOptions.internetOptions); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("login", systemOptions.login); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("max_configuration_rollbacks", systemOptions.maxConfigurationRollbacks); tfErr != nil {

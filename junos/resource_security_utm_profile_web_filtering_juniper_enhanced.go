@@ -222,9 +222,7 @@ func resourceSecurityUtmProfileWebFilteringEnhancedCreate(
 
 		return diag.FromErr(err)
 	}
-	mutex.Lock()
 	utmProfileWebFEnhancedExists, err = checkUtmProfileWebFEnhancedExists(d.Get("name").(string), m, jnprSess)
-	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -235,19 +233,22 @@ func resourceSecurityUtmProfileWebFilteringEnhancedCreate(
 			"not exists after commit => check your config", d.Get("name").(string)))
 	}
 
-	return resourceSecurityUtmProfileWebFilteringEnhancedRead(ctx, d, m)
+	return resourceSecurityUtmProfileWebFilteringEnhancedReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityUtmProfileWebFilteringEnhancedRead(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceSecurityUtmProfileWebFilteringEnhancedReadWJnprSess(d, m, jnprSess)
+}
+func resourceSecurityUtmProfileWebFilteringEnhancedReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	utmProfileWebFEnhancedOptions, err := readUtmProfileWebFEnhanced(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -289,7 +290,7 @@ func resourceSecurityUtmProfileWebFilteringEnhancedUpdate(
 	}
 	d.Partial(false)
 
-	return resourceSecurityUtmProfileWebFilteringEnhancedRead(ctx, d, m)
+	return resourceSecurityUtmProfileWebFilteringEnhancedReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityUtmProfileWebFilteringEnhancedDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

@@ -301,12 +301,15 @@ func (j *NetconfObject) netconfCommit(logMessage string) error {
 }
 
 // Close disconnects our session to the device.
-func (j *NetconfObject) Close() error {
+func (j *NetconfObject) Close(sleepClosed int) error {
 	_, err := j.Session.Exec(netconf.RawMethod(rpcClose))
 	j.Session.Transport.Close()
 	if err != nil {
+		sleep(sleepClosed)
+
 		return fmt.Errorf("failed to netconf close : %w", err)
 	}
+	sleep(sleepClosed)
 
 	return nil
 }

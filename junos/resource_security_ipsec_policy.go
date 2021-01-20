@@ -98,18 +98,20 @@ func resourceIpsecPolicyCreate(ctx context.Context, d *schema.ResourceData, m in
 			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceIpsecPolicyRead(ctx, d, m)
+	return resourceIpsecPolicyReadWJnprSess(d, m, jnprSess)
 }
 func resourceIpsecPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceIpsecPolicyReadWJnprSess(d, m, jnprSess)
+}
+func resourceIpsecPolicyReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	ipsecPolicyOptions, err := readIpsecPolicy(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -149,7 +151,7 @@ func resourceIpsecPolicyUpdate(ctx context.Context, d *schema.ResourceData, m in
 	}
 	d.Partial(false)
 
-	return resourceIpsecPolicyRead(ctx, d, m)
+	return resourceIpsecPolicyReadWJnprSess(d, m, jnprSess)
 }
 func resourceIpsecPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

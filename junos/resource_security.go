@@ -589,18 +589,20 @@ func resourceSecurityCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 	d.SetId("security")
 
-	return resourceSecurityRead(ctx, d, m)
+	return resourceSecurityReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceSecurityReadWJnprSess(d, m, jnprSess)
+}
+func resourceSecurityReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	securityOptions, err := readSecurity(m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -636,7 +638,7 @@ func resourceSecurityUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	d.Partial(false)
 
-	return resourceSecurityRead(ctx, d, m)
+	return resourceSecurityReadWJnprSess(d, m, jnprSess)
 }
 func resourceSecurityDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	return nil

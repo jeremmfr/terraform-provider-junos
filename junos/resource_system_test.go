@@ -69,6 +69,10 @@ func TestAccJunosSystem_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"internet_options.0.tcp_mss", "1400"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"login.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"login.0.deny_sources_address.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"max_configuration_rollbacks", "49"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"max_configurations_on_flash", "49"),
@@ -243,6 +247,33 @@ resource junos_system "testacc_system" {
     source_quench                           = true
     tcp_drop_synfin_set                     = true
     tcp_mss                                 = 1400
+  }
+  login {
+    announcement         = "test announce"
+    deny_sources_address = ["127.0.0.1"]
+    idle_timeout         = 60
+    message              = "test message"
+    password {
+      change_type               = "character-sets"
+      format                    = "sha512"
+      maximum_length            = 128
+      minimum_changes           = 1
+      minimum_character_changes = 4
+      minimum_length            = 6
+      minimum_lower_cases       = 1
+      minimum_numerics          = 1
+      minimum_punctuations      = 1
+      minimum_reuse             = 1
+      minimum_upper_cases       = 1
+    }
+    retry_options {
+      backoff_factor          = 5
+      backoff_threshold       = 1
+      lockout_period          = 1
+      maximum_time            = 300
+      minimum_time            = 20
+      tries_before_disconnect = 10
+    }
   }
   max_configuration_rollbacks = 49
   max_configurations_on_flash = 49

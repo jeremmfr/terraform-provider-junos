@@ -135,18 +135,20 @@ func resourceOspfAreaCreate(ctx context.Context, d *schema.ResourceData, m inter
 			d.Get("version").(string), d.Get("area_id").(string), d.Get("routing_instance").(string)))
 	}
 
-	return resourceOspfAreaRead(ctx, d, m)
+	return resourceOspfAreaReadWJnprSess(d, m, jnprSess)
 }
 func resourceOspfAreaRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceOspfAreaReadWJnprSess(d, m, jnprSess)
+}
+func resourceOspfAreaReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	ospfAreaOptions, err := readOspfArea(d.Get("area_id").(string), d.Get("version").(string),
 		d.Get("routing_instance").(string), m, jnprSess)
 	mutex.Unlock()
@@ -187,7 +189,7 @@ func resourceOspfAreaUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	d.Partial(false)
 
-	return resourceOspfAreaRead(ctx, d, m)
+	return resourceOspfAreaReadWJnprSess(d, m, jnprSess)
 }
 func resourceOspfAreaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

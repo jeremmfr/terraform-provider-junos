@@ -536,18 +536,20 @@ func resourceBgpNeighborCreate(ctx context.Context, d *schema.ResourceData, m in
 			"=> check your config", d.Get("ip").(string), d.Get("group").(string), d.Get("routing_instance").(string)))
 	}
 
-	return resourceBgpNeighborRead(ctx, d, m)
+	return resourceBgpNeighborReadWJnprSess(d, m, jnprSess)
 }
 func resourceBgpNeighborRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceBgpNeighborReadWJnprSess(d, m, jnprSess)
+}
+func resourceBgpNeighborReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	bgpNeighborOptions, err := readBgpNeighbor(d.Get("ip").(string),
 		d.Get("routing_instance").(string), d.Get("group").(string), m, jnprSess)
 	mutex.Unlock()
@@ -588,7 +590,7 @@ func resourceBgpNeighborUpdate(ctx context.Context, d *schema.ResourceData, m in
 	}
 	d.Partial(false)
 
-	return resourceBgpNeighborRead(ctx, d, m)
+	return resourceBgpNeighborReadWJnprSess(d, m, jnprSess)
 }
 func resourceBgpNeighborDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

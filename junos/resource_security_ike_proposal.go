@@ -106,18 +106,20 @@ func resourceIkeProposalCreate(ctx context.Context, d *schema.ResourceData, m in
 			"=> check your config", d.Get("name").(string)))
 	}
 
-	return resourceIkeProposalRead(ctx, d, m)
+	return resourceIkeProposalReadWJnprSess(d, m, jnprSess)
 }
 func resourceIkeProposalRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceIkeProposalReadWJnprSess(d, m, jnprSess)
+}
+func resourceIkeProposalReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	ikeProposalOptions, err := readIkeProposal(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -157,7 +159,7 @@ func resourceIkeProposalUpdate(ctx context.Context, d *schema.ResourceData, m in
 	}
 	d.Partial(false)
 
-	return resourceIkeProposalRead(ctx, d, m)
+	return resourceIkeProposalReadWJnprSess(d, m, jnprSess)
 }
 func resourceIkeProposalDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

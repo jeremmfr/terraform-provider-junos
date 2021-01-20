@@ -230,18 +230,21 @@ func resourceSystemSyslogHostCreate(ctx context.Context, d *schema.ResourceData,
 			"=> check your config", d.Get("host").(string)))
 	}
 
-	return resourceSystemSyslogHostRead(ctx, d, m)
+	return resourceSystemSyslogHostReadWJnprSess(d, m, jnprSess)
 }
 func resourceSystemSyslogHostRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceSystemSyslogHostReadWJnprSess(d, m, jnprSess)
+}
+func resourceSystemSyslogHostReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	syslogHostOptions, err := readSystemSyslogHost(d.Get("host").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -281,7 +284,7 @@ func resourceSystemSyslogHostUpdate(ctx context.Context, d *schema.ResourceData,
 	}
 	d.Partial(false)
 
-	return resourceSystemSyslogHostRead(ctx, d, m)
+	return resourceSystemSyslogHostReadWJnprSess(d, m, jnprSess)
 }
 func resourceSystemSyslogHostDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

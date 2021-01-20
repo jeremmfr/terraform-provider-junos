@@ -272,18 +272,21 @@ func resourceSystemSyslogFileCreate(ctx context.Context, d *schema.ResourceData,
 			"=> check your config", d.Get("filename").(string)))
 	}
 
-	return resourceSystemSyslogFileRead(ctx, d, m)
+	return resourceSystemSyslogFileReadWJnprSess(d, m, jnprSess)
 }
 func resourceSystemSyslogFileRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceSystemSyslogFileReadWJnprSess(d, m, jnprSess)
+}
+func resourceSystemSyslogFileReadWJnprSess(
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	syslogFileOptions, err := readSystemSyslogFile(d.Get("filename").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
@@ -323,7 +326,7 @@ func resourceSystemSyslogFileUpdate(ctx context.Context, d *schema.ResourceData,
 	}
 	d.Partial(false)
 
-	return resourceSystemSyslogFileRead(ctx, d, m)
+	return resourceSystemSyslogFileReadWJnprSess(d, m, jnprSess)
 }
 func resourceSystemSyslogFileDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

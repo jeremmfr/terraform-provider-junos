@@ -522,8 +522,6 @@ func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 	if intExists {
 		ncInt, _, err := checkInterfaceNC(d.Get("name").(string), m, jnprSess)
 		if err != nil {
-			sess.configClear(jnprSess)
-
 			return diag.FromErr(err)
 		}
 		if ncInt {
@@ -535,18 +533,20 @@ func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(fmt.Errorf("interface %v not exists after commit => check your config", d.Get("name").(string)))
 	}
 
-	return resourceInterfaceRead(ctx, d, m)
+	return resourceInterfaceReadWJnprSess(d, m, jnprSess)
 }
 func resourceInterfaceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+
+	return resourceInterfaceReadWJnprSess(d, m, jnprSess)
+}
+func resourceInterfaceReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	mutex.Lock()
 	intExists, err := checkInterfaceExistsOld(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		mutex.Unlock()
@@ -734,7 +734,7 @@ func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m inte
 	}
 	d.Partial(false)
 
-	return resourceInterfaceRead(ctx, d, m)
+	return resourceInterfaceReadWJnprSess(d, m, jnprSess)
 }
 func resourceInterfaceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)

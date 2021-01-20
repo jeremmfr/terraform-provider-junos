@@ -60,14 +60,12 @@ func resourceInterfaceSt0UnitCreate(ctx context.Context, d *schema.ResourceData,
 }
 func resourceInterfaceSt0UnitRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	mutex.Lock()
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		mutex.Unlock()
-
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
+	mutex.Lock()
 	intExists, err := checkInterfaceExists(d.Id(), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {

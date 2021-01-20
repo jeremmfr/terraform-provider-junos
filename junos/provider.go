@@ -90,6 +90,11 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JUNOS_SLEEP_LOCK", 10),
 			},
+			"ssh_sleep_closed": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("JUNOS_SLEEP_SSH_CLOSED", 0),
+			},
 			"debug_netconf_log_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -146,8 +151,11 @@ func Provider() *schema.Provider {
 			"junos_security_zone":                                        resourceSecurityZone(),
 			"junos_static_route":                                         resourceStaticRoute(),
 			"junos_system":                                               resourceSystem(),
+			"junos_system_login_class":                                   resourceSystemLoginClass(),
+			"junos_system_login_user":                                    resourceSystemLoginUser(),
 			"junos_system_ntp_server":                                    resourceSystemNtpServer(),
 			"junos_system_radius_server":                                 resourceSystemRadiusServer(),
+			"junos_system_root_authentication":                           resourceSystemRootAuthentication(),
 			"junos_system_syslog_host":                                   resourceSystemSyslogHost(),
 			"junos_system_syslog_file":                                   resourceSystemSyslogFile(),
 			"junos_vlan":                                                 resourceVlan(),
@@ -168,6 +176,7 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		junosGroupIntDel:         d.Get("group_interface_delete").(string),
 		junosCmdSleepShort:       d.Get("cmd_sleep_short").(int),
 		junosCmdSleepLock:        d.Get("cmd_sleep_lock").(int),
+		junosSSHSleepClosed:      d.Get("ssh_sleep_closed").(int),
 		junosDebugNetconfLogPath: d.Get("debug_netconf_log_path").(string),
 	}
 
