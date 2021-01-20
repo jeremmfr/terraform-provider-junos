@@ -10,7 +10,7 @@ BUG FIXES:
 * add missing lock in data source to reduce netconf commands parallelism
 * use only one ssh connection per action and per resource (Fixes part of [#87](https://github.com/jeremmfr/terraform-provider-junos/issues/87))
 
-## v1.11.0
+## 1.11.0 (January 05, 2021)
 FEATURES:
 * add `junos_interface_physical` resource for replace the parts of physical interface in deprecated `junos_interface` resource
 * add `junos_interface_physical` data source for replace the parts of physical interface in deprecated `junos_interface` data source
@@ -27,7 +27,7 @@ ENHANCEMENTS:
 BUG FIXES:
 * generate errors on apply if `syslog`, `services` or `services.0.ssh` block is set but empty in `junos_system` resource
 
-## v1.10.0
+## 1.10.0 (December 15, 2020)
 ENHANCEMENTS:
 * add `interface` option to `qualified_next_hop` on `static_route` resource (Fixes #71) Thanks [@tagur87](https://github.com/tagur87)
 * add `inet_rpf_check` and `inet6_rpf_check` arguments in `junos_interface` resource (Fixes [#72](https://github.com/jeremmfr/terraform-provider-junos/issues/72))
@@ -37,7 +37,7 @@ BUG FIXES:
 * fix missing compatibility argument checks when apply `junos_interface` resource (unit interface or not)
 * fix `advertisements_threshold` argument missing for vrrp in family inet6 address in `junos_interface` resource
 
-## v1.9.0
+## 1.9.0 (December 03, 2020)
 FEATURES:
 * add `junos_system_information` data source (Fixes [#60](https://github.com/jeremmfr/terraform-provider-junos/issues/60)) Thanks [@tagur87](https://github.com/tagur87)
 * add `junos_interface_st0_unit` resource (Fixes [#64](https://github.com/jeremmfr/terraform-provider-junos/issues/64))
@@ -49,7 +49,7 @@ ENHANCEMENTS:
 BUG FIXES:
 * fix inconsistent result after creating `junos_interface` resource with only `name` argument (Fixes [#65](https://github.com/jeremmfr/terraform-provider-junos/issues/65))
 
-## v1.8.0
+## 1.8.0 (November 20, 2020)
 FEATURES:
 * add `junos_security_log_stream` resource (Fixes parts of [#54](https://github.com/jeremmfr/terraform-provider-junos/issues/54))
 
@@ -68,7 +68,7 @@ ENHANCEMENTS:
 BUG FIXES:
 * remove useless ForceNew for `bind_interface_auto` argument in `junos_security_ipsec_vpn` resource
 
-## v1.7.0
+## 1.7.0 (November 03, 2020)
 ENHANCEMENTS:
 * add `dynamic_remote` argument in `junos_security_ike_gateway` resource (Fixes [#50](https://github.com/jeremmfr/terraform-provider-junos/issues/50))
 * add `aaa` argument in `junos_security_ike_gateway` resource
@@ -76,11 +76,11 @@ ENHANCEMENTS:
 BUG FIXES:
 * fix lint errors from latest golangci-lint
 
-## v1.6.1
+## 1.6.1 (October 22, 2020)
 BUG FIXES:
 * fix compile libraries into release (for alpine linux like hashicorp/terraform docker image)
 
-## v1.6.0
+## 1.6.0 (October 21, 2020)
 FEATURES:
 * add `junos_security` resource (special resource for static configuration in security block) (Fixes [#43](https://github.com/jeremmfr/terraform-provider-junos/issues/43))
 * add `junos_system` resource (special resource for static configuration in system block) (Fixes parts of [#33](https://github.com/jeremmfr/terraform-provider-junos/issues/33))
@@ -96,18 +96,18 @@ ENHANCEMENTS:
 BUG FIXES:
 * fix sess.configLock return already nil
 
-## v1.5.1
+## 1.5.1 (October 02, 2020)
 BUG FIXES:
 * add missing `password` field in provider configuration for ssh authentication (Fixes [#41](https://github.com/jeremmfr/terraform-provider-junos/issues/41))
 
-## v1.5.0
+## 1.5.0 (September 14, 2020)
 FEATURES:
 * add `junos_interface` data source
 
 ENHANCEMENTS:
 * add `vlan_tagging_id` argument in `junos_interface` resource
 
-## v1.4.0
+## 1.4.0 (September 04, 2020)
 FEATURES:
 * add `junos_system_ntp_server` resource (Fixes [#33](https://github.com/jeremmfr/terraform-provider-junos/issues/33))
 * add `junos_system_radius_server` resource (Fixes [#33](https://github.com/jeremmfr/terraform-provider-junos/issues/33))
@@ -121,7 +121,7 @@ ENHANCEMENTS:
 BUG FIXES:
 * fix message validateIntRange
 
-## v1.3.0
+## 1.3.0 (August 24, 2020)
 FEATURES:
 * add `junos_security_utm_custom_url_pattern` resource (Fixes [#26](https://github.com/jeremmfr/terraform-provider-junos/issues/26))
 * add `junos_security_utm_policy` resource (Fixes [#26](https://github.com/jeremmfr/terraform-provider-junos/issues/26))
@@ -138,7 +138,7 @@ BUG FIXES:
 * fix rule/policy with space in name for application-services in `junos_security_policy` resource
 * fix no empty List if Required for many resource
 
-## 1.2.1
+## 1.2.1 (August 17, 2020)
 ENHANCEMENTS:
 for terraform 0.13
 * upgrade go version
@@ -148,7 +148,7 @@ for terraform 0.13
 BUG FIXES:
 * [workflows] no tar.gz incompatible with registry
 
-## 1.2.0
+## 1.2.0 (July 21, 2020)
 FEATURES:
 * add `junos_aggregate_route` resource (Fixes [#24](https://github.com/jeremmfr/terraform-provider-junos/issues/24))
 
@@ -158,40 +158,40 @@ ENHANCEMENTS:
 BUG FIXES:
 * fix go lint error
 
-## 1.1.1
+## 1.1.1 (June 28, 2020)
 BUG FIXES:
 * allow usage of ~ in sshkeyfile path (Fixes [#22](https://github.com/jeremmfr/terraform-provider-junos/issues/22))
 
-## 1.1.0
+## 1.1.0 (June 17, 2020)
 ENHANCEMENTS:
 * add `application-services` argument in `junos_security_policy` resource (Fixes [#20](https://github.com/jeremmfr/terraform-provider-junos/issues/20))
 
-## 1.0.6
+## 1.0.6 (May 28, 2020)
 BUG FIXES:
 * update module go-netconf : Close ssh socket even if we get an error
 
-## 1.0.5
+## 1.0.5 (March 26, 2020)
 BUG FIXES:
 * fix `junos_interface` resource : crach on closeSession Netconf after error on startNewSession
 
-## 1.0.4
+## 1.0.4 (January 03, 2020)
 BUG FIXES:
 * fix `bind_interface_auto` argument on `junos_security_ipsec_vpn` resource -> search st0 unit not in terse simply
 * remove commit-check before commit which gives the same error if there is
 * fix check interface disable and NC
 
-## 1.0.3
+## 1.0.3 (January 03, 2020)
 BUG FIXES:
 * fix terraform crash with an empty blocks-mode (no one required)
 
-## 1.0.2
+## 1.0.2 (January 03, 2020)
 ENHANCEMENTS:
 * move cmd/debug environnement variables to provider config
 
-## 1.0.1
+## 1.0.1 (December 18, 2019)
 BUG FIXES:
 * fix readInterface with empty/disappeared interface
 
-## 1.0.0
+## 1.0.0 (November 27, 2019)
 
 First release
