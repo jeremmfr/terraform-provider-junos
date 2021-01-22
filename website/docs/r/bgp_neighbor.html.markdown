@@ -28,7 +28,7 @@ resource junos_bgp_neighbor "bgpneighbordemo" {
 The following arguments are supported:
 
 * `ip` - (Required, Forces new resource)(`String`) IP of neighbor.
-* `routing_instance` - (Optional, Forces new resource)(`String`) Routing instance for bgp protocol. Need to be default or name of routing instance. Default to `default`
+* `routing_instance` - (Optional, Forces new resource)(`String`) Routing instance for bgp protocol. Need to be default or name of routing instance. Defaults to `default`
 * `group` - (Required, Forces new resource)(`String`) Name of BGP group for this neighbor
 * `accept_remote_nexthop` - (Optional)(`Bool`) Allow import policy to specify a non-directly connected next-hop.
 * `advertise_external` - (Optional)(`Bool`) Advertise best external routes. Conflict with `advertise_external_conditional`.

@@ -105,7 +105,7 @@ The following arguments are supported in the `provider` block:
 * `group_interface_delete` - (Optional) This is the Junos group used for remove configuration on a physical interface.  
   See interface specifications [interface specifications](#interface-specifications).  
   It can also be sourced from the `JUNOS_GROUP_INTERFACE_DELETE` environment variable.  
-  Default to empty.
+  Defaults to empty.
 
 ---
 #### Command options

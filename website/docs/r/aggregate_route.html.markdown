@@ -26,7 +26,7 @@ resource junos_aggregate_route "demo_aggregate_route" {
 The following arguments are supported:
 
 * `destination` - (Required, Forces new resource)(`String`) The destination for aggregate route.
-* `routing_instance` - (Optional, Forces new resource)(`String`) Routing instance for route. Need to be default or name of routing instance. Default to `default`
+* `routing_instance` - (Optional, Forces new resource)(`String`) Routing instance for route. Need to be default or name of routing instance. Defaults to `default`
 * `active` - (Optional)(`Bool`) Remove inactive route from forwarding table
 * `passive` - (Optional)(`Bool`) Retain inactive route in forwarding table
 * `brief` - (Optional)(`Bool`) Include longest common sequences from contributing paths

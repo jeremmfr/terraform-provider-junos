@@ -26,7 +26,7 @@ resource junos_static_route "demo_static_route" {
 The following arguments are supported:
 
 * `destination` - (Required, Forces new resource)(`String`) The destination for static route.
-* `routing_instance` - (Optional, Forces new resource)(`String`) Routing instance for route. Need to be default or name of routing instance. Default to `default`
+* `routing_instance` - (Optional, Forces new resource)(`String`) Routing instance for route. Need to be default or name of routing instance. Defaults to `default`
 * `preference` - (Optional)(`Int`) Preference for static route
 * `metric` - (Optional)(`Int`) Metric for static route
 * `community` - (Optional)(`ListOfString`) List of BGP community

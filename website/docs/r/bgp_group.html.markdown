@@ -27,8 +27,8 @@ resource junos_bgp_group "groupbgpdemo" {
 The following arguments are supported:
 
 * `name` - (Required, Forces new resource)(`String`) Name of group.
-* `routing_instance` - (Optional, Forces new resource)(`String`) Routing instance for bgp protocol. Need to be default or name of routing instance. Default to `default`
-* `type` - (Optional, Forces new resource)(`String`) Type of peer group. Need to be 'internal' or 'external'. Default to `external`.
+* `routing_instance` - (Optional, Forces new resource)(`String`) Routing instance for bgp protocol. Need to be default or name of routing instance. Defaults to `default`
+* `type` - (Optional, Forces new resource)(`String`) Type of peer group. Need to be 'internal' or 'external'. Defaults to `external`.
 * `accept_remote_nexthop` - (Optional)(`Bool`) Allow import policy to specify a non-directly connected next-hop.
 * `advertise_external` - (Optional)(`Bool`) Advertise best external routes. Conflict with `advertise_external_conditional`.
 * `advertise_external_conditional` - (Optional)(`Bool`) Route matches active route upto med-comparison rule. Conflict with `advertise_external`.

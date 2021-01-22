@@ -28,7 +28,7 @@ The following arguments are supported:
 * `name` - (Required, Forces new resource)(`String`) The name of ike policy.
 * `proposals` - (Optional)(`ListOfString`) Ike proposals list.
 * `proposal_set` - (Optional)(`String`) Types of default IPSEC proposal-set. Need to be `basic`, `compatible`, `prime-128`, `prime-256`, `standard`, `suiteb-gcm-128` or `suiteb-gcm-256`.
-* `mode` - (Optional)(`String`) IKE mode for Phase 1. Default to `main`. Need to 'main' or 'aggressive'.
+* `mode` - (Optional)(`String`) IKE mode for Phase 1. Defaults to `main`. Need to 'main' or 'aggressive'.
 * `pre_shared_key_text` - (Optional)(`String`) Preshared key wit format as text.
 **WARNING** Clear in tfstate.
 * `pre_shared_key_hexa` - (Optional)(`String`) Preshared key wit format as hexa.
