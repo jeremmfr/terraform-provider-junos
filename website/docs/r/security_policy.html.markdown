@@ -22,7 +22,6 @@ resource junos_security_policy "demo_policy" {
     match_source_address      = ["any"]
     match_destination_address = ["any"]
     match_application         = ["any"]
-    then                      = "permit"
   }
 }
 ```
