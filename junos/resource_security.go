@@ -139,6 +139,26 @@ func resourceSecurity() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+						"h323_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"mgcp_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"rtsp_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"sccp_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"sip_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -801,6 +821,21 @@ func setSecurityAlg(alg interface{}) ([]string, error) {
 		if algM["tftp_disable"].(bool) {
 			configSet = append(configSet, setPrefix+"tftp disable")
 		}
+		if algM["h323_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"h323 disable")
+		}
+		if algM["mgcp_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"mgcp disable")
+		}
+		if algM["rtsp_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"rtsp disable")
+		}
+		if algM["sccp_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"sccp disable")
+		}
+		if algM["sip_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"sip disable")
+		}
 	} else {
 		return configSet, fmt.Errorf("alg block is empty")
 	}
@@ -1126,6 +1161,11 @@ func listLinesSecurityAlg() []string {
 		"alg sunrpc disable",
 		"alg talk disable",
 		"alg tftp disable",
+		"alg h323 disable",
+		"alg mgcp disable",
+		"alg rtsp disable",
+		"alg sccp disable",
+		"alg sip disable",
 	}
 }
 
@@ -1329,6 +1369,11 @@ func readSecurityAlg(confRead *securityOptions, itemTrimAlg string) {
 			"sunrpc_disable": false,
 			"talk_disable":   false,
 			"tftp_disable":   false,
+			"h323_disable":   false,
+			"mgcp_disable":   false,
+			"rtsp_disable":   false,
+			"sccp_disable":   false,
+			"sip_disable":    false,
 		})
 	}
 	if itemTrim == "dns disable" {
@@ -1351,6 +1396,21 @@ func readSecurityAlg(confRead *securityOptions, itemTrimAlg string) {
 	}
 	if itemTrim == "tftp disable" {
 		confRead.alg[0]["tftp_disable"] = true
+	}
+	if itemTrim == "h323 disable" {
+		confRead.alg[0]["h323_disable"] = true
+	}
+	if itemTrim == "mgcp disable" {
+		confRead.alg[0]["mgcp_disable"] = true
+	}
+	if itemTrim == "rtsp disable" {
+		confRead.alg[0]["rtsp_disable"] = true
+	}
+	if itemTrim == "sccp disable" {
+		confRead.alg[0]["sccp_disable"] = true
+	}
+	if itemTrim == "sip disable" {
+		confRead.alg[0]["sip_disable"] = true
 	}
 }
 

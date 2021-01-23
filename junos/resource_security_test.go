@@ -295,7 +295,12 @@ resource junos_security "testacc_security" {
     pptp_disable   = true
     sunrpc_disable = true
     talk_disable   = true
-    tftp_disable   = true
+	tftp_disable   = true
+	h323_disable   = true
+    mgcp_disable   = true
+    rtsp_disable   = true
+	sccp_disable   = true
+	sip_disable    = true
   }
   flow {
     advanced_options {
