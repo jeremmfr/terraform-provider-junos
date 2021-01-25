@@ -54,6 +54,8 @@ The following arguments are supported:
 * `no_ping_time_stamp` - (Optional)(`Bool`) Do not insert time stamp in ping replies.
 * `no_redirects` - (Optional)(`Bool`) Disable ICMP redirects.
 * `no_redirects_ipv6` - (Optional)(`Bool`) Disable IPV6 ICMP redirects.
+* `no_multicast_echo` - (Optional)(`Bool`) Disable responding to ICMP echo requests sent to multicast group addresses.
+* `default_address_selection` - (Optional)(`Bool`) Use loopback interface as source address for locally generated packets.
 * `services` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'services' configuration.
   * `ssh` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'ssh' configuration. See the [`ssh` arguments for services] (#ssh-arguments-for-services) block.
 * `syslog` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'syslog' configuration.

@@ -17,6 +17,8 @@ type systemOptions struct {
 	noPingTimeStamp                      bool
 	noRedirects                          bool
 	noRedirectsIPv6                      bool
+	noMulticastEcho                      bool
+	defaultAddressSelection              bool
 	maxConfigurationRollbacks            int
 	maxConfigurationsOnFlash             int
 	domainName                           string
@@ -393,6 +395,14 @@ func resourceSystem() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
+			"no_multicast_echo": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"default_address_selection": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"services": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -727,6 +737,12 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 	}
 	if d.Get("no_redirects_ipv6").(bool) {
 		configSet = append(configSet, setPrefix+"no-redirects-ipv6")
+	}
+	if d.Get("no_multicast_echo").(bool) {
+		configSet = append(configSet, setPrefix+"no-multicast-echo")
+	}
+	if d.Get("default_address_selection").(bool) {
+		configSet = append(configSet, setPrefix+"default-address-selection")
 	}
 	if err := setSystemServices(d, m, jnprSess); err != nil {
 		return err
@@ -1259,6 +1275,10 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 				confRead.noRedirects = true
 			case itemTrim == "no-redirects-ipv6":
 				confRead.noRedirectsIPv6 = true
+			case itemTrim == "no-multicast-echo":
+				confRead.noMulticastEcho = true
+			case itemTrim == "default-address-selection":
+				confRead.defaultAddressSelection = true
 			case checkStringHasPrefixInList(itemTrim, listLinesServices()):
 				if len(confRead.services) == 0 {
 					confRead.services = append(confRead.services, map[string]interface{}{
@@ -1823,6 +1843,12 @@ func fillSystem(d *schema.ResourceData, systemOptions systemOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("no_redirects_ipv6", systemOptions.noRedirectsIPv6); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("no_multicast_echo", systemOptions.noMulticastEcho); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("default_address_selection", systemOptions.defaultAddressSelection); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("services", systemOptions.services); tfErr != nil {
