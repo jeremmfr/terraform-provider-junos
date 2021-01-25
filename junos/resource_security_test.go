@@ -27,32 +27,6 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 					Config: testAccJunosSecurityConfigCreate(testaccSecurity),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"ike_traceoptions.#", "1"),
-						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"ike_traceoptions.0.file.#", "1"),
-						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"ike_traceoptions.0.file.0.name", "ike.log"),
-						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"ike_traceoptions.0.file.0.files", "5"),
-						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"ike_traceoptions.0.file.0.match", "test"),
-						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"ike_traceoptions.0.file.0.size", "100000"),
-						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"ike_traceoptions.0.file.0.world_readable", "true"),
-						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"ike_traceoptions.0.flag.#", "1"),
-						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"ike_traceoptions.0.flag.0", "all"),
-						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"ike_traceoptions.0.rate_limit", "100"),
-						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"ike_traceoptions.0.no_remote_trace", "true"),
-						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"utm.#", "1"),
-						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"utm.0.feature_profile_web_filtering_type", "juniper-enhanced"),
-						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"alg.#", "1"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"flow.#", "1"),
@@ -133,6 +107,36 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"flow.0.tcp_session.0.time_wait_state.#", "1"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"forwarding_options.#", "1"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"forwarding_options.0.mpls_mode", "flow-based"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"forwarding_options.0.inet6_mode", "flow-based"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"forwarding_options.0.iso_mode_packet_based", "true"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"ike_traceoptions.#", "1"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"ike_traceoptions.0.file.#", "1"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"ike_traceoptions.0.file.0.name", "ike.log"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"ike_traceoptions.0.file.0.files", "5"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"ike_traceoptions.0.file.0.match", "test"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"ike_traceoptions.0.file.0.size", "100000"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"ike_traceoptions.0.file.0.world_readable", "true"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"ike_traceoptions.0.flag.#", "1"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"ike_traceoptions.0.flag.0", "all"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"ike_traceoptions.0.rate_limit", "100"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"ike_traceoptions.0.no_remote_trace", "true"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"log.#", "1"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"log.0.disable", "true"),
@@ -167,13 +171,9 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"log.0.utc_timestamp", "true"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"forwarding_options.#", "1"),
+							"utm.#", "1"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"forwarding_options.0.mpls_mode", "flow-based"),
-						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"forwarding_options.0.inet6_mode", "flow-based"),
-						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"forwarding_options.0.iso_mode_packet_based", "true"),
+							"utm.0.feature_profile_web_filtering_type", "juniper-enhanced"),
 					),
 				},
 				{
@@ -184,16 +184,6 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 				{
 					Config: testAccJunosSecurityConfigUpdate(testaccSecurity),
 					Check: resource.ComposeTestCheckFunc(
-						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"ike_traceoptions.#", "1"),
-						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"ike_traceoptions.0.file.#", "1"),
-						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"ike_traceoptions.0.file.0.match", ""),
-						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"ike_traceoptions.0.file.0.no_world_readable", "true"),
-						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"ike_traceoptions.0.flag.#", "0"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"flow.#", "1"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
@@ -230,6 +220,16 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 							"flow.0.tcp_session.0.time_wait_state.0.apply_to_half_close_state", "true"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"flow.0.tcp_session.0.time_wait_state.0.session_ageout", "true"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"ike_traceoptions.#", "1"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"ike_traceoptions.0.file.#", "1"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"ike_traceoptions.0.file.0.match", ""),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"ike_traceoptions.0.file.0.no_world_readable", "true"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"ike_traceoptions.0.flag.#", "0"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"log.0.event_rate", "100"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
@@ -273,34 +273,19 @@ resource junos_interface_logical "testacc_security" {
   description = "testacc_security"
 }
 resource junos_security "testacc_security" {
-  ike_traceoptions {
-    file {
-      name           = "ike.log"
-      files          = 5
-      match          = "test"
-      size           = 100000
-      world_readable = true
-    }
-    flag            = ["all"]
-    rate_limit      = 100
-    no_remote_trace = true
-  }
-  utm {
-    feature_profile_web_filtering_type = "juniper-enhanced"
-  }
   alg {
     dns_disable    = true
     ftp_disable    = true
-    msrpc_disable  = true
-    pptp_disable   = true
-    sunrpc_disable = true
-    talk_disable   = true
-    tftp_disable   = true
     h323_disable   = true
     mgcp_disable   = true
+    msrpc_disable  = true
+    pptp_disable   = true
     rtsp_disable   = true
     sccp_disable   = true
     sip_disable    = true
+    sunrpc_disable = true
+    talk_disable   = true
+    tftp_disable   = true
   }
   flow {
     advanced_options {
@@ -347,6 +332,23 @@ resource junos_security "testacc_security" {
       time_wait_state {}
     }
   }
+  forwarding_options {
+    inet6_mode            = "flow-based"
+    mpls_mode             = "flow-based"
+    iso_mode_packet_based = "true"
+  }
+  ike_traceoptions {
+    file {
+      name           = "ike.log"
+      files          = 5
+      match          = "test"
+      size           = 100000
+      world_readable = true
+    }
+    flag            = ["all"]
+    rate_limit      = 100
+    no_remote_trace = true
+  }
   log {
     disable           = true
     facility_override = "local7"
@@ -367,10 +369,8 @@ resource junos_security "testacc_security" {
     }
     utc_timestamp = true
   }
-  forwarding_options {
-    inet6_mode            = "flow-based"
-    mpls_mode             = "flow-based"
-    iso_mode_packet_based = "true"
+  utm {
+    feature_profile_web_filtering_type = "juniper-enhanced"
   }
 }
 `
@@ -382,16 +382,6 @@ resource junos_interface_logical "testacc_security" {
   description = "testacc_security"
 }
 resource junos_security "testacc_security" {
-  ike_traceoptions {
-    file {
-      name              = "ike.log"
-      files             = 5
-      size              = 100000
-      no_world_readable = true
-    }
-    rate_limit = 100
-    # no_remote_trace = true
-  }
   flow {
     ethernet_switching {
       bypass_non_ip_unicast = true
@@ -419,6 +409,16 @@ resource junos_security "testacc_security" {
         session_ageout            = true
       }
     }
+  }
+  ike_traceoptions {
+    file {
+      name              = "ike.log"
+      files             = 5
+      size              = 100000
+      no_world_readable = true
+    }
+    rate_limit = 100
+    # no_remote_trace = true
   }
   log {
     mode                = "event"

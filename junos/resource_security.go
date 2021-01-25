@@ -12,12 +12,12 @@ import (
 )
 
 type securityOptions struct {
-	ikeTraceoptions []map[string]interface{}
-	utm             []map[string]interface{}
 	alg             []map[string]interface{}
 	flow            []map[string]interface{}
-	log             []map[string]interface{}
 	forwardingOpts  []map[string]interface{}
+	log             []map[string]interface{}
+	ikeTraceoptions []map[string]interface{}
+	utm             []map[string]interface{}
 }
 
 func resourceSecurity() *schema.Resource {
@@ -30,81 +30,6 @@ func resourceSecurity() *schema.Resource {
 			State: resourceSecurityImport,
 		},
 		Schema: map[string]*schema.Schema{
-			"ike_traceoptions": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"file": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"files": {
-										Type:         schema.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntBetween(2, 1000),
-									},
-									"match": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"size": {
-										Type:         schema.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntBetween(10240, 1073741824),
-									},
-									"no_world_readable": {
-										Type:     schema.TypeBool,
-										Optional: true,
-									},
-									"world_readable": {
-										Type:     schema.TypeBool,
-										Optional: true,
-									},
-								},
-							},
-						},
-						"flag": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"no_remote_trace": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-						"rate_limit": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      -1,
-							ValidateFunc: validation.IntBetween(0, 4294967295),
-						},
-					},
-				},
-			},
-			"utm": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"feature_profile_web_filtering_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"juniper-enhanced", "juniper-local", "web-filtering-none", "websense-redirect",
-							}, false),
-						},
-					},
-				},
-			},
 			"alg": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -119,31 +44,19 @@ func resourceSecurity() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
-						"msrpc_disable": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-						"pptp_disable": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-						"sunrpc_disable": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-						"talk_disable": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-						"tftp_disable": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
 						"h323_disable": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
 						"mgcp_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"msrpc_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"pptp_disable": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
@@ -156,6 +69,18 @@ func resourceSecurity() *schema.Resource {
 							Optional: true,
 						},
 						"sip_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"sunrpc_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"talk_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"tftp_disable": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
@@ -436,6 +361,90 @@ func resourceSecurity() *schema.Resource {
 					},
 				},
 			},
+			"forwarding_options": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"inet6_mode": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"drop", "flow-based", "packet-based"}, false),
+						},
+						"iso_mode_packet_based": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"mpls_mode": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"flow-based", "packet-based"}, false),
+						},
+					},
+				},
+			},
+			"ike_traceoptions": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"file": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"files": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(2, 1000),
+									},
+									"match": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"size": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(10240, 1073741824),
+									},
+									"no_world_readable": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"world_readable": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+								},
+							},
+						},
+						"flag": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"no_remote_trace": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"rate_limit": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      -1,
+							ValidateFunc: validation.IntBetween(0, 4294967295),
+						},
+					},
+				},
+			},
 			"log": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -554,27 +563,18 @@ func resourceSecurity() *schema.Resource {
 					},
 				},
 			},
-			"forwarding_options": {
+			"utm": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"mpls_mode": {
+						"feature_profile_web_filtering_type": {
 							Type:     schema.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"flow-based", "packet-based"}, false),
-						},
-						"inet6_mode": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"drop", "flow-based", "packet-based"}, false),
-						},
-						"iso_mode_packet_based": {
-							Type:     schema.TypeBool,
-							Optional: true,
+								"juniper-enhanced", "juniper-local", "web-filtering-none", "websense-redirect",
+							}, false),
 						},
 					},
 				},
@@ -688,24 +688,6 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	setPrefix := "set security "
 	configSet := make([]string, 0)
 
-	for _, ikeTrace := range d.Get("ike_traceoptions").([]interface{}) {
-		configSetIkeTrace, err := setSecurityIkeTraceOpts(ikeTrace)
-		if err != nil {
-			return err
-		}
-		configSet = append(configSet, configSetIkeTrace...)
-	}
-	for _, v := range d.Get("utm").([]interface{}) {
-		if v != nil {
-			utm := v.(map[string]interface{})
-			if utm["feature_profile_web_filtering_type"].(string) != "" {
-				configSet = append(configSet, setPrefix+"utm feature-profile web-filtering type "+
-					utm["feature_profile_web_filtering_type"].(string))
-			}
-		} else {
-			return fmt.Errorf("utm block is empty")
-		}
-	}
 	for _, v := range d.Get("alg").([]interface{}) {
 		configSetAlg, err := setSecurityAlg(v)
 		if err != nil {
@@ -720,13 +702,6 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		}
 		configSet = append(configSet, configSetFlow...)
 	}
-	for _, v := range d.Get("log").([]interface{}) {
-		configSetLog, err := setSecurityLog(v)
-		if err != nil {
-			return err
-		}
-		configSet = append(configSet, configSetLog...)
-	}
 	for _, v := range d.Get("forwarding_options").([]interface{}) {
 		configSetForwOpts, err := setSecurityForwOpts(v)
 		if err != nil {
@@ -734,65 +709,36 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		}
 		configSet = append(configSet, configSetForwOpts...)
 	}
+	for _, ikeTrace := range d.Get("ike_traceoptions").([]interface{}) {
+		configSetIkeTrace, err := setSecurityIkeTraceOpts(ikeTrace)
+		if err != nil {
+			return err
+		}
+		configSet = append(configSet, configSetIkeTrace...)
+	}
+	for _, v := range d.Get("log").([]interface{}) {
+		configSetLog, err := setSecurityLog(v)
+		if err != nil {
+			return err
+		}
+		configSet = append(configSet, configSetLog...)
+	}
+	for _, v := range d.Get("utm").([]interface{}) {
+		if v != nil {
+			utm := v.(map[string]interface{})
+			if utm["feature_profile_web_filtering_type"].(string) != "" {
+				configSet = append(configSet, setPrefix+"utm feature-profile web-filtering type "+
+					utm["feature_profile_web_filtering_type"].(string))
+			}
+		} else {
+			return fmt.Errorf("utm block is empty")
+		}
+	}
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func setSecurityIkeTraceOpts(ikeTrace interface{}) ([]string, error) {
-	setPrefix := "set security ike traceoptions "
-	configSet := make([]string, 0)
-	if ikeTrace != nil {
-		ikeTraceM := ikeTrace.(map[string]interface{})
-		for _, v := range ikeTraceM["file"].([]interface{}) {
-			if v != nil {
-				ikeTraceFile := v.(map[string]interface{})
-				if ikeTraceFile["name"].(string) != "" {
-					configSet = append(configSet, setPrefix+"file "+
-						ikeTraceFile["name"].(string))
-				}
-				if ikeTraceFile["files"].(int) > 0 {
-					configSet = append(configSet, setPrefix+"file files "+
-						strconv.Itoa(ikeTraceFile["files"].(int)))
-				}
-				if ikeTraceFile["match"].(string) != "" {
-					configSet = append(configSet, setPrefix+"file match \""+
-						ikeTraceFile["match"].(string)+"\"")
-				}
-				if ikeTraceFile["size"].(int) > 0 {
-					configSet = append(configSet, setPrefix+"file size "+
-						strconv.Itoa(ikeTraceFile["size"].(int)))
-				}
-				if ikeTraceFile["world_readable"].(bool) && ikeTraceFile["no_world_readable"].(bool) {
-					return configSet, fmt.Errorf("conflict between 'world_readable' and 'no_world_readable' for ike_traceoptions file")
-				}
-				if ikeTraceFile["world_readable"].(bool) {
-					configSet = append(configSet, setPrefix+"file world-readable")
-				}
-				if ikeTraceFile["no_world_readable"].(bool) {
-					configSet = append(configSet, setPrefix+"file no-world-readable")
-				}
-			} else {
-				return configSet, fmt.Errorf("ike_traceoptions file block is empty")
-			}
-		}
-		for _, ikeTraceFlag := range ikeTraceM["flag"].([]interface{}) {
-			configSet = append(configSet, setPrefix+"flag "+ikeTraceFlag.(string))
-		}
-		if ikeTraceM["no_remote_trace"].(bool) {
-			configSet = append(configSet, setPrefix+"no-remote-trace")
-		}
-		if ikeTraceM["rate_limit"].(int) > -1 {
-			configSet = append(configSet, setPrefix+"rate-limit "+
-				strconv.Itoa(ikeTraceM["rate_limit"].(int)))
-		}
-	} else {
-		return configSet, fmt.Errorf("ike_traceoptions block is empty")
-	}
-
-	return configSet, nil
 }
 
 func setSecurityAlg(alg interface{}) ([]string, error) {
@@ -806,26 +752,17 @@ func setSecurityAlg(alg interface{}) ([]string, error) {
 		if algM["ftp_disable"].(bool) {
 			configSet = append(configSet, setPrefix+"ftp disable")
 		}
-		if algM["msrpc_disable"].(bool) {
-			configSet = append(configSet, setPrefix+"msrpc disable")
-		}
-		if algM["pptp_disable"].(bool) {
-			configSet = append(configSet, setPrefix+"pptp disable")
-		}
-		if algM["sunrpc_disable"].(bool) {
-			configSet = append(configSet, setPrefix+"sunrpc disable")
-		}
-		if algM["talk_disable"].(bool) {
-			configSet = append(configSet, setPrefix+"talk disable")
-		}
-		if algM["tftp_disable"].(bool) {
-			configSet = append(configSet, setPrefix+"tftp disable")
-		}
 		if algM["h323_disable"].(bool) {
 			configSet = append(configSet, setPrefix+"h323 disable")
 		}
 		if algM["mgcp_disable"].(bool) {
 			configSet = append(configSet, setPrefix+"mgcp disable")
+		}
+		if algM["msrpc_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"msrpc disable")
+		}
+		if algM["pptp_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"pptp disable")
 		}
 		if algM["rtsp_disable"].(bool) {
 			configSet = append(configSet, setPrefix+"rtsp disable")
@@ -836,13 +773,21 @@ func setSecurityAlg(alg interface{}) ([]string, error) {
 		if algM["sip_disable"].(bool) {
 			configSet = append(configSet, setPrefix+"sip disable")
 		}
+		if algM["sunrpc_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"sunrpc disable")
+		}
+		if algM["talk_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"talk disable")
+		}
+		if algM["tftp_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"tftp disable")
+		}
 	} else {
 		return configSet, fmt.Errorf("alg block is empty")
 	}
 
 	return configSet, nil
 }
-
 func setSecurityFlow(flow interface{}) ([]string, error) { // nolint: gocognit
 	setPrefix := "set security flow "
 	configSet := make([]string, 0)
@@ -1046,6 +991,79 @@ func setSecurityFlow(flow interface{}) ([]string, error) { // nolint: gocognit
 
 	return configSet, nil
 }
+func setSecurityForwOpts(forwOpts interface{}) ([]string, error) {
+	setPrefix := "set security forwarding-options "
+	configSet := make([]string, 0)
+	if forwOpts != nil {
+		forwOptsM := forwOpts.(map[string]interface{})
+		if forwOptsM["inet6_mode"].(string) != "" {
+			configSet = append(configSet, setPrefix+"family inet6 mode "+forwOptsM["inet6_mode"].(string))
+		}
+		if forwOptsM["iso_mode_packet_based"].(bool) {
+			configSet = append(configSet, setPrefix+"family iso mode packet-based")
+		}
+		if forwOptsM["mpls_mode"].(string) != "" {
+			configSet = append(configSet, setPrefix+"family mpls mode "+forwOptsM["mpls_mode"].(string))
+		}
+	} else {
+		return configSet, fmt.Errorf("forwarding_options block is empty")
+	}
+
+	return configSet, nil
+}
+func setSecurityIkeTraceOpts(ikeTrace interface{}) ([]string, error) {
+	setPrefix := "set security ike traceoptions "
+	configSet := make([]string, 0)
+	if ikeTrace != nil {
+		ikeTraceM := ikeTrace.(map[string]interface{})
+		for _, v := range ikeTraceM["file"].([]interface{}) {
+			if v != nil {
+				ikeTraceFile := v.(map[string]interface{})
+				if ikeTraceFile["name"].(string) != "" {
+					configSet = append(configSet, setPrefix+"file "+
+						ikeTraceFile["name"].(string))
+				}
+				if ikeTraceFile["files"].(int) > 0 {
+					configSet = append(configSet, setPrefix+"file files "+
+						strconv.Itoa(ikeTraceFile["files"].(int)))
+				}
+				if ikeTraceFile["match"].(string) != "" {
+					configSet = append(configSet, setPrefix+"file match \""+
+						ikeTraceFile["match"].(string)+"\"")
+				}
+				if ikeTraceFile["size"].(int) > 0 {
+					configSet = append(configSet, setPrefix+"file size "+
+						strconv.Itoa(ikeTraceFile["size"].(int)))
+				}
+				if ikeTraceFile["world_readable"].(bool) && ikeTraceFile["no_world_readable"].(bool) {
+					return configSet, fmt.Errorf("conflict between 'world_readable' and 'no_world_readable' for ike_traceoptions file")
+				}
+				if ikeTraceFile["world_readable"].(bool) {
+					configSet = append(configSet, setPrefix+"file world-readable")
+				}
+				if ikeTraceFile["no_world_readable"].(bool) {
+					configSet = append(configSet, setPrefix+"file no-world-readable")
+				}
+			} else {
+				return configSet, fmt.Errorf("ike_traceoptions file block is empty")
+			}
+		}
+		for _, ikeTraceFlag := range ikeTraceM["flag"].([]interface{}) {
+			configSet = append(configSet, setPrefix+"flag "+ikeTraceFlag.(string))
+		}
+		if ikeTraceM["no_remote_trace"].(bool) {
+			configSet = append(configSet, setPrefix+"no-remote-trace")
+		}
+		if ikeTraceM["rate_limit"].(int) > -1 {
+			configSet = append(configSet, setPrefix+"rate-limit "+
+				strconv.Itoa(ikeTraceM["rate_limit"].(int)))
+		}
+	} else {
+		return configSet, fmt.Errorf("ike_traceoptions block is empty")
+	}
+
+	return configSet, nil
+}
 func setSecurityLog(log interface{}) ([]string, error) {
 	setPrefix := "set security log "
 	configSet := make([]string, 0)
@@ -1125,50 +1143,22 @@ func setSecurityLog(log interface{}) ([]string, error) {
 	return configSet, nil
 }
 
-func setSecurityForwOpts(forwOpts interface{}) ([]string, error) {
-	setPrefix := "set security forwarding-options "
-	configSet := make([]string, 0)
-	if forwOpts != nil {
-		forwOptsM := forwOpts.(map[string]interface{})
-		if forwOptsM["mpls_mode"].(string) != "" {
-			configSet = append(configSet, setPrefix+"family mpls mode "+forwOptsM["mpls_mode"].(string))
-		}
-		if forwOptsM["inet6_mode"].(string) != "" {
-			configSet = append(configSet, setPrefix+"family inet6 mode "+forwOptsM["inet6_mode"].(string))
-		}
-		if forwOptsM["iso_mode_packet_based"].(bool) {
-			configSet = append(configSet, setPrefix+"family iso mode packet-based")
-		}
-	} else {
-		return configSet, fmt.Errorf("forwarding_options block is empty")
-	}
-
-	return configSet, nil
-}
-
-func listLinesSecurityUtm() []string {
-	return []string{
-		"utm feature-profile web-filtering type",
-	}
-}
-
 func listLinesSecurityAlg() []string {
 	return []string{
 		"alg dns disable",
 		"alg ftp disable",
-		"alg msrpc disable",
-		"alg pptp disable",
-		"alg sunrpc disable",
-		"alg talk disable",
-		"alg tftp disable",
 		"alg h323 disable",
 		"alg mgcp disable",
+		"alg msrpc disable",
+		"alg pptp disable",
 		"alg rtsp disable",
 		"alg sccp disable",
 		"alg sip disable",
+		"alg sunrpc disable",
+		"alg talk disable",
+		"alg tftp disable",
 	}
 }
-
 func listLinesSecurityFlow() []string {
 	return []string{
 		"flow advanced-options",
@@ -1190,6 +1180,13 @@ func listLinesSecurityFlow() []string {
 		"flow tcp-session",
 	}
 }
+func listLinesSecurityForwardingOptions() []string {
+	return []string{
+		"forwarding-options family mpls mode",
+		"forwarding-options family inet6 mode",
+		"forwarding-options family iso mode",
+	}
+}
 func listLinesSecurityLog() []string {
 	return []string{
 		"log disable",
@@ -1207,12 +1204,9 @@ func listLinesSecurityLog() []string {
 		"log utc-timestamp",
 	}
 }
-
-func listLinesSecurityForwardingOptions() []string {
+func listLinesSecurityUtm() []string {
 	return []string{
-		"forwarding-options family mpls mode",
-		"forwarding-options family inet6 mode",
-		"forwarding-options family iso mode",
+		"utm feature-profile web-filtering type",
 	}
 }
 
@@ -1220,11 +1214,11 @@ func delSecurity(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete := []string{
 		"ike traceoptions",
 	}
-	listLinesToDelete = append(listLinesToDelete, listLinesSecurityUtm()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityAlg()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityFlow()...)
-	listLinesToDelete = append(listLinesToDelete, listLinesSecurityLog()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityForwardingOptions()...)
+	listLinesToDelete = append(listLinesToDelete, listLinesSecurityLog()...)
+	listLinesToDelete = append(listLinesToDelete, listLinesSecurityUtm()...)
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	delPrefix := "delete security "
@@ -1257,6 +1251,21 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
+			case checkStringHasPrefixInList(itemTrim, listLinesSecurityAlg()):
+				readSecurityAlg(&confRead, itemTrim)
+			case checkStringHasPrefixInList(itemTrim, listLinesSecurityFlow()):
+				err := readSecurityFlow(&confRead, itemTrim)
+				if err != nil {
+					return confRead, err
+				}
+			case checkStringHasPrefixInList(itemTrim, listLinesSecurityForwardingOptions()):
+				readSecurityForwardingOpts(&confRead, itemTrim)
+
+			case checkStringHasPrefixInList(itemTrim, listLinesSecurityLog()):
+				err := readSecurityLog(&confRead, itemTrim)
+				if err != nil {
+					return confRead, err
+				}
 			case strings.HasPrefix(itemTrim, "ike traceoptions"):
 				err := readSecurityIkeTraceOptions(&confRead, itemTrim)
 				if err != nil {
@@ -1272,20 +1281,6 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 					confRead.utm[0]["feature_profile_web_filtering_type"] = strings.TrimPrefix(itemTrim,
 						"utm feature-profile web-filtering type ")
 				}
-			case checkStringHasPrefixInList(itemTrim, listLinesSecurityAlg()):
-				readSecurityAlg(&confRead, itemTrim)
-			case checkStringHasPrefixInList(itemTrim, listLinesSecurityFlow()):
-				err := readSecurityFlow(&confRead, itemTrim)
-				if err != nil {
-					return confRead, err
-				}
-			case checkStringHasPrefixInList(itemTrim, listLinesSecurityLog()):
-				err := readSecurityLog(&confRead, itemTrim)
-				if err != nil {
-					return confRead, err
-				}
-			case checkStringHasPrefixInList(itemTrim, listLinesSecurityForwardingOptions()):
-				readSecurityForwardingOpts(&confRead, itemTrim)
 			}
 		}
 	}
@@ -1293,87 +1288,22 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 	return confRead, nil
 }
 
-func readSecurityIkeTraceOptions(confRead *securityOptions, itemTrimIkeTraceOpts string) error {
-	itemTrim := strings.TrimPrefix(itemTrimIkeTraceOpts, "ike traceoptions ")
-	if len(confRead.ikeTraceoptions) == 0 {
-		confRead.ikeTraceoptions = append(confRead.ikeTraceoptions, map[string]interface{}{
-			"file":            make([]map[string]interface{}, 0),
-			"flag":            make([]string, 0),
-			"no_remote_trace": false,
-			"rate_limit":      -1,
-		})
-	}
-	switch {
-	case strings.HasPrefix(itemTrim, "file"):
-		if len(confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})) == 0 {
-			confRead.ikeTraceoptions[0]["file"] = append(
-				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{}), map[string]interface{}{
-					"name":              "",
-					"files":             0,
-					"match":             "",
-					"size":              0,
-					"world_readable":    false,
-					"no_world_readable": false,
-				})
-		}
-		switch {
-		case strings.HasPrefix(itemTrim, "file files"):
-			var err error
-			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["files"], err = strconv.Atoi(
-				strings.TrimPrefix(itemTrim, "file files "))
-			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
-			}
-		case strings.HasPrefix(itemTrim, "file match"):
-			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["match"] = strings.Trim(
-				strings.TrimPrefix(itemTrim, "file match "), "\"")
-		case strings.HasPrefix(itemTrim, "file size"):
-			var err error
-			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"], err = strconv.Atoi(
-				strings.TrimPrefix(itemTrim, "file size "))
-			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
-			}
-		case itemTrim == "file world-readable":
-			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["world_readable"] = true
-		case itemTrim == "file no-world-readable":
-			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["no_world_readable"] = true
-		case strings.HasPrefix(itemTrim, "file "):
-			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["name"] = strings.Trim(
-				strings.TrimPrefix(itemTrim, "file "), "\"")
-		}
-	case strings.HasPrefix(itemTrim, "flag"):
-		confRead.ikeTraceoptions[0]["flag"] = append(confRead.ikeTraceoptions[0]["flag"].([]string),
-			strings.TrimPrefix(itemTrim, "flag "))
-	case itemTrim == "no-remote-trace":
-		confRead.ikeTraceoptions[0]["no_remote_trace"] = true
-	case strings.HasPrefix(itemTrim, "rate-limit"):
-		var err error
-		confRead.ikeTraceoptions[0]["rate_limit"], err = strconv.Atoi(
-			strings.TrimPrefix(itemTrim, "rate-limit "))
-		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
-		}
-	}
-
-	return nil
-}
 func readSecurityAlg(confRead *securityOptions, itemTrimAlg string) {
 	itemTrim := strings.TrimPrefix(itemTrimAlg, "alg ")
 	if len(confRead.alg) == 0 {
 		confRead.alg = append(confRead.alg, map[string]interface{}{
 			"dns_disable":    false,
 			"ftp_disable":    false,
-			"msrpc_disable":  false,
-			"pptp_disable":   false,
-			"sunrpc_disable": false,
-			"talk_disable":   false,
-			"tftp_disable":   false,
 			"h323_disable":   false,
 			"mgcp_disable":   false,
+			"msrpc_disable":  false,
+			"pptp_disable":   false,
 			"rtsp_disable":   false,
 			"sccp_disable":   false,
 			"sip_disable":    false,
+			"sunrpc_disable": false,
+			"talk_disable":   false,
+			"tftp_disable":   false,
 		})
 	}
 	if itemTrim == "dns disable" {
@@ -1382,26 +1312,17 @@ func readSecurityAlg(confRead *securityOptions, itemTrimAlg string) {
 	if itemTrim == "ftp disable" {
 		confRead.alg[0]["ftp_disable"] = true
 	}
-	if itemTrim == "msrpc disable" {
-		confRead.alg[0]["msrpc_disable"] = true
-	}
-	if itemTrim == "pptp disable" {
-		confRead.alg[0]["pptp_disable"] = true
-	}
-	if itemTrim == "sunrpc disable" {
-		confRead.alg[0]["sunrpc_disable"] = true
-	}
-	if itemTrim == "talk disable" {
-		confRead.alg[0]["talk_disable"] = true
-	}
-	if itemTrim == "tftp disable" {
-		confRead.alg[0]["tftp_disable"] = true
-	}
 	if itemTrim == "h323 disable" {
 		confRead.alg[0]["h323_disable"] = true
 	}
 	if itemTrim == "mgcp disable" {
 		confRead.alg[0]["mgcp_disable"] = true
+	}
+	if itemTrim == "msrpc disable" {
+		confRead.alg[0]["msrpc_disable"] = true
+	}
+	if itemTrim == "pptp disable" {
+		confRead.alg[0]["pptp_disable"] = true
 	}
 	if itemTrim == "rtsp disable" {
 		confRead.alg[0]["rtsp_disable"] = true
@@ -1412,8 +1333,16 @@ func readSecurityAlg(confRead *securityOptions, itemTrimAlg string) {
 	if itemTrim == "sip disable" {
 		confRead.alg[0]["sip_disable"] = true
 	}
+	if itemTrim == "sunrpc disable" {
+		confRead.alg[0]["sunrpc_disable"] = true
+	}
+	if itemTrim == "talk disable" {
+		confRead.alg[0]["talk_disable"] = true
+	}
+	if itemTrim == "tftp disable" {
+		confRead.alg[0]["tftp_disable"] = true
+	}
 }
-
 func readSecurityFlow(confRead *securityOptions, itemTrimFlow string) error {
 	itemTrim := strings.TrimPrefix(itemTrimFlow, "flow ")
 	if len(confRead.flow) == 0 {
@@ -1680,7 +1609,89 @@ func readSecurityFlow(confRead *securityOptions, itemTrimFlow string) error {
 
 	return nil
 }
+func readSecurityForwardingOpts(confRead *securityOptions, itemTrimFwOpts string) {
+	itemTrim := strings.TrimPrefix(itemTrimFwOpts, "forwarding-options ")
+	if len(confRead.forwardingOpts) == 0 {
+		confRead.forwardingOpts = append(confRead.forwardingOpts, map[string]interface{}{
+			"inet6_mode":            "",
+			"iso_mode_packet_based": false,
+			"mpls_mode":             "",
+		})
+	}
+	switch {
+	case strings.HasPrefix(itemTrim, "family inet6 mode "):
+		confRead.forwardingOpts[0]["inet6_mode"] = strings.TrimPrefix(itemTrim, "family inet6 mode ")
+	case itemTrim == "family iso mode packet-based":
+		confRead.forwardingOpts[0]["iso_mode_packet_based"] = true
+	case strings.HasPrefix(itemTrim, "family mpls mode "):
+		confRead.forwardingOpts[0]["mpls_mode"] = strings.TrimPrefix(itemTrim, "family mpls mode ")
+	}
+}
+func readSecurityIkeTraceOptions(confRead *securityOptions, itemTrimIkeTraceOpts string) error {
+	itemTrim := strings.TrimPrefix(itemTrimIkeTraceOpts, "ike traceoptions ")
+	if len(confRead.ikeTraceoptions) == 0 {
+		confRead.ikeTraceoptions = append(confRead.ikeTraceoptions, map[string]interface{}{
+			"file":            make([]map[string]interface{}, 0),
+			"flag":            make([]string, 0),
+			"no_remote_trace": false,
+			"rate_limit":      -1,
+		})
+	}
+	switch {
+	case strings.HasPrefix(itemTrim, "file"):
+		if len(confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})) == 0 {
+			confRead.ikeTraceoptions[0]["file"] = append(
+				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{}), map[string]interface{}{
+					"name":              "",
+					"files":             0,
+					"match":             "",
+					"size":              0,
+					"world_readable":    false,
+					"no_world_readable": false,
+				})
+		}
+		switch {
+		case strings.HasPrefix(itemTrim, "file files"):
+			var err error
+			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["files"], err = strconv.Atoi(
+				strings.TrimPrefix(itemTrim, "file files "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "file match"):
+			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["match"] = strings.Trim(
+				strings.TrimPrefix(itemTrim, "file match "), "\"")
+		case strings.HasPrefix(itemTrim, "file size"):
+			var err error
+			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"], err = strconv.Atoi(
+				strings.TrimPrefix(itemTrim, "file size "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case itemTrim == "file world-readable":
+			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["world_readable"] = true
+		case itemTrim == "file no-world-readable":
+			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["no_world_readable"] = true
+		case strings.HasPrefix(itemTrim, "file "):
+			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["name"] = strings.Trim(
+				strings.TrimPrefix(itemTrim, "file "), "\"")
+		}
+	case strings.HasPrefix(itemTrim, "flag"):
+		confRead.ikeTraceoptions[0]["flag"] = append(confRead.ikeTraceoptions[0]["flag"].([]string),
+			strings.TrimPrefix(itemTrim, "flag "))
+	case itemTrim == "no-remote-trace":
+		confRead.ikeTraceoptions[0]["no_remote_trace"] = true
+	case strings.HasPrefix(itemTrim, "rate-limit"):
+		var err error
+		confRead.ikeTraceoptions[0]["rate_limit"], err = strconv.Atoi(
+			strings.TrimPrefix(itemTrim, "rate-limit "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	}
 
+	return nil
+}
 func readSecurityLog(confRead *securityOptions, itemTrimLog string) error {
 	itemTrim := strings.TrimPrefix(itemTrimLog, "log ")
 	if len(confRead.log) == 0 {
@@ -1793,42 +1804,23 @@ func readSecurityLog(confRead *securityOptions, itemTrimLog string) error {
 	return nil
 }
 
-func readSecurityForwardingOpts(confRead *securityOptions, itemTrimFwOpts string) {
-	itemTrim := strings.TrimPrefix(itemTrimFwOpts, "forwarding-options ")
-	if len(confRead.forwardingOpts) == 0 {
-		confRead.forwardingOpts = append(confRead.forwardingOpts, map[string]interface{}{
-			"mpls_mode":             "",
-			"inet6_mode":            "",
-			"iso_mode_packet_based": false,
-		})
-	}
-	switch {
-	case strings.HasPrefix(itemTrim, "family mpls mode "):
-		confRead.forwardingOpts[0]["mpls_mode"] = strings.TrimPrefix(itemTrim, "family mpls mode ")
-	case strings.HasPrefix(itemTrim, "family inet6 mode "):
-		confRead.forwardingOpts[0]["inet6_mode"] = strings.TrimPrefix(itemTrim, "family inet6 mode ")
-	case itemTrim == "family iso mode packet-based":
-		confRead.forwardingOpts[0]["iso_mode_packet_based"] = true
-	}
-}
-
 func fillSecurity(d *schema.ResourceData, securityOptions securityOptions) {
-	if tfErr := d.Set("ike_traceoptions", securityOptions.ikeTraceoptions); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("utm", securityOptions.utm); tfErr != nil {
-		panic(tfErr)
-	}
 	if tfErr := d.Set("alg", securityOptions.alg); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("flow", securityOptions.flow); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("forwarding_options", securityOptions.forwardingOpts); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("ike_traceoptions", securityOptions.ikeTraceoptions); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("log", securityOptions.log); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("forwarding_options", securityOptions.forwardingOpts); tfErr != nil {
+	if tfErr := d.Set("utm", securityOptions.utm); tfErr != nil {
 		panic(tfErr)
 	}
 }
