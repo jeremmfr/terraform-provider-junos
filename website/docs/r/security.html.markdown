@@ -59,6 +59,11 @@ The following arguments are supported:
 * `sunrpc_disable` - (Optional)(`Bool`) Disable sunrpc alg.
 * `talk_disable` - (Optional)(`Bool`) Disable talk alg.
 * `tftp_disable` - (Optional)(`Bool`) Disable tftp alg.
+* `h323_disable` - (Optional)(`Bool`) Disable h323 alg.
+* `mgcp_disable` - (Optional)(`Bool`) Disable mgcp alg.
+* `rtsp_disable` - (Optional)(`Bool`) Disable rtsp alg.
+* `sccp_disable` - (Optional)(`Bool`) Disable sccp alg.
+* `sip_disable` - (Optional)(`Bool`) Disable sip alg.
 
 ---
 #### flow arguments
