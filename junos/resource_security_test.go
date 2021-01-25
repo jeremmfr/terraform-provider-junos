@@ -253,6 +253,9 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 							"flow.0.tcp_session.0.time_wait_state.0.session_timeout", "90"),
 					),
 				},
+				{
+					Config: testAccJunosSecurityConfigPostCheck(),
+				},
 			},
 		})
 	}
@@ -440,6 +443,26 @@ resource junos_security "testacc_security" {
         session_timeout = 90
       }
     }
+  }
+}
+`
+}
+func testAccJunosSecurityConfigPostCheck() string {
+	return `
+resource junos_security "testacc_security" {
+  alg {
+    dns_disable    = true
+    ftp_disable    = true
+    h323_disable   = true
+    mgcp_disable   = true
+    msrpc_disable  = true
+    pptp_disable   = true
+    rtsp_disable   = true
+    sccp_disable   = true
+    sip_disable    = true
+    sunrpc_disable = true
+    talk_disable   = true
+    tftp_disable   = true
   }
 }
 `
