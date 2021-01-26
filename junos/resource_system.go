@@ -1227,6 +1227,8 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 					strings.TrimPrefix(itemTrim, "authentication-order "))
 			case itemTrim == "auto-snapshot":
 				confRead.autoSnapshot = true
+			case itemTrim == "default-address-selection":
+				confRead.defaultAddressSelection = true
 			case strings.HasPrefix(itemTrim, "domain-name "):
 				confRead.domainName = strings.TrimPrefix(itemTrim, "domain-name ")
 			case strings.HasPrefix(itemTrim, "host-name "):
@@ -1267,6 +1269,8 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 				}
 			case strings.HasPrefix(itemTrim, "name-server "):
 				confRead.nameServer = append(confRead.nameServer, strings.TrimPrefix(itemTrim, "name-server "))
+			case itemTrim == "no-multicast-echo":
+				confRead.noMulticastEcho = true
 			case itemTrim == "no-ping-record-route":
 				confRead.noPingRecordRoute = true
 			case itemTrim == "no-ping-time-stamp":
@@ -1275,10 +1279,6 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 				confRead.noRedirects = true
 			case itemTrim == "no-redirects-ipv6":
 				confRead.noRedirectsIPv6 = true
-			case itemTrim == "no-multicast-echo":
-				confRead.noMulticastEcho = true
-			case itemTrim == "default-address-selection":
-				confRead.defaultAddressSelection = true
 			case checkStringHasPrefixInList(itemTrim, listLinesServices()):
 				if len(confRead.services) == 0 {
 					confRead.services = append(confRead.services, map[string]interface{}{
