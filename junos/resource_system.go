@@ -13,12 +13,12 @@ import (
 
 type systemOptions struct {
 	autoSnapshot                         bool
+	defaultAddressSelection              bool
+	noMulticastEcho                      bool
 	noPingRecordRoute                    bool
 	noPingTimeStamp                      bool
 	noRedirects                          bool
 	noRedirectsIPv6                      bool
-	noMulticastEcho                      bool
-	defaultAddressSelection              bool
 	maxConfigurationRollbacks            int
 	maxConfigurationsOnFlash             int
 	domainName                           string
@@ -55,6 +55,10 @@ func resourceSystem() *schema.Resource {
 			},
 			"domain_name": {
 				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"default_address_selection": {
+				Type:     schema.TypeBool,
 				Optional: true,
 			},
 			"host_name": {
@@ -379,6 +383,10 @@ func resourceSystem() *schema.Resource {
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+			"no_multicast_echo": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"no_ping_record_route": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -392,14 +400,6 @@ func resourceSystem() *schema.Resource {
 				Optional: true,
 			},
 			"no_redirects_ipv6": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-			"no_multicast_echo": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-			"default_address_selection": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
@@ -696,6 +696,9 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 	if d.Get("auto_snapshot").(bool) {
 		configSet = append(configSet, setPrefix+"auto-snapshot")
 	}
+	if d.Get("default_address_selection").(bool) {
+		configSet = append(configSet, setPrefix+"default-address-selection")
+	}
 	if d.Get("domain_name").(string) != "" {
 		configSet = append(configSet, setPrefix+"domain-name "+d.Get("domain_name").(string))
 	}
@@ -726,6 +729,9 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 	for _, nameServer := range d.Get("name_server").([]interface{}) {
 		configSet = append(configSet, setPrefix+"name-server "+nameServer.(string))
 	}
+	if d.Get("no_multicast_echo").(bool) {
+		configSet = append(configSet, setPrefix+"no-multicast-echo")
+	}
 	if d.Get("no_ping_record_route").(bool) {
 		configSet = append(configSet, setPrefix+"no-ping-record-route")
 	}
@@ -737,12 +743,6 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 	}
 	if d.Get("no_redirects_ipv6").(bool) {
 		configSet = append(configSet, setPrefix+"no-redirects-ipv6")
-	}
-	if d.Get("no_multicast_echo").(bool) {
-		configSet = append(configSet, setPrefix+"no-multicast-echo")
-	}
-	if d.Get("default_address_selection").(bool) {
-		configSet = append(configSet, setPrefix+"default-address-selection")
 	}
 	if err := setSystemServices(d, m, jnprSess); err != nil {
 		return err
@@ -1809,6 +1809,9 @@ func fillSystem(d *schema.ResourceData, systemOptions systemOptions) {
 	if tfErr := d.Set("auto_snapshot", systemOptions.autoSnapshot); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("default_address_selection", systemOptions.defaultAddressSelection); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("domain_name", systemOptions.domainName); tfErr != nil {
 		panic(tfErr)
 	}
@@ -1833,6 +1836,9 @@ func fillSystem(d *schema.ResourceData, systemOptions systemOptions) {
 	if tfErr := d.Set("name_server", systemOptions.nameServer); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("no_multicast_echo", systemOptions.noMulticastEcho); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("no_ping_record_route", systemOptions.noPingRecordRoute); tfErr != nil {
 		panic(tfErr)
 	}
@@ -1843,12 +1849,6 @@ func fillSystem(d *schema.ResourceData, systemOptions systemOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("no_redirects_ipv6", systemOptions.noRedirectsIPv6); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("no_multicast_echo", systemOptions.noMulticastEcho); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("default_address_selection", systemOptions.defaultAddressSelection); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("services", systemOptions.services); tfErr != nil {
