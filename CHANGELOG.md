@@ -1,6 +1,7 @@
 ## upcoming release
 ENHANCEMENTS:
 * add `h323_disable`, `mgcp_disable`, `rtsp_disable`, `sccp_disable` and `sip_disable` arguments in `junos_security` resource (Fixes #95) Thanks [@a-d-v](https://github.com/a-d-v)
+* add `default_address_selection` and `no_multicast_echo` arguments in `junos_system` resource (Fixes #97) Thanks [@a-d-v](https://github.com/a-d-v)
 
 BUG FIXES:
 
