@@ -15,10 +15,7 @@ jobs:
   deploy:
     name: Deploy Website
     runs-on: ubuntu-latest
-    if: |
-      !startsWith(github.event.head_commit.message, 'Merge branch') &&
-      !startsWith(github.event.head_commit.message, 'Merge pull request') &&
-      !startsWith(github.event.head_commit.message, '[skip ci]')
+    if: startsWith(github.event.head_commit.message, '[website]')
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
