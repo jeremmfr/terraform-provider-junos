@@ -25,6 +25,8 @@ func TestAccJunosSystem_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"auto_snapshot", "true"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"default_address_selection", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"inet6_backup_router.#", "1"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"inet6_backup_router.0.destination.#", "1"),
@@ -82,6 +84,8 @@ func TestAccJunosSystem_basic(t *testing.T) {
 							"name_server.0", "192.0.2.10"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"name_server.1", "192.0.2.11"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"no_multicast_echo", "true"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"no_ping_record_route", "true"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
@@ -219,10 +223,11 @@ func TestAccJunosSystem_basic(t *testing.T) {
 func testAccJunosSystemConfigCreate() string {
 	return `
 resource junos_system "testacc_system" {
-  host_name            = "testacc-terraform"
-  authentication_order = ["password"]
-  auto_snapshot        = true
-  domain_name          = "domain.local"
+  host_name                 = "testacc-terraform"
+  authentication_order      = ["password"]
+  auto_snapshot             = true
+  default_address_selection = true
+  domain_name               = "domain.local"
   inet6_backup_router {
     destination = ["::/0"]
     address     = "fe80::1"
@@ -278,6 +283,7 @@ resource junos_system "testacc_system" {
   max_configuration_rollbacks = 49
   max_configurations_on_flash = 49
   name_server                 = ["192.0.2.10", "192.0.2.11"]
+  no_multicast_echo           = true
   no_ping_record_route        = true
   no_ping_time_stamp          = true
   no_redirects                = true
