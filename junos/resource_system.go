@@ -53,12 +53,12 @@ func resourceSystem() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
-			"domain_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 			"default_address_selection": {
 				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"domain_name": {
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 			"host_name": {
@@ -1169,6 +1169,7 @@ func delSystem(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete := make([]string, 0)
 	listLinesToDelete = append(listLinesToDelete, "authentication-order")
 	listLinesToDelete = append(listLinesToDelete, "auto-snapshot")
+	listLinesToDelete = append(listLinesToDelete, "default-address-selection")
 	listLinesToDelete = append(listLinesToDelete, "domain-name")
 	listLinesToDelete = append(listLinesToDelete, "host-name")
 	listLinesToDelete = append(listLinesToDelete, "inet6-backup-router")
@@ -1177,6 +1178,7 @@ func delSystem(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete = append(listLinesToDelete, "max-configuration-rollbacks")
 	listLinesToDelete = append(listLinesToDelete, "max-configurations-on-flash")
 	listLinesToDelete = append(listLinesToDelete, "name-server")
+	listLinesToDelete = append(listLinesToDelete, "no-multicast-echo")
 	listLinesToDelete = append(listLinesToDelete, "no-ping-record-route")
 	listLinesToDelete = append(listLinesToDelete, "no-ping-time-stamp")
 	listLinesToDelete = append(listLinesToDelete, "no-redirects")
