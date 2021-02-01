@@ -926,7 +926,7 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 		if err != nil {
 			return confRead, err
 		}
-		regexpInts := regexp.MustCompile(`set security-zone .* interfaces ` + interFace + `$`)
+		regexpInts := regexp.MustCompile(`set security-zone \S+ interfaces ` + interFace + `$`)
 		for _, item := range strings.Split(zonesConfig, "\n") {
 			intMatch := regexpInts.MatchString(item)
 			if intMatch {
@@ -943,7 +943,7 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 	if err != nil {
 		return confRead, err
 	}
-	regexpInt := regexp.MustCompile(`set .* interface ` + interFace + `$`)
+	regexpInt := regexp.MustCompile(`set \S+ interface ` + interFace + `$`)
 	for _, item := range strings.Split(routingConfig, "\n") {
 		intMatch := regexpInt.MatchString(item)
 		if intMatch {
