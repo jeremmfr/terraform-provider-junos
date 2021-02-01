@@ -215,6 +215,7 @@ func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess 
 	configSet := make([]string, 0)
 
 	setPrefix := "set policy-options prefix-list " + d.Get("name").(string)
+	configSet = append(configSet, setPrefix)
 	for _, v := range d.Get("prefix").([]interface{}) {
 		err := validateCIDRNetwork(v.(string))
 		if err != nil {
