@@ -323,12 +323,12 @@ func resourceSecurityPolicyImport(d *schema.ResourceData, m interface{}) ([]*sch
 
 func checkSecurityPolicyExists(fromZone, toZone string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	zoneConfig, err := sess.command("show configuration"+
+	policyConfig, err := sess.command("show configuration"+
 		" security policies from-zone "+fromZone+" to-zone "+toZone+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if zoneConfig == emptyWord {
+	if policyConfig == emptyWord {
 		return false, nil
 	}
 
