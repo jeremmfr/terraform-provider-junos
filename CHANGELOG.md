@@ -7,8 +7,8 @@ BUG FIXES:
 
 ## 1.12.1 (February 1, 2021)
 BUG FIXES:
-* possible mismatch for routing_instance in junos_interface_logical resource (Fixes #98)
-* can't create empty junos_policyoptions_prefix_list resource (Fixes #99)
+* possible mismatch for routing_instance in junos_interface_logical resource (Fixes [#98](https://github.com/jeremmfr/terraform-provider-junos/issues/98))
+* can't create empty junos_policyoptions_prefix_list resource (Fixes [#99](https://github.com/jeremmfr/terraform-provider-junos/issues/99))
 
 ## 1.12.0 (January 20, 2021)
 FEATURES:
