@@ -12,8 +12,8 @@ import (
 
 type zoneOptions struct {
 	name             string
-	inboundServices  []string
 	inboundProtocols []string
+	inboundServices  []string
 	addressBook      []map[string]interface{}
 	addressBookSet   []map[string]interface{}
 }
@@ -33,16 +33,6 @@ func resourceSecurityZone() *schema.Resource {
 				ForceNew:         true,
 				Required:         true,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
-			},
-			"inbound_services": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-			"inbound_protocols": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"address_book": {
 				Type:     schema.TypeList,
@@ -80,6 +70,16 @@ func resourceSecurityZone() *schema.Resource {
 						},
 					},
 				},
+			},
+			"inbound_protocols": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"inbound_services": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}
@@ -167,8 +167,8 @@ func resourceSecurityZoneUpdate(ctx context.Context, d *schema.ResourceData, m i
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if d.HasChange("inbound_services") {
-		err = delSecurityZoneElement("host-inbound-traffic system-services", d.Get("name").(string), m, jnprSess)
+	if d.HasChange("address_book") || d.HasChange("address_book_set") {
+		err = delSecurityZoneElement("address-book", d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
 
@@ -183,8 +183,8 @@ func resourceSecurityZoneUpdate(ctx context.Context, d *schema.ResourceData, m i
 			return diag.FromErr(err)
 		}
 	}
-	if d.HasChange("address_book") || d.HasChange("address_book_set") {
-		err = delSecurityZoneElement("address-book", d.Get("name").(string), m, jnprSess)
+	if d.HasChange("inbound_services") {
+		err = delSecurityZoneElement("host-inbound-traffic system-services", d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			sess.configClear(jnprSess)
 
@@ -270,26 +270,23 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 
 	setPrefix := "set security zones security-zone " + d.Get("name").(string)
 	configSet = append(configSet, setPrefix)
-
-	for _, v := range d.Get("inbound_services").([]interface{}) {
-		configSet = append(configSet, setPrefix+" host-inbound-traffic system-services "+v.(string))
-	}
-	for _, v := range d.Get("inbound_protocols").([]interface{}) {
-		configSet = append(configSet, setPrefix+" host-inbound-traffic protocols "+v.(string))
-	}
-
 	for _, v := range d.Get("address_book").([]interface{}) {
 		addressBook := v.(map[string]interface{})
 		configSet = append(configSet, setPrefix+" address-book address "+
 			addressBook["name"].(string)+" "+addressBook["network"].(string))
 	}
-
 	for _, v := range d.Get("address_book_set").([]interface{}) {
 		addressBookSet := v.(map[string]interface{})
 		for _, addressBookSetAddress := range addressBookSet["address"].([]interface{}) {
 			configSet = append(configSet, setPrefix+" address-book address-set "+addressBookSet["name"].(string)+
 				" address "+addressBookSetAddress.(string))
 		}
+	}
+	for _, v := range d.Get("inbound_protocols").([]interface{}) {
+		configSet = append(configSet, setPrefix+" host-inbound-traffic protocols "+v.(string))
+	}
+	for _, v := range d.Get("inbound_services").([]interface{}) {
+		configSet = append(configSet, setPrefix+" host-inbound-traffic system-services "+v.(string))
 	}
 
 	if err := sess.configSet(configSet, jnprSess); err != nil {
@@ -322,12 +319,6 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case strings.HasPrefix(itemTrim, "host-inbound-traffic system-services "):
-				inboundServices = append(inboundServices, strings.TrimPrefix(itemTrim,
-					"host-inbound-traffic system-services "))
-			case strings.HasPrefix(itemTrim, "host-inbound-traffic protocols "):
-				inboundProtocols = append(inboundProtocols, strings.TrimPrefix(itemTrim,
-					"host-inbound-traffic protocols "))
 			case strings.HasPrefix(itemTrim, "address-book address "):
 				address := strings.TrimPrefix(itemTrim, "address-book address ")
 				addressWords := strings.Split(address, " ")
@@ -352,6 +343,12 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 				// append new address find
 				m["address"] = append(m["address"].([]string), addressWords[2])
 				addressBookSet = append(addressBookSet, m)
+			case strings.HasPrefix(itemTrim, "host-inbound-traffic protocols "):
+				confRead.inboundProtocols = append(confRead.inboundProtocols, strings.TrimPrefix(itemTrim,
+					"host-inbound-traffic protocols "))
+			case strings.HasPrefix(itemTrim, "host-inbound-traffic system-services "):
+				confRead.inboundServices = append(confRead.inboundServices, strings.TrimPrefix(itemTrim,
+					"host-inbound-traffic system-services "))
 			}
 		}
 	} else {
@@ -391,16 +388,16 @@ func fillSecurityZoneData(d *schema.ResourceData, zoneOptions zoneOptions) {
 	if tfErr := d.Set("name", zoneOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("inbound_services", zoneOptions.inboundServices); tfErr != nil {
+	if tfErr := d.Set("address_book", zoneOptions.addressBook); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("address_book_set", zoneOptions.addressBookSet); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("inbound_protocols", zoneOptions.inboundProtocols); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("address_book", zoneOptions.addressBook); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("address_book_set", zoneOptions.addressBookSet); tfErr != nil {
+	if tfErr := d.Set("inbound_services", zoneOptions.inboundServices); tfErr != nil {
 		panic(tfErr)
 	}
 }

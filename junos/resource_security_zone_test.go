@@ -17,10 +17,6 @@ func TestAccJunosSecurityZone_basic(t *testing.T) {
 					Config: testAccJunosSecurityZoneConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
-							"inbound_protocols.#", "1"),
-						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
-							"inbound_protocols.0", "bgp"),
-						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
 							"address_book.#", "1"),
 						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
 							"address_book.0.name", "testacc_address1"),
@@ -32,15 +28,15 @@ func TestAccJunosSecurityZone_basic(t *testing.T) {
 							"address_book_set.0.address.#", "1"),
 						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
 							"address_book_set.0.address.0", "testacc_address1"),
+						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
+							"inbound_protocols.0", "bgp"),
+						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
+							"inbound_protocols.#", "1"),
 					),
 				},
 				{
 					Config: testAccJunosSecurityZoneConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
-						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
-							"inbound_services.#", "1"),
-						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
-							"inbound_services.0", "ssh"),
 						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
 							"address_book.#", "2"),
 						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
@@ -49,6 +45,10 @@ func TestAccJunosSecurityZone_basic(t *testing.T) {
 							"address_book_set.0.address.#", "2"),
 						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
 							"address_book_set.0.address.1", "testacc_address2"),
+						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
+							"inbound_services.#", "1"),
+						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
+							"inbound_services.0", "ssh"),
 					),
 				},
 				{
@@ -64,8 +64,7 @@ func TestAccJunosSecurityZone_basic(t *testing.T) {
 func testAccJunosSecurityZoneConfigCreate() string {
 	return `
 resource junos_security_zone "testacc_securityZone" {
-  name              = "testacc_securityZone"
-  inbound_protocols = ["bgp"]
+  name = "testacc_securityZone"
   address_book {
     name    = "testacc_address1"
     network = "192.0.2.0/25"
@@ -74,15 +73,14 @@ resource junos_security_zone "testacc_securityZone" {
     name    = "testacc_addressSet"
     address = ["testacc_address1"]
   }
+  inbound_protocols = ["bgp"]
 }
 `
 }
 func testAccJunosSecurityZoneConfigUpdate() string {
 	return `
 resource junos_security_zone "testacc_securityZone" {
-  name              = "testacc_securityZone"
-  inbound_protocols = ["bgp"]
-  inbound_services  = ["ssh"]
+  name = "testacc_securityZone"
   address_book {
     name    = "testacc_address1"
     network = "192.0.2.0/25"
@@ -95,6 +93,8 @@ resource junos_security_zone "testacc_securityZone" {
     name    = "testacc_addressSet"
     address = ["testacc_address1", "testacc_address2"]
   }
+  inbound_protocols = ["bgp"]
+  inbound_services  = ["ssh"]
 }
 `
 }
