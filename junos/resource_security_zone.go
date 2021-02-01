@@ -304,10 +304,6 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 	if err != nil {
 		return confRead, err
 	}
-	inboundServices := make([]string, 0)
-	inboundProtocols := make([]string, 0)
-	addressBook := make([]map[string]interface{}, 0)
-	addressBookSet := make([]map[string]interface{}, 0)
 	if zoneConfig != emptyWord {
 		confRead.name = zone
 		for _, item := range strings.Split(zoneConfig, "\n") {
@@ -324,10 +320,10 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 				addressWords := strings.Split(address, " ")
 				// addressWords[0] = name of address
 				// addressWords[1] = network
-				m := make(map[string]interface{})
-				m["name"] = addressWords[0]
-				m["network"] = addressWords[1]
-				addressBook = append(addressBook, m)
+				confRead.addressBook = append(confRead.addressBook, map[string]interface{}{
+					"name":    addressWords[0],
+					"network": addressWords[1],
+				})
 			case strings.HasPrefix(itemTrim, "address-book address-set "):
 				address := strings.TrimPrefix(itemTrim, "address-book address-set ")
 				addressWords := strings.Split(address, " ")
@@ -339,10 +335,10 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 					"address": make([]string, 0),
 				}
 				// search if name of address-set already create
-				m, addressBookSet = copyAndRemoveItemMapList("name", false, m, addressBookSet)
+				m, confRead.addressBookSet = copyAndRemoveItemMapList("name", false, m, confRead.addressBookSet)
 				// append new address find
 				m["address"] = append(m["address"].([]string), addressWords[2])
-				addressBookSet = append(addressBookSet, m)
+				confRead.addressBookSet = append(confRead.addressBookSet, m)
 			case strings.HasPrefix(itemTrim, "host-inbound-traffic protocols "):
 				confRead.inboundProtocols = append(confRead.inboundProtocols, strings.TrimPrefix(itemTrim,
 					"host-inbound-traffic protocols "))
@@ -351,15 +347,7 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 					"host-inbound-traffic system-services "))
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
-	confRead.inboundServices = inboundServices
-	confRead.inboundProtocols = inboundProtocols
-	confRead.addressBook = addressBook
-	confRead.addressBookSet = addressBookSet
 
 	return confRead, nil
 }
