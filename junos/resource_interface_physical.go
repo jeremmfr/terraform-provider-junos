@@ -432,9 +432,8 @@ func checkInterfacePhysicalNC(interFace string, m interface{}, jnprSess *Netconf
 }
 
 func addInterfacePhysicalNC(interFace string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
 	var err error
-	if sess.junosGroupIntDel == "" {
+	if sess := m.(*Session); sess.junosGroupIntDel == "" {
 		err = sess.configSet([]string{"set interfaces " + interFace + " disable description NC"}, jnprSess)
 	} else {
 		err = sess.configSet([]string{"set interfaces " + interFace +
