@@ -245,10 +245,6 @@ func readPolicyoptionsCommunity(community string, m interface{}, jnprSess *Netco
 				confRead.invertMatch = true
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

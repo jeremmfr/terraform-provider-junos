@@ -372,10 +372,6 @@ func readFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject)
 				confRead.then = []map[string]interface{}{then}
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

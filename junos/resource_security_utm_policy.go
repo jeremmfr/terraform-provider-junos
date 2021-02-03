@@ -448,10 +448,6 @@ func readUtmPolicy(policy string, m interface{}, jnprSess *NetconfObject) (
 				confRead.webFilteringProfile = strings.Trim(strings.TrimPrefix(itemTrim, "web-filtering http-profile "), "\"")
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

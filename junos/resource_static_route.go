@@ -596,10 +596,6 @@ func readStaticRoute(destination string, instance string, m interface{},
 				confRead.retain = true
 			}
 		}
-	} else {
-		confRead.destination = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

@@ -272,10 +272,6 @@ func readPolicyoptionsAsPathGroup(asPathGroup string,
 				confRead.asPath = append(confRead.asPath, asPath)
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

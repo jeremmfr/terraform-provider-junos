@@ -282,10 +282,6 @@ func readSecurityNatDestinationPool(natDestinationPool string,
 				confRead.routingInstance = strings.TrimPrefix(itemTrim, "routing-instance ")
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

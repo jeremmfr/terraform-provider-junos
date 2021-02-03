@@ -381,10 +381,6 @@ func readSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObj
 				confRead.rule = append(confRead.rule, ruleOptions)
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

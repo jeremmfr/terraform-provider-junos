@@ -761,10 +761,6 @@ func readBgpNeighbor(ip, instance, group string, m interface{}, jnprSess *Netcon
 				}
 			}
 		}
-	} else {
-		confRead.ip = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

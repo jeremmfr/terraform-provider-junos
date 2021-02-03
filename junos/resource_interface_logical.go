@@ -936,8 +936,6 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 				break
 			}
 		}
-	} else {
-		confRead.securityZones = ""
 	}
 	routingConfig, err := sess.command("show configuration routing-instances | display set relative", jnprSess)
 	if err != nil {

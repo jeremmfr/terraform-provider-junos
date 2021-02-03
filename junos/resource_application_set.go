@@ -233,10 +233,6 @@ func readApplicationSet(applicationSet string, m interface{}, jnprSess *NetconfO
 				confRead.applications = append(confRead.applications, strings.TrimPrefix(itemTrim, "application "))
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

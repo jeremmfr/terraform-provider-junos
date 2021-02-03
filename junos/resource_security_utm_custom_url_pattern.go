@@ -244,10 +244,6 @@ func readUtmCustomURLPattern(urlPattern string, m interface{}, jnprSess *Netconf
 				confRead.value = append(confRead.value, strings.Trim(strings.TrimPrefix(itemTrim, "value "), "\""))
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

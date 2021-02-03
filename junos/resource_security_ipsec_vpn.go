@@ -508,10 +508,6 @@ func readIpsecVpn(ipsecVpn string, m interface{}, jnprSess *NetconfObject) (ipse
 				confRead.trafficSelector = append(confRead.trafficSelector, tsOptions)
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

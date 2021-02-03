@@ -659,10 +659,6 @@ func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObjec
 				confRead.archive = []map[string]interface{}{archiveM}
 			}
 		}
-	} else {
-		confRead.filename = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

@@ -510,10 +510,6 @@ func readFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfO
 				confRead.term = append(confRead.term, termOptions)
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

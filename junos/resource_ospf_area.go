@@ -398,10 +398,6 @@ func readOspfArea(idArea, version, routingInstance string,
 				confRead.interFace = append(confRead.interFace, interfaceOptions)
 			}
 		}
-	} else {
-		confRead.areaID = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

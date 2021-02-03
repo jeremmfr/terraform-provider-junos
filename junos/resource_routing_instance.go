@@ -245,10 +245,6 @@ func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject
 				confRead.as = strings.TrimPrefix(itemTrim, "routing-options autonomous-system ")
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil
