@@ -39,10 +39,6 @@ func dataSourceInterfaceLogical() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"vlan_id": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
 			"family_inet": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -149,16 +145,16 @@ func dataSourceInterfaceLogical() *schema.Resource {
 								},
 							},
 						},
-						"mtu": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
 						"filter_input": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"filter_output": {
 							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"mtu": {
+							Type:     schema.TypeInt,
 							Computed: true,
 						},
 						"rpf_check": {
@@ -278,16 +274,16 @@ func dataSourceInterfaceLogical() *schema.Resource {
 								},
 							},
 						},
-						"mtu": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
 						"filter_input": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"filter_output": {
 							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"mtu": {
+							Type:     schema.TypeInt,
 							Computed: true,
 						},
 						"rpf_check": {
@@ -309,12 +305,16 @@ func dataSourceInterfaceLogical() *schema.Resource {
 					},
 				},
 			},
+			"routing_instance": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"security_zone": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"routing_instance": {
-				Type:     schema.TypeString,
+			"vlan_id": {
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 		},
