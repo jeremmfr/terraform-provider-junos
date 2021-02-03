@@ -35,7 +35,7 @@ func resourceSecurityNatSourcePool() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
 			},
 			"address": {
 				Type:     schema.TypeList,
@@ -46,7 +46,7 @@ func resourceSecurityNatSourcePool() *schema.Resource {
 			"routing_instance": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 			},
 			"port_no_translation": {
 				Type:          schema.TypeBool,

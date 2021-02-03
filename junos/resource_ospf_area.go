@@ -38,7 +38,7 @@ func resourceOspfArea() *schema.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				Default:          defaultWord,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 			},
 			"version": {
 				Type:         schema.TypeString,

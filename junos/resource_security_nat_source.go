@@ -31,7 +31,7 @@ func resourceSecurityNatSource() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
 			},
 			"from": {
 				Type:     schema.TypeList,
@@ -81,7 +81,7 @@ func resourceSecurityNatSource() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
 						},
 						"match": {
 							Type:     schema.TypeList,
@@ -121,7 +121,7 @@ func resourceSecurityNatSource() *schema.Resource {
 									"pool": {
 										Type:             schema.TypeString,
 										Optional:         true,
-										ValidateDiagFunc: validateNameObjectJunos([]string{}),
+										ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
 									},
 								},
 							},
