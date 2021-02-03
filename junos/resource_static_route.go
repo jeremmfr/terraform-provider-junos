@@ -12,15 +12,15 @@ import (
 )
 
 type staticRouteOptions struct {
-	discard          bool
-	receive          bool
-	reject           bool
 	active           bool
-	passive          bool
+	discard          bool
 	install          bool
 	noInstall        bool
+	passive          bool
 	readvertise      bool
 	noReadvertise    bool
+	receive          bool
+	reject           bool
 	resolve          bool
 	noResolve        bool
 	retain           bool
@@ -30,8 +30,8 @@ type staticRouteOptions struct {
 	destination      string
 	routingInstance  string
 	nextTable        string
-	nextHop          []string
 	community        []string
+	nextHop          []string
 	qualifiedNextHop []map[string]interface{}
 }
 
@@ -58,13 +58,10 @@ func resourceStaticRoute() *schema.Resource {
 				Default:          defaultWord,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 			},
-			"preference": {
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
-			"metric": {
-				Type:     schema.TypeInt,
-				Optional: true,
+			"active": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"passive"},
 			},
 			"community": {
 				Type:     schema.TypeList,
@@ -76,15 +73,19 @@ func resourceStaticRoute() *schema.Resource {
 				Optional:      true,
 				ConflictsWith: []string{"receive", "reject", "next_hop", "next_table", "qualified_next_hop"},
 			},
-			"receive": {
+			"install": {
 				Type:          schema.TypeBool,
 				Optional:      true,
-				ConflictsWith: []string{"discard", "reject", "next_hop", "next_table", "qualified_next_hop"},
+				ConflictsWith: []string{"no_install"},
 			},
-			"reject": {
+			"no_install": {
 				Type:          schema.TypeBool,
 				Optional:      true,
-				ConflictsWith: []string{"discard", "receive", "next_hop", "next_table", "qualified_next_hop"},
+				ConflictsWith: []string{"install"},
+			},
+			"metric": {
+				Type:     schema.TypeInt,
+				Optional: true,
 			},
 			"next_hop": {
 				Type:          schema.TypeList,
@@ -97,6 +98,15 @@ func resourceStaticRoute() *schema.Resource {
 				Optional:      true,
 				ConflictsWith: []string{"next_hop", "qualified_next_hop", "discard", "receive", "reject"},
 			},
+			"passive": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"active"},
+			},
+			"preference": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 			"qualified_next_hop": {
 				Type:          schema.TypeList,
 				Optional:      true,
@@ -107,40 +117,20 @@ func resourceStaticRoute() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
-						"preference": {
-							Type:     schema.TypeInt,
+						"interface": {
+							Type:     schema.TypeString,
 							Optional: true,
 						},
 						"metric": {
 							Type:     schema.TypeInt,
 							Optional: true,
 						},
-						"interface": {
-							Type:     schema.TypeString,
+						"preference": {
+							Type:     schema.TypeInt,
 							Optional: true,
 						},
 					},
 				},
-			},
-			"active": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				ConflictsWith: []string{"passive"},
-			},
-			"passive": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				ConflictsWith: []string{"active"},
-			},
-			"install": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				ConflictsWith: []string{"no_install"},
-			},
-			"no_install": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				ConflictsWith: []string{"install"},
 			},
 			"readvertise": {
 				Type:          schema.TypeBool,
@@ -151,6 +141,16 @@ func resourceStaticRoute() *schema.Resource {
 				Type:          schema.TypeBool,
 				Optional:      true,
 				ConflictsWith: []string{"readvertise"},
+			},
+			"receive": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"discard", "reject", "next_hop", "next_table", "qualified_next_hop"},
+			},
+			"reject": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"discard", "receive", "next_hop", "next_table", "qualified_next_hop"},
 			},
 			"resolve": {
 				Type:          schema.TypeBool,
@@ -402,11 +402,8 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 				"static route " + d.Get("destination").(string)
 		}
 	}
-	if d.Get("preference").(int) > 0 {
-		configSet = append(configSet, setPrefix+" preference "+strconv.Itoa(d.Get("preference").(int)))
-	}
-	if d.Get("metric").(int) > 0 {
-		configSet = append(configSet, setPrefix+" metric "+strconv.Itoa(d.Get("metric").(int)))
+	if d.Get("active").(bool) {
+		configSet = append(configSet, setPrefix+" active")
 	}
 	for _, v := range d.Get("community").([]interface{}) {
 		configSet = append(configSet, setPrefix+" community "+v.(string))
@@ -414,55 +411,57 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	if d.Get("discard").(bool) {
 		configSet = append(configSet, setPrefix+" discard")
 	}
-	if d.Get("receive").(bool) {
-		configSet = append(configSet, setPrefix+" receive")
-	}
-	if d.Get("reject").(bool) {
-		configSet = append(configSet, setPrefix+" reject")
-	}
-
-	for _, nextHop := range d.Get("next_hop").([]interface{}) {
-		configSet = append(configSet, setPrefix+" next-hop "+nextHop.(string))
-	}
-	if d.Get("next_table").(string) != "" {
-		configSet = append(configSet, setPrefix+" next-table "+d.Get("next_table").(string))
-	}
-	for _, qualifiedNextHop := range d.Get("qualified_next_hop").([]interface{}) {
-		qualifiedNextHopMap := qualifiedNextHop.(map[string]interface{})
-		configSet = append(configSet, setPrefix+" qualified-next-hop "+qualifiedNextHopMap["next_hop"].(string))
-		if qualifiedNextHopMap["preference"].(int) > 0 {
-			configSet = append(configSet, setPrefix+
-				" qualified-next-hop "+qualifiedNextHopMap["next_hop"].(string)+
-				" preference "+strconv.Itoa(qualifiedNextHopMap["preference"].(int)))
-		}
-		if qualifiedNextHopMap["metric"].(int) > 0 {
-			configSet = append(configSet, setPrefix+
-				" qualified-next-hop "+qualifiedNextHopMap["next_hop"].(string)+
-				" metric "+strconv.Itoa(qualifiedNextHopMap["metric"].(int)))
-		}
-		if qualifiedNextHopMap["interface"] != "" {
-			configSet = append(configSet, setPrefix+
-				" qualified-next-hop "+qualifiedNextHopMap["next_hop"].(string)+
-				" interface "+qualifiedNextHopMap["interface"].(string))
-		}
-	}
-	if d.Get("active").(bool) {
-		configSet = append(configSet, setPrefix+" active")
-	}
-	if d.Get("passive").(bool) {
-		configSet = append(configSet, setPrefix+" passive")
-	}
 	if d.Get("install").(bool) {
 		configSet = append(configSet, setPrefix+" install")
 	}
 	if d.Get("no_install").(bool) {
 		configSet = append(configSet, setPrefix+" no-install")
 	}
+	if d.Get("metric").(int) > 0 {
+		configSet = append(configSet, setPrefix+" metric "+strconv.Itoa(d.Get("metric").(int)))
+	}
+	for _, nextHop := range d.Get("next_hop").([]interface{}) {
+		configSet = append(configSet, setPrefix+" next-hop "+nextHop.(string))
+	}
+	if d.Get("next_table").(string) != "" {
+		configSet = append(configSet, setPrefix+" next-table "+d.Get("next_table").(string))
+	}
+	if d.Get("passive").(bool) {
+		configSet = append(configSet, setPrefix+" passive")
+	}
+	if d.Get("preference").(int) > 0 {
+		configSet = append(configSet, setPrefix+" preference "+strconv.Itoa(d.Get("preference").(int)))
+	}
+	for _, qualifiedNextHop := range d.Get("qualified_next_hop").([]interface{}) {
+		qualifiedNextHopMap := qualifiedNextHop.(map[string]interface{})
+		configSet = append(configSet, setPrefix+" qualified-next-hop "+qualifiedNextHopMap["next_hop"].(string))
+		if qualifiedNextHopMap["interface"] != "" {
+			configSet = append(configSet, setPrefix+
+				" qualified-next-hop "+qualifiedNextHopMap["next_hop"].(string)+
+				" interface "+qualifiedNextHopMap["interface"].(string))
+		}
+		if qualifiedNextHopMap["metric"].(int) > 0 {
+			configSet = append(configSet, setPrefix+
+				" qualified-next-hop "+qualifiedNextHopMap["next_hop"].(string)+
+				" metric "+strconv.Itoa(qualifiedNextHopMap["metric"].(int)))
+		}
+		if qualifiedNextHopMap["preference"].(int) > 0 {
+			configSet = append(configSet, setPrefix+
+				" qualified-next-hop "+qualifiedNextHopMap["next_hop"].(string)+
+				" preference "+strconv.Itoa(qualifiedNextHopMap["preference"].(int)))
+		}
+	}
 	if d.Get("readvertise").(bool) {
 		configSet = append(configSet, setPrefix+" readvertise")
 	}
 	if d.Get("no_readvertise").(bool) {
 		configSet = append(configSet, setPrefix+" no-readvertise")
+	}
+	if d.Get("receive").(bool) {
+		configSet = append(configSet, setPrefix+" receive")
+	}
+	if d.Get("reject").(bool) {
+		configSet = append(configSet, setPrefix+" reject")
 	}
 	if d.Get("resolve").(bool) {
 		configSet = append(configSet, setPrefix+" resolve")
@@ -523,41 +522,47 @@ func readStaticRoute(destination string, instance string, m interface{},
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case strings.HasPrefix(itemTrim, "preference "):
-				confRead.preference, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "preference "))
-				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
-				}
+			case itemTrim == "active":
+				confRead.active = true
+			case strings.HasPrefix(itemTrim, "community "):
+				confRead.community = append(confRead.community, strings.TrimPrefix(itemTrim, "community "))
+			case itemTrim == discardW:
+				confRead.discard = true
+			case itemTrim == "install":
+				confRead.install = true
+			case itemTrim == "no-install":
+				confRead.noInstall = true
 			case strings.HasPrefix(itemTrim, "metric "):
 				confRead.metric, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "metric "))
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "community "):
-				confRead.community = append(confRead.community, strings.TrimPrefix(itemTrim, "community "))
-			case itemTrim == discardW:
-				confRead.discard = true
-			case itemTrim == "receive":
-				confRead.receive = true
-			case itemTrim == "reject":
-				confRead.reject = true
 			case strings.HasPrefix(itemTrim, "next-hop "):
 				confRead.nextHop = append(confRead.nextHop, strings.TrimPrefix(itemTrim, "next-hop "))
 			case strings.HasPrefix(itemTrim, "next-table "):
 				confRead.nextTable = strings.TrimPrefix(itemTrim, "next-table ")
+			case itemTrim == passiveW:
+				confRead.passive = true
+			case strings.HasPrefix(itemTrim, "preference "):
+				confRead.preference, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "preference "))
+				if err != nil {
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				}
 			case strings.HasPrefix(itemTrim, "qualified-next-hop "):
 				nextHop := strings.TrimPrefix(itemTrim, "qualified-next-hop ")
 				nextHopWords := strings.Split(nextHop, " ")
 				qualifiedNextHopOptions := map[string]interface{}{
 					"next_hop":   nextHopWords[0],
+					"interface":  "",
 					"metric":     0,
 					"preference": 0,
-					"interface":  "",
 				}
 				qualifiedNextHopOptions, confRead.qualifiedNextHop = copyAndRemoveItemMapList("next_hop",
 					false, qualifiedNextHopOptions, confRead.qualifiedNextHop)
 				itemTrimQnh := strings.TrimPrefix(itemTrim, "qualified-next-hop "+nextHopWords[0]+" ")
 				switch {
+				case strings.HasPrefix(itemTrimQnh, "interface "):
+					qualifiedNextHopOptions["interface"] = strings.TrimPrefix(itemTrimQnh, "interface ")
 				case strings.HasPrefix(itemTrimQnh, "metric "):
 					qualifiedNextHopOptions["metric"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimQnh, "metric "))
@@ -570,30 +575,24 @@ func readStaticRoute(destination string, instance string, m interface{},
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimQnh, err)
 					}
-				case strings.HasPrefix(itemTrimQnh, "interface "):
-					qualifiedNextHopOptions["interface"] = strings.TrimPrefix(itemTrimQnh, "interface ")
 				}
 				confRead.qualifiedNextHop = append(confRead.qualifiedNextHop, qualifiedNextHopOptions)
-			case itemTrim == "active":
-				confRead.active = true
-			case itemTrim == passiveW:
-				confRead.passive = true
-			case itemTrim == "no-install":
-				confRead.noInstall = true
-			case itemTrim == "install":
-				confRead.install = true
-			case itemTrim == "no-readvertise":
-				confRead.noReadvertise = true
 			case itemTrim == "readvertise":
 				confRead.readvertise = true
-			case itemTrim == "no-resolve":
-				confRead.noResolve = true
+			case itemTrim == "no-readvertise":
+				confRead.noReadvertise = true
+			case itemTrim == "receive":
+				confRead.receive = true
+			case itemTrim == "reject":
+				confRead.reject = true
 			case itemTrim == "resolve":
 				confRead.resolve = true
-			case itemTrim == "no-retain":
-				confRead.noRetain = true
+			case itemTrim == "no-resolve":
+				confRead.noResolve = true
 			case itemTrim == "retain":
 				confRead.retain = true
+			case itemTrim == "no-retain":
+				confRead.noRetain = true
 			}
 		}
 	}
@@ -621,20 +620,20 @@ func delStaticRouteOpts(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	}
 	delPrefix += d.Get("destination").(string) + " "
 	configSet = append(configSet,
-		delPrefix+"preference",
-		delPrefix+"metric",
+		delPrefix+"active",
 		delPrefix+"community",
 		delPrefix+"discard",
-		delPrefix+"receive",
-		delPrefix+"reject",
-		delPrefix+"next-hop",
-		delPrefix+"next-table",
-		delPrefix+"active",
-		delPrefix+"passive",
 		delPrefix+"install",
 		delPrefix+"no-install",
+		delPrefix+"metric",
+		delPrefix+"next-hop",
+		delPrefix+"next-table",
+		delPrefix+"passive",
+		delPrefix+"preference",
 		delPrefix+"readvertise",
 		delPrefix+"no-readvertise",
+		delPrefix+"receive",
+		delPrefix+"reject",
 		delPrefix+"resolve",
 		delPrefix+"no-resolve",
 		delPrefix+"retain",
@@ -683,10 +682,7 @@ func fillStaticRouteData(d *schema.ResourceData, staticRouteOptions staticRouteO
 	if tfErr := d.Set("routing_instance", staticRouteOptions.routingInstance); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("preference", staticRouteOptions.preference); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("metric", staticRouteOptions.metric); tfErr != nil {
+	if tfErr := d.Set("active", staticRouteOptions.active); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("community", staticRouteOptions.community); tfErr != nil {
@@ -695,10 +691,13 @@ func fillStaticRouteData(d *schema.ResourceData, staticRouteOptions staticRouteO
 	if tfErr := d.Set("discard", staticRouteOptions.discard); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("receive", staticRouteOptions.receive); tfErr != nil {
+	if tfErr := d.Set("install", staticRouteOptions.install); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("reject", staticRouteOptions.reject); tfErr != nil {
+	if tfErr := d.Set("no_install", staticRouteOptions.noInstall); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("metric", staticRouteOptions.metric); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("next_hop", staticRouteOptions.nextHop); tfErr != nil {
@@ -707,25 +706,25 @@ func fillStaticRouteData(d *schema.ResourceData, staticRouteOptions staticRouteO
 	if tfErr := d.Set("next_table", staticRouteOptions.nextTable); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("qualified_next_hop", staticRouteOptions.qualifiedNextHop); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("active", staticRouteOptions.active); tfErr != nil {
-		panic(tfErr)
-	}
 	if tfErr := d.Set("passive", staticRouteOptions.passive); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("install", staticRouteOptions.install); tfErr != nil {
+	if tfErr := d.Set("preference", staticRouteOptions.preference); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("no_install", staticRouteOptions.noInstall); tfErr != nil {
+	if tfErr := d.Set("qualified_next_hop", staticRouteOptions.qualifiedNextHop); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("readvertise", staticRouteOptions.readvertise); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("no_readvertise", staticRouteOptions.noReadvertise); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("receive", staticRouteOptions.receive); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("reject", staticRouteOptions.reject); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("resolve", staticRouteOptions.resolve); tfErr != nil {
