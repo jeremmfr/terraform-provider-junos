@@ -961,10 +961,6 @@ func readPolicyStatement(policyStatement string,
 				}
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

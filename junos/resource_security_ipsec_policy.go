@@ -261,10 +261,6 @@ func readIpsecPolicy(ipsecPolicy string, m interface{}, jnprSess *NetconfObject)
 				confRead.pfsKeys = strings.TrimPrefix(itemTrim, "perfect-forward-secrecy keys ")
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

@@ -420,10 +420,6 @@ func readSecurityLogStream(securityLogStream string, m interface{}, jnprSess *Ne
 				confRead.severity = strings.TrimPrefix(itemTrim, "severity ")
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

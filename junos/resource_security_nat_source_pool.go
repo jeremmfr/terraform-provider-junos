@@ -305,10 +305,6 @@ func readSecurityNatSourcePool(natSourcePool string,
 			}
 		}
 		confRead.portRange = portRange
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

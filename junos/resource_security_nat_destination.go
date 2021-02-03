@@ -362,10 +362,6 @@ func readSecurityNatDestination(natDestination string,
 				confRead.rule = append(confRead.rule, ruleOptions)
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

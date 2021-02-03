@@ -250,10 +250,6 @@ func readApplication(application string, m interface{}, jnprSess *NetconfObject)
 				confRead.sourcePort = strings.TrimPrefix(itemTrim, "source-port ")
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

@@ -7,6 +7,7 @@ ENHANCEMENTS:
 * add `advance_policy_based_routing_profile`, `application_tracking`, `description`, `reverse_reroute`, `screen`, `source_identity_log` and `tcp_rst` arguments in `junos_security_zone` resource (Fixes parts of [#92](https://github.com/jeremmfr/terraform-provider-junos/issues/92))
 
 BUG FIXES:
+* clean code: remove useless else when read a empty config
 
 ## 1.12.2 (February 3, 2021)
 BUG FIXES:

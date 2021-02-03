@@ -560,10 +560,6 @@ func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *Netconf
 			}
 		}
 		confRead.category = categoryList
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

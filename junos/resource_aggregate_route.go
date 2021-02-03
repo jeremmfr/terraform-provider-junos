@@ -387,10 +387,6 @@ func readAggregateRoute(destination string, instance string, m interface{},
 				confRead.policy = append(confRead.policy, strings.TrimPrefix(itemTrim, "policy "))
 			}
 		}
-	} else {
-		confRead.destination = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

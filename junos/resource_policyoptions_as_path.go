@@ -244,10 +244,6 @@ func readPolicyoptionsAsPath(asPath string, m interface{}, jnprSess *NetconfObje
 				confRead.path = strings.Trim(itemTrim, "\"")
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

@@ -310,10 +310,6 @@ func readIkePolicy(ikePolicy string, m interface{}, jnprSess *NetconfObject) (ik
 				}
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

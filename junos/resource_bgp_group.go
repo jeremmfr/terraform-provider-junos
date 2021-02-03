@@ -757,10 +757,6 @@ func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObj
 				}
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

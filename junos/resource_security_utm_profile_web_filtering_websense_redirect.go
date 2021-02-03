@@ -414,10 +414,6 @@ func readUtmProfileWebFWebsense(profile string, m interface{}, jnprSess *Netconf
 				}
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

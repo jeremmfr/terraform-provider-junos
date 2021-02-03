@@ -525,10 +525,6 @@ func readSystemSyslogHost(host string, m interface{}, jnprSess *NetconfObject) (
 				confRead.userSeverity = strings.TrimPrefix(itemTrim, "user ")
 			}
 		}
-	} else {
-		confRead.host = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

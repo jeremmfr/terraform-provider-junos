@@ -268,10 +268,6 @@ func readPolicyoptionsPrefixList(prefixList string, m interface{}, jnprSess *Net
 				confRead.prefix = append(confRead.prefix, itemTrim)
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

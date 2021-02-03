@@ -507,10 +507,6 @@ func readSystemLoginClass(class string, m interface{}, jnprSess *NetconfObject) 
 				confRead.tenant = strings.Trim(strings.TrimPrefix(itemTrim, "tenant "), "\"")
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

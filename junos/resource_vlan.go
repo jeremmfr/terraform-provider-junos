@@ -463,10 +463,6 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 				confRead.vxlan = []map[string]interface{}{vxlan}
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

@@ -725,10 +725,6 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 				}
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

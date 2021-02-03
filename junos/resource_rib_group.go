@@ -275,10 +275,6 @@ func readRibGroup(group string, m interface{}, jnprSess *NetconfObject) (ribGrou
 				confRead.exportRib = strings.TrimPrefix(itemTrim, "export-rib ")
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

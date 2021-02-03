@@ -287,10 +287,6 @@ func readIpsecProposal(ipsecProposal string, m interface{}, jnprSess *NetconfObj
 				confRead.protocol = strings.TrimPrefix(itemTrim, "protocol ")
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

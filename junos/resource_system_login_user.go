@@ -356,10 +356,6 @@ func readSystemLoginUser(user string, m interface{}, jnprSess *NetconfObject) (s
 				}
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

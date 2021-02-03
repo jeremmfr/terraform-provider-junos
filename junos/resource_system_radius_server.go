@@ -433,10 +433,6 @@ func readSystemRadiusServer(address string, m interface{}, jnprSess *NetconfObje
 				confRead.routingInstance = strings.TrimPrefix(itemTrim, "routing-instance ")
 			}
 		}
-	} else {
-		confRead.address = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil
