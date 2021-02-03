@@ -28,7 +28,7 @@ func resourceSecurityUtmCustomURLPattern() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
 			},
 			"value": {
 				Type:     schema.TypeList,

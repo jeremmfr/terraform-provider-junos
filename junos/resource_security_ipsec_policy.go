@@ -31,7 +31,7 @@ func resourceIpsecPolicy() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
 			},
 			"proposals": {
 				Type:         schema.TypeList,

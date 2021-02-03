@@ -184,12 +184,12 @@ func resourceInterfaceLogical() *schema.Resource {
 						"filter_input": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 						},
 						"filter_output": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 						},
 						"rpf_check": {
 							Type:     schema.TypeList,
@@ -331,12 +331,12 @@ func resourceInterfaceLogical() *schema.Resource {
 						"filter_input": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 						},
 						"filter_output": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 						},
 						"rpf_check": {
 							Type:     schema.TypeList,
@@ -361,12 +361,12 @@ func resourceInterfaceLogical() *schema.Resource {
 			"security_zone": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 			},
 			"routing_instance": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 			},
 		},
 	}
