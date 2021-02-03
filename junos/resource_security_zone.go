@@ -11,11 +11,18 @@ import (
 )
 
 type zoneOptions struct {
-	name             string
-	inboundProtocols []string
-	inboundServices  []string
-	addressBook      []map[string]interface{}
-	addressBookSet   []map[string]interface{}
+	appTrack                         bool
+	reverseReroute                   bool
+	sourceIdentityLog                bool
+	tcpRst                           bool
+	advancePolicyBasedRoutingProfile string
+	description                      string
+	name                             string
+	screen                           string
+	inboundProtocols                 []string
+	inboundServices                  []string
+	addressBook                      []map[string]interface{}
+	addressBookSet                   []map[string]interface{}
 }
 
 func resourceSecurityZone() *schema.Resource {
@@ -71,6 +78,18 @@ func resourceSecurityZone() *schema.Resource {
 					},
 				},
 			},
+			"advance_policy_based_routing_profile": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"application_tracking": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"inbound_protocols": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -80,6 +99,22 @@ func resourceSecurityZone() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"reverse_reroute": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"screen": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"source_identity_log": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"tcp_rst": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 		},
 	}
@@ -167,29 +202,11 @@ func resourceSecurityZoneUpdate(ctx context.Context, d *schema.ResourceData, m i
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if d.HasChange("address_book") || d.HasChange("address_book_set") {
-		err = delSecurityZoneElement("address-book", d.Get("name").(string), m, jnprSess)
-		if err != nil {
-			sess.configClear(jnprSess)
+	err = delSecurityZoneOpts(d.Get("name").(string), m, jnprSess)
+	if err != nil {
+		sess.configClear(jnprSess)
 
-			return diag.FromErr(err)
-		}
-	}
-	if d.HasChange("inbound_protocols") {
-		err = delSecurityZoneElement("host-inbound-traffic protocols", d.Get("name").(string), m, jnprSess)
-		if err != nil {
-			sess.configClear(jnprSess)
-
-			return diag.FromErr(err)
-		}
-	}
-	if d.HasChange("inbound_services") {
-		err = delSecurityZoneElement("host-inbound-traffic system-services", d.Get("name").(string), m, jnprSess)
-		if err != nil {
-			sess.configClear(jnprSess)
-
-			return diag.FromErr(err)
-		}
+		return diag.FromErr(err)
 	}
 	if err := setSecurityZone(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
@@ -282,11 +299,33 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 				" address "+addressBookSetAddress.(string))
 		}
 	}
+	if d.Get("advance_policy_based_routing_profile").(string) != "" {
+		configSet = append(configSet, setPrefix+" advance-policy-based-routing-profile \""+
+			d.Get("advance_policy_based_routing_profile").(string)+"\"")
+	}
+	if d.Get("application_tracking").(bool) {
+		configSet = append(configSet, setPrefix+" application-tracking")
+	}
+	if d.Get("description").(string) != "" {
+		configSet = append(configSet, setPrefix+" description \""+d.Get("description").(string)+"\"")
+	}
 	for _, v := range d.Get("inbound_protocols").([]interface{}) {
 		configSet = append(configSet, setPrefix+" host-inbound-traffic protocols "+v.(string))
 	}
 	for _, v := range d.Get("inbound_services").([]interface{}) {
 		configSet = append(configSet, setPrefix+" host-inbound-traffic system-services "+v.(string))
+	}
+	if d.Get("reverse_reroute").(bool) {
+		configSet = append(configSet, setPrefix+" enable-reverse-reroute")
+	}
+	if d.Get("screen").(string) != "" {
+		configSet = append(configSet, setPrefix+" screen \""+d.Get("screen").(string)+"\"")
+	}
+	if d.Get("source_identity_log").(bool) {
+		configSet = append(configSet, setPrefix+" source-identity-log")
+	}
+	if d.Get("tcp_rst").(bool) {
+		configSet = append(configSet, setPrefix+" tcp-rst")
 	}
 
 	if err := sess.configSet(configSet, jnprSess); err != nil {
@@ -339,22 +378,52 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 				// append new address find
 				m["address"] = append(m["address"].([]string), addressWords[2])
 				confRead.addressBookSet = append(confRead.addressBookSet, m)
+			case strings.HasPrefix(itemTrim, "advance-policy-based-routing-profile "):
+				confRead.advancePolicyBasedRoutingProfile = strings.Trim(strings.TrimPrefix(itemTrim,
+					"advance-policy-based-routing-profile "), "\"")
+			case strings.HasPrefix(itemTrim, "description "):
+				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim,
+					"description "), "\"")
+			case itemTrim == "application-tracking":
+				confRead.appTrack = true
 			case strings.HasPrefix(itemTrim, "host-inbound-traffic protocols "):
 				confRead.inboundProtocols = append(confRead.inboundProtocols, strings.TrimPrefix(itemTrim,
 					"host-inbound-traffic protocols "))
 			case strings.HasPrefix(itemTrim, "host-inbound-traffic system-services "):
 				confRead.inboundServices = append(confRead.inboundServices, strings.TrimPrefix(itemTrim,
 					"host-inbound-traffic system-services "))
+			case itemTrim == "enable-reverse-reroute":
+				confRead.reverseReroute = true
+			case strings.HasPrefix(itemTrim, "screen "):
+				confRead.screen = strings.Trim(strings.TrimPrefix(itemTrim, "screen "), "\"")
+			case itemTrim == "source-identity-log":
+				confRead.sourceIdentityLog = true
+			case itemTrim == "tcp-rst":
+				confRead.tcpRst = true
 			}
 		}
 	}
 
 	return confRead, nil
 }
-func delSecurityZoneElement(element string, zone string, m interface{}, jnprSess *NetconfObject) error {
+func delSecurityZoneOpts(zone string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
+	listLinesToDelete := []string{
+		"address-book",
+		"advance-policy-based-routing-profile",
+		"description",
+		"application-tracking",
+		"host-inbound-traffic",
+		"enable-reverse-reroute",
+		"screen",
+		"source-identity-log",
+		"tcp-rst",
+	}
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security zones security-zone "+zone+" "+element)
+	delPrefix := "delete security zones security-zone " + zone + " "
+	for _, line := range listLinesToDelete {
+		configSet = append(configSet, delPrefix+line)
+	}
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
@@ -382,10 +451,31 @@ func fillSecurityZoneData(d *schema.ResourceData, zoneOptions zoneOptions) {
 	if tfErr := d.Set("address_book_set", zoneOptions.addressBookSet); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("advance_policy_based_routing_profile", zoneOptions.advancePolicyBasedRoutingProfile); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("application_tracking", zoneOptions.appTrack); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("description", zoneOptions.description); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("inbound_protocols", zoneOptions.inboundProtocols); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("inbound_services", zoneOptions.inboundServices); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("reverse_reroute", zoneOptions.reverseReroute); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("screen", zoneOptions.screen); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("source_identity_log", zoneOptions.sourceIdentityLog); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("tcp_rst", zoneOptions.tcpRst); tfErr != nil {
 		panic(tfErr)
 	}
 }
