@@ -39,8 +39,16 @@ func dataSourceInterfacePhysical() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"vlan_tagging": {
-				Type:     schema.TypeBool,
+			"ae_lacp": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"ae_link_speed": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"ae_minimum_links": {
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 			"ether802_3ad": {
@@ -60,16 +68,8 @@ func dataSourceInterfacePhysical() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
-			"ae_lacp": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"ae_link_speed": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"ae_minimum_links": {
-				Type:     schema.TypeInt,
+			"vlan_tagging": {
+				Type:     schema.TypeBool,
 				Computed: true,
 			},
 		},
