@@ -80,11 +80,11 @@ func validateCIDRNetwork(network string) error {
 	return nil
 }
 
-func validateNameObjectJunos(exclude []string) schema.SchemaValidateDiagFunc {
+func validateNameObjectJunos(exclude []string, length int) schema.SchemaValidateDiagFunc {
 	return func(i interface{}, path cty.Path) diag.Diagnostics {
 		var diags diag.Diagnostics
 		v := i.(string)
-		if strings.Count(v, "") > 32 {
+		if strings.Count(v, "") > length {
 			diags = append(diags, diag.Diagnostic{
 				Severity:      diag.Error,
 				Summary:       fmt.Sprintf("%s invalid name (too long)", i),

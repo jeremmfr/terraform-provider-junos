@@ -5,6 +5,10 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+## 1.12.2 (February 3, 2021)
+BUG FIXES:
+* allow the name length of some objects > 32 for part of the resources (Fixes [#101](https://github.com/jeremmfr/terraform-provider-junos/issues/101))
+
 ## 1.12.1 (February 1, 2021)
 BUG FIXES:
 * possible mismatch for routing_instance in junos_interface_logical resource (Fixes [#98](https://github.com/jeremmfr/terraform-provider-junos/issues/98))

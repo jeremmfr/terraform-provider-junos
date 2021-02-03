@@ -31,7 +31,7 @@ func resourceFirewallFilter() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 			},
 			"family": {
 				Type:     schema.TypeString,
@@ -52,12 +52,12 @@ func resourceFirewallFilter() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 						},
 						"filter": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 						},
 						"from": {
 							Type:     schema.TypeList,
@@ -236,7 +236,7 @@ func resourceFirewallFilter() *schema.Resource {
 									"policer": {
 										Type:             schema.TypeString,
 										Optional:         true,
-										ValidateDiagFunc: validateNameObjectJunos([]string{}),
+										ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 									},
 									"log": {
 										Type:     schema.TypeBool,
