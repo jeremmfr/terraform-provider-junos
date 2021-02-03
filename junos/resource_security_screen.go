@@ -476,7 +476,7 @@ func resourceSecurityScreen() *schema.Resource {
 												"name": {
 													Type:             schema.TypeString,
 													Required:         true,
-													ValidateDiagFunc: validateNameObjectJunos([]string{}),
+													ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
 												},
 												"destination_address": {
 													Type:     schema.TypeList,
