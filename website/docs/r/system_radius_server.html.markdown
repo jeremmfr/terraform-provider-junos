@@ -29,7 +29,7 @@ The following arguments are supported:
 **WARNING** Clear in tfstate.
 * `accounting_port` - (Optional)(`Int`) RADIUS server accounting port number (1..65535).
 * `accounting_retry` - (Optional)(`Int`) Accounting retry attempts (0..100).
-* `accouting_timeout` - (Optional)(`Int`) Accounting request timeout period (0..1000 seconds).
+* `accounting_timeout` - (Optional)(`Int`) Accounting request timeout period (0..1000 seconds).
 * `dynamic_request_port` - (Optional)(`Int`) RADIUS client dynamic request port number (1..65535).
 * `max_outstanding_requests` - (Optional)(`Int`) Maximum requests in flight to server (0..2000).
 * `port` - (Optional)(`Int`) RADIUS server authentication port number (1..65535).

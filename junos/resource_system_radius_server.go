@@ -15,7 +15,7 @@ import (
 type radiusServerOptions struct {
 	accountingPort          int
 	accountingRetry         int
-	accoutingTimeout        int
+	accountingTimeout       int
 	dynamicRequestPort      int
 	maxOutstandingRequests  int
 	port                    int
@@ -61,11 +61,15 @@ func resourceSystemRadiusServer() *schema.Resource {
 				Default:      -1,
 				ValidateFunc: validation.IntBetween(0, 100),
 			},
-			"accouting_timeout": {
+			"accounting_timeout": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      -1,
 				ValidateFunc: validation.IntBetween(0, 1000),
+			},
+			"accouting_timeout": { // old version (typo) of accounting_timeout
+				Type:     schema.TypeInt,
+				Computed: true,
 			},
 			"dynamic_request_port": {
 				Type:         schema.TypeInt,
@@ -289,9 +293,9 @@ func setSystemRadiusServer(d *schema.ResourceData, m interface{}, jnprSess *Netc
 		configSet = append(configSet, setPrefix+" accounting-retry "+
 			strconv.Itoa(d.Get("accounting_retry").(int)))
 	}
-	if d.Get("accouting_timeout").(int) != -1 {
+	if d.Get("accounting_timeout").(int) != -1 {
 		configSet = append(configSet, setPrefix+" accounting-timeout "+
-			strconv.Itoa(d.Get("accouting_timeout").(int)))
+			strconv.Itoa(d.Get("accounting_timeout").(int)))
 	}
 	if d.Get("dynamic_request_port").(int) != 0 {
 		configSet = append(configSet, setPrefix+" dynamic-request-port "+
@@ -340,7 +344,7 @@ func readSystemRadiusServer(address string, m interface{}, jnprSess *NetconfObje
 	sess := m.(*Session)
 	var confRead radiusServerOptions
 	confRead.accountingRetry = -1
-	confRead.accoutingTimeout = -1
+	confRead.accountingTimeout = -1
 	confRead.maxOutstandingRequests = -1
 
 	radiusServerConfig, err := sess.command("show configuration"+
@@ -373,7 +377,7 @@ func readSystemRadiusServer(address string, m interface{}, jnprSess *NetconfObje
 				}
 			case strings.HasPrefix(itemTrim, "accounting-timeout "):
 				var err error
-				confRead.accoutingTimeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "accounting-timeout "))
+				confRead.accountingTimeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "accounting-timeout "))
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
@@ -458,7 +462,10 @@ func fillSystemRadiusServerData(d *schema.ResourceData, radiusServerOptions radi
 	if tfErr := d.Set("accounting_retry", radiusServerOptions.accountingRetry); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("accouting_timeout", radiusServerOptions.accoutingTimeout); tfErr != nil {
+	if tfErr := d.Set("accounting_timeout", radiusServerOptions.accountingTimeout); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("accouting_timeout", radiusServerOptions.accountingTimeout); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("dynamic_request_port", radiusServerOptions.dynamicRequestPort); tfErr != nil {
