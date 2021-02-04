@@ -26,10 +26,10 @@ The following arguments are supported:
 
 * `name` - (Required, Forces new resource)(`String`) The name of source nat pool.
 * `address` - (Required)(`ListofString`) List of IP/mask for source nat pool.
-* `routing_instance` - (Optional)(`String`) Name of routing instance for switch with nat
-* `port_no_translation` - (Optional)(`Bool`) Do not perform port translation
-* `port_overloading_factor` - (Optional)(`Int`) Port overloading factor for each IP
-* `port_range` - (Optional)(`String`) Range of port for source nat
+* `port_no_translation` - (Optional)(`Bool`) Do not perform port translation.
+* `port_overloading_factor` - (Optional)(`Int`) Port overloading factor for each IP.
+* `port_range` - (Optional)(`String`) Range of port for source nat.
+* `routing_instance` - (Optional)(`String`) Name of routing instance for switch with nat.
 
 ## Import
 
