@@ -33,16 +33,16 @@ The following arguments are supported:
 * `from_zone` - (Required, Forces new resource)(`String`) The name of source zone.
 * `to_zone` - (Required, Forces new resource)(`String`) The name of destination zone.
 * `policy` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) List of policy with options. Can be specified multiple times for each policy.
-  * `name`  - (Required)(`String`) The name of policy
-  * `match_source_address` - (Required)(`ListOfString`) List of source address match
-  * `match_destination_address` - (Required)(`ListOfString`) List of destination address match
-  * `match_application` - (Required)(`ListOfString`) List of applications match
-  * `then` - (Optional)(`String`) action of policy. Defaults to `permit`
-  * `permit_tunnel_ipsec_vpn` - (Optional)(`String`) Name of vpn to permit with a tunnel ipsec
+  * `name`  - (Required)(`String`) The name of policy.
+  * `match_source_address` - (Required)(`ListOfString`) List of source address match.
+  * `match_destination_address` - (Required)(`ListOfString`) List of destination address match.
+  * `match_application` - (Required)(`ListOfString`) List of applications match.
+  * `then` - (Optional)(`String`) action of policy. Defaults to `permit`.
+  * `count` - (Optional)(`Bool`) Enable count.
+  * `log_init` - (Optional)(`Bool`) Log at session init time.
+  * `log_close` - (Optional)(`Bool`) Log at session close time.
+  * `permit_tunnel_ipsec_vpn` - (Optional)(`String`) Name of vpn to permit with a tunnel ipsec.
   * `permit_application_services` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html) Define application services for permit. See the [`permit_application_services` arguments for policy](#permit_application_services-arguments-for-policy) block. Max of 1.
-  * `count` - (Optional)(`Bool`) Enable count
-  * `log_init` - (Optional)(`Bool`) Log at session init time
-  * `log_close` - (Optional)(`Bool`) Log at session close time
 
 ---
 #### permit_application_services arguments for policy

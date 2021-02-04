@@ -69,6 +69,18 @@ func resourceSecurityPolicy() *schema.Resource {
 							Default:      permitWord,
 							ValidateFunc: validation.StringInSlice([]string{permitWord, "reject", "deny"}, false),
 						},
+						"count": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"log_init": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"log_close": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
 						"permit_application_services": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -142,18 +154,6 @@ func resourceSecurityPolicy() *schema.Resource {
 						},
 						"permit_tunnel_ipsec_vpn": {
 							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"count": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-						"log_init": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-						"log_close": {
-							Type:     schema.TypeBool,
 							Optional: true,
 						},
 					},
@@ -367,6 +367,15 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			configSet = append(configSet, setPrefixPolicy+" match application any")
 		}
 		configSet = append(configSet, setPrefixPolicy+" then "+policy["then"].(string))
+		if policy["count"].(bool) {
+			configSet = append(configSet, setPrefixPolicy+" then count")
+		}
+		if policy["log_init"].(bool) {
+			configSet = append(configSet, setPrefixPolicy+" then log session-init")
+		}
+		if policy["log_close"].(bool) {
+			configSet = append(configSet, setPrefixPolicy+" then log session-close")
+		}
 		if policy["permit_tunnel_ipsec_vpn"].(string) != "" {
 			if policy["then"].(string) != permitWord {
 				return fmt.Errorf("conflict policy then %v and policy permit_tunnel_ipsec_vpn",
@@ -389,15 +398,6 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 				return err
 			}
 			configSet = append(configSet, configSetAppSvc...)
-		}
-		if policy["count"].(bool) {
-			configSet = append(configSet, setPrefixPolicy+" then count")
-		}
-		if policy["log_init"].(bool) {
-			configSet = append(configSet, setPrefixPolicy+" then log session-init")
-		}
-		if policy["log_close"].(bool) {
-			configSet = append(configSet, setPrefixPolicy+" then log session-close")
 		}
 	}
 	if err := sess.configSet(configSet, jnprSess); err != nil {
@@ -509,8 +509,8 @@ func genMapPolicyWithName(name string) map[string]interface{} {
 		"count":                       false,
 		"log_init":                    false,
 		"log_close":                   false,
-		"permit_tunnel_ipsec_vpn":     "",
 		"permit_application_services": make([]map[string]interface{}, 0),
+		"permit_tunnel_ipsec_vpn":     "",
 	}
 }
 
