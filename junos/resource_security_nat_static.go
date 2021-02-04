@@ -77,15 +77,15 @@ func resourceSecurityNatStatic() *schema.Resource {
 										Required:     true,
 										ValidateFunc: validation.StringInSlice([]string{inetWord, prefixWord}, false),
 									},
-									"routing_instance": {
-										Type:             schema.TypeString,
-										Optional:         true,
-										ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
-									},
 									"prefix": {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.IsCIDRNetwork(0, 128),
+									},
+									"routing_instance": {
+										Type:             schema.TypeString,
+										Optional:         true,
+										ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 									},
 								},
 							},
@@ -355,8 +355,8 @@ func readSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObj
 					itemThen := strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" then static-nat ")
 					ruleThenOptions := map[string]interface{}{
 						"type":             "",
-						"routing_instance": "",
 						prefixWord:         "",
+						"routing_instance": "",
 					}
 					if len(ruleOptions[thenWord].([]map[string]interface{})) > 0 {
 						for k, v := range ruleOptions[thenWord].([]map[string]interface{})[0] {
