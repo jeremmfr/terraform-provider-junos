@@ -9,6 +9,10 @@ ENHANCEMENTS:
 BUG FIXES:
 * clean code: remove useless else when read a empty config
 
+## 1.12.3 (February 5, 2021)
+BUG FIXES:
+* fix crash when `bind_interface` change in `junos_security_ipsec_vpn` resource
+
 ## 1.12.2 (February 3, 2021)
 BUG FIXES:
 * allow the name length of some objects > 32 for part of the resources (Fixes [#101](https://github.com/jeremmfr/terraform-provider-junos/issues/101))
