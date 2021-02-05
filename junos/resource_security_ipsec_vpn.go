@@ -262,7 +262,7 @@ func resourceIpsecVpnUpdate(ctx context.Context, d *schema.ResourceData, m inter
 			AttributePath: cty.Path{cty.GetAttrStep{Name: "bind_interface_auto"}},
 		})
 	}
-	if d.HasChanges("bind_interface") && d.Get("bind_interfaces_auto").(bool) {
+	if d.HasChanges("bind_interface") && d.Get("bind_interface_auto").(bool) {
 		oldInt, _ := d.GetChange("bind_interface")
 		st0NC, st0Emtpy, err := checkInterfaceLogicalNC(oldInt.(string), m, jnprSess)
 		if err != nil {
