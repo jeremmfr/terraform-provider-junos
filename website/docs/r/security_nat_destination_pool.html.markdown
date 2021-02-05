@@ -26,9 +26,9 @@ The following arguments are supported:
 
 * `name` - (Required, Forces new resource)(`String`) The name of destination nat pool.
 * `address` - (Required)(`String`) IP/mask for destination nat pool.
+* `address_port` - (Optional)(`Int`) Port change too with destination nat. Conflict with `address_to`.
 * `address_to` - (Optional)(`String`) IP/mask for range of destination nat pool (range = `address` to `address_to`).
-* `address_port` - (Optional)(`Int`) Port change too with destination nat. Conflict with `address_to`
-* `routing_instance` - (Optional)(`String`) Name of routing instance for switch instance with nat
+* `routing_instance` - (Optional)(`String`) Name of routing instance for switch instance with nat.
 
 ## Import
 
