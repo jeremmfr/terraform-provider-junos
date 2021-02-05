@@ -146,6 +146,7 @@ func Provider() *schema.Provider {
 			"junos_security_screen":                                      resourceSecurityScreen(),
 			"junos_security_screen_whitelist":                            resourceSecurityScreenWhiteList(),
 			"junos_security_utm_policy":                                  resourceSecurityUtmPolicy(),
+			"junos_security_utm_custom_url_category":                     resourceSecurityUtmCustomURLCategory(),
 			"junos_security_utm_custom_url_pattern":                      resourceSecurityUtmCustomURLPattern(),
 			"junos_security_utm_profile_web_filtering_juniper_enhanced":  resourceSecurityUtmProfileWebFilteringEnhanced(),
 			"junos_security_utm_profile_web_filtering_juniper_local":     resourceSecurityUtmProfileWebFilteringLocal(),
