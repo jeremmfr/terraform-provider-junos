@@ -75,26 +75,6 @@ func resourceFirewallFilter() *schema.Resource {
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
-									"port": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"port_except": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"prefix_list": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"prefix_list_except": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
 									"destination_address": {
 										Type:     schema.TypeList,
 										Optional: true,
@@ -124,58 +104,6 @@ func resourceFirewallFilter() *schema.Resource {
 										Type:     schema.TypeList,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"source_address": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"source_address_except": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"source_port": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"source_port_except": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"source_prefix_list": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"source_prefix_list_except": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"protocol": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"protocol_except": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"tcp_flags": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"tcp_initial": {
-										Type:     schema.TypeBool,
-										Optional: true,
-									},
-									"tcp_established": {
-										Type:     schema.TypeBool,
-										Optional: true,
 									},
 									"icmp_code": {
 										Type:     schema.TypeList,
@@ -211,6 +139,78 @@ func resourceFirewallFilter() *schema.Resource {
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
+									"port": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"port_except": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"protocol": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"protocol_except": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"prefix_list": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"prefix_list_except": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"source_address": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"source_address_except": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"source_port": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"source_port_except": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"source_prefix_list": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"source_prefix_list_except": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"tcp_established": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"tcp_flags": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"tcp_initial": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
 								},
 							},
 						},
@@ -229,8 +229,8 @@ func resourceFirewallFilter() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 									},
-									"routing_instance": {
-										Type:     schema.TypeString,
+									"log": {
+										Type:     schema.TypeBool,
 										Optional: true,
 									},
 									"policer": {
@@ -238,16 +238,12 @@ func resourceFirewallFilter() *schema.Resource {
 										Optional:         true,
 										ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 									},
-									"log": {
-										Type:     schema.TypeBool,
-										Optional: true,
-									},
-									"syslog": {
-										Type:     schema.TypeBool,
-										Optional: true,
-									},
 									"port_mirror": {
 										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"routing_instance": {
+										Type:     schema.TypeString,
 										Optional: true,
 									},
 									"sample": {
@@ -255,6 +251,10 @@ func resourceFirewallFilter() *schema.Resource {
 										Optional: true,
 									},
 									"service_accounting": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"syslog": {
 										Type:     schema.TypeBool,
 										Optional: true,
 									},
@@ -556,21 +556,6 @@ func setFirewallFilterOptsFrom(setPrefixTermFrom string,
 		}
 		configSet = append(configSet, setPrefixTermFrom+"address "+address.(string)+" except")
 	}
-	if len(fromMap["port"].([]interface{})) > 0 && len(fromMap["port_except"].([]interface{})) > 0 {
-		return configSet, fmt.Errorf("conflict between port and port_except")
-	}
-	for _, port := range fromMap["port"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+"port "+port.(string))
-	}
-	for _, port := range fromMap["port_except"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+"port-except "+port.(string))
-	}
-	for _, prefixList := range fromMap["prefix_list"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+"prefix-list "+prefixList.(string))
-	}
-	for _, prefixList := range fromMap["prefix_list_except"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+"prefix-list "+prefixList.(string)+" except")
-	}
 	for _, address := range fromMap["destination_address"].([]interface{}) {
 		err := validateCIDRNetwork(address.(string))
 		if err != nil {
@@ -600,56 +585,6 @@ func setFirewallFilterOptsFrom(setPrefixTermFrom string,
 	}
 	for _, prefixList := range fromMap["destination_prefix_list_except"].([]interface{}) {
 		configSet = append(configSet, setPrefixTermFrom+"destination-prefix-list "+prefixList.(string)+" except")
-	}
-	for _, address := range fromMap["source_address"].([]interface{}) {
-		err := validateCIDRNetwork(address.(string))
-		if err != nil {
-			return nil, err
-		}
-		configSet = append(configSet, setPrefixTermFrom+"source-address "+address.(string))
-	}
-	for _, address := range fromMap["source_address_except"].([]interface{}) {
-		err := validateCIDRNetwork(address.(string))
-		if err != nil {
-			return nil, err
-		}
-		configSet = append(configSet, setPrefixTermFrom+"source-address "+address.(string)+" except")
-	}
-	if len(fromMap["source_port"].([]interface{})) > 0 && len(fromMap["source_port_except"].([]interface{})) > 0 {
-		return configSet, fmt.Errorf("conflict between source_port and source_port_except")
-	}
-	for _, port := range fromMap["source_port"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+"source-port "+port.(string))
-	}
-	for _, port := range fromMap["source_port_except"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+"source-port-except "+port.(string))
-	}
-	for _, prefixList := range fromMap["source_prefix_list"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+"source-prefix-list "+prefixList.(string))
-	}
-	for _, prefixList := range fromMap["source_prefix_list_except"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+"source-prefix-list "+prefixList.(string)+" except")
-	}
-	if len(fromMap["protocol"].([]interface{})) > 0 && len(fromMap["protocol_except"].([]interface{})) > 0 {
-		return nil, fmt.Errorf("conflict between protocol and protocol_except")
-	}
-	for _, protocol := range fromMap["protocol"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+"protocol "+protocol.(string))
-	}
-	for _, protocol := range fromMap["protocol_except"].([]interface{}) {
-		configSet = append(configSet, setPrefixTermFrom+"protocol-except "+protocol.(string))
-	}
-	if fromMap["tcp_flags"].(string) != "" && (fromMap["tcp_initial"].(bool) || fromMap["tcp_established"].(bool)) {
-		return configSet, fmt.Errorf("conflict between tcp_flags and tcp_initial|tcp_established")
-	}
-	if fromMap["tcp_flags"].(string) != "" {
-		configSet = append(configSet, setPrefixTermFrom+"tcp-flags \""+fromMap["tcp_flags"].(string)+"\"")
-	}
-	if fromMap["tcp_initial"].(bool) {
-		configSet = append(configSet, setPrefixTermFrom+"tcp-initial")
-	}
-	if fromMap["tcp_established"].(bool) {
-		configSet = append(configSet, setPrefixTermFrom+"tcp-established")
 	}
 	if len(fromMap["icmp_code"].([]interface{})) > 0 && len(fromMap["icmp_code_except"].([]interface{})) > 0 {
 		return nil, fmt.Errorf("conflict between icmp_code and icmp_code_except")
@@ -681,6 +616,71 @@ func setFirewallFilterOptsFrom(setPrefixTermFrom string,
 	for _, header := range fromMap["next_header_except"].([]interface{}) {
 		configSet = append(configSet, setPrefixTermFrom+"next-header-except "+header.(string))
 	}
+	if len(fromMap["port"].([]interface{})) > 0 && len(fromMap["port_except"].([]interface{})) > 0 {
+		return configSet, fmt.Errorf("conflict between port and port_except")
+	}
+	for _, port := range fromMap["port"].([]interface{}) {
+		configSet = append(configSet, setPrefixTermFrom+"port "+port.(string))
+	}
+	for _, port := range fromMap["port_except"].([]interface{}) {
+		configSet = append(configSet, setPrefixTermFrom+"port-except "+port.(string))
+	}
+	for _, prefixList := range fromMap["prefix_list"].([]interface{}) {
+		configSet = append(configSet, setPrefixTermFrom+"prefix-list "+prefixList.(string))
+	}
+	for _, prefixList := range fromMap["prefix_list_except"].([]interface{}) {
+		configSet = append(configSet, setPrefixTermFrom+"prefix-list "+prefixList.(string)+" except")
+	}
+	if len(fromMap["protocol"].([]interface{})) > 0 && len(fromMap["protocol_except"].([]interface{})) > 0 {
+		return nil, fmt.Errorf("conflict between protocol and protocol_except")
+	}
+	for _, protocol := range fromMap["protocol"].([]interface{}) {
+		configSet = append(configSet, setPrefixTermFrom+"protocol "+protocol.(string))
+	}
+	for _, protocol := range fromMap["protocol_except"].([]interface{}) {
+		configSet = append(configSet, setPrefixTermFrom+"protocol-except "+protocol.(string))
+	}
+	for _, address := range fromMap["source_address"].([]interface{}) {
+		err := validateCIDRNetwork(address.(string))
+		if err != nil {
+			return nil, err
+		}
+		configSet = append(configSet, setPrefixTermFrom+"source-address "+address.(string))
+	}
+	for _, address := range fromMap["source_address_except"].([]interface{}) {
+		err := validateCIDRNetwork(address.(string))
+		if err != nil {
+			return nil, err
+		}
+		configSet = append(configSet, setPrefixTermFrom+"source-address "+address.(string)+" except")
+	}
+	if len(fromMap["source_port"].([]interface{})) > 0 && len(fromMap["source_port_except"].([]interface{})) > 0 {
+		return configSet, fmt.Errorf("conflict between source_port and source_port_except")
+	}
+	for _, port := range fromMap["source_port"].([]interface{}) {
+		configSet = append(configSet, setPrefixTermFrom+"source-port "+port.(string))
+	}
+	for _, port := range fromMap["source_port_except"].([]interface{}) {
+		configSet = append(configSet, setPrefixTermFrom+"source-port-except "+port.(string))
+	}
+	for _, prefixList := range fromMap["source_prefix_list"].([]interface{}) {
+		configSet = append(configSet, setPrefixTermFrom+"source-prefix-list "+prefixList.(string))
+	}
+	for _, prefixList := range fromMap["source_prefix_list_except"].([]interface{}) {
+		configSet = append(configSet, setPrefixTermFrom+"source-prefix-list "+prefixList.(string)+" except")
+	}
+	if (fromMap["tcp_established"].(bool) || fromMap["tcp_initial"].(bool)) && fromMap["tcp_flags"].(string) != "" {
+		return configSet, fmt.Errorf("conflict between tcp_flags and tcp_initial|tcp_established")
+	}
+	if fromMap["tcp_established"].(bool) {
+		configSet = append(configSet, setPrefixTermFrom+"tcp-established")
+	}
+	if fromMap["tcp_flags"].(string) != "" {
+		configSet = append(configSet, setPrefixTermFrom+"tcp-flags \""+fromMap["tcp_flags"].(string)+"\"")
+	}
+	if fromMap["tcp_initial"].(bool) {
+		configSet = append(configSet, setPrefixTermFrom+"tcp-initial")
+	}
 
 	return configSet, nil
 }
@@ -691,26 +691,26 @@ func setFirewallFilterOptsThen(setPrefixTermThen string, configSet []string, the
 	if thenMap["count"].(string) != "" {
 		configSet = append(configSet, setPrefixTermThen+"count "+thenMap["count"].(string))
 	}
-	if thenMap["routing_instance"].(string) != "" {
-		configSet = append(configSet, setPrefixTermThen+"routing-instance "+thenMap["routing_instance"].(string))
+	if thenMap["log"].(bool) {
+		configSet = append(configSet, setPrefixTermThen+"log")
 	}
 	if thenMap["policer"].(string) != "" {
 		configSet = append(configSet, setPrefixTermThen+"policer "+thenMap["policer"].(string))
 	}
-	if thenMap["log"].(bool) {
-		configSet = append(configSet, setPrefixTermThen+"log")
-	}
-	if thenMap["syslog"].(bool) {
-		configSet = append(configSet, setPrefixTermThen+"syslog")
-	}
 	if thenMap["port_mirror"].(bool) {
 		configSet = append(configSet, setPrefixTermThen+"port-mirror")
+	}
+	if thenMap["routing_instance"].(string) != "" {
+		configSet = append(configSet, setPrefixTermThen+"routing-instance "+thenMap["routing_instance"].(string))
 	}
 	if thenMap["sample"].(bool) {
 		configSet = append(configSet, setPrefixTermThen+"sample")
 	}
 	if thenMap["service_accounting"].(bool) {
 		configSet = append(configSet, setPrefixTermThen+"service-accounting")
+	}
+	if thenMap["syslog"].(bool) {
+		configSet = append(configSet, setPrefixTermThen+"syslog")
 	}
 
 	return configSet
@@ -731,20 +731,6 @@ func readFirewallFilterOptsFrom(item string,
 		} else {
 			fromMap["address"] = append(fromMap["address"].([]string),
 				strings.TrimPrefix(item, "address "))
-		}
-	case strings.HasPrefix(item, "port "):
-		fromMap["port"] = append(fromMap["port"].([]string),
-			strings.TrimPrefix(item, "port "))
-	case strings.HasPrefix(item, "port-except "):
-		fromMap["port_except"] = append(fromMap["port_except"].([]string),
-			strings.TrimPrefix(item, "port-except "))
-	case strings.HasPrefix(item, "prefix-list "):
-		if strings.HasSuffix(item, " except") {
-			fromMap["prefix_list_except"] = append(fromMap["prefix_list_except"].([]string),
-				strings.TrimSuffix(strings.TrimPrefix(item, "prefix-list "), " except"))
-		} else {
-			fromMap["prefix_list"] = append(fromMap["prefix_list"].([]string),
-				strings.TrimPrefix(item, "prefix-list "))
 		}
 	case strings.HasPrefix(item, "destination-address "):
 		if strings.HasSuffix(item, " except") {
@@ -768,6 +754,43 @@ func readFirewallFilterOptsFrom(item string,
 			fromMap["destination_prefix_list"] = append(fromMap["destination_prefix_list"].([]string),
 				strings.TrimPrefix(item, "destination-prefix-list "))
 		}
+	case strings.HasPrefix(item, "icmp-code "):
+		fromMap["icmp_code"] = append(fromMap["icmp_code"].([]string), strings.TrimPrefix(item, "icmp-code "))
+	case strings.HasPrefix(item, "icmp-code-except "):
+		fromMap["icmp_code_except"] = append(fromMap["icmp_code_except"].([]string),
+			strings.TrimPrefix(item, "icmp-code-except "))
+	case strings.HasPrefix(item, "icmp-type "):
+		fromMap["icmp_type"] = append(fromMap["icmp_type"].([]string), strings.TrimPrefix(item, "icmp-type "))
+	case strings.HasPrefix(item, "icmp-type-except "):
+		fromMap["icmp_type_except"] = append(fromMap["icmp_type_except"].([]string),
+			strings.TrimPrefix(item, "icmp-type-except "))
+	case item == "is-fragment":
+		fromMap["is_fragment"] = true
+	case strings.HasPrefix(item, "next-header "):
+		fromMap["next_header"] = append(fromMap["next_header"].([]string),
+			strings.TrimPrefix(item, "next-header "))
+	case strings.HasPrefix(item, "next-header-except "):
+		fromMap["next_header_except"] = append(fromMap["next_header_except"].([]string),
+			strings.TrimPrefix(item, "next-header-except "))
+	case strings.HasPrefix(item, "port "):
+		fromMap["port"] = append(fromMap["port"].([]string),
+			strings.TrimPrefix(item, "port "))
+	case strings.HasPrefix(item, "port-except "):
+		fromMap["port_except"] = append(fromMap["port_except"].([]string),
+			strings.TrimPrefix(item, "port-except "))
+	case strings.HasPrefix(item, "protocol "):
+		fromMap["protocol"] = append(fromMap["protocol"].([]string), strings.TrimPrefix(item, "protocol "))
+	case strings.HasPrefix(item, "protocol-except "):
+		fromMap["protocol_except"] = append(fromMap["protocol_except"].([]string),
+			strings.TrimPrefix(item, "protocol-except "))
+	case strings.HasPrefix(item, "prefix-list "):
+		if strings.HasSuffix(item, " except") {
+			fromMap["prefix_list_except"] = append(fromMap["prefix_list_except"].([]string),
+				strings.TrimSuffix(strings.TrimPrefix(item, "prefix-list "), " except"))
+		} else {
+			fromMap["prefix_list"] = append(fromMap["prefix_list"].([]string),
+				strings.TrimPrefix(item, "prefix-list "))
+		}
 	case strings.HasPrefix(item, "source-address "):
 		if strings.HasSuffix(item, " except") {
 			fromMap["source_address_except"] = append(fromMap["source_address_except"].([]string),
@@ -790,35 +813,12 @@ func readFirewallFilterOptsFrom(item string,
 			fromMap["source_prefix_list"] = append(fromMap["source_prefix_list"].([]string),
 				strings.TrimPrefix(item, "source-prefix-list "))
 		}
-	case strings.HasPrefix(item, "protocol "):
-		fromMap["protocol"] = append(fromMap["protocol"].([]string), strings.TrimPrefix(item, "protocol "))
-	case strings.HasPrefix(item, "protocol-except "):
-		fromMap["protocol_except"] = append(fromMap["protocol_except"].([]string),
-			strings.TrimPrefix(item, "protocol-except "))
+	case item == "tcp-established":
+		fromMap["tcp_established"] = true
 	case strings.HasPrefix(item, "tcp-flags "):
 		fromMap["tcp_flags"] = strings.Trim(strings.TrimPrefix(item, "tcp-flags "), "\"")
 	case item == "tcp-initial":
 		fromMap["tcp_initial"] = true
-	case item == "tcp-established":
-		fromMap["tcp_established"] = true
-	case strings.HasPrefix(item, "icmp-code "):
-		fromMap["icmp_code"] = append(fromMap["icmp_code"].([]string), strings.TrimPrefix(item, "icmp-code "))
-	case strings.HasPrefix(item, "icmp-code-except "):
-		fromMap["icmp_code_except"] = append(fromMap["icmp_code_except"].([]string),
-			strings.TrimPrefix(item, "icmp-code-except "))
-	case strings.HasPrefix(item, "icmp-type "):
-		fromMap["icmp_type"] = append(fromMap["icmp_type"].([]string), strings.TrimPrefix(item, "icmp-type "))
-	case strings.HasPrefix(item, "icmp-type-except "):
-		fromMap["icmp_type_except"] = append(fromMap["icmp_type_except"].([]string),
-			strings.TrimPrefix(item, "icmp-type-except "))
-	case item == "is-fragment":
-		fromMap["is_fragment"] = true
-	case strings.HasPrefix(item, "next-header "):
-		fromMap["next_header"] = append(fromMap["next_header"].([]string),
-			strings.TrimPrefix(item, "next-header "))
-	case strings.HasPrefix(item, "next-header-except "):
-		fromMap["next_header_except"] = append(fromMap["next_header_except"].([]string),
-			strings.TrimPrefix(item, "next-header-except "))
 	}
 
 	// override (maxItem = 1)
@@ -840,20 +840,20 @@ func readFirewallFilterOptsThen(item string,
 		thenMap["action"] = item
 	case strings.HasPrefix(item, "count "):
 		thenMap["count"] = strings.TrimPrefix(item, "count ")
-	case strings.HasPrefix(item, "routing-instance "):
-		thenMap["routing_instance"] = strings.TrimPrefix(item, "routing-instance ")
-	case strings.HasPrefix(item, "policer "):
-		thenMap["policer"] = strings.TrimPrefix(item, "policer ")
-	case item == "syslog":
-		thenMap["syslog"] = true
 	case item == "log":
 		thenMap["log"] = true
+	case strings.HasPrefix(item, "policer "):
+		thenMap["policer"] = strings.TrimPrefix(item, "policer ")
 	case item == "port-mirror":
 		thenMap["port_mirror"] = true
+	case strings.HasPrefix(item, "routing-instance "):
+		thenMap["routing_instance"] = strings.TrimPrefix(item, "routing-instance ")
 	case item == "sample":
 		thenMap["sample"] = true
 	case item == "service-accounting":
 		thenMap["service_accounting"] = true
+	case item == "syslog":
+		thenMap["syslog"] = true
 	}
 	// override (maxItem = 1)
 	return []map[string]interface{}{thenMap}
@@ -863,27 +863,12 @@ func genMapFirewallFilterOptsFrom() map[string]interface{} {
 	return map[string]interface{}{
 		"address":                        make([]string, 0),
 		"address_except":                 make([]string, 0),
-		"port":                           make([]string, 0),
-		"port_except":                    make([]string, 0),
-		"prefix_list":                    make([]string, 0),
-		"prefix_list_except":             make([]string, 0),
 		"destination_address":            make([]string, 0),
 		"destination_address_except":     make([]string, 0),
 		"destination_port":               make([]string, 0),
 		"destination_port_except":        make([]string, 0),
 		"destination_prefix_list":        make([]string, 0),
 		"destination_prefix_list_except": make([]string, 0),
-		"source_address":                 make([]string, 0),
-		"source_address_except":          make([]string, 0),
-		"source_port":                    make([]string, 0),
-		"source_port_except":             make([]string, 0),
-		"source_prefix_list":             make([]string, 0),
-		"source_prefix_list_except":      make([]string, 0),
-		"protocol":                       make([]string, 0),
-		"protocol_except":                make([]string, 0),
-		"tcp_flags":                      "",
-		"tcp_initial":                    false,
-		"tcp_established":                false,
 		"icmp_code":                      make([]string, 0),
 		"icmp_code_except":               make([]string, 0),
 		"icmp_type":                      make([]string, 0),
@@ -891,18 +876,33 @@ func genMapFirewallFilterOptsFrom() map[string]interface{} {
 		"is_fragment":                    false,
 		"next_header":                    make([]string, 0),
 		"next_header_except":             make([]string, 0),
+		"port":                           make([]string, 0),
+		"port_except":                    make([]string, 0),
+		"prefix_list":                    make([]string, 0),
+		"prefix_list_except":             make([]string, 0),
+		"protocol":                       make([]string, 0),
+		"protocol_except":                make([]string, 0),
+		"source_address":                 make([]string, 0),
+		"source_address_except":          make([]string, 0),
+		"source_port":                    make([]string, 0),
+		"source_port_except":             make([]string, 0),
+		"source_prefix_list":             make([]string, 0),
+		"source_prefix_list_except":      make([]string, 0),
+		"tcp_established":                false,
+		"tcp_flags":                      "",
+		"tcp_initial":                    false,
 	}
 }
 func genMapFirewallFilterOptsThen() map[string]interface{} {
 	return map[string]interface{}{
 		"action":             "",
 		"count":              "",
-		"routing_instance":   "",
-		"policer":            "",
 		"log":                false,
-		"syslog":             false,
+		"policer":            "",
 		"port_mirror":        false,
+		"routing_instance":   "",
 		"sample":             false,
 		"service_accounting": false,
+		"syslog":             false,
 	}
 }
