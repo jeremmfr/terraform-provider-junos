@@ -65,8 +65,8 @@ func resourceSecurityUtmCustomURLCategoryCreate(
 		return diag.FromErr(
 			fmt.Errorf(
 				"security utm custom-objects custom-url-category %v already exists", d.Get("name").(string),
-				),
-			)
+			),
+		)
 	}
 
 	if err := setUtmCustomURLCategory(d, m, jnprSess); err != nil {
