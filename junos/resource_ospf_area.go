@@ -56,30 +56,30 @@ func resourceOspfArea() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
-						"disable": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-						"passive": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-						"metric": {
+						"dead_interval": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(1, 65535),
+						},
+						"disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
 						},
 						"hello_interval": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(1, 255),
 						},
-						"retransmit_interval": {
+						"metric": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(1, 65535),
 						},
-						"dead_interval": {
+						"passive": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"retransmit_interval": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(1, 65535),
@@ -287,27 +287,27 @@ func setOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	for _, v := range d.Get("interface").([]interface{}) {
 		ospfInterface := v.(map[string]interface{})
 		setPrefixInterface := setPrefix + "interface " + ospfInterface["name"].(string) + " "
+		if ospfInterface["dead_interval"].(int) != 0 {
+			configSet = append(configSet, setPrefixInterface+"dead-interval "+
+				strconv.Itoa(ospfInterface["dead_interval"].(int)))
+		}
 		if ospfInterface["disable"].(bool) {
 			configSet = append(configSet, setPrefixInterface+"disable")
-		}
-		if ospfInterface["passive"].(bool) {
-			configSet = append(configSet, setPrefixInterface+"passive")
-		}
-		if ospfInterface["metric"].(int) != 0 {
-			configSet = append(configSet, setPrefixInterface+"metric "+
-				strconv.Itoa(ospfInterface["metric"].(int)))
 		}
 		if ospfInterface["hello_interval"].(int) != 0 {
 			configSet = append(configSet, setPrefixInterface+"hello-interval "+
 				strconv.Itoa(ospfInterface["hello_interval"].(int)))
 		}
+		if ospfInterface["metric"].(int) != 0 {
+			configSet = append(configSet, setPrefixInterface+"metric "+
+				strconv.Itoa(ospfInterface["metric"].(int)))
+		}
+		if ospfInterface["passive"].(bool) {
+			configSet = append(configSet, setPrefixInterface+"passive")
+		}
 		if ospfInterface["retransmit_interval"].(int) != 0 {
 			configSet = append(configSet, setPrefixInterface+"retransmit-interval "+
 				strconv.Itoa(ospfInterface["retransmit_interval"].(int)))
-		}
-		if ospfInterface["dead_interval"].(int) != 0 {
-			configSet = append(configSet, setPrefixInterface+"dead-interval "+
-				strconv.Itoa(ospfInterface["dead_interval"].(int)))
 		}
 	}
 	if err := sess.configSet(configSet, jnprSess); err != nil {
@@ -356,41 +356,41 @@ func readOspfArea(idArea, version, routingInstance string,
 				itemInterfaceList := strings.Split(strings.TrimPrefix(itemTrim, "interface "), " ")
 				interfaceOptions := map[string]interface{}{
 					"name":                itemInterfaceList[0],
-					"disable":             false,
-					"passive":             false,
-					"metric":              0,
-					"hello_interval":      0,
-					"retransmit_interval": 0,
 					"dead_interval":       0,
+					"disable":             false,
+					"hello_interval":      0,
+					"metric":              0,
+					"passive":             false,
+					"retransmit_interval": 0,
 				}
 				itemTrimInterface := strings.TrimPrefix(itemTrim, "interface "+itemInterfaceList[0]+" ")
 				interfaceOptions, confRead.interFace = copyAndRemoveItemMapList("name", false, interfaceOptions, confRead.interFace)
 				switch {
-				case itemTrimInterface == disableW:
-					interfaceOptions["disable"] = true
-				case itemTrimInterface == passiveW:
-					interfaceOptions["passive"] = true
-				case strings.HasPrefix(itemTrimInterface, "metric "):
-					interfaceOptions["metric"], err = strconv.Atoi(
-						strings.TrimPrefix(itemTrimInterface, "metric "))
+				case strings.HasPrefix(itemTrimInterface, "dead-interval "):
+					interfaceOptions["dead_interval"], err = strconv.Atoi(
+						strings.TrimPrefix(itemTrimInterface, "dead-interval "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
 					}
+				case itemTrimInterface == disableW:
+					interfaceOptions["disable"] = true
 				case strings.HasPrefix(itemTrimInterface, "hello-interval "):
 					interfaceOptions["hello_interval"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "hello-interval "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
 					}
-				case strings.HasPrefix(itemTrimInterface, "retransmit-interval "):
-					interfaceOptions["retransmit_interval"], err = strconv.Atoi(
-						strings.TrimPrefix(itemTrimInterface, "retransmit-interval "))
+				case strings.HasPrefix(itemTrimInterface, "metric "):
+					interfaceOptions["metric"], err = strconv.Atoi(
+						strings.TrimPrefix(itemTrimInterface, "metric "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
 					}
-				case strings.HasPrefix(itemTrimInterface, "dead-interval "):
-					interfaceOptions["dead_interval"], err = strconv.Atoi(
-						strings.TrimPrefix(itemTrimInterface, "dead-interval "))
+				case itemTrimInterface == passiveW:
+					interfaceOptions["passive"] = true
+				case strings.HasPrefix(itemTrimInterface, "retransmit-interval "):
+					interfaceOptions["retransmit_interval"], err = strconv.Atoi(
+						strings.TrimPrefix(itemTrimInterface, "retransmit-interval "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
 					}
@@ -427,13 +427,13 @@ func fillOspfAreaData(d *schema.ResourceData, ospfAreaOptions ospfAreaOptions) {
 	if tfErr := d.Set("area_id", ospfAreaOptions.areaID); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("interface", ospfAreaOptions.interFace); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("routing_instance", ospfAreaOptions.routingInstance); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("version", ospfAreaOptions.version); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("interface", ospfAreaOptions.interFace); tfErr != nil {
 		panic(tfErr)
 	}
 }
