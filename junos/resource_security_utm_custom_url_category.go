@@ -181,8 +181,7 @@ func resourceSecurityUtmCustomURLCategoryImport(d *schema.ResourceData, m interf
 	}
 	if !utmCustomURLCategoryExists {
 		return nil, fmt.Errorf(
-			"missing security utm custom-objects custom-url-category with id '%v' (id must be <name>)", d.Id(),
-		)
+			"missing security utm custom-objects custom-url-category with id '%v' (id must be <name>)", d.Id())
 	}
 	utmCustomURLCategoryOptions, err := readUtmCustomURLCategory(d.Id(), m, jnprSess)
 	if err != nil {
