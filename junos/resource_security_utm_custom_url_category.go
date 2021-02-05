@@ -64,9 +64,9 @@ func resourceSecurityUtmCustomURLCategoryCreate(
 
 		return diag.FromErr(
 			fmt.Errorf(
-				"security utm custom-objects custom-url-category %v already exists", d.Get("name").(string)
+				"security utm custom-objects custom-url-category %v already exists", d.Get("name").(string),
 				),
-			),
+			)
 	}
 
 	if err := setUtmCustomURLCategory(d, m, jnprSess); err != nil {
@@ -198,12 +198,12 @@ func resourceSecurityUtmCustomURLCategoryImport(d *schema.ResourceData, m interf
 
 func checkUtmCustomURLCategorysExists(urlCategory string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	URLCategoryConfig, err := sess.command("show configuration security utm custom-objects custom-url-category "+
-		URLCategory+" | display set", jnprSess)
+	urlCategoryConfig, err := sess.command("show configuration security utm custom-objects custom-url-category "+
+		urlCategory+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if URLCategoryConfig == emptyWord {
+	if urlCategoryConfig == emptyWord {
 		return false, nil
 	}
 
@@ -229,14 +229,14 @@ func readUtmCustomURLCategory(urlCategory string, m interface{}, jnprSess *Netco
 	sess := m.(*Session)
 	var confRead utmCustomURLCategoryOptions
 
-	URLCategoryConfig, err := sess.command("show configuration"+
-		" security utm custom-objects custom-url-category "+URLCategory+" | display set relative", jnprSess)
+	urlCategoryConfig, err := sess.command("show configuration"+
+		" security utm custom-objects custom-url-category "+urlCategory+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if URLCategoryConfig != emptyWord {
-		confRead.name = URLCategory
-		for _, item := range strings.Split(URLCategoryConfig, "\n") {
+	if urlCategoryConfig != emptyWord {
+		confRead.name = urlCategory
+		for _, item := range strings.Split(urlCategoryConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
@@ -256,7 +256,7 @@ func readUtmCustomURLCategory(urlCategory string, m interface{}, jnprSess *Netco
 func delUtmCustomURLCategory(urlCategory string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete security utm custom-objects custom-url-category "+URLCategory)
+	configSet = append(configSet, "delete security utm custom-objects custom-url-category "+urlCategory)
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
