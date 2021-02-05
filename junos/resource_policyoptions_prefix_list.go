@@ -32,11 +32,6 @@ func resourcePolicyoptionsPrefixList() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 			},
-			"prefix": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
 			"apply_path": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -44,6 +39,11 @@ func resourcePolicyoptionsPrefixList() *schema.Resource {
 			"dynamic_db": {
 				Type:     schema.TypeBool,
 				Optional: true,
+			},
+			"prefix": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}
@@ -216,13 +216,6 @@ func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess 
 
 	setPrefix := "set policy-options prefix-list " + d.Get("name").(string)
 	configSet = append(configSet, setPrefix)
-	for _, v := range d.Get("prefix").([]interface{}) {
-		err := validateCIDRNetwork(v.(string))
-		if err != nil {
-			return err
-		}
-		configSet = append(configSet, setPrefix+" "+v.(string))
-	}
 	if d.Get("apply_path").(string) != "" {
 		replaceSign := strings.ReplaceAll(d.Get("apply_path").(string), "<", "&lt;")
 		replaceSign = strings.ReplaceAll(replaceSign, ">", "&gt;")
@@ -230,6 +223,13 @@ func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess 
 	}
 	if d.Get("dynamic_db").(bool) {
 		configSet = append(configSet, setPrefix+" dynamic-db")
+	}
+	for _, v := range d.Get("prefix").([]interface{}) {
+		err := validateCIDRNetwork(v.(string))
+		if err != nil {
+			return err
+		}
+		configSet = append(configSet, setPrefix+" "+v.(string))
 	}
 
 	if err := sess.configSet(configSet, jnprSess); err != nil {
@@ -287,13 +287,13 @@ func fillPolicyoptionsPrefixListData(d *schema.ResourceData, prefixListOptions p
 	if tfErr := d.Set("name", prefixListOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("prefix", prefixListOptions.prefix); tfErr != nil {
-		panic(tfErr)
-	}
 	if tfErr := d.Set("apply_path", prefixListOptions.applyPath); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("dynamic_db", prefixListOptions.dynamicDB); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("prefix", prefixListOptions.prefix); tfErr != nil {
 		panic(tfErr)
 	}
 }
