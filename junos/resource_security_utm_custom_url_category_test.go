@@ -26,7 +26,7 @@ func TestAccJunosSecurityUtmCustomURLCategory_basic(t *testing.T) {
 					Config: testAccJunosSecurityUtmCustomURLCategoryConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_utm_custom_url_category.testacc_URLCategory",
-							"value.#", "new-category2"),
+							"value.#", "2"),
 						resource.TestCheckResourceAttr("junos_security_utm_custom_url_category.testacc_URLCategory",
 							"value.0", "custom-pattern1"),
 						resource.TestCheckResourceAttr("junos_security_utm_custom_url_category.testacc_URLCategory",
