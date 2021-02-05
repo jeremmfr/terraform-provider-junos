@@ -84,34 +84,35 @@ func delBgpOpts(d *schema.ResourceData, typebgp string, m interface{}, jnprSess 
 		delPrefix+"advertise-external",
 		delPrefix+"advertise-inactive",
 		delPrefix+"advertise-peer-as",
-		delPrefix+"as-override",
-		delPrefix+"damping",
-		delPrefix+"log-updown",
-		delPrefix+"mtu-discovery",
-		delPrefix+"multihop",
-		delPrefix+"multipath",
 		delPrefix+"no-advertise-peer-as",
-		delPrefix+"remove-private",
-		delPrefix+"passive",
-		delPrefix+"hold-time",
-		delPrefix+"local-as",
-		delPrefix+"local-preference",
-		delPrefix+"metric-out",
-		delPrefix+"out-delay",
-		delPrefix+"peer-as",
-		delPrefix+"preference",
+		delPrefix+"as-override",
 		delPrefix+"authentication-algorithm",
 		delPrefix+"authentication-key",
 		delPrefix+"authentication-key-chain",
-		delPrefix+"type",
-		delPrefix+"local-address",
-		delPrefix+"local-interface",
-		delPrefix+"export",
-		delPrefix+"import",
 		delPrefix+"bfd-liveness-detection",
+		delPrefix+"damping",
+		delPrefix+"export",
 		delPrefix+"family inet",
 		delPrefix+"family inet6",
-		delPrefix+"graceful-restart")
+		delPrefix+"graceful-restart",
+		delPrefix+"hold-time",
+		delPrefix+"import",
+		delPrefix+"local-address",
+		delPrefix+"local-as",
+		delPrefix+"local-interface",
+		delPrefix+"local-preference",
+		delPrefix+"log-updown",
+		delPrefix+"metric-out",
+		delPrefix+"mtu-discovery",
+		delPrefix+"multihop",
+		delPrefix+"multipath",
+		delPrefix+"out-delay",
+		delPrefix+"passive",
+		delPrefix+"peer-as",
+		delPrefix+"preference",
+		delPrefix+"remove-private",
+		delPrefix+"type",
+	)
 
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
@@ -140,11 +141,84 @@ func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, j
 	if d.Get("as_override").(bool) {
 		configSet = append(configSet, setPrefix+"as-override")
 	}
+	if d.Get("authentication_algorithm").(string) != "" {
+		configSet = append(configSet, setPrefix+"authentication-algorithm "+d.Get("authentication_algorithm").(string))
+	}
+	if d.Get("authentication_key").(string) != "" {
+		configSet = append(configSet, setPrefix+"authentication-key "+d.Get("authentication_key").(string))
+	}
+	if d.Get("authentication_key_chain").(string) != "" {
+		configSet = append(configSet, setPrefix+"authentication-key-chain "+d.Get("authentication_key_chain").(string))
+	}
 	if d.Get("damping").(bool) {
 		configSet = append(configSet, setPrefix+"damping")
 	}
+	for _, v := range d.Get("export").([]interface{}) {
+		configSet = append(configSet, setPrefix+"export "+v.(string))
+	}
+	if d.Get("hold_time").(int) != 0 {
+		configSet = append(configSet, setPrefix+"hold-time "+strconv.Itoa(d.Get("hold_time").(int)))
+	}
+	for _, v := range d.Get("import").([]interface{}) {
+		configSet = append(configSet, setPrefix+"import "+v.(string))
+	}
+	if d.Get("local_address").(string) != "" {
+		configSet = append(configSet, setPrefix+"local-address "+d.Get("local_address").(string))
+	}
+	if d.Get("local_as").(string) != "" {
+		configSet = append(configSet, setPrefix+"local-as "+d.Get("local_as").(string))
+	}
+	if d.Get("local_as_alias").(bool) {
+		configSet = append(configSet, setPrefix+"local-as alias")
+	}
+	if d.Get("local_as_loops").(int) != 0 {
+		configSet = append(configSet, setPrefix+"local-as loops "+strconv.Itoa(d.Get("local_as_loops").(int)))
+	}
+	if d.Get("local_as_no_prepend_global_as").(bool) {
+		configSet = append(configSet, setPrefix+"local-as no-prepend-global-as")
+	}
+	if d.Get("local_as_private").(bool) {
+		configSet = append(configSet, setPrefix+"local-as private")
+	}
+	if d.Get("local_interface").(string) != "" {
+		configSet = append(configSet, setPrefix+"local-interface "+d.Get("local_interface").(string))
+	}
+	if d.Get("local_preference").(int) != -1 {
+		configSet = append(configSet, setPrefix+"local-preference "+strconv.Itoa(d.Get("local_preference").(int)))
+	}
 	if d.Get("log_updown").(bool) {
 		configSet = append(configSet, setPrefix+"log-updown")
+	}
+	if d.Get("metric_out").(int) != -1 {
+		configSet = append(configSet, setPrefix+"metric-out "+strconv.Itoa(d.Get("metric_out").(int)))
+	}
+	if d.Get("metric_out_igp").(bool) {
+		configSet = append(configSet, setPrefix+"metric-out igp")
+	}
+	if d.Get("metric_out_igp_delay_med_update").(bool) {
+		tfErr := d.Set("metric_out_igp", true)
+		if tfErr != nil {
+			panic(tfErr)
+		}
+		configSet = append(configSet, setPrefix+"metric-out igp delay-med-update")
+	}
+	if d.Get("metric_out_igp_offset").(int) != 0 {
+		tfErr := d.Set("metric_out_igp", true)
+		if tfErr != nil {
+			panic(tfErr)
+		}
+		configSet = append(configSet, setPrefix+"metric-out igp "+strconv.Itoa(d.Get("metric_out_igp_offset").(int)))
+	}
+	if d.Get("metric_out_minimum_igp").(bool) {
+		configSet = append(configSet, setPrefix+"metric-out minimum-igp")
+	}
+	if d.Get("metric_out_minimum_igp_offset").(int) != 0 {
+		tfErr := d.Set("metric_out_minimum_igp", true)
+		if tfErr != nil {
+			panic(tfErr)
+		}
+		configSet = append(configSet, setPrefix+"metric-out minimum-igp "+
+			strconv.Itoa(d.Get("metric_out_minimum_igp_offset").(int)))
 	}
 	if d.Get("mtu_discovery").(bool) {
 		configSet = append(configSet, setPrefix+"mtu-discovery")
@@ -158,66 +232,11 @@ func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, j
 	if d.Get("no_advertise_peer_as").(bool) {
 		configSet = append(configSet, setPrefix+"no-advertise-peer-as")
 	}
-	if d.Get("remove_private").(bool) {
-		configSet = append(configSet, setPrefix+"remove-private")
+	if d.Get("out_delay").(int) != 0 {
+		configSet = append(configSet, setPrefix+"out-delay "+strconv.Itoa(d.Get("out_delay").(int)))
 	}
 	if d.Get("passive").(bool) {
 		configSet = append(configSet, setPrefix+"passive")
-	}
-	if d.Get("hold_time").(int) != 0 {
-		configSet = append(configSet, setPrefix+"hold-time "+strconv.Itoa(d.Get("hold_time").(int)))
-	}
-	if d.Get("local_as").(string) != "" {
-		configSet = append(configSet, setPrefix+"local-as "+d.Get("local_as").(string))
-	}
-	if d.Get("local_as_private").(bool) {
-		configSet = append(configSet, setPrefix+"local-as private")
-	}
-	if d.Get("local_as_alias").(bool) {
-		configSet = append(configSet, setPrefix+"local-as alias")
-	}
-	if d.Get("local_as_no_prepend_global_as").(bool) {
-		configSet = append(configSet, setPrefix+"local-as no-prepend-global-as")
-	}
-	if d.Get("local_as_loops").(int) != 0 {
-		configSet = append(configSet, setPrefix+"local-as loops "+strconv.Itoa(d.Get("local_as_loops").(int)))
-	}
-	if d.Get("local_preference").(int) != -1 {
-		configSet = append(configSet, setPrefix+"local-preference "+strconv.Itoa(d.Get("local_preference").(int)))
-	}
-	if d.Get("metric_out").(int) != -1 {
-		configSet = append(configSet, setPrefix+"metric-out "+strconv.Itoa(d.Get("metric_out").(int)))
-	}
-	if d.Get("metric_out_igp").(bool) {
-		configSet = append(configSet, setPrefix+"metric-out igp")
-	}
-	if d.Get("metric_out_igp_offset").(int) != 0 {
-		tfErr := d.Set("metric_out_igp", true)
-		if tfErr != nil {
-			panic(tfErr)
-		}
-		configSet = append(configSet, setPrefix+"metric-out igp "+strconv.Itoa(d.Get("metric_out_igp_offset").(int)))
-	}
-	if d.Get("metric_out_igp_delay_med_update").(bool) {
-		tfErr := d.Set("metric_out_igp", true)
-		if tfErr != nil {
-			panic(tfErr)
-		}
-		configSet = append(configSet, setPrefix+"metric-out igp delay-med-update")
-	}
-	if d.Get("metric_out_minimum_igp").(bool) {
-		configSet = append(configSet, setPrefix+"metric-out minimum-igp")
-	}
-	if d.Get("metric_out_minimum_igp_offset").(int) != 0 {
-		tfErr := d.Set("metric_out_minimum_igp", true)
-		if tfErr != nil {
-			panic(tfErr)
-		}
-		configSet = append(configSet, setPrefix+"metric-out minimum-igp "+
-			strconv.Itoa(d.Get("metric_out_minimum_igp_offset").(int)))
-	}
-	if d.Get("out_delay").(int) != 0 {
-		configSet = append(configSet, setPrefix+"out-delay "+strconv.Itoa(d.Get("out_delay").(int)))
 	}
 	if d.Get("peer_as").(string) != "" {
 		configSet = append(configSet, setPrefix+"peer-as "+d.Get("peer_as").(string))
@@ -225,28 +244,9 @@ func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, j
 	if d.Get("preference").(int) != -1 {
 		configSet = append(configSet, setPrefix+"preference "+strconv.Itoa(d.Get("preference").(int)))
 	}
-	if d.Get("authentication_algorithm").(string) != "" {
-		configSet = append(configSet, setPrefix+"authentication-algorithm "+d.Get("authentication_algorithm").(string))
+	if d.Get("remove_private").(bool) {
+		configSet = append(configSet, setPrefix+"remove-private")
 	}
-	if d.Get("authentication_key").(string) != "" {
-		configSet = append(configSet, setPrefix+"authentication-key "+d.Get("authentication_key").(string))
-	}
-	if d.Get("authentication_key_chain").(string) != "" {
-		configSet = append(configSet, setPrefix+"authentication-key-chain "+d.Get("authentication_key_chain").(string))
-	}
-	if d.Get("local_address").(string) != "" {
-		configSet = append(configSet, setPrefix+"local-address "+d.Get("local_address").(string))
-	}
-	if d.Get("local_interface").(string) != "" {
-		configSet = append(configSet, setPrefix+"local-interface "+d.Get("local_interface").(string))
-	}
-	for _, v := range d.Get("export").([]interface{}) {
-		configSet = append(configSet, setPrefix+"export "+v.(string))
-	}
-	for _, v := range d.Get("import").([]interface{}) {
-		configSet = append(configSet, setPrefix+"import "+v.(string))
-	}
-
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
@@ -273,29 +273,23 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 	if item == "as-override" {
 		confRead.asOverride = true
 	}
+	if strings.HasPrefix(item, "authentication-algorithm ") {
+		confRead.authenticationAlgorithm = strings.TrimPrefix(item, "authentication-algorithm ")
+	}
+	if strings.HasPrefix(item, "authentication-key ") {
+		confRead.authenticationKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(item, "authentication-key "), "\""))
+		if err != nil {
+			return fmt.Errorf("failed to decode authentication-key : %w", err)
+		}
+	}
+	if strings.HasPrefix(item, "authentication-key-chain ") {
+		confRead.authenticationKeyChain = strings.TrimPrefix(item, "authentication-key-chain ")
+	}
 	if item == "damping" {
 		confRead.damping = true
 	}
-	if item == "log-updown" {
-		confRead.logUpdown = true
-	}
-	if item == "mtu-discovery" {
-		confRead.mtuDiscovery = true
-	}
-	if item == "multihop" {
-		confRead.multihop = true
-	}
-	if item == "multipath" {
-		confRead.multipath = true
-	}
-	if item == "no-advertise-peer-as" {
-		confRead.noAdvertisePeerAs = true
-	}
-	if item == "remove-private" {
-		confRead.removePrivate = true
-	}
-	if item == passiveW {
-		confRead.passive = true
+	if strings.HasPrefix(item, "export ") {
+		confRead.exportPolicy = append(confRead.exportPolicy, strings.TrimPrefix(item, "export "))
 	}
 	if strings.HasPrefix(item, "hold-time ") {
 		confRead.holdTime, err = strconv.Atoi(strings.TrimPrefix(item, "hold-time "))
@@ -303,11 +297,11 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 		}
 	}
-	if strings.HasPrefix(item, "local-preference ") {
-		confRead.localPreference, err = strconv.Atoi(strings.TrimPrefix(item, "local-preference "))
-		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
-		}
+	if strings.HasPrefix(item, "import ") {
+		confRead.importPolicy = append(confRead.importPolicy, strings.TrimPrefix(item, "import "))
+	}
+	if strings.HasPrefix(item, "local-address ") {
+		confRead.localAddress = strings.TrimPrefix(item, "local-address ")
 	}
 	if strings.HasPrefix(item, "local-as ") {
 		switch {
@@ -325,6 +319,18 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 		default:
 			confRead.localAs = strings.TrimPrefix(item, "local-as ")
 		}
+	}
+	if strings.HasPrefix(item, "local-interface ") {
+		confRead.localInterface = strings.TrimPrefix(item, "local-interface ")
+	}
+	if strings.HasPrefix(item, "local-preference ") {
+		confRead.localPreference, err = strconv.Atoi(strings.TrimPrefix(item, "local-preference "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+		}
+	}
+	if item == "log-updown" {
+		confRead.logUpdown = true
 	}
 	if strings.HasPrefix(item, "metric-out ") {
 		if !strings.Contains(item, "igp") {
@@ -354,11 +360,26 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 			}
 		}
 	}
+	if item == "mtu-discovery" {
+		confRead.mtuDiscovery = true
+	}
+	if item == "multihop" {
+		confRead.multihop = true
+	}
+	if item == "multipath" {
+		confRead.multipath = true
+	}
+	if item == "no-advertise-peer-as" {
+		confRead.noAdvertisePeerAs = true
+	}
 	if strings.HasPrefix(item, "out-delay ") {
 		confRead.outDelay, err = strconv.Atoi(strings.TrimPrefix(item, "out-delay "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 		}
+	}
+	if item == passiveW {
+		confRead.passive = true
 	}
 	if strings.HasPrefix(item, "peer-as ") {
 		confRead.peerAs = strings.TrimPrefix(item, "peer-as ")
@@ -369,32 +390,11 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 		}
 	}
-	if strings.HasPrefix(item, "authentication-algorithm ") {
-		confRead.authenticationAlgorithm = strings.TrimPrefix(item, "authentication-algorithm ")
-	}
-	if strings.HasPrefix(item, "authentication-key ") {
-		confRead.authenticationKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(item, "authentication-key "), "\""))
-		if err != nil {
-			return fmt.Errorf("failed to decode authentication-key : %w", err)
-		}
-	}
-	if strings.HasPrefix(item, "authentication-key-chain ") {
-		confRead.authenticationKeyChain = strings.TrimPrefix(item, "authentication-key-chain ")
+	if item == "remove-private" {
+		confRead.removePrivate = true
 	}
 	if strings.HasPrefix(item, "type ") {
 		confRead.bgpType = strings.TrimPrefix(item, "type ")
-	}
-	if strings.HasPrefix(item, "local-address ") {
-		confRead.localAddress = strings.TrimPrefix(item, "local-address ")
-	}
-	if strings.HasPrefix(item, "local-interface ") {
-		confRead.localInterface = strings.TrimPrefix(item, "local-interface ")
-	}
-	if strings.HasPrefix(item, "export ") {
-		confRead.exportPolicy = append(confRead.exportPolicy, strings.TrimPrefix(item, "export "))
-	}
-	if strings.HasPrefix(item, "import ") {
-		confRead.importPolicy = append(confRead.importPolicy, strings.TrimPrefix(item, "import "))
 	}
 
 	return nil
@@ -409,11 +409,11 @@ func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{},
 	for _, v := range bfdLivenessDetection {
 		if v != nil {
 			m := v.(map[string]interface{})
-			if m["authentication_key_chain"].(string) != "" {
-				configSet = append(configSet, setPrefixBfd+"authentication key-chain "+m["authentication_key_chain"].(string))
-			}
 			if m["authentication_algorithm"].(string) != "" {
 				configSet = append(configSet, setPrefixBfd+"authentication algorithm "+m["authentication_algorithm"].(string))
+			}
+			if m["authentication_key_chain"].(string) != "" {
+				configSet = append(configSet, setPrefixBfd+"authentication key-chain "+m["authentication_key_chain"].(string))
 			}
 			if m["authentication_loose_check"].(bool) {
 				configSet = append(configSet, setPrefixBfd+"authentication loose-check")
@@ -421,14 +421,6 @@ func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{},
 			if m["detection_time_threshold"].(int) != 0 {
 				configSet = append(configSet, setPrefixBfd+"detection-time threshold "+
 					strconv.Itoa(m["detection_time_threshold"].(int)))
-			}
-			if m["transmit_interval_threshold"].(int) != 0 {
-				configSet = append(configSet, setPrefixBfd+"transmit-interval threshold "+
-					strconv.Itoa(m["transmit_interval_threshold"].(int)))
-			}
-			if m["transmit_interval_minimum_interval"].(int) != 0 {
-				configSet = append(configSet, setPrefixBfd+"transmit-interval minimum-interval "+
-					strconv.Itoa(m["transmit_interval_minimum_interval"].(int)))
 			}
 			if m["holddown_interval"].(int) != 0 {
 				configSet = append(configSet, setPrefixBfd+"holddown-interval "+
@@ -449,6 +441,14 @@ func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{},
 			if m["session_mode"].(string) != "" {
 				configSet = append(configSet, setPrefixBfd+"session-mode "+m["session_mode"].(string))
 			}
+			if m["transmit_interval_minimum_interval"].(int) != 0 {
+				configSet = append(configSet, setPrefixBfd+"transmit-interval minimum-interval "+
+					strconv.Itoa(m["transmit_interval_minimum_interval"].(int)))
+			}
+			if m["transmit_interval_threshold"].(int) != 0 {
+				configSet = append(configSet, setPrefixBfd+"transmit-interval threshold "+
+					strconv.Itoa(m["transmit_interval_threshold"].(int)))
+			}
 			if m["version"].(string) != "" {
 				configSet = append(configSet, setPrefixBfd+"version "+m["version"].(string))
 			}
@@ -466,17 +466,17 @@ func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{},
 func readBgpOptsBfd(item string, bfdOpts []map[string]interface{}) ([]map[string]interface{}, error) {
 	itemTrim := strings.TrimPrefix(item, "bfd-liveness-detection ")
 	bfdRead := map[string]interface{}{
-		"authentication_key_chain":           "",
 		"authentication_algorithm":           "",
+		"authentication_key_chain":           "",
 		"authentication_loose_check":         false,
 		"detection_time_threshold":           0,
-		"transmit_interval_threshold":        0,
-		"transmit_interval_minimum_interval": 0,
 		"holddown_interval":                  0,
 		"minimum_interval":                   0,
 		"minimum_receive_interval":           0,
 		"multiplier":                         0,
 		"session_mode":                       "",
+		"transmit_interval_minimum_interval": 0,
+		"transmit_interval_threshold":        0,
 		"version":                            "",
 	}
 	if len(bfdOpts) > 0 {
@@ -485,33 +485,17 @@ func readBgpOptsBfd(item string, bfdOpts []map[string]interface{}) ([]map[string
 		}
 	}
 	var err error
-	if strings.HasPrefix(itemTrim, "authentication key-chain ") {
-		bfdRead["authentication_key_chain"] = strings.TrimPrefix(itemTrim, "authentication key-chain ")
-	}
 	if strings.HasPrefix(itemTrim, "authentication algorithm ") {
 		bfdRead["authentication_algorithm"] = strings.TrimPrefix(itemTrim, "authentication algorithm ")
+	}
+	if strings.HasPrefix(itemTrim, "authentication key-chain ") {
+		bfdRead["authentication_key_chain"] = strings.TrimPrefix(itemTrim, "authentication key-chain ")
 	}
 	if itemTrim == "authentication loose-check" {
 		bfdRead["authentication_loose_check"] = true
 	}
 	if strings.HasPrefix(itemTrim, "detection-time threshold ") {
 		bfdRead["detection_time_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "detection-time threshold "))
-		if err != nil {
-			return []map[string]interface{}{bfdRead},
-				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
-		}
-	}
-	if strings.HasPrefix(itemTrim, "transmit-interval threshold ") {
-		bfdRead["transmit_interval_threshold"], err = strconv.Atoi(
-			strings.TrimPrefix(itemTrim, "transmit-interval threshold "))
-		if err != nil {
-			return []map[string]interface{}{bfdRead},
-				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
-		}
-	}
-	if strings.HasPrefix(itemTrim, "transmit-interval minimum-interval ") {
-		bfdRead["transmit_interval_minimum_interval"], err = strconv.Atoi(
-			strings.TrimPrefix(itemTrim, "transmit-interval minimum-interval "))
 		if err != nil {
 			return []map[string]interface{}{bfdRead},
 				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
@@ -547,6 +531,22 @@ func readBgpOptsBfd(item string, bfdOpts []map[string]interface{}) ([]map[string
 	}
 	if strings.HasPrefix(itemTrim, "session-mode ") {
 		bfdRead["session_mode"] = strings.TrimPrefix(itemTrim, "session-mode ")
+	}
+	if strings.HasPrefix(itemTrim, "transmit-interval threshold ") {
+		bfdRead["transmit_interval_threshold"], err = strconv.Atoi(
+			strings.TrimPrefix(itemTrim, "transmit-interval threshold "))
+		if err != nil {
+			return []map[string]interface{}{bfdRead},
+				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	}
+	if strings.HasPrefix(itemTrim, "transmit-interval minimum-interval ") {
+		bfdRead["transmit_interval_minimum_interval"], err = strconv.Atoi(
+			strings.TrimPrefix(itemTrim, "transmit-interval minimum-interval "))
+		if err != nil {
+			return []map[string]interface{}{bfdRead},
+				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
 	}
 	if strings.HasPrefix(itemTrim, "version ") {
 		bfdRead["version"] = strings.TrimPrefix(itemTrim, "version ")
