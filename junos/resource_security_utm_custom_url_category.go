@@ -247,7 +247,7 @@ func readUtmCustomURLCategory(urlCategory string, m interface{}, jnprSess *Netco
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			if strings.HasPrefix(itemTrim, "value ") {
-				confRead.value = append(confRead.value, strings.Trim(strings.TrimPrefix(itemTrim, "value "), "\""))
+				confRead.value = append(confRead.value, strings.TrimPrefix(itemTrim, "value "))
 			}
 		}
 	}
