@@ -510,30 +510,35 @@ func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_interface", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_interface", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	intExists, err = checkInterfaceExistsOld(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if intExists {
 		ncInt, _, err := checkInterfaceNC(d.Get("name").(string), m, jnprSess)
 		if err != nil {
-			return diag.FromErr(err)
+			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if ncInt {
-			return diag.FromErr(fmt.Errorf("interface %v exists (because is a physical or internal default interface)"+
-				" but always disable after commit => check your config", d.Get("name").(string)))
+			return append(diagWarns,
+				diag.FromErr(fmt.Errorf("interface %v exists (because is a physical or internal default interface)"+
+					" but always disable after commit => check your config", d.Get("name").(string)))...)
 		}
 		d.SetId(d.Get("name").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("interface %v not exists after commit => check your config", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("interface %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return resourceInterfaceReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceInterfaceReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceInterfaceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -727,14 +732,17 @@ func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m inte
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_interface", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_interface", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceInterfaceReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceInterfaceReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceInterfaceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -749,33 +757,36 @@ func resourceInterfaceDelete(ctx context.Context, d *schema.ResourceData, m inte
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_interface", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_interface", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if !d.Get("complete_destroy").(bool) {
 		intExists, err := checkInterfaceExistsOld(d.Get("name").(string), m, jnprSess)
 		if err != nil {
-			return diag.FromErr(err)
+			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if intExists {
 			err = addInterfaceNC(d.Get("name").(string), m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return diag.FromErr(err)
+				return append(diagWarns, diag.FromErr(err)...)
 			}
-			err = sess.commitConf("disable(NC) resource junos_interface", jnprSess)
+			_, err = sess.commitConf("disable(NC) resource junos_interface", jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return diag.FromErr(err)
+				return append(diagWarns, diag.FromErr(err)...)
 			}
 		}
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceInterfaceImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)

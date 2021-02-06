@@ -68,23 +68,26 @@ func resourceRoutingInstanceCreate(ctx context.Context, d *schema.ResourceData, 
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_routing_instance", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_routing_instance", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	routingInstanceExists, err = checkRoutingInstanceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if routingInstanceExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("routing-instance %v not exists after commit "+
-			"=> check your config", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("routing-instance %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return resourceRoutingInstanceReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceRoutingInstanceReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceRoutingInstanceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -132,14 +135,17 @@ func resourceRoutingInstanceUpdate(ctx context.Context, d *schema.ResourceData, 
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_routing_instance", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_routing_instance", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceRoutingInstanceReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceRoutingInstanceReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceRoutingInstanceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -154,13 +160,16 @@ func resourceRoutingInstanceDelete(ctx context.Context, d *schema.ResourceData, 
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_routing_instance", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_routing_instance", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceRoutingInstanceImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)

@@ -83,23 +83,26 @@ func resourceSystemNtpServerCreate(ctx context.Context, d *schema.ResourceData, 
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_system_ntp_server", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_system_ntp_server", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	ntpServerExists, err = checkSystemNtpServerExists(d.Get("address").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if ntpServerExists {
 		d.SetId(d.Get("address").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("system ntp server %v not exists after commit "+
-			"=> check your config", d.Get("address").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("system ntp server %v not exists after commit "+
+			"=> check your config", d.Get("address").(string)))...)
 	}
 
-	return resourceSystemNtpServerReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSystemNtpServerReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSystemNtpServerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -146,14 +149,18 @@ func resourceSystemNtpServerUpdate(ctx context.Context, d *schema.ResourceData, 
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_system_ntp_server", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_system_ntp_server", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
+
 	d.Partial(false)
 
-	return resourceSystemNtpServerReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSystemNtpServerReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSystemNtpServerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -168,13 +175,16 @@ func resourceSystemNtpServerDelete(ctx context.Context, d *schema.ResourceData, 
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_system_ntp_server", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_system_ntp_server", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceSystemNtpServerImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)

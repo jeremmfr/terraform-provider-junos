@@ -117,25 +117,29 @@ func resourceOspfAreaCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_ospf_area", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_ospf_area", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	ospfAreaExists, err = checkOspfAreaExists(d.Get("area_id").(string), d.Get("version").(string),
 		d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if ospfAreaExists {
 		d.SetId(d.Get("area_id").(string) + idSeparator + d.Get("version").(string) +
 			idSeparator + d.Get("routing_instance").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("ospf %v area %v in routing instance %v not exists after commit => check your config",
-			d.Get("version").(string), d.Get("area_id").(string), d.Get("routing_instance").(string)))
+		return append(diagWarns,
+			diag.FromErr(fmt.Errorf("ospf %v area %v in routing instance %v not exists after commit => check your config",
+				d.Get("version").(string), d.Get("area_id").(string), d.Get("routing_instance").(string)))...)
 	}
 
-	return resourceOspfAreaReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceOspfAreaReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceOspfAreaRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -182,14 +186,17 @@ func resourceOspfAreaUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_ospf_area", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_ospf_area", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceOspfAreaReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceOspfAreaReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceOspfAreaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -204,13 +211,16 @@ func resourceOspfAreaDelete(ctx context.Context, d *schema.ResourceData, m inter
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_ospf_area", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_ospf_area", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceOspfAreaImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)

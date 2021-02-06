@@ -122,23 +122,26 @@ func resourceSecurityNatDestinationCreate(ctx context.Context, d *schema.Resourc
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_security_nat_destination", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_security_nat_destination", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	securityNatDestinationExists, err = checkSecurityNatDestinationExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityNatDestinationExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("security nat destination %v not exists after commit "+
-			"=> check your config", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("security nat destination %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return resourceSecurityNatDestinationReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityNatDestinationReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityNatDestinationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -185,14 +188,17 @@ func resourceSecurityNatDestinationUpdate(ctx context.Context, d *schema.Resourc
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_security_nat_destination", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_security_nat_destination", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceSecurityNatDestinationReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityNatDestinationReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityNatDestinationDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -207,13 +213,16 @@ func resourceSecurityNatDestinationDelete(ctx context.Context, d *schema.Resourc
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_security_nat_destination", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_security_nat_destination", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceSecurityNatDestinationImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)

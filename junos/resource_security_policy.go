@@ -194,24 +194,27 @@ func resourceSecurityPolicyCreate(ctx context.Context, d *schema.ResourceData, m
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_security_policy", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_security_policy", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	securityPolicyExists, err = checkSecurityPolicyExists(d.Get("from_zone").(string), d.Get("to_zone").(string),
 		m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityPolicyExists {
 		d.SetId(d.Get("from_zone").(string) + idSeparator + d.Get("to_zone").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("security policy from %v to %v not exists after commit "+
-			"=> check your config", d.Get("from_zone").(string), d.Get("to_zone").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("security policy from %v to %v not exists after commit "+
+			"=> check your config", d.Get("from_zone").(string), d.Get("to_zone").(string)))...)
 	}
 
-	return resourceSecurityPolicyReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityPolicyReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -261,14 +264,17 @@ func resourceSecurityPolicyUpdate(ctx context.Context, d *schema.ResourceData, m
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_security_policy", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_security_policy", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceSecurityPolicyReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityPolicyReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -283,13 +289,16 @@ func resourceSecurityPolicyDelete(ctx context.Context, d *schema.ResourceData, m
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_security_policy", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_security_policy", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceSecurityPolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)

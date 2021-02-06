@@ -293,23 +293,26 @@ func resourceFirewallFilterCreate(ctx context.Context, d *schema.ResourceData, m
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_firewall_filter", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_firewall_filter", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	firewallFilterExists, err = checkFirewallFilterExists(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if firewallFilterExists {
 		d.SetId(d.Get("name").(string) + idSeparator + d.Get("family").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("firewall filter %v not exists after commit "+
-			"=> check your config", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("firewall filter %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return resourceFirewallFilterReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceFirewallFilterReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceFirewallFilterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -356,14 +359,17 @@ func resourceFirewallFilterUpdate(ctx context.Context, d *schema.ResourceData, m
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_firewall_filter", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_firewall_filter", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceFirewallFilterReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceFirewallFilterReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceFirewallFilterDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -378,13 +384,16 @@ func resourceFirewallFilterDelete(ctx context.Context, d *schema.ResourceData, m
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_firewall_filter", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_firewall_filter", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceFirewallFilterImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)

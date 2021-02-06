@@ -172,22 +172,26 @@ func resourceVlanCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_vlan", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_vlan", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	vlanExists, err = checkVlansExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if vlanExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("vlan %v not exists after commit => check your config", d.Get("name").(string)))
+		return append(diagWarns,
+			diag.FromErr(fmt.Errorf("vlan %v not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return resourceVlanReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceVlanReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceVlanRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -233,14 +237,17 @@ func resourceVlanUpdate(ctx context.Context, d *schema.ResourceData, m interface
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_vlan", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_vlan", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceVlanReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceVlanReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceVlanDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -255,13 +262,16 @@ func resourceVlanDelete(ctx context.Context, d *schema.ResourceData, m interface
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_vlan", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_vlan", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceVlanImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)

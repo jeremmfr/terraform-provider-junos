@@ -10,6 +10,8 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+const warningSeverity string = "warning"
+
 var (
 	rpcCommand         = "<command format=\"text\">%s</command>"
 	rpcConfigStringSet = "<load-configuration action=\"set\" format=\"text\">" +
@@ -53,9 +55,10 @@ type netconfAuthMethod struct {
 	Passphrase     string
 }
 type commitError struct {
-	Path    string `xml:"error-path"`
-	Element string `xml:"error-info>bad-element"`
-	Message string `xml:"error-message"`
+	Path     string `xml:"error-path"`
+	Element  string `xml:"error-info>bad-element"`
+	Message  string `xml:"error-message"`
+	Severity string `xml:"error-severity"`
 }
 type commitResults struct {
 	XMLName xml.Name      `xml:"commit-results"`
@@ -266,38 +269,50 @@ func (j *NetconfObject) netconfConfigClear() error {
 }
 
 // netconfCommit commits the configuration.
-func (j *NetconfObject) netconfCommit(logMessage string) error {
+func (j *NetconfObject) netconfCommit(logMessage string) (_warn []error, _err error) {
 	var errs commitResults
 	reply, err := j.Session.Exec(netconf.RawMethod(fmt.Sprintf(rpcCommit, logMessage)))
 	if err != nil {
-		return fmt.Errorf("failed to netconf commit : %w", err)
+		return []error{}, fmt.Errorf("failed to netconf commit : %w", err)
 	}
 
 	if reply.Errors != nil {
+		warnings := make([]error, 0)
 		for _, m := range reply.Errors {
-			return errors.New(m.Message)
+			if m.Severity != warningSeverity {
+				return warnings, errors.New(m.Message)
+			}
+			warnings = append(warnings, errors.New(m.Message))
 		}
+
+		return warnings, nil
 	}
 
 	if reply.Data != "\n<ok/>\n" {
 		err = xml.Unmarshal([]byte(reply.Data), &errs)
 		if err != nil {
-			return fmt.Errorf("failed to xml unmarshal reply : %w", err)
+			return []error{}, fmt.Errorf("failed to xml unmarshal reply : %w", err)
 		}
 
 		if errs.Errors != nil {
+			warnings := make([]error, 0)
 			for _, m := range errs.Errors {
-				message := fmt.Sprintf("[%s]\n    %s\nError: %s",
-					strings.Trim(m.Path, "[\r\n]"),
-					strings.Trim(m.Element, "[\r\n]"),
-					strings.Trim(m.Message, "[\r\n]"))
+				if m.Severity != warningSeverity {
+					message := fmt.Sprintf("[%s]\n    %s\nError: %s",
+						strings.Trim(m.Path, "[\r\n]"),
+						strings.Trim(m.Element, "[\r\n]"),
+						strings.Trim(m.Message, "[\r\n]"))
 
-				return errors.New(message)
+					return []error{}, errors.New(message)
+				}
+				warnings = append(warnings, errors.New(m.Message))
 			}
+
+			return warnings, nil
 		}
 	}
 
-	return nil
+	return []error{}, nil
 }
 
 // Close disconnects our session to the device.

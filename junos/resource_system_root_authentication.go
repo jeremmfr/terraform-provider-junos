@@ -62,15 +62,17 @@ func resourceSystemRootAuthenticationCreate(
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_system_root_authentication", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_system_root_authentication", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-
 	d.SetId("system_root_authentication")
 
-	return resourceSystemRootAuthenticationReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSystemRootAuthenticationReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSystemRootAuthenticationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -114,14 +116,17 @@ func resourceSystemRootAuthenticationUpdate(
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_system_root_authentication", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_system_root_authentication", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceSystemRootAuthenticationReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSystemRootAuthenticationReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSystemRootAuthenticationDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

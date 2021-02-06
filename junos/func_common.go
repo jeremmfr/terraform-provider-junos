@@ -29,6 +29,16 @@ func logFile(message string, file string) {
 
 	log.Printf("%s", message)
 }
+
+func appendDiagWarns(diags *diag.Diagnostics, warns []error) {
+	for _, w := range warns {
+		*diags = append(*diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  w.Error(),
+		})
+	}
+}
+
 func validateIPMaskFunc() schema.SchemaValidateDiagFunc {
 	return func(i interface{}, path cty.Path) diag.Diagnostics {
 		var diags diag.Diagnostics

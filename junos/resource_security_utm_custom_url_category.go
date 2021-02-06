@@ -71,23 +71,26 @@ func resourceSecurityUtmCustomURLCategoryCreate(
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_security_utm_custom_url_category", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_security_utm_custom_url_category", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	utmCustomURLCategoryExists, err = checkUtmCustomURLCategorysExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if utmCustomURLCategoryExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("security utm custom-objects custom-url-category %v "+
-			"not exists after commit => check your config", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("security utm custom-objects custom-url-category %v "+
+			"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return resourceSecurityUtmCustomURLCategoryReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityUtmCustomURLCategoryReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityUtmCustomURLCategoryRead(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -136,14 +139,17 @@ func resourceSecurityUtmCustomURLCategoryUpdate(
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_security_utm_custom_url_category", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_security_utm_custom_url_category", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceSecurityUtmCustomURLCategoryReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityUtmCustomURLCategoryReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityUtmCustomURLCategoryDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -159,13 +165,16 @@ func resourceSecurityUtmCustomURLCategoryDelete(
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_security_utm_custom_url_category", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_security_utm_custom_url_category", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceSecurityUtmCustomURLCategoryImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)

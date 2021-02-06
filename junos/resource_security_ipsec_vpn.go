@@ -186,23 +186,26 @@ func resourceIpsecVpnCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_security_ipsec_vpn", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_security_ipsec_vpn", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	ipsecVpnExists, err = checkIpsecVpnExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if ipsecVpnExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("security ipsec vpn %v not exists after commit "+
-			"=> check your config", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("security ipsec vpn %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return resourceIpsecVpnReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceIpsecVpnReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceIpsecVpnRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -241,22 +244,22 @@ func resourceIpsecVpnReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSe
 	return nil
 }
 func resourceIpsecVpnUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diagsReturn diag.Diagnostics
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
-		return append(diagsReturn, diag.FromErr(err)...)
+		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	if err := delIpsecVpnConf(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
-		return append(diagsReturn, diag.FromErr(err)...)
+		return diag.FromErr(err)
 	}
+	var diagWarns diag.Diagnostics
 	if d.HasChanges("bind_interface_auto") {
-		diagsReturn = append(diagsReturn, diag.Diagnostic{
+		diagWarns = append(diagWarns, diag.Diagnostic{
 			Severity:      diag.Warning,
 			Summary:       "Modifying bind_interface_auto on resource already created has no effect",
 			AttributePath: cty.Path{cty.GetAttrStep{Name: "bind_interface_auto"}},
@@ -268,29 +271,31 @@ func resourceIpsecVpnUpdate(ctx context.Context, d *schema.ResourceData, m inter
 		if err != nil {
 			sess.configClear(jnprSess)
 
-			return append(diagsReturn, diag.FromErr(err)...)
+			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if st0NC || st0Emtpy {
 			if err := sess.configSet([]string{"delete interfaces " + oldInt.(string)}, jnprSess); err != nil {
 				sess.configClear(jnprSess)
 
-				return append(diagsReturn, diag.FromErr(err)...)
+				return append(diagWarns, diag.FromErr(err)...)
 			}
 		}
 	}
 	if err := setIpsecVpn(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
-		return append(diagsReturn, diag.FromErr(err)...)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := sess.commitConf("update resource junos_security_ipsec_vpn", jnprSess); err != nil {
+	warns, err := sess.commitConf("update resource junos_security_ipsec_vpn", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return append(diagsReturn, diag.FromErr(err)...)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagsReturn, resourceIpsecVpnReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceIpsecVpnReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceIpsecVpnDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -305,13 +310,16 @@ func resourceIpsecVpnDelete(ctx context.Context, d *schema.ResourceData, m inter
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_security_ipsec_vpn", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_security_ipsec_vpn", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceIpsecVpnImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)

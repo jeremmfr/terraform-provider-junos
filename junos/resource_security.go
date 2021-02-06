@@ -601,15 +601,17 @@ func resourceSecurityCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_security", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_security", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-
 	d.SetId("security")
 
-	return resourceSecurityReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -651,14 +653,17 @@ func resourceSecurityUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_security", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_security", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceSecurityReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	return nil

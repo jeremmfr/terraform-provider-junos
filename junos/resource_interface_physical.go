@@ -139,30 +139,35 @@ func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_interface_physical", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_interface_physical", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	intExists, err = checkInterfaceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if intExists {
 		ncInt, _, err := checkInterfacePhysicalNC(d.Get("name").(string), m, jnprSess)
 		if err != nil {
-			return diag.FromErr(err)
+			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if ncInt {
-			return diag.FromErr(fmt.Errorf("interface %v exists (because is a physical or internal default interface)"+
-				" but always disable after commit => check your config", d.Get("name").(string)))
+			return append(diagWarns,
+				diag.FromErr(fmt.Errorf("interface %v exists (because is a physical or internal default interface)"+
+					" but always disable after commit => check your config", d.Get("name").(string)))...)
 		}
 		d.SetId(d.Get("name").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("interface %v not exists after commit => check your config", d.Get("name").(string)))
+		return append(diagWarns,
+			diag.FromErr(fmt.Errorf("interface %v not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return resourceInterfacePhysicalReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceInterfacePhysicalReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -303,14 +308,17 @@ func resourceInterfacePhysicalUpdate(ctx context.Context, d *schema.ResourceData
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_interface_physical", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_interface_physical", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceInterfacePhysicalReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceInterfacePhysicalReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceInterfacePhysicalDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -325,33 +333,36 @@ func resourceInterfacePhysicalDelete(ctx context.Context, d *schema.ResourceData
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_interface_physical", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_interface_physical", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if !d.Get("no_disable_on_destroy").(bool) {
 		intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
 		if err != nil {
-			return diag.FromErr(err)
+			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if intExists {
 			err = addInterfacePhysicalNC(d.Get("name").(string), m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return diag.FromErr(err)
+				return append(diagWarns, diag.FromErr(err)...)
 			}
-			err = sess.commitConf("disable(NC) resource junos_interface_physical", jnprSess)
+			_, err = sess.commitConf("disable(NC) resource junos_interface_physical", jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return diag.FromErr(err)
+				return append(diagWarns, diag.FromErr(err)...)
 			}
 		}
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceInterfacePhysicalImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	if strings.Count(d.Id(), ".") != 0 {
