@@ -29,24 +29,24 @@ resource junos_interface_logical "interface_fw_demo_100" {
 The following arguments are supported:
 
 * `name` - (Required, Forces new resource)(`String`) Name of unit interface (with dot).
-* `description` - (Optional)(`String`) Description for interface.
 * `st0_also_on_destroy` - (Optional)(`Bool`) When destroy this resource, if the name has prefix 'st0.', delete all configurations (not keep empty st0 interface).  
+* `description` - (Optional)(`String`) Description for interface.
 (Usually, `st0.x` interfaces are completely deleted with `bind_interface_auto` argument in `junos_security_ipsec_vpn` resource or by `junos_interface_st0_unit` resource because of the dependency, but only if st0.x interface is empty or disable.)
-* `vlan_id` - (Optional,Computed)(`Int`) 802.1q VLAN ID for unit interface. If not set, computed with `name` of interface (ge-0/0/0.100 = 100) except if name has '.0' suffix or 'st0.' prefix.
 * `family_inet` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Enable family inet and add configurations if specified.
   * `address` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each ip address to declare. See the [`address` arguments for family_inet](#address-arguments-for-family_inet) block.
-  * `mtu` - (Optional)(`Int`) Maximum transmission unit.
   * `filter_input` - (Optional)(`String`) Filter to be applied to received packets.
   * `filter_output` - (Optional)(`String`) Filter to be applied to transmitted packets.
+  * `mtu` - (Optional)(`Int`) Maximum transmission unit.
   * `rpf_check` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for enable reverse-path-forwarding checks on this interface. See the [`rpf_check` arguments](#rpf_check-arguments) block for optional arguments.
 * `family_inet6` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Enable family inet6 and add configurations if specified.
   * `address` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each ipv6 address to declare. See the [`address` arguments for family_inet6](#address-arguments-for-family_inet6) block.
-  * `mtu` - (Optional)(`Int`) Maximum transmission unit.
   * `filter_input` - (Optional)(`String`) Filter to be applied to received packets.
   * `filter_output` - (Optional)(`String`) Filter to be applied to transmitted packets.
+  * `mtu` - (Optional)(`Int`) Maximum transmission unit.
   * `rpf_check` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for enable reverse-path-forwarding checks on this interface. See the [`rpf_check` arguments](#rpf_check-arguments) block for optional arguments. 
-* `security_zone` - (Optional)(`String`) Add this interface in security_zone. Need to be created before.
 * `routing_instance` - (Optional)(`String`) Add this interface in routing_instance. Need to be created before.
+* `security_zone` - (Optional)(`String`) Add this interface in security_zone. Need to be created before.
+* `vlan_id` - (Optional,Computed)(`Int`) 802.1q VLAN ID for unit interface. If not set, computed with `name` of interface (ge-0/0/0.100 = 100) except if name has '.0' suffix or 'st0.' prefix.
 
 ---
 #### address arguments for family_inet

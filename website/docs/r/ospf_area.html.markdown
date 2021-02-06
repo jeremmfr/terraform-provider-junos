@@ -31,12 +31,12 @@ The following arguments are supported:
 * `version` - (Optional)(`String`) Version of ospf. Need to be 'v2' or 'v3'. Defaults to `v2`.
 * `interface` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each interface or interface-range to declare.
   * `name` - (Required)(`String`) Name of interface or interface-range.
-  * `disable` - (Optional)(`Bool`) Disable OSPF on this interface.
-  * `passive` - (Optional)(`Bool`) Do not run OSPF, but advertise it.
-  * `metric` - (Optional)(`Int`) Interface metric.
-  * `hello_interval` - (Optional)(`Int`) Hello interval (seconds).
-  * `retransmit_interval` - (Optional)(`Int`) Retransmission interval (seconds).
   * `dead_interval` - (Optional)(`Int`) Dead interval (seconds).
+  * `disable` - (Optional)(`Bool`) Disable OSPF on this interface.
+  * `hello_interval` - (Optional)(`Int`) Hello interval (seconds).
+  * `metric` - (Optional)(`Int`) Interface metric.
+  * `passive` - (Optional)(`Bool`) Do not run OSPF, but advertise it.
+  * `retransmit_interval` - (Optional)(`Int`) Retransmission interval (seconds).
 
 ## Import
 

@@ -25,9 +25,9 @@ resource junos_policyoptions_prefix_list "demo_plist" {
 The following arguments are supported:
 
 * `name` - (Required, Forces new resource)(`String`) The name of prefix list.
-* `prefix` - (Optional)(`ListOfString`) List of CIDR.
 * `apply_path` - (Optional)(`String`) Apply IP prefixes from a configuration statement.
 * `dynamic_db` - (Optional)(`Bool`) Object may exist in dynamic database.
+* `prefix` - (Optional)(`ListOfString`) List of CIDR.
 
 ## Import
 

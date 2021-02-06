@@ -13,14 +13,14 @@ import (
 )
 
 type interfacePhysicalOptions struct {
-	vlanTagging bool
 	trunk       bool
-	vlanNative  int
+	vlanTagging bool
 	aeMinLink   int
-	description string
-	v8023ad     string
+	vlanNative  int
 	aeLacp      string
 	aeLinkSpeed string
+	description string
+	v8023ad     string
 	vlanMembers []string
 }
 
@@ -52,12 +52,23 @@ func resourceInterfacePhysical() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
-			"description": {
-				Type:     schema.TypeString,
+			"ae_lacp": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "",
+				ValidateFunc: validation.StringInSlice([]string{"active", "passive"}, false),
+			},
+			"ae_link_speed": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"100m", "1g", "8g", "10g", "40g", "50g", "80g", "100g"}, false),
+			},
+			"ae_minimum_links": {
+				Type:     schema.TypeInt,
 				Optional: true,
 			},
-			"vlan_tagging": {
-				Type:     schema.TypeBool,
+			"description": {
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 			"ether802_3ad": {
@@ -87,19 +98,8 @@ func resourceInterfacePhysical() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(1, 4094),
 			},
-			"ae_lacp": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "",
-				ValidateFunc: validation.StringInSlice([]string{"active", "passive"}, false),
-			},
-			"ae_link_speed": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"100m", "1g", "8g", "10g", "40g", "50g", "80g", "100g"}, false),
-			},
-			"ae_minimum_links": {
-				Type:     schema.TypeInt,
+			"vlan_tagging": {
+				Type:     schema.TypeBool,
 				Optional: true,
 			},
 		},
@@ -466,11 +466,29 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	configSet := make([]string, 0)
 	setPrefix := "set interfaces " + d.Get("name").(string) + " "
 	configSet = append(configSet, setPrefix)
+	if d.Get("ae_lacp").(string) != "" {
+		if !strings.HasPrefix(d.Get("name").(string), "ae") {
+			return fmt.Errorf("ae_lacp invalid for this interface")
+		}
+		configSet = append(configSet, setPrefix+
+			"aggregated-ether-options lacp "+d.Get("ae_lacp").(string))
+	}
+	if d.Get("ae_link_speed").(string) != "" {
+		if !strings.HasPrefix(d.Get("name").(string), "ae") {
+			return fmt.Errorf("ae_link_speed invalid for this interface")
+		}
+		configSet = append(configSet, setPrefix+
+			"aggregated-ether-options link-speed "+d.Get("ae_link_speed").(string))
+	}
+	if d.Get("ae_minimum_links").(int) > 0 {
+		if !strings.HasPrefix(d.Get("name").(string), "ae") {
+			return fmt.Errorf("ae_minimum_links invalid for this interface")
+		}
+		configSet = append(configSet, setPrefix+
+			"aggregated-ether-options minimum-links "+strconv.Itoa(d.Get("ae_minimum_links").(int)))
+	}
 	if d.Get("description").(string) != "" {
 		configSet = append(configSet, setPrefix+"description \""+d.Get("description").(string)+"\"")
-	}
-	if d.Get("vlan_tagging").(bool) {
-		configSet = append(configSet, setPrefix+"vlan-tagging")
 	}
 	if d.Get("ether802_3ad").(string) != "" {
 		configSet = append(configSet, setPrefix+"ether-options 802.3ad "+
@@ -501,26 +519,8 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	if d.Get("vlan_native").(int) != 0 {
 		configSet = append(configSet, setPrefix+"native-vlan-id "+strconv.Itoa(d.Get("vlan_native").(int)))
 	}
-	if d.Get("ae_lacp").(string) != "" {
-		if !strings.HasPrefix(d.Get("name").(string), "ae") {
-			return fmt.Errorf("ae_lacp invalid for this interface")
-		}
-		configSet = append(configSet, setPrefix+
-			"aggregated-ether-options lacp "+d.Get("ae_lacp").(string))
-	}
-	if d.Get("ae_link_speed").(string) != "" {
-		if !strings.HasPrefix(d.Get("name").(string), "ae") {
-			return fmt.Errorf("ae_link_speed invalid for this interface")
-		}
-		configSet = append(configSet, setPrefix+
-			"aggregated-ether-options link-speed "+d.Get("ae_link_speed").(string))
-	}
-	if d.Get("ae_minimum_links").(int) > 0 {
-		if !strings.HasPrefix(d.Get("name").(string), "ae") {
-			return fmt.Errorf("ae_minimum_links invalid for this interface")
-		}
-		configSet = append(configSet, setPrefix+
-			"aggregated-ether-options minimum-links "+strconv.Itoa(d.Get("ae_minimum_links").(int)))
+	if d.Get("vlan_tagging").(bool) {
+		configSet = append(configSet, setPrefix+"vlan-tagging")
 	}
 
 	if err := sess.configSet(configSet, jnprSess); err != nil {
@@ -550,25 +550,6 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case strings.HasPrefix(itemTrim, "description "):
-				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
-
-			case itemTrim == "vlan-tagging":
-				confRead.vlanTagging = true
-			case strings.HasPrefix(itemTrim, "ether-options 802.3ad "):
-				confRead.v8023ad = strings.TrimPrefix(itemTrim, "ether-options 802.3ad ")
-			case strings.HasPrefix(itemTrim, "gigether-options 802.3ad "):
-				confRead.v8023ad = strings.TrimPrefix(itemTrim, "gigether-options 802.3ad ")
-			case itemTrim == "unit 0 family ethernet-switching interface-mode trunk":
-				confRead.trunk = true
-			case strings.HasPrefix(itemTrim, "unit 0 family ethernet-switching vlan members"):
-				confRead.vlanMembers = append(confRead.vlanMembers, strings.TrimPrefix(itemTrim,
-					"unit 0 family ethernet-switching vlan members "))
-			case strings.HasPrefix(itemTrim, "native-vlan-id"):
-				confRead.vlanNative, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "native-vlan-id "))
-				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
-				}
 			case strings.HasPrefix(itemTrim, "aggregated-ether-options lacp "):
 				confRead.aeLacp = strings.TrimPrefix(itemTrim, "aggregated-ether-options lacp ")
 			case strings.HasPrefix(itemTrim, "aggregated-ether-options link-speed "):
@@ -579,6 +560,25 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
+			case strings.HasPrefix(itemTrim, "description "):
+				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
+
+			case strings.HasPrefix(itemTrim, "ether-options 802.3ad "):
+				confRead.v8023ad = strings.TrimPrefix(itemTrim, "ether-options 802.3ad ")
+			case strings.HasPrefix(itemTrim, "gigether-options 802.3ad "):
+				confRead.v8023ad = strings.TrimPrefix(itemTrim, "gigether-options 802.3ad ")
+			case strings.HasPrefix(itemTrim, "native-vlan-id"):
+				confRead.vlanNative, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "native-vlan-id "))
+				if err != nil {
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				}
+			case itemTrim == "unit 0 family ethernet-switching interface-mode trunk":
+				confRead.trunk = true
+			case strings.HasPrefix(itemTrim, "unit 0 family ethernet-switching vlan members"):
+				confRead.vlanMembers = append(confRead.vlanMembers, strings.TrimPrefix(itemTrim,
+					"unit 0 family ethernet-switching vlan members "))
+			case itemTrim == "vlan-tagging":
+				confRead.vlanTagging = true
 			default:
 				continue
 			}
@@ -689,13 +689,14 @@ func delInterfacePhysicalOpts(d *schema.ResourceData, m interface{}, jnprSess *N
 	configSet := make([]string, 0, 1)
 	delPrefix := "delete interfaces " + d.Get("name").(string) + " "
 	configSet = append(configSet,
-		delPrefix+"vlan-tagging",
+		delPrefix+"aggregated-ether-options",
 		delPrefix+"ether-options 802.3ad",
 		delPrefix+"gigether-options 802.3ad",
+		delPrefix+"native-vlan-id",
 		delPrefix+"unit 0 family ethernet-switching interface-mode",
 		delPrefix+"unit 0 family ethernet-switching vlan members",
-		delPrefix+"native-vlan-id",
-		delPrefix+"aggregated-ether-options")
+		delPrefix+"vlan-tagging",
+	)
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
@@ -704,10 +705,16 @@ func delInterfacePhysicalOpts(d *schema.ResourceData, m interface{}, jnprSess *N
 }
 
 func fillInterfacePhysicalData(d *schema.ResourceData, interfaceOpt interfacePhysicalOptions) {
-	if tfErr := d.Set("description", interfaceOpt.description); tfErr != nil {
+	if tfErr := d.Set("ae_lacp", interfaceOpt.aeLacp); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("vlan_tagging", interfaceOpt.vlanTagging); tfErr != nil {
+	if tfErr := d.Set("ae_link_speed", interfaceOpt.aeLinkSpeed); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("ae_minimum_links", interfaceOpt.aeMinLink); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("description", interfaceOpt.description); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("ether802_3ad", interfaceOpt.v8023ad); tfErr != nil {
@@ -722,13 +729,7 @@ func fillInterfacePhysicalData(d *schema.ResourceData, interfaceOpt interfacePhy
 	if tfErr := d.Set("vlan_native", interfaceOpt.vlanNative); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("ae_lacp", interfaceOpt.aeLacp); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("ae_link_speed", interfaceOpt.aeLinkSpeed); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("ae_minimum_links", interfaceOpt.aeMinLink); tfErr != nil {
+	if tfErr := d.Set("vlan_tagging", interfaceOpt.vlanTagging); tfErr != nil {
 		panic(tfErr)
 	}
 }

@@ -71,136 +71,6 @@ func resourceBgpNeighbor() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
-			"damping": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-			"log_updown": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-			"mtu_discovery": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-			"multihop": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-			"multipath": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-			"remove_private": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-			"passive": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-			"hold_time": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntBetween(3, 65535),
-			},
-			"local_as": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"local_as_private": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				ConflictsWith: []string{"local_as_alias", "local_as_no_prepend_global_as"},
-			},
-			"local_as_alias": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				ConflictsWith: []string{"local_as_private", "local_as_no_prepend_global_as"},
-			},
-			"local_as_no_prepend_global_as": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				ConflictsWith: []string{"local_as_private", "local_as_alias"},
-			},
-			"local_as_loops": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntBetween(1, 10),
-			},
-			"local_preference": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntBetween(0, 4294967295),
-				Default:      -1,
-			},
-			"metric_out": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntBetween(0, 4294967295),
-				Default:      -1,
-				ConflictsWith: []string{"metric_out_igp",
-					"metric_out_igp_offset",
-					"metric_out_igp_delay_med_update",
-					"metric_out_minimum_igp",
-					"metric_out_minimum_igp_offset"},
-			},
-			"metric_out_igp": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-				ConflictsWith: []string{"metric_out",
-					"metric_out_minimum_igp",
-					"metric_out_minimum_igp_offset"},
-			},
-			"metric_out_igp_offset": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntBetween(-2147483648, 2147483647),
-				ConflictsWith: []string{"metric_out",
-					"metric_out_minimum_igp",
-					"metric_out_minimum_igp_offset"},
-			},
-			"metric_out_igp_delay_med_update": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				ConflictsWith: []string{"metric_out",
-					"metric_out_minimum_igp",
-					"metric_out_minimum_igp_offset"},
-			},
-			"metric_out_minimum_igp": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-				ConflictsWith: []string{"metric_out",
-					"metric_out_igp",
-					"metric_out_igp_offset",
-					"metric_out_igp_delay_med_update"},
-			},
-			"metric_out_minimum_igp_offset": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntBetween(-2147483648, 2147483647),
-				ConflictsWith: []string{"metric_out",
-					"metric_out_igp",
-					"metric_out_igp_offset",
-					"metric_out_igp_delay_med_update"},
-			},
-			"out_delay": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntBetween(1, 65535),
-			},
-			"peer_as": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"preference": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntBetween(0, 4294967295),
-				Default:      -1,
-			},
 			"authentication_algorithm": {
 				Type:          schema.TypeString,
 				Optional:      true,
@@ -216,36 +86,17 @@ func resourceBgpNeighbor() *schema.Resource {
 				Optional:      true,
 				ConflictsWith: []string{"authentication_key"},
 			},
-			"local_address": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.IsIPAddress,
-			},
-			"local_interface": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"export": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-			"import": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
 			"bfd_liveness_detection": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"authentication_key_chain": {
+						"authentication_algorithm": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"authentication_algorithm": {
+						"authentication_key_chain": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
@@ -257,16 +108,6 @@ func resourceBgpNeighbor() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(1, 4294967295),
-						},
-						"transmit_interval_threshold": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 4294967295),
-						},
-						"transmit_interval_minimum_interval": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 255000),
 						},
 						"holddown_interval": {
 							Type:         schema.TypeInt,
@@ -293,12 +134,31 @@ func resourceBgpNeighbor() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validation.StringInSlice([]string{"automatic", "multihop", "single-hop"}, false),
 						},
+						"transmit_interval_minimum_interval": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 255000),
+						},
+						"transmit_interval_threshold": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 4294967295),
+						},
 						"version": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
 					},
 				},
+			},
+			"damping": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"export": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"family_inet": {
 				Type:     schema.TypeList,
@@ -462,6 +322,146 @@ func resourceBgpNeighbor() *schema.Resource {
 						},
 					},
 				},
+			},
+			"hold_time": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(3, 65535),
+			},
+			"import": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"local_address": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsIPAddress,
+			},
+			"local_as": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"local_as_alias": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"local_as_private", "local_as_no_prepend_global_as"},
+			},
+			"local_as_loops": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 10),
+			},
+			"local_as_no_prepend_global_as": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"local_as_private", "local_as_alias"},
+			},
+			"local_as_private": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"local_as_alias", "local_as_no_prepend_global_as"},
+			},
+			"local_interface": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"local_preference": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 4294967295),
+				Default:      -1,
+			},
+			"log_updown": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"metric_out": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 4294967295),
+				Default:      -1,
+				ConflictsWith: []string{"metric_out_igp",
+					"metric_out_igp_offset",
+					"metric_out_igp_delay_med_update",
+					"metric_out_minimum_igp",
+					"metric_out_minimum_igp_offset"},
+			},
+			"metric_out_igp": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+				ConflictsWith: []string{"metric_out",
+					"metric_out_minimum_igp",
+					"metric_out_minimum_igp_offset"},
+			},
+			"metric_out_igp_delay_med_update": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ConflictsWith: []string{"metric_out",
+					"metric_out_minimum_igp",
+					"metric_out_minimum_igp_offset"},
+			},
+			"metric_out_igp_offset": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(-2147483648, 2147483647),
+				ConflictsWith: []string{"metric_out",
+					"metric_out_minimum_igp",
+					"metric_out_minimum_igp_offset"},
+			},
+			"metric_out_minimum_igp": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+				ConflictsWith: []string{"metric_out",
+					"metric_out_igp",
+					"metric_out_igp_offset",
+					"metric_out_igp_delay_med_update"},
+			},
+			"metric_out_minimum_igp_offset": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(-2147483648, 2147483647),
+				ConflictsWith: []string{"metric_out",
+					"metric_out_igp",
+					"metric_out_igp_offset",
+					"metric_out_igp_delay_med_update"},
+			},
+			"mtu_discovery": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"multihop": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"multipath": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"out_delay": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 65535),
+			},
+			"passive": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"peer_as": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"preference": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 4294967295),
+				Default:      -1,
+			},
+			"remove_private": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 		},
 	}
@@ -813,19 +813,67 @@ func fillBgpNeighborData(d *schema.ResourceData, bgpNeighborOptions bgpOptions) 
 	if tfErr := d.Set("as_override", bgpNeighborOptions.asOverride); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("authentication_algorithm", bgpNeighborOptions.authenticationAlgorithm); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("authentication_key", bgpNeighborOptions.authenticationKey); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("authentication_key_chain", bgpNeighborOptions.authenticationKeyChain); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("bfd_liveness_detection", bgpNeighborOptions.bfdLivenessDetection); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("damping", bgpNeighborOptions.damping); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("local_as_private", bgpNeighborOptions.localAsPrivate); tfErr != nil {
+	if tfErr := d.Set("export", bgpNeighborOptions.exportPolicy); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("family_inet", bgpNeighborOptions.familyInet); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("family_inet6", bgpNeighborOptions.familyInet6); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("graceful_restart", bgpNeighborOptions.gracefulRestart); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("hold_time", bgpNeighborOptions.holdTime); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("import", bgpNeighborOptions.importPolicy); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("local_address", bgpNeighborOptions.localAddress); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("local_as", bgpNeighborOptions.localAs); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("local_as_alias", bgpNeighborOptions.localAsAlias); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("local_as_loops", bgpNeighborOptions.localAsLoops); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("local_as_no_prepend_global_as", bgpNeighborOptions.localAsNoPrependGlobalAs); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("local_as_private", bgpNeighborOptions.localAsPrivate); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("local_interface", bgpNeighborOptions.localInterface); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("local_preference", bgpNeighborOptions.localPreference); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("log_updown", bgpNeighborOptions.logUpdown); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("metric_out", bgpNeighborOptions.metricOut); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("metric_out_igp", bgpNeighborOptions.metricOutIgp); tfErr != nil {
@@ -834,7 +882,13 @@ func fillBgpNeighborData(d *schema.ResourceData, bgpNeighborOptions bgpOptions) 
 	if tfErr := d.Set("metric_out_igp_delay_med_update", bgpNeighborOptions.metricOutIgpDelayMedUpdate); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("metric_out_igp_offset", bgpNeighborOptions.metricOutIgpOffset); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("metric_out_minimum_igp", bgpNeighborOptions.metricOutMinimumIgp); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("metric_out_minimum_igp_offset", bgpNeighborOptions.metricOutMinimumIgpOffset); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("mtu_discovery", bgpNeighborOptions.mtuDiscovery); tfErr != nil {
@@ -849,73 +903,19 @@ func fillBgpNeighborData(d *schema.ResourceData, bgpNeighborOptions bgpOptions) 
 	if tfErr := d.Set("no_advertise_peer_as", bgpNeighborOptions.noAdvertisePeerAs); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("remove_private", bgpNeighborOptions.removePrivate); tfErr != nil {
+	if tfErr := d.Set("out_delay", bgpNeighborOptions.outDelay); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("passive", bgpNeighborOptions.passive); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("hold_time", bgpNeighborOptions.holdTime); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("local_as_loops", bgpNeighborOptions.localAsLoops); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("local_preference", bgpNeighborOptions.localPreference); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("metric_out", bgpNeighborOptions.metricOut); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("metric_out_igp_offset", bgpNeighborOptions.metricOutIgpOffset); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("metric_out_minimum_igp_offset", bgpNeighborOptions.metricOutMinimumIgpOffset); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("out_delay", bgpNeighborOptions.outDelay); tfErr != nil {
+	if tfErr := d.Set("peer_as", bgpNeighborOptions.peerAs); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("preference", bgpNeighborOptions.preference); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("authentication_algorithm", bgpNeighborOptions.authenticationAlgorithm); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("authentication_key", bgpNeighborOptions.authenticationKey); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("authentication_key_chain", bgpNeighborOptions.authenticationKeyChain); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("local_address", bgpNeighborOptions.localAddress); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("local_as", bgpNeighborOptions.localAs); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("local_interface", bgpNeighborOptions.localInterface); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("peer_as", bgpNeighborOptions.peerAs); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("export", bgpNeighborOptions.exportPolicy); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("import", bgpNeighborOptions.importPolicy); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("bfd_liveness_detection", bgpNeighborOptions.bfdLivenessDetection); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("family_inet", bgpNeighborOptions.familyInet); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("family_inet6", bgpNeighborOptions.familyInet6); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("graceful_restart", bgpNeighborOptions.gracefulRestart); tfErr != nil {
+	if tfErr := d.Set("remove_private", bgpNeighborOptions.removePrivate); tfErr != nil {
 		panic(tfErr)
 	}
 }

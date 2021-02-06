@@ -225,14 +225,14 @@ func setSystemNtpServer(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	if d.Get("key").(int) != 0 {
 		configSet = append(configSet, setPrefix+" key "+strconv.Itoa(d.Get("key").(int)))
 	}
-	if d.Get("version").(int) != 0 {
-		configSet = append(configSet, setPrefix+" version "+strconv.Itoa(d.Get("version").(int)))
-	}
 	if d.Get("prefer").(bool) {
 		configSet = append(configSet, setPrefix+" prefer")
 	}
 	if d.Get("routing_instance").(string) != "" {
 		configSet = append(configSet, setPrefix+" routing-instance "+d.Get("routing_instance").(string))
+	}
+	if d.Get("version").(int) != 0 {
+		configSet = append(configSet, setPrefix+" version "+strconv.Itoa(d.Get("version").(int)))
 	}
 
 	if err := sess.configSet(configSet, jnprSess); err != nil {
@@ -267,16 +267,16 @@ func readSystemNtpServer(address string, m interface{}, jnprSess *NetconfObject)
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
+			case itemTrim == "prefer":
+				confRead.prefer = true
+			case strings.HasPrefix(itemTrim, "routing-instance "):
+				confRead.routingInstance = strings.TrimPrefix(itemTrim, "routing-instance ")
 			case strings.HasPrefix(itemTrim, "version "):
 				var err error
 				confRead.version, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "version "))
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
-			case itemTrim == "prefer":
-				confRead.prefer = true
-			case strings.HasPrefix(itemTrim, "routing-instance "):
-				confRead.routingInstance = strings.TrimPrefix(itemTrim, "routing-instance ")
 			}
 		}
 	}
@@ -301,13 +301,13 @@ func fillSystemNtpServerData(d *schema.ResourceData, ntpServerOptions ntpServerO
 	if tfErr := d.Set("key", ntpServerOptions.key); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("version", ntpServerOptions.version); tfErr != nil {
-		panic(tfErr)
-	}
 	if tfErr := d.Set("prefer", ntpServerOptions.prefer); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("routing_instance", ntpServerOptions.routingInstance); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("version", ntpServerOptions.version); tfErr != nil {
 		panic(tfErr)
 	}
 }

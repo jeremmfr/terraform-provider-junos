@@ -9,6 +9,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 * clean code: remove useless else when read a empty config
+* fix typo in name of `accounting_timeout` argument in `junos_system_radius_server` resource. **Update your config for new version of this argument**
 
 ## 1.12.3 (February 5, 2021)
 BUG FIXES:

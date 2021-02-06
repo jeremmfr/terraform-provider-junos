@@ -16,8 +16,8 @@ type natSourcePoolOptions struct {
 	portNoTranslation     bool
 	portOverloadingFactor int
 	name                  string
-	routingInstance       string
 	portRange             string
+	routingInstance       string
 	address               []string
 }
 
@@ -43,11 +43,6 @@ func resourceSecurityNatSourcePool() *schema.Resource {
 				MinItems: 1,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"routing_instance": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
-			},
 			"port_no_translation": {
 				Type:          schema.TypeBool,
 				Optional:      true,
@@ -64,6 +59,11 @@ func resourceSecurityNatSourcePool() *schema.Resource {
 				Optional:         true,
 				ConflictsWith:    []string{"port_overloading_factor", "port_no_translation"},
 				ValidateDiagFunc: validateSourcePoolPortRange(),
+			},
+			"routing_instance": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 			},
 		},
 	}

@@ -40,17 +40,17 @@ func resourceSecurityNatDestinationPool() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: validateIPMaskFunc(),
 			},
-			"address_to": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ValidateDiagFunc: validateIPMaskFunc(),
-				ConflictsWith:    []string{"address_port"},
-			},
 			"address_port": {
 				Type:          schema.TypeInt,
 				Optional:      true,
 				ValidateFunc:  validation.IntBetween(1, 65535),
 				ConflictsWith: []string{"address_to"},
+			},
+			"address_to": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateIPMaskFunc(),
+				ConflictsWith:    []string{"address_port"},
 			},
 			"routing_instance": {
 				Type:             schema.TypeString,
@@ -233,11 +233,11 @@ func setSecurityNatDestinationPool(d *schema.ResourceData, m interface{}, jnprSe
 
 	setPrefix := "set security nat destination pool " + d.Get("name").(string)
 	configSet = append(configSet, setPrefix+" address "+d.Get("address").(string))
-	if d.Get("address_to").(string) != "" {
-		configSet = append(configSet, setPrefix+" address to "+d.Get("address_to").(string))
-	}
 	if d.Get("address_port").(int) != 0 {
 		configSet = append(configSet, setPrefix+" address port "+strconv.Itoa(d.Get("address_port").(int)))
+	}
+	if d.Get("address_to").(string) != "" {
+		configSet = append(configSet, setPrefix+" address to "+d.Get("address_to").(string))
 	}
 	if d.Get("routing_instance").(string) != "" {
 		configSet = append(configSet, setPrefix+" routing-instance "+d.Get("routing_instance").(string))
@@ -269,13 +269,13 @@ func readSecurityNatDestinationPool(natDestinationPool string,
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case strings.HasPrefix(itemTrim, "address to"):
-				confRead.addressTo = strings.TrimPrefix(itemTrim, "address to ")
 			case strings.HasPrefix(itemTrim, "address port"):
 				confRead.addressPort, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "address port "))
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
+			case strings.HasPrefix(itemTrim, "address to"):
+				confRead.addressTo = strings.TrimPrefix(itemTrim, "address to ")
 			case strings.HasPrefix(itemTrim, "address "):
 				confRead.address = strings.TrimPrefix(itemTrim, "address ")
 			case strings.HasPrefix(itemTrim, "routing-instance "):
@@ -304,10 +304,10 @@ func fillSecurityNatDestinationPoolData(d *schema.ResourceData, natDestinationPo
 	if tfErr := d.Set("address", natDestinationPoolOptions.address); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("address_to", natDestinationPoolOptions.addressTo); tfErr != nil {
+	if tfErr := d.Set("address_port", natDestinationPoolOptions.addressPort); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("address_port", natDestinationPoolOptions.addressPort); tfErr != nil {
+	if tfErr := d.Set("address_to", natDestinationPoolOptions.addressTo); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("routing_instance", natDestinationPoolOptions.routingInstance); tfErr != nil {

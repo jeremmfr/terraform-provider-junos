@@ -31,12 +31,12 @@ func resourcePolicyoptionsAsPath() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 			},
-			"path": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 			"dynamic_db": {
 				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"path": {
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 		},
@@ -204,13 +204,13 @@ func setPolicyoptionsAsPath(d *schema.ResourceData, m interface{}, jnprSess *Net
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 
-	if d.Get("path").(string) != "" {
-		configSet = append(configSet, "set policy-options as-path "+d.Get("name").(string)+
-			" \""+d.Get("path").(string)+"\"")
-	}
 	if d.Get("dynamic_db").(bool) {
 		configSet = append(configSet, "set policy-options as-path "+d.Get("name").(string)+
 			" dynamic-db")
+	}
+	if d.Get("path").(string) != "" {
+		configSet = append(configSet, "set policy-options as-path "+d.Get("name").(string)+
+			" \""+d.Get("path").(string)+"\"")
 	}
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
@@ -263,10 +263,10 @@ func fillPolicyoptionsAsPathData(d *schema.ResourceData, asPathOptions asPathOpt
 	if tfErr := d.Set("name", asPathOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("path", asPathOptions.path); tfErr != nil {
+	if tfErr := d.Set("dynamic_db", asPathOptions.dynamicDB); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("dynamic_db", asPathOptions.dynamicDB); tfErr != nil {
+	if tfErr := d.Set("path", asPathOptions.path); tfErr != nil {
 		panic(tfErr)
 	}
 }

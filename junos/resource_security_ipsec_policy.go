@@ -33,6 +33,10 @@ func resourceIpsecPolicy() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
 			},
+			"pfs_keys": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"proposals": {
 				Type:         schema.TypeList,
 				Optional:     true,
@@ -45,10 +49,6 @@ func resourceIpsecPolicy() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice(listProposalSet(), false),
 				ExactlyOneOf: []string{"proposals", "proposal_set"},
-			},
-			"pfs_keys": {
-				Type:     schema.TypeString,
-				Optional: true,
 			},
 		},
 	}
@@ -253,12 +253,12 @@ func readIpsecPolicy(ipsecPolicy string, m interface{}, jnprSess *NetconfObject)
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
+			case strings.HasPrefix(itemTrim, "perfect-forward-secrecy keys "):
+				confRead.pfsKeys = strings.TrimPrefix(itemTrim, "perfect-forward-secrecy keys ")
 			case strings.HasPrefix(itemTrim, "proposals "):
 				confRead.proposals = append(confRead.proposals, strings.TrimPrefix(itemTrim, "proposals "))
 			case strings.HasPrefix(itemTrim, "proposal-set "):
 				confRead.proposalSet = strings.TrimPrefix(itemTrim, "proposal-set ")
-			case strings.HasPrefix(itemTrim, "perfect-forward-secrecy keys "):
-				confRead.pfsKeys = strings.TrimPrefix(itemTrim, "perfect-forward-secrecy keys ")
 			}
 		}
 	}
@@ -280,13 +280,13 @@ func fillIpsecPolicyData(d *schema.ResourceData, ipsecPolicyOptions ipsecPolicyO
 	if tfErr := d.Set("name", ipsecPolicyOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("pfs_keys", ipsecPolicyOptions.pfsKeys); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("proposals", ipsecPolicyOptions.proposals); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("proposal_set", ipsecPolicyOptions.proposalSet); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("pfs_keys", ipsecPolicyOptions.pfsKeys); tfErr != nil {
 		panic(tfErr)
 	}
 }

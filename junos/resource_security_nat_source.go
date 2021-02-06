@@ -89,17 +89,17 @@ func resourceSecurityNatSource() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"source_address": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
 									"destination_address": {
 										Type:     schema.TypeList,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"protocol": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"source_address": {
 										Type:     schema.TypeList,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
@@ -317,13 +317,6 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 		setPrefixRule := setPrefix + " rule " + rule["name"].(string)
 		for _, matchV := range rule[matchWord].([]interface{}) {
 			match := matchV.(map[string]interface{})
-			for _, address := range match["source_address"].([]interface{}) {
-				err := validateCIDRNetwork(address.(string))
-				if err != nil {
-					return err
-				}
-				configSet = append(configSet, setPrefixRule+" match source-address "+address.(string))
-			}
 			for _, address := range match["destination_address"].([]interface{}) {
 				err := validateCIDRNetwork(address.(string))
 				if err != nil {
@@ -333,6 +326,13 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 			}
 			for _, proto := range match["protocol"].([]interface{}) {
 				configSet = append(configSet, setPrefixRule+" match protocol "+proto.(string))
+			}
+			for _, address := range match["source_address"].([]interface{}) {
+				err := validateCIDRNetwork(address.(string))
+				if err != nil {
+					return err
+				}
+				configSet = append(configSet, setPrefixRule+" match source-address "+address.(string))
 			}
 		}
 		for _, thenV := range rule[thenWord].([]interface{}) {
@@ -419,9 +419,9 @@ func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObj
 				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match "):
 					itemTrimMatch := strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match ")
 					ruleMatchOptions := map[string]interface{}{
-						"source_address":      []string{},
 						"destination_address": []string{},
 						"protocol":            []string{},
+						"source_address":      []string{},
 					}
 					if len(ruleOptions[matchWord].([]map[string]interface{})) > 0 {
 						for k, v := range ruleOptions[matchWord].([]map[string]interface{})[0] {
@@ -429,15 +429,15 @@ func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObj
 						}
 					}
 					switch {
-					case strings.HasPrefix(itemTrimMatch, "source-address "):
-						ruleMatchOptions["source_address"] = append(ruleMatchOptions["source_address"].([]string),
-							strings.TrimPrefix(itemTrimMatch, "source-address "))
 					case strings.HasPrefix(itemTrimMatch, "destination-address "):
 						ruleMatchOptions["destination_address"] = append(ruleMatchOptions["destination_address"].([]string),
 							strings.TrimPrefix(itemTrimMatch, "destination-address "))
 					case strings.HasPrefix(itemTrimMatch, "protocol "):
 						ruleMatchOptions["protocol"] = append(ruleMatchOptions["protocol"].([]string),
 							strings.TrimPrefix(itemTrimMatch, "protocol "))
+					case strings.HasPrefix(itemTrimMatch, "source-address "):
+						ruleMatchOptions["source_address"] = append(ruleMatchOptions["source_address"].([]string),
+							strings.TrimPrefix(itemTrimMatch, "source-address "))
 					}
 					// override (maxItem = 1)
 					ruleOptions[matchWord] = []map[string]interface{}{ruleMatchOptions}

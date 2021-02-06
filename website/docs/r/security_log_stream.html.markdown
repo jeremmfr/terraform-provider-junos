@@ -35,8 +35,8 @@ The following arguments are supported:
 * `file` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Configure log file options for logs in local file. Max of 1. Conflict with `host`.
   * `name` - (Required)(`String`) Name of local log file.
   * `allow_duplicates` - (Optional)(`Bool`) To disable log consolidation.
-  * `size` - (Optional)(`Int`) Maximum size of local log file in megabytes (1..3).
   * `rotation` - (Optional)(`Int`) Maximum number of rotate files (2..19).
+  * `size` - (Optional)(`Int`) Maximum size of local log file in megabytes (1..3).
 * `filter_threat_attack` - (Optional)(`Bool`) Threat-attack security events are logged. Conflict with `category`.
 * `format` - (Optional)(`String`) Specify the log stream format. Need to be 'binary', 'sd-syslog', 'syslog' or 'welf'.
 * `host` - Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Configure destination to send security logs to. Max of 1. Conflict with `file`.

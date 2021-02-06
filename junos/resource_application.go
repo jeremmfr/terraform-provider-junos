@@ -11,8 +11,8 @@ import (
 
 type applicationOptions struct {
 	name            string
-	protocol        string
 	destinationPort string
+	protocol        string
 	sourcePort      string
 }
 
@@ -32,11 +32,11 @@ func resourceApplication() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 			},
-			"protocol": {
+			"destination_port": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"destination_port": {
+			"protocol": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -206,11 +206,11 @@ func setApplication(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	configSet := make([]string, 0)
 
 	setPrefix := "set applications application " + d.Get("name").(string)
-	if d.Get("protocol").(string) != "" {
-		configSet = append(configSet, setPrefix+" protocol "+d.Get("protocol").(string))
-	}
 	if d.Get("destination_port").(string) != "" {
 		configSet = append(configSet, setPrefix+" destination-port "+d.Get("destination_port").(string))
+	}
+	if d.Get("protocol").(string) != "" {
+		configSet = append(configSet, setPrefix+" protocol "+d.Get("protocol").(string))
 	}
 	if d.Get("source_port").(string) != "" {
 		configSet = append(configSet, setPrefix+" source-port "+d.Get("source_port").(string))
@@ -242,10 +242,10 @@ func readApplication(application string, m interface{}, jnprSess *NetconfObject)
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case strings.HasPrefix(itemTrim, "protocol "):
-				confRead.protocol = strings.TrimPrefix(itemTrim, "protocol ")
 			case strings.HasPrefix(itemTrim, "destination-port "):
 				confRead.destinationPort = strings.TrimPrefix(itemTrim, "destination-port ")
+			case strings.HasPrefix(itemTrim, "protocol "):
+				confRead.protocol = strings.TrimPrefix(itemTrim, "protocol ")
 			case strings.HasPrefix(itemTrim, "source-port "):
 				confRead.sourcePort = strings.TrimPrefix(itemTrim, "source-port ")
 			}
@@ -269,10 +269,10 @@ func fillApplicationData(d *schema.ResourceData, applicationOptions applicationO
 	if tfErr := d.Set("name", applicationOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("protocol", applicationOptions.protocol); tfErr != nil {
+	if tfErr := d.Set("destination_port", applicationOptions.destinationPort); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("destination_port", applicationOptions.destinationPort); tfErr != nil {
+	if tfErr := d.Set("protocol", applicationOptions.protocol); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("source_port", applicationOptions.sourcePort); tfErr != nil {

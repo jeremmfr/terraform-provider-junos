@@ -26,8 +26,8 @@ resource junos_application "mysql" {
 The following arguments are supported:
 
 * `name` - (Required, Forces new resource)(`String`) Name of application.
-* `protocol` - (Optional)(`String`) Protocol used by application.
 * `destination_port` - (Optional)(`String`) Port(s) destination used by application.
+* `protocol` - (Optional)(`String`) Protocol used by application.
 * `source_port` - (Optional)(`String`) Port(s) source used by application.
 
 ## Import

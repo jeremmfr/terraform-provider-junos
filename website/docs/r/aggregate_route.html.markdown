@@ -27,15 +27,15 @@ The following arguments are supported:
 
 * `destination` - (Required, Forces new resource)(`String`) The destination for aggregate route.
 * `routing_instance` - (Optional, Forces new resource)(`String`) Routing instance for route. Need to be default or name of routing instance. Defaults to `default`
-* `active` - (Optional)(`Bool`) Remove inactive route from forwarding table
-* `passive` - (Optional)(`Bool`) Retain inactive route in forwarding table
-* `brief` - (Optional)(`Bool`) Include longest common sequences from contributing paths
-* `full` - (Optional)(`Bool`) Include all AS numbers from all contributing paths
-* `discard` - (Optional)(`Bool`) Drop packets to destination; send no ICMP unreachables
-* `preference` - (Optional)(`Int`) Preference for aggregate route
-* `metric` - (Optional)(`Int`) Metric for aggregate route
-* `community` - (Optional)(`ListOfString`) List of BGP community
-* `policy` - (Optional)(`ListOfString`) List of Policy filter
+* `active` - (Optional)(`Bool`) Remove inactive route from forwarding table.
+* `brief` - (Optional)(`Bool`) Include longest common sequences from contributing paths.
+* `community` - (Optional)(`ListOfString`) List of BGP community.
+* `discard` - (Optional)(`Bool`) Drop packets to destination; send no ICMP unreachables.
+* `full` - (Optional)(`Bool`) Include all AS numbers from all contributing paths.
+* `metric` - (Optional)(`Int`) Metric for aggregate route.
+* `passive` - (Optional)(`Bool`) Retain inactive route in forwarding table.
+* `policy` - (Optional)(`ListOfString`) List of Policy filter.
+* `preference` - (Optional)(`Int`) Preference for aggregate route.
 
 ## Import
 

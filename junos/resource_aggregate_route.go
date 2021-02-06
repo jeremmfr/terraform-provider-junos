@@ -13,16 +13,16 @@ import (
 
 type aggregateRouteOptions struct {
 	active          bool
-	passive         bool
 	brief           bool
-	full            bool
 	discard         bool
-	preference      int
+	full            bool
+	passive         bool
 	metric          int
+	preference      int
 	destination     string
 	routingInstance string
-	policy          []string
 	community       []string
+	policy          []string
 }
 
 func resourceAggregateRoute() *schema.Resource {
@@ -53,42 +53,42 @@ func resourceAggregateRoute() *schema.Resource {
 				Optional:      true,
 				ConflictsWith: []string{"passive"},
 			},
-			"passive": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				ConflictsWith: []string{"active"},
-			},
 			"brief": {
 				Type:          schema.TypeBool,
 				Optional:      true,
 				ConflictsWith: []string{"full"},
-			},
-			"full": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				ConflictsWith: []string{"brief"},
-			},
-			"discard": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-			"preference": {
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
-			"metric": {
-				Type:     schema.TypeInt,
-				Optional: true,
 			},
 			"community": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+			"discard": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"full": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"brief"},
+			},
+			"metric": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"passive": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"active"},
+			},
 			"policy": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"preference": {
+				Type:     schema.TypeInt,
+				Optional: true,
 			},
 		},
 	}
@@ -301,29 +301,29 @@ func setAggregateRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	if d.Get("active").(bool) {
 		configSet = append(configSet, setPrefix+" active")
 	}
-	if d.Get("passive").(bool) {
-		configSet = append(configSet, setPrefix+" passive")
-	}
 	if d.Get("brief").(bool) {
 		configSet = append(configSet, setPrefix+" brief")
-	}
-	if d.Get("full").(bool) {
-		configSet = append(configSet, setPrefix+" full")
-	}
-	if d.Get("discard").(bool) {
-		configSet = append(configSet, setPrefix+" discard")
-	}
-	if d.Get("preference").(int) > 0 {
-		configSet = append(configSet, setPrefix+" preference "+strconv.Itoa(d.Get("preference").(int)))
-	}
-	if d.Get("metric").(int) > 0 {
-		configSet = append(configSet, setPrefix+" metric "+strconv.Itoa(d.Get("metric").(int)))
 	}
 	for _, v := range d.Get("community").([]interface{}) {
 		configSet = append(configSet, setPrefix+" community "+v.(string))
 	}
+	if d.Get("discard").(bool) {
+		configSet = append(configSet, setPrefix+" discard")
+	}
+	if d.Get("full").(bool) {
+		configSet = append(configSet, setPrefix+" full")
+	}
+	if d.Get("metric").(int) > 0 {
+		configSet = append(configSet, setPrefix+" metric "+strconv.Itoa(d.Get("metric").(int)))
+	}
+	if d.Get("passive").(bool) {
+		configSet = append(configSet, setPrefix+" passive")
+	}
 	for _, v := range d.Get("policy").([]interface{}) {
 		configSet = append(configSet, setPrefix+" policy "+v.(string))
+	}
+	if d.Get("preference").(int) > 0 {
+		configSet = append(configSet, setPrefix+" preference "+strconv.Itoa(d.Get("preference").(int)))
 	}
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
@@ -363,28 +363,28 @@ func readAggregateRoute(destination string, instance string, m interface{},
 			switch {
 			case itemTrim == "active":
 				confRead.active = true
-			case itemTrim == passiveW:
-				confRead.passive = true
 			case itemTrim == "brief":
 				confRead.brief = true
-			case itemTrim == "full":
-				confRead.full = true
+			case strings.HasPrefix(itemTrim, "community "):
+				confRead.community = append(confRead.community, strings.TrimPrefix(itemTrim, "community "))
 			case itemTrim == discardW:
 				confRead.discard = true
-			case strings.HasPrefix(itemTrim, "preference "):
-				confRead.preference, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "preference "))
-				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
-				}
+			case itemTrim == "full":
+				confRead.full = true
 			case strings.HasPrefix(itemTrim, "metric "):
 				confRead.metric, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "metric "))
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "community "):
-				confRead.community = append(confRead.community, strings.TrimPrefix(itemTrim, "community "))
+			case itemTrim == passiveW:
+				confRead.passive = true
 			case strings.HasPrefix(itemTrim, "policy "):
 				confRead.policy = append(confRead.policy, strings.TrimPrefix(itemTrim, "policy "))
+			case strings.HasPrefix(itemTrim, "preference "):
+				confRead.preference, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "preference "))
+				if err != nil {
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				}
 			}
 		}
 	}
@@ -404,14 +404,14 @@ func delAggregateRouteOpts(d *schema.ResourceData, m interface{}, jnprSess *Netc
 	delPrefix += d.Get("destination").(string) + " "
 	configSet = append(configSet,
 		delPrefix+"active",
-		delPrefix+"passive",
 		delPrefix+"brief",
-		delPrefix+"full",
-		delPrefix+"discard",
-		delPrefix+"preference",
-		delPrefix+"metric",
 		delPrefix+"community",
+		delPrefix+"discard",
+		delPrefix+"full",
+		delPrefix+"metric",
+		delPrefix+"passive",
 		delPrefix+"policy",
+		delPrefix+"preference",
 	)
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
@@ -444,28 +444,28 @@ func fillAggregateRouteData(d *schema.ResourceData, aggregateRouteOptions aggreg
 	if tfErr := d.Set("active", aggregateRouteOptions.active); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("passive", aggregateRouteOptions.passive); tfErr != nil {
-		panic(tfErr)
-	}
 	if tfErr := d.Set("brief", aggregateRouteOptions.brief); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("full", aggregateRouteOptions.full); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("discard", aggregateRouteOptions.discard); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("preference", aggregateRouteOptions.preference); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("metric", aggregateRouteOptions.metric); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("community", aggregateRouteOptions.community); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("discard", aggregateRouteOptions.discard); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("full", aggregateRouteOptions.full); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("metric", aggregateRouteOptions.metric); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("passive", aggregateRouteOptions.passive); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("policy", aggregateRouteOptions.policy); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("preference", aggregateRouteOptions.preference); tfErr != nil {
 		panic(tfErr)
 	}
 }

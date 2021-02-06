@@ -14,12 +14,12 @@ import (
 )
 
 type interfaceLogicalOptions struct {
-	vlanID           int
-	description      string
-	securityZones    string
-	routingInstances string
-	familyInet       []map[string]interface{}
-	familyInet6      []map[string]interface{}
+	vlanID          int
+	description     string
+	routingInstance string
+	securityZone    string
+	familyInet      []map[string]interface{}
+	familyInet6     []map[string]interface{}
 }
 
 func resourceInterfaceLogical() *schema.Resource {
@@ -53,12 +53,6 @@ func resourceInterfaceLogical() *schema.Resource {
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
-			},
-			"vlan_id": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IntBetween(1, 4094),
 			},
 			"family_inet": {
 				Type:     schema.TypeList,
@@ -176,11 +170,6 @@ func resourceInterfaceLogical() *schema.Resource {
 								},
 							},
 						},
-						"mtu": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(500, 9192),
-						},
 						"filter_input": {
 							Type:             schema.TypeString,
 							Optional:         true,
@@ -190,6 +179,11 @@ func resourceInterfaceLogical() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+						},
+						"mtu": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(500, 9192),
 						},
 						"rpf_check": {
 							Type:     schema.TypeList,
@@ -323,11 +317,6 @@ func resourceInterfaceLogical() *schema.Resource {
 								},
 							},
 						},
-						"mtu": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(500, 9192),
-						},
 						"filter_input": {
 							Type:             schema.TypeString,
 							Optional:         true,
@@ -337,6 +326,11 @@ func resourceInterfaceLogical() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+						},
+						"mtu": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(500, 9192),
 						},
 						"rpf_check": {
 							Type:     schema.TypeList,
@@ -358,15 +352,21 @@ func resourceInterfaceLogical() *schema.Resource {
 					},
 				},
 			},
+			"routing_instance": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+			},
 			"security_zone": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 			},
-			"routing_instance": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+			"vlan_id": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(1, 4094),
 			},
 		},
 	}
@@ -701,11 +701,6 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 	if d.Get("description").(string) != "" {
 		configSet = append(configSet, setPrefix+"description \""+d.Get("description").(string)+"\"")
 	}
-	if d.Get("vlan_id").(int) != 0 {
-		configSet = append(configSet, setPrefix+"vlan-id "+strconv.Itoa(d.Get("vlan_id").(int)))
-	} else if intCut[0] != st0Word && intCut[1] != "0" {
-		configSet = append(configSet, setPrefix+"vlan-id "+intCut[1])
-	}
 	for _, v := range d.Get("family_inet").([]interface{}) {
 		configSet = append(configSet, setPrefix+"family inet")
 		if v != nil {
@@ -716,6 +711,14 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 				if err != nil {
 					return err
 				}
+			}
+			if familyInet["filter_input"].(string) != "" {
+				configSet = append(configSet, setPrefix+"family inet filter input "+
+					familyInet["filter_input"].(string))
+			}
+			if familyInet["filter_output"].(string) != "" {
+				configSet = append(configSet, setPrefix+"family inet filter output "+
+					familyInet["filter_output"].(string))
 			}
 			if familyInet["mtu"].(int) > 0 {
 				configSet = append(configSet, setPrefix+"family inet mtu "+
@@ -734,14 +737,6 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 					}
 				}
 			}
-			if familyInet["filter_input"].(string) != "" {
-				configSet = append(configSet, setPrefix+"family inet filter input "+
-					familyInet["filter_input"].(string))
-			}
-			if familyInet["filter_output"].(string) != "" {
-				configSet = append(configSet, setPrefix+"family inet filter output "+
-					familyInet["filter_output"].(string))
-			}
 		}
 	}
 	for _, v := range d.Get("family_inet6").([]interface{}) {
@@ -754,6 +749,14 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 				if err != nil {
 					return err
 				}
+			}
+			if familyInet6["filter_input"].(string) != "" {
+				configSet = append(configSet, setPrefix+"family inet6 filter input "+
+					familyInet6["filter_input"].(string))
+			}
+			if familyInet6["filter_output"].(string) != "" {
+				configSet = append(configSet, setPrefix+"family inet6 filter output "+
+					familyInet6["filter_input"].(string))
 			}
 			if familyInet6["mtu"].(int) > 0 {
 				configSet = append(configSet, setPrefix+"family inet6 mtu "+
@@ -772,23 +775,20 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 					}
 				}
 			}
-			if familyInet6["filter_input"].(string) != "" {
-				configSet = append(configSet, setPrefix+"family inet6 filter input "+
-					familyInet6["filter_input"].(string))
-			}
-			if familyInet6["filter_output"].(string) != "" {
-				configSet = append(configSet, setPrefix+"family inet6 filter output "+
-					familyInet6["filter_input"].(string))
-			}
 		}
+	}
+	if d.Get("routing_instance").(string) != "" {
+		configSet = append(configSet, "set routing-instances "+d.Get("routing_instance").(string)+
+			" interface "+d.Get("name").(string))
 	}
 	if checkCompatibilitySecurity(jnprSess) && d.Get("security_zone").(string) != "" {
 		configSet = append(configSet, "set security zones security-zone "+
 			d.Get("security_zone").(string)+" interfaces "+d.Get("name").(string))
 	}
-	if d.Get("routing_instance").(string) != "" {
-		configSet = append(configSet, "set routing-instances "+d.Get("routing_instance").(string)+
-			" interface "+d.Get("name").(string))
+	if d.Get("vlan_id").(int) != 0 {
+		configSet = append(configSet, setPrefix+"vlan-id "+strconv.Itoa(d.Get("vlan_id").(int)))
+	} else if intCut[0] != st0Word && intCut[1] != "0" {
+		configSet = append(configSet, setPrefix+"vlan-id "+intCut[1])
 	}
 
 	if err := sess.configSet(configSet, jnprSess); err != nil {
@@ -822,19 +822,13 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 			switch {
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
-			case strings.HasPrefix(itemTrim, "vlan-id "):
-				var err error
-				confRead.vlanID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vlan-id "))
-				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
-				}
 			case strings.HasPrefix(itemTrim, "family inet6"):
 				if len(confRead.familyInet6) == 0 {
 					confRead.familyInet6 = append(confRead.familyInet6, map[string]interface{}{
 						"address":       make([]map[string]interface{}, 0),
-						"mtu":           0,
 						"filter_input":  "",
 						"filter_output": "",
+						"mtu":           0,
 						"rpf_check":     make([]map[string]interface{}, 0),
 					})
 				}
@@ -846,16 +840,16 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 					if err != nil {
 						return confRead, err
 					}
+				case strings.HasPrefix(itemTrim, "family inet6 filter input "):
+					confRead.familyInet6[0]["filter_input"] = strings.TrimPrefix(itemTrim, "family inet6 filter input ")
+				case strings.HasPrefix(itemTrim, "family inet6 filter output "):
+					confRead.familyInet6[0]["filter_output"] = strings.TrimPrefix(itemTrim, "family inet6 filter output ")
 				case strings.HasPrefix(itemTrim, "family inet6 mtu"):
 					var err error
 					confRead.familyInet6[0]["mtu"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "family inet6 mtu "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "family inet6 filter input "):
-					confRead.familyInet6[0]["filter_input"] = strings.TrimPrefix(itemTrim, "family inet6 filter input ")
-				case strings.HasPrefix(itemTrim, "family inet6 filter output "):
-					confRead.familyInet6[0]["filter_output"] = strings.TrimPrefix(itemTrim, "family inet6 filter output ")
 				case strings.HasPrefix(itemTrim, "family inet6 rpf-check"):
 					if len(confRead.familyInet6[0]["rpf_check"].([]map[string]interface{})) == 0 {
 						confRead.familyInet6[0]["rpf_check"] = append(
@@ -890,16 +884,16 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 					if err != nil {
 						return confRead, err
 					}
+				case strings.HasPrefix(itemTrim, "family inet filter input "):
+					confRead.familyInet[0]["filter_input"] = strings.TrimPrefix(itemTrim, "family inet filter input ")
+				case strings.HasPrefix(itemTrim, "family inet filter output "):
+					confRead.familyInet[0]["filter_output"] = strings.TrimPrefix(itemTrim, "family inet filter output ")
 				case strings.HasPrefix(itemTrim, "family inet mtu"):
 					var err error
 					confRead.familyInet[0]["mtu"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "family inet mtu "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "family inet filter input "):
-					confRead.familyInet[0]["filter_input"] = strings.TrimPrefix(itemTrim, "family inet filter input ")
-				case strings.HasPrefix(itemTrim, "family inet filter output "):
-					confRead.familyInet[0]["filter_output"] = strings.TrimPrefix(itemTrim, "family inet filter output ")
 				case strings.HasPrefix(itemTrim, "family inet rpf-check"):
 					if len(confRead.familyInet[0]["rpf_check"].([]map[string]interface{})) == 0 {
 						confRead.familyInet[0]["rpf_check"] = append(
@@ -916,24 +910,14 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 						confRead.familyInet[0]["rpf_check"].([]map[string]interface{})[0]["mode_loose"] = true
 					}
 				}
+			case strings.HasPrefix(itemTrim, "vlan-id "):
+				var err error
+				confRead.vlanID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vlan-id "))
+				if err != nil {
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				}
 			default:
 				continue
-			}
-		}
-	}
-	if checkCompatibilitySecurity(jnprSess) {
-		zonesConfig, err := sess.command("show configuration security zones | display set relative", jnprSess)
-		if err != nil {
-			return confRead, err
-		}
-		regexpInts := regexp.MustCompile(`set security-zone \S+ interfaces ` + interFace + `$`)
-		for _, item := range strings.Split(zonesConfig, "\n") {
-			intMatch := regexpInts.MatchString(item)
-			if intMatch {
-				confRead.securityZones = strings.TrimPrefix(strings.TrimSuffix(item, " interfaces "+interFace),
-					"set security-zone ")
-
-				break
 			}
 		}
 	}
@@ -945,10 +929,26 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 	for _, item := range strings.Split(routingConfig, "\n") {
 		intMatch := regexpInt.MatchString(item)
 		if intMatch {
-			confRead.routingInstances = strings.TrimPrefix(strings.TrimSuffix(item, " interface "+interFace),
+			confRead.routingInstance = strings.TrimPrefix(strings.TrimSuffix(item, " interface "+interFace),
 				"set ")
 
 			break
+		}
+	}
+	if checkCompatibilitySecurity(jnprSess) {
+		zonesConfig, err := sess.command("show configuration security zones | display set relative", jnprSess)
+		if err != nil {
+			return confRead, err
+		}
+		regexpInts := regexp.MustCompile(`set security-zone \S+ interfaces ` + interFace + `$`)
+		for _, item := range strings.Split(zonesConfig, "\n") {
+			intMatch := regexpInts.MatchString(item)
+			if intMatch {
+				confRead.securityZone = strings.TrimPrefix(strings.TrimSuffix(item, " interfaces "+interFace),
+					"set security-zone ")
+
+				break
+			}
 		}
 	}
 
@@ -968,13 +968,13 @@ func delInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 			return err
 		}
 	}
-	if checkCompatibilitySecurity(jnprSess) && d.Get("security_zone").(string) != "" {
-		if err := delZoneInterfaceLogical(d.Get("security_zone").(string), d, m, jnprSess); err != nil {
+	if d.Get("routing_instance").(string) != "" {
+		if err := delRoutingInstanceInterfaceLogical(d.Get("routing_instance").(string), d, m, jnprSess); err != nil {
 			return err
 		}
 	}
-	if d.Get("routing_instance").(string) != "" {
-		if err := delRoutingInstanceInterfaceLogical(d.Get("routing_instance").(string), d, m, jnprSess); err != nil {
+	if checkCompatibilitySecurity(jnprSess) && d.Get("security_zone").(string) != "" {
+		if err := delZoneInterfaceLogical(d.Get("security_zone").(string), d, m, jnprSess); err != nil {
 			return err
 		}
 	}
@@ -1021,19 +1021,19 @@ func fillInterfaceLogicalData(d *schema.ResourceData, interfaceLogicalOpt interf
 	if tfErr := d.Set("description", interfaceLogicalOpt.description); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("vlan_id", interfaceLogicalOpt.vlanID); tfErr != nil {
-		panic(tfErr)
-	}
 	if tfErr := d.Set("family_inet", interfaceLogicalOpt.familyInet); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("family_inet6", interfaceLogicalOpt.familyInet6); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("security_zone", interfaceLogicalOpt.securityZones); tfErr != nil {
+	if tfErr := d.Set("routing_instance", interfaceLogicalOpt.routingInstance); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("routing_instance", interfaceLogicalOpt.routingInstances); tfErr != nil {
+	if tfErr := d.Set("security_zone", interfaceLogicalOpt.securityZone); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("vlan_id", interfaceLogicalOpt.vlanID); tfErr != nil {
 		panic(tfErr)
 	}
 }
