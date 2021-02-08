@@ -68,8 +68,9 @@ func resourceSystemRadiusServer() *schema.Resource {
 				ValidateFunc: validation.IntBetween(0, 1000),
 			},
 			"accouting_timeout": { // old version (typo) of accounting_timeout
-				Type:     schema.TypeInt,
-				Computed: true,
+				Type:       schema.TypeInt,
+				Computed:   true,
+				Deprecated: "use accounting_timeout instead",
 			},
 			"dynamic_request_port": {
 				Type:         schema.TypeInt,
