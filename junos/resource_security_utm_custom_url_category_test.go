@@ -19,7 +19,7 @@ func TestAccJunosSecurityUtmCustomURLCategory_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_utm_custom_url_category.testacc_URLCategory",
 							"value.#", "1"),
 						resource.TestCheckResourceAttr("junos_security_utm_custom_url_category.testacc_URLCategory",
-							"value.0", "custom-pattern1"),
+							"value.0", "testacc-custom-pattern1"),
 					),
 				},
 				{
@@ -28,9 +28,9 @@ func TestAccJunosSecurityUtmCustomURLCategory_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_utm_custom_url_category.testacc_URLCategory",
 							"value.#", "2"),
 						resource.TestCheckResourceAttr("junos_security_utm_custom_url_category.testacc_URLCategory",
-							"value.0", "custom-pattern1"),
+							"value.0", "testacc-custom-pattern1"),
 						resource.TestCheckResourceAttr("junos_security_utm_custom_url_category.testacc_URLCategory",
-							"value.1", "custom-pattern2"),
+							"value.1", "testacc-custom-pattern2"),
 					),
 				},
 				{
@@ -46,7 +46,7 @@ func TestAccJunosSecurityUtmCustomURLCategory_basic(t *testing.T) {
 func testAccJunosSecurityUtmCustomURLCategoryConfigCreate() string {
 	return `
 resource junos_security_utm_custom_url_pattern "testacc_URLCategory1" {
-  name  = "custom-pattern1"
+  name  = "testacc-custom-pattern1"
   value = ["*.google.com"]
 }
 resource junos_security_utm_custom_url_category "testacc_URLCategory" {
@@ -60,11 +60,11 @@ resource junos_security_utm_custom_url_category "testacc_URLCategory" {
 func testAccJunosSecurityUtmCustomURLCategoryConfigUpdate() string {
 	return `
 resource junos_security_utm_custom_url_pattern "testacc_URLCategory1" {
-  name  = "custom-pattern1"
+  name  = "testacc-custom-pattern1"
   value = ["*.google.com"]
 }
 resource junos_security_utm_custom_url_pattern "testacc_URLCategory2" {
-  name  = "custom-pattern2"
+  name  = "testacc-custom-pattern2"
   value = ["*.google.fr"]
 }
 resource junos_security_utm_custom_url_category "testacc_URLCategory" {
