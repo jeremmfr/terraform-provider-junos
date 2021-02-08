@@ -13,6 +13,10 @@ import (
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
+var netErrors = map[string]string{
+  "intNotFound": "interface .*? not found",
+}
+
 type interfaceLogicalOptions struct {
 	vlanID           int
 	description      string
@@ -379,7 +383,8 @@ func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
+	intMain := strings.Split(d.Get("name").(string),".")[0]
+        intExists, err := checkInterfaceExists(intMain, m, jnprSess)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -477,9 +482,16 @@ func resourceInterfaceLogicalReadWJnprSess(
 	mutex.Lock()
 	intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		mutex.Unlock()
+		reMatch, _ := regexp.MatchString(netErrors["intNotFound"], err.Error())
+		if reMatch == true {
+			d.SetId("")
+			mutex.Unlock()
+			return nil
 
-		return diag.FromErr(err)
+		} else {
+			mutex.Unlock()
+			return diag.FromErr(err)
+		}
 	}
 	if !intExists {
 		d.SetId("")
