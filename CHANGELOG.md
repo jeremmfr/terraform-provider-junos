@@ -11,6 +11,7 @@ BUG FIXES:
 * clean code: remove useless else when read a empty config
 * fix typo in name of `accounting_timeout` argument in `junos_system_radius_server` resource. **Update your config for new version of this argument**
 * fix warnings received from the device generate failures on resource actions. Now, received warnings are send to terraform under warnings format (Fixes #105)
+* fix integer compute for `chassis aggregated-devices ethernet device-count` when create/update/delete `junos_interface_physical` resource. Now this uses current configuration instead of the status of 'ae' interfaces and also takes into account resource with prefix name 'ae' in addition to `ether802_3ad` argument.
 
 ## 1.12.3 (February 5, 2021)
 BUG FIXES:

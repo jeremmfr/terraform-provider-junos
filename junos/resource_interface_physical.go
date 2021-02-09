@@ -229,80 +229,6 @@ func resourceInterfacePhysicalUpdate(ctx context.Context, d *schema.ResourceData
 
 		return diag.FromErr(err)
 	}
-	if d.HasChange("ether802_3ad") {
-		oAE, nAE := d.GetChange("ether802_3ad")
-		if oAE.(string) != "" {
-			newAE := "ae-1"
-			if nAE.(string) != "" {
-				newAE = nAE.(string)
-			}
-			lastAEchild, err := interfaceAggregatedLastChild(oAE.(string), d.Get("name").(string), m, jnprSess)
-			if err != nil {
-				sess.configClear(jnprSess)
-
-				return diag.FromErr(err)
-			}
-			if lastAEchild {
-				aggregatedCount, err := interfaceAggregatedCountSearchMax(newAE, oAE.(string), d.Get("name").(string), m, jnprSess)
-				if err != nil {
-					sess.configClear(jnprSess)
-
-					return diag.FromErr(err)
-				}
-				if aggregatedCount == "0" {
-					err = sess.configSet([]string{"delete chassis aggregated-devices ethernet device-count"}, jnprSess)
-					if err != nil {
-						sess.configClear(jnprSess)
-
-						return diag.FromErr(err)
-					}
-					oAEintNC, oAEintEmpty, err := checkInterfacePhysicalNC(oAE.(string), m, jnprSess)
-					if err != nil {
-						sess.configClear(jnprSess)
-
-						return diag.FromErr(err)
-					}
-					if oAEintNC || oAEintEmpty {
-						err = sess.configSet([]string{"delete interfaces " + oAE.(string)}, jnprSess)
-						if err != nil {
-							sess.configClear(jnprSess)
-
-							return diag.FromErr(err)
-						}
-					}
-				} else {
-					oldAEInt, err := strconv.Atoi(strings.TrimPrefix(oAE.(string), "ae"))
-					if err != nil {
-						sess.configClear(jnprSess)
-
-						return diag.FromErr(err)
-					}
-					aggregatedCountInt, err := strconv.Atoi(aggregatedCount)
-					if err != nil {
-						sess.configClear(jnprSess)
-
-						return diag.FromErr(err)
-					}
-					if aggregatedCountInt < oldAEInt+1 {
-						oAEintNC, oAEintEmpty, err := checkInterfacePhysicalNC(oAE.(string), m, jnprSess)
-						if err != nil {
-							sess.configClear(jnprSess)
-
-							return diag.FromErr(err)
-						}
-						if oAEintNC || oAEintEmpty {
-							err = sess.configSet([]string{"delete interfaces " + oAE.(string)}, jnprSess)
-							if err != nil {
-								sess.configClear(jnprSess)
-
-								return diag.FromErr(err)
-							}
-						}
-					}
-				}
-			}
-		}
-	}
 	if err := setInterfacePhysical(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
@@ -501,7 +427,13 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	if d.Get("description").(string) != "" {
 		configSet = append(configSet, setPrefix+"description \""+d.Get("description").(string)+"\"")
 	}
-	if d.Get("ether802_3ad").(string) != "" {
+	if v := d.Get("name").(string); strings.HasPrefix(v, "ae") {
+		aggregatedCount, err := interfaceAggregatedCountSearchMax(v, "ae-1", v, m, jnprSess)
+		if err != nil {
+			return err
+		}
+		configSet = append(configSet, "set chassis aggregated-devices ethernet device-count "+aggregatedCount)
+	} else if d.Get("ether802_3ad").(string) != "" {
 		configSet = append(configSet, setPrefix+"ether-options 802.3ad "+
 			d.Get("ether802_3ad").(string))
 		configSet = append(configSet, setPrefix+"gigether-options 802.3ad "+
@@ -606,7 +538,23 @@ func delInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	if err := sess.configSet([]string{"delete interfaces " + d.Get("name").(string)}, jnprSess); err != nil {
 		return err
 	}
-	if d.Get("ether802_3ad").(string) != "" {
+	if v := d.Get("name").(string); strings.HasPrefix(v, "ae") {
+		aggregatedCount, err := interfaceAggregatedCountSearchMax("ae-1", v, v, m, jnprSess)
+		if err != nil {
+			return err
+		}
+		if aggregatedCount == "0" {
+			err = sess.configSet([]string{"delete chassis aggregated-devices ethernet device-count"}, jnprSess)
+			if err != nil {
+				return err
+			}
+		} else {
+			err = sess.configSet([]string{"set chassis aggregated-devices ethernet device-count " + aggregatedCount}, jnprSess)
+			if err != nil {
+				return err
+			}
+		}
+	} else if d.Get("ether802_3ad").(string) != "" {
 		lastAEchild, err := interfaceAggregatedLastChild(d.Get("ether802_3ad").(string), d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			return err
@@ -623,31 +571,9 @@ func delInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 					return err
 				}
 			} else {
-				err = sess.configSet([]string{"set chassis aggregated-devices ethernet device-count " +
-					aggregatedCount}, jnprSess)
+				err = sess.configSet([]string{"set chassis aggregated-devices ethernet device-count " + aggregatedCount}, jnprSess)
 				if err != nil {
 					return err
-				}
-			}
-			aeInt, err := strconv.Atoi(strings.TrimPrefix(d.Get("ether802_3ad").(string), "ae"))
-			if err != nil {
-				return fmt.Errorf("failed to convert AE id of ether802_3ad argument '%s' in integer : %w",
-					d.Get("ether802_3ad").(string), err)
-			}
-			aggregatedCountInt, err := strconv.Atoi(aggregatedCount)
-			if err != nil {
-				return fmt.Errorf("failed to convert internal variable aggregatedCountInt in integer : %w", err)
-			}
-			if aggregatedCountInt < aeInt+1 {
-				oAEintNC, oAEintEmpty, err := checkInterfacePhysicalNC(d.Get("ether802_3ad").(string), m, jnprSess)
-				if err != nil {
-					return err
-				}
-				if oAEintNC || oAEintEmpty {
-					err = sess.configSet([]string{"delete interfaces " + d.Get("ether802_3ad").(string)}, jnprSess)
-					if err != nil {
-						return err
-					}
 				}
 			}
 		}
@@ -767,24 +693,34 @@ func interfaceAggregatedCountSearchMax(
 	newAENum := strings.TrimPrefix(newAE, "ae")
 	newAENumInt, err := strconv.Atoi(newAENum)
 	if err != nil {
-		return "", fmt.Errorf("failed to convert internal variable newAENum to integer : %w", err)
+		return "", fmt.Errorf("failed to convert ae interaface '%v' to integer : %w", newAE, err)
 	}
-	intShowInt, err := sess.command("show interfaces terse", jnprSess)
+	showConf, err := sess.command("show configuration interfaces | display set relative", jnprSess)
 	if err != nil {
 		return "", err
 	}
-
-	intShowIntLines := strings.Split(intShowInt, "\n")
-	intShowAE := make([]string, 0)
-	regexpAE := regexp.MustCompile(`ae\d*\s`)
-	for _, line := range intShowIntLines {
-		aematch := regexpAE.MatchString(line)
-		if aematch {
+	listAEFound := make([]string, 0)
+	regexpAEchild := regexp.MustCompile(`ether-options 802\.3ad ae\d+$`)
+	regexpAEparent := regexp.MustCompile(`^set ae\d+ `)
+	for _, line := range strings.Split(showConf, "\n") {
+		aeMatchChild := regexpAEchild.MatchString(line)
+		aeMatchParent := regexpAEparent.MatchString(line)
+		switch {
+		case aeMatchChild:
 			wordsLine := strings.Fields(line)
-			if wordsLine[0] != oldAE {
-				if (len(intShowAE) > 0 && intShowAE[len(intShowAE)-1] != wordsLine[0]) || len(intShowAE) == 0 {
-					intShowAE = append(intShowAE, wordsLine[0])
-				}
+			if interFace == oldAE {
+				// interfaceAggregatedCountSearchMax called for delete parent interface
+				listAEFound = append(listAEFound, wordsLine[len(wordsLine)-1])
+			} else if wordsLine[len(wordsLine)-1] != oldAE {
+				listAEFound = append(listAEFound, wordsLine[len(wordsLine)-1])
+			}
+		case aeMatchParent:
+			wordsLine := strings.Fields(line)
+			if interFace != oldAE {
+				// interfaceAggregatedCountSearchMax called for child interface or new parent
+				listAEFound = append(listAEFound, wordsLine[1])
+			} else if wordsLine[1] != oldAE {
+				listAEFound = append(listAEFound, wordsLine[1])
 			}
 		}
 	}
@@ -793,10 +729,11 @@ func interfaceAggregatedCountSearchMax(
 		return "", err
 	}
 	if !lastOldAE {
-		intShowAE = append(intShowAE, oldAE)
+		listAEFound = append(listAEFound, oldAE)
 	}
-	if len(intShowAE) > 0 {
-		lastAeInt, err := strconv.Atoi(strings.TrimPrefix(intShowAE[len(intShowAE)-1], "ae"))
+	if len(listAEFound) > 0 {
+		sort.Sort(sortStringsLength(listAEFound))
+		lastAeInt, err := strconv.Atoi(strings.TrimPrefix(listAEFound[len(listAEFound)-1], "ae"))
 		if err != nil {
 			return "", fmt.Errorf("failed to convert internal variable lastAeInt to integer : %w", err)
 		}
