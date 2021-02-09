@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -113,21 +114,19 @@ func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
+	sess.configLock(jnprSess)
+	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), m, jnprSess)
 	if err != nil {
+		sess.configClear(jnprSess)
+
 		return diag.FromErr(err)
 	}
-	sess.configLock(jnprSess)
-	if intExists {
-		ncInt, emptyInt, err := checkInterfacePhysicalNC(d.Get("name").(string), m, jnprSess)
-		if err != nil {
-			sess.configClear(jnprSess)
+	if !ncInt && !emptyInt {
+		sess.configClear(jnprSess)
 
-			return diag.FromErr(err)
-		}
-		if !ncInt && !emptyInt {
-			return diag.FromErr(fmt.Errorf("interface %s already configured", d.Get("name").(string)))
-		}
+		return diag.FromErr(fmt.Errorf("interface %s already configured", d.Get("name").(string)))
+	}
+	if ncInt {
 		if err := delInterfaceNC(d, m, jnprSess); err != nil {
 			sess.configClear(jnprSess)
 
@@ -147,25 +146,25 @@ func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	intExists, err = checkInterfaceExists(d.Get("name").(string), m, jnprSess)
+	ncInt, emptyInt, err = checkInterfacePhysicalNCEmpty(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if intExists {
-		ncInt, _, err := checkInterfacePhysicalNC(d.Get("name").(string), m, jnprSess)
+	if ncInt {
+		return append(diagWarns, diag.FromErr(fmt.Errorf("interface %v always disable after commit "+
+			"=> check your config", d.Get("name").(string)))...)
+	}
+	if emptyInt {
+		intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			return append(diagWarns, diag.FromErr(err)...)
 		}
-		if ncInt {
-			return append(diagWarns,
-				diag.FromErr(fmt.Errorf("interface %v exists (because is a physical or internal default interface)"+
-					" but always disable after commit => check your config", d.Get("name").(string)))...)
+		if !intExists {
+			return append(diagWarns, diag.FromErr(fmt.Errorf("interface %v not exists and "+
+				"config can't found after commit => check your config", d.Get("name").(string)))...)
 		}
-		d.SetId(d.Get("name").(string))
-	} else {
-		return append(diagWarns,
-			diag.FromErr(fmt.Errorf("interface %v not exists after commit => check your config", d.Get("name").(string)))...)
 	}
+	d.SetId(d.Get("name").(string))
 
 	return append(diagWarns, resourceInterfacePhysicalReadWJnprSess(d, m, jnprSess)...)
 }
@@ -182,19 +181,7 @@ func resourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData, 
 func resourceInterfacePhysicalReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
-	intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
-	if err != nil {
-		mutex.Unlock()
-
-		return diag.FromErr(err)
-	}
-	if !intExists {
-		d.SetId("")
-		mutex.Unlock()
-
-		return nil
-	}
-	ncInt, _, err := checkInterfacePhysicalNC(d.Get("name").(string), m, jnprSess)
+	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		mutex.Unlock()
 
@@ -205,6 +192,20 @@ func resourceInterfacePhysicalReadWJnprSess(
 		mutex.Unlock()
 
 		return nil
+	}
+	if emptyInt {
+		intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
+		if err != nil {
+			mutex.Unlock()
+
+			return diag.FromErr(err)
+		}
+		if !intExists {
+			d.SetId("")
+			mutex.Unlock()
+
+			return nil
+		}
 	}
 	interfaceOpt, err := readInterfacePhysical(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -270,9 +271,8 @@ func resourceInterfacePhysicalDelete(ctx context.Context, d *schema.ResourceData
 	if !d.Get("no_disable_on_destroy").(bool) {
 		intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
 		if err != nil {
-			return append(diagWarns, diag.FromErr(err)...)
-		}
-		if intExists {
+			appendDiagWarns(&diagWarns, []error{err})
+		} else if intExists {
 			err = addInterfacePhysicalNC(d.Get("name").(string), m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
@@ -301,12 +301,21 @@ func resourceInterfacePhysicalImport(d *schema.ResourceData, m interface{}) ([]*
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-	intExists, err := checkInterfaceExists(d.Id(), m, jnprSess)
+	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Id(), m, jnprSess)
 	if err != nil {
 		return nil, err
 	}
-	if !intExists {
-		return nil, fmt.Errorf("don't find interface with id '%v' (id must be <name>)", d.Id())
+	if ncInt {
+		return nil, fmt.Errorf("interface '%v' is disabled, import is not possible", d.Id())
+	}
+	if emptyInt {
+		intExists, err := checkInterfaceExists(d.Id(), m, jnprSess)
+		if err != nil {
+			return nil, err
+		}
+		if !intExists {
+			return nil, fmt.Errorf("don't find interface with id '%v' (id must be <name>)", d.Id())
+		}
 	}
 	interfaceOpt, err := readInterfacePhysical(d.Id(), m, jnprSess)
 	if err != nil {
@@ -322,7 +331,7 @@ func resourceInterfacePhysicalImport(d *schema.ResourceData, m interface{}) ([]*
 	return result, nil
 }
 
-func checkInterfacePhysicalNC(interFace string, m interface{}, jnprSess *NetconfObject) (
+func checkInterfacePhysicalNCEmpty(interFace string, m interface{}, jnprSess *NetconfObject) (
 	ncInt bool, emtyInt bool, errFunc error) {
 	sess := m.(*Session)
 	intConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
@@ -360,8 +369,7 @@ func checkInterfacePhysicalNC(interFace string, m interface{}, jnprSess *Netconf
 		intConfig == "set disable\nset description NC" {
 		return true, false, nil
 	}
-	if intConfig == setLineStart ||
-		intConfig == emptyWord {
+	if intConfig == emptyWord {
 		return false, true, nil
 	}
 

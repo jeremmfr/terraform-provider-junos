@@ -379,21 +379,19 @@ func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
+	sess.configLock(jnprSess)
+	ncInt, emptyInt, _, err := checkInterfaceLogicalNCEmpty(d.Get("name").(string), m, jnprSess)
 	if err != nil {
+		sess.configClear(jnprSess)
+
 		return diag.FromErr(err)
 	}
-	sess.configLock(jnprSess)
-	if intExists {
-		ncInt, emptyInt, err := checkInterfaceLogicalNC(d.Get("name").(string), m, jnprSess)
-		if err != nil {
-			sess.configClear(jnprSess)
+	if !ncInt && !emptyInt {
+		sess.configClear(jnprSess)
 
-			return diag.FromErr(err)
-		}
-		if !ncInt && !emptyInt {
-			return diag.FromErr(fmt.Errorf("interface %s already configured", d.Get("name").(string)))
-		}
+		return diag.FromErr(fmt.Errorf("interface %s already configured", d.Get("name").(string)))
+	}
+	if ncInt {
 		if err := delInterfaceNC(d, m, jnprSess); err != nil {
 			sess.configClear(jnprSess)
 
@@ -445,24 +443,25 @@ func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData,
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	intExists, err = checkInterfaceExists(d.Get("name").(string), m, jnprSess)
+	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if intExists {
-		ncInt, _, err := checkInterfaceLogicalNC(d.Get("name").(string), m, jnprSess)
+	if ncInt {
+		return append(diagWarns, diag.FromErr(fmt.Errorf("interface %v always disable after commit "+
+			"=> check your config", d.Get("name").(string)))...)
+	}
+	if emptyInt && !setInt {
+		intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			return append(diagWarns, diag.FromErr(err)...)
 		}
-		if ncInt {
-			return append(diagWarns, diag.FromErr(fmt.Errorf("interface %v exists but always disable after commit "+
-				"=> check your config", d.Get("name").(string)))...)
+		if !intExists {
+			return append(diagWarns, diag.FromErr(fmt.Errorf("interface %v not exists and "+
+				"config can't found after commit => check your config", d.Get("name").(string)))...)
 		}
-		d.SetId(d.Get("name").(string))
-	} else {
-		return append(diagWarns, diag.FromErr(fmt.Errorf("interface %v not exists after commit "+
-			"=> check your config", d.Get("name").(string)))...)
 	}
+	d.SetId(d.Get("name").(string))
 
 	return append(diagWarns, resourceInterfaceLogicalReadWJnprSess(d, m, jnprSess)...)
 }
@@ -479,19 +478,7 @@ func resourceInterfaceLogicalRead(ctx context.Context, d *schema.ResourceData, m
 func resourceInterfaceLogicalReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
-	intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
-	if err != nil {
-		mutex.Unlock()
-
-		return diag.FromErr(err)
-	}
-	if !intExists {
-		d.SetId("")
-		mutex.Unlock()
-
-		return nil
-	}
-	ncInt, _, err := checkInterfaceLogicalNC(d.Get("name").(string), m, jnprSess)
+	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		mutex.Unlock()
 
@@ -502,6 +489,20 @@ func resourceInterfaceLogicalReadWJnprSess(
 		mutex.Unlock()
 
 		return nil
+	}
+	if emptyInt && !setInt {
+		intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
+		if err != nil {
+			mutex.Unlock()
+
+			return diag.FromErr(err)
+		}
+		if !intExists {
+			d.SetId("")
+			mutex.Unlock()
+
+			return nil
+		}
 	}
 	interfaceLogicalOpt, err := readInterfaceLogical(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -632,12 +633,21 @@ func resourceInterfaceLogicalImport(d *schema.ResourceData, m interface{}) ([]*s
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-	intExists, err := checkInterfaceExists(d.Id(), m, jnprSess)
+	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Id(), m, jnprSess)
 	if err != nil {
 		return nil, err
 	}
-	if !intExists {
-		return nil, fmt.Errorf("don't find interface with id '%v' (id must be <name>)", d.Id())
+	if ncInt {
+		return nil, fmt.Errorf("interface '%v' is disabled, import is not possible", d.Id())
+	}
+	if emptyInt && !setInt {
+		intExists, err := checkInterfaceExists(d.Id(), m, jnprSess)
+		if err != nil {
+			return nil, err
+		}
+		if !intExists {
+			return nil, fmt.Errorf("don't find interface with id '%v' (id must be <name>)", d.Id())
+		}
 	}
 	interfaceLogicalOpt, err := readInterfaceLogical(d.Id(), m, jnprSess)
 	if err != nil {
@@ -653,12 +663,12 @@ func resourceInterfaceLogicalImport(d *schema.ResourceData, m interface{}) ([]*s
 	return result, nil
 }
 
-func checkInterfaceLogicalNC(interFace string, m interface{}, jnprSess *NetconfObject) (
-	ncInt bool, emtyInt bool, errFunc error) {
+func checkInterfaceLogicalNCEmpty(interFace string, m interface{}, jnprSess *NetconfObject) (
+	ncInt bool, emtyInt bool, justSet bool, _err error) {
 	sess := m.(*Session)
 	intConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
 	if err != nil {
-		return false, false, err
+		return false, false, false, err
 	}
 	intConfigLines := make([]string, 0)
 	// remove unused lines
@@ -679,24 +689,26 @@ func checkInterfaceLogicalNC(interFace string, m interface{}, jnprSess *NetconfO
 		intConfigLines = append(intConfigLines, item)
 	}
 	if len(intConfigLines) == 0 {
-		return false, true, nil
+		return false, true, true, nil
 	}
 	intConfig = strings.Join(intConfigLines, "\n")
 	if sess.junosGroupIntDel != "" {
 		if intConfig == "set apply-groups "+sess.junosGroupIntDel {
-			return true, false, nil
+			return true, false, false, nil
 		}
 	}
 	if intConfig == "set description NC\nset disable" ||
 		intConfig == "set disable\nset description NC" {
-		return true, false, nil
+		return true, false, false, nil
 	}
-	if intConfig == setLineStart ||
-		intConfig == emptyWord {
-		return false, true, nil
+	switch {
+	case intConfig == setLineStart:
+		return false, true, true, nil
+	case intConfig == emptyWord:
+		return false, true, false, nil
+	default:
+		return false, false, false, nil
 	}
-
-	return false, false, nil
 }
 
 func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
