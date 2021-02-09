@@ -58,7 +58,7 @@ func validateIPwithMask(ip string) error {
 		(!strings.Contains(ip, ":") && strings.Contains(ip, "/32")) {
 		return nil
 	}
-	if ip == ipnet.String() {
+	if ip == ipnet.String() && !strings.Contains(ip, "/31") {
 		return fmt.Errorf("%v is not a valide IP/mask, is a network", ip)
 	}
 
