@@ -173,6 +173,62 @@ func resourceBgpGroup() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"signaling"}, false),
 						},
+						"accepted_prefix_limit": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"maximum": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 4294967295),
+									},
+									"teardown": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 100),
+									},
+									"teardown_idle_timeout": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 2400),
+									},
+									"teardown_idle_timeout_forever": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+								},
+							},
+						},
+						"prefix_limit": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"maximum": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 4294967295),
+									},
+									"teardown": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 100),
+									},
+									"teardown_idle_timeout": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 2400),
+									},
+									"teardown_idle_timeout_forever": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
