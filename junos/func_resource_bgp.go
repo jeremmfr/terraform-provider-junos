@@ -561,7 +561,9 @@ func setBgpOptsFamily(setPrefix, familyType string, familyOptsList []interface{}
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	setPrefixFamily := setPrefix + "family "
-	if familyType == inetWord {
+	if familyType == evpnWord {
+		setPrefixFamily += "evpn "
+	} else if familyType == inetWord {
 		setPrefixFamily += "inet "
 	} else if familyType == inet6Word {
 		setPrefixFamily += "inet6 "

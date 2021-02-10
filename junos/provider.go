@@ -11,6 +11,7 @@ import (
 const (
 	idSeparator    = "_-_"
 	defaultWord    = "default"
+	evpnWord       = "evpn"
 	inetWord       = "inet"
 	inet6Word      = "inet6"
 	emptyWord      = "empty"
