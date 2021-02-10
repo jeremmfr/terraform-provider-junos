@@ -627,6 +627,9 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 		"prefix_limit":          make([]map[string]interface{}, 0, 1),
 	}
 	setPrefix := "family "
+	if familyType == evpnWord {
+		setPrefix += "evpn "
+	}
 	if familyType == inetWord {
 		setPrefix += "inet "
 	}
