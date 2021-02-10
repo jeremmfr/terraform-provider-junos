@@ -52,6 +52,7 @@ type bgpOptions struct {
 	exportPolicy                 []string
 	importPolicy                 []string
 	bfdLivenessDetection         []map[string]interface{}
+	familyEvpn                   []map[string]interface{}
 	familyInet                   []map[string]interface{}
 	familyInet6                  []map[string]interface{}
 	gracefulRestart              []map[string]interface{}
@@ -92,6 +93,7 @@ func delBgpOpts(d *schema.ResourceData, typebgp string, m interface{}, jnprSess 
 		delPrefix+"bfd-liveness-detection",
 		delPrefix+"damping",
 		delPrefix+"export",
+		delPrefix+"family evpn",
 		delPrefix+"family inet",
 		delPrefix+"family inet6",
 		delPrefix+"graceful-restart",

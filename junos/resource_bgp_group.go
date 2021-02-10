@@ -761,7 +761,7 @@ func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObj
 					return confRead, err
 				}
 			case strings.HasPrefix(itemTrim, "family evpn "):
-				confRead.familyInet, err = readBgpOptsFamily(itemTrim, inetWord, confRead.familyInet)
+				confRead.familyEvpn, err = readBgpOptsFamily(itemTrim, inetWord, confRead.familyEvpn)
 				if err != nil {
 					return confRead, err
 				}
@@ -851,7 +851,7 @@ func fillBgpGroupData(d *schema.ResourceData, bgpGroupOptions bgpOptions) {
 	if tfErr := d.Set("export", bgpGroupOptions.exportPolicy); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("family_evpn", bgpGroupOptions.familyInet); tfErr != nil {
+	if tfErr := d.Set("family_evpn", bgpGroupOptions.familyEvpn); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("family_inet", bgpGroupOptions.familyInet); tfErr != nil {
