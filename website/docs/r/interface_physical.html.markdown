@@ -44,6 +44,8 @@ The following arguments are supported:
 * `vlan_native` - (Optional)(`Int`) Vlan for untagged frames.
 * `vlan_tagging` - (Optional)(`Bool`) Add 802.1q VLAN tagging support.
 
+~> **NOTE:** This resource computes the maximum number of aggregate interfaces required with the current configuration (searches lines `ether-options 802.3ad` and `ae` interfaces set) then add/remove `chassis aggregated-devices ethernet device-count` line with this maximum.
+
 ## Import
 
 Junos interface can be imported using an id made up of `<name>`, e.g.
