@@ -216,24 +216,26 @@ func resourceSecurityUtmProfileWebFilteringEnhancedCreate(
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf(
-		"create resource junos_security_utm_profile_web_filtering_juniper_enhanced", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_security_utm_profile_web_filtering_juniper_enhanced", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	utmProfileWebFEnhancedExists, err = checkUtmProfileWebFEnhancedExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if utmProfileWebFEnhancedExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering juniper-enhanced %v "+
-			"not exists after commit => check your config", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering juniper-enhanced %v "+
+			"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return resourceSecurityUtmProfileWebFilteringEnhancedReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityUtmProfileWebFilteringEnhancedReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityUtmProfileWebFilteringEnhancedRead(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -282,15 +284,17 @@ func resourceSecurityUtmProfileWebFilteringEnhancedUpdate(
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf(
-		"update resource junos_security_utm_profile_web_filtering_juniper_enhanced", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_security_utm_profile_web_filtering_juniper_enhanced", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceSecurityUtmProfileWebFilteringEnhancedReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityUtmProfileWebFilteringEnhancedReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityUtmProfileWebFilteringEnhancedDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -306,14 +310,16 @@ func resourceSecurityUtmProfileWebFilteringEnhancedDelete(
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf(
-		"delete resource junos_security_utm_profile_web_filtering_juniper_enhanced", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_security_utm_profile_web_filtering_juniper_enhanced", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceSecurityUtmProfileWebFilteringEnhancedImport(
 	d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {

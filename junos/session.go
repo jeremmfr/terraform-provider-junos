@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// Session information for connect to Junos Device.
+// Session information to connect on Junos Device.
 type Session struct {
 	junosPort           int
 	junosSleepLock      int
@@ -123,21 +123,31 @@ func (sess *Session) configSet(cmd []string, jnpr *NetconfObject) error {
 
 	return nil
 }
-func (sess *Session) commitConf(logMessage string, jnpr *NetconfObject) error {
+func (sess *Session) commitConf(logMessage string, jnpr *NetconfObject) (_warnings []error, _err error) {
 	if sess.junosLogFile != "" {
 		logFile(fmt.Sprintf("[commitConf] commit %q", logMessage), sess.junosLogFile)
 	}
-	err := jnpr.netconfCommit(logMessage)
+	warns, err := jnpr.netconfCommit(logMessage)
 	sleepShort(sess.junosSleepShort)
 	if err != nil {
 		if sess.junosLogFile != "" {
 			logFile(fmt.Sprintf("[commitConf] commit error: %q", err), sess.junosLogFile)
+			if len(warns) > 0 {
+				for _, w := range warns {
+					logFile(fmt.Sprintf("[commitConf] commit warning: %q", w), sess.junosLogFile)
+				}
+			}
 		}
 
-		return err
+		return warns, err
+	}
+	if len(warns) > 0 && sess.junosLogFile != "" {
+		for _, w := range warns {
+			logFile(fmt.Sprintf("[commitConf] commit warning: %q", w), sess.junosLogFile)
+		}
 	}
 
-	return nil
+	return warns, nil
 }
 
 func (sess *Session) configLock(jnpr *NetconfObject) {

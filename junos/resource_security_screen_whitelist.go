@@ -69,23 +69,26 @@ func resourceSecurityScreenWhiteListCreate(
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_security_screen_whitelist", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_security_screen_whitelist", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	securityScreenWhiteListExists, err = checkSecurityScreenWhiteListExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityScreenWhiteListExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("security screen white-list %v not exists after commit "+
-			"=> check your config", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("security screen white-list %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return resourceSecurityScreenWhiteListReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityScreenWhiteListReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityScreenWhiteListRead(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -136,14 +139,17 @@ func resourceSecurityScreenWhiteListUpdate(
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_security_screen_whitelist", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_security_screen_whitelist", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceSecurityScreenWhiteListReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityScreenWhiteListReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityScreenWhiteListDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -159,13 +165,16 @@ func resourceSecurityScreenWhiteListDelete(
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_security_screen_whitelist", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_security_screen_whitelist", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceSecurityScreenWhiteListImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)

@@ -70,23 +70,26 @@ func resourcePolicyoptionsCommunityCreate(ctx context.Context, d *schema.Resourc
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_policyoptions_community", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_policyoptions_community", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	policyoptsCommunityExists, err = checkPolicyoptionsCommunityExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if policyoptsCommunityExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("policy-options community %v not exists after commit "+
-			"=> check your config", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("policy-options community %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return resourcePolicyoptionsCommunityReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourcePolicyoptionsCommunityReadWJnprSess(d, m, jnprSess)...)
 }
 func resourcePolicyoptionsCommunityRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -133,14 +136,17 @@ func resourcePolicyoptionsCommunityUpdate(ctx context.Context, d *schema.Resourc
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_policyoptions_community", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_policyoptions_community", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourcePolicyoptionsCommunityReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourcePolicyoptionsCommunityReadWJnprSess(d, m, jnprSess)...)
 }
 func resourcePolicyoptionsCommunityDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -155,13 +161,16 @@ func resourcePolicyoptionsCommunityDelete(ctx context.Context, d *schema.Resourc
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_policyoptions_community", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_policyoptions_community", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourcePolicyoptionsCommunityImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)

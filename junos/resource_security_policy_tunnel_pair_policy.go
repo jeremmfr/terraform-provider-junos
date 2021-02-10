@@ -109,24 +109,28 @@ func resourceSecurityPolicyTunnelPairPolicyCreate(
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_security_policy_tunnel_pair_policy", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_security_policy_tunnel_pair_policy", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	pairPolicyExists, err = checkSecurityPolicyPairExists(d.Get("zone_a").(string), d.Get("policy_a_to_b").(string),
 		d.Get("zone_b").(string), d.Get("policy_b_to_a").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if pairPolicyExists {
 		d.SetId(d.Get("zone_a").(string) + idSeparator + d.Get("policy_a_to_b").(string) +
 			idSeparator + d.Get("zone_b").(string) + idSeparator + d.Get("policy_b_to_a").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("security policy pair policy not exists after commit => check your config"))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("security policy pair policy not exists after commit "+
+			"=> check your config"))...)
 	}
 
-	return resourceSecurityPolicyTunnelPairPolicyReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityPolicyTunnelPairPolicyReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityPolicyTunnelPairPolicyRead(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -172,13 +176,16 @@ func resourceSecurityPolicyTunnelPairPolicyDelete(
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_security_policy_tunnel_pair_policy", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_security_policy_tunnel_pair_policy", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceSecurityPolicyTunnelPairPolicyImport(d *schema.ResourceData,
 	m interface{}) ([]*schema.ResourceData, error) {

@@ -517,26 +517,30 @@ func resourceBgpNeighborCreate(ctx context.Context, d *schema.ResourceData, m in
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_bgp_neighbor", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_bgp_neighbor", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	bgpNeighborxists, err = checkBgpNeighborExists(d.Get("ip").(string),
 		d.Get("routing_instance").(string), d.Get("group").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if bgpNeighborxists {
 		d.SetId(d.Get("ip").(string) +
 			idSeparator + d.Get("routing_instance").(string) +
 			idSeparator + d.Get("group").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("bgp neighbor %v not exists in group %v (routing-instance %v) after commit "+
-			"=> check your config", d.Get("ip").(string), d.Get("group").(string), d.Get("routing_instance").(string)))
+		return append(diagWarns,
+			diag.FromErr(fmt.Errorf("bgp neighbor %v not exists in group %v (routing-instance %v) after commit "+
+				"=> check your config", d.Get("ip").(string), d.Get("group").(string), d.Get("routing_instance").(string)))...)
 	}
 
-	return resourceBgpNeighborReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceBgpNeighborReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceBgpNeighborRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -583,14 +587,17 @@ func resourceBgpNeighborUpdate(ctx context.Context, d *schema.ResourceData, m in
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_bgp_neighbor", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_bgp_neighbor", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceBgpNeighborReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceBgpNeighborReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceBgpNeighborDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -605,13 +612,16 @@ func resourceBgpNeighborDelete(ctx context.Context, d *schema.ResourceData, m in
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_bgp_neighbor", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_bgp_neighbor", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceBgpNeighborImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)

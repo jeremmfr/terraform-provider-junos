@@ -215,24 +215,27 @@ func resourceStaticRouteCreate(ctx context.Context, d *schema.ResourceData, m in
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_static_route", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_static_route", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	staticRouteExists, err = checkStaticRouteExists(d.Get("destination").(string), d.Get("routing_instance").(string),
 		m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if staticRouteExists {
 		d.SetId(d.Get("destination").(string) + idSeparator + d.Get("routing_instance").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("static route %v not exists in routing_instance %v after commit "+
-			"=> check your config", d.Get("destination").(string), d.Get("routing_instance").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("static route %v not exists in routing_instance %v after commit "+
+			"=> check your config", d.Get("destination").(string), d.Get("routing_instance").(string)))...)
 	}
 
-	return resourceStaticRouteReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceStaticRouteReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceStaticRouteRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -280,14 +283,18 @@ func resourceStaticRouteUpdate(ctx context.Context, d *schema.ResourceData, m in
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_static_route", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_static_route", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
+
 	d.Partial(false)
 
-	return resourceStaticRouteReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceStaticRouteReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceStaticRouteDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -302,13 +309,16 @@ func resourceStaticRouteDelete(ctx context.Context, d *schema.ResourceData, m in
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_static_route", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_static_route", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceStaticRouteImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)

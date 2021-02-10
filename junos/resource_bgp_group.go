@@ -511,23 +511,26 @@ func resourceBgpGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_bgp_group", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_bgp_group", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	bgpGroupxists, err = checkBgpGroupExists(d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if bgpGroupxists {
 		d.SetId(d.Get("name").(string) + idSeparator + d.Get("routing_instance").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("bgp group %v not exists in routing-instance %v after commit "+
-			"=> check your config", d.Get("name").(string), d.Get("routing_instance").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("bgp group %v not exists in routing-instance %v after commit "+
+			"=> check your config", d.Get("name").(string), d.Get("routing_instance").(string)))...)
 	}
 
-	return resourceBgpGroupReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceBgpGroupReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceBgpGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -573,14 +576,17 @@ func resourceBgpGroupUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_bgp_group", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_bgp_group", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceBgpGroupReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceBgpGroupReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceBgpGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -595,13 +601,16 @@ func resourceBgpGroupDelete(ctx context.Context, d *schema.ResourceData, m inter
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_bgp_group", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_bgp_group", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceBgpGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)

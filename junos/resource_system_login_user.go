@@ -111,23 +111,26 @@ func resourceSystemLoginUserCreate(ctx context.Context, d *schema.ResourceData, 
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_system_login_user", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_system_login_user", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	systemLoginUserExists, err = checkSystemLoginUserExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if systemLoginUserExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("system login user %v not exists after commit "+
-			"=> check your config", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("system login user %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return resourceSystemLoginUserReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSystemLoginUserReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSystemLoginUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -174,14 +177,18 @@ func resourceSystemLoginUserUpdate(ctx context.Context, d *schema.ResourceData, 
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_system_login_user", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_system_login_user", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
+
 	d.Partial(false)
 
-	return resourceSystemLoginUserReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSystemLoginUserReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSystemLoginUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -196,13 +203,16 @@ func resourceSystemLoginUserDelete(ctx context.Context, d *schema.ResourceData, 
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_system_login_user", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_system_login_user", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceSystemLoginUserImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)

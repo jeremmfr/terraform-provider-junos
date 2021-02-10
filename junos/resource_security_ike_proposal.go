@@ -90,23 +90,26 @@ func resourceIkeProposalCreate(ctx context.Context, d *schema.ResourceData, m in
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_security_ike_proposal", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_security_ike_proposal", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	ikeProposalExists, err = checkIkeProposalExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if ikeProposalExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("security ike proposal %v not exists after commit "+
-			"=> check your config", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("security ike proposal %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return resourceIkeProposalReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceIkeProposalReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceIkeProposalRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -152,14 +155,17 @@ func resourceIkeProposalUpdate(ctx context.Context, d *schema.ResourceData, m in
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_security_ike_proposal", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_security_ike_proposal", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceIkeProposalReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceIkeProposalReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceIkeProposalDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -174,13 +180,16 @@ func resourceIkeProposalDelete(ctx context.Context, d *schema.ResourceData, m in
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_security_ike_proposal", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_security_ike_proposal", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceIkeProposalImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
