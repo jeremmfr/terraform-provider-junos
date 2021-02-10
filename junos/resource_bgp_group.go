@@ -162,6 +162,20 @@ func resourceBgpGroup() *schema.Resource {
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+			"family_evpn": {
+                        	Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"nlri_type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"signaling"}, false),
+						},
+					},
+				},
+			},
 			"family_inet": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -691,6 +705,9 @@ func setBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	if err := setBgpOptsBfd(setPrefix, d.Get("bfd_liveness_detection").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
+	if err := setBgpOptsFamily(setPrefix, inetWord, d.Get("family_evpn").([]interface{}), m, jnprSess); err != nil {
+		return err
+	}
 	if err := setBgpOptsFamily(setPrefix, inetWord, d.Get("family_inet").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
@@ -740,6 +757,11 @@ func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObj
 			switch {
 			case strings.HasPrefix(itemTrim, "bfd-liveness-detection "):
 				confRead.bfdLivenessDetection, err = readBgpOptsBfd(itemTrim, confRead.bfdLivenessDetection)
+				if err != nil {
+					return confRead, err
+				}
+			case strings.HasPrefix(itemTrim, "family evpn "):
+				confRead.familyInet, err = readBgpOptsFamily(itemTrim, inetWord, confRead.familyInet)
 				if err != nil {
 					return confRead, err
 				}
@@ -827,6 +849,9 @@ func fillBgpGroupData(d *schema.ResourceData, bgpGroupOptions bgpOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("export", bgpGroupOptions.exportPolicy); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("family_evpn", bgpGroupOptions.familyInet); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("family_inet", bgpGroupOptions.familyInet); tfErr != nil {
