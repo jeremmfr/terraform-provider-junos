@@ -705,7 +705,7 @@ func setBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	if err := setBgpOptsBfd(setPrefix, d.Get("bfd_liveness_detection").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
-	if err := setBgpOptsFamily(setPrefix, inetWord, d.Get("family_evpn").([]interface{}), m, jnprSess); err != nil {
+	if err := setBgpOptsFamily(setPrefix, evpnWord, d.Get("family_evpn").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
 	if err := setBgpOptsFamily(setPrefix, inetWord, d.Get("family_inet").([]interface{}), m, jnprSess); err != nil {
