@@ -163,7 +163,7 @@ func resourceBgpGroup() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"family_evpn": {
-                        	Type:     schema.TypeList,
+				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{

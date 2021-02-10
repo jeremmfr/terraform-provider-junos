@@ -573,23 +573,25 @@ func setBgpOptsFamily(setPrefix, familyType string, familyOptsList []interface{}
 	for _, familyOpts := range familyOptsList {
 		familyOptsM := familyOpts.(map[string]interface{})
 		configSet = append(configSet, setPrefixFamily+familyOptsM["nlri_type"].(string))
-		for _, v := range familyOptsM["accepted_prefix_limit"].([]interface{}) {
-			m := v.(map[string]interface{})
-			setP := setPrefixFamily + familyOptsM["nlri_type"].(string) + " accepted-prefix-limit "
-			configSetBgpOptsFamilyPrefixLimit, err := setBgpOptsFamilyPrefixLimit(setP, m)
-			if err != nil {
-				return err
+		if familyType == inetWord || familyType == inet6Word {
+			for _, v := range familyOptsM["accepted_prefix_limit"].([]interface{}) {
+				m := v.(map[string]interface{})
+				setP := setPrefixFamily + familyOptsM["nlri_type"].(string) + " accepted-prefix-limit "
+				configSetBgpOptsFamilyPrefixLimit, err := setBgpOptsFamilyPrefixLimit(setP, m)
+				if err != nil {
+					return err
+				}
+				configSet = append(configSet, configSetBgpOptsFamilyPrefixLimit...)
 			}
-			configSet = append(configSet, configSetBgpOptsFamilyPrefixLimit...)
-		}
-		for _, v := range familyOptsM["prefix_limit"].([]interface{}) {
-			m := v.(map[string]interface{})
-			setP := setPrefixFamily + familyOptsM["nlri_type"].(string) + " prefix-limit "
-			configSetBgpOptsFamilyPrefixLimit, err := setBgpOptsFamilyPrefixLimit(setP, m)
-			if err != nil {
-				return err
+			for _, v := range familyOptsM["prefix_limit"].([]interface{}) {
+				m := v.(map[string]interface{})
+				setP := setPrefixFamily + familyOptsM["nlri_type"].(string) + " prefix-limit "
+				configSetBgpOptsFamilyPrefixLimit, err := setBgpOptsFamilyPrefixLimit(setP, m)
+				if err != nil {
+					return err
+				}
+				configSet = append(configSet, configSetBgpOptsFamilyPrefixLimit...)
 			}
-			configSet = append(configSet, configSetBgpOptsFamilyPrefixLimit...)
 		}
 	}
 	if len(configSet) > 0 {
