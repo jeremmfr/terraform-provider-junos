@@ -778,7 +778,7 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 			}
 			if familyInet6["filter_output"].(string) != "" {
 				configSet = append(configSet, setPrefix+"family inet6 filter output "+
-					familyInet6["filter_input"].(string))
+					familyInet6["filter_output"].(string))
 			}
 			if familyInet6["mtu"].(int) > 0 {
 				configSet = append(configSet, setPrefix+"family inet6 mtu "+
