@@ -69,7 +69,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"inet", "inet-mdt", "inet-mvpn", "inet-vpn",
+								"evpn", "inet", "inet-mdt", "inet-mvpn", "inet-vpn",
 								"inet6", "inet6-mvpn", "inet6-vpn",
 								"iso"}, false),
 						},
@@ -296,7 +296,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"inet", "inet-mdt", "inet-mvpn", "inet-vpn",
+								"evpn", "inet", "inet-mdt", "inet-mvpn", "inet-vpn",
 								"inet6", "inet6-mvpn", "inet6-vpn",
 								"iso"}, false),
 						},
@@ -392,7 +392,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											"inet", "inet-mdt", "inet-mvpn", "inet-vpn",
+											"evpn", "inet", "inet-mdt", "inet-mvpn", "inet-vpn",
 											"inet6", "inet6-mvpn", "inet6-vpn",
 											"iso"}, false),
 									},
@@ -619,7 +619,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											"inet", "inet-mdt", "inet-mvpn", "inet-vpn",
+											"evpn", "inet", "inet-mdt", "inet-mvpn", "inet-vpn",
 											"inet6", "inet6-mvpn", "inet6-vpn",
 											"iso"}, false),
 									},
