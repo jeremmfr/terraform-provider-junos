@@ -817,7 +817,7 @@ func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObj
 					return confRead, err
 				}
 			case strings.HasPrefix(itemTrim, "family evpn "):
-				confRead.familyEvpn, err = readBgpOptsFamily(itemTrim, inetWord, confRead.familyEvpn)
+				confRead.familyEvpn, err = readBgpOptsFamily(itemTrim, evpnWord, confRead.familyEvpn)
 				if err != nil {
 					return confRead, err
 				}
