@@ -626,9 +626,11 @@ func setBgpOptsFamilyPrefixLimit(setPrefix string, prefixLimit map[string]interf
 }
 func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) ([]map[string]interface{}, error) {
 	readOpts := map[string]interface{}{
-		"nlri_type":             "",
-		"accepted_prefix_limit": make([]map[string]interface{}, 0, 1),
-		"prefix_limit":          make([]map[string]interface{}, 0, 1),
+		"nlri_type":			"",
+	}
+	if familyType == inetWord || familyType == inet6Word {
+		readOpts["accepted_prefix_limit"] = make([]map[string]interface{}, 0, 1)
+		readOpts["prefix_limit"] = make([]map[string]interface{}, 0, 1)
 	}
 	setPrefix := "family "
 	if familyType == evpnWord {
