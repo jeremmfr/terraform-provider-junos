@@ -89,17 +89,17 @@ func resourceSecurityNatSource() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"source_address": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
 									"destination_address": {
 										Type:     schema.TypeList,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"protocol": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"source_address": {
 										Type:     schema.TypeList,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
@@ -162,23 +162,26 @@ func resourceSecurityNatSourceCreate(ctx context.Context, d *schema.ResourceData
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_security_nat_source", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_security_nat_source", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	securityNatSourceExists, err = checkSecurityNatSourceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityNatSourceExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("security nat source %v not exists after commit "+
-			"=> check your config", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("security nat source %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return resourceSecurityNatSourceReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityNatSourceReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityNatSourceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -225,14 +228,17 @@ func resourceSecurityNatSourceUpdate(ctx context.Context, d *schema.ResourceData
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_security_nat_source", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_security_nat_source", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceSecurityNatSourceReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityNatSourceReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityNatSourceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -247,13 +253,16 @@ func resourceSecurityNatSourceDelete(ctx context.Context, d *schema.ResourceData
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_security_nat_source", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_security_nat_source", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceSecurityNatSourceImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
@@ -317,13 +326,6 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 		setPrefixRule := setPrefix + " rule " + rule["name"].(string)
 		for _, matchV := range rule[matchWord].([]interface{}) {
 			match := matchV.(map[string]interface{})
-			for _, address := range match["source_address"].([]interface{}) {
-				err := validateCIDRNetwork(address.(string))
-				if err != nil {
-					return err
-				}
-				configSet = append(configSet, setPrefixRule+" match source-address "+address.(string))
-			}
 			for _, address := range match["destination_address"].([]interface{}) {
 				err := validateCIDRNetwork(address.(string))
 				if err != nil {
@@ -333,6 +335,13 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 			}
 			for _, proto := range match["protocol"].([]interface{}) {
 				configSet = append(configSet, setPrefixRule+" match protocol "+proto.(string))
+			}
+			for _, address := range match["source_address"].([]interface{}) {
+				err := validateCIDRNetwork(address.(string))
+				if err != nil {
+					return err
+				}
+				configSet = append(configSet, setPrefixRule+" match source-address "+address.(string))
 			}
 		}
 		for _, thenV := range rule[thenWord].([]interface{}) {
@@ -419,9 +428,9 @@ func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObj
 				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match "):
 					itemTrimMatch := strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match ")
 					ruleMatchOptions := map[string]interface{}{
-						"source_address":      []string{},
 						"destination_address": []string{},
 						"protocol":            []string{},
+						"source_address":      []string{},
 					}
 					if len(ruleOptions[matchWord].([]map[string]interface{})) > 0 {
 						for k, v := range ruleOptions[matchWord].([]map[string]interface{})[0] {
@@ -429,15 +438,15 @@ func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObj
 						}
 					}
 					switch {
-					case strings.HasPrefix(itemTrimMatch, "source-address "):
-						ruleMatchOptions["source_address"] = append(ruleMatchOptions["source_address"].([]string),
-							strings.TrimPrefix(itemTrimMatch, "source-address "))
 					case strings.HasPrefix(itemTrimMatch, "destination-address "):
 						ruleMatchOptions["destination_address"] = append(ruleMatchOptions["destination_address"].([]string),
 							strings.TrimPrefix(itemTrimMatch, "destination-address "))
 					case strings.HasPrefix(itemTrimMatch, "protocol "):
 						ruleMatchOptions["protocol"] = append(ruleMatchOptions["protocol"].([]string),
 							strings.TrimPrefix(itemTrimMatch, "protocol "))
+					case strings.HasPrefix(itemTrimMatch, "source-address "):
+						ruleMatchOptions["source_address"] = append(ruleMatchOptions["source_address"].([]string),
+							strings.TrimPrefix(itemTrimMatch, "source-address "))
 					}
 					// override (maxItem = 1)
 					ruleOptions[matchWord] = []map[string]interface{}{ruleMatchOptions}
@@ -465,10 +474,6 @@ func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObj
 				confRead.rule = append(confRead.rule, ruleOptions)
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

@@ -69,6 +69,18 @@ func resourceSecurityPolicy() *schema.Resource {
 							Default:      permitWord,
 							ValidateFunc: validation.StringInSlice([]string{permitWord, "reject", "deny"}, false),
 						},
+						"count": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"log_init": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"log_close": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
 						"permit_application_services": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -144,18 +156,6 @@ func resourceSecurityPolicy() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"count": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-						"log_init": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-						"log_close": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
 					},
 				},
 			},
@@ -194,24 +194,27 @@ func resourceSecurityPolicyCreate(ctx context.Context, d *schema.ResourceData, m
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_security_policy", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_security_policy", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	securityPolicyExists, err = checkSecurityPolicyExists(d.Get("from_zone").(string), d.Get("to_zone").(string),
 		m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityPolicyExists {
 		d.SetId(d.Get("from_zone").(string) + idSeparator + d.Get("to_zone").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("security policy from %v to %v not exists after commit "+
-			"=> check your config", d.Get("from_zone").(string), d.Get("to_zone").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("security policy from %v to %v not exists after commit "+
+			"=> check your config", d.Get("from_zone").(string), d.Get("to_zone").(string)))...)
 	}
 
-	return resourceSecurityPolicyReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityPolicyReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -261,14 +264,17 @@ func resourceSecurityPolicyUpdate(ctx context.Context, d *schema.ResourceData, m
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_security_policy", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_security_policy", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceSecurityPolicyReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityPolicyReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -283,13 +289,16 @@ func resourceSecurityPolicyDelete(ctx context.Context, d *schema.ResourceData, m
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_security_policy", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_security_policy", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceSecurityPolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
@@ -323,12 +332,12 @@ func resourceSecurityPolicyImport(d *schema.ResourceData, m interface{}) ([]*sch
 
 func checkSecurityPolicyExists(fromZone, toZone string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	zoneConfig, err := sess.command("show configuration"+
+	policyConfig, err := sess.command("show configuration"+
 		" security policies from-zone "+fromZone+" to-zone "+toZone+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if zoneConfig == emptyWord {
+	if policyConfig == emptyWord {
 		return false, nil
 	}
 
@@ -367,6 +376,15 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			configSet = append(configSet, setPrefixPolicy+" match application any")
 		}
 		configSet = append(configSet, setPrefixPolicy+" then "+policy["then"].(string))
+		if policy["count"].(bool) {
+			configSet = append(configSet, setPrefixPolicy+" then count")
+		}
+		if policy["log_init"].(bool) {
+			configSet = append(configSet, setPrefixPolicy+" then log session-init")
+		}
+		if policy["log_close"].(bool) {
+			configSet = append(configSet, setPrefixPolicy+" then log session-close")
+		}
 		if policy["permit_tunnel_ipsec_vpn"].(string) != "" {
 			if policy["then"].(string) != permitWord {
 				return fmt.Errorf("conflict policy then %v and policy permit_tunnel_ipsec_vpn",
@@ -389,15 +407,6 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 				return err
 			}
 			configSet = append(configSet, configSetAppSvc...)
-		}
-		if policy["count"].(bool) {
-			configSet = append(configSet, setPrefixPolicy+" then count")
-		}
-		if policy["log_init"].(bool) {
-			configSet = append(configSet, setPrefixPolicy+" then log session-init")
-		}
-		if policy["log_close"].(bool) {
-			configSet = append(configSet, setPrefixPolicy+" then log session-close")
 		}
 	}
 	if err := sess.configSet(configSet, jnprSess); err != nil {
@@ -509,8 +518,8 @@ func genMapPolicyWithName(name string) map[string]interface{} {
 		"count":                       false,
 		"log_init":                    false,
 		"log_close":                   false,
-		"permit_tunnel_ipsec_vpn":     "",
 		"permit_application_services": make([]map[string]interface{}, 0),
+		"permit_tunnel_ipsec_vpn":     "",
 	}
 }
 

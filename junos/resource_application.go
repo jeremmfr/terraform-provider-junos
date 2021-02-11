@@ -11,8 +11,8 @@ import (
 
 type applicationOptions struct {
 	name            string
-	protocol        string
 	destinationPort string
+	protocol        string
 	sourcePort      string
 }
 
@@ -32,11 +32,11 @@ func resourceApplication() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 			},
-			"protocol": {
+			"destination_port": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"destination_port": {
+			"protocol": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -72,22 +72,26 @@ func resourceApplicationCreate(ctx context.Context, d *schema.ResourceData, m in
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_application", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_application", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	appExists, err = checkApplicationExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if appExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("application %v not exists after commit => check your config", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("application %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return resourceApplicationReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceApplicationReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceApplicationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -133,14 +137,17 @@ func resourceApplicationUpdate(ctx context.Context, d *schema.ResourceData, m in
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_application", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_application", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceApplicationReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceApplicationReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceApplicationDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -155,13 +162,16 @@ func resourceApplicationDelete(ctx context.Context, d *schema.ResourceData, m in
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_application", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_application", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceApplicationImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
@@ -206,11 +216,11 @@ func setApplication(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	configSet := make([]string, 0)
 
 	setPrefix := "set applications application " + d.Get("name").(string)
-	if d.Get("protocol").(string) != "" {
-		configSet = append(configSet, setPrefix+" protocol "+d.Get("protocol").(string))
-	}
 	if d.Get("destination_port").(string) != "" {
 		configSet = append(configSet, setPrefix+" destination-port "+d.Get("destination_port").(string))
+	}
+	if d.Get("protocol").(string) != "" {
+		configSet = append(configSet, setPrefix+" protocol "+d.Get("protocol").(string))
 	}
 	if d.Get("source_port").(string) != "" {
 		configSet = append(configSet, setPrefix+" source-port "+d.Get("source_port").(string))
@@ -242,18 +252,14 @@ func readApplication(application string, m interface{}, jnprSess *NetconfObject)
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case strings.HasPrefix(itemTrim, "protocol "):
-				confRead.protocol = strings.TrimPrefix(itemTrim, "protocol ")
 			case strings.HasPrefix(itemTrim, "destination-port "):
 				confRead.destinationPort = strings.TrimPrefix(itemTrim, "destination-port ")
+			case strings.HasPrefix(itemTrim, "protocol "):
+				confRead.protocol = strings.TrimPrefix(itemTrim, "protocol ")
 			case strings.HasPrefix(itemTrim, "source-port "):
 				confRead.sourcePort = strings.TrimPrefix(itemTrim, "source-port ")
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil
@@ -273,10 +279,10 @@ func fillApplicationData(d *schema.ResourceData, applicationOptions applicationO
 	if tfErr := d.Set("name", applicationOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("protocol", applicationOptions.protocol); tfErr != nil {
+	if tfErr := d.Set("destination_port", applicationOptions.destinationPort); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("destination_port", applicationOptions.destinationPort); tfErr != nil {
+	if tfErr := d.Set("protocol", applicationOptions.protocol); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("source_port", applicationOptions.sourcePort); tfErr != nil {

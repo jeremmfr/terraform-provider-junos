@@ -40,23 +40,29 @@ func resourceInterfaceSt0UnitCreate(ctx context.Context, d *schema.ResourceData,
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_interface_st0_unit", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_interface_st0_unit", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	intExists, err := checkInterfaceExists(newSt0, m, jnprSess)
+	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(newSt0, m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if intExists {
-		d.SetId(newSt0)
-	} else {
-		return diag.FromErr(fmt.Errorf("create new st0 unit interface doesn't works, "+
-			"can't find the new interface %s after commit", newSt0))
+	if ncInt {
+		return append(diagWarns, diag.FromErr(fmt.Errorf("create new %v always disable after commit "+
+			"=> check your config", newSt0))...)
 	}
+	if emptyInt && !setInt {
+		return append(diagWarns, diag.FromErr(fmt.Errorf("create new st0 unit interface doesn't works, "+
+			"can't find the new interface %s after commit", newSt0))...)
+	}
+	d.SetId(newSt0)
 
-	return nil
+	return diagWarns
 }
 func resourceInterfaceSt0UnitRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -66,12 +72,12 @@ func resourceInterfaceSt0UnitRead(ctx context.Context, d *schema.ResourceData, m
 	}
 	defer sess.closeSession(jnprSess)
 	mutex.Lock()
-	intExists, err := checkInterfaceExists(d.Id(), m, jnprSess)
+	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Id(), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	if !intExists {
+	if ncInt || (emptyInt && !setInt) {
 		d.SetId("")
 	}
 
@@ -86,7 +92,7 @@ func resourceInterfaceSt0UnitDelete(ctx context.Context, d *schema.ResourceData,
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	ncInt, emptyInt, err := checkInterfaceLogicalNC(d.Id(), m, jnprSess)
+	ncInt, emptyInt, _, err := checkInterfaceLogicalNCEmpty(d.Id(), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
 
@@ -102,13 +108,16 @@ func resourceInterfaceSt0UnitDelete(ctx context.Context, d *schema.ResourceData,
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_interface_st0_unit", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_interface_st0_unit", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceInterfaceSt0UnitImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
@@ -121,11 +130,14 @@ func resourceInterfaceSt0UnitImport(d *schema.ResourceData, m interface{}) ([]*s
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-	intExists, err := checkInterfaceExists(d.Id(), m, jnprSess)
+	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Id(), m, jnprSess)
 	if err != nil {
 		return nil, err
 	}
-	if !intExists {
+	if ncInt {
+		return nil, fmt.Errorf("interface '%v' is disabled, import is not possible", d.Id())
+	}
+	if emptyInt && !setInt {
 		return nil, fmt.Errorf("don't find interface with id '%v'"+
 			" (id must be the name of st0 unit interface <st0.?>)", d.Id())
 	}

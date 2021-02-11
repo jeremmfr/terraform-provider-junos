@@ -16,8 +16,8 @@ type natSourcePoolOptions struct {
 	portNoTranslation     bool
 	portOverloadingFactor int
 	name                  string
-	routingInstance       string
 	portRange             string
+	routingInstance       string
 	address               []string
 }
 
@@ -43,11 +43,6 @@ func resourceSecurityNatSourcePool() *schema.Resource {
 				MinItems: 1,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"routing_instance": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
-			},
 			"port_no_translation": {
 				Type:          schema.TypeBool,
 				Optional:      true,
@@ -64,6 +59,11 @@ func resourceSecurityNatSourcePool() *schema.Resource {
 				Optional:         true,
 				ConflictsWith:    []string{"port_overloading_factor", "port_no_translation"},
 				ValidateDiagFunc: validateSourcePoolPortRange(),
+			},
+			"routing_instance": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 			},
 		},
 	}
@@ -98,23 +98,26 @@ func resourceSecurityNatSourcePoolCreate(ctx context.Context, d *schema.Resource
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_security_nat_source_pool", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_security_nat_source_pool", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	securityNatSourcePoolExists, err = checkSecurityNatSourcePoolExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityNatSourcePoolExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("security nat source pool %v not exists after commit "+
-			"=> check your config", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("security nat source pool %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return resourceSecurityNatSourcePoolReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityNatSourcePoolReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityNatSourcePoolRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -161,14 +164,17 @@ func resourceSecurityNatSourcePoolUpdate(ctx context.Context, d *schema.Resource
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_security_nat_source_pool", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_security_nat_source_pool", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceSecurityNatSourcePoolReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityNatSourcePoolReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityNatSourcePoolDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -183,13 +189,16 @@ func resourceSecurityNatSourcePoolDelete(ctx context.Context, d *schema.Resource
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_security_nat_source_pool", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_security_nat_source_pool", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceSecurityNatSourcePoolImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
@@ -305,10 +314,6 @@ func readSecurityNatSourcePool(natSourcePool string,
 			}
 		}
 		confRead.portRange = portRange
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

@@ -59,15 +59,15 @@ func resourceSecurityLogStream() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
-						"size": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 3),
-						},
 						"rotation": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(2, 19),
+						},
+						"size": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 3),
 						},
 					},
 				},
@@ -150,23 +150,26 @@ func resourceSecurityLogStreamCreate(ctx context.Context, d *schema.ResourceData
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_security_log_stream", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_security_log_stream", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	securityLogStreamExists, err = checkSecurityLogStreamExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityLogStreamExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("security log stream %v "+
-			"not exists after commit => check your config", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("security log stream %v "+
+			"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return resourceSecurityLogStreamReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityLogStreamReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityLogStreamRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -213,14 +216,17 @@ func resourceSecurityLogStreamUpdate(ctx context.Context, d *schema.ResourceData
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_security_log_stream", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_security_log_stream", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceSecurityLogStreamReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityLogStreamReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityLogStreamDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -235,13 +241,16 @@ func resourceSecurityLogStreamDelete(ctx context.Context, d *schema.ResourceData
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_security_log_stream", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_security_log_stream", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceSecurityLogStreamImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
@@ -296,11 +305,11 @@ func setSecurityLogStream(d *schema.ResourceData, m interface{}, jnprSess *Netco
 		if file["allow_duplicates"].(bool) {
 			configSet = append(configSet, setPrefix+"file allow-duplicates")
 		}
-		if file["size"].(int) != 0 {
-			configSet = append(configSet, setPrefix+"file size "+strconv.Itoa(file["size"].(int)))
-		}
 		if file["rotation"].(int) != 0 {
 			configSet = append(configSet, setPrefix+"file rotation "+strconv.Itoa(file["rotation"].(int)))
+		}
+		if file["size"].(int) != 0 {
+			configSet = append(configSet, setPrefix+"file size "+strconv.Itoa(file["size"].(int)))
 		}
 	}
 	if d.Get("filter_threat_attack").(bool) {
@@ -364,8 +373,8 @@ func readSecurityLogStream(securityLogStream string, m interface{}, jnprSess *Ne
 					confRead.file = append(confRead.file, map[string]interface{}{
 						"name":             "",
 						"allow_duplicates": false,
-						"size":             0,
 						"rotation":         0,
+						"size":             0,
 					})
 				}
 				switch {
@@ -373,15 +382,15 @@ func readSecurityLogStream(securityLogStream string, m interface{}, jnprSess *Ne
 					confRead.file[0]["name"] = strings.TrimPrefix(itemTrim, "file name ")
 				case itemTrim == "file allow-duplicates":
 					confRead.file[0]["allow_duplicates"] = true
-				case strings.HasPrefix(itemTrim, "file size "):
-					var err error
-					confRead.file[0]["size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file size "))
-					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
-					}
 				case strings.HasPrefix(itemTrim, "file rotation "):
 					var err error
 					confRead.file[0]["rotation"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file rotation "))
+					if err != nil {
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					}
+				case strings.HasPrefix(itemTrim, "file size "):
+					var err error
+					confRead.file[0]["size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file size "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
@@ -420,10 +429,6 @@ func readSecurityLogStream(securityLogStream string, m interface{}, jnprSess *Ne
 				confRead.severity = strings.TrimPrefix(itemTrim, "severity ")
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

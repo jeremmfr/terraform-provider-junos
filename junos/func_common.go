@@ -29,6 +29,16 @@ func logFile(message string, file string) {
 
 	log.Printf("%s", message)
 }
+
+func appendDiagWarns(diags *diag.Diagnostics, warns []error) {
+	for _, w := range warns {
+		*diags = append(*diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  w.Error(),
+		})
+	}
+}
+
 func validateIPMaskFunc() schema.SchemaValidateDiagFunc {
 	return func(i interface{}, path cty.Path) diag.Diagnostics {
 		var diags diag.Diagnostics
@@ -54,8 +64,8 @@ func validateIPwithMask(ip string) error {
 	if err != nil || ipnet == nil {
 		return fmt.Errorf("%v is not a valid IP/mask", ip)
 	}
-	if (strings.Contains(ip, ":") && strings.Contains(ip, "/128")) ||
-		(!strings.Contains(ip, ":") && strings.Contains(ip, "/32")) {
+	if (strings.Contains(ip, ":") && (strings.Contains(ip, "/128") || strings.Contains(ip, "/127"))) ||
+		(!strings.Contains(ip, ":") && (strings.Contains(ip, "/32") || strings.Contains(ip, "/31"))) {
 		return nil
 	}
 	if ip == ipnet.String() {
@@ -206,6 +216,25 @@ func uniqueListString(s []string) []string {
 	}
 
 	return r
+}
+
+type sortStringsLength []string
+
+func (s sortStringsLength) Len() int {
+	return len(s)
+}
+func (s sortStringsLength) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s sortStringsLength) Less(i, j int) bool {
+	if len(s[i]) < len(s[j]) {
+		return true
+	}
+	if len(s[j]) < len(s[i]) {
+		return false
+	}
+
+	return s[i] < s[j]
 }
 
 func checkStringHasPrefixInList(s string, list []string) bool {

@@ -32,11 +32,6 @@ func resourcePolicyoptionsPrefixList() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 			},
-			"prefix": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
 			"apply_path": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -44,6 +39,11 @@ func resourcePolicyoptionsPrefixList() *schema.Resource {
 			"dynamic_db": {
 				Type:     schema.TypeBool,
 				Optional: true,
+			},
+			"prefix": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}
@@ -75,23 +75,26 @@ func resourcePolicyoptionsPrefixListCreate(
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_policyoptions_prefix_list", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_policyoptions_prefix_list", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	policyoptsPrefixListExists, err = checkPolicyoptionsPrefixListExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if policyoptsPrefixListExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("policy-options prefix-list %v not exists after commit "+
-			"=> check your config", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("policy-options prefix-list %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return resourcePolicyoptionsPrefixListReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourcePolicyoptionsPrefixListReadWJnprSess(d, m, jnprSess)...)
 }
 func resourcePolicyoptionsPrefixListRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -140,14 +143,17 @@ func resourcePolicyoptionsPrefixListUpdate(
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_policyoptions_prefix_list", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_policyoptions_prefix_list", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourcePolicyoptionsPrefixListReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourcePolicyoptionsPrefixListReadWJnprSess(d, m, jnprSess)...)
 }
 func resourcePolicyoptionsPrefixListDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -163,13 +169,16 @@ func resourcePolicyoptionsPrefixListDelete(
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_policyoptions_prefix_list", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_policyoptions_prefix_list", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourcePolicyoptionsPrefixListImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
@@ -216,13 +225,6 @@ func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess 
 
 	setPrefix := "set policy-options prefix-list " + d.Get("name").(string)
 	configSet = append(configSet, setPrefix)
-	for _, v := range d.Get("prefix").([]interface{}) {
-		err := validateCIDRNetwork(v.(string))
-		if err != nil {
-			return err
-		}
-		configSet = append(configSet, setPrefix+" "+v.(string))
-	}
 	if d.Get("apply_path").(string) != "" {
 		replaceSign := strings.ReplaceAll(d.Get("apply_path").(string), "<", "&lt;")
 		replaceSign = strings.ReplaceAll(replaceSign, ">", "&gt;")
@@ -230,6 +232,13 @@ func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess 
 	}
 	if d.Get("dynamic_db").(bool) {
 		configSet = append(configSet, setPrefix+" dynamic-db")
+	}
+	for _, v := range d.Get("prefix").([]interface{}) {
+		err := validateCIDRNetwork(v.(string))
+		if err != nil {
+			return err
+		}
+		configSet = append(configSet, setPrefix+" "+v.(string))
 	}
 
 	if err := sess.configSet(configSet, jnprSess); err != nil {
@@ -268,10 +277,6 @@ func readPolicyoptionsPrefixList(prefixList string, m interface{}, jnprSess *Net
 				confRead.prefix = append(confRead.prefix, itemTrim)
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil
@@ -291,13 +296,13 @@ func fillPolicyoptionsPrefixListData(d *schema.ResourceData, prefixListOptions p
 	if tfErr := d.Set("name", prefixListOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("prefix", prefixListOptions.prefix); tfErr != nil {
-		panic(tfErr)
-	}
 	if tfErr := d.Set("apply_path", prefixListOptions.applyPath); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("dynamic_db", prefixListOptions.dynamicDB); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("prefix", prefixListOptions.prefix); tfErr != nil {
 		panic(tfErr)
 	}
 }

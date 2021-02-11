@@ -40,17 +40,17 @@ func resourceSecurityNatDestinationPool() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: validateIPMaskFunc(),
 			},
-			"address_to": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ValidateDiagFunc: validateIPMaskFunc(),
-				ConflictsWith:    []string{"address_port"},
-			},
 			"address_port": {
 				Type:          schema.TypeInt,
 				Optional:      true,
 				ValidateFunc:  validation.IntBetween(1, 65535),
 				ConflictsWith: []string{"address_to"},
+			},
+			"address_to": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateIPMaskFunc(),
+				ConflictsWith:    []string{"address_port"},
 			},
 			"routing_instance": {
 				Type:             schema.TypeString,
@@ -91,23 +91,26 @@ func resourceSecurityNatDestinationPoolCreate(
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_security_nat_destination_pool", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_security_nat_destination_pool", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	securityNatDestinationPoolExists, err = checkSecurityNatDestinationPoolExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityNatDestinationPoolExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("security nat destination pool %v not exists after commit "+
-			"=> check your config", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("security nat destination pool %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return resourceSecurityNatDestinationPoolReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityNatDestinationPoolReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityNatDestinationPoolRead(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -156,14 +159,17 @@ func resourceSecurityNatDestinationPoolUpdate(
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_security_nat_destination_pool", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_security_nat_destination_pool", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceSecurityNatDestinationPoolReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityNatDestinationPoolReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityNatDestinationPoolDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -179,13 +185,16 @@ func resourceSecurityNatDestinationPoolDelete(
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_security_nat_destination_pool", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_security_nat_destination_pool", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceSecurityNatDestinationPoolImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
@@ -233,11 +242,11 @@ func setSecurityNatDestinationPool(d *schema.ResourceData, m interface{}, jnprSe
 
 	setPrefix := "set security nat destination pool " + d.Get("name").(string)
 	configSet = append(configSet, setPrefix+" address "+d.Get("address").(string))
-	if d.Get("address_to").(string) != "" {
-		configSet = append(configSet, setPrefix+" address to "+d.Get("address_to").(string))
-	}
 	if d.Get("address_port").(int) != 0 {
 		configSet = append(configSet, setPrefix+" address port "+strconv.Itoa(d.Get("address_port").(int)))
+	}
+	if d.Get("address_to").(string) != "" {
+		configSet = append(configSet, setPrefix+" address to "+d.Get("address_to").(string))
 	}
 	if d.Get("routing_instance").(string) != "" {
 		configSet = append(configSet, setPrefix+" routing-instance "+d.Get("routing_instance").(string))
@@ -269,23 +278,19 @@ func readSecurityNatDestinationPool(natDestinationPool string,
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case strings.HasPrefix(itemTrim, "address to"):
-				confRead.addressTo = strings.TrimPrefix(itemTrim, "address to ")
 			case strings.HasPrefix(itemTrim, "address port"):
 				confRead.addressPort, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "address port "))
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
+			case strings.HasPrefix(itemTrim, "address to"):
+				confRead.addressTo = strings.TrimPrefix(itemTrim, "address to ")
 			case strings.HasPrefix(itemTrim, "address "):
 				confRead.address = strings.TrimPrefix(itemTrim, "address ")
 			case strings.HasPrefix(itemTrim, "routing-instance "):
 				confRead.routingInstance = strings.TrimPrefix(itemTrim, "routing-instance ")
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil
@@ -308,10 +313,10 @@ func fillSecurityNatDestinationPoolData(d *schema.ResourceData, natDestinationPo
 	if tfErr := d.Set("address", natDestinationPoolOptions.address); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("address_to", natDestinationPoolOptions.addressTo); tfErr != nil {
+	if tfErr := d.Set("address_port", natDestinationPoolOptions.addressPort); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("address_port", natDestinationPoolOptions.addressPort); tfErr != nil {
+	if tfErr := d.Set("address_to", natDestinationPoolOptions.addressTo); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("routing_instance", natDestinationPoolOptions.routingInstance); tfErr != nil {

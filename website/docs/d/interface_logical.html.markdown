@@ -37,21 +37,21 @@ The following arguments are supported:
 * `id` - Like resource it's the `name` of interface
 * `name` - Name of unit interface (with dot).
 * `description` - Description for interface.
-* `vlan_id` - 802.1q VLAN ID for unit interface.
 * `family_inet` - Family inet enabled and possible configuration.
   * `address` - List of address. See the [`address` attributes for family_inet](#address-attributes-for-family_inet) block.
-  * `mtu` - Maximum transmission unit.
   * `filter_input` - Filter applied to received packets.
   * `filter_output` - Filter applied to transmitted packets.
+  * `mtu` - Maximum transmission unit.
   * `rpf_check` - Reverse-path-forwarding checks enabled and possible configuration. See the [`rpf_check` attributes](#rpf_check-attributes) block for attributes.
 * `family_inet6` - Family inet6 enabled and possible configuration.
   * `address` - List of address. See the [`address` attributes for family_inet6](#address-attributes-for-family_inet6) block.
-  * `mtu` - Maximum transmission unit.
   * `filter_input` - Filter applied to received packets.
   * `filter_output` - Filter applied to transmitted packets.
+  * `mtu` - Maximum transmission unit.
   * `rpf_check` - Reverse-path-forwarding checks enabled and possible configuration. See the [`rpf_check` attributes](#rpf_check-attributes) block for attributes.
-* `security_zone` - Security zone where the interface is.
 * `routing_instance` - Routing_instance where the interface is (if not default instance).
+* `security_zone` - Security zone where the interface is.
+* `vlan_id` - 802.1q VLAN ID for unit interface.
 
 ---
 #### address attributes for family_inet

@@ -41,14 +41,6 @@ func resourceSystemLoginUser() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"cli_prompt": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"full_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 			"uid": {
 				Type:         schema.TypeInt,
 				ForceNew:     true,
@@ -82,6 +74,14 @@ func resourceSystemLoginUser() *schema.Resource {
 					},
 				},
 			},
+			"cli_prompt": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"full_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -111,23 +111,26 @@ func resourceSystemLoginUserCreate(ctx context.Context, d *schema.ResourceData, 
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_system_login_user", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_system_login_user", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	systemLoginUserExists, err = checkSystemLoginUserExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if systemLoginUserExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("system login user %v not exists after commit "+
-			"=> check your config", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("system login user %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return resourceSystemLoginUserReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSystemLoginUserReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSystemLoginUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -174,14 +177,18 @@ func resourceSystemLoginUserUpdate(ctx context.Context, d *schema.ResourceData, 
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_system_login_user", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_system_login_user", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
+
 	d.Partial(false)
 
-	return resourceSystemLoginUserReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSystemLoginUserReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSystemLoginUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -196,13 +203,16 @@ func resourceSystemLoginUserDelete(ctx context.Context, d *schema.ResourceData, 
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_system_login_user", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_system_login_user", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceSystemLoginUserImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
@@ -250,12 +260,6 @@ func setSystemLoginUser(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 
 	configSet = append(configSet, setPrefix+"class "+d.Get("class").(string))
 
-	if d.Get("cli_prompt").(string) != "" {
-		configSet = append(configSet, setPrefix+"cli prompt \""+d.Get("cli_prompt").(string)+"\"")
-	}
-	if d.Get("full_name").(string) != "" {
-		configSet = append(configSet, setPrefix+"full-name \""+d.Get("full_name").(string)+"\"")
-	}
 	if d.Get("uid").(int) != 0 {
 		configSet = append(configSet, setPrefix+"uid "+strconv.Itoa(d.Get("uid").(int)))
 	}
@@ -288,6 +292,12 @@ func setSystemLoginUser(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 			}
 		}
 	}
+	if d.Get("cli_prompt").(string) != "" {
+		configSet = append(configSet, setPrefix+"cli prompt \""+d.Get("cli_prompt").(string)+"\"")
+	}
+	if d.Get("full_name").(string) != "" {
+		configSet = append(configSet, setPrefix+"full-name \""+d.Get("full_name").(string)+"\"")
+	}
 
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
@@ -317,10 +327,6 @@ func readSystemLoginUser(user string, m interface{}, jnprSess *NetconfObject) (s
 			switch {
 			case strings.HasPrefix(itemTrim, "class "):
 				confRead.class = strings.TrimPrefix(itemTrim, "class ")
-			case strings.HasPrefix(itemTrim, "cli prompt "):
-				confRead.cliPrompt = strings.Trim(strings.TrimPrefix(itemTrim, "cli prompt "), "\"")
-			case strings.HasPrefix(itemTrim, "full-name "):
-				confRead.fullName = strings.Trim(strings.TrimPrefix(itemTrim, "full-name "), "\"")
 			case strings.HasPrefix(itemTrim, "uid "):
 				var err error
 				confRead.uid, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "uid "))
@@ -354,12 +360,12 @@ func readSystemLoginUser(user string, m interface{}, jnprSess *NetconfObject) (s
 					confRead.authentication[0]["ssh_public_keys"] = append(confRead.authentication[0]["ssh_public_keys"].([]string),
 						strings.Trim(strings.TrimPrefix(itemTrim, "authentication ssh-rsa "), "\""))
 				}
+			case strings.HasPrefix(itemTrim, "cli prompt "):
+				confRead.cliPrompt = strings.Trim(strings.TrimPrefix(itemTrim, "cli prompt "), "\"")
+			case strings.HasPrefix(itemTrim, "full-name "):
+				confRead.fullName = strings.Trim(strings.TrimPrefix(itemTrim, "full-name "), "\"")
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil
@@ -382,16 +388,16 @@ func fillSystemLoginUserData(d *schema.ResourceData, systemLoginUserOptions syst
 	if tfErr := d.Set("class", systemLoginUserOptions.class); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("cli_prompt", systemLoginUserOptions.cliPrompt); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("full_name", systemLoginUserOptions.fullName); tfErr != nil {
-		panic(tfErr)
-	}
 	if tfErr := d.Set("uid", systemLoginUserOptions.uid); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("authentication", systemLoginUserOptions.authentication); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("cli_prompt", systemLoginUserOptions.cliPrompt); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("full_name", systemLoginUserOptions.fullName); tfErr != nil {
 		panic(tfErr)
 	}
 }

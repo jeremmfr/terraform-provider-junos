@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -13,14 +14,14 @@ import (
 )
 
 type interfacePhysicalOptions struct {
-	vlanTagging bool
 	trunk       bool
-	vlanNative  int
+	vlanTagging bool
 	aeMinLink   int
-	description string
-	v8023ad     string
+	vlanNative  int
 	aeLacp      string
 	aeLinkSpeed string
+	description string
+	v8023ad     string
 	vlanMembers []string
 }
 
@@ -52,12 +53,23 @@ func resourceInterfacePhysical() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
-			"description": {
-				Type:     schema.TypeString,
+			"ae_lacp": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "",
+				ValidateFunc: validation.StringInSlice([]string{"active", "passive"}, false),
+			},
+			"ae_link_speed": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"100m", "1g", "8g", "10g", "40g", "50g", "80g", "100g"}, false),
+			},
+			"ae_minimum_links": {
+				Type:     schema.TypeInt,
 				Optional: true,
 			},
-			"vlan_tagging": {
-				Type:     schema.TypeBool,
+			"description": {
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 			"ether802_3ad": {
@@ -87,19 +99,8 @@ func resourceInterfacePhysical() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(1, 4094),
 			},
-			"ae_lacp": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "",
-				ValidateFunc: validation.StringInSlice([]string{"active", "passive"}, false),
-			},
-			"ae_link_speed": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"100m", "1g", "8g", "10g", "40g", "50g", "80g", "100g"}, false),
-			},
-			"ae_minimum_links": {
-				Type:     schema.TypeInt,
+			"vlan_tagging": {
+				Type:     schema.TypeBool,
 				Optional: true,
 			},
 		},
@@ -113,21 +114,19 @@ func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
+	sess.configLock(jnprSess)
+	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), m, jnprSess)
 	if err != nil {
+		sess.configClear(jnprSess)
+
 		return diag.FromErr(err)
 	}
-	sess.configLock(jnprSess)
-	if intExists {
-		ncInt, emptyInt, err := checkInterfacePhysicalNC(d.Get("name").(string), m, jnprSess)
-		if err != nil {
-			sess.configClear(jnprSess)
+	if !ncInt && !emptyInt {
+		sess.configClear(jnprSess)
 
-			return diag.FromErr(err)
-		}
-		if !ncInt && !emptyInt {
-			return diag.FromErr(fmt.Errorf("interface %s already configured", d.Get("name").(string)))
-		}
+		return diag.FromErr(fmt.Errorf("interface %s already configured", d.Get("name").(string)))
+	}
+	if ncInt {
 		if err := delInterfaceNC(d, m, jnprSess); err != nil {
 			sess.configClear(jnprSess)
 
@@ -139,30 +138,35 @@ func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_interface_physical", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_interface_physical", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	intExists, err = checkInterfaceExists(d.Get("name").(string), m, jnprSess)
+	ncInt, emptyInt, err = checkInterfacePhysicalNCEmpty(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if intExists {
-		ncInt, _, err := checkInterfacePhysicalNC(d.Get("name").(string), m, jnprSess)
+	if ncInt {
+		return append(diagWarns, diag.FromErr(fmt.Errorf("interface %v always disable after commit "+
+			"=> check your config", d.Get("name").(string)))...)
+	}
+	if emptyInt {
+		intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
 		if err != nil {
-			return diag.FromErr(err)
+			return append(diagWarns, diag.FromErr(err)...)
 		}
-		if ncInt {
-			return diag.FromErr(fmt.Errorf("interface %v exists (because is a physical or internal default interface)"+
-				" but always disable after commit => check your config", d.Get("name").(string)))
+		if !intExists {
+			return append(diagWarns, diag.FromErr(fmt.Errorf("interface %v not exists and "+
+				"config can't found after commit => check your config", d.Get("name").(string)))...)
 		}
-		d.SetId(d.Get("name").(string))
-	} else {
-		return diag.FromErr(fmt.Errorf("interface %v not exists after commit => check your config", d.Get("name").(string)))
 	}
+	d.SetId(d.Get("name").(string))
 
-	return resourceInterfacePhysicalReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceInterfacePhysicalReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -177,19 +181,7 @@ func resourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData, 
 func resourceInterfacePhysicalReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
-	intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
-	if err != nil {
-		mutex.Unlock()
-
-		return diag.FromErr(err)
-	}
-	if !intExists {
-		d.SetId("")
-		mutex.Unlock()
-
-		return nil
-	}
-	ncInt, _, err := checkInterfacePhysicalNC(d.Get("name").(string), m, jnprSess)
+	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		mutex.Unlock()
 
@@ -200,6 +192,20 @@ func resourceInterfacePhysicalReadWJnprSess(
 		mutex.Unlock()
 
 		return nil
+	}
+	if emptyInt {
+		intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
+		if err != nil {
+			mutex.Unlock()
+
+			return diag.FromErr(err)
+		}
+		if !intExists {
+			d.SetId("")
+			mutex.Unlock()
+
+			return nil
+		}
 	}
 	interfaceOpt, err := readInterfacePhysical(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -224,93 +230,22 @@ func resourceInterfacePhysicalUpdate(ctx context.Context, d *schema.ResourceData
 
 		return diag.FromErr(err)
 	}
-	if d.HasChange("ether802_3ad") {
-		oAE, nAE := d.GetChange("ether802_3ad")
-		if oAE.(string) != "" {
-			newAE := "ae-1"
-			if nAE.(string) != "" {
-				newAE = nAE.(string)
-			}
-			lastAEchild, err := interfaceAggregatedLastChild(oAE.(string), d.Get("name").(string), m, jnprSess)
-			if err != nil {
-				sess.configClear(jnprSess)
-
-				return diag.FromErr(err)
-			}
-			if lastAEchild {
-				aggregatedCount, err := interfaceAggregatedCountSearchMax(newAE, oAE.(string), d.Get("name").(string), m, jnprSess)
-				if err != nil {
-					sess.configClear(jnprSess)
-
-					return diag.FromErr(err)
-				}
-				if aggregatedCount == "0" {
-					err = sess.configSet([]string{"delete chassis aggregated-devices ethernet device-count"}, jnprSess)
-					if err != nil {
-						sess.configClear(jnprSess)
-
-						return diag.FromErr(err)
-					}
-					oAEintNC, oAEintEmpty, err := checkInterfacePhysicalNC(oAE.(string), m, jnprSess)
-					if err != nil {
-						sess.configClear(jnprSess)
-
-						return diag.FromErr(err)
-					}
-					if oAEintNC || oAEintEmpty {
-						err = sess.configSet([]string{"delete interfaces " + oAE.(string)}, jnprSess)
-						if err != nil {
-							sess.configClear(jnprSess)
-
-							return diag.FromErr(err)
-						}
-					}
-				} else {
-					oldAEInt, err := strconv.Atoi(strings.TrimPrefix(oAE.(string), "ae"))
-					if err != nil {
-						sess.configClear(jnprSess)
-
-						return diag.FromErr(err)
-					}
-					aggregatedCountInt, err := strconv.Atoi(aggregatedCount)
-					if err != nil {
-						sess.configClear(jnprSess)
-
-						return diag.FromErr(err)
-					}
-					if aggregatedCountInt < oldAEInt+1 {
-						oAEintNC, oAEintEmpty, err := checkInterfacePhysicalNC(oAE.(string), m, jnprSess)
-						if err != nil {
-							sess.configClear(jnprSess)
-
-							return diag.FromErr(err)
-						}
-						if oAEintNC || oAEintEmpty {
-							err = sess.configSet([]string{"delete interfaces " + oAE.(string)}, jnprSess)
-							if err != nil {
-								sess.configClear(jnprSess)
-
-								return diag.FromErr(err)
-							}
-						}
-					}
-				}
-			}
-		}
-	}
 	if err := setInterfacePhysical(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_interface_physical", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_interface_physical", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceInterfacePhysicalReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceInterfacePhysicalReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceInterfacePhysicalDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -325,33 +260,35 @@ func resourceInterfacePhysicalDelete(ctx context.Context, d *schema.ResourceData
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_interface_physical", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_interface_physical", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if !d.Get("no_disable_on_destroy").(bool) {
 		intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
 		if err != nil {
-			return diag.FromErr(err)
-		}
-		if intExists {
+			appendDiagWarns(&diagWarns, []error{err})
+		} else if intExists {
 			err = addInterfacePhysicalNC(d.Get("name").(string), m, jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return diag.FromErr(err)
+				return append(diagWarns, diag.FromErr(err)...)
 			}
-			err = sess.commitConf("disable(NC) resource junos_interface_physical", jnprSess)
+			_, err = sess.commitConf("disable(NC) resource junos_interface_physical", jnprSess)
 			if err != nil {
 				sess.configClear(jnprSess)
 
-				return diag.FromErr(err)
+				return append(diagWarns, diag.FromErr(err)...)
 			}
 		}
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceInterfacePhysicalImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	if strings.Count(d.Id(), ".") != 0 {
@@ -364,12 +301,21 @@ func resourceInterfacePhysicalImport(d *schema.ResourceData, m interface{}) ([]*
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-	intExists, err := checkInterfaceExists(d.Id(), m, jnprSess)
+	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Id(), m, jnprSess)
 	if err != nil {
 		return nil, err
 	}
-	if !intExists {
-		return nil, fmt.Errorf("don't find interface with id '%v' (id must be <name>)", d.Id())
+	if ncInt {
+		return nil, fmt.Errorf("interface '%v' is disabled, import is not possible", d.Id())
+	}
+	if emptyInt {
+		intExists, err := checkInterfaceExists(d.Id(), m, jnprSess)
+		if err != nil {
+			return nil, err
+		}
+		if !intExists {
+			return nil, fmt.Errorf("don't find interface with id '%v' (id must be <name>)", d.Id())
+		}
 	}
 	interfaceOpt, err := readInterfacePhysical(d.Id(), m, jnprSess)
 	if err != nil {
@@ -385,7 +331,7 @@ func resourceInterfacePhysicalImport(d *schema.ResourceData, m interface{}) ([]*
 	return result, nil
 }
 
-func checkInterfacePhysicalNC(interFace string, m interface{}, jnprSess *NetconfObject) (
+func checkInterfacePhysicalNCEmpty(interFace string, m interface{}, jnprSess *NetconfObject) (
 	ncInt bool, emtyInt bool, errFunc error) {
 	sess := m.(*Session)
 	intConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
@@ -423,8 +369,7 @@ func checkInterfacePhysicalNC(interFace string, m interface{}, jnprSess *Netconf
 		intConfig == "set disable\nset description NC" {
 		return true, false, nil
 	}
-	if intConfig == setLineStart ||
-		intConfig == emptyWord {
+	if intConfig == emptyWord {
 		return false, true, nil
 	}
 
@@ -432,9 +377,8 @@ func checkInterfacePhysicalNC(interFace string, m interface{}, jnprSess *Netconf
 }
 
 func addInterfacePhysicalNC(interFace string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
 	var err error
-	if sess.junosGroupIntDel == "" {
+	if sess := m.(*Session); sess.junosGroupIntDel == "" {
 		err = sess.configSet([]string{"set interfaces " + interFace + " disable description NC"}, jnprSess)
 	} else {
 		err = sess.configSet([]string{"set interfaces " + interFace +
@@ -467,13 +411,37 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	configSet := make([]string, 0)
 	setPrefix := "set interfaces " + d.Get("name").(string) + " "
 	configSet = append(configSet, setPrefix)
+	if d.Get("ae_lacp").(string) != "" {
+		if !strings.HasPrefix(d.Get("name").(string), "ae") {
+			return fmt.Errorf("ae_lacp invalid for this interface")
+		}
+		configSet = append(configSet, setPrefix+
+			"aggregated-ether-options lacp "+d.Get("ae_lacp").(string))
+	}
+	if d.Get("ae_link_speed").(string) != "" {
+		if !strings.HasPrefix(d.Get("name").(string), "ae") {
+			return fmt.Errorf("ae_link_speed invalid for this interface")
+		}
+		configSet = append(configSet, setPrefix+
+			"aggregated-ether-options link-speed "+d.Get("ae_link_speed").(string))
+	}
+	if d.Get("ae_minimum_links").(int) > 0 {
+		if !strings.HasPrefix(d.Get("name").(string), "ae") {
+			return fmt.Errorf("ae_minimum_links invalid for this interface")
+		}
+		configSet = append(configSet, setPrefix+
+			"aggregated-ether-options minimum-links "+strconv.Itoa(d.Get("ae_minimum_links").(int)))
+	}
 	if d.Get("description").(string) != "" {
 		configSet = append(configSet, setPrefix+"description \""+d.Get("description").(string)+"\"")
 	}
-	if d.Get("vlan_tagging").(bool) {
-		configSet = append(configSet, setPrefix+"vlan-tagging")
-	}
-	if d.Get("ether802_3ad").(string) != "" {
+	if v := d.Get("name").(string); strings.HasPrefix(v, "ae") {
+		aggregatedCount, err := interfaceAggregatedCountSearchMax(v, "ae-1", v, m, jnprSess)
+		if err != nil {
+			return err
+		}
+		configSet = append(configSet, "set chassis aggregated-devices ethernet device-count "+aggregatedCount)
+	} else if d.Get("ether802_3ad").(string) != "" {
 		configSet = append(configSet, setPrefix+"ether-options 802.3ad "+
 			d.Get("ether802_3ad").(string))
 		configSet = append(configSet, setPrefix+"gigether-options 802.3ad "+
@@ -502,26 +470,8 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	if d.Get("vlan_native").(int) != 0 {
 		configSet = append(configSet, setPrefix+"native-vlan-id "+strconv.Itoa(d.Get("vlan_native").(int)))
 	}
-	if d.Get("ae_lacp").(string) != "" {
-		if !strings.HasPrefix(d.Get("name").(string), "ae") {
-			return fmt.Errorf("ae_lacp invalid for this interface")
-		}
-		configSet = append(configSet, setPrefix+
-			"aggregated-ether-options lacp "+d.Get("ae_lacp").(string))
-	}
-	if d.Get("ae_link_speed").(string) != "" {
-		if !strings.HasPrefix(d.Get("name").(string), "ae") {
-			return fmt.Errorf("ae_link_speed invalid for this interface")
-		}
-		configSet = append(configSet, setPrefix+
-			"aggregated-ether-options link-speed "+d.Get("ae_link_speed").(string))
-	}
-	if d.Get("ae_minimum_links").(int) > 0 {
-		if !strings.HasPrefix(d.Get("name").(string), "ae") {
-			return fmt.Errorf("ae_minimum_links invalid for this interface")
-		}
-		configSet = append(configSet, setPrefix+
-			"aggregated-ether-options minimum-links "+strconv.Itoa(d.Get("ae_minimum_links").(int)))
+	if d.Get("vlan_tagging").(bool) {
+		configSet = append(configSet, setPrefix+"vlan-tagging")
 	}
 
 	if err := sess.configSet(configSet, jnprSess); err != nil {
@@ -551,25 +501,6 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case strings.HasPrefix(itemTrim, "description "):
-				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
-
-			case itemTrim == "vlan-tagging":
-				confRead.vlanTagging = true
-			case strings.HasPrefix(itemTrim, "ether-options 802.3ad "):
-				confRead.v8023ad = strings.TrimPrefix(itemTrim, "ether-options 802.3ad ")
-			case strings.HasPrefix(itemTrim, "gigether-options 802.3ad "):
-				confRead.v8023ad = strings.TrimPrefix(itemTrim, "gigether-options 802.3ad ")
-			case itemTrim == "unit 0 family ethernet-switching interface-mode trunk":
-				confRead.trunk = true
-			case strings.HasPrefix(itemTrim, "unit 0 family ethernet-switching vlan members"):
-				confRead.vlanMembers = append(confRead.vlanMembers, strings.TrimPrefix(itemTrim,
-					"unit 0 family ethernet-switching vlan members "))
-			case strings.HasPrefix(itemTrim, "native-vlan-id"):
-				confRead.vlanNative, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "native-vlan-id "))
-				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
-				}
 			case strings.HasPrefix(itemTrim, "aggregated-ether-options lacp "):
 				confRead.aeLacp = strings.TrimPrefix(itemTrim, "aggregated-ether-options lacp ")
 			case strings.HasPrefix(itemTrim, "aggregated-ether-options link-speed "):
@@ -580,6 +511,25 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
+			case strings.HasPrefix(itemTrim, "description "):
+				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
+
+			case strings.HasPrefix(itemTrim, "ether-options 802.3ad "):
+				confRead.v8023ad = strings.TrimPrefix(itemTrim, "ether-options 802.3ad ")
+			case strings.HasPrefix(itemTrim, "gigether-options 802.3ad "):
+				confRead.v8023ad = strings.TrimPrefix(itemTrim, "gigether-options 802.3ad ")
+			case strings.HasPrefix(itemTrim, "native-vlan-id"):
+				confRead.vlanNative, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "native-vlan-id "))
+				if err != nil {
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				}
+			case itemTrim == "unit 0 family ethernet-switching interface-mode trunk":
+				confRead.trunk = true
+			case strings.HasPrefix(itemTrim, "unit 0 family ethernet-switching vlan members"):
+				confRead.vlanMembers = append(confRead.vlanMembers, strings.TrimPrefix(itemTrim,
+					"unit 0 family ethernet-switching vlan members "))
+			case itemTrim == "vlan-tagging":
+				confRead.vlanTagging = true
 			default:
 				continue
 			}
@@ -596,7 +546,23 @@ func delInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	if err := sess.configSet([]string{"delete interfaces " + d.Get("name").(string)}, jnprSess); err != nil {
 		return err
 	}
-	if d.Get("ether802_3ad").(string) != "" {
+	if v := d.Get("name").(string); strings.HasPrefix(v, "ae") {
+		aggregatedCount, err := interfaceAggregatedCountSearchMax("ae-1", v, v, m, jnprSess)
+		if err != nil {
+			return err
+		}
+		if aggregatedCount == "0" {
+			err = sess.configSet([]string{"delete chassis aggregated-devices ethernet device-count"}, jnprSess)
+			if err != nil {
+				return err
+			}
+		} else {
+			err = sess.configSet([]string{"set chassis aggregated-devices ethernet device-count " + aggregatedCount}, jnprSess)
+			if err != nil {
+				return err
+			}
+		}
+	} else if d.Get("ether802_3ad").(string) != "" {
 		lastAEchild, err := interfaceAggregatedLastChild(d.Get("ether802_3ad").(string), d.Get("name").(string), m, jnprSess)
 		if err != nil {
 			return err
@@ -613,31 +579,9 @@ func delInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 					return err
 				}
 			} else {
-				err = sess.configSet([]string{"set chassis aggregated-devices ethernet device-count " +
-					aggregatedCount}, jnprSess)
+				err = sess.configSet([]string{"set chassis aggregated-devices ethernet device-count " + aggregatedCount}, jnprSess)
 				if err != nil {
 					return err
-				}
-			}
-			aeInt, err := strconv.Atoi(strings.TrimPrefix(d.Get("ether802_3ad").(string), "ae"))
-			if err != nil {
-				return fmt.Errorf("failed to convert AE id of ether802_3ad argument '%s' in integer : %w",
-					d.Get("ether802_3ad").(string), err)
-			}
-			aggregatedCountInt, err := strconv.Atoi(aggregatedCount)
-			if err != nil {
-				return fmt.Errorf("failed to convert internal variable aggregatedCountInt in integer : %w", err)
-			}
-			if aggregatedCountInt < aeInt+1 {
-				oAEintNC, oAEintEmpty, err := checkInterfacePhysicalNC(d.Get("ether802_3ad").(string), m, jnprSess)
-				if err != nil {
-					return err
-				}
-				if oAEintNC || oAEintEmpty {
-					err = sess.configSet([]string{"delete interfaces " + d.Get("ether802_3ad").(string)}, jnprSess)
-					if err != nil {
-						return err
-					}
 				}
 			}
 		}
@@ -690,13 +634,14 @@ func delInterfacePhysicalOpts(d *schema.ResourceData, m interface{}, jnprSess *N
 	configSet := make([]string, 0, 1)
 	delPrefix := "delete interfaces " + d.Get("name").(string) + " "
 	configSet = append(configSet,
-		delPrefix+"vlan-tagging",
+		delPrefix+"aggregated-ether-options",
 		delPrefix+"ether-options 802.3ad",
 		delPrefix+"gigether-options 802.3ad",
+		delPrefix+"native-vlan-id",
 		delPrefix+"unit 0 family ethernet-switching interface-mode",
 		delPrefix+"unit 0 family ethernet-switching vlan members",
-		delPrefix+"native-vlan-id",
-		delPrefix+"aggregated-ether-options")
+		delPrefix+"vlan-tagging",
+	)
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
@@ -705,10 +650,16 @@ func delInterfacePhysicalOpts(d *schema.ResourceData, m interface{}, jnprSess *N
 }
 
 func fillInterfacePhysicalData(d *schema.ResourceData, interfaceOpt interfacePhysicalOptions) {
-	if tfErr := d.Set("description", interfaceOpt.description); tfErr != nil {
+	if tfErr := d.Set("ae_lacp", interfaceOpt.aeLacp); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("vlan_tagging", interfaceOpt.vlanTagging); tfErr != nil {
+	if tfErr := d.Set("ae_link_speed", interfaceOpt.aeLinkSpeed); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("ae_minimum_links", interfaceOpt.aeMinLink); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("description", interfaceOpt.description); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("ether802_3ad", interfaceOpt.v8023ad); tfErr != nil {
@@ -723,13 +674,7 @@ func fillInterfacePhysicalData(d *schema.ResourceData, interfaceOpt interfacePhy
 	if tfErr := d.Set("vlan_native", interfaceOpt.vlanNative); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("ae_lacp", interfaceOpt.aeLacp); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("ae_link_speed", interfaceOpt.aeLinkSpeed); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("ae_minimum_links", interfaceOpt.aeMinLink); tfErr != nil {
+	if tfErr := d.Set("vlan_tagging", interfaceOpt.vlanTagging); tfErr != nil {
 		panic(tfErr)
 	}
 }
@@ -756,24 +701,34 @@ func interfaceAggregatedCountSearchMax(
 	newAENum := strings.TrimPrefix(newAE, "ae")
 	newAENumInt, err := strconv.Atoi(newAENum)
 	if err != nil {
-		return "", fmt.Errorf("failed to convert internal variable newAENum to integer : %w", err)
+		return "", fmt.Errorf("failed to convert ae interaface '%v' to integer : %w", newAE, err)
 	}
-	intShowInt, err := sess.command("show interfaces terse", jnprSess)
+	showConf, err := sess.command("show configuration interfaces | display set relative", jnprSess)
 	if err != nil {
 		return "", err
 	}
-
-	intShowIntLines := strings.Split(intShowInt, "\n")
-	intShowAE := make([]string, 0)
-	regexpAE := regexp.MustCompile(`ae\d*\s`)
-	for _, line := range intShowIntLines {
-		aematch := regexpAE.MatchString(line)
-		if aematch {
+	listAEFound := make([]string, 0)
+	regexpAEchild := regexp.MustCompile(`ether-options 802\.3ad ae\d+$`)
+	regexpAEparent := regexp.MustCompile(`^set ae\d+ `)
+	for _, line := range strings.Split(showConf, "\n") {
+		aeMatchChild := regexpAEchild.MatchString(line)
+		aeMatchParent := regexpAEparent.MatchString(line)
+		switch {
+		case aeMatchChild:
 			wordsLine := strings.Fields(line)
-			if wordsLine[0] != oldAE {
-				if (len(intShowAE) > 0 && intShowAE[len(intShowAE)-1] != wordsLine[0]) || len(intShowAE) == 0 {
-					intShowAE = append(intShowAE, wordsLine[0])
-				}
+			if interFace == oldAE {
+				// interfaceAggregatedCountSearchMax called for delete parent interface
+				listAEFound = append(listAEFound, wordsLine[len(wordsLine)-1])
+			} else if wordsLine[len(wordsLine)-1] != oldAE {
+				listAEFound = append(listAEFound, wordsLine[len(wordsLine)-1])
+			}
+		case aeMatchParent:
+			wordsLine := strings.Fields(line)
+			if interFace != oldAE {
+				// interfaceAggregatedCountSearchMax called for child interface or new parent
+				listAEFound = append(listAEFound, wordsLine[1])
+			} else if wordsLine[1] != oldAE {
+				listAEFound = append(listAEFound, wordsLine[1])
 			}
 		}
 	}
@@ -782,10 +737,11 @@ func interfaceAggregatedCountSearchMax(
 		return "", err
 	}
 	if !lastOldAE {
-		intShowAE = append(intShowAE, oldAE)
+		listAEFound = append(listAEFound, oldAE)
 	}
-	if len(intShowAE) > 0 {
-		lastAeInt, err := strconv.Atoi(strings.TrimPrefix(intShowAE[len(intShowAE)-1], "ae"))
+	if len(listAEFound) > 0 {
+		sort.Sort(sortStringsLength(listAEFound))
+		lastAeInt, err := strconv.Atoi(strings.TrimPrefix(listAEFound[len(listAEFound)-1], "ae"))
 		if err != nil {
 			return "", fmt.Errorf("failed to convert internal variable lastAeInt to integer : %w", err)
 		}

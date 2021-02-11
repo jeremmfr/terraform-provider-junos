@@ -13,6 +13,8 @@ import (
 
 type systemOptions struct {
 	autoSnapshot                         bool
+	defaultAddressSelection              bool
+	noMulticastEcho                      bool
 	noPingRecordRoute                    bool
 	noPingTimeStamp                      bool
 	noRedirects                          bool
@@ -48,6 +50,10 @@ func resourceSystem() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"auto_snapshot": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"default_address_selection": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
@@ -377,6 +383,10 @@ func resourceSystem() *schema.Resource {
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+			"no_multicast_echo": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"no_ping_record_route": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -593,15 +603,17 @@ func resourceSystemCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_system", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_system", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-
 	d.SetId("system")
 
-	return resourceSystemReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSystemReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSystemRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -643,14 +655,17 @@ func resourceSystemUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_system", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_system", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceSystemReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSystemReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSystemDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	return nil
@@ -686,6 +701,9 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 	if d.Get("auto_snapshot").(bool) {
 		configSet = append(configSet, setPrefix+"auto-snapshot")
 	}
+	if d.Get("default_address_selection").(bool) {
+		configSet = append(configSet, setPrefix+"default-address-selection")
+	}
 	if d.Get("domain_name").(string) != "" {
 		configSet = append(configSet, setPrefix+"domain-name "+d.Get("domain_name").(string))
 	}
@@ -715,6 +733,9 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 	}
 	for _, nameServer := range d.Get("name_server").([]interface{}) {
 		configSet = append(configSet, setPrefix+"name-server "+nameServer.(string))
+	}
+	if d.Get("no_multicast_echo").(bool) {
+		configSet = append(configSet, setPrefix+"no-multicast-echo")
 	}
 	if d.Get("no_ping_record_route").(bool) {
 		configSet = append(configSet, setPrefix+"no-ping-record-route")
@@ -1153,6 +1174,7 @@ func delSystem(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete := make([]string, 0)
 	listLinesToDelete = append(listLinesToDelete, "authentication-order")
 	listLinesToDelete = append(listLinesToDelete, "auto-snapshot")
+	listLinesToDelete = append(listLinesToDelete, "default-address-selection")
 	listLinesToDelete = append(listLinesToDelete, "domain-name")
 	listLinesToDelete = append(listLinesToDelete, "host-name")
 	listLinesToDelete = append(listLinesToDelete, "inet6-backup-router")
@@ -1161,6 +1183,7 @@ func delSystem(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete = append(listLinesToDelete, "max-configuration-rollbacks")
 	listLinesToDelete = append(listLinesToDelete, "max-configurations-on-flash")
 	listLinesToDelete = append(listLinesToDelete, "name-server")
+	listLinesToDelete = append(listLinesToDelete, "no-multicast-echo")
 	listLinesToDelete = append(listLinesToDelete, "no-ping-record-route")
 	listLinesToDelete = append(listLinesToDelete, "no-ping-time-stamp")
 	listLinesToDelete = append(listLinesToDelete, "no-redirects")
@@ -1211,6 +1234,8 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 					strings.TrimPrefix(itemTrim, "authentication-order "))
 			case itemTrim == "auto-snapshot":
 				confRead.autoSnapshot = true
+			case itemTrim == "default-address-selection":
+				confRead.defaultAddressSelection = true
 			case strings.HasPrefix(itemTrim, "domain-name "):
 				confRead.domainName = strings.TrimPrefix(itemTrim, "domain-name ")
 			case strings.HasPrefix(itemTrim, "host-name "):
@@ -1251,6 +1276,8 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 				}
 			case strings.HasPrefix(itemTrim, "name-server "):
 				confRead.nameServer = append(confRead.nameServer, strings.TrimPrefix(itemTrim, "name-server "))
+			case itemTrim == "no-multicast-echo":
+				confRead.noMulticastEcho = true
 			case itemTrim == "no-ping-record-route":
 				confRead.noPingRecordRoute = true
 			case itemTrim == "no-ping-time-stamp":
@@ -1789,6 +1816,9 @@ func fillSystem(d *schema.ResourceData, systemOptions systemOptions) {
 	if tfErr := d.Set("auto_snapshot", systemOptions.autoSnapshot); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("default_address_selection", systemOptions.defaultAddressSelection); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("domain_name", systemOptions.domainName); tfErr != nil {
 		panic(tfErr)
 	}
@@ -1811,6 +1841,9 @@ func fillSystem(d *schema.ResourceData, systemOptions systemOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("name_server", systemOptions.nameServer); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("no_multicast_echo", systemOptions.noMulticastEcho); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("no_ping_record_route", systemOptions.noPingRecordRoute); tfErr != nil {

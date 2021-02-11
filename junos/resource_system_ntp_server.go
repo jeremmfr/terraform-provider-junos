@@ -83,23 +83,26 @@ func resourceSystemNtpServerCreate(ctx context.Context, d *schema.ResourceData, 
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_system_ntp_server", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_system_ntp_server", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	ntpServerExists, err = checkSystemNtpServerExists(d.Get("address").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if ntpServerExists {
 		d.SetId(d.Get("address").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("system ntp server %v not exists after commit "+
-			"=> check your config", d.Get("address").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("system ntp server %v not exists after commit "+
+			"=> check your config", d.Get("address").(string)))...)
 	}
 
-	return resourceSystemNtpServerReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSystemNtpServerReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSystemNtpServerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -146,14 +149,18 @@ func resourceSystemNtpServerUpdate(ctx context.Context, d *schema.ResourceData, 
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_system_ntp_server", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_system_ntp_server", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
+
 	d.Partial(false)
 
-	return resourceSystemNtpServerReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSystemNtpServerReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSystemNtpServerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -168,13 +175,16 @@ func resourceSystemNtpServerDelete(ctx context.Context, d *schema.ResourceData, 
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_system_ntp_server", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_system_ntp_server", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceSystemNtpServerImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
@@ -225,14 +235,14 @@ func setSystemNtpServer(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	if d.Get("key").(int) != 0 {
 		configSet = append(configSet, setPrefix+" key "+strconv.Itoa(d.Get("key").(int)))
 	}
-	if d.Get("version").(int) != 0 {
-		configSet = append(configSet, setPrefix+" version "+strconv.Itoa(d.Get("version").(int)))
-	}
 	if d.Get("prefer").(bool) {
 		configSet = append(configSet, setPrefix+" prefer")
 	}
 	if d.Get("routing_instance").(string) != "" {
 		configSet = append(configSet, setPrefix+" routing-instance "+d.Get("routing_instance").(string))
+	}
+	if d.Get("version").(int) != 0 {
+		configSet = append(configSet, setPrefix+" version "+strconv.Itoa(d.Get("version").(int)))
 	}
 
 	if err := sess.configSet(configSet, jnprSess); err != nil {
@@ -267,22 +277,18 @@ func readSystemNtpServer(address string, m interface{}, jnprSess *NetconfObject)
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
+			case itemTrim == "prefer":
+				confRead.prefer = true
+			case strings.HasPrefix(itemTrim, "routing-instance "):
+				confRead.routingInstance = strings.TrimPrefix(itemTrim, "routing-instance ")
 			case strings.HasPrefix(itemTrim, "version "):
 				var err error
 				confRead.version, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "version "))
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
-			case itemTrim == "prefer":
-				confRead.prefer = true
-			case strings.HasPrefix(itemTrim, "routing-instance "):
-				confRead.routingInstance = strings.TrimPrefix(itemTrim, "routing-instance ")
 			}
 		}
-	} else {
-		confRead.address = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil
@@ -305,13 +311,13 @@ func fillSystemNtpServerData(d *schema.ResourceData, ntpServerOptions ntpServerO
 	if tfErr := d.Set("key", ntpServerOptions.key); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("version", ntpServerOptions.version); tfErr != nil {
-		panic(tfErr)
-	}
 	if tfErr := d.Set("prefer", ntpServerOptions.prefer); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("routing_instance", ntpServerOptions.routingInstance); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("version", ntpServerOptions.version); tfErr != nil {
 		panic(tfErr)
 	}
 }

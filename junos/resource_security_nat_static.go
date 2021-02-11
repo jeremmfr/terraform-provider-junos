@@ -77,15 +77,15 @@ func resourceSecurityNatStatic() *schema.Resource {
 										Required:     true,
 										ValidateFunc: validation.StringInSlice([]string{inetWord, prefixWord}, false),
 									},
-									"routing_instance": {
-										Type:             schema.TypeString,
-										Optional:         true,
-										ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
-									},
 									"prefix": {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.IsCIDRNetwork(0, 128),
+									},
+									"routing_instance": {
+										Type:             schema.TypeString,
+										Optional:         true,
+										ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 									},
 								},
 							},
@@ -126,23 +126,26 @@ func resourceSecurityNatStaticCreate(ctx context.Context, d *schema.ResourceData
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_security_nat_static", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_security_nat_static", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	securityNatStaticExists, err = checkSecurityNatStaticExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityNatStaticExists {
 		d.SetId(d.Get("name").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("security nat static %v not exists after commit "+
-			"=> check your config", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("security nat static %v not exists after commit "+
+			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return resourceSecurityNatStaticReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityNatStaticReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityNatStaticRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -189,14 +192,17 @@ func resourceSecurityNatStaticUpdate(ctx context.Context, d *schema.ResourceData
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_security_nat_static", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_security_nat_static", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceSecurityNatStaticReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSecurityNatStaticReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSecurityNatStaticDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -211,13 +217,16 @@ func resourceSecurityNatStaticDelete(ctx context.Context, d *schema.ResourceData
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_security_nat_static", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_security_nat_static", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceSecurityNatStaticImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
@@ -355,8 +364,8 @@ func readSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObj
 					itemThen := strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" then static-nat ")
 					ruleThenOptions := map[string]interface{}{
 						"type":             "",
-						"routing_instance": "",
 						prefixWord:         "",
+						"routing_instance": "",
 					}
 					if len(ruleOptions[thenWord].([]map[string]interface{})) > 0 {
 						for k, v := range ruleOptions[thenWord].([]map[string]interface{})[0] {
@@ -381,10 +390,6 @@ func readSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObj
 				confRead.rule = append(confRead.rule, ruleOptions)
 			}
 		}
-	} else {
-		confRead.name = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

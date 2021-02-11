@@ -214,23 +214,26 @@ func resourceSystemSyslogHostCreate(ctx context.Context, d *schema.ResourceData,
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("create resource junos_system_syslog_host", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("create resource junos_system_syslog_host", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	syslogHostExists, err = checkSystemSyslogHostExists(d.Get("host").(string), m, jnprSess)
 	if err != nil {
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if syslogHostExists {
 		d.SetId(d.Get("host").(string))
 	} else {
-		return diag.FromErr(fmt.Errorf("system syslog host %v not exists after commit "+
-			"=> check your config", d.Get("host").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("system syslog host %v not exists after commit "+
+			"=> check your config", d.Get("host").(string)))...)
 	}
 
-	return resourceSystemSyslogHostReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSystemSyslogHostReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSystemSyslogHostRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -277,14 +280,17 @@ func resourceSystemSyslogHostUpdate(ctx context.Context, d *schema.ResourceData,
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("update resource junos_system_syslog_host", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("update resource junos_system_syslog_host", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return resourceSystemSyslogHostReadWJnprSess(d, m, jnprSess)
+	return append(diagWarns, resourceSystemSyslogHostReadWJnprSess(d, m, jnprSess)...)
 }
 func resourceSystemSyslogHostDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -299,13 +305,16 @@ func resourceSystemSyslogHostDelete(ctx context.Context, d *schema.ResourceData,
 
 		return diag.FromErr(err)
 	}
-	if err := sess.commitConf("delete resource junos_system_syslog_host", jnprSess); err != nil {
+	var diagWarns diag.Diagnostics
+	warns, err := sess.commitConf("delete resource junos_system_syslog_host", jnprSess)
+	appendDiagWarns(&diagWarns, warns)
+	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diagWarns
 }
 func resourceSystemSyslogHostImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
@@ -525,10 +534,6 @@ func readSystemSyslogHost(host string, m interface{}, jnprSess *NetconfObject) (
 				confRead.userSeverity = strings.TrimPrefix(itemTrim, "user ")
 			}
 		}
-	} else {
-		confRead.host = ""
-
-		return confRead, nil
 	}
 
 	return confRead, nil

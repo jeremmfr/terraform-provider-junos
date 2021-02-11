@@ -38,7 +38,7 @@ func TestAccJunosSystemRadiusServer_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("junos_system_radius_server.testacc_radiusServer",
 						"timeout", "10"),
 					resource.TestCheckResourceAttr("junos_system_radius_server.testacc_radiusServer",
-						"accouting_timeout", "5"),
+						"accounting_timeout", "5"),
 					resource.TestCheckResourceAttr("junos_system_radius_server.testacc_radiusServer",
 						"retry", "3"),
 					resource.TestCheckResourceAttr("junos_system_radius_server.testacc_radiusServer",
@@ -81,7 +81,7 @@ resource junos_system_radius_server testacc_radiusServer {
   dynamic_request_port     = 3799
   preauthentication_port   = 1812
   timeout                  = 10
-  accouting_timeout        = 5
+  accounting_timeout       = 5
   retry                    = 3
   accounting_retry         = 2
   max_outstanding_requests = 1000

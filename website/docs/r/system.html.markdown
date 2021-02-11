@@ -40,6 +40,7 @@ The following arguments are supported:
 
 * `authentication_order` - (Optional)(`ListOfString`) Order in which authentication methods are invoked.
 * `auto_snapshot` - (Optional)(`Bool`) Enable auto-snapshot when boots from alternate slice.
+* `default_address_selection` - (Optional)(`Bool`) Use loopback interface as source address for locally generated packets.
 * `domain_name` - (Optional)(`String`) Domain name.
 * `host_name` - (Optional)(`String`) Hostname.
 * `inet6_backup_router` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'inet6-backup-router' configuration.
@@ -50,6 +51,7 @@ The following arguments are supported:
 * `max_configuration_rollbacks` - (Optional)(`Int`) Maximum rollback configuration (0..49).
 * `max_configurations_on_flash` - (Optional)(`Int`) Number of configuration files stored on flash (0..49).
 * `name_server` - (Optional)(`ListOfString`) DNS name servers.
+* `no_multicast_echo` - (Optional)(`Bool`) Disable responding to ICMP echo requests sent to multicast group addresses.
 * `no_ping_record_route` - (Optional)(`Bool`) Do not insert IP address in ping replies.
 * `no_ping_time_stamp` - (Optional)(`Bool`) Do not insert time stamp in ping replies.
 * `no_redirects` - (Optional)(`Bool`) Disable ICMP redirects.

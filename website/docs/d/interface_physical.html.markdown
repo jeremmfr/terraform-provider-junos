@@ -32,12 +32,12 @@ The following arguments are supported:
 
 * `id` - Like resource it's the `name` of interface
 * `name` - Name of physical interface (without dot).
+* `ae_lacp` - LACP option in aggregated-ether-options.
+* `ae_link_speed` - Link speed of individual interface that joins the AE.
+* `ae_minimum_links` - Minimum number of aggregated links (1..8).
 * `description` - Description for interface.
-* `vlan_tagging` - 802.1q VLAN tagging support.
 * `ether802_3ad` - Link of 802.3ad interface.
 * `trunk` - Interface mode is trunk.
 * `vlan_members` - List of vlan membership for this interface.
 * `vlan_native` - Vlan for untagged frames.
-* `ae_lacp` - LACP option in aggregated-ether-options.
-* `ae_link_speed` - Link speed of individual interface that joins the AE.
-* `ae_minimum_links` - Minimum number of aggregated links (1..8).
+* `vlan_tagging` - 802.1q VLAN tagging support.

@@ -24,7 +24,7 @@ resource junos_routing_instance "demo_ri" {
 The following arguments are supported:
 
 * `name` - (Required, Forces new resource)(`String`) The name of routing instance.
-* `type` - (Optional)(`String`) Type of routing instance. Default to `virtual-router`
+* `type` - (Optional)(`String`) Type of routing instance. Defaults to `virtual-router`
 * `as` - (Optional)(`String`) Autonomous system number in plain number or 'higher 16bits'.'Lower 16 bits' (asdot notation) format.
 
 ## Import
