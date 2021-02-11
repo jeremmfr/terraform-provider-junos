@@ -782,6 +782,9 @@ func setBgpOptsMultipath(setPrefix string, multipaths []interface{},
 	for _, v := range multipaths {
 		if v != nil {
 			m := v.(map[string]interface{})
+			if m["enable"].(bool) {
+				configSet = append(configSet, setPrefix+"multipath")
+			}
 			if m["disable"].(bool) {
 				configSet = append(configSet, setPrefix+"multipath disable")
 			}
@@ -805,14 +808,18 @@ func setBgpOptsMultipath(setPrefix string, multipaths []interface{},
 func readBgpOptsMultipath(item string, grOpts []map[string]interface{}) ([]map[string]interface{}, error) {
 	itemTrim := strings.TrimPrefix(item, "multipath ")
 	grRead := map[string]interface{}{
+		"enable":           false,
 		"disable":          false,
 		"allow_protection": false,
-		"multiple-as":      false,
+		"multiple_as":      false,
 	}
 	if len(grOpts) > 0 {
 		for k, v := range grOpts[0] {
 			grRead[k] = v
 		}
+	}
+	if itemTrim == "multipath" {
+		grRead["enable"] = true
 	}
 	if itemTrim == disableW {
 		grRead["disable"] = true

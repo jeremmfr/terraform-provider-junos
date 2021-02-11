@@ -445,9 +445,12 @@ func resourceBgpGroup() *schema.Resource {
 			"multipath": {
                                 Type:     schema.TypeList,
                                 Optional: true,
-                                MaxItems: 1,
                                 Elem: &schema.Resource{
                                         Schema: map[string]*schema.Schema{
+						"enable" : {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
                                                 "disable": {
                                                         Type:     schema.TypeBool,
                                                         Optional: true,
@@ -718,6 +721,9 @@ func setBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	if err := setBgpOptsGrafefulRestart(setPrefix, d.Get("graceful_restart").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
+	if err := setBgpOptsMultipath(setPrefix, d.Get("multipath").([]interface{}), m, jnprSess); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -774,6 +780,11 @@ func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObj
 				}
 			case strings.HasPrefix(itemTrim, "graceful-restart "):
 				confRead.gracefulRestart, err = readBgpOptsGracefulRestart(itemTrim, confRead.gracefulRestart)
+				if err != nil {
+					return confRead, err
+				}
+			case strings.HasPrefix(itemTrim, "multipath"):
+				confRead.multipath, err = readBgpOptsMultipath(itemTrim, confRead.multipath)
 				if err != nil {
 					return confRead, err
 				}

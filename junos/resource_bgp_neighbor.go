@@ -436,10 +436,32 @@ func resourceBgpNeighbor() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
-			"multipath": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
+                        "multipath": {
+                                Type:     schema.TypeList,
+                                Optional: true,
+                                Elem: &schema.Resource{
+                                        Schema: map[string]*schema.Schema{
+                                                "enable" : {
+                                                        Type:     schema.TypeBool,
+                                                        Optional: true,
+                                                },
+                                                "disable": {
+                                                        Type:     schema.TypeBool,
+                                                        Optional: true,
+                                                },
+                                                "allow_protection": {
+                                                        Type:          schema.TypeBool,
+                                                        Optional:      true,
+                                                },
+                                                "multiple_as": {
+                                                        Type:          schema.TypeBool,
+                                                        Optional:      true,
+                                                },
+                                        },
+                                },
+
+                        },
+
 			"out_delay": {
 				Type:         schema.TypeInt,
 				Optional:     true,
