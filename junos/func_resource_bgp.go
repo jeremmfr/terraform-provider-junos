@@ -291,7 +291,7 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 		confRead.authenticationKeyChain = strings.TrimPrefix(item, "authentication-key-chain ")
 	}
 	if strings.HasPrefix(item, "cluster ") {
-		confRead.localAddress = strings.TrimPrefix(item, "cluster ")
+		confRead.cluster = strings.TrimPrefix(item, "cluster ")
 	}
 	if item == "damping" {
 		confRead.damping = true
