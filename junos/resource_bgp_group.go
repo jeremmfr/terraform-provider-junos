@@ -443,8 +443,26 @@ func resourceBgpGroup() *schema.Resource {
 				Optional: true,
 			},
 			"multipath": {
-				Type:     schema.TypeBool,
-				Optional: true,
+                                Type:     schema.TypeList,
+                                Optional: true,
+                                MaxItems: 1,
+                                Elem: &schema.Resource{
+                                        Schema: map[string]*schema.Schema{
+                                                "disable": {
+                                                        Type:     schema.TypeBool,
+                                                        Optional: true,
+                                                },
+                                                "allow_protection": {
+                                                        Type:          schema.TypeBool,
+                                                        Optional:      true,
+                                                },
+                                                "multiple_as": {
+                                                        Type:          schema.TypeBool,
+                                                        Optional:      true,
+                                                },
+                                        },
+                                },
+
 			},
 			"out_delay": {
 				Type:         schema.TypeInt,
