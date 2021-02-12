@@ -445,13 +445,19 @@ func resourceBgpGroup() *schema.Resource {
 			"multipath": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				ConflictsWith: []string{"multipath_options"},
 			},
 			"multipath_options": {
                                 Type:     schema.TypeList,
                                 Optional: true,
 				MaxItems: 1,
+				ConflictsWith: []string{"multipath"},
                                 Elem: &schema.Resource{
                                         Schema: map[string]*schema.Schema{
+                                                "enable": {
+                                                        Type:     schema.TypeBool,
+                                                        Optional: true,
+                                                },
                                                 "disable": {
                                                         Type:     schema.TypeBool,
                                                         Optional: true,
@@ -786,7 +792,6 @@ func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObj
 				}
 			case strings.HasPrefix(itemTrim, "multipath "):
 				confRead.multipath_options, err = readBgpOptsMultipath(itemTrim, confRead.multipath_options)
-				confRead.multipath = true
 				if err != nil {
 					return confRead, err
 				}
