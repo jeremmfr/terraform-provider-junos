@@ -14,15 +14,17 @@ import (
 )
 
 type interfacePhysicalOptions struct {
-	trunk       bool
-	vlanTagging bool
-	aeMinLink   int
-	vlanNative  int
-	aeLacp      string
-	aeLinkSpeed string
-	description string
-	v8023ad     string
-	vlanMembers []string
+	trunk           bool
+	vlanTagging     bool
+	aeMinLink       int
+	vlanNative      int
+	aeLacp          string
+	aeLacpSystemId  string
+	aeLinkSpeed     string
+	description     string
+	v8023ad         string
+	vlanMembers     []string
+	Esi             []map[string]interface{}
 }
 
 func resourceInterfacePhysical() *schema.Resource {
@@ -59,6 +61,10 @@ func resourceInterfacePhysical() *schema.Resource {
 				Default:      "",
 				ValidateFunc: validation.StringInSlice([]string{"active", "passive"}, false),
 			},
+			"ae_lacp_system_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+			},
 			"ae_link_speed": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -71,6 +77,19 @@ func resourceInterfacePhysical() *schema.Resource {
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
+			},
+			"esi": {
+				Type:         schema.TypeList,
+				Optional:     true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"identifier": {
+							Type:		schema.TypeString,
+							Optional:	true,
+						},
+					},
+				},
 			},
 			"ether802_3ad": {
 				Type:     schema.TypeString,
@@ -418,6 +437,13 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 		configSet = append(configSet, setPrefix+
 			"aggregated-ether-options lacp "+d.Get("ae_lacp").(string))
 	}
+	if d.Get("ae_lacp_system_id").(string) != "" {
+		if !strings.HasPrefix(d.Get("name").(string), "ae") {
+			return fmt.Errorf("ae_lacp_system_id invalid for this interface")
+		}
+		configSet = append(configSet, setPrefix+
+			"aggregated-ether-options lacp system-id"+d.Get("ae_lacp_system_id").(string))
+	}
 	if d.Get("ae_link_speed").(string) != "" {
 		if !strings.HasPrefix(d.Get("name").(string), "ae") {
 			return fmt.Errorf("ae_link_speed invalid for this interface")
@@ -474,6 +500,10 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 		configSet = append(configSet, setPrefix+"vlan-tagging")
 	}
 
+	if err := setIntEsi(setPrefix, d.Get("esi").([]interface{}), m, jnprSess); err != nil {
+                return err
+        }
+
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
@@ -501,6 +531,8 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
+			case strings.HasPrefix(itemTrim, "aggregated-ether-options lacp system-id "):
+				confRead.aeLacpSystemId = strings.TrimPrefix(itemTrim, "aggregated-ether-options lacp system-id ")
 			case strings.HasPrefix(itemTrim, "aggregated-ether-options lacp "):
 				confRead.aeLacp = strings.TrimPrefix(itemTrim, "aggregated-ether-options lacp ")
 			case strings.HasPrefix(itemTrim, "aggregated-ether-options link-speed "):
@@ -516,6 +548,11 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 
 			case strings.HasPrefix(itemTrim, "ether-options 802.3ad "):
 				confRead.v8023ad = strings.TrimPrefix(itemTrim, "ether-options 802.3ad ")
+			case strings.HasPrefix(itemTrim, "esi "):
+                                confRead.Esi, err = readIntEsi(itemTrim, confRead.Esi)
+                                if err != nil {
+                                        return confRead, err
+                                }
 			case strings.HasPrefix(itemTrim, "gigether-options 802.3ad "):
 				confRead.v8023ad = strings.TrimPrefix(itemTrim, "gigether-options 802.3ad ")
 			case strings.HasPrefix(itemTrim, "native-vlan-id"):
@@ -653,10 +690,16 @@ func fillInterfacePhysicalData(d *schema.ResourceData, interfaceOpt interfacePhy
 	if tfErr := d.Set("ae_lacp", interfaceOpt.aeLacp); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("ae_lacp_system_id", interfaceOpt.aeLacpSystemId); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("ae_link_speed", interfaceOpt.aeLinkSpeed); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("ae_minimum_links", interfaceOpt.aeMinLink); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("esi", interfaceOpt.Esi); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("description", interfaceOpt.description); tfErr != nil {
