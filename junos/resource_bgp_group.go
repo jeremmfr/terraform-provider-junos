@@ -443,6 +443,10 @@ func resourceBgpGroup() *schema.Resource {
 				Optional: true,
 			},
 			"multipath": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"multipath_options": {
                                 Type:     schema.TypeList,
                                 Optional: true,
                                 Elem: &schema.Resource{
@@ -721,7 +725,7 @@ func setBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	if err := setBgpOptsGrafefulRestart(setPrefix, d.Get("graceful_restart").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
-	if err := setBgpOptsMultipath(setPrefix, d.Get("multipath").([]interface{}), m, jnprSess); err != nil {
+	if err := setBgpOptsMultipath(setPrefix, d.Get("multipath_options").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
 
@@ -783,8 +787,8 @@ func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObj
 				if err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "multipath"):
-				confRead.multipath, err = readBgpOptsMultipath(itemTrim, confRead.multipath)
+			case strings.HasPrefix(itemTrim, "multipath "):
+				confRead.multipath_options, err = readBgpOptsMultipath(itemTrim, confRead.multipath_options)
 				if err != nil {
 					return confRead, err
 				}
@@ -925,6 +929,9 @@ func fillBgpGroupData(d *schema.ResourceData, bgpGroupOptions bgpOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("multipath", bgpGroupOptions.multipath); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("multipath_options", bgpGroupOptions.multipath_options); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("no_advertise_peer_as", bgpGroupOptions.noAdvertisePeerAs); tfErr != nil {

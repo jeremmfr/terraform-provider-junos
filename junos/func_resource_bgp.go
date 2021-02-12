@@ -26,6 +26,7 @@ type bgpOptions struct {
 	metricOutMinimumIgp          bool
 	mtuDiscovery                 bool
 	multihop                     bool
+	multipath                    bool
 	noAdvertisePeerAs            bool
 	removePrivate                bool
 	passive                      bool
@@ -54,7 +55,7 @@ type bgpOptions struct {
 	familyInet                   []map[string]interface{}
 	familyInet6                  []map[string]interface{}
 	gracefulRestart              []map[string]interface{}
-	multipath                    []map[string]interface{}
+	multipath_options            []map[string]interface{}
 }
 
 func delBgpOpts(d *schema.ResourceData, typebgp string, m interface{}, jnprSess *NetconfObject) error {
@@ -225,6 +226,9 @@ func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, j
 	}
 	if d.Get("multihop").(bool) {
 		configSet = append(configSet, setPrefix+"multihop")
+	}
+	if d.Get("multipath").(bool) {
+		configSet = append(configSet, setPrefix+"multipath")
 	}
 	if d.Get("no_advertise_peer_as").(bool) {
 		configSet = append(configSet, setPrefix+"no-advertise-peer-as")
@@ -782,9 +786,6 @@ func setBgpOptsMultipath(setPrefix string, multipaths []interface{},
 	for _, v := range multipaths {
 		if v != nil {
 			m := v.(map[string]interface{})
-			if m["enable"].(bool) {
-				configSet = append(configSet, setPrefix+"multipath")
-			}
 			if m["disable"].(bool) {
 				configSet = append(configSet, setPrefix+"multipath disable")
 			}
@@ -808,7 +809,6 @@ func setBgpOptsMultipath(setPrefix string, multipaths []interface{},
 func readBgpOptsMultipath(item string, grOpts []map[string]interface{}) ([]map[string]interface{}, error) {
 	itemTrim := strings.TrimPrefix(item, "multipath ")
 	grRead := map[string]interface{}{
-		"enable":           false,
 		"disable":          false,
 		"allow_protection": false,
 		"multiple_as":      false,
@@ -817,9 +817,6 @@ func readBgpOptsMultipath(item string, grOpts []map[string]interface{}) ([]map[s
 		for k, v := range grOpts[0] {
 			grRead[k] = v
 		}
-	}
-	if itemTrim == "multipath" {
-		grRead["enable"] = true
 	}
 	if itemTrim == disableW {
 		grRead["disable"] = true
