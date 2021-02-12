@@ -454,10 +454,6 @@ func resourceBgpGroup() *schema.Resource {
 				ConflictsWith: []string{"multipath"},
                                 Elem: &schema.Resource{
                                         Schema: map[string]*schema.Schema{
-                                                "enable": {
-                                                        Type:     schema.TypeBool,
-                                                        Optional: true,
-                                                },
                                                 "disable": {
                                                         Type:     schema.TypeBool,
                                                         Optional: true,
