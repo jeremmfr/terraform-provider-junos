@@ -367,6 +367,9 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 	if item == "multihop" {
 		confRead.multihop = true
 	}
+	if item == "multipath" {
+		confRead.multipath = true
+	}
 	if item == "no-advertise-peer-as" {
 		confRead.noAdvertisePeerAs = true
 	}

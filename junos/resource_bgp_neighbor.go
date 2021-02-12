@@ -436,15 +436,16 @@ func resourceBgpNeighbor() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
-                        "multipath": {
+			"multipath": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+                        "multipath_options": {
                                 Type:     schema.TypeList,
                                 Optional: true,
+				MaxItems: 1,
                                 Elem: &schema.Resource{
                                         Schema: map[string]*schema.Schema{
-                                                "enable" : {
-                                                        Type:     schema.TypeBool,
-                                                        Optional: true,
-                                                },
                                                 "disable": {
                                                         Type:     schema.TypeBool,
                                                         Optional: true,
@@ -786,6 +787,13 @@ func readBgpNeighbor(ip, instance, group string, m interface{}, jnprSess *Netcon
 				if err != nil {
 					return confRead, err
 				}
+                        case strings.HasPrefix(itemTrim, "multipath "):
+                                confRead.multipath_options, err = readBgpOptsMultipath(itemTrim, confRead.multipath_options)
+                                confRead.multipath = true
+                                if err != nil {
+                                        return confRead, err
+                                }
+
 			default:
 				err = readBgpOptsSimple(itemTrim, &confRead)
 				if err != nil {
@@ -930,6 +938,9 @@ func fillBgpNeighborData(d *schema.ResourceData, bgpNeighborOptions bgpOptions) 
 		panic(tfErr)
 	}
 	if tfErr := d.Set("multipath", bgpNeighborOptions.multipath); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("multipath_options", bgpNeighborOptions.multipath_options); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("no_advertise_peer_as", bgpNeighborOptions.noAdvertisePeerAs); tfErr != nil {
