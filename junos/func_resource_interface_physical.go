@@ -16,6 +16,7 @@ func setIntEsi(setPrefix string, esiParams []interface{},
 			m := v.(map[string]interface{})
 			if m["identifier"].(string) != "" {
 				configSet = append(configSet, setPrefix+"esi "+ m["identifier"].(string))
+				configSet = append(configSet, setPrefix+"esi all-active")
 			}
 		}
 	}
@@ -38,7 +39,7 @@ func readIntEsi(item string, grOpts []map[string]interface{}) ([]map[string]inte
 			grRead[k] = v
 		}
 	}
-	identifier, _ := regexp.MatchString(`^\d+:{,9}\d+`,itemTrim)
+	identifier, _ := regexp.MatchString(`^(\d+:){9,9}\d+`,itemTrim)
 	if identifier {
 	  grRead["identifier"] = itemTrim
 	}
