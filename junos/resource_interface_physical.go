@@ -64,6 +64,7 @@ func resourceInterfacePhysical() *schema.Resource {
 			"ae_lacp_system_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				ValidateDiagFunc: validateByteString(6),
 			},
 			"ae_link_speed": {
 				Type:         schema.TypeString,
@@ -87,6 +88,7 @@ func resourceInterfacePhysical() *schema.Resource {
 						"identifier": {
 							Type:		schema.TypeString,
 							Optional:	true,
+							ValidateDiagFunc: validateByteString(10),
 						},
 					},
 				},
