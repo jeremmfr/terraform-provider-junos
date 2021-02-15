@@ -151,6 +151,11 @@ func resourceBgpNeighbor() *schema.Resource {
 					},
 				},
 			},
+			"cluster": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsIPAddress,
+			},
 			"damping": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -833,6 +838,9 @@ func fillBgpNeighborData(d *schema.ResourceData, bgpNeighborOptions bgpOptions) 
 		panic(tfErr)
 	}
 	if tfErr := d.Set("bfd_liveness_detection", bgpNeighborOptions.bfdLivenessDetection); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("cluster", bgpNeighborOptions.cluster); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("damping", bgpNeighborOptions.damping); tfErr != nil {

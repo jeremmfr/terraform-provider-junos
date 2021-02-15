@@ -30,6 +30,8 @@ func TestAccJunosBgpGroup_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
 							"as_override", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
+							"cluster", "192.0.2.3"),
+						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
 							"damping", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
 							"log_updown", "true"),
@@ -214,6 +216,7 @@ resource junos_bgp_group "testacc_bgpgroup" {
   advertise_inactive       = true
   advertise_peer_as        = true
   as_override              = true
+  cluster                  = "192.0.2.3"
   damping                  = true
   log_updown               = true
   mtu_discovery            = true

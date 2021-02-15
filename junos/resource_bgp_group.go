@@ -153,6 +153,11 @@ func resourceBgpGroup() *schema.Resource {
 					},
 				},
 			},
+			"cluster": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsIPAddress,
+			},
 			"damping": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -821,6 +826,9 @@ func fillBgpGroupData(d *schema.ResourceData, bgpGroupOptions bgpOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("bfd_liveness_detection", bgpGroupOptions.bfdLivenessDetection); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("cluster", bgpGroupOptions.cluster); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("damping", bgpGroupOptions.damping); tfErr != nil {

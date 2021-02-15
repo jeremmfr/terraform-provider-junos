@@ -41,6 +41,7 @@ The following arguments are supported:
 **WARNING** Clear in tfstate.
 * `authentication_key_chain` - (Optional)(`String`) Key chain name. Conflict with `authentication_key`.
 * `bfd_liveness_detection` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Define Bidirectional Forwarding Detection (BFD) options. See the [`bfd_liveness_detection` arguments](#bfd_liveness_detection-arguments) block. Max of 1.
+* `cluster` - (Optional)(`String`) Cluster identifier. Must be a valid IP address.
 * `damping` - (Optional)(`Bool`) Enable route flap damping.
 * `export` - (Optional)(`ListOfString`) Export policy list.
 * `family_inet` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each nlri_type.

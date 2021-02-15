@@ -30,6 +30,8 @@ func TestAccJunosBgpNeighbor_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
 							"as_override", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
+							"cluster", "192.0.2.3"),
+						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
 							"damping", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
 							"log_updown", "true"),
@@ -221,6 +223,7 @@ resource junos_bgp_neighbor "testacc_bgpneighbor" {
   advertise_inactive       = true
   advertise_peer_as        = true
   as_override              = true
+  cluster                  = "192.0.2.3"
   damping                  = true
   log_updown               = true
   mtu_discovery            = true
