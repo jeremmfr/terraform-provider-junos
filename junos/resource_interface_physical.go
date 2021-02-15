@@ -14,17 +14,17 @@ import (
 )
 
 type interfacePhysicalOptions struct {
-	trunk           bool
-	vlanTagging     bool
-	aeMinLink       int
-	vlanNative      int
-	aeLacp          string
-	aeLacpSystemId  string
-	aeLinkSpeed     string
-	description     string
-	v8023ad         string
-	vlanMembers     []string
-	Esi             []map[string]interface{}
+	trunk          bool
+	vlanTagging    bool
+	aeMinLink      int
+	vlanNative     int
+	aeLacp         string
+	aeLacpSystemID string
+	aeLinkSpeed    string
+	description    string
+	v8023ad        string
+	vlanMembers    []string
+	Esi            []map[string]interface{}
 }
 
 func resourceInterfacePhysical() *schema.Resource {
@@ -62,8 +62,9 @@ func resourceInterfacePhysical() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"active", "passive"}, false),
 			},
 			"ae_lacp_system_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validateByteString(6),
 			},
 			"ae_link_speed": {
 				Type:         schema.TypeString,
@@ -79,14 +80,15 @@ func resourceInterfacePhysical() *schema.Resource {
 				Optional: true,
 			},
 			"esi": {
-				Type:         schema.TypeList,
-				Optional:     true,
+				Type:     schema.TypeList,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"identifier": {
-							Type:		schema.TypeString,
-							Optional:	true,
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateDiagFunc: validateByteString(10),
 						},
 					},
 				},
@@ -501,8 +503,8 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	}
 
 	if err := setIntEsi(setPrefix, d.Get("esi").([]interface{}), m, jnprSess); err != nil {
-                return err
-        }
+		return err
+	}
 
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
@@ -532,7 +534,7 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
 			case strings.HasPrefix(itemTrim, "aggregated-ether-options lacp system-id "):
-				confRead.aeLacpSystemId = strings.TrimPrefix(itemTrim, "aggregated-ether-options lacp system-id ")
+				confRead.aeLacpSystemID = strings.TrimPrefix(itemTrim, "aggregated-ether-options lacp system-id ")
 			case strings.HasPrefix(itemTrim, "aggregated-ether-options lacp "):
 				confRead.aeLacp = strings.TrimPrefix(itemTrim, "aggregated-ether-options lacp ")
 			case strings.HasPrefix(itemTrim, "aggregated-ether-options link-speed "):
@@ -549,10 +551,10 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 			case strings.HasPrefix(itemTrim, "ether-options 802.3ad "):
 				confRead.v8023ad = strings.TrimPrefix(itemTrim, "ether-options 802.3ad ")
 			case strings.HasPrefix(itemTrim, "esi "):
-                                confRead.Esi, err = readIntEsi(itemTrim, confRead.Esi)
-                                if err != nil {
-                                        return confRead, err
-                                }
+				confRead.Esi, err = readIntEsi(itemTrim, confRead.Esi)
+				if err != nil {
+					return confRead, err
+				}
 			case strings.HasPrefix(itemTrim, "gigether-options 802.3ad "):
 				confRead.v8023ad = strings.TrimPrefix(itemTrim, "gigether-options 802.3ad ")
 			case strings.HasPrefix(itemTrim, "native-vlan-id"):
@@ -691,7 +693,7 @@ func fillInterfacePhysicalData(d *schema.ResourceData, interfaceOpt interfacePhy
 	if tfErr := d.Set("ae_lacp", interfaceOpt.aeLacp); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("ae_lacp_system_id", interfaceOpt.aeLacpSystemId); tfErr != nil {
+	if tfErr := d.Set("ae_lacp_system_id", interfaceOpt.aeLacpSystemID); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("ae_link_speed", interfaceOpt.aeLinkSpeed); tfErr != nil {

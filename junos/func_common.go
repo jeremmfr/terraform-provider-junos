@@ -5,6 +5,8 @@ import (
 	"log"
 	"net"
 	"os"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -88,6 +90,29 @@ func validateCIDRNetwork(network string) error {
 	}
 
 	return nil
+}
+
+func validateByteString(length int) schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
+		regLength := length - 1
+		l := strconv.Itoa(regLength)
+		s := i.(string)
+		regString := "^(\\d+:){" + l + "," + l + "}\\d+$"
+		r, err := regexp.Compile(regString)
+		regMatch := r.MatchString(s)
+
+		if err != nil || !regMatch {
+			//	return fmt.Errorf("%v is not a valid byte string", byteString)
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("%s is not a valid byte string, should be %s bytes long", i, l),
+				AttributePath: path,
+			})
+		}
+
+		return diags
+	}
 }
 
 func validateNameObjectJunos(exclude []string, length int) schema.SchemaValidateDiagFunc {
