@@ -53,6 +53,7 @@ type bgpOptions struct {
 	exportPolicy                 []string
 	importPolicy                 []string
 	bfdLivenessDetection         []map[string]interface{}
+	bgpMultipath                 []map[string]interface{}
 	familyEvpn                   []map[string]interface{}
 	familyInet                   []map[string]interface{}
 	familyInet6                  []map[string]interface{}
@@ -153,6 +154,21 @@ func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, j
 	}
 	if d.Get("authentication_key_chain").(string) != "" {
 		configSet = append(configSet, setPrefix+"authentication-key-chain "+d.Get("authentication_key_chain").(string))
+	}
+	for _, v := range d.Get("bgp_multipath").([]interface{}) {
+		configSet = append(configSet, setPrefix+"multipath")
+		if v != nil {
+			bgpMultipah := v.(map[string]interface{})
+			if bgpMultipah["allow_protection"].(bool) {
+				configSet = append(configSet, setPrefix+"multipath allow-protection")
+			}
+			if bgpMultipah["disable"].(bool) {
+				configSet = append(configSet, setPrefix+"multipath disable")
+			}
+			if bgpMultipah["multiple_as"].(bool) {
+				configSet = append(configSet, setPrefix+"multipath multiple-as")
+			}
+		}
 	}
 	if v := d.Get("cluster").(string); v != "" {
 		configSet = append(configSet, setPrefix+"cluster "+v)
@@ -376,8 +392,23 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 	if item == "multihop" {
 		confRead.multihop = true
 	}
-	if item == "multipath" {
+	if strings.HasPrefix(item, "multipath") {
 		confRead.multipath = true
+		if len(confRead.bgpMultipath) == 0 {
+			confRead.bgpMultipath = append(confRead.bgpMultipath, map[string]interface{}{
+				"allow_protection": false,
+				"disable":          false,
+				"multiple_as":      false,
+			})
+		}
+		switch {
+		case item == "multipath allow-protection":
+			confRead.bgpMultipath[0]["allow_protection"] = true
+		case item == "multipath disable":
+			confRead.bgpMultipath[0]["disable"] = true
+		case item == "multipath multiple-as":
+			confRead.bgpMultipath[0]["multiple_as"] = true
+		}
 	}
 	if item == "no-advertise-peer-as" {
 		confRead.noAdvertisePeerAs = true

@@ -42,6 +42,10 @@ The following arguments are supported:
 **WARNING** Clear in tfstate.
 * `authentication_key_chain` - (Optional)(`String`) Key chain name. Conflict with `authentication_key`.
 * `bfd_liveness_detection` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Define Bidirectional Forwarding Detection (BFD) options. See the [`bfd_liveness_detection` arguments](#bfd_liveness_detection-arguments) block. Max of 1.
+* `bgp_multipath` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to allow load sharing among multiple BGP paths.
+  * `allow_protection` - (Optional)(`Bool`) Allows the BGP multipath and protection to co-exist.
+  * `disable` - (Optional)(`Bool`) Disable Multipath.
+  * `multiple_as` - (Optional)(`Bool`) Use paths received from different ASs.
 * `cluster` - (Optional)(`String`) Cluster identifier. Must be a valid IP address.
 * `damping` - (Optional)(`Bool`) Enable route flap damping.
 * `export` - (Optional)(`ListOfString`) Export policy list.
@@ -71,7 +75,8 @@ See the [`family_inet` arguments](#family_inet-arguments) block.
 * `metric_out_minimum_igp_offset` - (Optional)(`Bool`) Metric offset for MED. Conflict with `metric_out` and `metric_out_(?!minimum)_*`.
 * `mtu_discovery` - (Optional)(`Bool`) Enable TCP path MTU discovery.
 * `multihop` - (Optional)(`Bool`) Configure an EBGP multihop session.
-* `multipath` - (Optional)(`Bool`) Allow load sharing among multiple BGP paths.
+* `multipath` - (Optional,**DEPRECATED**)(`Bool`) Allow load sharing among multiple BGP paths.  
+Deprecated argument, use the `bgp_multipath` argument instead.
 * `out_delay` - (Optional)(`Int`) How long before exporting routes from routing table.
 * `passive` - (Optional)(`Bool`) Do not send open messages to a peer.
 * `peer_as` - (Optional)(`String`) Autonomous system number.

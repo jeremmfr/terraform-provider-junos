@@ -151,6 +151,28 @@ func resourceBgpNeighbor() *schema.Resource {
 					},
 				},
 			},
+			"bgp_multipath": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"multipath"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"allow_protection": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"multiple_as": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
 			"cluster": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -512,8 +534,10 @@ func resourceBgpNeighbor() *schema.Resource {
 				Optional: true,
 			},
 			"multipath": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"bgp_multipath"},
+				Deprecated:    "use bgp_multipath instead",
 			},
 			"out_delay": {
 				Type:         schema.TypeInt,
@@ -995,8 +1019,14 @@ func fillBgpNeighborData(d *schema.ResourceData, bgpNeighborOptions bgpOptions) 
 	if tfErr := d.Set("multihop", bgpNeighborOptions.multihop); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("multipath", bgpNeighborOptions.multipath); tfErr != nil {
-		panic(tfErr)
+	if _, ok := d.GetOk("multipath"); ok {
+		if tfErr := d.Set("multipath", bgpNeighborOptions.multipath); tfErr != nil {
+			panic(tfErr)
+		}
+	} else {
+		if tfErr := d.Set("bgp_multipath", bgpNeighborOptions.bgpMultipath); tfErr != nil {
+			panic(tfErr)
+		}
 	}
 	if tfErr := d.Set("no_advertise_peer_as", bgpNeighborOptions.noAdvertisePeerAs); tfErr != nil {
 		panic(tfErr)

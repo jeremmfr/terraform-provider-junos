@@ -38,7 +38,7 @@ func TestAccJunosBgpNeighbor_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
 							"mtu_discovery", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
-							"multipath", "true"),
+							"bgp_multipath.#", "1"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
 							"remove_private", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
@@ -148,6 +148,10 @@ func TestAccJunosBgpNeighbor_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
 							"advertise_external_conditional", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
+							"bgp_multipath.#", "1"),
+						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
+							"bgp_multipath.0.multiple_as", "true"),
+						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
 							"no_advertise_peer_as", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
 							"metric_out_igp_offset", "-10"),
@@ -220,17 +224,17 @@ resource junos_bgp_group "testacc_bgpneighbor" {
   routing_instance = junos_routing_instance.testacc_bgpneighbor.name
 }
 resource junos_bgp_neighbor "testacc_bgpneighbor" {
-  ip                       = "192.0.2.4"
-  routing_instance         = junos_routing_instance.testacc_bgpneighbor.name
-  group                    = junos_bgp_group.testacc_bgpneighbor.name
-  advertise_inactive       = true
-  advertise_peer_as        = true
-  as_override              = true
+  ip                 = "192.0.2.4"
+  routing_instance   = junos_routing_instance.testacc_bgpneighbor.name
+  group              = junos_bgp_group.testacc_bgpneighbor.name
+  advertise_inactive = true
+  advertise_peer_as  = true
+  as_override        = true
+  bgp_multipath {}
   cluster                  = "192.0.2.3"
   damping                  = true
   log_updown               = true
   mtu_discovery            = true
-  multipath                = true
   remove_private           = true
   passive                  = true
   hold_time                = 30
@@ -328,6 +332,9 @@ resource junos_bgp_neighbor "testacc_bgpneighbor" {
   metric_out_igp_offset           = -10
   metric_out_igp_delay_med_update = true
   authentication_key              = "password"
+  bgp_multipath {
+    multiple_as = true
+  }
   graceful_restart {
     restart_time     = 10
     stale_route_time = 10

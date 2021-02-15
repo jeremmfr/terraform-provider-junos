@@ -153,6 +153,28 @@ func resourceBgpGroup() *schema.Resource {
 					},
 				},
 			},
+			"bgp_multipath": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"multipath"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"allow_protection": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"multiple_as": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
 			"cluster": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -518,8 +540,10 @@ func resourceBgpGroup() *schema.Resource {
 				Optional: true,
 			},
 			"multipath": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"bgp_multipath"},
+				Deprecated:    "use bgp_multipath instead",
 			},
 			"out_delay": {
 				Type:         schema.TypeInt,
@@ -983,8 +1007,14 @@ func fillBgpGroupData(d *schema.ResourceData, bgpGroupOptions bgpOptions) {
 	if tfErr := d.Set("multihop", bgpGroupOptions.multihop); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("multipath", bgpGroupOptions.multipath); tfErr != nil {
-		panic(tfErr)
+	if _, ok := d.GetOk("multipath"); ok {
+		if tfErr := d.Set("multipath", bgpGroupOptions.multipath); tfErr != nil {
+			panic(tfErr)
+		}
+	} else {
+		if tfErr := d.Set("bgp_multipath", bgpGroupOptions.bgpMultipath); tfErr != nil {
+			panic(tfErr)
+		}
 	}
 	if tfErr := d.Set("no_advertise_peer_as", bgpGroupOptions.noAdvertisePeerAs); tfErr != nil {
 		panic(tfErr)
