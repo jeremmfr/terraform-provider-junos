@@ -43,11 +43,11 @@ The following arguments are supported:
 * `default_address_selection` - (Optional)(`Bool`) Use loopback interface as source address for locally generated packets.
 * `domain_name` - (Optional)(`String`) Domain name.
 * `host_name` - (Optional)(`String`) Hostname.
-* `inet6_backup_router` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'inet6-backup-router' configuration.
+* `inet6_backup_router` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'inet6-backup-router' configuration.
   * `address` - (Optional)(`String`) Address of router to use while booting.
   * `destination` - (Optional)(`ListOfString`) Destination networks reachable through the router.
-* `internet_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'internet-options' configuration. See the [`internet_options` arguments] (#internet_options-arguments) block.
-* `login` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'login' configuration. See the [`login` arguments] (#login-arguments) block.
+* `internet_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'internet-options' configuration. See the [`internet_options` arguments] (#internet_options-arguments) block.
+* `login` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'login' configuration. See the [`login` arguments] (#login-arguments) block.
 * `max_configuration_rollbacks` - (Optional)(`Int`) Maximum rollback configuration (0..49).
 * `max_configurations_on_flash` - (Optional)(`Int`) Number of configuration files stored on flash (0..49).
 * `name_server` - (Optional)(`ListOfString`) DNS name servers.
@@ -56,10 +56,10 @@ The following arguments are supported:
 * `no_ping_time_stamp` - (Optional)(`Bool`) Do not insert time stamp in ping replies.
 * `no_redirects` - (Optional)(`Bool`) Disable ICMP redirects.
 * `no_redirects_ipv6` - (Optional)(`Bool`) Disable IPV6 ICMP redirects.
-* `services` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'services' configuration.
-  * `ssh` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'ssh' configuration. See the [`ssh` arguments for services] (#ssh-arguments-for-services) block.
-* `syslog` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'syslog' configuration.
-  * `archive` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'archive' configuration. See the [`archive` arguments for syslog] (#archive-arguments-for-syslog) block.
+* `services` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'services' configuration.
+  * `ssh` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'ssh' configuration. See the [`ssh` arguments for services] (#ssh-arguments-for-services) block.
+* `syslog` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'syslog' configuration.
+  * `archive` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'archive' configuration. See the [`archive` arguments for syslog] (#archive-arguments-for-syslog) block.
   * `log_rotate_frequency` - (Optional)(`Int`) Rotate log frequency (1..59 minutes).
   * `source_address` - (Optional)(`String`) Use specified address as source address.
 * `time_zone` - (Optional)(`String`) Time zone name or POSIX-compliant time zone string (<continent>/<major-city> or <time-zone>).
@@ -68,10 +68,10 @@ The following arguments are supported:
 ---
 #### internet_options arguments
 * `gre_path_mtu_discovery` - (Optional)(`Bool`) Enable path MTU discovery for GRE tunnels. Conflict with `no_gre_path_mtu_discovery`.
-* `icmpv4_rate_limit` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'icmpv4-rate-limit' configuration.
+* `icmpv4_rate_limit` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'icmpv4-rate-limit' configuration.
   * `bucket_size` - (Optional)(`Int`) ICMP rate-limiting maximum bucket size (seconds).
   * `packet-rate` - (Optional)(`Int`) ICMP rate-limiting packets earned per second.
-* `icmpv6_rate_limit` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'icmpv6-rate-limit' configuration.
+* `icmpv6_rate_limit` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'icmpv6-rate-limit' configuration.
   * `bucket_size` - (Optional)(`Int`) ICMPv6 rate-limiting maximum bucket size (seconds).
   * `packet-rate` - (Optional)(`Int`) ICMPv6 rate-limiting packets earned per second.
 * `ipip_path_mtu_discovery` - (Optional)(`Bool`) Enable path MTU discovery for IP-IP tunnels. Conflict with `no_ipip_path_mtu_discovery`.
@@ -100,7 +100,7 @@ The following arguments are supported:
 * `deny_sources_address` - (Optional)(`ListOfString`) Sources from which logins are denied.
 * `idle_timeout` - (Optional)(`Int`) Maximum idle time before logout (1..60 minutes).
 * `message` - (Optional)(`String`) System login message.
-* `password` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'password' configuration.
+* `password` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'password' configuration.
   * `change_type` - (Optional)(`String`) Password change type.
   * `format` - (Optional)(`String`) Encryption method to use for password.
   * `maximum_length` - (Optional)(`Int`) Maximum password length for all users (20..128).
@@ -112,7 +112,7 @@ The following arguments are supported:
   * `minimum_punctuations` - (Optional)(`Int`) Minimum number of punctuation class characters in password (1..128).
   * `minimum_reuse` - (Optional)(`Int`) Minimum number of old passwords which should not be same as the new password (1..20).
   * `minimum_upper_cases` - (Optional)(`Int`) Minimum number of upper-case class characters in password (1..128).
-* `retry_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'retry-options' configuration.
+* `retry_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'retry-options' configuration.
   * `backoff_factor` - (Optional)(`Int`) Delay factor after 'backoff-threshold' password failures (5..10).
   * `backoff_threshold` - (Optional)(`Int`) Number of password failures before delay is introduced (1..3).
   * `lockout_period` - (Optional)(`Int`) Amount of time user account is locked after 'tries-before-disconnect' failures (1..43200 minutes).
