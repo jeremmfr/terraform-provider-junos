@@ -1,6 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
-* add `cluster` argument in `junos_bgp_group` and `junos_bgp_neighbor` resource.
+* add `cluster`, `family_evpn` arguments in `junos_bgp_group` and `junos_bgp_neighbor` resource.
 
 BUG FIXES:
 

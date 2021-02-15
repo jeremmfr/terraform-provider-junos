@@ -45,6 +45,9 @@ The following arguments are supported:
 * `cluster` - (Optional)(`String`) Cluster identifier. Must be a valid IP address.
 * `damping` - (Optional)(`Bool`) Enable route flap damping.
 * `export` - (Optional)(`ListOfString`) Export policy list.
+* `family_evpn` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for the `signaling` nlri_type.
+  * `nlri_type` - (Optional)(`String`) NLRI type. Need to be `signaling`. Default to `signaling`.
+  * other options same as [`family_inet` arguments](#family_inet-arguments).
 * `family_inet` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each nlri_type.
 See the [`family_inet` arguments](#family_inet-arguments) block.
 * `family_inet6` Same options as [`family_inet` arguments](#family_inet-arguments)  but for inet6 family.
@@ -92,7 +95,7 @@ See the [`family_inet` arguments](#family_inet-arguments) block.
 
 ---
 #### family_inet arguments
-Also for `family_inet6`
+Also for `family_inet6` and `family_evpn` (except `nlri_type`)
 
 * `nlri_type` - (Required)(`String`) NLRI type. Need to be 'any', 'flow', 'labeled-unicast', 'unicast' or 'multicast'.
 * `accepted_prefix_limit` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for define maximum number of prefixes accepted from a peer and options.

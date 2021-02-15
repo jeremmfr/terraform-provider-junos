@@ -53,6 +53,7 @@ type bgpOptions struct {
 	exportPolicy                 []string
 	importPolicy                 []string
 	bfdLivenessDetection         []map[string]interface{}
+	familyEvpn                   []map[string]interface{}
 	familyInet                   []map[string]interface{}
 	familyInet6                  []map[string]interface{}
 	gracefulRestart              []map[string]interface{}
@@ -94,6 +95,7 @@ func delBgpOpts(d *schema.ResourceData, typebgp string, m interface{}, jnprSess 
 		delPrefix+"cluster",
 		delPrefix+"damping",
 		delPrefix+"export",
+		delPrefix+"family evpn",
 		delPrefix+"family inet",
 		delPrefix+"family inet6",
 		delPrefix+"graceful-restart",
@@ -569,9 +571,12 @@ func setBgpOptsFamily(setPrefix, familyType string, familyOptsList []interface{}
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	setPrefixFamily := setPrefix + "family "
-	if familyType == inetWord {
+	switch familyType {
+	case "evpn":
+		setPrefixFamily += "evpn "
+	case inetWord:
 		setPrefixFamily += "inet "
-	} else if familyType == inet6Word {
+	case inet6Word:
 		setPrefixFamily += "inet6 "
 	}
 	for _, familyOpts := range familyOptsList {
@@ -633,10 +638,12 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 		"prefix_limit":          make([]map[string]interface{}, 0, 1),
 	}
 	setPrefix := "family "
-	if familyType == inetWord {
+	switch familyType {
+	case "evpn":
+		setPrefix += "evpn "
+	case inetWord:
 		setPrefix += "inet "
-	}
-	if familyType == inet6Word {
+	case inet6Word:
 		setPrefix += "inet6 "
 	}
 	trimSplit := strings.Split(strings.TrimPrefix(item, setPrefix), " ")

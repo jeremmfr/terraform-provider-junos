@@ -332,6 +332,18 @@ resource junos_bgp_group "testacc_bgpgroup" {
   local_as_no_prepend_global_as = true
   metric_out_minimum_igp_offset = -10
   type                          = "internal"
+  family_evpn {
+    accepted_prefix_limit {
+      maximum               = 2
+      teardown              = 50
+      teardown_idle_timeout = 30
+    }
+    prefix_limit {
+      maximum               = 2
+      teardown              = 50
+      teardown_idle_timeout = 30
+    }
+  }
 }
 `
 }
@@ -342,6 +354,7 @@ resource junos_bgp_group "testacc_bgpgroup" {
   local_as               = "65000"
   local_as_alias         = true
   metric_out_minimum_igp = true
+  family_evpn {}
 }
 `
 }

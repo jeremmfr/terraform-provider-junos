@@ -165,6 +165,76 @@ func resourceBgpNeighbor() *schema.Resource {
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+			"family_evpn": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"nlri_type": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "signaling",
+							ValidateFunc: validation.StringInSlice([]string{"signaling"}, false),
+						},
+						"accepted_prefix_limit": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"maximum": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 4294967295),
+									},
+									"teardown": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 100),
+									},
+									"teardown_idle_timeout": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 2400),
+									},
+									"teardown_idle_timeout_forever": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+								},
+							},
+						},
+						"prefix_limit": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"maximum": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 4294967295),
+									},
+									"teardown": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 100),
+									},
+									"teardown_idle_timeout": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 2400),
+									},
+									"teardown_idle_timeout_forever": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			"family_inet": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -697,6 +767,9 @@ func setBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	if err := setBgpOptsBfd(setPrefix, d.Get("bfd_liveness_detection").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
+	if err := setBgpOptsFamily(setPrefix, "evpn", d.Get("family_evpn").([]interface{}), m, jnprSess); err != nil {
+		return err
+	}
 	if err := setBgpOptsFamily(setPrefix, inetWord, d.Get("family_inet").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
@@ -748,12 +821,16 @@ func readBgpNeighbor(ip, instance, group string, m interface{}, jnprSess *Netcon
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
+			case strings.HasPrefix(itemTrim, "family evpn "):
+				confRead.familyEvpn, err = readBgpOptsFamily(itemTrim, "evpn", confRead.familyEvpn)
+				if err != nil {
+					return confRead, err
+				}
 			case strings.HasPrefix(itemTrim, "family inet "):
 				confRead.familyInet, err = readBgpOptsFamily(itemTrim, inetWord, confRead.familyInet)
 				if err != nil {
 					return confRead, err
 				}
-
 			case strings.HasPrefix(itemTrim, "family inet6 "):
 				confRead.familyInet6, err = readBgpOptsFamily(itemTrim, inet6Word, confRead.familyInet6)
 				if err != nil {
@@ -847,6 +924,9 @@ func fillBgpNeighborData(d *schema.ResourceData, bgpNeighborOptions bgpOptions) 
 		panic(tfErr)
 	}
 	if tfErr := d.Set("export", bgpNeighborOptions.exportPolicy); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("family_evpn", bgpNeighborOptions.familyEvpn); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("family_inet", bgpNeighborOptions.familyInet); tfErr != nil {
