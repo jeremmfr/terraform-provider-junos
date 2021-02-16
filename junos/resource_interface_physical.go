@@ -465,7 +465,7 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 			return fmt.Errorf("ae_lacp_system_id invalid for this interface")
 		}
 		configSet = append(configSet, setPrefix+
-			"aggregated-ether-options lacp system-id"+d.Get("ae_lacp_system_id").(string))
+			"aggregated-ether-options lacp system-id "+d.Get("ae_lacp_system_id").(string))
 	}
 	if d.Get("ae_link_speed").(string) != "" {
 		if !strings.HasPrefix(d.Get("name").(string), "ae") {
