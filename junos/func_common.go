@@ -98,7 +98,8 @@ func validateByteString(length int) schema.SchemaValidateDiagFunc {
 		regLength := length - 1
 		l := strconv.Itoa(regLength)
 		s := i.(string)
-		regString := "^(\\d+:){" + l + "," + l + "}\\d+$"
+		// regString := "^(\\d+:){" + l + "," + l + "}\\d+$"
+		regString := "^([\\d\\w]{2}:){" + l + "}[\\d\\w]{2}$"
 		r, err := regexp.Compile(regString)
 		regMatch := r.MatchString(s)
 
@@ -106,7 +107,7 @@ func validateByteString(length int) schema.SchemaValidateDiagFunc {
 			//	return fmt.Errorf("%v is not a valid byte string", byteString)
 			diags = append(diags, diag.Diagnostic{
 				Severity:      diag.Error,
-				Summary:       fmt.Sprintf("%s is not a valid byte string, should be %s bytes long", i, l),
+				Summary:       fmt.Sprintf("%s is not a valid byte string, should be %s bytes long", i, strconv.Itoa(length)),
 				AttributePath: path,
 			})
 		}

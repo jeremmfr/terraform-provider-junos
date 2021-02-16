@@ -85,10 +85,31 @@ func resourceInterfacePhysical() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"mode": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice([]string{"all-active", "single-active"}, false),
+						},
+						"auto_derive_lacp": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"esi.0.identifier"},
+						},
+						"df_election_type": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"mod", "preference"}, false),
+						},
 						"identifier": {
 							Type:             schema.TypeString,
 							Optional:         true,
+							ConflictsWith:    []string{"esi.0.auto_derive_lacp"},
 							ValidateDiagFunc: validateByteString(10),
+						},
+						"source_bmac": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateDiagFunc: validateByteString(6),
 						},
 					},
 				},
