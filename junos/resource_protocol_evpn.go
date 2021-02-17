@@ -1,0 +1,375 @@
+package junos
+
+import (
+	"context"
+	"fmt"
+	"strings"
+
+        "github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+        "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+        "github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+)
+
+type evpnOptions struct {
+	encapsulation	string
+	multicastMode	string
+	extendedVniList	[]string
+	routingInstance		string
+
+}
+
+func resourceProtocolEvpn() *schema.Resource {
+	return &schema.Resource{
+                CreateContext: resourceProtocolEvpnCreate,
+                ReadContext:   resourceProtocolEvpnRead,
+                UpdateContext: resourceProtocolEvpnUpdate,
+                DeleteContext: resourceProtocolEvpnDelete,
+                Importer: &schema.ResourceImporter{
+                        State: resourceProtocolEvpnImport,
+                },
+		Schema: map[string]*schema.Schema{
+			"encapsulation": {
+				Type:	schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{"mpls","vxlan"}, false),
+			},
+			"extended_vni_list": {
+				Type:	schema.TypeList,
+				Optional: true,
+				Elem:	&schema.Schema{Type: schema.TypeString},
+			},
+			"multicast_mode": {
+				Type:	schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{"ingress-replication"}, false),
+			},
+			"routing_instance": {
+				Type:	schema.TypeString,
+				Optional: true,
+				Default: defaultWord,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+			},
+		},
+	}
+}
+
+func resourceProtocolEvpnCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+        sess := m.(*Session)
+        jnprSess, err := sess.startNewSession()
+        if err != nil {
+                return diag.FromErr(err)
+        }
+        defer sess.closeSession(jnprSess)
+        sess.configLock(jnprSess)
+        if d.Get("routing_instance").(string) != defaultWord {
+                instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
+                if err != nil {
+                        sess.configClear(jnprSess)
+
+                        return diag.FromErr(err)
+                }
+                if !instanceExists {
+                        sess.configClear(jnprSess)
+
+                        return diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))
+                }
+        }
+        protocolEvpnExists, err := checkProtocolEvpnExists(d.Get("routing_instance").(string), m, jnprSess)
+        if err != nil {
+                sess.configClear(jnprSess)
+
+                return diag.FromErr(err)
+        }
+        if protocolEvpnExists {
+                sess.configClear(jnprSess)
+
+                return diag.FromErr(fmt.Errorf("protocol evpn already exists in routing-instance %v",
+                        d.Get("routing_instance").(string)))
+        }
+        if err := setProtocolEvpn(d, m, jnprSess); err != nil {
+                sess.configClear(jnprSess)
+
+                return diag.FromErr(err)
+        }
+        var diagWarns diag.Diagnostics
+        warns, err := sess.commitConf("create resource junos_bgp_group", jnprSess)
+        appendDiagWarns(&diagWarns, warns)
+        if err != nil {
+                sess.configClear(jnprSess)
+
+                return append(diagWarns, diag.FromErr(err)...)
+        }
+        protocolEvpnExists, err = checkProtocolEvpnExists(d.Get("routing_instance").(string), m, jnprSess)
+        if err != nil {
+                return append(diagWarns, diag.FromErr(err)...)
+        }
+        if protocolEvpnExists {
+                d.SetId("protocol_evpn" + idSeparator + d.Get("routing_instance").(string))
+        } else {
+                return append(diagWarns, diag.FromErr(fmt.Errorf("protocol evpn not exists in routing-instance %v after commit "+
+                        "=> check your config", d.Get("routing_instance").(string)))...)
+        }
+
+        return append(diagWarns, resourceBgpGroupReadWJnprSess(d, m, jnprSess)...)
+}
+
+func resourceProtocolEvpnRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+        sess := m.(*Session)
+        jnprSess, err := sess.startNewSession()
+        if err != nil {
+                return diag.FromErr(err)
+        }
+        defer sess.closeSession(jnprSess)
+
+        return resourceProtocolEvpnReadWJnprSess(d, m, jnprSess)
+}
+func resourceProtocolEvpnReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+        mutex.Lock()
+        protocolEvpnOptions, err := readProtocolEvpn(d.Get("routing_instance").(string), m, jnprSess)
+        mutex.Unlock()
+        if err != nil {
+                return diag.FromErr(err)
+        }
+        //if protocolEvpnOptions.name == "" {
+        //        d.SetId("")
+        //} else {
+                fillProtocolEvpnData(d, protocolEvpnOptions)
+        //}
+
+        return nil
+}
+
+func resourceProtocolEvpnUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+        d.Partial(true)
+        sess := m.(*Session)
+        jnprSess, err := sess.startNewSession()
+        if err != nil {
+                return diag.FromErr(err)
+        }
+        defer sess.closeSession(jnprSess)
+        sess.configLock(jnprSess)
+        if err := delProtocolEvpnOpts(d, m, jnprSess); err != nil {
+                sess.configClear(jnprSess)
+
+                return diag.FromErr(err)
+        }
+        if err := setProtocolEvpn(d, m, jnprSess); err != nil {
+                sess.configClear(jnprSess)
+
+                return diag.FromErr(err)
+        }
+        var diagWarns diag.Diagnostics
+        warns, err := sess.commitConf("update resource protocol_evpn", jnprSess)
+        appendDiagWarns(&diagWarns, warns)
+        if err != nil {
+                sess.configClear(jnprSess)
+
+                return append(diagWarns, diag.FromErr(err)...)
+        }
+        d.Partial(false)
+
+        return append(diagWarns, resourceProtocolEvpnReadWJnprSess(d, m, jnprSess)...)
+}
+
+func resourceProtocolEvpnDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+        sess := m.(*Session)
+        jnprSess, err := sess.startNewSession()
+        if err != nil {
+                return diag.FromErr(err)
+        }
+        defer sess.closeSession(jnprSess)
+        sess.configLock(jnprSess)
+        if err := delProtocolEvpn(d, m, jnprSess); err != nil {
+                sess.configClear(jnprSess)
+
+                return diag.FromErr(err)
+        }
+        var diagWarns diag.Diagnostics
+        warns, err := sess.commitConf("delete resource protocol_evpn", jnprSess)
+        appendDiagWarns(&diagWarns, warns)
+        if err != nil {
+                sess.configClear(jnprSess)
+
+                return append(diagWarns, diag.FromErr(err)...)
+        }
+
+        return diagWarns
+}
+
+func resourceProtocolEvpnImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+        sess := m.(*Session)
+        jnprSess, err := sess.startNewSession()
+        if err != nil {
+                return nil, err
+        }
+        defer sess.closeSession(jnprSess)
+        result := make([]*schema.ResourceData, 1)
+        idSplit := strings.Split(d.Id(), idSeparator)
+        if len(idSplit) < 2 {
+                return nil, fmt.Errorf("missing element(s) in id with separator %v", idSeparator)
+        }
+        protocolEvpnExists, err := checkProtocolEvpnExists(idSplit[1], m, jnprSess)
+        if err != nil {
+                return nil, err
+        }
+        if !protocolEvpnExists {
+                return nil, fmt.Errorf("don't find protocol evpn with id '%v' "+
+                        "(id must be protocol_evpn"+idSeparator+"<routing_instance>)", d.Id())
+        }
+        protocolEvpnOptions, err := readProtocolEvpn(idSplit[1], m, jnprSess)
+        if err != nil {
+                return nil, err
+        }
+        fillProtocolEvpnData(d, protocolEvpnOptions)
+        result[0] = d
+
+        return result, nil
+}
+
+func checkProtocolEvpnExists(instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
+        sess := m.(*Session)
+        var protocolEvpnConfig string
+        var err error
+        if instance == defaultWord {
+                protocolEvpnConfig, err = sess.command("show configuration protocols evpn | display set", jnprSess)
+                if err != nil {
+                        return false, err
+                }
+        } else {
+                protocolEvpnConfig, err = sess.command("show configuration routing-instances "+
+                        instance+" protocols evpn | display set", jnprSess)
+                if err != nil {
+                        return false, err
+                }
+        }
+        if protocolEvpnConfig == emptyWord {
+                return false, nil
+        }
+
+        return true, nil
+}
+
+func readProtocolEvpn(instance string, m interface{}, jnprSess *NetconfObject) (evpnOptions, error) {
+	sess := m.(*Session)
+	var confRead evpnOptions
+	var protocolEvpnConfig string
+	var err error
+
+        if instance == defaultWord {
+                protocolEvpnConfig, err = sess.command("show configuration protocols evpn | display set relative", jnprSess)
+                if err != nil {
+                        return confRead, err
+                }
+        } else {
+                protocolEvpnConfig, err = sess.command("show configuration routing-instances "+
+                        instance+" protocols evpn | display set relative", jnprSess)
+                if err != nil {
+                        return confRead, err
+                }
+        }
+	if protocolEvpnConfig != emptyWord {
+		confRead.routingInstance = instance
+		for _, item := range strings.Split(protocolEvpnConfig, "\n") {
+                        if strings.Contains(item, "<configuration-output>") {
+                                continue
+                        }
+                        if strings.Contains(item, "</configuration-output>") {
+                                break
+                        }
+                        itemTrim := strings.TrimPrefix(item, setLineStart)
+                        switch {
+			case strings.HasPrefix(itemTrim, "encapsulation "):
+				confRead.encapsulation = strings.TrimPrefix(item, "encapsulation ")
+			case strings.HasPrefix(itemTrim, "multicast-mode "):
+				confRead.multicastMode = strings.TrimPrefix(item, "multicast-mode ")
+			case strings.HasPrefix(itemTrim, "extended-vni-list "):
+				confRead.extendedVniList = append(confRead.extendedVniList, strings.TrimPrefix(item, "extended-vni-list "))
+			default:
+				continue
+			}
+		}
+	}
+
+	return confRead, nil
+}
+func delProtocolEvpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
+        sess := m.(*Session)
+        configSet := make([]string, 0, 1)
+        if d.Get("routing_instance").(string) == defaultWord {
+                configSet = append(configSet, "delete protocols evpn")
+        } else {
+                configSet = append(configSet, "delete routing-instances "+d.Get("routing_instance").(string)+
+                        " protocols evpn")
+        }
+        if err := sess.configSet(configSet, jnprSess); err != nil {
+                return err
+        }
+
+        return nil
+}
+
+
+func delProtocolEvpnOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
+        sess := m.(*Session)
+        configSet := make([]string, 0)
+        delPrefix := deleteWord + " "
+        if d.Get("routing_instance").(string) == defaultWord {
+                delPrefix += "protocols evpn "
+        } else {
+                delPrefix += "routing-instances " + d.Get("routing_instance").(string) +
+                        " protocols evpn "
+        }
+        configSet = append(configSet,
+                delPrefix+"encapsulation",
+                delPrefix+"multicast-mode",
+                delPrefix+"extended-vni-list",
+        )
+
+        if err := sess.configSet(configSet, jnprSess); err != nil {
+                return err
+        }
+
+        return nil
+}
+
+func setProtocolEvpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
+	sess := m.(*Session)
+	configSet := make([]string, 0)
+        setPrefix := setLineStart
+        if d.Get("routing_instance").(string) == defaultWord {
+                setPrefix += "protocols evpn "
+        } else {
+                setPrefix += "routing-instances " + d.Get("routing_instance").(string) +
+                        " protocols evpn "
+        }
+	if d.Get("encapsulation").(string) != "" {
+		configSet = append(configSet, setPrefix + "encapsulation " + d.Get("encapsulation").(string))
+	}
+	if d.Get("multicast_mode").(string) != "" {
+		configSet = append(configSet,  setPrefix + "multicast-mode " + d.Get("multicast_mode").(string))
+	}
+	for _, v := range d.Get("extended_vni_list").([]interface{}) {
+		configSet = append(configSet, setPrefix + "extended-vni-list " + v.(string))
+	}
+
+	if err := sess.configSet(configSet, jnprSess); err != nil {
+                return err
+        }
+
+
+	return nil
+}
+func fillProtocolEvpnData(d *schema.ResourceData, protocolEvpnOptions evpnOptions) {
+        if tfErr := d.Set("encapsulation", protocolEvpnOptions.encapsulation); tfErr != nil {
+                panic(tfErr)
+        }
+        if tfErr := d.Set("multicast_mode", protocolEvpnOptions.multicastMode); tfErr != nil {
+                panic(tfErr)
+        }
+        if tfErr := d.Set("extended_vni_list", protocolEvpnOptions.extendedVniList); tfErr != nil {
+                panic(tfErr)
+        }
+
+
+
+}
