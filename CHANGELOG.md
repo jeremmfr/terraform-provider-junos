@@ -3,6 +3,10 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+## 1.13.1 (February 18, 2021)
+BUG FIXES:
+* fix source nat pool network address not allowed (Fixes [#128](https://github.com/jeremmfr/terraform-provider-junos/issues/128))
+
 ## 1.13.0 (February 11, 2021)
 FEATURES:
 * add `junos_security_screen` resource (Fixes parts of [#92](https://github.com/jeremmfr/terraform-provider-junos/issues/92))
