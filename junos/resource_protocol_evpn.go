@@ -13,7 +13,6 @@ import (
 type evpnOptions struct {
 	encapsulation	string
 	multicastMode	string
-	extendedVniList	[]string
 	routingInstance		string
         routeDistinguisher string
         vrfExport []string
@@ -37,11 +36,6 @@ func resourceProtocolEvpn() *schema.Resource {
 				Type:	schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{"mpls","vxlan"}, false),
-			},
-			"extended_vni_list": {
-				Type:	schema.TypeList,
-				Optional: true,
-				Elem:	&schema.Schema{Type: schema.TypeString},
 			},
 			"multicast_mode": {
 				Type:	schema.TypeString,
@@ -311,8 +305,6 @@ func readProtocolEvpn(instance string, m interface{}, jnprSess *NetconfObject) (
 				confRead.encapsulation = strings.TrimPrefix(itemTrim, "encapsulation ")
 			case strings.HasPrefix(itemTrim, "multicast-mode "):
 				confRead.multicastMode = strings.TrimPrefix(itemTrim, "multicast-mode ")
-			case strings.HasPrefix(itemTrim, "extended-vni-list "):
-				confRead.extendedVniList = append(confRead.extendedVniList, strings.TrimPrefix(item, "extended-vni-list "))
 			default:
 				continue
 			}
@@ -388,7 +380,6 @@ func delProtocolEvpnOpts(d *schema.ResourceData, m interface{}, jnprSess *Netcon
         configSet = append(configSet,
                 delPrefix+"encapsulation",
                 delPrefix+"multicast-mode",
-                delPrefix+"extended-vni-list",
         )
 
         if err := sess.configSet(configSet, jnprSess); err != nil {
@@ -415,11 +406,7 @@ func setProtocolEvpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 	if d.Get("multicast_mode").(string) != "" {
 		configSet = append(configSet,  setPrefix + "multicast-mode " + d.Get("multicast_mode").(string))
 	}
-	for _, v := range d.Get("extended_vni_list").([]interface{}) {
-		configSet = append(configSet, setPrefix + "extended-vni-list " + v.(string))
-	}
 	// Set protocol switch-options settings
-
 	setPrefix = "set switch-options "
         if d.Get("route_distinguisher").(string) != "" {
                 configSet = append(configSet, setPrefix+"route-distinguisher "+d.Get("route_distinguisher").(string))
@@ -450,9 +437,6 @@ func fillProtocolEvpnData(d *schema.ResourceData, protocolEvpnOptions evpnOption
                 panic(tfErr)
         }
         if tfErr := d.Set("multicast_mode", protocolEvpnOptions.multicastMode); tfErr != nil {
-                panic(tfErr)
-        }
-        if tfErr := d.Set("extended_vni_list", protocolEvpnOptions.extendedVniList); tfErr != nil {
                 panic(tfErr)
         }
 	// Fill switch-options
