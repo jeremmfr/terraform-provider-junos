@@ -162,6 +162,7 @@ func Provider() *schema.Provider {
 			"junos_interface":          dataSourceInterface(),
 			"junos_interface_logical":  dataSourceInterfaceLogical(),
 			"junos_interface_physical": dataSourceInterfacePhysical(),
+			"junos_protocol_evpn"	:   dataSourceProtocolEvpn(),
 			"junos_system_information": dataSourceSystemInformation(),
 		},
 		ConfigureContextFunc: configureProvider,
