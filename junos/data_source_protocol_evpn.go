@@ -37,6 +37,30 @@ func dataSourceProtocolEvpn() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+                        "route_distinguisher": {
+                                Type:             schema.TypeString,
+                                Required:         true,
+                        },
+                        "vrf_import": {
+                                Type:     schema.TypeList,
+                                Optional: true,
+                                MinItems: 1,
+                                Elem:     &schema.Schema{Type: schema.TypeString},
+                        },
+                        "vrf_export": {
+                                Type:     schema.TypeList,
+                                Optional: true,
+                                MinItems: 1,
+                                Elem:     &schema.Schema{Type: schema.TypeString},
+                        },
+                        "vrf_target": {
+                                Type:             schema.TypeString,
+                                Optional:         true,
+                        },
+                        "vtep_source_interface": {
+                                Type:     schema.TypeString,
+                                Optional: true,
+                        },
 		},
 	}
 }
