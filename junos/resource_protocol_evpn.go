@@ -15,6 +15,11 @@ type evpnOptions struct {
 	multicastMode	string
 	extendedVniList	[]string
 	routingInstance		string
+        routeDistinguisher string
+        vrfExport []string
+        vrfImport []string
+        vrfTarget string
+        vtepSourceInterface string
 
 }
 
@@ -30,7 +35,7 @@ func resourceProtocolEvpn() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"encapsulation": {
 				Type:	schema.TypeString,
-				Optional: true,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{"mpls","vxlan"}, false),
 			},
 			"extended_vni_list": {
@@ -49,6 +54,31 @@ func resourceProtocolEvpn() *schema.Resource {
 				Default: defaultWord,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
 			},
+                        "route_distinguisher": {
+                                Type:             schema.TypeString,
+                                Required:         true,
+                        },
+                        "vrf_import": {
+                                Type:     schema.TypeList,
+                                Optional: true,
+                                MinItems: 1,
+                                Elem:     &schema.Schema{Type: schema.TypeString},
+                        },
+                        "vrf_export": {
+                                Type:     schema.TypeList,
+                                Optional: true,
+                                MinItems: 1,
+                                Elem:     &schema.Schema{Type: schema.TypeString},
+                        },
+                        "vrf_target": {
+                                Type:             schema.TypeString,
+                                Optional:         true,
+                        },
+			"vtep_source_interface": {
+                                Type:     schema.TypeString,
+                                Optional: true,
+                        },
+
 		},
 	}
 }
@@ -148,7 +178,8 @@ func resourceProtocolEvpnUpdate(ctx context.Context, d *schema.ResourceData, m i
         }
         defer sess.closeSession(jnprSess)
         sess.configLock(jnprSess)
-        if err := delProtocolEvpnOpts(d, m, jnprSess); err != nil {
+        //if err := delProtocolEvpnOpts(d, m, jnprSess); err != nil {
+        if err := delProtocolEvpn(d, m, jnprSess); err != nil {
                 sess.configClear(jnprSess)
 
                 return diag.FromErr(err)
@@ -253,8 +284,10 @@ func readProtocolEvpn(instance string, m interface{}, jnprSess *NetconfObject) (
 	sess := m.(*Session)
 	var confRead evpnOptions
 	var protocolEvpnConfig string
+	var switchOptionsConfig string
 	var err error
 
+	// Read protocol evpn settings
         if instance == defaultWord {
                 protocolEvpnConfig, err = sess.command("show configuration protocols evpn | display set relative", jnprSess)
                 if err != nil {
@@ -289,18 +322,55 @@ func readProtocolEvpn(instance string, m interface{}, jnprSess *NetconfObject) (
 			}
 		}
 	}
+	// Read switchoptions settings
+	switchOptionsConfig, err = sess.command("show configuration switch-options | display set relative", jnprSess)
+	if switchOptionsConfig != emptyWord {
+		for _, item := range strings.Split(switchOptionsConfig, "\n") {
+                        if strings.Contains(item, "<configuration-output>") {
+                                continue
+                        }
+                        if strings.Contains(item, "</configuration-output>") {
+                                break
+                        }
+			itemTrim := strings.TrimPrefix(item, setLineStart)
+                        switch {
+                        case strings.HasPrefix(itemTrim, "route-distinguisher "):
+                                confRead.routeDistinguisher = strings.TrimPrefix(itemTrim, "route-distinguisher ")
+                        case strings.HasPrefix(itemTrim, "vtep-source-interface "):
+                                confRead.vtepSourceInterface = strings.TrimPrefix(itemTrim, "vtep-source-interface ")
+                        case strings.HasPrefix(itemTrim, "vrf-target "):
+                                confRead.vrfTarget = strings.TrimPrefix(itemTrim, "vrf-target ")
+                        case strings.HasPrefix(itemTrim, "vrf-import "):
+                                confRead.vrfImport = append(confRead.vrfImport, strings.TrimPrefix(itemTrim, "vrf-import "))
+                        case strings.HasPrefix(itemTrim, "vrf-export "):
+                                confRead.vrfExport = append(confRead.vrfExport, strings.TrimPrefix(itemTrim, "vrf-export "))
+                        }
+
+		}
+	}
 
 	return confRead, nil
 }
 func delProtocolEvpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
         sess := m.(*Session)
         configSet := make([]string, 0, 1)
+	switchOptLinesToDelete := []string{
+                "route-distinguisher",
+                "vrf-import",
+                "vrf-export",
+                "vrf-target",
+                "vtep-source-interface",
+	}
         if d.Get("routing_instance").(string) == defaultWord {
                 configSet = append(configSet, "delete protocols evpn")
         } else {
                 configSet = append(configSet, "delete routing-instances "+d.Get("routing_instance").(string)+
                         " protocols evpn")
         }
+	delPrefix := "delete switch-options "
+	for _, line := range switchOptLinesToDelete {
+		configSet = append(configSet, delPrefix + line)
+	}
         if err := sess.configSet(configSet, jnprSess); err != nil {
                 return err
         }
@@ -336,6 +406,7 @@ func setProtocolEvpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 	sess := m.(*Session)
 	configSet := make([]string, 0)
         setPrefix := setLineStart
+	// Set protocol evpn settings
         if d.Get("routing_instance").(string) == defaultWord {
                 setPrefix += "protocols evpn "
         } else {
@@ -351,6 +422,25 @@ func setProtocolEvpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 	for _, v := range d.Get("extended_vni_list").([]interface{}) {
 		configSet = append(configSet, setPrefix + "extended-vni-list " + v.(string))
 	}
+	// Set protocol switch-options settings
+
+	setPrefix = "set switch-options "
+        if d.Get("route_distinguisher").(string) != "" {
+                configSet = append(configSet, setPrefix+"route-distinguisher "+d.Get("route_distinguisher").(string))
+        }
+        for _, v := range d.Get("vrf_import").([]interface{}) {
+                configSet = append(configSet, setPrefix+" vrf-import "+v.(string))
+        }
+        for _, v := range d.Get("vrf_export").([]interface{}) {
+                        configSet = append(configSet, setPrefix+" vrf-export "+v.(string))
+        }
+        if d.Get("vrf_target").(string) != "" {
+                configSet = append(configSet, setPrefix+"vrf-target "+d.Get("vrf_target").(string))
+        }
+        if d.Get("vtep_source_interface").(string) != "" {
+                configSet = append(configSet, setPrefix+"vtep-source-interface "+d.Get("vtep_source_interface").(string))
+        }
+
 
 	if err := sess.configSet(configSet, jnprSess); err != nil {
                 return err
@@ -369,6 +459,23 @@ func fillProtocolEvpnData(d *schema.ResourceData, protocolEvpnOptions evpnOption
         if tfErr := d.Set("extended_vni_list", protocolEvpnOptions.extendedVniList); tfErr != nil {
                 panic(tfErr)
         }
+	// Fill switch-options
+        if tfErr := d.Set("route_distinguisher", protocolEvpnOptions.routeDistinguisher); tfErr != nil {
+                panic(tfErr)
+        }
+        if tfErr := d.Set("vrf_import", protocolEvpnOptions.vrfImport); tfErr != nil {
+                panic(tfErr)
+        }
+        if tfErr := d.Set("vrf_export", protocolEvpnOptions.vrfExport); tfErr != nil {
+                panic(tfErr)
+        }
+        if tfErr := d.Set("vrf_target", protocolEvpnOptions.vrfTarget); tfErr != nil {
+                panic(tfErr)
+        }
+        if tfErr := d.Set("vtep_source_interface", protocolEvpnOptions.vtepSourceInterface); tfErr != nil {
+                panic(tfErr)
+        }
+
 
 
 
