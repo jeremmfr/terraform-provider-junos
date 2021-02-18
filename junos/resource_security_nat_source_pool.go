@@ -246,7 +246,7 @@ func setSecurityNatSourcePool(d *schema.ResourceData, m interface{}, jnprSess *N
 
 	setPrefix := "set security nat source pool " + d.Get("name").(string)
 	for _, v := range d.Get("address").([]interface{}) {
-		err := validateIPwithMask(v.(string))
+		err := validateCIDR(v.(string))
 		if err != nil {
 			return err
 		}

@@ -25,7 +25,7 @@ resource junos_security_nat_source_pool "demo_snat_pool" {
 The following arguments are supported:
 
 * `name` - (Required, Forces new resource)(`String`) The name of source nat pool.
-* `address` - (Required)(`ListofString`) List of IP/mask for source nat pool.
+* `address` - (Required)(`ListofString`) List of CIDR for source nat pool.
 * `port_no_translation` - (Optional)(`Bool`) Do not perform port translation.
 * `port_overloading_factor` - (Optional)(`Int`) Port overloading factor for each IP.
 * `port_range` - (Optional)(`String`) Range of port for source nat.
