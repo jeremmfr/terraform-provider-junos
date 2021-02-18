@@ -86,9 +86,9 @@ func TestAccJunosInterfacePhysical_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
 							"vlan_tagging", "true"),
 						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
-						"esi.identifier", "00:01:11:11:11:11:11:11:11:11"),
+							"esi.identifier", "00:01:11:11:11:11:11:11:11:11"),
 						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
-						"esi.mode", "all-active"),
+							"esi.mode", "all-active"),
 					),
 				},
 				{
@@ -101,9 +101,9 @@ func TestAccJunosInterfacePhysical_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
 							"ae_minimum_links", "0"),
 						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
-						"esi.identifier", "00:11:11:11:11:11:11:11:11:11"),
+							"esi.identifier", "00:11:11:11:11:11:11:11:11:11"),
 						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
-						"esi.mode", "all-active"),
+							"esi.mode", "all-active"),
 					),
 				},
 				{
