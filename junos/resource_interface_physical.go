@@ -14,17 +14,16 @@ import (
 )
 
 type interfacePhysicalOptions struct {
-	trunk          bool
-	vlanTagging    bool
-	aeMinLink      int
-	vlanNative     int
-	aeLacp         string
-	aeLacpSystemID string
-	aeLinkSpeed    string
-	description    string
-	v8023ad        string
-	vlanMembers    []string
-	Esi            []map[string]interface{}
+	trunk       bool
+	vlanTagging bool
+	aeMinLink   int
+	vlanNative  int
+	aeLacp      string
+	aeLinkSpeed string
+	description string
+	v8023ad     string
+	vlanMembers []string
+	Esi         []map[string]interface{}
 }
 
 func resourceInterfacePhysical() *schema.Resource {
@@ -60,11 +59,6 @@ func resourceInterfacePhysical() *schema.Resource {
 				Optional:     true,
 				Default:      "",
 				ValidateFunc: validation.StringInSlice([]string{"active", "passive"}, false),
-			},
-			"ae_lacp_system_id": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ValidateDiagFunc: validateByteString(6),
 			},
 			"ae_link_speed": {
 				Type:         schema.TypeString,
@@ -460,13 +454,6 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 		configSet = append(configSet, setPrefix+
 			"aggregated-ether-options lacp "+d.Get("ae_lacp").(string))
 	}
-	if d.Get("ae_lacp_system_id").(string) != "" {
-		if !strings.HasPrefix(d.Get("name").(string), "ae") {
-			return fmt.Errorf("ae_lacp_system_id invalid for this interface")
-		}
-		configSet = append(configSet, setPrefix+
-			"aggregated-ether-options lacp system-id "+d.Get("ae_lacp_system_id").(string))
-	}
 	if d.Get("ae_link_speed").(string) != "" {
 		if !strings.HasPrefix(d.Get("name").(string), "ae") {
 			return fmt.Errorf("ae_link_speed invalid for this interface")
@@ -554,8 +541,6 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case strings.HasPrefix(itemTrim, "aggregated-ether-options lacp system-id "):
-				confRead.aeLacpSystemID = strings.TrimPrefix(itemTrim, "aggregated-ether-options lacp system-id ")
 			case strings.HasPrefix(itemTrim, "aggregated-ether-options lacp "):
 				confRead.aeLacp = strings.TrimPrefix(itemTrim, "aggregated-ether-options lacp ")
 			case strings.HasPrefix(itemTrim, "aggregated-ether-options link-speed "):
@@ -712,9 +697,6 @@ func delInterfacePhysicalOpts(d *schema.ResourceData, m interface{}, jnprSess *N
 
 func fillInterfacePhysicalData(d *schema.ResourceData, interfaceOpt interfacePhysicalOptions) {
 	if tfErr := d.Set("ae_lacp", interfaceOpt.aeLacp); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("ae_lacp_system_id", interfaceOpt.aeLacpSystemID); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("ae_link_speed", interfaceOpt.aeLinkSpeed); tfErr != nil {

@@ -61,14 +61,14 @@ func readIntEsi(item string, grOpts []map[string]interface{}) ([]map[string]inte
 		grRead["mode"] = itemTrim
 	}
 	if strings.HasPrefix(itemTrim, "df-election-type ") {
-                grRead["df_election_type"] = strings.TrimPrefix(itemTrim, "df-election-type ")
-        }
+		grRead["df_election_type"] = strings.TrimPrefix(itemTrim, "df-election-type ")
+	}
 	if strings.HasPrefix(itemTrim, "source-bmac ") {
-                grRead["source_bmac"] = strings.TrimPrefix(itemTrim, "source-bmac ")
-        }
-        if itemTrim == "auto-derive lacp" {
-                grRead["auto_derive_lacp"] = true
-        }
+		grRead["source_bmac"] = strings.TrimPrefix(itemTrim, "source-bmac ")
+	}
+	if itemTrim == "auto-derive lacp" {
+		grRead["auto_derive_lacp"] = true
+	}
 	if err != nil {
 		return []map[string]interface{}{grRead}, fmt.Errorf("an error occurred: %s", itemTrim)
 	}
