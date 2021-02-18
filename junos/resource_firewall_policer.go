@@ -304,11 +304,7 @@ func setFirewallPolicer(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		}
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject) (policerOptions, error) {
 	sess := m.(*Session)
@@ -390,11 +386,8 @@ func delFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject) 
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete firewall policer "+policer)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillFirewallPolicerData(d *schema.ResourceData, policerOptions policerOptions) {
 	if tfErr := d.Set("name", policerOptions.name); tfErr != nil {

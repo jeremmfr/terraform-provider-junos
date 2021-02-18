@@ -338,11 +338,7 @@ func setUtmProfileWebFWebsense(d *schema.ResourceData, m interface{}, jnprSess *
 		configSet = append(configSet, setPrefix+"timeout "+strconv.Itoa(d.Get("timeout").(int)))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readUtmProfileWebFWebsense(profile string, m interface{}, jnprSess *NetconfObject) (
 	utmProfileWebFilteringWebsenseOptions, error) {
@@ -430,11 +426,8 @@ func delUtmProfileWebFWebsense(profile string, m interface{}, jnprSess *NetconfO
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security utm feature-profile web-filtering websense-redirect "+
 		"profile \""+profile+"\"")
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillUtmProfileWebFWebsenseData(d *schema.ResourceData,

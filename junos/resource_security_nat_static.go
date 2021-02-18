@@ -307,11 +307,8 @@ func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *Netco
 			}
 		}
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObject) (natStaticOptions, error) {
 	sess := m.(*Session)
@@ -399,11 +396,8 @@ func delSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObje
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security nat static rule-set "+natStatic)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillSecurityNatStaticData(d *schema.ResourceData, natStaticOptions natStaticOptions) {
 	if tfErr := d.Set("name", natStaticOptions.name); tfErr != nil {

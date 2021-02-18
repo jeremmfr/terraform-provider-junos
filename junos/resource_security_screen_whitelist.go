@@ -228,11 +228,7 @@ func setSecurityScreenWhiteList(d *schema.ResourceData, m interface{}, jnprSess 
 		configSet = append(configSet, setPrefix+"address "+v.(string))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func readSecurityScreenWhiteList(name string, m interface{}, jnprSess *NetconfObject) (screenWhiteListOptions, error) {
@@ -267,11 +263,8 @@ func delSecurityScreenWhiteList(name string, m interface{}, jnprSess *NetconfObj
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security screen white-list "+name)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillSecurityScreenWhiteListData(d *schema.ResourceData, whiteListOptions screenWhiteListOptions) {

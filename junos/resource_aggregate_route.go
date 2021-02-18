@@ -335,11 +335,8 @@ func setAggregateRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	if d.Get("preference").(int) > 0 {
 		configSet = append(configSet, setPrefix+" preference "+strconv.Itoa(d.Get("preference").(int)))
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readAggregateRoute(destination string, instance string, m interface{},
 	jnprSess *NetconfObject) (aggregateRouteOptions, error) {
@@ -423,11 +420,8 @@ func delAggregateRouteOpts(d *schema.ResourceData, m interface{}, jnprSess *Netc
 		delPrefix+"policy",
 		delPrefix+"preference",
 	)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func delAggregateRoute(destination string, instance string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
@@ -437,11 +431,8 @@ func delAggregateRoute(destination string, instance string, m interface{}, jnprS
 	} else {
 		configSet = append(configSet, "delete routing-instances "+instance+" routing-options aggregate route "+destination)
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillAggregateRouteData(d *schema.ResourceData, aggregateRouteOptions aggregateRouteOptions) {

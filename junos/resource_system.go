@@ -803,11 +803,7 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 			d.Get("tracing_dest_override_syslog_host").(string))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -898,11 +894,8 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			}
 		}
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func setSystemInternetOptions(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -1007,11 +1000,8 @@ func setSystemInternetOptions(d *schema.ResourceData, m interface{}, jnprSess *N
 			configSet = append(configSet, setPrefix+"tcp-mss "+strconv.Itoa(internetOptions["tcp_mss"].(int)))
 		}
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func setSystemLogin(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -1116,11 +1106,8 @@ func setSystemLogin(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 			}
 		}
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func listLinesLogin() []string {
@@ -1201,11 +1188,8 @@ func delSystem(m interface{}, jnprSess *NetconfObject) error {
 		configSet = append(configSet,
 			delPrefix+line)
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 	sess := m.(*Session)

@@ -201,11 +201,7 @@ func setRoutingOptions(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		}
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func delRoutingOptions(m interface{}, jnprSess *NetconfObject) error {
@@ -220,11 +216,8 @@ func delRoutingOptions(m interface{}, jnprSess *NetconfObject) error {
 		configSet = append(configSet,
 			delPrefix+line)
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsOptions, error) {
 	sess := m.(*Session)

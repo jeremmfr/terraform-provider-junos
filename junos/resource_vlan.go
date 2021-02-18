@@ -374,11 +374,7 @@ func setVlan(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 		}
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions, error) {
 	sess := m.(*Session)
@@ -482,11 +478,8 @@ func delVlan(vlan string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete vlans "+vlan)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillVlanData(d *schema.ResourceData, vlanOptions vlanOptions) {

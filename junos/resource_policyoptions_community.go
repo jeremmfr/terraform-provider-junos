@@ -222,11 +222,8 @@ func setPolicyoptionsCommunity(d *schema.ResourceData, m interface{}, jnprSess *
 	if d.Get("invert_match").(bool) {
 		configSet = append(configSet, setPrefix+"invert-match")
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readPolicyoptionsCommunity(community string, m interface{}, jnprSess *NetconfObject) (communityOptions, error) {
 	sess := m.(*Session)
@@ -263,11 +260,8 @@ func delPolicyoptionsCommunity(community string, m interface{}, jnprSess *Netcon
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete policy-options community "+community)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillPolicyoptionsCommunityData(d *schema.ResourceData, communityOptions communityOptions) {
 	if tfErr := d.Set("name", communityOptions.name); tfErr != nil {

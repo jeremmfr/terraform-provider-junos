@@ -251,11 +251,8 @@ func setRibGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	if d.Get("export_rib").(string) != "" {
 		configSet = append(configSet, setPrefix+"export-rib "+d.Get("export_rib").(string))
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readRibGroup(group string, m interface{}, jnprSess *NetconfObject) (ribGroupOptions, error) {
 	sess := m.(*Session)
@@ -293,21 +290,15 @@ func delRibGroupElement(element string, group string, m interface{}, jnprSess *N
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete routing-options rib-groups "+group+" "+element)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func delRibGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete routing-options rib-groups "+d.Get("name").(string))
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func validateRibGroup(d *schema.ResourceData) error {

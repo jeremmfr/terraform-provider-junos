@@ -465,11 +465,7 @@ func setFirewallFilter(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		}
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfObject) (filterOptions, error) {
 	sess := m.(*Session)
@@ -528,11 +524,8 @@ func delFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfOb
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete firewall family "+family+" filter "+filter)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillFirewallFilterData(d *schema.ResourceData, filterOptions filterOptions) {
 	if tfErr := d.Set("name", filterOptions.name); tfErr != nil {

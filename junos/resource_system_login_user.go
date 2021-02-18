@@ -299,11 +299,7 @@ func setSystemLoginUser(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		configSet = append(configSet, setPrefix+"full-name \""+d.Get("full_name").(string)+"\"")
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSystemLoginUser(user string, m interface{}, jnprSess *NetconfObject) (systemLoginUserOptions, error) {
 	sess := m.(*Session)
@@ -375,11 +371,8 @@ func delSystemLoginUser(systemLoginUser string, m interface{}, jnprSess *Netconf
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system login user "+systemLoginUser)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillSystemLoginUserData(d *schema.ResourceData, systemLoginUserOptions systemLoginUserOptions) {
 	if tfErr := d.Set("name", systemLoginUserOptions.name); tfErr != nil {
