@@ -39,6 +39,7 @@ The following arguments are supported:
 * `vlan_id_list` - (Optional)(`ListOfString`) List of vlan ID. Can be a ID or range (exemple: 10-20). Conflict with `vlan_id`.
 * `vxlan` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare vxlan configuration (when Junos device supports it).
   * `vni` - (Required)(`Int`) VXLAN identifier.
+  * `vni_extend` - (Optional)(`Bool`) Extend VNI to EVPN
   * `encapsulate_inner_vlan` - (Optional)(`Bool`) Retain inner VLAN in the packet.
   * `ingress_node_replication` - (Optional)(`Bool`) Enable ingress node replication.
   * `multicast_group` - (Optional)(`String`) CDIR for Multicast group registered for VXLAN segment.
