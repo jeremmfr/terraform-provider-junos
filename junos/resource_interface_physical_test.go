@@ -156,8 +156,8 @@ resource junos_interface_physical testacc_interfaceAE {
   ae_minimum_links = 1
   vlan_tagging     = true
   esi {
-	  identifier =  "00:01:11:11:11:11:11:11:11:11"
-	mode = "all-active"
+    identifier = "00:01:11:11:11:11:11:11:11:11"
+    mode       = "all-active"
   }
 }
 `)
@@ -174,8 +174,8 @@ resource junos_interface_physical testacc_interfaceAE {
   description  = "testacc_interfaceAE"
   vlan_tagging = true
   esi {
-	  identifier =  "00:11:11:11:11:11:11:11:11:11"
-	mode = "all-active"
+    identifier = "00:11:11:11:11:11:11:11:11:11"
+    mode       = "all-active"
   }
 }
 `)
