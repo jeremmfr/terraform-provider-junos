@@ -122,7 +122,7 @@ func resourceProtocolEvpnCreate(ctx context.Context, d *schema.ResourceData, m i
                 return diag.FromErr(err)
         }
         var diagWarns diag.Diagnostics
-        warns, err := sess.commitConf("create resource junos_bgp_group", jnprSess)
+        warns, err := sess.commitConf("create resource protocol_evpn", jnprSess)
         appendDiagWarns(&diagWarns, warns)
         if err != nil {
                 sess.configClear(jnprSess)
@@ -140,7 +140,7 @@ func resourceProtocolEvpnCreate(ctx context.Context, d *schema.ResourceData, m i
                         "=> check your config", d.Get("routing_instance").(string)))...)
         }
 
-        return append(diagWarns, resourceBgpGroupReadWJnprSess(d, m, jnprSess)...)
+        return append(diagWarns, resourceProtocolEvpnReadWJnprSess(d, m, jnprSess)...)
 }
 
 func resourceProtocolEvpnRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -160,11 +160,7 @@ func resourceProtocolEvpnReadWJnprSess(d *schema.ResourceData, m interface{}, jn
         if err != nil {
                 return diag.FromErr(err)
         }
-        //if protocolEvpnOptions.name == "" {
-        //        d.SetId("")
-        //} else {
-                fillProtocolEvpnData(d, protocolEvpnOptions)
-        //}
+        fillProtocolEvpnData(d, protocolEvpnOptions)
 
         return nil
 }
@@ -312,9 +308,9 @@ func readProtocolEvpn(instance string, m interface{}, jnprSess *NetconfObject) (
                         itemTrim := strings.TrimPrefix(item, setLineStart)
                         switch {
 			case strings.HasPrefix(itemTrim, "encapsulation "):
-				confRead.encapsulation = strings.TrimPrefix(item, "encapsulation ")
+				confRead.encapsulation = strings.TrimPrefix(itemTrim, "encapsulation ")
 			case strings.HasPrefix(itemTrim, "multicast-mode "):
-				confRead.multicastMode = strings.TrimPrefix(item, "multicast-mode ")
+				confRead.multicastMode = strings.TrimPrefix(itemTrim, "multicast-mode ")
 			case strings.HasPrefix(itemTrim, "extended-vni-list "):
 				confRead.extendedVniList = append(confRead.extendedVniList, strings.TrimPrefix(item, "extended-vni-list "))
 			default:
