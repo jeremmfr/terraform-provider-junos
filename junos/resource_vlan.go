@@ -119,8 +119,8 @@ func resourceVlan() *schema.Resource {
 							ValidateFunc: validation.IntBetween(0, 16777214),
 						},
 						"vni_extend": {
-							Type:         schema.TypeBool,
-							Optional:     true,
+							Type:     schema.TypeBool,
+							Optional: true,
 						},
 						"encapsulate_inner_vlan": {
 							Type:     schema.TypeBool,
@@ -231,7 +231,7 @@ func resourceVlanUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if err := delVlan(d.Get("name").(string), d.Get("vxlan").([]interface{}) , m, jnprSess); err != nil {
+	if err := delVlan(d.Get("name").(string), d.Get("vxlan").([]interface{}), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -261,7 +261,7 @@ func resourceVlanDelete(ctx context.Context, d *schema.ResourceData, m interface
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if err := delVlan(d.Get("name").(string),d.Get("vxlan").([]interface{}), m, jnprSess); err != nil {
+	if err := delVlan(d.Get("name").(string), d.Get("vxlan").([]interface{}), m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -445,7 +445,7 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 			case strings.HasPrefix(itemTrim, "vxlan "):
 				vxlan := map[string]interface{}{
 					"vni":                          -1,
-					"vni_extend":			false,
+					"vni_extend":                   false,
 					"encapsulate_inner_vlan":       false,
 					"ingress_node_replication":     false,
 					"multicast_group":              "",
@@ -468,8 +468,8 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 						if err != nil {
 							return confRead, err
 						}
-					        if evpnConfig != emptyWord {
-					       	         for _, item := range strings.Split(evpnConfig, "\n") {
+						if evpnConfig != emptyWord {
+							for _, item := range strings.Split(evpnConfig, "\n") {
 								if strings.Contains(item, "<configuration-output>") {
 									continue
 								}
@@ -477,10 +477,8 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 									break
 								}
 								itemTrim := strings.TrimPrefix(item, setLineStart)
-								switch {
-								case strings.HasPrefix(itemTrim, "extended-vni-list "+strconv.Itoa(vxlan["vni"].(int))):
+								if strings.HasPrefix(itemTrim, "extended-vni-list "+strconv.Itoa(vxlan["vni"].(int))) {
 									vxlan["vni_extend"] = true
-
 								}
 							}
 						}
@@ -513,10 +511,10 @@ func delVlan(vlan string, vxlan []interface{}, m interface{}, jnprSess *NetconfO
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete vlans "+vlan)
 	for _, v := range vxlan {
-                vxlan_params := v.(map[string]interface{})
-                if vxlan_params["vni_extend"].(bool) {
-                        configSet = append(configSet, "delete protocols evpn extended-vni-list "+strconv.Itoa(vxlan_params["vni"].(int)))
-                }
+		vxlanParams := v.(map[string]interface{})
+		if vxlanParams["vni_extend"].(bool) {
+			configSet = append(configSet, "delete protocols evpn extended-vni-list "+strconv.Itoa(vxlanParams["vni"].(int)))
+		}
 	}
 
 	if err := sess.configSet(configSet, jnprSess); err != nil {
