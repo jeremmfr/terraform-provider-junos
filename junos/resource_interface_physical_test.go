@@ -85,6 +85,10 @@ func TestAccJunosInterfacePhysical_basic(t *testing.T) {
 							"ae_minimum_links", "1"),
 						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
 							"vlan_tagging", "true"),
+						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
+						"esi.identifier", "00:01:11:11:11:11:11:11:11:11"),
+						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
+						"esi.mode", "all-active"),
 					),
 				},
 				{
@@ -96,6 +100,10 @@ func TestAccJunosInterfacePhysical_basic(t *testing.T) {
 							"ae_lacp", ""),
 						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
 							"ae_minimum_links", "0"),
+						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
+						"esi.identifier", "00:11:11:11:11:11:11:11:11:11"),
+						resource.TestCheckResourceAttr("junos_interface_physical.testacc_interfaceAE",
+						"esi.mode", "all-active"),
 					),
 				},
 				{
@@ -147,6 +155,10 @@ resource junos_interface_physical testacc_interfaceAE {
   ae_lacp          = "active"
   ae_minimum_links = 1
   vlan_tagging     = true
+  esi {
+	  identifier =  "00:01:11:11:11:11:11:11:11:11"
+	mode = "all-active"
+  }
 }
 `)
 }
@@ -161,6 +173,10 @@ resource junos_interface_physical testacc_interfaceAE {
   name         = junos_interface_physical.testacc_interface.ether802_3ad
   description  = "testacc_interfaceAE"
   vlan_tagging = true
+  esi {
+	  identifier =  "00:11:11:11:11:11:11:11:11:11"
+	mode = "all-active"
+  }
 }
 `)
 }
