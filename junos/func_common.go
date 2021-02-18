@@ -69,12 +69,11 @@ func validateIPwithMask(ip string) error {
 		return nil
 	}
 	if ip == ipnet.String() {
-		return fmt.Errorf("%v is not a valide IP/mask, is a network", ip)
+		return fmt.Errorf("%v is not a valid IP/mask, is a network", ip)
 	}
 
 	return nil
 }
-
 func validateCIDRNetwork(network string) error {
 	if !strings.Contains(network, "/") {
 		return fmt.Errorf("%v missing mask", network)
@@ -85,6 +84,16 @@ func validateCIDRNetwork(network string) error {
 	}
 	if network != ipnet.String() {
 		return fmt.Errorf("%v is not a valid network CIDR", network)
+	}
+
+	return nil
+}
+func validateCIDR(cidr string) error {
+	if !strings.Contains(cidr, "/") {
+		return fmt.Errorf("%v missing mask", cidr)
+	}
+	if _, _, err := net.ParseCIDR(cidr); err != nil {
+		return fmt.Errorf("%v is not a valid CIDR", cidr)
 	}
 
 	return nil
