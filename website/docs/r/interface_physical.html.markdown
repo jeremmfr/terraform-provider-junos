@@ -47,7 +47,7 @@ The following arguments are supported:
 
 ---
 #### esi-arguments
-* `identifier` - (Required)(`String`) The ESI value for the interface
+* `identifier` - (Optional)(`String`) The ESI value for the interface
 * `auto_derive_lacp` - (Optional)(`Bool`) Auto-derive ESI value for the interface
 * `df_election_type` - (Optional)(`String`) DF Election Type
 * `mode` - (Required)(`String`) ESI Mode

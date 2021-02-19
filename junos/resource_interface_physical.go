@@ -96,7 +96,7 @@ func resourceInterfacePhysical() *schema.Resource {
 						},
 						"identifier": {
 							Type:          schema.TypeString,
-							Required:      true,
+							Optional:      true,
 							ConflictsWith: []string{"esi.0.auto_derive_lacp"},
 							ValidateFunc: validation.StringMatch(regexp.MustCompile(
 								`^([\\d\\w]{2}:){10}[\\d\\w]{2}$`), "bad format or length"),
