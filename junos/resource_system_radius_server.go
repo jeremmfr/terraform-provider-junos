@@ -344,11 +344,7 @@ func setSystemRadiusServer(d *schema.ResourceData, m interface{}, jnprSess *Netc
 			strconv.Itoa(d.Get("timeout").(int)))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSystemRadiusServer(address string, m interface{}, jnprSess *NetconfObject) (radiusServerOptions, error) {
 	sess := m.(*Session)
@@ -456,11 +452,8 @@ func delSystemRadiusServer(address string, m interface{}, jnprSess *NetconfObjec
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system radius-server "+address)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillSystemRadiusServerData(d *schema.ResourceData, radiusServerOptions radiusServerOptions) {
 	if tfErr := d.Set("address", radiusServerOptions.address); tfErr != nil {

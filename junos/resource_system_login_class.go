@@ -427,11 +427,7 @@ func setSystemLoginClass(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 		configSet = append(configSet, setPrefix+"tenant \""+d.Get("tenant").(string)+"\"")
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSystemLoginClass(class string, m interface{}, jnprSess *NetconfObject) (systemLoginClassOptions, error) {
 	sess := m.(*Session)
@@ -525,11 +521,8 @@ func delSystemLoginClass(systemLoginClass string, m interface{}, jnprSess *Netco
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system login class "+systemLoginClass)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillSystemLoginClassData(d *schema.ResourceData, systemLoginClassOptions systemLoginClassOptions) {
 	if tfErr := d.Set("name", systemLoginClassOptions.name); tfErr != nil {

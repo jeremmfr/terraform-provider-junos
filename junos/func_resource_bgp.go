@@ -114,11 +114,7 @@ func delBgpOpts(d *schema.ResourceData, typebgp string, m interface{}, jnprSess 
 		delPrefix+"type",
 	)
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
@@ -247,11 +243,8 @@ func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, j
 	if d.Get("remove_private").(bool) {
 		configSet = append(configSet, setPrefix+"remove-private")
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 	var err error

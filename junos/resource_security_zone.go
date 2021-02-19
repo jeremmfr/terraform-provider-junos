@@ -337,11 +337,7 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 		configSet = append(configSet, setPrefix+" tcp-rst")
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zoneOptions, error) {
 	sess := m.(*Session)
@@ -433,21 +429,15 @@ func delSecurityZoneOpts(zone string, m interface{}, jnprSess *NetconfObject) er
 	for _, line := range listLinesToDelete {
 		configSet = append(configSet, delPrefix+line)
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func delSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security zones security-zone "+zone)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillSecurityZoneData(d *schema.ResourceData, zoneOptions zoneOptions) {

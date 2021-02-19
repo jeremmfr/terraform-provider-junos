@@ -698,11 +698,8 @@ func setBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	if err := setBgpOptsFamily(setPrefix, inet6Word, d.Get("family_inet6").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
-	if err := setBgpOptsGrafefulRestart(setPrefix, d.Get("graceful_restart").([]interface{}), m, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return setBgpOptsGrafefulRestart(setPrefix, d.Get("graceful_restart").([]interface{}), m, jnprSess)
 }
 func readBgpNeighbor(ip, instance, group string, m interface{}, jnprSess *NetconfObject) (bgpOptions, error) {
 	sess := m.(*Session)
@@ -788,11 +785,8 @@ func delBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 			" protocols bgp group "+d.Get("group").(string)+
 			" neighbor "+d.Get("ip").(string))
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillBgpNeighborData(d *schema.ResourceData, bgpNeighborOptions bgpOptions) {

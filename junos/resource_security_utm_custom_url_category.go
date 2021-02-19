@@ -225,11 +225,7 @@ func setUtmCustomURLCategory(d *schema.ResourceData, m interface{}, jnprSess *Ne
 		configSet = append(configSet, setPrefix+"value "+v.(string))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readUtmCustomURLCategory(urlCategory string, m interface{}, jnprSess *NetconfObject) (
 	utmCustomURLCategoryOptions, error) {
@@ -264,11 +260,8 @@ func delUtmCustomURLCategory(urlCategory string, m interface{}, jnprSess *Netcon
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security utm custom-objects custom-url-category "+urlCategory)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillUtmCustomURLCategoryData(d *schema.ResourceData, utmCustomURLCategoryOptions utmCustomURLCategoryOptions) {

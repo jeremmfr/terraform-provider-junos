@@ -697,11 +697,8 @@ func setBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	if err := setBgpOptsFamily(setPrefix, inet6Word, d.Get("family_inet6").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
-	if err := setBgpOptsGrafefulRestart(setPrefix, d.Get("graceful_restart").([]interface{}), m, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return setBgpOptsGrafefulRestart(setPrefix, d.Get("graceful_restart").([]interface{}), m, jnprSess)
 }
 func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObject) (bgpOptions, error) {
 	sess := m.(*Session)
@@ -779,11 +776,8 @@ func delBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		configSet = append(configSet, "delete routing-instances "+d.Get("routing_instance").(string)+
 			" protocols bgp group "+d.Get("name").(string))
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillBgpGroupData(d *schema.ResourceData, bgpGroupOptions bgpOptions) {

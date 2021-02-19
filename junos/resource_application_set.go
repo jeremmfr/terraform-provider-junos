@@ -213,11 +213,7 @@ func setApplicationSet(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		configSet = append(configSet, setPrefix+" application "+v.(string))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readApplicationSet(applicationSet string, m interface{}, jnprSess *NetconfObject) (applicationSetOptions, error) {
 	sess := m.(*Session)
@@ -250,11 +246,8 @@ func delApplicationSet(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete applications application-set "+d.Get("name").(string))
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillApplicationSetData(d *schema.ResourceData, applicationSetOptions applicationSetOptions) {
