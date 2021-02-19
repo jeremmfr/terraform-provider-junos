@@ -95,17 +95,16 @@ func resourceInterfacePhysical() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{"mod", "preference"}, false),
 						},
 						"identifier": {
-							Type:             schema.TypeString,
-							Required:         true,
-							ConflictsWith:    []string{"esi.0.auto_derive_lacp"},
+							Type:          schema.TypeString,
+							Required:      true,
+							ConflictsWith: []string{"esi.0.auto_derive_lacp"},
 							ValidateFunc: validation.StringMatch(regexp.MustCompile(
-							`^([\\d\\w]{2}:){10}[\\d\\w]{2}$`), "bad format or length"),
+								`^([\\d\\w]{2}:){10}[\\d\\w]{2}$`), "bad format or length"),
 						},
 						"source_bmac": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							ValidateFunc: validation.StringMatch(regexp.MustCompile(
-							`^([\\d\\w]{2}:){6}[\\d\\w]{2}$`), "bad format or length"),
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsMACAddress,
 						},
 					},
 				},
@@ -521,32 +520,29 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	return nil
 }
 func setIntEsi(setPrefix string, esiParams []interface{},
-        m interface{}, jnprSess *NetconfObject) error {
-        sess := m.(*Session)
-        configSet := make([]string, 0)
+	m interface{}, jnprSess *NetconfObject) error {
+	sess := m.(*Session)
+	configSet := make([]string, 0)
 
-        for _, v := range esiParams {
-                if v != nil {
-                        m := v.(map[string]interface{})
-                        if m["mode"].(string) != "" {
-                                configSet = append(configSet, setPrefix+"esi "+m["mode"].(string))
-                        }
-                        if m["auto_derive_lacp"].(bool) {
-                                configSet = append(configSet, setPrefix+"esi auto-derive lacp")
-                        }
-                        if m["df_election_type"].(string) != "" {
-                                configSet = append(configSet, setPrefix+"esi df-election-type "+m["df_election_type"].(string))
-                        }
-                        if m["identifier"].(string) != "" {
-                                configSet = append(configSet, setPrefix+"esi "+m["identifier"].(string))
-                        }
-                        if m["source_bmac"].(string) != "" {
-                                configSet = append(configSet, setPrefix+"esi source-bmac "+m["source_bmac"].(string))
-                        }
-                }
-        }
+	for _, v := range esiParams {
+		if v != nil {
+			m := v.(map[string]interface{})
+			switch {
+			case m["mode"].(string) != "":
+				configSet = append(configSet, setPrefix+"esi "+m["mode"].(string))
+			case m["auto_derive_lacp"].(bool):
+				configSet = append(configSet, setPrefix+"esi auto-derive lacp")
+			case m["df_election_type"].(string) != "":
+				configSet = append(configSet, setPrefix+"esi df-election-type "+m["df_election_type"].(string))
+			case m["identifier"].(string) != "":
+				configSet = append(configSet, setPrefix+"esi "+m["identifier"].(string))
+			case m["source_bmac"].(string) != "":
+				configSet = append(configSet, setPrefix+"esi source-bmac "+m["source_bmac"].(string))
+			}
+		}
+	}
 
-        return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, jnprSess)
 }
 func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObject) (interfacePhysicalOptions, error) {
 	sess := m.(*Session)
@@ -582,7 +578,7 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
 			case strings.HasPrefix(itemTrim, "esi "):
-				if err := readIntEsi(&confRead,itemTrim); err != nil {
+				if err := readIntEsi(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
 			case strings.HasPrefix(itemTrim, "ether-options 802.3ad "):
@@ -610,24 +606,24 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 	return confRead, nil
 }
 func readIntEsi(confRead *interfacePhysicalOptions, item string) error {
-        itemTrim := strings.TrimPrefix(item, "esi ")
+	itemTrim := strings.TrimPrefix(item, "esi ")
 	if len(confRead.esi) == 0 {
 		confRead.esi = append(confRead.esi, map[string]interface{}{
-			"mode": "",
+			"mode":             "",
 			"auto_derive_lacp": false,
 			"df_election_type": "",
-			"identifier": "",
-			"source_bmac": "",
+			"identifier":       "",
+			"source_bmac":      "",
 		})
 	}
 	var err error
-        identifier, err := regexp.MatchString(`^([\d\w]{2}:){9}[\d\w]{2}`, itemTrim)
+	identifier, err := regexp.MatchString(`^([\d\w]{2}:){9}[\d\w]{2}`, itemTrim)
 	if err != nil {
-		return err
+		return fmt.Errorf("esi_identifier regexp error: %w", err)
 	}
 	switch {
 	case identifier:
-                confRead.esi[0]["identifier"] = itemTrim
+		confRead.esi[0]["identifier"] = itemTrim
 	case itemTrim == "all-active" || itemTrim == "single-active":
 		confRead.esi[0]["mode"] = itemTrim
 	case strings.HasPrefix(itemTrim, "df-election-type "):
@@ -635,10 +631,10 @@ func readIntEsi(confRead *interfacePhysicalOptions, item string) error {
 	case strings.HasPrefix(itemTrim, "source-bmac "):
 		confRead.esi[0]["source_bmac"] = strings.TrimPrefix(itemTrim, "source-bmac ")
 	case itemTrim == "auto-derive lacp":
-                confRead.esi[0]["auto_derive_lacp"] = true
-        }
+		confRead.esi[0]["auto_derive_lacp"] = true
+	}
 
-        return nil
+	return nil
 }
 func delInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
