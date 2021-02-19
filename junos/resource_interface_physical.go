@@ -527,16 +527,19 @@ func setIntEsi(setPrefix string, esiParams []interface{},
 	for _, v := range esiParams {
 		if v != nil {
 			m := v.(map[string]interface{})
-			switch {
-			case m["mode"].(string) != "":
+			if m["mode"].(string) != "" {
 				configSet = append(configSet, setPrefix+"esi "+m["mode"].(string))
-			case m["auto_derive_lacp"].(bool):
+			}
+			if m["auto_derive_lacp"].(bool) {
 				configSet = append(configSet, setPrefix+"esi auto-derive lacp")
-			case m["df_election_type"].(string) != "":
+			}
+			if m["df_election_type"].(string) != "" {
 				configSet = append(configSet, setPrefix+"esi df-election-type "+m["df_election_type"].(string))
-			case m["identifier"].(string) != "":
+			}
+			if m["identifier"].(string) != "" {
 				configSet = append(configSet, setPrefix+"esi "+m["identifier"].(string))
-			case m["source_bmac"].(string) != "":
+			}
+			if m["source_bmac"].(string) != "" {
 				configSet = append(configSet, setPrefix+"esi source-bmac "+m["source_bmac"].(string))
 			}
 		}
