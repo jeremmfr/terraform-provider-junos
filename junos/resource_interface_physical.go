@@ -23,7 +23,7 @@ type interfacePhysicalOptions struct {
 	description string
 	v8023ad     string
 	vlanMembers []string
-	Esi         []map[string]interface{}
+	esi         []map[string]interface{}
 }
 
 func resourceInterfacePhysical() *schema.Resource {
@@ -96,14 +96,16 @@ func resourceInterfacePhysical() *schema.Resource {
 						},
 						"identifier": {
 							Type:             schema.TypeString,
-							Optional:         true,
+							Required:         true,
 							ConflictsWith:    []string{"esi.0.auto_derive_lacp"},
-							ValidateDiagFunc: validateByteString(10),
+							ValidateFunc: validation.StringMatch(regexp.MustCompile(
+							`^([\\d\\w]{2}:){10}[\\d\\w]{2}$`), "bad format or length"),
 						},
 						"source_bmac": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateByteString(6),
+							ValidateFunc: validation.StringMatch(regexp.MustCompile(
+							`^([\\d\\w]{2}:){6}[\\d\\w]{2}$`), "bad format or length"),
 						},
 					},
 				},
@@ -471,6 +473,9 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	if d.Get("description").(string) != "" {
 		configSet = append(configSet, setPrefix+"description \""+d.Get("description").(string)+"\"")
 	}
+	if err := setIntEsi(setPrefix, d.Get("esi").([]interface{}), m, jnprSess); err != nil {
+		return err
+	}
 	if v := d.Get("name").(string); strings.HasPrefix(v, "ae") {
 		aggregatedCount, err := interfaceAggregatedCountSearchMax(v, "ae-1", v, m, jnprSess)
 		if err != nil {
@@ -509,16 +514,39 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	if d.Get("vlan_tagging").(bool) {
 		configSet = append(configSet, setPrefix+"vlan-tagging")
 	}
-
-	if err := setIntEsi(setPrefix, d.Get("esi").([]interface{}), m, jnprSess); err != nil {
-		return err
-	}
-
 	if err := sess.configSet(configSet, jnprSess); err != nil {
 		return err
 	}
 
 	return nil
+}
+func setIntEsi(setPrefix string, esiParams []interface{},
+        m interface{}, jnprSess *NetconfObject) error {
+        sess := m.(*Session)
+        configSet := make([]string, 0)
+
+        for _, v := range esiParams {
+                if v != nil {
+                        m := v.(map[string]interface{})
+                        if m["mode"].(string) != "" {
+                                configSet = append(configSet, setPrefix+"esi "+m["mode"].(string))
+                        }
+                        if m["auto_derive_lacp"].(bool) {
+                                configSet = append(configSet, setPrefix+"esi auto-derive lacp")
+                        }
+                        if m["df_election_type"].(string) != "" {
+                                configSet = append(configSet, setPrefix+"esi df-election-type "+m["df_election_type"].(string))
+                        }
+                        if m["identifier"].(string) != "" {
+                                configSet = append(configSet, setPrefix+"esi "+m["identifier"].(string))
+                        }
+                        if m["source_bmac"].(string) != "" {
+                                configSet = append(configSet, setPrefix+"esi source-bmac "+m["source_bmac"].(string))
+                        }
+                }
+        }
+
+        return sess.configSet(configSet, jnprSess)
 }
 func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObject) (interfacePhysicalOptions, error) {
 	sess := m.(*Session)
@@ -553,14 +581,12 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 				}
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
-
-			case strings.HasPrefix(itemTrim, "ether-options 802.3ad "):
-				confRead.v8023ad = strings.TrimPrefix(itemTrim, "ether-options 802.3ad ")
 			case strings.HasPrefix(itemTrim, "esi "):
-				confRead.Esi, err = readIntEsi(itemTrim, confRead.Esi)
-				if err != nil {
+				if err := readIntEsi(&confRead,itemTrim); err != nil {
 					return confRead, err
 				}
+			case strings.HasPrefix(itemTrim, "ether-options 802.3ad "):
+				confRead.v8023ad = strings.TrimPrefix(itemTrim, "ether-options 802.3ad ")
 			case strings.HasPrefix(itemTrim, "gigether-options 802.3ad "):
 				confRead.v8023ad = strings.TrimPrefix(itemTrim, "gigether-options 802.3ad ")
 			case strings.HasPrefix(itemTrim, "native-vlan-id"):
@@ -582,6 +608,37 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 	}
 
 	return confRead, nil
+}
+func readIntEsi(confRead *interfacePhysicalOptions, item string) error {
+        itemTrim := strings.TrimPrefix(item, "esi ")
+	if len(confRead.esi) == 0 {
+		confRead.esi = append(confRead.esi, map[string]interface{}{
+			"mode": "",
+			"auto_derive_lacp": false,
+			"df_election_type": "",
+			"identifier": "",
+			"source_bmac": "",
+		})
+	}
+	var err error
+        identifier, err := regexp.MatchString(`^([\d\w]{2}:){9}[\d\w]{2}`, itemTrim)
+	if err != nil {
+		return err
+	}
+	switch {
+	case identifier:
+                confRead.esi[0]["identifier"] = itemTrim
+	case itemTrim == "all-active" || itemTrim == "single-active":
+		confRead.esi[0]["mode"] = itemTrim
+	case strings.HasPrefix(itemTrim, "df-election-type "):
+		confRead.esi[0]["df_election_type"] = strings.TrimPrefix(itemTrim, "df-election-type ")
+	case strings.HasPrefix(itemTrim, "source-bmac "):
+		confRead.esi[0]["source_bmac"] = strings.TrimPrefix(itemTrim, "source-bmac ")
+	case itemTrim == "auto-derive lacp":
+                confRead.esi[0]["auto_derive_lacp"] = true
+        }
+
+        return nil
 }
 func delInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
@@ -705,7 +762,7 @@ func fillInterfacePhysicalData(d *schema.ResourceData, interfaceOpt interfacePhy
 	if tfErr := d.Set("ae_minimum_links", interfaceOpt.aeMinLink); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("esi", interfaceOpt.Esi); tfErr != nil {
+	if tfErr := d.Set("esi", interfaceOpt.esi); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("description", interfaceOpt.description); tfErr != nil {
