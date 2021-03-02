@@ -151,6 +151,33 @@ func resourceBgpNeighbor() *schema.Resource {
 					},
 				},
 			},
+			"bgp_multipath": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"multipath"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"allow_protection": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"multiple_as": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
+			"cluster": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsIPAddress,
+			},
 			"damping": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -159,6 +186,76 @@ func resourceBgpNeighbor() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"family_evpn": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"nlri_type": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "signaling",
+							ValidateFunc: validation.StringInSlice([]string{"signaling"}, false),
+						},
+						"accepted_prefix_limit": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"maximum": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 4294967295),
+									},
+									"teardown": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 100),
+									},
+									"teardown_idle_timeout": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 2400),
+									},
+									"teardown_idle_timeout_forever": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+								},
+							},
+						},
+						"prefix_limit": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"maximum": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 4294967295),
+									},
+									"teardown": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 100),
+									},
+									"teardown_idle_timeout": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 2400),
+									},
+									"teardown_idle_timeout_forever": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 			"family_inet": {
 				Type:     schema.TypeList,
@@ -437,8 +534,10 @@ func resourceBgpNeighbor() *schema.Resource {
 				Optional: true,
 			},
 			"multipath": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"bgp_multipath"},
+				Deprecated:    "use bgp_multipath instead",
 			},
 			"out_delay": {
 				Type:         schema.TypeInt,
@@ -692,6 +791,9 @@ func setBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	if err := setBgpOptsBfd(setPrefix, d.Get("bfd_liveness_detection").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
+	if err := setBgpOptsFamily(setPrefix, "evpn", d.Get("family_evpn").([]interface{}), m, jnprSess); err != nil {
+		return err
+	}
 	if err := setBgpOptsFamily(setPrefix, inetWord, d.Get("family_inet").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
@@ -740,12 +842,16 @@ func readBgpNeighbor(ip, instance, group string, m interface{}, jnprSess *Netcon
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
+			case strings.HasPrefix(itemTrim, "family evpn "):
+				confRead.familyEvpn, err = readBgpOptsFamily(itemTrim, "evpn", confRead.familyEvpn)
+				if err != nil {
+					return confRead, err
+				}
 			case strings.HasPrefix(itemTrim, "family inet "):
 				confRead.familyInet, err = readBgpOptsFamily(itemTrim, inetWord, confRead.familyInet)
 				if err != nil {
 					return confRead, err
 				}
-
 			case strings.HasPrefix(itemTrim, "family inet6 "):
 				confRead.familyInet6, err = readBgpOptsFamily(itemTrim, inet6Word, confRead.familyInet6)
 				if err != nil {
@@ -829,10 +935,16 @@ func fillBgpNeighborData(d *schema.ResourceData, bgpNeighborOptions bgpOptions) 
 	if tfErr := d.Set("bfd_liveness_detection", bgpNeighborOptions.bfdLivenessDetection); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("cluster", bgpNeighborOptions.cluster); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("damping", bgpNeighborOptions.damping); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("export", bgpNeighborOptions.exportPolicy); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("family_evpn", bgpNeighborOptions.familyEvpn); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("family_inet", bgpNeighborOptions.familyInet); tfErr != nil {
@@ -901,8 +1013,14 @@ func fillBgpNeighborData(d *schema.ResourceData, bgpNeighborOptions bgpOptions) 
 	if tfErr := d.Set("multihop", bgpNeighborOptions.multihop); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("multipath", bgpNeighborOptions.multipath); tfErr != nil {
-		panic(tfErr)
+	if _, ok := d.GetOk("multipath"); ok {
+		if tfErr := d.Set("multipath", bgpNeighborOptions.multipath); tfErr != nil {
+			panic(tfErr)
+		}
+	} else {
+		if tfErr := d.Set("bgp_multipath", bgpNeighborOptions.bgpMultipath); tfErr != nil {
+			panic(tfErr)
+		}
 	}
 	if tfErr := d.Set("no_advertise_peer_as", bgpNeighborOptions.noAdvertisePeerAs); tfErr != nil {
 		panic(tfErr)
