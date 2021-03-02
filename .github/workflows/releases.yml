@@ -124,3 +124,57 @@ jobs:
           asset_path: ./${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_SHA256SUMS
           asset_name: ${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_SHA256SUMS
           asset_content_type: application/octet-stream
+  website:
+    name: Deploy Website
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Clone original Terraform Website
+        run: git clone https://github.com/hashicorp/terraform-website.git /tmp/terraform-website
+      - name: Copy necessary files and co
+        working-directory: ./.terraform-website/
+        run: |
+          cp /tmp/terraform-website/content/config.rb .
+          cp /tmp/terraform-website/content/Gemfile .
+          cp /tmp/terraform-website/content/Gemfile.lock .
+          cp /tmp/terraform-website/content/middleman_helpers.rb .
+          cp -r /tmp/terraform-website/content/source/assets ./source/
+          cp /tmp/terraform-website/content/source/layouts/inner.erb ./source/layouts/
+          echo "redirect 'index.html', to: 'docs/providers/junos/index.html'" >> config.rb
+      - name: Setup ruby
+        uses: actions/setup-ruby@v1
+        with:
+          ruby-version: "2.x"
+      - name: Install middleman
+        working-directory: ./.terraform-website/
+        run: |
+          gem install bundler bundler:1.17.3
+          # json fail with (1.8.3.1) in Gemfile.lock
+          bundle update json --jobs 4 --retry 3
+          bundle install --jobs 4 --retry 3
+      - name: Build Website
+        working-directory: ./.terraform-website/
+        run: bundle exec middleman build --verbose
+      - name: Download google files from S3
+        uses: ItsKarma/aws-cli@v1.70.0
+        with:
+          args: s3 cp s3://terraform-provider-junos.jeremm.fr/google72955f25e01c2a06.html .terraform-website/build/
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Upload Website on S3
+        uses: ItsKarma/aws-cli@v1.70.0
+        with:
+          args: s3 sync .terraform-website/build/ s3://terraform-provider-junos.jeremm.fr/ --delete
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Invalidate Cloudfront Distribution
+        uses: chetan/invalidate-cloudfront-action@v1.3
+        env:
+          PATHS: '/docs/*'
+          AWS_REGION: 'eu-west-1'
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          DISTRIBUTION: ${{ secrets.DISTRIBUTION_ID }}
