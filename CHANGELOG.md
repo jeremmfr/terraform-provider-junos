@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* add `junos_group_dual_system` resource (Fixes #120)
 
 BUG FIXES:
 
