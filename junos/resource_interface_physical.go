@@ -525,23 +525,21 @@ func setIntEsi(setPrefix string, esiParams []interface{},
 	configSet := make([]string, 0)
 
 	for _, v := range esiParams {
-		if v != nil {
-			m := v.(map[string]interface{})
-			if m["mode"].(string) != "" {
-				configSet = append(configSet, setPrefix+"esi "+m["mode"].(string))
-			}
-			if m["auto_derive_lacp"].(bool) {
-				configSet = append(configSet, setPrefix+"esi auto-derive lacp")
-			}
-			if m["df_election_type"].(string) != "" {
-				configSet = append(configSet, setPrefix+"esi df-election-type "+m["df_election_type"].(string))
-			}
-			if m["identifier"].(string) != "" {
-				configSet = append(configSet, setPrefix+"esi "+m["identifier"].(string))
-			}
-			if m["source_bmac"].(string) != "" {
-				configSet = append(configSet, setPrefix+"esi source-bmac "+m["source_bmac"].(string))
-			}
+		m := v.(map[string]interface{})
+		if m["mode"].(string) != "" {
+			configSet = append(configSet, setPrefix+"esi "+m["mode"].(string))
+		}
+		if m["auto_derive_lacp"].(bool) {
+			configSet = append(configSet, setPrefix+"esi auto-derive lacp")
+		}
+		if m["df_election_type"].(string) != "" {
+			configSet = append(configSet, setPrefix+"esi df-election-type "+m["df_election_type"].(string))
+		}
+		if m["identifier"].(string) != "" {
+			configSet = append(configSet, setPrefix+"esi "+m["identifier"].(string))
+		}
+		if m["source_bmac"].(string) != "" {
+			configSet = append(configSet, setPrefix+"esi source-bmac "+m["source_bmac"].(string))
 		}
 	}
 
