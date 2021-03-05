@@ -3,6 +3,7 @@ ENHANCEMENTS:
 * add `cluster`, `family_evpn` arguments in `junos_bgp_group` and `junos_bgp_neighbor` resource.
 * add new `bgp_multipath` block argument to replace `multipath` bool argument in `junos_bgp_group` and `junos_bgp_neighbor` resource.
 `bgp_multipath` let add optional arguments. `multipath` is now **deprecated**.
+* add `esi` argument in `junos_interface_physical` (Fixes #126) Thans @dejongm
 
 BUG FIXES:
 
