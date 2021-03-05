@@ -178,11 +178,7 @@ func setSystemRootAuthentication(d *schema.ResourceData, m interface{}, jnprSess
 		}
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSystemRootAuthentication(m interface{}, jnprSess *NetconfObject) (systemRootAuthOptions, error) {
 	sess := m.(*Session)
@@ -230,11 +226,8 @@ func delSystemRootAuthentication(m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system root-authentication")
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillSystemRootAuthenticationData(d *schema.ResourceData, systemRootAuthOptions systemRootAuthOptions) {
 	if tfErr := d.Set("encrypted_password", systemRootAuthOptions.encryptedPassword); tfErr != nil {

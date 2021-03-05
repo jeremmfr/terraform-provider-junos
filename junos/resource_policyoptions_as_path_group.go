@@ -240,11 +240,8 @@ func setPolicyoptionsAsPathGroup(d *schema.ResourceData, m interface{}, jnprSess
 	if d.Get("dynamic_db").(bool) {
 		configSet = append(configSet, setPrefix+" dynamic-db")
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readPolicyoptionsAsPathGroup(asPathGroup string,
 	m interface{}, jnprSess *NetconfObject) (asPathGroupOptions, error) {
@@ -290,11 +287,8 @@ func delPolicyoptionsAsPathGroup(asPathGroup string, m interface{}, jnprSess *Ne
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete policy-options as-path-group "+asPathGroup)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillPolicyoptionsAsPathGroupData(d *schema.ResourceData, asPathGroupOptions asPathGroupOptions) {
 	if tfErr := d.Set("name", asPathGroupOptions.name); tfErr != nil {

@@ -449,11 +449,7 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, m interface{}, jnprSess *
 		configSet = append(configSet, setPrefix+"timeout "+strconv.Itoa(d.Get("timeout").(int)))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *NetconfObject) (
 	utmProfileWebFilteringEnhancedOptions, error) {
@@ -576,11 +572,8 @@ func delUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *NetconfO
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security utm feature-profile web-filtering juniper-enhanced "+
 		"profile \""+profile+"\"")
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillUtmProfileWebFEnhancedData(d *schema.ResourceData,

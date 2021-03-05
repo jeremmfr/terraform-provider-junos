@@ -416,11 +416,7 @@ func setIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		}
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readIpsecVpn(ipsecVpn string, m interface{}, jnprSess *NetconfObject) (ipsecVpnOptions, error) {
 	sess := m.(*Session)
@@ -524,11 +520,8 @@ func delIpsecVpnConf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ipsec vpn "+d.Get("name").(string))
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func delIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
@@ -543,11 +536,8 @@ func delIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 			configSet = append(configSet, "delete interfaces "+d.Get("bind_interface").(string))
 		}
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillIpsecVpnData(d *schema.ResourceData, ipsecVpnOptions ipsecVpnOptions) {

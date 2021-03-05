@@ -320,11 +320,8 @@ func setOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 				strconv.Itoa(ospfInterface["retransmit_interval"].(int)))
 		}
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readOspfArea(idArea, version, routingInstance string,
 	m interface{}, jnprSess *NetconfObject) (ospfAreaOptions, error) {
@@ -426,11 +423,8 @@ func delOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		configSet = append(configSet, "delete routing-instances "+d.Get("routing_instance").(string)+
 			" protocols "+ospfVersion+" area "+d.Get("area_id").(string))
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillOspfAreaData(d *schema.ResourceData, ospfAreaOptions ospfAreaOptions) {

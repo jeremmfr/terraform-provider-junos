@@ -246,7 +246,7 @@ func setSecurityNatSourcePool(d *schema.ResourceData, m interface{}, jnprSess *N
 
 	setPrefix := "set security nat source pool " + d.Get("name").(string)
 	for _, v := range d.Get("address").([]interface{}) {
-		err := validateIPwithMask(v.(string))
+		err := validateCIDR(v.(string))
 		if err != nil {
 			return err
 		}
@@ -267,11 +267,8 @@ func setSecurityNatSourcePool(d *schema.ResourceData, m interface{}, jnprSess *N
 	if d.Get("routing_instance").(string) != "" {
 		configSet = append(configSet, setPrefix+" routing-instance "+d.Get("routing_instance").(string))
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSecurityNatSourcePool(natSourcePool string,
 	m interface{}, jnprSess *NetconfObject) (natSourcePoolOptions, error) {
@@ -323,11 +320,8 @@ func delSecurityNatSourcePool(natSourcePool string, m interface{}, jnprSess *Net
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security nat source pool "+natSourcePool)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillSecurityNatSourcePoolData(d *schema.ResourceData, natSourcePoolOptions natSourcePoolOptions) {
 	if tfErr := d.Set("name", natSourcePoolOptions.name); tfErr != nil {

@@ -1072,11 +1072,7 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 			" interface "+d.Get("name").(string))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (interfaceOptions, error) {
 	sess := m.(*Session)
@@ -1381,11 +1377,8 @@ func delInterfaceElement(element string, d *schema.ResourceData, m interface{}, 
 		return fmt.Errorf("the name %s contains too dots", d.Get("name").(string))
 	}
 	configSet = append(configSet, "delete interfaces "+setName+" "+element)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func delInterfaceOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
@@ -1415,33 +1408,25 @@ func delInterfaceOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 		delPrefix+"unit 0 family ethernet-switching interface-mode",
 		delPrefix+"unit 0 family ethernet-switching vlan members",
 		delPrefix+"native-vlan-id",
-		delPrefix+"aggregated-ether-options")
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
+		delPrefix+"aggregated-ether-options",
+	)
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func delZoneInterface(zone string, d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security zones security-zone "+zone+" interfaces "+d.Get("name").(string))
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func delRoutingInstanceInterface(instance string, d *schema.ResourceData,
 	m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete routing-instances "+instance+" interface "+d.Get("name").(string))
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillInterfaceData(d *schema.ResourceData, interfaceOpt interfaceOptions) {

@@ -106,16 +106,16 @@ The following arguments are supported:
   * `value` - (Required)(`String`) Value for action
 * `default_action` - (Optional)(`String`) Set default policy action. Can be 'accept' or 'reject'.
 * `load_balance` - (Optional)(`String`) Type of load balancing in forwarding table. Can be 'per-packet' or 'consistent-hash'.
-* `local_preference` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare local-preference action.
+* `local_preference` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare local-preference action.
   * `action` - (Required)(`String`) Action on local-preference. Need to be 'add', 'subtract' or 'none'.
   * `value` - (Required)(`String`) Value for action
 * `next` - (Optional)(`String`) Skip to next 'policy' or 'term'.
 * `next_hop` - (Optional)(`String`) Set the address of the next-hop router
-* `metric` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare metric action.
+* `metric` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare metric action.
   * `action` - (Required)(`String`) Action on metric. Need to be 'add', 'subtract' or 'none'.
   * `value` - (Required)(`String`) Value for action
 * `origin` - (Optional)(`String`) BGP path origin
-* `preference` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare preference action.
+* `preference` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare preference action.
   * `action` - (Required)(`String`) Action on preference. Need to be 'add', 'subtract' or 'none'.
   * `value` - (Required)(`String`) Value for action
 

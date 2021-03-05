@@ -513,11 +513,8 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	if d.Get("vlan_tagging").(bool) {
 		configSet = append(configSet, setPrefix+"vlan-tagging")
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func setIntEsi(setPrefix string, esiParams []interface{},
 	m interface{}, jnprSess *NetconfObject) error {
@@ -722,11 +719,8 @@ func delInterfaceNC(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	}
 	configSet = append(configSet, delPrefix+"description")
 	configSet = append(configSet, delPrefix+"disable")
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func delInterfacePhysicalOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
@@ -742,11 +736,8 @@ func delInterfacePhysicalOpts(d *schema.ResourceData, m interface{}, jnprSess *N
 		delPrefix+"unit 0 family ethernet-switching vlan members",
 		delPrefix+"vlan-tagging",
 	)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillInterfacePhysicalData(d *schema.ResourceData, interfaceOpt interfacePhysicalOptions) {

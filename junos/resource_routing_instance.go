@@ -222,11 +222,8 @@ func setRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		configSet = append(configSet, setPrefix+
 			"routing-options autonomous-system "+d.Get("as").(string))
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject) (instanceOptions, error) {
 	sess := m.(*Session)
@@ -265,21 +262,15 @@ func delRoutingInstanceOpts(d *schema.ResourceData, m interface{}, jnprSess *Net
 	configSet = append(configSet,
 		setPrefix+"instance-type",
 		setPrefix+"routing-options autonomous-system")
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func delRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete routing-instances "+d.Get("name").(string))
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillRoutingInstanceData(d *schema.ResourceData, instanceOptions instanceOptions) {

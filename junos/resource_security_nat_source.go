@@ -361,11 +361,8 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 			}
 		}
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObject) (natSourceOptions, error) {
 	sess := m.(*Session)
@@ -483,11 +480,8 @@ func delSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObje
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security nat source rule-set "+natSource)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillSecurityNatSourceData(d *schema.ResourceData, natSourceOptions natSourceOptions) {
 	if tfErr := d.Set("name", natSourceOptions.name); tfErr != nil {

@@ -250,11 +250,7 @@ func setIkeProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 		configSet = append(configSet, setPrefix+" lifetime-seconds "+strconv.Itoa(d.Get("lifetime_seconds").(int)))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readIkeProposal(ikeProposal string, m interface{}, jnprSess *NetconfObject) (ikeProposalOptions, error) {
 	sess := m.(*Session)
@@ -299,11 +295,8 @@ func delIkeProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ike proposal "+d.Get("name").(string))
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillIkeProposalData(d *schema.ResourceData, ikeProposalOptions ikeProposalOptions) {

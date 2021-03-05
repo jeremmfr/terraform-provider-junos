@@ -57,7 +57,7 @@ func TestAccJunosSecurityNatSource_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_nat_source_pool.testacc_securitySNATPool",
 							"address.0", "192.0.2.1/32"),
 						resource.TestCheckResourceAttr("junos_security_nat_source_pool.testacc_securitySNATPool",
-							"address.1", "192.0.2.2/32"),
+							"address.1", "192.0.2.64/27"),
 						resource.TestCheckResourceAttr("junos_security_nat_source_pool.testacc_securitySNATPool",
 							"routing_instance", "testacc_securitySNAT"),
 						resource.TestCheckResourceAttr("junos_security_nat_source_pool.testacc_securitySNATPool",
@@ -118,7 +118,7 @@ resource junos_security_nat_source testacc_securitySNAT {
 }
 resource junos_security_nat_source_pool testacc_securitySNATPool {
   name                = "testacc_securitySNATPool"
-  address             = ["192.0.2.1/32", "192.0.2.2/32"]
+  address             = ["192.0.2.1/32", "192.0.2.64/27"]
   routing_instance    = junos_routing_instance.testacc_securitySNAT.name
   port_no_translation = true
 }

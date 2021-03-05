@@ -294,11 +294,8 @@ func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *
 			}
 		}
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSecurityNatDestination(natDestination string,
 	m interface{}, jnprSess *NetconfObject) (natDestinationOptions, error) {
@@ -380,11 +377,8 @@ func delSecurityNatDestination(natDestination string, m interface{}, jnprSess *N
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security nat destination rule-set "+natDestination)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillSecurityNatDestinationData(d *schema.ResourceData, natDestinationOptions natDestinationOptions) {
 	if tfErr := d.Set("name", natDestinationOptions.name); tfErr != nil {

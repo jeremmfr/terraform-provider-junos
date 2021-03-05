@@ -520,11 +520,7 @@ func setSystemSyslogFile(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 		}
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObject) (syslogFileOptions, error) {
@@ -677,11 +673,8 @@ func delSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObject
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system syslog file "+filename)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillSystemSyslogFileData(d *schema.ResourceData, syslogFileOptions syslogFileOptions) {

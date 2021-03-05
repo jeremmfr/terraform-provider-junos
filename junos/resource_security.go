@@ -739,11 +739,8 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 			return fmt.Errorf("utm block is empty")
 		}
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func setSecurityAlg(alg interface{}) ([]string, error) {
@@ -1231,11 +1228,8 @@ func delSecurity(m interface{}, jnprSess *NetconfObject) error {
 		configSet = append(configSet,
 			delPrefix+line)
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, error) {
 	sess := m.(*Session)

@@ -1,19 +1,34 @@
 ## upcoming release
 ENHANCEMENTS:
-* add `h323_disable`, `mgcp_disable`, `rtsp_disable`, `sccp_disable` and `sip_disable` arguments in `junos_security` resource (Fixes #95) Thanks [@a-d-v](https://github.com/a-d-v)
-* add `default_address_selection` and `no_multicast_echo` arguments in `junos_system` resource (Fixes #97) Thanks [@a-d-v](https://github.com/a-d-v)
-* add `junos_security_screen` resource (Fixes parts of [#92](https://github.com/jeremmfr/terraform-provider-junos/issues/92))
-* add `junos_security_screen_whitelist` resource
-* add `advance_policy_based_routing_profile`, `application_tracking`, `description`, `reverse_reroute`, `screen`, `source_identity_log` and `tcp_rst` arguments in `junos_security_zone` resource (Fixes parts of [#92](https://github.com/jeremmfr/terraform-provider-junos/issues/92))
-* add `junos_security_utm_custom_url_category` resource (Fixes #108) Thanks [@a-d-v](https://github.com/a-d-v)
+* add `cluster`, `family_evpn` arguments in `junos_bgp_group` and `junos_bgp_neighbor` resource.
+* add new `bgp_multipath` block argument to replace `multipath` bool argument in `junos_bgp_group` and `junos_bgp_neighbor` resource.
+`bgp_multipath` let add optional arguments. `multipath` is now **deprecated**.
 
 BUG FIXES:
-* clean code: remove useless else when read a empty config
+
+## 1.13.1 (February 18, 2021)
+BUG FIXES:
+* fix source nat pool network address not allowed (Fixes [#128](https://github.com/jeremmfr/terraform-provider-junos/issues/128))
+
+## 1.13.0 (February 11, 2021)
+FEATURES:
+* add `junos_security_screen` resource (Fixes parts of [#92](https://github.com/jeremmfr/terraform-provider-junos/issues/92))
+* add `junos_security_screen_whitelist` resource
+* add `junos_security_utm_custom_url_category` resource (Fixes [#108](https://github.com/jeremmfr/terraform-provider-junos/issues/108)) Thanks [@a-d-v](https://github.com/a-d-v)
+
+ENHANCEMENTS:
+* add `h323_disable`, `mgcp_disable`, `rtsp_disable`, `sccp_disable` and `sip_disable` arguments in `junos_security` resource (Fixes [#95](https://github.com/jeremmfr/terraform-provider-junos/issues/95)) Thanks [@a-d-v](https://github.com/a-d-v)
+* add `default_address_selection` and `no_multicast_echo` arguments in `junos_system` resource (Fixes [#97](https://github.com/jeremmfr/terraform-provider-junos/issues/97)) Thanks [@a-d-v](https://github.com/a-d-v)
+* add `advance_policy_based_routing_profile`, `application_tracking`, `description`, `reverse_reroute`, `screen`, `source_identity_log` and `tcp_rst` arguments in `junos_security_zone` resource (Fixes parts of [#92](https://github.com/jeremmfr/terraform-provider-junos/issues/92))
+
+BUG FIXES:
 * fix typo in name of `accounting_timeout` argument in `junos_system_radius_server` resource. **Update your config for new version of this argument**
-* fix warnings received from the device generate failures on resource actions. Now, received warnings are send to terraform under warnings format (Fixes #105)
-* fix IP/Mask validation for point to point IPs
-* fix possibility to create `junos_interface_physical` and `junos_interface_logical` resource on a non-existent interface (Fixes #111). Read configuration before read interface status for validate resource existence.
+* fix warnings received from the device generate failures on resource actions. Now, received warnings are send to terraform under warnings format (Fixes [#105](https://github.com/jeremmfr/terraform-provider-junos/issues/105))
+* fix possibility to create `junos_interface_physical` and `junos_interface_logical` resource on a non-existent interface (Fixes [#111](https://github.com/jeremmfr/terraform-provider-junos/issues/111)). Read configuration before read interface status for validate resource existence.
 * fix integer compute for `chassis aggregated-devices ethernet device-count` when create/update/delete `junos_interface_physical` resource. Now this uses current configuration instead of the status of 'ae' interfaces and also takes into account resource with prefix name 'ae' in addition to `ether802_3ad` argument.
+* fix `filter_output` not set with good argument for `family inet6` in `junos_interface_logical` resource (Fixes [#117](https://github.com/jeremmfr/terraform-provider-junos/issues/117))
+* fix IP/Mask validation for point to point IPs
+* clean code: remove useless else when read a empty config
 
 ## 1.12.3 (February 5, 2021)
 BUG FIXES:
@@ -61,7 +76,7 @@ BUG FIXES:
 
 ## 1.10.0 (December 15, 2020)
 ENHANCEMENTS:
-* add `interface` option to `qualified_next_hop` on `static_route` resource (Fixes #71) Thanks [@tagur87](https://github.com/tagur87)
+* add `interface` option to `qualified_next_hop` on `static_route` resource (Fixes [#71](https://github.com/jeremmfr/terraform-provider-junos/issues/71)) Thanks [@tagur87](https://github.com/tagur87)
 * add `inet_rpf_check` and `inet6_rpf_check` arguments in `junos_interface` resource (Fixes [#72](https://github.com/jeremmfr/terraform-provider-junos/issues/72))
 * add `discard`, `receive`, `reject`, `next_table`, `active`, `passive`, `install`, `no_install`, `readvertise`, `no_readvertise`, `resolve`, `no_resolve`, `retain` and `no_retain` arguments in `junos_static_route` resource
 
