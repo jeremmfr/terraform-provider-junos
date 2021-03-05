@@ -38,11 +38,20 @@ The following arguments are supported:
 * `ae_link_speed` - (Optional)(`String`) Link speed of individual interface that joins the AE.
 * `ae_minimum_links` - (Optional)(`Int`) Minimum number of aggregated links (1..8).
 * `description` - (Optional)(`String`) Description for interface.
+* `esi` -(Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to define ESI Config parameters. See the [`esi` arguments](#esi-arguments) block.
 * `ether802_3ad` - (Optional)(`String`) Name of aggregated device for add this interface to link of 802.3ad interface.
 * `trunk` - (Optional)(`Bool`) Interface mode is trunk.
 * `vlan_members` - (Optional)(`ListOfString`) List of vlan for membership for this interface.
 * `vlan_native` - (Optional)(`Int`) Vlan for untagged frames.
 * `vlan_tagging` - (Optional)(`Bool`) Add 802.1q VLAN tagging support.
+
+---
+#### esi arguments
+* `mode` - (Required)(`String`) ESI Mode
+* `identifier` - (Optional)(`String`) The ESI value for the interface
+* `auto_derive_lacp` - (Optional)(`Bool`) Auto-derive ESI value for the interface
+* `df_election_type` - (Optional)(`String`) DF Election Type
+* `source_bmac` - (Optional)(`String`) Unicast Source B-MAC address per ESI for PBB-EVPN
 
 ~> **NOTE:** This resource computes the maximum number of aggregate interfaces required with the current configuration (searches lines `ether-options 802.3ad` and `ae` interfaces set) then add/remove `chassis aggregated-devices ethernet device-count` line with this maximum.
 
