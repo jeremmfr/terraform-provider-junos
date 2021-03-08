@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * add `security_inbound_protocols` and `security_inbound_services` arguments in `junos_interface_logical` resource (Fixes #141)
 
 BUG FIXES:
+* fix change `description` to null in `junos_interface_logical` and `junos_interface_physical` resource
 
 ## 1.13.1 (February 18, 2021)
 BUG FIXES:

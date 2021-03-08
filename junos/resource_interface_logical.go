@@ -1071,6 +1071,7 @@ func delInterfaceLogicalOpts(d *schema.ResourceData, m interface{}, jnprSess *Ne
 	configSet := make([]string, 0, 1)
 	delPrefix := "delete interfaces " + d.Get("name").(string) + " "
 	configSet = append(configSet,
+		delPrefix+"description",
 		delPrefix+"family inet",
 		delPrefix+"family inet6")
 
