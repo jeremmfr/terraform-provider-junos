@@ -4,6 +4,7 @@ ENHANCEMENTS:
 * add new `bgp_multipath` block argument to replace `multipath` bool argument in `junos_bgp_group` and `junos_bgp_neighbor` resource.
 `bgp_multipath` let add optional arguments. `multipath` is now **deprecated**.
 * add `esi` argument in `junos_interface_physical` (Fixes #126) Thans @dejongm
+* add `junos_group_dual_system` resource (Fixes #120)
 
 BUG FIXES:
 

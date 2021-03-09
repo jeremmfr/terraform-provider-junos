@@ -109,6 +109,7 @@ func Provider() *schema.Provider {
 			"junos_bgp_neighbor":                                         resourceBgpNeighbor(),
 			"junos_firewall_filter":                                      resourceFirewallFilter(),
 			"junos_firewall_policer":                                     resourceFirewallPolicer(),
+			"junos_group_dual_system":                                    resourceGroupDualSystem(),
 			"junos_interface":                                            resourceInterface(),
 			"junos_interface_logical":                                    resourceInterfaceLogical(),
 			"junos_interface_physical":                                   resourceInterfacePhysical(),
