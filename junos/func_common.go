@@ -99,6 +99,47 @@ func validateCIDR(cidr string) error {
 	return nil
 }
 
+func validateWildcardFunc() schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
+		v := i.(string)
+		err := validateWildcardWithMask(v)
+		if err != nil {
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       err.Error(),
+				AttributePath: path,
+			})
+		}
+
+		return diags
+	}
+}
+
+func validateWildcardWithMask(wildcard string) error {
+	if !strings.Contains(wildcard, "/") {
+		return fmt.Errorf("%v missing mask", wildcard)
+	}
+	if strings.Contains(wildcard, ":") {
+		return fmt.Errorf("wildcards do not support IPv6 addresses, %v is IPv6", wildcard)
+	}
+	wildcardSplit := strings.Split(wildcard, "/")
+	ip := net.ParseIP(wildcardSplit[1]).To4()
+	if ip == nil {
+		return fmt.Errorf("ip %v not a valid ip address", wildcardSplit[0])
+	}
+	mask := net.ParseIP(wildcardSplit[1]).To4()
+	if mask == nil {
+		return fmt.Errorf("mask %v is improperly formatted, must be in x.x.x.x notation", wildcardSplit[1])
+	}
+	for _, octet := range strings.Split(mask.String(), ".") {
+		if !stringInSlice(octet, []string{"255", "254", "252", "248", "240", "224", "192", "128", "0"}) {
+			return fmt.Errorf("mask %v must be in subnet mask format, octet [%v] is not", mask, octet)
+		}
+	}
+	return nil
+}
+
 func validateNameObjectJunos(exclude []string, length int) schema.SchemaValidateDiagFunc {
 	return func(i interface{}, path cty.Path) diag.Diagnostics {
 		var diags diag.Diagnostics
