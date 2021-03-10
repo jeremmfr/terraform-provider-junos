@@ -1067,7 +1067,7 @@ func fillFamilyInetAddress(item string, inetAddress []map[string]interface{},
 		vrrpGroup := genVRRPGroup(family)
 		vrrpID, err := strconv.Atoi(addressConfig[2])
 		if err != nil {
-			return inetAddress, nil
+			return inetAddress, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 		itemTrimVrrp := strings.TrimPrefix(itemTrim, "vrrp-group "+strconv.Itoa(vrrpID)+" ")
 		if strings.HasPrefix(itemTrim, "vrrp-inet6-group ") {

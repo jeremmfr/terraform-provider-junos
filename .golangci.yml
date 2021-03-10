@@ -15,6 +15,7 @@ linters:
     - paralleltest
     - gci
     - cyclop
+    - forcetypeassert
 linters-settings:
   gocyclo:
     # minimal code complexity to report, 30 by default
