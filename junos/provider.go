@@ -9,27 +9,33 @@ import (
 )
 
 const (
-	idSeparator    = "_-_"
-	defaultWord    = "default"
-	inetWord       = "inet"
-	inet6Word      = "inet6"
-	emptyWord      = "empty"
-	matchWord      = "match"
-	permitWord     = "permit"
-	thenWord       = "then"
-	prefixWord     = "prefix"
-	actionNoneWord = "none"
-	addWord        = "add"
-	deleteWord     = "delete"
-	setWord        = "set"
-	setLineStart   = setWord + " "
-	st0Word        = "st0"
-	opsfV2         = "ospf"
-	ospfV3         = "ospf3"
-	passiveW       = "passive"
-	discardW       = "discard"
-	disableW       = "disable"
-	dynamicDB      = "dynamic-db"
+	idSeparator        = "_-_"
+	defaultWord        = "default"
+	inetWord           = "inet"
+	inet6Word          = "inet6"
+	emptyWord          = "empty"
+	matchWord          = "match"
+	permitWord         = "permit"
+	thenWord           = "then"
+	prefixWord         = "prefix"
+	actionNoneWord     = "none"
+	addWord            = "add"
+	deleteWord         = "delete"
+	setWord            = "set"
+	setLineStart       = setWord + " "
+	st0Word            = "st0"
+	opsfV2             = "ospf"
+	ospfV3             = "ospf3"
+	activeW            = "active"
+	passiveW           = "passive"
+	discardW           = "discard"
+	disableW           = "disable"
+	dynamicDB          = "dynamic-db"
+	preemptWord        = "preempt"
+	flowControlWords   = "flow-control"
+	noFlowControlWords = "no-flow-control"
+	loopbackWord       = "loopback"
+	noLoopbackWord     = "no-loopback"
 )
 
 var (
@@ -107,6 +113,7 @@ func Provider() *schema.Provider {
 			"junos_application_set":                                      resourceApplicationSet(),
 			"junos_bgp_group":                                            resourceBgpGroup(),
 			"junos_bgp_neighbor":                                         resourceBgpNeighbor(),
+			"junos_chassis_cluster":                                      resourceChassisCluster(),
 			"junos_firewall_filter":                                      resourceFirewallFilter(),
 			"junos_firewall_policer":                                     resourceFirewallPolicer(),
 			"junos_group_dual_system":                                    resourceGroupDualSystem(),

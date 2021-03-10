@@ -368,7 +368,7 @@ func readAggregateRoute(destination string, instance string, m interface{},
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case itemTrim == "active":
+			case itemTrim == activeW:
 				confRead.active = true
 			case itemTrim == "brief":
 				confRead.brief = true
@@ -410,7 +410,7 @@ func delAggregateRouteOpts(d *schema.ResourceData, m interface{}, jnprSess *Netc
 	}
 	delPrefix += d.Get("destination").(string) + " "
 	configSet = append(configSet,
-		delPrefix+"active",
+		delPrefix+activeW,
 		delPrefix+"brief",
 		delPrefix+"community",
 		delPrefix+"discard",
