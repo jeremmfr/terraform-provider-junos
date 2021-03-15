@@ -54,6 +54,10 @@ func TestAccJunosSecurityAddressBook_basic(t *testing.T) {
 							"dns_name.0.name", "testacc_dns"),
 						resource.TestCheckResourceAttr("junos_security_address_book.testacc_securityGlobalAddressBook",
 							"dns_name.0.value", "google.com"),
+						resource.TestCheckResourceAttr("junos_security_address_book.testacc_securityGlobalAddressBook",
+							"address_set.#", "1"),
+						resource.TestCheckResourceAttr("junos_security_address_book.testacc_securityGlobalAddressBook",
+							"address_set.0.address.#", "3"),
 						resource.TestCheckResourceAttr("junos_security_address_book.testacc_securityNamedAddressBook",
 							"name", "testacc_secAddrBook"),
 						resource.TestCheckResourceAttr("junos_security_address_book.testacc_securityNamedAddressBook",
@@ -115,6 +119,10 @@ resource junos_security_address_book "testacc_securityGlobalAddressBook" {
   dns_name {
 	name = "testacc_dns"
 	value = "google.com"
+  }
+  address_set {
+    name = "testacc_addressSet"
+	address = ["testacc_network", "testacc_wildcard",  "testacc_network2"]
   }
 }
 
