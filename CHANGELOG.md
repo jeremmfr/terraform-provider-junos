@@ -3,10 +3,10 @@ ENHANCEMENTS:
 * add `cluster`, `family_evpn` arguments in `junos_bgp_group` and `junos_bgp_neighbor` resource.
 * add new `bgp_multipath` block argument to replace `multipath` bool argument in `junos_bgp_group` and `junos_bgp_neighbor` resource.
 `bgp_multipath` let add optional arguments. `multipath` is now **deprecated**.
-* add `esi` argument in `junos_interface_physical` (Fixes #126) Thans @dejongm
+* add `esi` argument in `junos_interface_physical` resource and data source (Fixes #126) Thans @dejongm
 * add `junos_group_dual_system` resource (Fixes #120)
 * add `junos_chassis_cluster` resource (Fixes parts of #106)
-* add `ether_opts`, `gigether_opts` and `parent_ether_opts` arguments in `junos_interface_physical` resource to add more options and replace `ae_lacp`, `ae_link_speed`, `ae_minimum_links`, `ether802_3ad` arguments which are now deprecated (Fixes #133, #127, parts of #106)
+* add `ether_opts`, `gigether_opts` and `parent_ether_opts` arguments in `junos_interface_physical` resource and data source to add more options and replace `ae_lacp`, `ae_link_speed`, `ae_minimum_links`, `ether802_3ad` arguments which are now deprecated (Fixes #133, #127, parts of #106)
 
 BUG FIXES:
 

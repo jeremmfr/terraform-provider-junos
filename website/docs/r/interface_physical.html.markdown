@@ -40,10 +40,10 @@ The following arguments are supported:
 Deprecated argument, use the `parent_ether_opts` argument instead.
 * `ae_link_speed` - (Optional,**DEPRECATED**)(`String`) Link speed of individual interface that joins the AE.  
 Deprecated argument, use the `parent_ether_opts` argument instead.
-* `ae_minimum_links` - (Optional,**DEPRECATED**)(`Int`) Minimum number of aggregated links (1..8).  
+* `ae_minimum_links` - (Optional,**DEPRECATED**)(`Int`) Minimum number of aggregated links.  
 Deprecated argument, use the `parent_ether_opts` argument instead.
 * `description` - (Optional)(`String`) Description for interface.
-* `esi` -(Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to define ESI Config parameters. See the [`esi` arguments](#esi-arguments) block.
+* `esi` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to define ESI Config parameters. See the [`esi` arguments](#esi-arguments) block.
 * `ether_opts` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'ether-options' configuration. Conflict with 'gigether_opts'.
   * `ae_8023ad` - (Optional)(`String`) Name of an aggregated Ethernet interface to join.
   * `auto_negotiation` - (Optional)(`Bool`) Enable auto-negotiation.
