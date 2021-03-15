@@ -179,10 +179,12 @@ func resourceSecurityAddressBookCreate(ctx context.Context, d *schema.ResourceDa
 	addressBookExists, err := checkAddressBookExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		sess.configClear(jnprSess)
+
 		return diag.FromErr(err)
 	}
 	if addressBookExists {
 		sess.configClear(jnprSess)
+
 		return diag.FromErr(fmt.Errorf("security address book %v already exists", d.Get("name").(string)))
 	}
 	if err := setAddressBook(d, m, jnprSess); err != nil {
@@ -222,7 +224,8 @@ func resourceSecurityAddressBookRead(ctx context.Context, d *schema.ResourceData
 
 	return resourceSecurityAddressBookReadWJnprSess(d, m, jnprSess)
 }
-func resourceSecurityAddressBookReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityAddressBookReadWJnprSess(d *schema.ResourceData, m interface{},
+	jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
 	addressOptions, err := readSecurityAddressBook(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -327,13 +330,15 @@ func resourceSecurityAddressBookImport(d *schema.ResourceData, m interface{}) ([
 func checkAddressBookExists(addrBook string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 
-	addrBookConfig, err := sess.command("show configuration security address-book "+addrBook+" | display set", jnprSess)
+	addrBookConfig, err := sess.command("show configuration security address-book "+addrBook+
+		" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
 	if addrBookConfig == emptyWord {
 		return false, nil
 	}
+
 	return true, nil
 }
 
@@ -358,7 +363,6 @@ func setAddressBook(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 			configSet = append(configSet, setPrefixAddr+"description \""+address["description"].(string)+"\"")
 		}
 		configSet = append(configSet, setPrefixAddr+address["value"].(string))
-
 	}
 	for _, v := range d.Get("wildcard_address").([]interface{}) {
 		address := v.(map[string]interface{})
@@ -383,7 +387,6 @@ func setAddressBook(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 			configSet = append(configSet, setPrefixAddr+"description \""+address["description"].(string)+"\"")
 		}
 		configSet = append(configSet, setPrefixAddr+" range-address "+address["from"].(string)+" to "+address["to"].(string))
-
 	}
 	for _, v := range d.Get("address_set").([]interface{}) {
 		addressSet := v.(map[string]interface{})
@@ -395,6 +398,7 @@ func setAddressBook(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 			configSet = append(configSet, setPrefixAddrSet+" address "+addr.(string))
 		}
 	}
+
 	return sess.configSet(configSet, jnprSess)
 }
 
@@ -402,7 +406,8 @@ func readSecurityAddressBook(addrBook string, m interface{}, jnprSess *NetconfOb
 	sess := m.(*Session)
 	var confRead addressBookOptions
 
-	securityAddressBookConfig, err := sess.command("show configuration security address-book "+addrBook+" | display set relative", jnprSess)
+	securityAddressBookConfig, err := sess.command("show configuration security address-book "+addrBook+
+		" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -463,7 +468,8 @@ func readSecurityAddressBook(addrBook string, m interface{}, jnprSess *NetconfOb
 				}
 				m, confRead.addressSet = copyAndRemoveItemMapList("name", false, m, confRead.addressSet)
 				if addressSetSplit[1] == "description" {
-					m["description"] = strings.Trim(strings.TrimPrefix(itemTrim, "address-set "+addressSetSplit[0]+" description "), "\"")
+					m["description"] = strings.Trim(strings.TrimPrefix(
+						itemTrim, "address-set "+addressSetSplit[0]+" description "), "\"")
 				} else {
 					m["address"] = append(m["address"].([]string), addressSetSplit[2])
 				}
@@ -516,10 +522,12 @@ func fillAddressBookData(d *schema.ResourceData, addressOptions addressBookOptio
 	}
 }
 
-func copyAddressDescriptions(descMap map[string]string, addrList []map[string]interface{}) (newList []map[string]interface{}) {
+func copyAddressDescriptions(descMap map[string]string,
+	addrList []map[string]interface{}) (newList []map[string]interface{}) {
 	for _, ele := range addrList {
 		ele["description"] = descMap[ele["name"].(string)]
 		newList = append(newList, ele)
 	}
+
 	return newList
 }

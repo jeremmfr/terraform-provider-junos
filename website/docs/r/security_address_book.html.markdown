@@ -15,20 +15,20 @@ Provides a security address book resource.
 ```hcl
 # Add an address book with entries
 resource junos_security_address_book "testAddressBook" {
-  name = "testAddressBook"
+  name        = "testAddressBook"
   attach_zone = "SecurityZone"
   network_address {
-    name = "DemoNetworkAddress"
+    name        = "DemoNetworkAddress"
     description = "Test Description"
-    value = "192.0.0.0/24"
+    value       = "192.0.0.0/24"
   }
   network_address {
-    name = "DemoNetworkAddress2"
+    name        = "DemoNetworkAddress2"
     description = "Test Description 2"
-    value = "192.1.0.0/24"
+    value       = "192.1.0.0/24"
   }
   dns_name {
-    name = "DemoDnsName"
+    name  = "DemoDnsName"
     value = "juniper.net"
   }
   range_address {
@@ -37,12 +37,12 @@ resource junos_security_address_book "testAddressBook" {
     to   = "192.0.0.10"
   }
   wildcard_address {
-    name = "DemoWildcardAddress"
+    name  = "DemoWildcardAddress"
     value = "juniper.net"
   }
   address_set {
-    name = "DemoAddressSet"
-    address = ["DemoDnsName", "DemoWildcardAddress",  "DemoRangeAddress"]
+    name    = "DemoAddressSet"
+    address = ["DemoDnsName", "DemoWildcardAddress", "DemoRangeAddress"]
   }
 }
 ```

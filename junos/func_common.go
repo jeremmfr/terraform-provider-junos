@@ -137,6 +137,7 @@ func validateWildcardWithMask(wildcard string) error {
 			return fmt.Errorf("mask %v must be in subnet mask format, octet [%v] is not", mask, octet)
 		}
 	}
+
 	return nil
 }
 
