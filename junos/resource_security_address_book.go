@@ -346,6 +346,9 @@ func setAddressBook(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 		configSet = append(configSet, setPrefix+" description \""+d.Get("description").(string)+"\"")
 	}
 	if d.Get("attach_zone").(string) != "" {
+		if d.Get("name").(string) == "global" {
+			return fmt.Errorf("cannot attach global address book to a zone")
+		}
 		configSet = append(configSet, setPrefix+" attach zone "+d.Get("attach_zone").(string))
 	}
 	for _, v := range d.Get("network_address").([]interface{}) {
