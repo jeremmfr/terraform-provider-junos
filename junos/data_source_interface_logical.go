@@ -309,6 +309,17 @@ func dataSourceInterfaceLogical() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"security_inbound_protocols": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"security_inbound_services": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+
 			"security_zone": {
 				Type:     schema.TypeString,
 				Computed: true,

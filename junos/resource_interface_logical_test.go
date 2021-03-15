@@ -219,10 +219,12 @@ resource junos_interface_physical testacc_interface_logical_phy {
   vlan_tagging = true
 }
 resource junos_interface_logical testacc_interface_logical {
-  name             = "${junos_interface_physical.testacc_interface_logical_phy.name}.100"
-  description      = "testacc_interface_${junos_interface_physical.testacc_interface_logical_phy.name}.100"
-  security_zone    = junos_security_zone.testacc_interface_logical.name
-  routing_instance = junos_routing_instance.testacc_interface_logical.name
+  name                       = "${junos_interface_physical.testacc_interface_logical_phy.name}.100"
+  description                = "testacc_interface_${junos_interface_physical.testacc_interface_logical_phy.name}.100"
+  security_zone              = junos_security_zone.testacc_interface_logical.name
+  security_inbound_protocols = ["bgp"]
+  security_inbound_services  = ["ssh"]
+  routing_instance           = junos_routing_instance.testacc_interface_logical.name
   family_inet {
     mtu           = 1400
     filter_input  = junos_firewall_filter.testacc_intlogicalInet.name
@@ -318,11 +320,13 @@ resource junos_interface_physical testacc_interface_logical_phy {
   vlan_tagging = true
 }
 resource junos_interface_logical testacc_interface_logical {
-  name             = "${junos_interface_physical.testacc_interface_logical_phy.name}.100"
-  vlan_id          = 101
-  description      = "testacc_interface_${junos_interface_physical.testacc_interface_logical_phy.name}.100"
-  security_zone    = junos_security_zone.testacc_interface_logical.name
-  routing_instance = junos_routing_instance.testacc_interface_logical.name
+  name                       = "${junos_interface_physical.testacc_interface_logical_phy.name}.100"
+  vlan_id                    = 101
+  description                = "testacc_interface_${junos_interface_physical.testacc_interface_logical_phy.name}.100"
+  security_zone              = junos_security_zone.testacc_interface_logical.name
+  security_inbound_protocols = ["ospf"]
+  security_inbound_services  = ["telnet"]
+  routing_instance           = junos_routing_instance.testacc_interface_logical.name
   family_inet {
     mtu           = 1500
     filter_input  = junos_firewall_filter.testacc_intlogicalInet.name

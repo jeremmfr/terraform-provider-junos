@@ -1636,6 +1636,7 @@ func delInterfacePhysicalOpts(d *schema.ResourceData, m interface{}, jnprSess *N
 	delPrefix := "delete interfaces " + d.Get("name").(string) + " "
 	configSet = append(configSet,
 		delPrefix+"aggregated-ether-options",
+		delPrefix+"description",
 		delPrefix+"esi",
 		delPrefix+"ether-options",
 		delPrefix+"gigether-options",
