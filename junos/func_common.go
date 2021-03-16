@@ -124,7 +124,7 @@ func validateWildcardWithMask(wildcard string) error {
 		return fmt.Errorf("wildcards do not support IPv6 addresses, %v is IPv6", wildcard)
 	}
 	wildcardSplit := strings.Split(wildcard, "/")
-	ip := net.ParseIP(wildcardSplit[1]).To4()
+	ip := net.ParseIP(wildcardSplit[0]).To4()
 	if ip == nil {
 		return fmt.Errorf("ip %v not a valid ip address", wildcardSplit[0])
 	}

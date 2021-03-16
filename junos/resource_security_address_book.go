@@ -34,7 +34,7 @@ func resourceSecurityAddressBook() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true, // Not sure if this is right?
+				ForceNew: true,
 				Default:  "global",
 			},
 			"description": {
@@ -232,8 +232,7 @@ func resourceSecurityAddressBookReadWJnprSess(d *schema.ResourceData, m interfac
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	if (len(addressOptions.networkAddress) + len(addressOptions.wildcardAddress) + len(addressOptions.dnsName) +
-		len(addressOptions.rangeAddress)) == 0 {
+	if addressOptions.name == "" {
 		d.SetId("")
 	} else {
 		fillAddressBookData(d, addressOptions)
