@@ -431,6 +431,26 @@ func resourceInterface() *schema.Resource {
 
 func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if sess.junosGroupIntDel != "" {
+			if err := delInterfaceElement("apply-groups "+sess.junosGroupIntDel, d, m, nil); err != nil {
+				return diag.FromErr(err)
+			}
+		} else {
+			if err := delInterfaceElement("disable", d, m, nil); err != nil {
+				return diag.FromErr(err)
+			}
+			if err := delInterfaceElement("description", d, m, nil); err != nil {
+				return diag.FromErr(err)
+			}
+		}
+		if err := setInterface(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -1025,12 +1045,14 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 				oldAE = oldAEtf.(string)
 			}
 		}
-		aggregatedCount, err := aggregatedCountSearchMax(d.Get("ether802_3ad").(string), oldAE,
-			d.Get("name").(string), m, jnprSess)
-		if err != nil {
-			return err
+		if jnprSess != nil {
+			aggregatedCount, err := aggregatedCountSearchMax(d.Get("ether802_3ad").(string), oldAE,
+				d.Get("name").(string), m, jnprSess)
+			if err != nil {
+				return err
+			}
+			configSet = append(configSet, "set chassis aggregated-devices ethernet device-count "+aggregatedCount)
 		}
-		configSet = append(configSet, "set chassis aggregated-devices ethernet device-count "+aggregatedCount)
 	}
 	if d.Get("trunk").(bool) {
 		configSet = append(configSet, setPrefix+"unit 0 family ethernet-switching interface-mode trunk")
@@ -1063,7 +1085,7 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 		configSet = append(configSet, setPrefix+
 			"aggregated-ether-options minimum-links "+strconv.Itoa(d.Get("ae_minimum_links").(int)))
 	}
-	if checkCompatibilitySecurity(jnprSess) && d.Get("security_zone").(string) != "" {
+	if d.Get("security_zone").(string) != "" {
 		configSet = append(configSet, "set security zones security-zone "+
 			d.Get("security_zone").(string)+" interfaces "+d.Get("name").(string))
 	}

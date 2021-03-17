@@ -388,6 +388,17 @@ func resourceInterfaceLogical() *schema.Resource {
 
 func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := delInterfaceNC(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setInterfaceLogical(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -823,7 +834,7 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 		configSet = append(configSet, "set routing-instances "+d.Get("routing_instance").(string)+
 			" interface "+d.Get("name").(string))
 	}
-	if checkCompatibilitySecurity(jnprSess) && d.Get("security_zone").(string) != "" {
+	if d.Get("security_zone").(string) != "" {
 		configSet = append(configSet, "set security zones security-zone "+
 			d.Get("security_zone").(string)+" interfaces "+d.Get("name").(string))
 		for _, v := range d.Get("security_inbound_protocols").([]interface{}) {

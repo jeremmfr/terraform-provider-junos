@@ -162,6 +162,14 @@ func checkCompatibilityChassisCluster(jnprSess *NetconfObject) bool {
 
 func resourceChassisClusterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setChassisCluster(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId("cluster")
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)

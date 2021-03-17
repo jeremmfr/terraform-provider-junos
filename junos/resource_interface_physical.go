@@ -489,6 +489,17 @@ func resourceInterfacePhysical() *schema.Resource {
 
 func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := delInterfaceNC(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setInterfacePhysical(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -864,7 +875,7 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	if err := setInterfacePhysicalEsi(setPrefix, d.Get("esi").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
-	if v := d.Get("name").(string); strings.HasPrefix(v, "ae") {
+	if v := d.Get("name").(string); strings.HasPrefix(v, "ae") && jnprSess != nil {
 		aggregatedCount, err := interfaceAggregatedCountSearchMax(v, "ae-1", v, m, jnprSess)
 		if err != nil {
 			return err
@@ -974,7 +985,7 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				}
 			}
 		}
-		if newAE != "" {
+		if newAE != "" && jnprSess != nil {
 			aggregatedCount, err := interfaceAggregatedCountSearchMax(newAE, oldAE,
 				d.Get("name").(string), m, jnprSess)
 			if err != nil {

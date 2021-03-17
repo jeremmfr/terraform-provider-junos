@@ -50,6 +50,14 @@ func resourceSystemRootAuthentication() *schema.Resource {
 func resourceSystemRootAuthenticationCreate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setSystemRootAuthentication(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId("system_root_authentication")
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
