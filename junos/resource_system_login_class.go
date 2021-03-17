@@ -59,7 +59,7 @@ func resourceSystemLoginClass() *schema.Resource {
 			"access_end": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				RequiredWith: []string{"access_end"},
+				RequiredWith: []string{"access_start"},
 				ValidateFunc: validation.StringMatch(regexp.MustCompile(
 					`^([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)$`), "must have HH:MM:SS format"),
 			},
