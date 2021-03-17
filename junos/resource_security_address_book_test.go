@@ -150,6 +150,13 @@ resource "junos_security_address_book" "testacc_securityNamedAddressBook" {
 
 func testAccJunosSecurityAddressBookConfigUpdate() string {
 	return `
+resource "junos_security_zone" "testacc_secZoneAddr1" {
+  name = "testacc_secZoneAddr1"
+}
+resource "junos_security_zone" "testacc_secZoneAddr2" {
+  name = "testacc_secZoneAddr2"
+}
+
 resource junos_security_address_book "testacc_securityGlobalAddressBook" {
   description = "testacc global description"
   network_address {

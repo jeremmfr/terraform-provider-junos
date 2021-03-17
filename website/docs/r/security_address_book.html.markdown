@@ -16,7 +16,7 @@ Provides a security address book resource.
 # Add an address book with entries
 resource junos_security_address_book "testAddressBook" {
   name        = "testAddressBook"
-  attach_zone = "SecurityZone"
+  attach_zone = ["SecurityZone"]
   network_address {
     name        = "DemoNetworkAddress"
     description = "Test Description"
@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `name` - (Optional, Forces new resource)(`String`) The name of address book. Defaults to `global`.
 * `description` - (Optional)(`String`) The description of the address book.
-* `attach_zone` - (Optional)(`String`) Zone to attach address book to. **NOTE:** Cannot be set on global address book.
+* `attach_zone` - (Optional)(`ListOfString`) List of zones to attach address book to. **NOTE:** Cannot be set on global address book.
 * `network_address` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each network address.
   * `name` - (Required)(`String`) Name of network address.
   * `description` - (Optional)(`String`) Description of network address.
