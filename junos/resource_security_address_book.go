@@ -13,7 +13,7 @@ import (
 type addressBookOptions struct {
 	name            string
 	description     string
-	attachZone      string
+	attachZone      []string
 	networkAddress  []map[string]interface{}
 	wildcardAddress []map[string]interface{}
 	dnsName         []map[string]interface{}
@@ -42,8 +42,9 @@ func resourceSecurityAddressBook() *schema.Resource {
 				Optional: true,
 			},
 			"attach_zone": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeList,
 				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"network_address": {
 				Type:     schema.TypeList,
@@ -349,11 +350,12 @@ func setAddressBook(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	if d.Get("description").(string) != "" {
 		configSet = append(configSet, setPrefix+" description \""+d.Get("description").(string)+"\"")
 	}
-	if d.Get("attach_zone").(string) != "" {
+	for _, v := range d.Get("attach_zone").([]interface{}) {
 		if d.Get("name").(string) == "global" {
 			return fmt.Errorf("cannot attach global address book to a zone")
 		}
-		configSet = append(configSet, setPrefix+" attach zone "+d.Get("attach_zone").(string))
+		attachZone := v.(string)
+		configSet = append(configSet, setPrefix+" attach zone "+attachZone)
 	}
 	for _, v := range d.Get("network_address").([]interface{}) {
 		address := v.(map[string]interface{})
@@ -474,7 +476,7 @@ func readSecurityAddressBook(addrBook string, m interface{}, jnprSess *NetconfOb
 				}
 				confRead.addressSet = append(confRead.addressSet, m)
 			case strings.HasPrefix(itemTrim, "attach zone"):
-				confRead.attachZone = strings.TrimPrefix(itemTrim, "attach zone ")
+				confRead.attachZone = append(confRead.attachZone, strings.TrimPrefix(itemTrim, "attach zone "))
 			}
 		}
 	}

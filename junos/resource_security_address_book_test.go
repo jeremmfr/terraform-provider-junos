@@ -61,7 +61,11 @@ func TestAccJunosSecurityAddressBook_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_address_book.testacc_securityNamedAddressBook",
 							"name", "testacc_secAddrBook"),
 						resource.TestCheckResourceAttr("junos_security_address_book.testacc_securityNamedAddressBook",
-							"attach_zone", "testacc_secZoneAddr"),
+							"attach_zone.#", "2"),
+						resource.TestCheckResourceAttr("junos_security_address_book.testacc_securityNamedAddressBook",
+							"attach_zone.0", "testacc_secZoneAddr1"),
+						resource.TestCheckResourceAttr("junos_security_address_book.testacc_securityNamedAddressBook",
+							"attach_zone.1", "testacc_secZoneAddr2"),
 						resource.TestCheckResourceAttr("junos_security_address_book.testacc_securityNamedAddressBook",
 							"network_address.#", "1"),
 						resource.TestCheckResourceAttr("junos_security_address_book.testacc_securityNamedAddressBook",
@@ -95,6 +99,13 @@ func TestAccJunosSecurityAddressBook_basic(t *testing.T) {
 
 func testAccJunosSecurityAddressBookConfigCreate() string {
 	return `
+resource "junos_security_zone" "testacc_secZoneAddr1" {
+  name = "testacc_secZoneAddr1"
+}
+resource "junos_security_zone" "testacc_secZoneAddr2" {
+  name = "testacc_secZoneAddr2"
+}
+
 resource "junos_security_address_book" "testacc_securityGlobalAddressBook" {
   description = "testacc global description"
   network_address {
@@ -126,13 +137,9 @@ resource "junos_security_address_book" "testacc_securityGlobalAddressBook" {
   }
 }
 
-resource "junos_security_zone" "testacc_secZoneAddr" {
-  name = "testacc_secZoneAddr"
-}
-
 resource "junos_security_address_book" "testacc_securityNamedAddressBook" {
   name        = "testacc_secAddrBook"
-  attach_zone = junos_security_zone.testacc_secZoneAddr.name
+  attach_zone = [junos_security_zone.testacc_secZoneAddr1.name, junos_security_zone.testacc_secZoneAddr2.name]
   network_address {
     name  = "testacc_network"
     value = "10.1.2.3/32"
