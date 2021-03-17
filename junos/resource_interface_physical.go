@@ -1249,7 +1249,7 @@ func readInterfacePhysicalEsi(confRead *interfacePhysicalOptions, item string) e
 	var err error
 	identifier, err := regexp.MatchString(`^([\d\w]{2}:){9}[\d\w]{2}`, itemTrim)
 	if err != nil {
-		return fmt.Errorf("esi_identifier regexp error: %w", err)
+		return fmt.Errorf("esi_identifier regexp error : %w", err)
 	}
 	switch {
 	case identifier:
