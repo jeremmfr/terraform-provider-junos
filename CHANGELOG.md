@@ -10,6 +10,9 @@ ENHANCEMENTS:
 * add `security_inbound_protocols` and `security_inbound_services` arguments in `junos_interface_logical` resource and data source (Fixes #141)
 * add `junos_security_address_book` resource (Fixes #137) Thanks [@tagur87](https://github.com/tagur87)
 * add `junos_security_global_policy` resource (Fixes #138)
+* add `junos_null_commit_file` resource (Fixes parts of #136)
+* add provider arguments `file_permission`
+* add provider arguments `fake_create_with_setfile` -  **Don't use in normal terraform run** and **be carefully with this option**. See docs for more informations (Fixes parts of #136)
 
 BUG FIXES:
 * fix change `description` to null in `junos_interface_logical` and `junos_interface_physical` resource
