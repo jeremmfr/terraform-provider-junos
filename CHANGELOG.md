@@ -17,6 +17,7 @@ ENHANCEMENTS:
 BUG FIXES:
 * fix change `description` to null in `junos_interface_logical` and `junos_interface_physical` resource
 * fix prefix list order issue in `junos_policyoptions_prefix_list` resource
+* fix validation for `name` of `address_book` and `address_boob_set` in `junos_security_zone` resource
 
 ## 1.13.1 (February 18, 2021)
 BUG FIXES:
