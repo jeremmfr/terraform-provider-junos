@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * add `ether_opts`, `gigether_opts` and `parent_ether_opts` arguments in `junos_interface_physical` resource and data source to add more options and replace `ae_lacp`, `ae_link_speed`, `ae_minimum_links`, `ether802_3ad` arguments which are now deprecated (Fixes #133, #127, parts of #106)
 * add `security_inbound_protocols` and `security_inbound_services` arguments in `junos_interface_logical` resource and data source (Fixes #141)
 * add `junos_security_address_book` resource (Fixes #137) Thanks [@tagur87](https://github.com/tagur87)
+* add `junos_security_global_policy` resource (Fixes #138)
 
 BUG FIXES:
 * fix change `description` to null in `junos_interface_logical` and `junos_interface_physical` resource
