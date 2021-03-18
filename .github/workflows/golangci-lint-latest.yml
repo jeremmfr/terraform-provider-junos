@@ -2,7 +2,7 @@ name: GolangCI-Lint-Latest
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   run:
     name: Run
