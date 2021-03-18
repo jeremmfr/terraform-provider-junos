@@ -13,6 +13,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 * fix change `description` to null in `junos_interface_logical` and `junos_interface_physical` resource
+* fix prefix list order issue in `junos_policyoptions_prefix_list` resource
 
 ## 1.13.1 (February 18, 2021)
 BUG FIXES:
