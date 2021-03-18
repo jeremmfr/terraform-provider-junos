@@ -39,7 +39,7 @@ func resourceSecurityZone() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"address_book": {
 				Type:     schema.TypeList,
@@ -49,7 +49,7 @@ func resourceSecurityZone() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
 						},
 						"network": {
 							Type:         schema.TypeString,
@@ -67,7 +67,7 @@ func resourceSecurityZone() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
 						},
 						"address": {
 							Type:     schema.TypeList,

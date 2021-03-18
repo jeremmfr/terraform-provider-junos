@@ -12,6 +12,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+type FormatName int
+
+const (
+	FormatDefault FormatName = iota
+	FormatAddressName
+)
+
 func appendDiagWarns(diags *diag.Diagnostics, warns []error) {
 	for _, w := range warns {
 		*diags = append(*diags, diag.Diagnostic{
@@ -123,7 +130,7 @@ func validateWildcardWithMask(wildcard string) error {
 	return nil
 }
 
-func validateNameObjectJunos(exclude []string, length int) schema.SchemaValidateDiagFunc {
+func validateNameObjectJunos(exclude []string, length int, format FormatName) schema.SchemaValidateDiagFunc {
 	return func(i interface{}, path cty.Path) diag.Diagnostics {
 		var diags diag.Diagnostics
 		v := i.(string)
@@ -134,10 +141,27 @@ func validateNameObjectJunos(exclude []string, length int) schema.SchemaValidate
 				AttributePath: path,
 			})
 		}
-		f := func(r rune) bool {
+		f1 := func(r rune) bool {
 			return (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') && r != '-' && r != '_'
 		}
-		if strings.IndexFunc(v, f) != -1 {
+		f2 := func(r rune) bool {
+			return (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') &&
+				r != '-' && r != '_' && r != ':' && r != '.' && r != '/'
+		}
+		resultRune := -1
+		switch format {
+		case FormatDefault:
+			resultRune = strings.IndexFunc(v, f1)
+		case FormatAddressName:
+			resultRune = strings.IndexFunc(v, f2)
+		default:
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       "internal error: validateNameObjectJunos function called with a bad argument",
+				AttributePath: path,
+			})
+		}
+		if resultRune != -1 {
 			diags = append(diags, diag.Diagnostic{
 				Severity:      diag.Error,
 				Summary:       fmt.Sprintf("%s invalid name (bad character)", i),

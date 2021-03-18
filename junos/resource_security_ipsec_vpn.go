@@ -35,7 +35,7 @@ func resourceIpsecVpn() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 			},
 			"bind_interface": {
 				Type:     schema.TypeString,
@@ -71,7 +71,7 @@ func resourceIpsecVpn() *schema.Resource {
 						"policy": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 						},
 						"identity_local": {
 							Type:         schema.TypeString,
@@ -86,7 +86,7 @@ func resourceIpsecVpn() *schema.Resource {
 						"identity_service": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 						},
 					},
 				},
@@ -100,7 +100,7 @@ func resourceIpsecVpn() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 						},
 						"local_ip": {
 							Type:         schema.TypeString,
