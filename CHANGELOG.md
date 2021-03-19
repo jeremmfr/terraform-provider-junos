@@ -1,24 +1,32 @@
 ## upcoming release
 ENHANCEMENTS:
-* add `cluster`, `family_evpn` arguments in `junos_bgp_group` and `junos_bgp_neighbor` resource.
-* add new `bgp_multipath` block argument to replace `multipath` bool argument in `junos_bgp_group` and `junos_bgp_neighbor` resource.
-`bgp_multipath` let add optional arguments. `multipath` is now **deprecated**.
-* add `esi` argument in `junos_interface_physical` resource and data source (Fixes #126) Thans @dejongm
-* add `junos_group_dual_system` resource (Fixes #120)
-* add `junos_chassis_cluster` resource (Fixes parts of #106)
-* add `ether_opts`, `gigether_opts` and `parent_ether_opts` arguments in `junos_interface_physical` resource and data source to add more options and replace `ae_lacp`, `ae_link_speed`, `ae_minimum_links`, `ether802_3ad` arguments which are now deprecated (Fixes #133, #127, parts of #106)
-* add `security_inbound_protocols` and `security_inbound_services` arguments in `junos_interface_logical` resource and data source (Fixes #141)
-* add `junos_security_address_book` resource (Fixes #137) Thanks [@tagur87](https://github.com/tagur87)
-* add `junos_security_global_policy` resource (Fixes #138)
-* add `junos_null_commit_file` resource (Fixes parts of #136)
-* add provider arguments `file_permission`
-* add provider arguments `fake_create_with_setfile` -  **Don't use in normal terraform run** and **be carefully with this option**. See docs for more informations (Fixes parts of #136)
-* add `feature_profile_web_filtering_juniper_enhanced_server` argument in `utm` argument of `junos_security` resource (Fixes #155)
+
+BUG FIXES:
+
+## 1.14.0 (March 19, 2021)
+FEATURES:
+* add `junos_chassis_cluster` resource (Fixes parts of [#106](https://github.com/jeremmfr/terraform-provider-junos/issues/106))
+* add `junos_group_dual_system` resource (Fixes [#120](https://github.com/jeremmfr/terraform-provider-junos/issues/120))
+* add `junos_null_commit_file` resource (Fixes parts of [#136](https://github.com/jeremmfr/terraform-provider-junos/issues/136))
+* add `junos_security_address_book` resource (Fixes [#137](https://github.com/jeremmfr/terraform-provider-junos/issues/137)) Thanks [@tagur87](https://github.com/tagur87)
+* add `junos_security_global_policy` resource (Fixes [#138](https://github.com/jeremmfr/terraform-provider-junos/issues/138))
+* add provider argument `file_permission`
+* add provider argument `fake_create_with_setfile` -  **Don't use in normal terraform run** and **be carefully with this option**
+See docs for more informations (Fixes parts of [#136](https://github.com/jeremmfr/terraform-provider-junos/issues/136))
+
+ENHANCEMENTS:
+* add `cluster`, `family_evpn` arguments in `junos_bgp_group` and `junos_bgp_neighbor` resource
+* add new `bgp_multipath` block argument to replace `multipath` bool argument in `junos_bgp_group` and `junos_bgp_neighbor` resource
+`bgp_multipath` let add optional arguments. `multipath` is now **deprecated**
+* add `esi` argument in `junos_interface_physical` resource and data source (Fixes [#126](https://github.com/jeremmfr/terraform-provider-junos/issues/126)) Thans [@dejongm](https://github.com/dejongm)
+* add `ether_opts`, `gigether_opts` and `parent_ether_opts` arguments in `junos_interface_physical` resource and data source to add more options and replace `ae_lacp`, `ae_link_speed`, `ae_minimum_links`, `ether802_3ad` arguments which are now deprecated (Fixes [#133](https://github.com/jeremmfr/terraform-provider-junos/issues/133), [#127](https://github.com/jeremmfr/terraform-provider-junos/issues/127), parts of [#106](https://github.com/jeremmfr/terraform-provider-junos/issues/106))
+* add `security_inbound_protocols` and `security_inbound_services` arguments in `junos_interface_logical` resource and data source (Fixes [#141](https://github.com/jeremmfr/terraform-provider-junos/issues/141))
+* add `feature_profile_web_filtering_juniper_enhanced_server` argument in `utm` argument of `junos_security` resource (Fixes [#155](https://github.com/jeremmfr/terraform-provider-junos/issues/155))
 
 BUG FIXES:
 * fix change `description` to null in `junos_interface_logical` and `junos_interface_physical` resource
-* fix prefix list order issue in `junos_policyoptions_prefix_list` resource
-* fix validation for `name` of `address_book` and `address_boob_set` in `junos_security_zone` resource
+* fix `prefix` list order issue in `junos_policyoptions_prefix_list` resource (Fixes [#150](https://github.com/jeremmfr/terraform-provider-junos/issues/150))
+* fix validation for `name` of `address_book` and `address_boob_set` in `junos_security_zone` resource (Fixes [#153](https://github.com/jeremmfr/terraform-provider-junos/issues/153))
 
 ## 1.13.1 (February 18, 2021)
 BUG FIXES:
