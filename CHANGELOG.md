@@ -18,7 +18,7 @@ ENHANCEMENTS:
 * add `cluster`, `family_evpn` arguments in `junos_bgp_group` and `junos_bgp_neighbor` resource
 * add new `bgp_multipath` block argument to replace `multipath` bool argument in `junos_bgp_group` and `junos_bgp_neighbor` resource
 `bgp_multipath` let add optional arguments. `multipath` is now **deprecated**
-* add `esi` argument in `junos_interface_physical` resource and data source (Fixes [#126](https://github.com/jeremmfr/terraform-provider-junos/issues/126)) Thans [@dejongm](https://github.com/dejongm)
+* add `esi` argument in `junos_interface_physical` resource and data source (Fixes [#126](https://github.com/jeremmfr/terraform-provider-junos/issues/126)) Thanks [@dejongm](https://github.com/dejongm)
 * add `ether_opts`, `gigether_opts` and `parent_ether_opts` arguments in `junos_interface_physical` resource and data source to add more options and replace `ae_lacp`, `ae_link_speed`, `ae_minimum_links`, `ether802_3ad` arguments which are now deprecated (Fixes [#133](https://github.com/jeremmfr/terraform-provider-junos/issues/133), [#127](https://github.com/jeremmfr/terraform-provider-junos/issues/127), parts of [#106](https://github.com/jeremmfr/terraform-provider-junos/issues/106))
 * add `security_inbound_protocols` and `security_inbound_services` arguments in `junos_interface_logical` resource and data source (Fixes [#141](https://github.com/jeremmfr/terraform-provider-junos/issues/141))
 * add `feature_profile_web_filtering_juniper_enhanced_server` argument in `utm` argument of `junos_security` resource (Fixes [#155](https://github.com/jeremmfr/terraform-provider-junos/issues/155))
