@@ -41,7 +41,7 @@ func resourcePolicyoptionsPrefixList() *schema.Resource {
 				Optional: true,
 			},
 			"prefix": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
@@ -241,7 +241,7 @@ func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess 
 	if d.Get("dynamic_db").(bool) {
 		configSet = append(configSet, setPrefix+" dynamic-db")
 	}
-	for _, v := range d.Get("prefix").([]interface{}) {
+	for _, v := range d.Get("prefix").(*schema.Set).List() {
 		err := validateCIDRNetwork(v.(string))
 		if err != nil {
 			return err
