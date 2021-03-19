@@ -40,6 +40,7 @@ The following arguments are supported:
 * `log` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'log' configuration. See the [`log` arguments] (#log-arguments) block.
 * `utm` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'utm' configuration.
   * `feature_profile_web_filtering_type` - (Optional)(`String`) Configuring feature-profile web-filtering type. Need to be 'juniper-enhanced', 'juniper-local', 'web-filtering-none' or 'websense-redirect'.
+  * `feature_profile_web_filtering_juniper_enhanced_server` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'server' configuration. See the [`feature_profile_web_filtering_juniper_enhanced_server` arguments for utm] (#feature_profile_web_filtering_juniper_enhanced_server-arguments-for-utm) block.
 
 ---
 #### alg arguments
@@ -147,6 +148,13 @@ The following arguments are supported:
 * `apply_to_half_close_state` - (Optional)(`Bool`) Apply time-wait-state timeout to half-close state.
 * `session_ageout` - (Optional)(`Bool`) Allow session to ageout using service based timeout values.
 * `session_timeout` - (Optional)(`Int`) Configure session timeout value for time-wait state (2..600 seconds).
+
+---
+#### feature_profile_web_filtering_juniper_enhanced_server arguments for utm
+* `host` - (Optional)(`String`) Server host IP address or string host name.
+* `port` - (Optional)(`Int`) Server port (1..65535).
+* `proxy_profile` - (Optional)(`String`) Proxy profile.
+* `routing_instance` - (Optional)(`String`) Routing instance name.
 
 ## Import
 
