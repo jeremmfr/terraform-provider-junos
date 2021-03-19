@@ -33,7 +33,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"from": {
 				Type:     schema.TypeList,
@@ -356,7 +356,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 						},
 						"from": {
 							Type:     schema.TypeList,

@@ -30,7 +30,7 @@ func resourceSecurityNatDestination() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 			},
 			"from": {
 				Type:     schema.TypeList,
@@ -60,7 +60,7 @@ func resourceSecurityNatDestination() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 						},
 						"destination_address": {
 							Type:         schema.TypeString,
@@ -81,7 +81,7 @@ func resourceSecurityNatDestination() *schema.Resource {
 									"pool": {
 										Type:             schema.TypeString,
 										Optional:         true,
-										ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+										ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 									},
 								},
 							},

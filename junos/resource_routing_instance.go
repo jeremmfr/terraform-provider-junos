@@ -29,7 +29,7 @@ func resourceRoutingInstance() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, FormatDefault),
 			},
 			"type": {
 				Type:     schema.TypeString,

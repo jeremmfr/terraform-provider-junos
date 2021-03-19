@@ -51,7 +51,7 @@ func resourceSystemSyslogFile() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"allow_duplicates": {
 				Type:     schema.TypeBool,
