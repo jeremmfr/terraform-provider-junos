@@ -4,7 +4,7 @@ terraform-provider-junos
 [![Installs](https://img.shields.io/badge/dynamic/json?logo=terraform&label=installs&query=$.data.attributes.downloads&url=https%3A%2F%2Fregistry.terraform.io%2Fv2%2Fproviders%2F713)](https://registry.terraform.io/providers/jeremmfr/junos)
 [![Registry](https://img.shields.io/badge/registry-doc%40latest-lightgrey?logo=terraform)](https://registry.terraform.io/providers/jeremmfr/junos/latest/docs)
 [![Website](https://img.shields.io/badge/website-doc%40latest-lightgrey)](https://terraform-provider-junos.jeremm.fr/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/jeremmfr/terraform-provider-junos/blob/master/LICENSE)  
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/jeremmfr/terraform-provider-junos/blob/main/LICENSE)  
 [![Go Status](https://github.com/jeremmfr/terraform-provider-junos/workflows/Go%20Tests/badge.svg)](https://github.com/jeremmfr/terraform-provider-junos/actions)
 [![Lint Status](https://github.com/jeremmfr/terraform-provider-junos/workflows/GolangCI-Lint/badge.svg)](https://github.com/jeremmfr/terraform-provider-junos/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/jeremmfr/terraform-provider-junos)](https://goreportcard.com/report/github.com/jeremmfr/terraform-provider-junos)
