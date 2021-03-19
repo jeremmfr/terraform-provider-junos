@@ -157,6 +157,14 @@ func resourceSecurityGlobalPolicy() *schema.Resource {
 
 func resourceSecurityGlobalPolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setSecurityGlobalPolicy(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId("security_global_policy")
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)

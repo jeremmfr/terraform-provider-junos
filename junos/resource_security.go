@@ -585,6 +585,14 @@ func resourceSecurity() *schema.Resource {
 
 func resourceSecurityCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setSecurity(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId("security")
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)

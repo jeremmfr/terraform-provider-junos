@@ -33,7 +33,7 @@ func resourceInterfaceSt0UnitCreate(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		sess.configClear(jnprSess)
 
-		return diag.FromErr(fmt.Errorf("error for find new st0 unit interface: %w", err))
+		return diag.FromErr(fmt.Errorf("error for find new st0 unit interface : %w", err))
 	}
 	if err := sess.configSet([]string{"set interfaces " + newSt0}, jnprSess); err != nil {
 		sess.configClear(jnprSess)

@@ -2,33 +2,15 @@ package junos
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"os"
+	"strconv"
 	"strings"
-	"time"
 
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
-
-func logFile(message string, file string) {
-	// create your file with desired read/write permissions
-	f, err := os.OpenFile(file, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// defer to close when you're done with it, not because you think it's idiomatic!
-	defer f.Close()
-
-	// set output of logs to f
-	log.SetOutput(f)
-	log.SetPrefix(time.Now().Format("2006-01-02 15:04:05"))
-
-	log.Printf("%s", message)
-}
 
 func appendDiagWarns(diags *diag.Diagnostics, warns []error) {
 	for _, w := range warns {
@@ -192,6 +174,42 @@ func validateAddress() schema.SchemaValidateDiagFunc {
 		return diags
 	}
 }
+func validateFilePermission() schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
+		v, ok := i.(string)
+
+		if !ok {
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       "expected type to be string",
+				AttributePath: path,
+			})
+
+			return diags
+		}
+
+		if len(v) > 4 || len(v) < 3 {
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("bad mode for file - string length should be 3 or 4 digits: %s", v),
+				AttributePath: path,
+			})
+		}
+
+		fileMode, err := strconv.ParseInt(v, 8, 64)
+
+		if err != nil || fileMode > 0777 || fileMode < 0 {
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("bad mode for file - must be three octal digits: %s", v),
+				AttributePath: path,
+			})
+		}
+
+		return diags
+	}
+}
 
 func stringInSlice(str string, list []string) bool {
 	for _, v := range list {
@@ -296,4 +314,16 @@ func checkStringHasPrefixInList(s string, list []string) bool {
 	}
 
 	return false
+}
+
+func replaceTildeToHomeDir(path *string) error {
+	if strings.HasPrefix(*path, "~") {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return fmt.Errorf("failed to read user home directory : %w", err)
+		}
+		*path = homeDir + strings.TrimPrefix(*path, "~")
+	}
+
+	return nil
 }

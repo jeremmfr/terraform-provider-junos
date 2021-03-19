@@ -72,6 +72,14 @@ func resourceRoutingOptions() *schema.Resource {
 
 func resourceRoutingOptionsCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setRoutingOptions(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId("routing_options")
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)

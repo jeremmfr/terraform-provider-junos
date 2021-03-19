@@ -148,6 +148,14 @@ func resourceIpsecVpn() *schema.Resource {
 
 func resourceIpsecVpnCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" && !d.Get("bind_interface_auto").(bool) {
+		if err := setIpsecVpn(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -174,7 +182,7 @@ func resourceIpsecVpnCreate(ctx context.Context, d *schema.ResourceData, m inter
 		if err != nil {
 			sess.configClear(jnprSess)
 
-			return diag.FromErr(fmt.Errorf("error for find new bind interface: %w", err))
+			return diag.FromErr(fmt.Errorf("error for find new bind interface : %w", err))
 		}
 		tfErr := d.Set("bind_interface", newSt0)
 		if tfErr != nil {

@@ -591,6 +591,14 @@ func resourceSystem() *schema.Resource {
 
 func resourceSystemCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setSystem(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId("system")
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)

@@ -101,10 +101,21 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JUNOS_SLEEP_SSH_CLOSED", 0),
 			},
+			"file_permission": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				DefaultFunc:      schema.EnvDefaultFunc("JUNOS_FILE_PERMISSION", "644"),
+				ValidateDiagFunc: validateFilePermission(),
+			},
 			"debug_netconf_log_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JUNOS_LOG_PATH", ""),
+			},
+			"fake_create_with_setfile": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("JUNOS_FAKECREATE_SETFILE", ""),
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -121,6 +132,7 @@ func Provider() *schema.Provider {
 			"junos_interface_logical":                                    resourceInterfaceLogical(),
 			"junos_interface_physical":                                   resourceInterfacePhysical(),
 			"junos_interface_st0_unit":                                   resourceInterfaceSt0Unit(),
+			"junos_null_commit_file":                                     resourceNullCommitFile(),
 			"junos_ospf_area":                                            resourceOspfArea(),
 			"junos_policyoptions_as_path":                                resourcePolicyoptionsAsPath(),
 			"junos_policyoptions_as_path_group":                          resourcePolicyoptionsAsPathGroup(),
@@ -190,7 +202,9 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		junosCmdSleepShort:       d.Get("cmd_sleep_short").(int),
 		junosCmdSleepLock:        d.Get("cmd_sleep_lock").(int),
 		junosSSHSleepClosed:      d.Get("ssh_sleep_closed").(int),
+		junosFilePermission:      d.Get("file_permission").(string),
 		junosDebugNetconfLogPath: d.Get("debug_netconf_log_path").(string),
+		junosFakeCreateSetFile:   d.Get("fake_create_with_setfile").(string),
 	}
 
 	return config.Session()

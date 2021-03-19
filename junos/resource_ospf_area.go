@@ -93,6 +93,15 @@ func resourceOspfArea() *schema.Resource {
 
 func resourceOspfAreaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setOspfArea(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("area_id").(string) + idSeparator + d.Get("version").(string) +
+			idSeparator + d.Get("routing_instance").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
