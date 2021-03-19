@@ -50,6 +50,8 @@ The following arguments are supported:
   * `mtu` - Maximum transmission unit.
   * `rpf_check` - Reverse-path-forwarding checks enabled and possible configuration. See the [`rpf_check` attributes](#rpf_check-attributes) block for attributes.
 * `routing_instance` - Routing_instance where the interface is (if not default instance).
+* `security_inbound_protocols` - The inbound protocols allowed.
+* `security_inbound_services` - The inbound services allowed.
 * `security_zone` - Security zone where the interface is.
 * `vlan_id` - 802.1q VLAN ID for unit interface.
 

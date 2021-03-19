@@ -30,13 +30,15 @@ func TestAccJunosBgpGroup_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
 							"as_override", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
+							"cluster", "192.0.2.3"),
+						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
 							"damping", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
 							"log_updown", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
 							"mtu_discovery", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
-							"multipath", "true"),
+							"bgp_multipath.#", "1"),
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
 							"remove_private", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
@@ -141,6 +143,10 @@ func TestAccJunosBgpGroup_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
 							"advertise_external_conditional", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
+							"bgp_multipath.#", "1"),
+						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
+							"bgp_multipath.0.multiple_as", "true"),
+						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
 							"no_advertise_peer_as", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
 							"metric_out_igp_offset", "-10"),
@@ -209,15 +215,16 @@ resource junos_policyoptions_policy_statement "testacc_bgpgroup" {
   }
 }
 resource junos_bgp_group "testacc_bgpgroup" {
-  name                     = "testacc_bgpgroup"
-  routing_instance         = junos_routing_instance.testacc_bgpgroup.name
-  advertise_inactive       = true
-  advertise_peer_as        = true
-  as_override              = true
+  name               = "testacc_bgpgroup"
+  routing_instance   = junos_routing_instance.testacc_bgpgroup.name
+  advertise_inactive = true
+  advertise_peer_as  = true
+  as_override        = true
+  bgp_multipath {}
+  cluster                  = "192.0.2.3"
   damping                  = true
   log_updown               = true
   mtu_discovery            = true
-  multipath                = true
   remove_private           = true
   passive                  = true
   hold_time                = 30
@@ -310,12 +317,14 @@ resource junos_bgp_group "testacc_bgpgroup" {
   metric_out_igp_delay_med_update = true
   authentication_key              = "password"
   type                            = "internal"
+  bgp_multipath {
+    multiple_as = true
+  }
   graceful_restart {
     restart_time     = 10
     stale_route_time = 10
   }
 }
-
 `
 }
 func testAccJunosBgpGroupConfigUpdate2() string {
@@ -329,6 +338,18 @@ resource junos_bgp_group "testacc_bgpgroup" {
   local_as_no_prepend_global_as = true
   metric_out_minimum_igp_offset = -10
   type                          = "internal"
+  family_evpn {
+    accepted_prefix_limit {
+      maximum               = 2
+      teardown              = 50
+      teardown_idle_timeout = 30
+    }
+    prefix_limit {
+      maximum               = 2
+      teardown              = 50
+      teardown_idle_timeout = 30
+    }
+  }
 }
 `
 }
@@ -339,6 +360,7 @@ resource junos_bgp_group "testacc_bgpgroup" {
   local_as               = "65000"
   local_as_alias         = true
   metric_out_minimum_igp = true
+  family_evpn {}
 }
 `
 }

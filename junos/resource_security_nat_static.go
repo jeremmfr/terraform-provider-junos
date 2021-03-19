@@ -30,7 +30,7 @@ func resourceSecurityNatStatic() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 			},
 			"from": {
 				Type:     schema.TypeList,
@@ -59,7 +59,7 @@ func resourceSecurityNatStatic() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 						},
 						"destination_address": {
 							Type:         schema.TypeString,
@@ -85,7 +85,7 @@ func resourceSecurityNatStatic() *schema.Resource {
 									"routing_instance": {
 										Type:             schema.TypeString,
 										Optional:         true,
-										ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+										ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 									},
 								},
 							},
@@ -99,6 +99,14 @@ func resourceSecurityNatStatic() *schema.Resource {
 
 func resourceSecurityNatStaticCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setSecurityNatStatic(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -307,11 +315,8 @@ func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *Netco
 			}
 		}
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObject) (natStaticOptions, error) {
 	sess := m.(*Session)
@@ -399,11 +404,8 @@ func delSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObje
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security nat static rule-set "+natStatic)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillSecurityNatStaticData(d *schema.ResourceData, natStaticOptions natStaticOptions) {
 	if tfErr := d.Set("name", natStaticOptions.name); tfErr != nil {

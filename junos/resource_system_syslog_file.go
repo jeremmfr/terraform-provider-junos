@@ -51,7 +51,7 @@ func resourceSystemSyslogFile() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"allow_duplicates": {
 				Type:     schema.TypeBool,
@@ -233,6 +233,14 @@ func resourceSystemSyslogFile() *schema.Resource {
 
 func resourceSystemSyslogFileCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setSystemSyslogFile(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("filename").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -520,11 +528,7 @@ func setSystemSyslogFile(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 		}
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObject) (syslogFileOptions, error) {
@@ -677,11 +681,8 @@ func delSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObject
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system syslog file "+filename)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillSystemSyslogFileData(d *schema.ResourceData, syslogFileOptions syslogFileOptions) {

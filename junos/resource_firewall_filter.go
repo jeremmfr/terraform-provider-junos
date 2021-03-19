@@ -31,7 +31,7 @@ func resourceFirewallFilter() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"family": {
 				Type:     schema.TypeString,
@@ -52,12 +52,12 @@ func resourceFirewallFilter() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 						},
 						"filter": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 						},
 						"from": {
 							Type:     schema.TypeList,
@@ -236,7 +236,7 @@ func resourceFirewallFilter() *schema.Resource {
 									"policer": {
 										Type:             schema.TypeString,
 										Optional:         true,
-										ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+										ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 									},
 									"port_mirror": {
 										Type:     schema.TypeBool,
@@ -270,6 +270,14 @@ func resourceFirewallFilter() *schema.Resource {
 
 func resourceFirewallFilterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setFirewallFilter(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string) + idSeparator + d.Get("family").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -465,11 +473,7 @@ func setFirewallFilter(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		}
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfObject) (filterOptions, error) {
 	sess := m.(*Session)
@@ -528,11 +532,8 @@ func delFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfOb
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete firewall family "+family+" filter "+filter)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillFirewallFilterData(d *schema.ResourceData, filterOptions filterOptions) {
 	if tfErr := d.Set("name", filterOptions.name); tfErr != nil {

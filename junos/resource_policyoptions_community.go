@@ -29,7 +29,7 @@ func resourcePolicyoptionsCommunity() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"members": {
 				Type:     schema.TypeList,
@@ -47,6 +47,14 @@ func resourcePolicyoptionsCommunity() *schema.Resource {
 
 func resourcePolicyoptionsCommunityCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setPolicyoptionsCommunity(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -222,11 +230,8 @@ func setPolicyoptionsCommunity(d *schema.ResourceData, m interface{}, jnprSess *
 	if d.Get("invert_match").(bool) {
 		configSet = append(configSet, setPrefix+"invert-match")
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readPolicyoptionsCommunity(community string, m interface{}, jnprSess *NetconfObject) (communityOptions, error) {
 	sess := m.(*Session)
@@ -263,11 +268,8 @@ func delPolicyoptionsCommunity(community string, m interface{}, jnprSess *Netcon
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete policy-options community "+community)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillPolicyoptionsCommunityData(d *schema.ResourceData, communityOptions communityOptions) {
 	if tfErr := d.Set("name", communityOptions.name); tfErr != nil {

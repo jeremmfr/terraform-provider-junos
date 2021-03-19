@@ -2,20 +2,14 @@ name: Website
 on:
   push:
     branches:
-      - 'master'
-    paths:
-      - '.github/workflows/website.yml'
-      - '.terraform-website/**'
-      - 'website/**'
-  release:
-    types:
-      - published
-
+      - main
 jobs:
   deploy:
-    name: Deploy Website
+    name: Update Website
     runs-on: ubuntu-latest
-    if: startsWith(github.event.head_commit.message, '[website]')
+    if: |
+      startsWith(github.event.head_commit.message, '[website]') ||
+      (github.event.release.name != '' && github.event.release.draft == false)
     steps:
       - name: Checkout code
         uses: actions/checkout@v2

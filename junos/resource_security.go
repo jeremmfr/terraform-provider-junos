@@ -576,6 +576,32 @@ func resourceSecurity() *schema.Resource {
 								"juniper-enhanced", "juniper-local", "web-filtering-none", "websense-redirect",
 							}, false),
 						},
+						"feature_profile_web_filtering_juniper_enhanced_server": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"host": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"port": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 65535),
+									},
+									"proxy_profile": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"routing_instance": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -585,6 +611,14 @@ func resourceSecurity() *schema.Resource {
 
 func resourceSecurityCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setSecurity(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId("security")
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -735,15 +769,33 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 				configSet = append(configSet, setPrefix+"utm feature-profile web-filtering type "+
 					utm["feature_profile_web_filtering_type"].(string))
 			}
+			for _, v2 := range utm["feature_profile_web_filtering_juniper_enhanced_server"].([]interface{}) {
+				configSet = append(configSet, setPrefix+"utm feature-profile web-filtering juniper-enhanced server")
+				if v2 != nil {
+					utmJnpEnhServer := v2.(map[string]interface{})
+					if v3 := utmJnpEnhServer["host"].(string); v3 != "" {
+						configSet = append(configSet, setPrefix+"utm feature-profile web-filtering juniper-enhanced server host "+v3)
+					}
+					if v3 := utmJnpEnhServer["port"].(int); v3 != 0 {
+						configSet = append(configSet,
+							setPrefix+"utm feature-profile web-filtering juniper-enhanced server port "+strconv.Itoa(v3))
+					}
+					if v3 := utmJnpEnhServer["proxy_profile"].(string); v3 != "" {
+						configSet = append(configSet,
+							setPrefix+"utm feature-profile web-filtering juniper-enhanced server proxy-profile \""+v3+"\"")
+					}
+					if v3 := utmJnpEnhServer["routing_instance"].(string); v3 != "" {
+						configSet = append(configSet,
+							setPrefix+"utm feature-profile web-filtering juniper-enhanced server routing-instance "+v3)
+					}
+				}
+			}
 		} else {
 			return fmt.Errorf("utm block is empty")
 		}
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func setSecurityAlg(alg interface{}) ([]string, error) {
@@ -1212,6 +1264,7 @@ func listLinesSecurityLog() []string {
 func listLinesSecurityUtm() []string {
 	return []string{
 		"utm feature-profile web-filtering type",
+		"utm feature-profile web-filtering juniper-enhanced server",
 	}
 }
 
@@ -1231,11 +1284,8 @@ func delSecurity(m interface{}, jnprSess *NetconfObject) error {
 		configSet = append(configSet,
 			delPrefix+line)
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, error) {
 	sess := m.(*Session)
@@ -1277,14 +1327,9 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 					return confRead, err
 				}
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityUtm()):
-				if len(confRead.utm) == 0 {
-					confRead.utm = append(confRead.utm, map[string]interface{}{
-						"feature_profile_web_filtering_type": "",
-					})
-				}
-				if strings.HasPrefix(itemTrim, "utm feature-profile web-filtering type ") {
-					confRead.utm[0]["feature_profile_web_filtering_type"] = strings.TrimPrefix(itemTrim,
-						"utm feature-profile web-filtering type ")
+				err := readSecurityUtm(&confRead, itemTrim)
+				if err != nil {
+					return confRead, err
 				}
 			}
 		}
@@ -1804,6 +1849,52 @@ func readSecurityLog(confRead *securityOptions, itemTrimLog string) error {
 		}
 	case itemTrim == "utc-timestamp":
 		confRead.log[0]["utc_timestamp"] = true
+	}
+
+	return nil
+}
+
+func readSecurityUtm(confRead *securityOptions, itemTrimUtm string) error {
+	if len(confRead.utm) == 0 {
+		confRead.utm = append(confRead.utm, map[string]interface{}{
+			"feature_profile_web_filtering_type":                    "",
+			"feature_profile_web_filtering_juniper_enhanced_server": make([]map[string]interface{}, 0),
+		})
+	}
+	switch {
+	case strings.HasPrefix(itemTrimUtm, "utm feature-profile web-filtering type "):
+		confRead.utm[0]["feature_profile_web_filtering_type"] = strings.TrimPrefix(itemTrimUtm,
+			"utm feature-profile web-filtering type ")
+	case strings.HasPrefix(itemTrimUtm, "utm feature-profile web-filtering juniper-enhanced server"):
+		if len(confRead.utm[0]["feature_profile_web_filtering_juniper_enhanced_server"].([]map[string]interface{})) == 0 {
+			confRead.utm[0]["feature_profile_web_filtering_juniper_enhanced_server"] = append(
+				confRead.utm[0]["feature_profile_web_filtering_juniper_enhanced_server"].([]map[string]interface{}),
+				map[string]interface{}{
+					"host":             "",
+					"port":             0,
+					"proxy_profile":    "",
+					"routing_instance": "",
+				})
+		}
+		itemTrimServer := strings.TrimPrefix(itemTrimUtm, "utm feature-profile web-filtering juniper-enhanced server")
+		switch {
+		case strings.HasPrefix(itemTrimServer, " host "):
+			confRead.utm[0]["feature_profile_web_filtering_juniper_enhanced_server"].([]map[string]interface{})[0]["host"] =
+				strings.TrimPrefix(itemTrimServer, " host ")
+		case strings.HasPrefix(itemTrimServer, " port "):
+			var err error
+			confRead.utm[0]["feature_profile_web_filtering_juniper_enhanced_server"].([]map[string]interface{})[0]["port"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrimServer, " port "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimUtm, err)
+			}
+		case strings.HasPrefix(itemTrimServer, " proxy-profile "):
+			confRead.utm[0]["feature_profile_web_filtering_juniper_enhanced_server"].([]map[string]interface{})[0]["proxy_profile"] = //nolint: lll
+				strings.Trim(strings.TrimPrefix(itemTrimServer, " proxy-profile "), "\"")
+		case strings.HasPrefix(itemTrimServer, " routing-instance "):
+			confRead.utm[0]["feature_profile_web_filtering_juniper_enhanced_server"].([]map[string]interface{})[0]["routing_instance"] = //nolint: lll
+				strings.TrimPrefix(itemTrimServer, " routing-instance ")
+		}
 	}
 
 	return nil

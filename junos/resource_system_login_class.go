@@ -54,12 +54,12 @@ func resourceSystemLoginClass() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"access_end": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				RequiredWith: []string{"access_end"},
+				RequiredWith: []string{"access_start"},
 				ValidateFunc: validation.StringMatch(regexp.MustCompile(
 					`^([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)$`), "must have HH:MM:SS format"),
 			},
@@ -185,6 +185,14 @@ func resourceSystemLoginClass() *schema.Resource {
 
 func resourceSystemLoginClassCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setSystemLoginClass(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -427,11 +435,7 @@ func setSystemLoginClass(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 		configSet = append(configSet, setPrefix+"tenant \""+d.Get("tenant").(string)+"\"")
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSystemLoginClass(class string, m interface{}, jnprSess *NetconfObject) (systemLoginClassOptions, error) {
 	sess := m.(*Session)
@@ -525,11 +529,8 @@ func delSystemLoginClass(systemLoginClass string, m interface{}, jnprSess *Netco
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system login class "+systemLoginClass)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillSystemLoginClassData(d *schema.ResourceData, systemLoginClassOptions systemLoginClassOptions) {
 	if tfErr := d.Set("name", systemLoginClassOptions.name); tfErr != nil {

@@ -29,7 +29,7 @@ func resourcePolicyoptionsAsPath() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"dynamic_db": {
 				Type:     schema.TypeBool,
@@ -45,6 +45,14 @@ func resourcePolicyoptionsAsPath() *schema.Resource {
 
 func resourcePolicyoptionsAsPathCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setPolicyoptionsAsPath(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -221,11 +229,8 @@ func setPolicyoptionsAsPath(d *schema.ResourceData, m interface{}, jnprSess *Net
 		configSet = append(configSet, "set policy-options as-path "+d.Get("name").(string)+
 			" \""+d.Get("path").(string)+"\"")
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readPolicyoptionsAsPath(asPath string, m interface{}, jnprSess *NetconfObject) (asPathOptions, error) {
 	sess := m.(*Session)
@@ -262,11 +267,8 @@ func delPolicyoptionsAsPath(asPath string, m interface{}, jnprSess *NetconfObjec
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete policy-options as-path "+asPath)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillPolicyoptionsAsPathData(d *schema.ResourceData, asPathOptions asPathOptions) {
 	if tfErr := d.Set("name", asPathOptions.name); tfErr != nil {

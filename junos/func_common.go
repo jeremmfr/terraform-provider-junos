@@ -2,33 +2,22 @@ package junos
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"os"
+	"strconv"
 	"strings"
-	"time"
 
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func logFile(message string, file string) {
-	// create your file with desired read/write permissions
-	f, err := os.OpenFile(file, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
+type FormatName int
 
-	// defer to close when you're done with it, not because you think it's idiomatic!
-	defer f.Close()
-
-	// set output of logs to f
-	log.SetOutput(f)
-	log.SetPrefix(time.Now().Format("2006-01-02 15:04:05"))
-
-	log.Printf("%s", message)
-}
+const (
+	FormatDefault FormatName = iota
+	FormatAddressName
+)
 
 func appendDiagWarns(diags *diag.Diagnostics, warns []error) {
 	for _, w := range warns {
@@ -99,7 +88,49 @@ func validateCIDR(cidr string) error {
 	return nil
 }
 
-func validateNameObjectJunos(exclude []string, length int) schema.SchemaValidateDiagFunc {
+func validateWildcardFunc() schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
+		v := i.(string)
+		err := validateWildcardWithMask(v)
+		if err != nil {
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       err.Error(),
+				AttributePath: path,
+			})
+		}
+
+		return diags
+	}
+}
+
+func validateWildcardWithMask(wildcard string) error {
+	if !strings.Contains(wildcard, "/") {
+		return fmt.Errorf("%v missing mask", wildcard)
+	}
+	if strings.Contains(wildcard, ":") {
+		return fmt.Errorf("wildcards do not support IPv6 addresses, %v is IPv6", wildcard)
+	}
+	wildcardSplit := strings.Split(wildcard, "/")
+	ip := net.ParseIP(wildcardSplit[0]).To4()
+	if ip == nil {
+		return fmt.Errorf("ip %v not a valid ip address", wildcardSplit[0])
+	}
+	mask := net.ParseIP(wildcardSplit[1]).To4()
+	if mask == nil {
+		return fmt.Errorf("mask %v is improperly formatted, must be in x.x.x.x notation", wildcardSplit[1])
+	}
+	for _, octet := range strings.Split(mask.String(), ".") {
+		if !stringInSlice(octet, []string{"255", "254", "252", "248", "240", "224", "192", "128", "0"}) {
+			return fmt.Errorf("mask %v must be in subnet mask format, octet [%v] is not", mask, octet)
+		}
+	}
+
+	return nil
+}
+
+func validateNameObjectJunos(exclude []string, length int, format FormatName) schema.SchemaValidateDiagFunc {
 	return func(i interface{}, path cty.Path) diag.Diagnostics {
 		var diags diag.Diagnostics
 		v := i.(string)
@@ -110,10 +141,27 @@ func validateNameObjectJunos(exclude []string, length int) schema.SchemaValidate
 				AttributePath: path,
 			})
 		}
-		f := func(r rune) bool {
+		f1 := func(r rune) bool {
 			return (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') && r != '-' && r != '_'
 		}
-		if strings.IndexFunc(v, f) != -1 {
+		f2 := func(r rune) bool {
+			return (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') &&
+				r != '-' && r != '_' && r != ':' && r != '.' && r != '/'
+		}
+		resultRune := -1
+		switch format {
+		case FormatDefault:
+			resultRune = strings.IndexFunc(v, f1)
+		case FormatAddressName:
+			resultRune = strings.IndexFunc(v, f2)
+		default:
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       "internal error: validateNameObjectJunos function called with a bad argument",
+				AttributePath: path,
+			})
+		}
+		if resultRune != -1 {
 			diags = append(diags, diag.Diagnostic{
 				Severity:      diag.Error,
 				Summary:       fmt.Sprintf("%s invalid name (bad character)", i),
@@ -143,6 +191,42 @@ func validateAddress() schema.SchemaValidateDiagFunc {
 			diags = append(diags, diag.Diagnostic{
 				Severity:      diag.Error,
 				Summary:       fmt.Sprintf("%s invalid address (bad character)", v),
+				AttributePath: path,
+			})
+		}
+
+		return diags
+	}
+}
+func validateFilePermission() schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
+		v, ok := i.(string)
+
+		if !ok {
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       "expected type to be string",
+				AttributePath: path,
+			})
+
+			return diags
+		}
+
+		if len(v) > 4 || len(v) < 3 {
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("bad mode for file - string length should be 3 or 4 digits: %s", v),
+				AttributePath: path,
+			})
+		}
+
+		fileMode, err := strconv.ParseInt(v, 8, 64)
+
+		if err != nil || fileMode > 0777 || fileMode < 0 {
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("bad mode for file - must be three octal digits: %s", v),
 				AttributePath: path,
 			})
 		}
@@ -254,4 +338,16 @@ func checkStringHasPrefixInList(s string, list []string) bool {
 	}
 
 	return false
+}
+
+func replaceTildeToHomeDir(path *string) error {
+	if strings.HasPrefix(*path, "~") {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return fmt.Errorf("failed to read user home directory : %w", err)
+		}
+		*path = homeDir + strings.TrimPrefix(*path, "~")
+	}
+
+	return nil
 }

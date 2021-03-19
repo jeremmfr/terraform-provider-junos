@@ -106,7 +106,7 @@ func resourceSystemRadiusServer() *schema.Resource {
 			"routing_instance": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"source_address": {
 				Type:         schema.TypeString,
@@ -124,6 +124,14 @@ func resourceSystemRadiusServer() *schema.Resource {
 
 func resourceSystemRadiusServerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setSystemRadiusServer(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("address").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -344,11 +352,7 @@ func setSystemRadiusServer(d *schema.ResourceData, m interface{}, jnprSess *Netc
 			strconv.Itoa(d.Get("timeout").(int)))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSystemRadiusServer(address string, m interface{}, jnprSess *NetconfObject) (radiusServerOptions, error) {
 	sess := m.(*Session)
@@ -456,11 +460,8 @@ func delSystemRadiusServer(address string, m interface{}, jnprSess *NetconfObjec
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system radius-server "+address)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillSystemRadiusServerData(d *schema.ResourceData, radiusServerOptions radiusServerOptions) {
 	if tfErr := d.Set("address", radiusServerOptions.address); tfErr != nil {

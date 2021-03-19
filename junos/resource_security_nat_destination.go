@@ -30,7 +30,7 @@ func resourceSecurityNatDestination() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 			},
 			"from": {
 				Type:     schema.TypeList,
@@ -60,7 +60,7 @@ func resourceSecurityNatDestination() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 						},
 						"destination_address": {
 							Type:         schema.TypeString,
@@ -81,7 +81,7 @@ func resourceSecurityNatDestination() *schema.Resource {
 									"pool": {
 										Type:             schema.TypeString,
 										Optional:         true,
-										ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+										ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 									},
 								},
 							},
@@ -95,6 +95,14 @@ func resourceSecurityNatDestination() *schema.Resource {
 
 func resourceSecurityNatDestinationCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setSecurityNatDestination(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -294,11 +302,8 @@ func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *
 			}
 		}
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSecurityNatDestination(natDestination string,
 	m interface{}, jnprSess *NetconfObject) (natDestinationOptions, error) {
@@ -380,11 +385,8 @@ func delSecurityNatDestination(natDestination string, m interface{}, jnprSess *N
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security nat destination rule-set "+natDestination)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillSecurityNatDestinationData(d *schema.ResourceData, natDestinationOptions natDestinationOptions) {
 	if tfErr := d.Set("name", natDestinationOptions.name); tfErr != nil {

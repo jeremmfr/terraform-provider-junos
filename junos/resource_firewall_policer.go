@@ -32,7 +32,7 @@ func resourceFirewallPolicer() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"filter_specific": {
 				Type:     schema.TypeBool,
@@ -97,6 +97,14 @@ func resourceFirewallPolicer() *schema.Resource {
 
 func resourceFirewallPolicerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setFirewallPolicer(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -304,11 +312,7 @@ func setFirewallPolicer(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		}
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject) (policerOptions, error) {
 	sess := m.(*Session)
@@ -390,11 +394,8 @@ func delFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject) 
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete firewall policer "+policer)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillFirewallPolicerData(d *schema.ResourceData, policerOptions policerOptions) {
 	if tfErr := d.Set("name", policerOptions.name); tfErr != nil {

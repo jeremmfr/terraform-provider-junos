@@ -41,6 +41,9 @@ func testAccPreCheck(t *testing.T) {
 	if os.Getenv("JUNOS_KEYFILE") == "" && os.Getenv("JUNOS_PASSWORD") == "" && os.Getenv("JUNOS_KEYPEM") == "" {
 		t.Fatal("JUNOS_KEYPEM, JUNOS_KEYFILE or JUNOS_PASSWORD must be set for acceptance tests")
 	}
+	if os.Getenv("JUNOS_FAKECREATE_SETFILE") != "" {
+		t.Fatal("can't run testacc with JUNOS_FAKECREATE_SETFILE")
+	}
 
 	if err := testAccProvider.Configure(context.Background(), terraform.NewResourceConfigRaw(nil)); err != nil {
 		t.Fatal(err)

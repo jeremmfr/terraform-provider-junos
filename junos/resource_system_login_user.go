@@ -35,7 +35,7 @@ func resourceSystemLoginUser() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"class": {
 				Type:     schema.TypeString,
@@ -88,6 +88,14 @@ func resourceSystemLoginUser() *schema.Resource {
 
 func resourceSystemLoginUserCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setSystemLoginUser(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -299,11 +307,7 @@ func setSystemLoginUser(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		configSet = append(configSet, setPrefix+"full-name \""+d.Get("full_name").(string)+"\"")
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSystemLoginUser(user string, m interface{}, jnprSess *NetconfObject) (systemLoginUserOptions, error) {
 	sess := m.(*Session)
@@ -375,11 +379,8 @@ func delSystemLoginUser(systemLoginUser string, m interface{}, jnprSess *Netconf
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system login user "+systemLoginUser)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillSystemLoginUserData(d *schema.ResourceData, systemLoginUserOptions systemLoginUserOptions) {
 	if tfErr := d.Set("name", systemLoginUserOptions.name); tfErr != nil {

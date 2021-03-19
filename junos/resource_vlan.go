@@ -41,7 +41,7 @@ func resourceVlan() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"community_vlans": {
 				Type:     schema.TypeList,
@@ -55,17 +55,17 @@ func resourceVlan() *schema.Resource {
 			"forward_filter_input": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"forward_filter_output": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"forward_flood_input": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"isolated_vlan": {
 				Type:         schema.TypeInt,
@@ -149,6 +149,14 @@ func resourceVlan() *schema.Resource {
 
 func resourceVlanCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setVlan(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -374,11 +382,7 @@ func setVlan(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 		}
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions, error) {
 	sess := m.(*Session)
@@ -482,11 +486,8 @@ func delVlan(vlan string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete vlans "+vlan)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillVlanData(d *schema.ResourceData, vlanOptions vlanOptions) {

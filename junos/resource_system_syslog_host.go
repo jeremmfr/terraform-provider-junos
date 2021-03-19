@@ -76,7 +76,7 @@ func resourceSystemSyslogHost() *schema.Resource {
 			"log_prefix": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 			},
 			"match": {
 				Type:     schema.TypeString,
@@ -191,6 +191,14 @@ func resourceSystemSyslogHost() *schema.Resource {
 
 func resourceSystemSyslogHostCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setSystemSyslogHost(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("host").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -444,11 +452,7 @@ func setSystemSyslogHost(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 		configSet = append(configSet, setPrefix+" user "+d.Get("user_severity").(string))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSystemSyslogHost(host string, m interface{}, jnprSess *NetconfObject) (syslogHostOptions, error) {
 	sess := m.(*Session)
@@ -543,11 +547,8 @@ func delSystemSyslogHost(host string, m interface{}, jnprSess *NetconfObject) er
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system syslog host "+host)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillSystemSyslogHostData(d *schema.ResourceData, syslogHostOptions syslogHostOptions) {
 	if tfErr := d.Set("host", syslogHostOptions.host); tfErr != nil {

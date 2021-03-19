@@ -322,22 +322,22 @@ func resourceInterface() *schema.Resource {
 			"inet_filter_input": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"inet_filter_output": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"inet6_filter_input": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"inet6_filter_output": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"inet_rpf_check": {
 				Type:     schema.TypeList,
@@ -418,12 +418,12 @@ func resourceInterface() *schema.Resource {
 			"security_zone": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"routing_instance": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 		},
 	}
@@ -431,6 +431,26 @@ func resourceInterface() *schema.Resource {
 
 func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if sess.junosGroupIntDel != "" {
+			if err := delInterfaceElement("apply-groups "+sess.junosGroupIntDel, d, m, nil); err != nil {
+				return diag.FromErr(err)
+			}
+		} else {
+			if err := delInterfaceElement("disable", d, m, nil); err != nil {
+				return diag.FromErr(err)
+			}
+			if err := delInterfaceElement("description", d, m, nil); err != nil {
+				return diag.FromErr(err)
+			}
+		}
+		if err := setInterface(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -1025,12 +1045,14 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 				oldAE = oldAEtf.(string)
 			}
 		}
-		aggregatedCount, err := aggregatedCountSearchMax(d.Get("ether802_3ad").(string), oldAE,
-			d.Get("name").(string), m, jnprSess)
-		if err != nil {
-			return err
+		if jnprSess != nil {
+			aggregatedCount, err := aggregatedCountSearchMax(d.Get("ether802_3ad").(string), oldAE,
+				d.Get("name").(string), m, jnprSess)
+			if err != nil {
+				return err
+			}
+			configSet = append(configSet, "set chassis aggregated-devices ethernet device-count "+aggregatedCount)
 		}
-		configSet = append(configSet, "set chassis aggregated-devices ethernet device-count "+aggregatedCount)
 	}
 	if d.Get("trunk").(bool) {
 		configSet = append(configSet, setPrefix+"unit 0 family ethernet-switching interface-mode trunk")
@@ -1063,7 +1085,7 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 		configSet = append(configSet, setPrefix+
 			"aggregated-ether-options minimum-links "+strconv.Itoa(d.Get("ae_minimum_links").(int)))
 	}
-	if checkCompatibilitySecurity(jnprSess) && d.Get("security_zone").(string) != "" {
+	if d.Get("security_zone").(string) != "" {
 		configSet = append(configSet, "set security zones security-zone "+
 			d.Get("security_zone").(string)+" interfaces "+d.Get("name").(string))
 	}
@@ -1072,11 +1094,7 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 			" interface "+d.Get("name").(string))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (interfaceOptions, error) {
 	sess := m.(*Session)
@@ -1381,11 +1399,8 @@ func delInterfaceElement(element string, d *schema.ResourceData, m interface{}, 
 		return fmt.Errorf("the name %s contains too dots", d.Get("name").(string))
 	}
 	configSet = append(configSet, "delete interfaces "+setName+" "+element)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func delInterfaceOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
@@ -1415,33 +1430,25 @@ func delInterfaceOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 		delPrefix+"unit 0 family ethernet-switching interface-mode",
 		delPrefix+"unit 0 family ethernet-switching vlan members",
 		delPrefix+"native-vlan-id",
-		delPrefix+"aggregated-ether-options")
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
+		delPrefix+"aggregated-ether-options",
+	)
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func delZoneInterface(zone string, d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security zones security-zone "+zone+" interfaces "+d.Get("name").(string))
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func delRoutingInstanceInterface(instance string, d *schema.ResourceData,
 	m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete routing-instances "+instance+" interface "+d.Get("name").(string))
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillInterfaceData(d *schema.ResourceData, interfaceOpt interfaceOptions) {
@@ -1538,7 +1545,7 @@ func fillFamilyInetAddressOld(item string, inetAddress []map[string]interface{},
 		vrrpGroup := genVRRPGroupOld(family)
 		vrrpID, err := strconv.Atoi(addressConfig[2])
 		if err != nil {
-			return inetAddress, nil
+			return inetAddress, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 		itemTrimVrrp := strings.TrimPrefix(itemTrim, "vrrp-group "+strconv.Itoa(vrrpID)+" ")
 		if strings.HasPrefix(itemTrim, "vrrp-inet6-group ") {

@@ -34,7 +34,7 @@ func resourceIpsecProposal() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 			},
 			"authentication_algorithm": {
 				Type:     schema.TypeString,
@@ -65,6 +65,14 @@ func resourceIpsecProposal() *schema.Resource {
 
 func resourceIpsecProposalCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setIpsecProposal(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -252,11 +260,7 @@ func setIpsecProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 		configSet = append(configSet, setPrefix+" protocol "+d.Get("protocol").(string))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readIpsecProposal(ipsecProposal string, m interface{}, jnprSess *NetconfObject) (ipsecProposalOptions, error) {
 	sess := m.(*Session)
@@ -304,11 +308,8 @@ func delIpsecProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ipsec proposal "+d.Get("name").(string))
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillIpsecProposalData(d *schema.ResourceData, ipsecProposalOptions ipsecProposalOptions) {

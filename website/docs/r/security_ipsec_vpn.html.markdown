@@ -36,7 +36,7 @@ The following arguments are supported:
 Deprecated argument, use the `junos_interface_st0_unit` resource to find st0 unit available instead.
 * `df_bit` - (Optional)(`String`) Specifies how to handle the Don't Fragment bit. Need to be 'clear', 'copy' or 'set'.
 * `establish_tunnels` - (Optional)(`String`) When the VPN comes up. Need to be 'immediately' or 'on-traffic'.
-* `ike` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare ike configuration.
+* `ike` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare ike configuration.
   * `gateway` - (Required)(`String`) The name of security ike gateway (phase-1).
   * `policy` - (Required)(`String`) The name of ipsec policy.
   * `identity_local` - (Optional)(`String`) IPSec proxy-id local parameter.
@@ -46,7 +46,7 @@ Deprecated argument, use the `junos_interface_st0_unit` resource to find st0 uni
   * `name` - (Required)(`String`) Name of traffic-selector.
   * `local_ip` - (Required)(`String`) CIDR for IP addresses of local traffic-selector.
   * `remote_ip` - (Required)(`String`) CIDR for IP addresses of remote traffic-selector.
-* `vpn_monitor` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare VPN monitor liveness configuration.
+* `vpn_monitor` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare VPN monitor liveness configuration.
   * `destination_ip` - (Optional)(`String`) IP destination for monitor message.
   * `optimized` - (Optional)(`Bool`) Optimize for scalability.
   * `source_interface` - (Optional)(`String`) Set source interface for monitor message. Compute when `source_interface_auto` = true.

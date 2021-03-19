@@ -30,7 +30,7 @@ func resourceRibGroup() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"import_policy": {
 				Type:     schema.TypeList,
@@ -55,6 +55,14 @@ func resourceRibGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setRibGroup(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -251,11 +259,8 @@ func setRibGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	if d.Get("export_rib").(string) != "" {
 		configSet = append(configSet, setPrefix+"export-rib "+d.Get("export_rib").(string))
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readRibGroup(group string, m interface{}, jnprSess *NetconfObject) (ribGroupOptions, error) {
 	sess := m.(*Session)
@@ -293,21 +298,15 @@ func delRibGroupElement(element string, group string, m interface{}, jnprSess *N
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete routing-options rib-groups "+group+" "+element)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func delRibGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete routing-options rib-groups "+d.Get("name").(string))
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func validateRibGroup(d *schema.ResourceData) error {

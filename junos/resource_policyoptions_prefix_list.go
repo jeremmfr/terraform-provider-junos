@@ -30,7 +30,7 @@ func resourcePolicyoptionsPrefixList() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"apply_path": {
 				Type:     schema.TypeString,
@@ -41,7 +41,7 @@ func resourcePolicyoptionsPrefixList() *schema.Resource {
 				Optional: true,
 			},
 			"prefix": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
@@ -52,6 +52,14 @@ func resourcePolicyoptionsPrefixList() *schema.Resource {
 func resourcePolicyoptionsPrefixListCreate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setPolicyoptionsPrefixList(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -233,7 +241,7 @@ func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess 
 	if d.Get("dynamic_db").(bool) {
 		configSet = append(configSet, setPrefix+" dynamic-db")
 	}
-	for _, v := range d.Get("prefix").([]interface{}) {
+	for _, v := range d.Get("prefix").(*schema.Set).List() {
 		err := validateCIDRNetwork(v.(string))
 		if err != nil {
 			return err
@@ -241,11 +249,7 @@ func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess 
 		configSet = append(configSet, setPrefix+" "+v.(string))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readPolicyoptionsPrefixList(prefixList string, m interface{}, jnprSess *NetconfObject) (prefixListOptions, error) {
 	sess := m.(*Session)
@@ -286,11 +290,8 @@ func delPolicyoptionsPrefixList(prefixList string, m interface{}, jnprSess *Netc
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete policy-options prefix-list "+prefixList)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillPolicyoptionsPrefixListData(d *schema.ResourceData, prefixListOptions prefixListOptions) {
 	if tfErr := d.Set("name", prefixListOptions.name); tfErr != nil {
