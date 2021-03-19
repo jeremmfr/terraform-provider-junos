@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * add `junos_null_commit_file` resource (Fixes parts of #136)
 * add provider arguments `file_permission`
 * add provider arguments `fake_create_with_setfile` -  **Don't use in normal terraform run** and **be carefully with this option**. See docs for more informations (Fixes parts of #136)
+* add `feature_profile_web_filtering_juniper_enhanced_server` argument in `utm` argument of `junos_security` resource (Fixes #155)
 
 BUG FIXES:
 * fix change `description` to null in `junos_interface_logical` and `junos_interface_physical` resource

@@ -374,6 +374,10 @@ resource junos_security "testacc_security" {
   }
   utm {
     feature_profile_web_filtering_type = "juniper-enhanced"
+    feature_profile_web_filtering_juniper_enhanced_server {
+      host = "192.0.2.1"
+      port = 1500
+    }
   }
 }
 `
@@ -430,6 +434,17 @@ resource junos_security "testacc_security" {
     rate_cap            = 100
     source_address      = "192.0.2.1"
   }
+  utm {
+    feature_profile_web_filtering_type = "juniper-enhanced"
+    feature_profile_web_filtering_juniper_enhanced_server {
+      host             = "192.0.2.1"
+      port             = 1500
+      routing_instance = junos_routing_instance.testacc_security.name
+    }
+  }
+}
+resource junos_routing_instance testacc_security {
+  name = "testacc_security"
 }
 `
 }
