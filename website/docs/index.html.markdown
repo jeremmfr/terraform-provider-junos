@@ -125,9 +125,9 @@ The following arguments are supported in the `provider` block:
 
 ---
 #### Debug & workaround options
-* `file_permission` - (Optional) The permission to set for the created file (debug, setfile).
+* `file_permission` - (Optional) The permission to set for the created file (debug, setfile).  
+  It can also be sourced from the `JUNOS_FILE_PERMISSION` environment variable.  
   Defaults to `0644`.
-  It can also be sourced from the `JUNOS_FILE_PERMISSION` environment variable.
 
 * `debug_netconf_log_path` - (Optional) more detailed log (netconf) in the specified file.  
   It can also be sourced from the `JUNOS_LOG_PATH` environment variable.
@@ -136,13 +136,13 @@ The following arguments are supported in the `provider` block:
 Then you can upload/commit the file with the `junos_null_commit_file` resource in the same config or another terraform config or with another way.  
 If you are using `junos_null_commit_file` in the same terraform config, you must create dependencies between resources so that the creation of the ` junos_null_commit_file` resource is alone and last.  
 This options is useful to create a workaround for a long terraform run if there are many ressources to be created and Junos device is slow to commit.  
-As many tests are skipped, this option may generate extra config (not managed by terraform) on Junos device or conficts/errors for resources in tfstate. A `terraform refresh` will be able to detect parts of errors but **be carefully with this option**.
+As many tests are skipped, this option may generate extra config (not managed by terraform) on Junos device or conficts/errors for resources in tfstate. A `terraform refresh` will be able to detect parts of errors but **be carefully with this option**.  
 There are exceptions for ressources :
-  * `junos_null_commit_file` - Of course, the skip doesn’t concern this resource.
+  * `junos_null_commit_file`, the skip doesn’t of course concern this resource.
   * `junos_interface_st0_unit` cannot take into account the option and run still normal process.
   * `junos_interface_physical` don’t generate `chassis aggregated-devices ethernet device-count` line when it should be necessary.
 
-  It can also be sourced from the `JUNOS_FAKECREATE_SETFILE` environment variable.
+   It can also be sourced from the `JUNOS_FAKECREATE_SETFILE` environment variable.
 
 ## Interface specifications
 

@@ -8,8 +8,7 @@ jobs:
     name: Update Website
     runs-on: ubuntu-latest
     if: |
-      startsWith(github.event.head_commit.message, '[website]') ||
-      (github.event.release.name != '' && github.event.release.draft == false)
+      startsWith(github.event.head_commit.message, '[website]')
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
