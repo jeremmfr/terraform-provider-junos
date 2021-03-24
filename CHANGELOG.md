@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* add `junos_services_security_intelligence_profile` resource (Fixes partes of #145)
 
 BUG FIXES:
 

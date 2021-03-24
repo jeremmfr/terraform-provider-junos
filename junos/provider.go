@@ -168,6 +168,7 @@ func Provider() *schema.Provider {
 			"junos_security_utm_profile_web_filtering_juniper_local":     resourceSecurityUtmProfileWebFilteringLocal(),
 			"junos_security_utm_profile_web_filtering_websense_redirect": resourceSecurityUtmProfileWebFilteringWebsense(),
 			"junos_security_zone":                                        resourceSecurityZone(),
+			"junos_services_security_intelligence_profile":               resourceServicesSecurityIntellProfile(),
 			"junos_static_route":                                         resourceStaticRoute(),
 			"junos_system":                                               resourceSystem(),
 			"junos_system_login_class":                                   resourceSystemLoginClass(),
