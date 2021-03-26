@@ -118,7 +118,7 @@ func resourceVlan() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validation.IntBetween(0, 16777214),
 						},
-						"vni_extend": {
+						"vni_extend_evpn": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
@@ -360,7 +360,7 @@ func setVlan(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 		vxlan := v.(map[string]interface{})
 		configSet = append(configSet, setPrefix+"vxlan vni "+strconv.Itoa(vxlan["vni"].(int)))
 
-		if vxlan["vni_extend"].(bool) {
+		if vxlan["vni_extend_evpn"].(bool) {
 			configSet = append(configSet, "set protocols evpn extended-vni-list "+strconv.Itoa(vxlan["vni"].(int)))
 		}
 		if vxlan["encapsulate_inner_vlan"].(bool) {
@@ -445,7 +445,7 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 			case strings.HasPrefix(itemTrim, "vxlan "):
 				vxlan := map[string]interface{}{
 					"vni":                          -1,
-					"vni_extend":                   false,
+					"vni_extend_evpn":              false,
 					"encapsulate_inner_vlan":       false,
 					"ingress_node_replication":     false,
 					"multicast_group":              "",
@@ -478,7 +478,7 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 								}
 								itemTrim := strings.TrimPrefix(item, setLineStart)
 								if strings.HasPrefix(itemTrim, "extended-vni-list "+strconv.Itoa(vxlan["vni"].(int))) {
-									vxlan["vni_extend"] = true
+									vxlan["vni_extend_evpn"] = true
 								}
 							}
 						}
@@ -512,7 +512,7 @@ func delVlan(vlan string, vxlan []interface{}, m interface{}, jnprSess *NetconfO
 	configSet = append(configSet, "delete vlans "+vlan)
 	for _, v := range vxlan {
 		vxlanParams := v.(map[string]interface{})
-		if vxlanParams["vni_extend"].(bool) {
+		if vxlanParams["vni_extend_evpn"].(bool) {
 			configSet = append(configSet, "delete protocols evpn extended-vni-list "+strconv.Itoa(vxlanParams["vni"].(int)))
 		}
 	}
