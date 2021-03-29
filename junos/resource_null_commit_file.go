@@ -95,8 +95,7 @@ func readNullCommitFile(filename string) ([]string, error) {
 	if err := replaceTildeToHomeDir(&filename); err != nil {
 		return []string{}, err
 	}
-	_, err := os.Stat(filename)
-	if os.IsNotExist(err) {
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		return []string{}, fmt.Errorf("file `%s` doesn't exist", filename)
 	}
 	fileReadByte, err := ioutil.ReadFile(filename)

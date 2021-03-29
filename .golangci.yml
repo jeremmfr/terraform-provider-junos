@@ -3,6 +3,9 @@ run:
 linters:
   enable-all: true
   disable:
+    - maligned # deprecated
+    - scopelint # deprecated
+    - interfacer # deprecated
     - funlen
     - gochecknoglobals
     - dupl
