@@ -81,6 +81,14 @@ func resourceSecurityPolicy() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+						"match_destination_address_excluded": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"match_source_address_excluded": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
 						"permit_application_services": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -393,6 +401,12 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		if policy["log_close"].(bool) {
 			configSet = append(configSet, setPrefixPolicy+" then log session-close")
 		}
+		if policy["match_destination_address_excluded"].(bool) {
+			configSet = append(configSet, setPrefixPolicy+" match destination-address-excluded")
+		}
+		if policy["match_source_address_excluded"].(bool) {
+			configSet = append(configSet, setPrefixPolicy+" match source-address-excluded")
+		}
 		if policy["permit_tunnel_ipsec_vpn"].(string) != "" {
 			if policy["then"].(string) != permitWord {
 				return fmt.Errorf("conflict policy then %v and policy permit_tunnel_ipsec_vpn",
@@ -460,6 +474,10 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 				case strings.HasPrefix(itemTrimPolicy, "match application "):
 					m["match_application"] = append(m["match_application"].([]string),
 						strings.TrimPrefix(itemTrimPolicy, "match application "))
+				case strings.HasPrefix(itemTrimPolicy, "match destination-address-excluded"):
+					m["match_destination_address_excluded"] = true
+				case strings.HasPrefix(itemTrimPolicy, "match source-address-excluded"):
+					m["match_source_address_excluded"] = true
 				case strings.HasPrefix(itemTrimPolicy, "then "):
 					switch {
 					case strings.HasSuffix(itemTrimPolicy, permitWord),
@@ -512,16 +530,18 @@ func fillSecurityPolicyData(d *schema.ResourceData, policyOptions policyOptions)
 
 func genMapPolicyWithName(name string) map[string]interface{} {
 	return map[string]interface{}{
-		"name":                        name,
-		"match_source_address":        make([]string, 0),
-		"match_destination_address":   make([]string, 0),
-		"match_application":           make([]string, 0),
-		"then":                        "",
-		"count":                       false,
-		"log_init":                    false,
-		"log_close":                   false,
-		"permit_application_services": make([]map[string]interface{}, 0),
-		"permit_tunnel_ipsec_vpn":     "",
+		"name":                               name,
+		"match_source_address":               make([]string, 0),
+		"match_destination_address":          make([]string, 0),
+		"match_application":                  make([]string, 0),
+		"then":                               "",
+		"count":                              false,
+		"log_init":                           false,
+		"log_close":                          false,
+		"match_destination_address_excluded": false,
+		"match_source_address_excluded":      false,
+		"permit_application_services":        make([]map[string]interface{}, 0),
+		"permit_tunnel_ipsec_vpn":            "",
 	}
 }
 

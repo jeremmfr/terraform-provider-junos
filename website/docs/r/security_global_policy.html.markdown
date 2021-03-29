@@ -52,6 +52,8 @@ The following arguments are supported:
   * `count` - (Optional)(`Bool`) Enable count.
   * `log_init` - (Optional)(`Bool`) Log at session init time.
   * `log_close` - (Optional)(`Bool`) Log at session close time.
+  * `match_destination_address_excluded` - (Optional)(`Bool`) Exclude destination addresses.
+  * `match_source_address_excluded` - (Optional)(`Bool`) Exclude source addresses.
   * `permit_application_services` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'permit application-services' configuration. See the [`permit_application_services` arguments] (#permit_application_services-arguments) block.
 
 ---

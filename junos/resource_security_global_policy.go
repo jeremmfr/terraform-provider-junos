@@ -77,6 +77,14 @@ func resourceSecurityGlobalPolicy() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+						"match_destination_address_excluded": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"match_source_address_excluded": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
 						"permit_application_services": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -346,6 +354,12 @@ func setSecurityGlobalPolicy(d *schema.ResourceData, m interface{}, jnprSess *Ne
 		if policy["log_close"].(bool) {
 			configSet = append(configSet, setPrefixPolicy+" then log session-close")
 		}
+		if policy["match_destination_address_excluded"].(bool) {
+			configSet = append(configSet, setPrefixPolicy+" match destination-address-excluded")
+		}
+		if policy["match_source_address_excluded"].(bool) {
+			configSet = append(configSet, setPrefixPolicy+" match source-address-excluded")
+		}
 		if len(policy["permit_application_services"].([]interface{})) > 0 {
 			if policy["permit_application_services"].([]interface{})[0] == nil {
 				return fmt.Errorf("permit_application_services block is empty")
@@ -404,6 +418,10 @@ func readSecurityGlobalPolicy(m interface{}, jnprSess *NetconfObject) (globalPol
 				case strings.HasPrefix(itemTrimPolicy, "match to-zone "):
 					m["match_to_zone"] = append(m["match_to_zone"].([]string),
 						strings.TrimPrefix(itemTrimPolicy, "match to-zone "))
+				case strings.HasPrefix(itemTrimPolicy, "match destination-address-excluded"):
+					m["match_destination_address_excluded"] = true
+				case strings.HasPrefix(itemTrimPolicy, "match source-address-excluded"):
+					m["match_source_address_excluded"] = true
 				case strings.HasPrefix(itemTrimPolicy, "then "):
 					switch {
 					case strings.HasSuffix(itemTrimPolicy, permitWord),
@@ -446,17 +464,19 @@ func fillSecurityGlobalPolicyData(d *schema.ResourceData, globalPolicyOptions gl
 
 func genMapGlobalPolicyWithName(name string) map[string]interface{} {
 	return map[string]interface{}{
-		"name":                        name,
-		"match_source_address":        make([]string, 0),
-		"match_destination_address":   make([]string, 0),
-		"match_application":           make([]string, 0),
-		"match_from_zone":             make([]string, 0),
-		"match_to_zone":               make([]string, 0),
-		"then":                        "",
-		"count":                       false,
-		"log_init":                    false,
-		"log_close":                   false,
-		"permit_application_services": make([]map[string]interface{}, 0),
+		"name":                               name,
+		"match_source_address":               make([]string, 0),
+		"match_destination_address":          make([]string, 0),
+		"match_application":                  make([]string, 0),
+		"match_from_zone":                    make([]string, 0),
+		"match_to_zone":                      make([]string, 0),
+		"then":                               "",
+		"count":                              false,
+		"log_init":                           false,
+		"log_close":                          false,
+		"match_destination_address_excluded": false,
+		"match_source_address_excluded":      false,
+		"permit_application_services":        make([]map[string]interface{}, 0),
 	}
 }
 

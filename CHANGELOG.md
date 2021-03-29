@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* add `match_destination_address_excluded` and `match_source_address_excluded` arguments in `junos_security_global_policy` and `junos_security_policy` resources (Fixes #159)
 
 BUG FIXES:
 
