@@ -41,6 +41,8 @@ The following arguments are supported:
   * `count` - (Optional)(`Bool`) Enable count.
   * `log_init` - (Optional)(`Bool`) Log at session init time.
   * `log_close` - (Optional)(`Bool`) Log at session close time.
+  * `match_destination_address_excluded` - (Optional)(`Bool`) Exclude destination addresses.
+  * `match_source_address_excluded` - (Optional)(`Bool`) Exclude source addresses.
   * `permit_tunnel_ipsec_vpn` - (Optional)(`String`) Name of vpn to permit with a tunnel ipsec.
   * `permit_application_services` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html) Define application services for permit. See the [`permit_application_services` arguments for policy](#permit_application_services-arguments-for-policy) block. Max of 1.
 

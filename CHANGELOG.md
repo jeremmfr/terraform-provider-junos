@@ -4,6 +4,7 @@ ENHANCEMENTS:
 * add `junos_services_security_intelligence_policy` resource (Fixes partes of #145)
 * add `junos_services_proxy_profile` resource
 * add `junos_services` resource (Fixes partes of #145)
+* add `match_destination_address_excluded` and `match_source_address_excluded` arguments in `junos_security_global_policy` and `junos_security_policy` resources (Fixes #159)
 
 BUG FIXES:
 
