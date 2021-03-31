@@ -85,6 +85,11 @@ func resourceSecurityPolicy() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+						"match_dynamic_application": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
 						"match_source_address_excluded": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -404,6 +409,9 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		if policy["match_destination_address_excluded"].(bool) {
 			configSet = append(configSet, setPrefixPolicy+" match destination-address-excluded")
 		}
+		for _, v := range policy["match_dynamic_application"].([]interface{}) {
+			configSet = append(configSet, setPrefixPolicy+" match dynamic-application "+v.(string))
+		}
 		if policy["match_source_address_excluded"].(bool) {
 			configSet = append(configSet, setPrefixPolicy+" match source-address-excluded")
 		}
@@ -476,6 +484,9 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 						strings.TrimPrefix(itemTrimPolicy, "match application "))
 				case strings.HasPrefix(itemTrimPolicy, "match destination-address-excluded"):
 					m["match_destination_address_excluded"] = true
+				case strings.HasPrefix(itemTrimPolicy, "match dynamic-application "):
+					m["match_dynamic_application"] = append(m["match_dynamic_application"].([]string),
+						strings.TrimPrefix(itemTrimPolicy, "match dynamic-application "))
 				case strings.HasPrefix(itemTrimPolicy, "match source-address-excluded"):
 					m["match_source_address_excluded"] = true
 				case strings.HasPrefix(itemTrimPolicy, "then "):
@@ -539,6 +550,7 @@ func genMapPolicyWithName(name string) map[string]interface{} {
 		"log_init":                           false,
 		"log_close":                          false,
 		"match_destination_address_excluded": false,
+		"match_dynamic_application":          make([]string, 0),
 		"match_source_address_excluded":      false,
 		"permit_application_services":        make([]map[string]interface{}, 0),
 		"permit_tunnel_ipsec_vpn":            "",

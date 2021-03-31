@@ -69,6 +69,7 @@ resource junos_security_policy testacc_securityPolicy {
     match_source_address      = ["testacc_address1"]
     match_destination_address = ["any"]
     match_application         = ["junos-ssh"]
+    match_dynamic_application = ["junos:web:wiki", "junos:web:infrastructure"]
     log_init                  = true
     log_close                 = true
     count                     = true
@@ -105,6 +106,7 @@ resource junos_security_policy testacc_securityPolicy {
     match_destination_address          = ["testacc_address1"]
     match_destination_address_excluded = true
     match_application                  = ["any"]
+    match_dynamic_application          = ["junos:web:wiki", "junos:web:search", "junos:web:infrastructure"]
     then                               = "reject"
   }
 }
