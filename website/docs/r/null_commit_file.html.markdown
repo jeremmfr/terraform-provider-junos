@@ -10,7 +10,7 @@ description: |-
 
 Load a file with set/delete lines on device and commit
 
-~> **NOTE:** Not provide a real resource, just load content of file with set/delete to candidate configuration on device, and commit  
+~> **NOTE:** Not provide a real resource, just load content of file with set/delete lines to candidate configuration on device, and commit  
 
 ## Example Usage
 

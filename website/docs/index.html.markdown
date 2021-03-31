@@ -130,7 +130,8 @@ The following arguments are supported in the `provider` block:
   Defaults to `0644`.
 
 * `debug_netconf_log_path` - (Optional) more detailed log (netconf) in the specified file.  
-  It can also be sourced from the `JUNOS_LOG_PATH` environment variable.
+  It can also be sourced from the `JUNOS_LOG_PATH` environment variable.  
+  Defaults is empty.
 
 * `fake_create_with_setfile` - (Optional, **don't use in normal terraform run**) When this option is set (with a path to a file), the normal process to create resources (netconf connection, precheck, generate/upload set lines in candidate configuration, commit, postcheck) skipped to generate set lines, append them to the specified file, and respond with a `fake` successful creation of resource to Terraform.  
 Then you can upload/commit the file with the `junos_null_commit_file` resource in the same config or another terraform config or with another way.  
@@ -142,7 +143,8 @@ There are exceptions for ressources :
   * `junos_interface_st0_unit` cannot take into account the option and run still normal process.
   * `junos_interface_physical` don’t generate `chassis aggregated-devices ethernet device-count` line when it should be necessary.
 
-   It can also be sourced from the `JUNOS_FAKECREATE_SETFILE` environment variable.
+   It can also be sourced from the `JUNOS_FAKECREATE_SETFILE` environment variable.  
+   Defaults is empty.
 
 ## Interface specifications
 
