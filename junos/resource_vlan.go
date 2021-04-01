@@ -232,7 +232,7 @@ func resourceVlanUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	if d.HasChange("vxlan") {
-		oldVxlan, _ := d.GetChange("vlan")
+		oldVxlan, _ := d.GetChange("vxlan")
 		if err := delVlan(d.Get("name").(string), oldVxlan.([]interface{}), m, jnprSess); err != nil {
 			sess.configClear(jnprSess)
 
