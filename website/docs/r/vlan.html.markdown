@@ -43,7 +43,7 @@ The following arguments are supported:
   * `ingress_node_replication` - (Optional)(`Bool`) Enable ingress node replication.
   * `multicast_group` - (Optional)(`String`) CDIR for Multicast group registered for VXLAN segment.
   * `ovsdb_managed` - (Optional)(`Bool`) Bridge-domain is managed remotely via VXLAN OVSDB Controller.
-  * `vni_extend_evpn` - (Optional)(`Bool`) Extend VNI to EVPN
+  * `vni_extend_evpn` - (Optional)(`Bool`) Extend VNI to EVPN.
   * `unreachable_vtep_aging_timer` - (Optional)(`Int`) Unreachable VXLAN tunnel endpoint removal timer.
 
 

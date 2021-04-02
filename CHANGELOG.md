@@ -5,6 +5,7 @@ ENHANCEMENTS:
 * add `junos_services_proxy_profile` resource
 * add `junos_services` resource (Fixes parts of #145)
 * add `match_destination_address_excluded` and `match_source_address_excluded` arguments in `junos_security_global_policy` and `junos_security_policy` resources (Fixes #159)
+* add `vni_extend_evpn` argument on `vxlan` argument in `junos_vlan` resource (Fixes parts of #132) Thanks @dejongm
 
 BUG FIXES:
 
