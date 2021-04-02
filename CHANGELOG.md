@@ -6,6 +6,7 @@ ENHANCEMENTS:
 * add `junos_services` resource (Fixes parts of #145)
 * add `match_destination_address_excluded` and `match_source_address_excluded` arguments in `junos_security_global_policy` and `junos_security_policy` resources (Fixes #159)
 * add `match_dynamic_application` argument in `junos_security_global_policy` and `junos_security_policy` resources (Fixes parts of #158)
+* add `forwarding_process` argument in `junos_security` resource (Fixes parts of #158)
 
 BUG FIXES:
 
