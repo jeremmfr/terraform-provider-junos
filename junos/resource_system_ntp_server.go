@@ -47,7 +47,7 @@ func resourceSystemNtpServer() *schema.Resource {
 			"routing_instance": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"version": {
 				Type:         schema.TypeInt,
@@ -60,6 +60,14 @@ func resourceSystemNtpServer() *schema.Resource {
 
 func resourceSystemNtpServerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setSystemNtpServer(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("address").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -245,11 +253,7 @@ func setSystemNtpServer(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		configSet = append(configSet, setPrefix+" version "+strconv.Itoa(d.Get("version").(int)))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSystemNtpServer(address string, m interface{}, jnprSess *NetconfObject) (ntpServerOptions, error) {
 	sess := m.(*Session)
@@ -298,11 +302,8 @@ func delSystemNtpServer(address string, m interface{}, jnprSess *NetconfObject) 
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system ntp server "+address)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillSystemNtpServerData(d *schema.ResourceData, ntpServerOptions ntpServerOptions) {
 	if tfErr := d.Set("address", ntpServerOptions.address); tfErr != nil {

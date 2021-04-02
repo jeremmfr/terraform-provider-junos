@@ -31,7 +31,7 @@ func resourceIpsecPolicy() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 			},
 			"pfs_keys": {
 				Type:     schema.TypeString,
@@ -56,6 +56,14 @@ func resourceIpsecPolicy() *schema.Resource {
 
 func resourceIpsecPolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setIpsecPolicy(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -236,11 +244,7 @@ func setIpsecPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 		configSet = append(configSet, setPrefix+" proposal-set "+d.Get("proposal_set").(string))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readIpsecPolicy(ipsecPolicy string, m interface{}, jnprSess *NetconfObject) (ipsecPolicyOptions, error) {
 	sess := m.(*Session)
@@ -278,11 +282,8 @@ func delIpsecPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ipsec policy "+d.Get("name").(string))
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillIpsecPolicyData(d *schema.ResourceData, ipsecPolicyOptions ipsecPolicyOptions) {

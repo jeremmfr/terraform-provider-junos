@@ -30,16 +30,17 @@ resource junos_security "security" {
 
 The following arguments are supported:
 
-* `alg` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'alg' configuration. See the [`alg` arguments] (#alg-arguments) block.
-* `flow` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'flow' configuration. See the [`flow` arguments] (#flow-arguments) block.
-* `forwarding_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'forwarding-options' configuration. See the [`forwarding_options` arguments] (#forwarding_options-arguments) block.
-* `ike_traceoptions` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'ike traceoptions' configuration.
-  * `file` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'file' configuration. See the [`file` arguments for ike_traceoptions] (#file-arguments-for-ike_traceoptions) block.
+* `alg` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'alg' configuration. See the [`alg` arguments] (#alg-arguments) block.
+* `flow` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'flow' configuration. See the [`flow` arguments] (#flow-arguments) block.
+* `forwarding_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'forwarding-options' configuration. See the [`forwarding_options` arguments] (#forwarding_options-arguments) block.
+* `ike_traceoptions` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'ike traceoptions' configuration.
+  * `file` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'file' configuration. See the [`file` arguments for ike_traceoptions] (#file-arguments-for-ike_traceoptions) block.
   * `flag` - (Optional)(`ListOfString`) Tracing parameters for IKE.
   * `rate_limit` - (Optional)(`Int`) Limit the incoming rate of trace messages (0..4294967295)
-* `log` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'log' configuration. See the [`log` arguments] (#log-arguments) block.
-* `utm` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'utm' configuration.
+* `log` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'log' configuration. See the [`log` arguments] (#log-arguments) block.
+* `utm` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'utm' configuration.
   * `feature_profile_web_filtering_type` - (Optional)(`String`) Configuring feature-profile web-filtering type. Need to be 'juniper-enhanced', 'juniper-local', 'web-filtering-none' or 'websense-redirect'.
+  * `feature_profile_web_filtering_juniper_enhanced_server` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'server' configuration. See the [`feature_profile_web_filtering_juniper_enhanced_server` arguments for utm] (#feature_profile_web_filtering_juniper_enhanced_server-arguments-for-utm) block.
 
 ---
 #### alg arguments
@@ -67,11 +68,11 @@ The following arguments are supported:
 
 ---
 #### flow arguments
-* `advanced_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'flow advanced-options' configuration.
+* `advanced_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'flow advanced-options' configuration.
   * `drop_matching_reserved_ip_address` - (Optional)(`Bool`) Drop matching reserved source IP address.
   * `drop_matching_link_local_address` - (Optional)(`Bool`) Drop matching link local address.
   * `reverse_route_packet_mode_vr` - (Optional)(`Bool`) Allow reverse route lookup with packet mode vr.
-* `aging` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'flow aging' configuration.
+* `aging` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'flow aging' configuration.
   * `early_ageout` - (Optional)(`Int`) Delay before device declares session invalid (1..65535 seconds).
   * `high_watermark` - (Optional)(`Bool`) Percentage of session-table capacity at which aggressive aging-out starts (0..100 percent).
   * `low_watermark` - (Optional)(`Bool`) Percentage of session-table capacity at which aggressive aging-out ends (0..100 percent).
@@ -79,7 +80,7 @@ The following arguments are supported:
 * `allow_embedded_icmp` - (Optional)(`Bool`) Allow embedded ICMP packets not matching a session to pass through.
 * `allow_reverse_ecmp` - (Optional)(`Bool`) Allow reverse ECMP route lookup.
 * `enable_reroute_uniform_link_check_nat` - (Optional)(`Bool`) Enable reroute check with uniform link and NAT check.
-* `ethernet_switching` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'flow ethernet-switching' configuration.
+* `ethernet_switching` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'flow ethernet-switching' configuration.
   * `block_non_ip_all` - (Optional)(`Bool`) Block all non-IP and non-ARP traffic including broadcast/multicast.
   * `bypass_non_ip_unicast` - (Optional)(`Bool`) Allow all non-IP (including unicast) traffic.
   * `bpdu_vlan_flooding` - (Optional)(`Bool`) Set 802.1D BPDU flooding based on VLAN.
@@ -93,7 +94,7 @@ The following arguments are supported:
 * `route_change_timeout` - (Optional)(`Int`) Timeout value for route change to nonexistent route (6..1800 seconds).
 * `syn_flood_protection_mode` - (Optional)(`String`) TCP SYN flood protection mode. Need to be 'syn-cookie' or 'syn-proxy'.
 * `sync_icmp_session` - (Optional)(`Bool`) Allow icmp sessions to sync to peer node.
-* `tcp_mss` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'flow tcp-mss' configuration.
+* `tcp_mss` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'flow tcp-mss' configuration.
   * `all_tcp_mss` - (Optional)(`Int`) Enable MSS override for all packets with this value.
   * `gre_in` - Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for enable MSS override for all GRE packets coming out of an IPSec tunnel.
   There is one argument : `mss` - (Optional)(`Int`) MSS Value.
@@ -101,7 +102,7 @@ The following arguments are supported:
   There is one argument : `mss` - (Optional)(`Int`) MSS Value.
   * `ipsec_vpn` - Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for enable MSS override for all packets entering IPSec tunnel.
   There is one argument : `mss` - (Optional)(`Int`) MSS Value.
-* `tcp_session` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'flow tcp-session' configuration.
+* `tcp_session` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'flow tcp-session' configuration.
   * `fin_invalidate_session` - (Optional)(`Bool`) Immediately end session on receipt of fin (FIN) segment.
   * `maximum_window` -  Maximum TCP proxy scaled receive window. Need to be '64K', '128K', '256K', '512K' or '1M'.
   * `no_sequence_check` - (Optional)(`Bool`) Disable sequence-number checking.
@@ -111,7 +112,7 @@ The following arguments are supported:
   * `rst_sequence_check` - (Optional)(`Bool`) Check sequence number in reset (RST) segment.
   * `strict_syn_check` - (Optional)(`Bool`) Enable strict syn check. Conflict with `no_sync_check` and `no_syn_check_in_tunnel`.
   * `tcp_initial_timeout` - (Optional)(`Int`) Timeout for TCP session when initialization fails (4..300 seconds).
-  * `time_wait_state` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare session timeout value in time-wait state. See the [`time_wait_state` arguments for tcp_session in flow] (#time_wait_state-arguments-for-tcp_session-in-flow) block.
+  * `time_wait_state` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare session timeout value in time-wait state. See the [`time_wait_state` arguments for tcp_session in flow] (#time_wait_state-arguments-for-tcp_session-in-flow) block.
 
 ---
 #### forwarding_options arguments
@@ -147,6 +148,13 @@ The following arguments are supported:
 * `apply_to_half_close_state` - (Optional)(`Bool`) Apply time-wait-state timeout to half-close state.
 * `session_ageout` - (Optional)(`Bool`) Allow session to ageout using service based timeout values.
 * `session_timeout` - (Optional)(`Int`) Configure session timeout value for time-wait state (2..600 seconds).
+
+---
+#### feature_profile_web_filtering_juniper_enhanced_server arguments for utm
+* `host` - (Optional)(`String`) Server host IP address or string host name.
+* `port` - (Optional)(`Int`) Server port (1..65535).
+* `proxy_profile` - (Optional)(`String`) Proxy profile.
+* `routing_instance` - (Optional)(`String`) Routing instance name.
 
 ## Import
 

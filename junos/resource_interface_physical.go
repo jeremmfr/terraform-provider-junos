@@ -14,15 +14,19 @@ import (
 )
 
 type interfacePhysicalOptions struct {
-	trunk       bool
-	vlanTagging bool
-	aeMinLink   int
-	vlanNative  int
-	aeLacp      string
-	aeLinkSpeed string
-	description string
-	v8023ad     string
-	vlanMembers []string
+	trunk           bool
+	vlanTagging     bool
+	aeMinLink       int
+	vlanNative      int
+	aeLacp          string
+	aeLinkSpeed     string
+	description     string
+	v8023ad         string
+	vlanMembers     []string
+	esi             []map[string]interface{}
+	etherOpts       []map[string]interface{}
+	gigetherOpts    []map[string]interface{}
+	parentEtherOpts []map[string]interface{}
 }
 
 func resourceInterfacePhysical() *schema.Resource {
@@ -54,27 +58,144 @@ func resourceInterfacePhysical() *schema.Resource {
 				Optional: true,
 			},
 			"ae_lacp": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "",
-				ValidateFunc: validation.StringInSlice([]string{"active", "passive"}, false),
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  validation.StringInSlice([]string{"active", "passive"}, false),
+				ConflictsWith: []string{"parent_ether_opts"},
+				Deprecated:    "use parent_ether_opts { lacp } instead",
 			},
 			"ae_link_speed": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"100m", "1g", "8g", "10g", "40g", "50g", "80g", "100g"}, false),
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  validation.StringInSlice([]string{"100m", "1g", "8g", "10g", "40g", "50g", "80g", "100g"}, false),
+				ConflictsWith: []string{"parent_ether_opts"},
+				Deprecated:    "use parent_ether_opts { link_speed } instead",
 			},
 			"ae_minimum_links": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:          schema.TypeInt,
+				Optional:      true,
+				ConflictsWith: []string{"parent_ether_opts"},
+				Deprecated:    "use parent_ether_opts { minimum_links } instead",
 			},
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"ether802_3ad": {
-				Type:     schema.TypeString,
+			"esi": {
+				Type:     schema.TypeList,
 				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"mode": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice([]string{"all-active", "single-active"}, false),
+						},
+						"auto_derive_lacp": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"esi.0.identifier"},
+						},
+						"df_election_type": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"mod", "preference"}, false),
+						},
+						"identifier": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"esi.0.auto_derive_lacp"},
+							ValidateFunc: validation.StringMatch(regexp.MustCompile(
+								`^([\d\w]{2}:){9}[\d\w]{2}$`), "bad format or length"),
+						},
+						"source_bmac": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsMACAddress,
+						},
+					},
+				},
+			},
+			"ether_opts": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ConflictsWith: []string{
+					"ae_lacp", "ae_link_speed", "ae_minimum_links",
+					"gigether_opts", "parent_ether_opts",
+				},
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"ae_8023ad": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"ether_opts.0.redundant_parent"},
+							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
+								value := v.(string)
+								if !strings.HasPrefix(value, "ae") {
+									errors = append(errors, fmt.Errorf(
+										"%q in %q isn't an ae interface", value, k))
+								}
+
+								return
+							},
+						},
+						"auto_negotiation": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"gigether_opts.0.no_auto_negotiation"},
+						},
+						"no_auto_negotiation": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"gigether_opts.0.auto_negotiation"},
+						},
+						"flow_control": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"gigether_opts.0.no_flow_control"},
+						},
+						"no_flow_control": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"gigether_opts.0.flow_control"},
+						},
+						"loopback": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"gigether_opts.0.no_loopback"},
+						},
+						"no_loopback": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"gigether_opts.0.loopback"},
+						},
+						"redundant_parent": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"ether_opts.0.ae_8023ad"},
+							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
+								value := v.(string)
+								if !strings.HasPrefix(value, "reth") {
+									errors = append(errors, fmt.Errorf(
+										"%q in %q isn't an reth interface", value, k))
+								}
+
+								return
+							},
+						},
+					},
+				},
+			},
+			"ether802_3ad": {
+				Type:       schema.TypeString,
+				Optional:   true,
+				Deprecated: "use ether_opts { ae_8023ad } or gigether_opts { ae_8023ad } instead",
+				ConflictsWith: []string{
+					"ae_lacp", "ae_link_speed", "ae_minimum_links",
+					"ether_opts", "gigether_opts",
+				},
 				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
 					value := v.(string)
 					if !strings.HasPrefix(value, "ae") {
@@ -83,6 +204,265 @@ func resourceInterfacePhysical() *schema.Resource {
 					}
 
 					return
+				},
+			},
+			"gigether_opts": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ConflictsWith: []string{
+					"ae_lacp", "ae_link_speed", "ae_minimum_links",
+					"ether_opts", "ether802_3ad", "parent_ether_opts",
+				},
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"ae_8023ad": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"gigether_opts.0.redundant_parent"},
+							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
+								value := v.(string)
+								if !strings.HasPrefix(value, "ae") {
+									errors = append(errors, fmt.Errorf(
+										"%q in %q isn't an ae interface", value, k))
+								}
+
+								return
+							},
+						},
+						"auto_negotiation": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"gigether_opts.0.no_auto_negotiation"},
+						},
+						"no_auto_negotiation": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"gigether_opts.0.auto_negotiation"},
+						},
+						"flow_control": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"gigether_opts.0.no_flow_control"},
+						},
+						"no_flow_control": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"gigether_opts.0.flow_control"},
+						},
+						"loopback": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"gigether_opts.0.no_loopback"},
+						},
+						"no_loopback": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"gigether_opts.0.loopback"},
+						},
+						"redundant_parent": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"gigether_opts.0.ae_8023ad"},
+							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
+								value := v.(string)
+								if !strings.HasPrefix(value, "reth") {
+									errors = append(errors, fmt.Errorf(
+										"%q in %q isn't an reth interface", value, k))
+								}
+
+								return
+							},
+						},
+					},
+				},
+			},
+			"parent_ether_opts": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ConflictsWith: []string{
+					"ae_lacp", "ae_link_speed", "ae_minimum_links",
+					"ether_opts", "ether802_3ad", "gigether_opts",
+				},
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"bfd_liveness_detection": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"local_address": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.IsIPAddress,
+									},
+									"authentication_algorithm": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"keyed-md5", "keyed-sha-1", "meticulous-keyed-md5", "meticulous-keyed-sha-1", "simple-password",
+										}, false),
+									},
+									"authentication_key_chain": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"authentication_loose_check": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"detection_time_threshold": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 4294967295),
+									},
+									"holddown_interval": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 255000),
+									},
+									"minimum_interval": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 255000),
+									},
+									"minimum_receive_interval": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 255000),
+									},
+									"multiplier": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 255),
+									},
+									"neighbor": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.IsIPAddress,
+									},
+									"no_adaptation": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"transmit_interval_minimum_interval": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 255000),
+									},
+									"transmit_interval_threshold": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 4294967295),
+									},
+									"version": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice([]string{"0", "1", "automatic"}, false),
+									},
+								},
+							},
+						},
+						"flow_control": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"parent_ether_opts.0.no_flow_control"},
+						},
+						"no_flow_control": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"parent_ether_opts.0.flow_control"},
+						},
+						"lacp": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"mode": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice([]string{"active", "passive"}, false),
+									},
+									"admin_key": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      -1,
+										ValidateFunc: validation.IntBetween(0, 65535),
+									},
+									"periodic": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice([]string{"fast", "slow"}, false),
+									},
+									"sync_reset": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice([]string{"disable", "enable"}, false),
+									},
+									"system_id": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.IsMACAddress,
+									},
+									"system_priority": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      -1,
+										ValidateFunc: validation.IntBetween(0, 65535),
+									},
+								},
+							},
+						},
+						"loopback": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"parent_ether_opts.0.no_loopback"},
+						},
+						"no_loopback": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"parent_ether_opts.0.loopback"},
+						},
+						"link_speed": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"100m",
+								"1g", "2.5g", "5g", "8g",
+								"10g", "25g", "40g", "50g", "80g",
+								"100g", "400g", "mixed"}, false),
+						},
+						"minimum_bandwidth": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"parent_ether_opts.0.minimum_links"},
+							ValidateFunc: validation.StringMatch(regexp.MustCompile(
+								`^[0-9]+ (k|g|m)?bps$`), "must be 'N (k|g|m)?bps' format"),
+						},
+						"minimum_links": {
+							Type:          schema.TypeInt,
+							Optional:      true,
+							ConflictsWith: []string{"parent_ether_opts.0.minimum_bandwidth"},
+							ValidateFunc:  validation.IntBetween(1, 64),
+						},
+						"redundancy_group": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 128),
+						},
+						"source_address_filter": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"source_filtering": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
 				},
 			},
 			"trunk": {
@@ -109,6 +489,17 @@ func resourceInterfacePhysical() *schema.Resource {
 
 func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := delInterfaceNC(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setInterfacePhysical(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -226,6 +617,11 @@ func resourceInterfacePhysicalUpdate(ctx context.Context, d *schema.ResourceData
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	if err := delInterfacePhysicalOpts(d, m, jnprSess); err != nil {
+		sess.configClear(jnprSess)
+
+		return diag.FromErr(err)
+	}
+	if err := unsetInterfacePhysicalAE(d, m, jnprSess); err != nil {
 		sess.configClear(jnprSess)
 
 		return diag.FromErr(err)
@@ -406,6 +802,47 @@ func checkInterfaceExists(interFace string, m interface{}, jnprSess *NetconfObje
 	return true, nil
 }
 
+func unsetInterfacePhysicalAE(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
+	sess := m.(*Session)
+	var oldAE string
+	switch {
+	case d.HasChange("ether802_3ad"):
+		oldAEtf, _ := d.GetChange("ether802_3ad")
+		if oldAEtf.(string) != "" {
+			oldAE = oldAEtf.(string)
+		}
+	case d.HasChange("ether_opts"):
+		oldEthOpts, _ := d.GetChange("ether_opts")
+		if len(oldEthOpts.([]interface{})) != 0 {
+			v := oldEthOpts.([]interface{})[0]
+			if o := v.(map[string]interface{})["ae_8023ad"].(string); o != "" {
+				oldAE = o
+			}
+		}
+	case d.HasChange("gigether_opts"):
+		oldGigethOpts, _ := d.GetChange("gigether_opts")
+		if len(oldGigethOpts.([]interface{})) != 0 {
+			v := oldGigethOpts.([]interface{})[0]
+			if o := v.(map[string]interface{})["ae_8023ad"].(string); o != "" {
+				oldAE = o
+			}
+		}
+	}
+	if oldAE != "" {
+		aggregatedCount, err := interfaceAggregatedCountSearchMax("ae-1", oldAE, d.Get("name").(string), m, jnprSess)
+		if err != nil {
+			return err
+		}
+		if aggregatedCount == "0" {
+			return sess.configSet([]string{"delete chassis aggregated-devices ethernet device-count"}, jnprSess)
+		}
+
+		return sess.configSet([]string{"set chassis aggregated-devices ethernet device-count " + aggregatedCount}, jnprSess)
+	}
+
+	return nil
+}
+
 func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -435,30 +872,136 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	if d.Get("description").(string) != "" {
 		configSet = append(configSet, setPrefix+"description \""+d.Get("description").(string)+"\"")
 	}
-	if v := d.Get("name").(string); strings.HasPrefix(v, "ae") {
+	if err := setInterfacePhysicalEsi(setPrefix, d.Get("esi").([]interface{}), m, jnprSess); err != nil {
+		return err
+	}
+	if v := d.Get("name").(string); strings.HasPrefix(v, "ae") && jnprSess != nil {
 		aggregatedCount, err := interfaceAggregatedCountSearchMax(v, "ae-1", v, m, jnprSess)
 		if err != nil {
 			return err
 		}
 		configSet = append(configSet, "set chassis aggregated-devices ethernet device-count "+aggregatedCount)
-	} else if d.Get("ether802_3ad").(string) != "" {
-		configSet = append(configSet, setPrefix+"ether-options 802.3ad "+
-			d.Get("ether802_3ad").(string))
-		configSet = append(configSet, setPrefix+"gigether-options 802.3ad "+
-			d.Get("ether802_3ad").(string))
+	} else if d.Get("ether802_3ad").(string) != "" ||
+		len(d.Get("ether_opts").([]interface{})) != 0 ||
+		len(d.Get("gigether_opts").([]interface{})) != 0 {
 		oldAE := "ae-1"
-		if d.HasChange("ether802_3ad") {
+		var newAE string
+		switch {
+		case d.Get("ether802_3ad").(string) != "":
+			newAE = d.Get("ether802_3ad").(string)
+			configSet = append(configSet, setPrefix+"ether-options 802.3ad "+
+				d.Get("ether802_3ad").(string))
+			configSet = append(configSet, setPrefix+"gigether-options 802.3ad "+
+				d.Get("ether802_3ad").(string))
+		case len(d.Get("ether_opts").([]interface{})) != 0:
+			for _, v := range d.Get("ether_opts").([]interface{}) {
+				if v == nil {
+					return fmt.Errorf("ether_opts block is empty")
+				}
+				m := v.(map[string]interface{})
+				if m["ae_8023ad"].(string) != "" {
+					newAE = m["ae_8023ad"].(string)
+					configSet = append(configSet, setPrefix+"ether-options 802.3ad "+
+						m["ae_8023ad"].(string))
+				}
+				if m["auto_negotiation"].(bool) {
+					configSet = append(configSet, setPrefix+"ether-options auto-negotiation")
+				}
+				if m["no_auto_negotiation"].(bool) {
+					configSet = append(configSet, setPrefix+"ether-options no-auto-negotiation")
+				}
+				if m["flow_control"].(bool) {
+					configSet = append(configSet, setPrefix+"ether-options flow-control")
+				}
+				if m["no_flow_control"].(bool) {
+					configSet = append(configSet, setPrefix+"ether-options no-flow-control")
+				}
+				if m["loopback"].(bool) {
+					configSet = append(configSet, setPrefix+"ether-options loopback")
+				}
+				if m["no_loopback"].(bool) {
+					configSet = append(configSet, setPrefix+"ether-options no-loopback")
+				}
+				if m["redundant_parent"].(string) != "" {
+					configSet = append(configSet, setPrefix+"ether-options redundant-parent "+
+						m["redundant_parent"].(string))
+				}
+			}
+		case len(d.Get("gigether_opts").([]interface{})) != 0:
+			for _, v := range d.Get("gigether_opts").([]interface{}) {
+				if v == nil {
+					return fmt.Errorf("gigether_opts block is empty")
+				}
+				m := v.(map[string]interface{})
+				if m["ae_8023ad"].(string) != "" {
+					newAE = m["ae_8023ad"].(string)
+					configSet = append(configSet, setPrefix+"gigether-options 802.3ad "+
+						m["ae_8023ad"].(string))
+				}
+				if m["auto_negotiation"].(bool) {
+					configSet = append(configSet, setPrefix+"gigether-options auto-negotiation")
+				}
+				if m["no_auto_negotiation"].(bool) {
+					configSet = append(configSet, setPrefix+"gigether-options no-auto-negotiation")
+				}
+				if m["flow_control"].(bool) {
+					configSet = append(configSet, setPrefix+"gigether-options flow-control")
+				}
+				if m["no_flow_control"].(bool) {
+					configSet = append(configSet, setPrefix+"gigether-options no-flow-control")
+				}
+				if m["loopback"].(bool) {
+					configSet = append(configSet, setPrefix+"gigether-options loopback")
+				}
+				if m["no_loopback"].(bool) {
+					configSet = append(configSet, setPrefix+"gigether-options no-loopback")
+				}
+				if m["redundant_parent"].(string) != "" {
+					configSet = append(configSet, setPrefix+"gigether-options redundant-parent "+
+						m["redundant_parent"].(string))
+				}
+			}
+		}
+		switch {
+		case d.HasChange("ether802_3ad"):
 			oldAEtf, _ := d.GetChange("ether802_3ad")
 			if oldAEtf.(string) != "" {
 				oldAE = oldAEtf.(string)
 			}
+		case d.HasChange("ether_opts"):
+			oldEthOpts, _ := d.GetChange("ether_opts")
+			if len(oldEthOpts.([]interface{})) != 0 {
+				v := oldEthOpts.([]interface{})[0]
+				if o := v.(map[string]interface{})["ae_8023ad"].(string); o != "" {
+					oldAE = o
+				}
+			}
+		case d.HasChange("gigether_opts"):
+			oldGigethOpts, _ := d.GetChange("gigether_opts")
+			if len(oldGigethOpts.([]interface{})) != 0 {
+				v := oldGigethOpts.([]interface{})[0]
+				if o := v.(map[string]interface{})["ae_8023ad"].(string); o != "" {
+					oldAE = o
+				}
+			}
 		}
-		aggregatedCount, err := interfaceAggregatedCountSearchMax(d.Get("ether802_3ad").(string), oldAE,
-			d.Get("name").(string), m, jnprSess)
-		if err != nil {
+		if newAE != "" && jnprSess != nil {
+			aggregatedCount, err := interfaceAggregatedCountSearchMax(newAE, oldAE,
+				d.Get("name").(string), m, jnprSess)
+			if err != nil {
+				return err
+			}
+			configSet = append(configSet, "set chassis aggregated-devices ethernet device-count "+aggregatedCount)
+		}
+	}
+	for _, v := range d.Get("parent_ether_opts").([]interface{}) {
+		if v == nil {
+			return fmt.Errorf("parent_ether_opts block is empty")
+		}
+		if err := setInterfacePhysicalParentEtherOpts(
+			v.(map[string]interface{}), d.Get("name").(string), m, jnprSess); err != nil {
 			return err
 		}
-		configSet = append(configSet, "set chassis aggregated-devices ethernet device-count "+aggregatedCount)
 	}
 	if d.Get("trunk").(bool) {
 		configSet = append(configSet, setPrefix+"unit 0 family ethernet-switching interface-mode trunk")
@@ -474,12 +1017,152 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 		configSet = append(configSet, setPrefix+"vlan-tagging")
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
+	return sess.configSet(configSet, jnprSess)
+}
+
+func setInterfacePhysicalEsi(setPrefix string, esiParams []interface{},
+	m interface{}, jnprSess *NetconfObject) error {
+	sess := m.(*Session)
+	configSet := make([]string, 0)
+
+	for _, v := range esiParams {
+		m := v.(map[string]interface{})
+		if m["mode"].(string) != "" {
+			configSet = append(configSet, setPrefix+"esi "+m["mode"].(string))
+		}
+		if m["auto_derive_lacp"].(bool) {
+			configSet = append(configSet, setPrefix+"esi auto-derive lacp")
+		}
+		if m["df_election_type"].(string) != "" {
+			configSet = append(configSet, setPrefix+"esi df-election-type "+m["df_election_type"].(string))
+		}
+		if m["identifier"].(string) != "" {
+			configSet = append(configSet, setPrefix+"esi "+m["identifier"].(string))
+		}
+		if m["source_bmac"].(string) != "" {
+			configSet = append(configSet, setPrefix+"esi source-bmac "+m["source_bmac"].(string))
+		}
 	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
+func setInterfacePhysicalParentEtherOpts(
+	ethOpts map[string]interface{}, interfaceName string, m interface{}, jnprSess *NetconfObject) error {
+	sess := m.(*Session)
+	configSet := make([]string, 0)
+	setPrefix := "set interfaces " + interfaceName + " "
+	switch {
+	case strings.HasPrefix(interfaceName, "ae"):
+		setPrefix += "aggregated-ether-options "
+	case strings.HasPrefix(interfaceName, "reth"):
+		setPrefix += "redundant-ether-options "
+	default:
+		return fmt.Errorf("parent_ether_opts not compatible with this interface %s "+
+			"(need to ae* or reth*)", interfaceName)
+	}
+
+	for _, v := range ethOpts["bfd_liveness_detection"].([]interface{}) {
+		bfdLiveDetect := v.(map[string]interface{})
+		configSet = append(configSet, setPrefix+
+			"bfd-liveness-detection local-address "+bfdLiveDetect["local_address"].(string))
+		if v2 := bfdLiveDetect["authentication_algorithm"].(string); v2 != "" {
+			configSet = append(configSet, setPrefix+"bfd-liveness-detection authentication algorithm "+v2)
+		}
+		if v2 := bfdLiveDetect["authentication_key_chain"].(string); v2 != "" {
+			configSet = append(configSet, setPrefix+"bfd-liveness-detection authentication key-chain "+v2)
+		}
+		if bfdLiveDetect["authentication_loose_check"].(bool) {
+			configSet = append(configSet, setPrefix+"bfd-liveness-detection authentication loose-check")
+		}
+		if v2 := bfdLiveDetect["detection_time_threshold"].(int); v2 != 0 {
+			configSet = append(configSet, setPrefix+"bfd-liveness-detection detection-time threshold "+strconv.Itoa(v2))
+		}
+		if v2 := bfdLiveDetect["holddown_interval"].(int); v2 != 0 {
+			configSet = append(configSet, setPrefix+"bfd-liveness-detection holddown-interval "+strconv.Itoa(v2))
+		}
+		if v2 := bfdLiveDetect["minimum_interval"].(int); v2 != 0 {
+			configSet = append(configSet, setPrefix+"bfd-liveness-detection minimum-interval "+strconv.Itoa(v2))
+		}
+		if v2 := bfdLiveDetect["minimum_receive_interval"].(int); v2 != 0 {
+			configSet = append(configSet, setPrefix+"bfd-liveness-detection minimum-receive-interval "+strconv.Itoa(v2))
+		}
+		if v2 := bfdLiveDetect["multiplier"].(int); v2 != 0 {
+			configSet = append(configSet, setPrefix+"bfd-liveness-detection multiplier "+strconv.Itoa(v2))
+		}
+		if v2 := bfdLiveDetect["neighbor"].(string); v2 != "" {
+			configSet = append(configSet, setPrefix+"bfd-liveness-detection neighbor "+v2)
+		}
+		if bfdLiveDetect["no_adaptation"].(bool) {
+			configSet = append(configSet, setPrefix+"bfd-liveness-detection no-adaptation")
+		}
+		if v2 := bfdLiveDetect["transmit_interval_minimum_interval"].(int); v2 != 0 {
+			configSet = append(configSet, setPrefix+
+				"bfd-liveness-detection transmit-interval minimum-interval "+strconv.Itoa(v2))
+		}
+		if v2 := bfdLiveDetect["transmit_interval_threshold"].(int); v2 != 0 {
+			configSet = append(configSet, setPrefix+"bfd-liveness-detection transmit-interval threshold "+strconv.Itoa(v2))
+		}
+		if v2 := bfdLiveDetect["version"].(string); v2 != "" {
+			configSet = append(configSet, setPrefix+"bfd-liveness-detection version "+v2)
+		}
+	}
+	if ethOpts["flow_control"].(bool) {
+		configSet = append(configSet, setPrefix+flowControlWords)
+	}
+	if ethOpts["no_flow_control"].(bool) {
+		configSet = append(configSet, setPrefix+noFlowControlWords)
+	}
+	for _, v := range ethOpts["lacp"].([]interface{}) {
+		lacp := v.(map[string]interface{})
+		configSet = append(configSet, setPrefix+"lacp "+lacp["mode"].(string))
+		if v2 := lacp["admin_key"].(int); v2 != -1 {
+			configSet = append(configSet, setPrefix+"lacp admin-key "+strconv.Itoa(v2))
+		}
+		if v2 := lacp["periodic"].(string); v2 != "" {
+			configSet = append(configSet, setPrefix+"lacp periodic "+v2)
+		}
+		if v2 := lacp["sync_reset"].(string); v2 != "" {
+			configSet = append(configSet, setPrefix+"lacp sync-reset "+v2)
+		}
+		if v2 := lacp["system_id"].(string); v2 != "" {
+			configSet = append(configSet, setPrefix+"lacp system-id "+v2)
+		}
+		if v2 := lacp["system_priority"].(int); v2 != -1 {
+			configSet = append(configSet, setPrefix+"lacp system-priority "+strconv.Itoa(v2))
+		}
+	}
+	if ethOpts["loopback"].(bool) {
+		configSet = append(configSet, setPrefix+loopbackWord)
+	}
+	if ethOpts["no_loopback"].(bool) {
+		configSet = append(configSet, setPrefix+noLoopbackWord)
+	}
+	if v := ethOpts["link_speed"].(string); v != "" {
+		configSet = append(configSet, setPrefix+"link-speed "+v)
+	}
+	if v := ethOpts["minimum_bandwidth"].(string); v != "" {
+		vS := strings.Split(v, " ")
+		configSet = append(configSet, setPrefix+"minimum-bandwidth bw-value "+vS[0])
+		if len(vS) > 1 {
+			configSet = append(configSet, setPrefix+"minimum-bandwidth bw-unit "+vS[1])
+		}
+	}
+	if v := ethOpts["minimum_links"].(int); v != 0 {
+		configSet = append(configSet, setPrefix+"minimum-links "+strconv.Itoa(v))
+	}
+	if v := ethOpts["redundancy_group"].(int); v != 0 {
+		configSet = append(configSet, setPrefix+"redundancy-group "+strconv.Itoa(v))
+	}
+	for _, v := range ethOpts["source_address_filter"].([]interface{}) {
+		configSet = append(configSet, setPrefix+"source-address-filter "+v.(string))
+	}
+	if ethOpts["source_filtering"].(bool) {
+		configSet = append(configSet, setPrefix+"source-filtering")
+	}
+
+	return sess.configSet(configSet, jnprSess)
+}
+
 func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObject) (interfacePhysicalOptions, error) {
 	sess := m.(*Session)
 	var confRead interfacePhysicalOptions
@@ -503,21 +1186,46 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 			switch {
 			case strings.HasPrefix(itemTrim, "aggregated-ether-options lacp "):
 				confRead.aeLacp = strings.TrimPrefix(itemTrim, "aggregated-ether-options lacp ")
+				if err := readInterfacePhysicalParentEtherOpts(&confRead,
+					strings.TrimPrefix(itemTrim, "aggregated-ether-options ")); err != nil {
+					return confRead, err
+				}
 			case strings.HasPrefix(itemTrim, "aggregated-ether-options link-speed "):
 				confRead.aeLinkSpeed = strings.TrimPrefix(itemTrim, "aggregated-ether-options link-speed ")
+				if err := readInterfacePhysicalParentEtherOpts(&confRead,
+					strings.TrimPrefix(itemTrim, "aggregated-ether-options ")); err != nil {
+					return confRead, err
+				}
 			case strings.HasPrefix(itemTrim, "aggregated-ether-options minimum-links "):
 				confRead.aeMinLink, err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 					"aggregated-ether-options minimum-links "))
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
+				if err := readInterfacePhysicalParentEtherOpts(&confRead,
+					strings.TrimPrefix(itemTrim, "aggregated-ether-options ")); err != nil {
+					return confRead, err
+				}
+			case strings.HasPrefix(itemTrim, "aggregated-ether-options "):
+				if err := readInterfacePhysicalParentEtherOpts(&confRead,
+					strings.TrimPrefix(itemTrim, "aggregated-ether-options ")); err != nil {
+					return confRead, err
+				}
+			case strings.HasPrefix(itemTrim, "redundant-ether-options "):
+				if err := readInterfacePhysicalParentEtherOpts(&confRead,
+					strings.TrimPrefix(itemTrim, "redundant-ether-options ")); err != nil {
+					return confRead, err
+				}
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
-
-			case strings.HasPrefix(itemTrim, "ether-options 802.3ad "):
-				confRead.v8023ad = strings.TrimPrefix(itemTrim, "ether-options 802.3ad ")
-			case strings.HasPrefix(itemTrim, "gigether-options 802.3ad "):
-				confRead.v8023ad = strings.TrimPrefix(itemTrim, "gigether-options 802.3ad ")
+			case strings.HasPrefix(itemTrim, "esi "):
+				if err := readInterfacePhysicalEsi(&confRead, itemTrim); err != nil {
+					return confRead, err
+				}
+			case strings.HasPrefix(itemTrim, "ether-options "):
+				readInterfacePhysicalEtherOpts(&confRead, strings.TrimPrefix(itemTrim, "ether-options "))
+			case strings.HasPrefix(itemTrim, "gigether-options "):
+				readInterfacePhysicalGigetherOpts(&confRead, strings.TrimPrefix(itemTrim, "gigether-options "))
 			case strings.HasPrefix(itemTrim, "native-vlan-id"):
 				confRead.vlanNative, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "native-vlan-id "))
 				if err != nil {
@@ -538,6 +1246,296 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 
 	return confRead, nil
 }
+func readInterfacePhysicalEsi(confRead *interfacePhysicalOptions, item string) error {
+	itemTrim := strings.TrimPrefix(item, "esi ")
+	if len(confRead.esi) == 0 {
+		confRead.esi = append(confRead.esi, map[string]interface{}{
+			"mode":             "",
+			"auto_derive_lacp": false,
+			"df_election_type": "",
+			"identifier":       "",
+			"source_bmac":      "",
+		})
+	}
+	var err error
+	identifier, err := regexp.MatchString(`^([\d\w]{2}:){9}[\d\w]{2}`, itemTrim)
+	if err != nil {
+		return fmt.Errorf("esi_identifier regexp error : %w", err)
+	}
+	switch {
+	case identifier:
+		confRead.esi[0]["identifier"] = itemTrim
+	case itemTrim == "all-active" || itemTrim == "single-active":
+		confRead.esi[0]["mode"] = itemTrim
+	case strings.HasPrefix(itemTrim, "df-election-type "):
+		confRead.esi[0]["df_election_type"] = strings.TrimPrefix(itemTrim, "df-election-type ")
+	case strings.HasPrefix(itemTrim, "source-bmac "):
+		confRead.esi[0]["source_bmac"] = strings.TrimPrefix(itemTrim, "source-bmac ")
+	case itemTrim == "auto-derive lacp":
+		confRead.esi[0]["auto_derive_lacp"] = true
+	}
+
+	return nil
+}
+func readInterfacePhysicalEtherOpts(confRead *interfacePhysicalOptions, itemTrim string) {
+	if len(confRead.etherOpts) == 0 {
+		confRead.etherOpts = append(confRead.etherOpts, map[string]interface{}{
+			"ae_8023ad":           "",
+			"auto_negotiation":    false,
+			"no_auto_negotiation": false,
+			"flow_control":        false,
+			"no_flow_control":     false,
+			"loopback":            false,
+			"no_loopback":         false,
+			"redundant_parent":    "",
+		})
+	}
+	switch {
+	case strings.HasPrefix(itemTrim, "802.3ad "):
+		confRead.v8023ad = strings.TrimPrefix(itemTrim, "802.3ad ")
+		confRead.etherOpts[0]["ae_8023ad"] = strings.TrimPrefix(itemTrim, "802.3ad ")
+	case itemTrim == "auto-negotiation":
+		confRead.etherOpts[0]["auto_negotiation"] = true
+	case itemTrim == "no-auto-negotiation":
+		confRead.etherOpts[0]["no_auto_negotiation"] = true
+	case itemTrim == flowControlWords:
+		confRead.etherOpts[0]["flow_control"] = true
+	case itemTrim == noFlowControlWords:
+		confRead.etherOpts[0]["no_flow_control"] = true
+	case itemTrim == loopbackWord:
+		confRead.etherOpts[0]["loopback"] = true
+	case itemTrim == noLoopbackWord:
+		confRead.etherOpts[0]["no_loopback"] = true
+	case strings.HasPrefix(itemTrim, "redundant-parent "):
+		confRead.etherOpts[0]["redundant_parent"] = strings.TrimPrefix(itemTrim, "redundant-parent ")
+	}
+}
+func readInterfacePhysicalGigetherOpts(confRead *interfacePhysicalOptions, itemTrim string) {
+	if len(confRead.gigetherOpts) == 0 {
+		confRead.gigetherOpts = append(confRead.gigetherOpts, map[string]interface{}{
+			"ae_8023ad":           "",
+			"auto_negotiation":    false,
+			"no_auto_negotiation": false,
+			"flow_control":        false,
+			"no_flow_control":     false,
+			"loopback":            false,
+			"no_loopback":         false,
+			"redundant_parent":    "",
+		})
+	}
+	switch {
+	case strings.HasPrefix(itemTrim, "802.3ad "):
+		confRead.v8023ad = strings.TrimPrefix(itemTrim, "802.3ad ")
+		confRead.gigetherOpts[0]["ae_8023ad"] = strings.TrimPrefix(itemTrim, "802.3ad ")
+	case itemTrim == "auto-negotiation":
+		confRead.gigetherOpts[0]["auto_negotiation"] = true
+	case itemTrim == "no-auto-negotiation":
+		confRead.gigetherOpts[0]["no_auto_negotiation"] = true
+	case itemTrim == flowControlWords:
+		confRead.gigetherOpts[0]["flow_control"] = true
+	case itemTrim == noFlowControlWords:
+		confRead.gigetherOpts[0]["no_flow_control"] = true
+	case itemTrim == loopbackWord:
+		confRead.gigetherOpts[0]["loopback"] = true
+	case itemTrim == noLoopbackWord:
+		confRead.gigetherOpts[0]["no_loopback"] = true
+	case strings.HasPrefix(itemTrim, "redundant-parent "):
+		confRead.gigetherOpts[0]["redundant_parent"] = strings.TrimPrefix(itemTrim, "redundant-parent ")
+	}
+}
+func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, itemTrim string) error {
+	if len(confRead.parentEtherOpts) == 0 {
+		confRead.parentEtherOpts = append(confRead.parentEtherOpts, map[string]interface{}{
+			"bfd_liveness_detection": make([]map[string]interface{}, 0),
+			"flow_control":           false,
+			"no_flow_control":        false,
+			"lacp":                   make([]map[string]interface{}, 0),
+			"loopback":               false,
+			"no_loopback":            false,
+			"link_speed":             "",
+			"minimum_bandwidth":      "",
+			"minimum_links":          0,
+			"redundancy_group":       0,
+			"source_address_filter":  make([]string, 0),
+			"source_filtering":       false,
+		})
+	}
+	switch {
+	case strings.HasPrefix(itemTrim, "bfd-liveness-detection "):
+		if len(confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})) == 0 {
+			confRead.parentEtherOpts[0]["bfd_liveness_detection"] = append(
+				confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{}),
+				map[string]interface{}{
+					"local_address":                      "",
+					"authentication_algorithm":           "",
+					"authentication_key_chain":           "",
+					"authentication_loose_check":         false,
+					"detection_time_threshold":           0,
+					"holddown_interval":                  0,
+					"minimum_interval":                   0,
+					"minimum_receive_interval":           0,
+					"multiplier":                         0,
+					"neighbor":                           "",
+					"no_adaptation":                      false,
+					"transmit_interval_minimum_interval": 0,
+					"transmit_interval_threshold":        0,
+					"version":                            "",
+				})
+		}
+		itemTrimBfdLiveDet := strings.TrimPrefix(itemTrim, "bfd-liveness-detection ")
+		switch {
+		case strings.HasPrefix(itemTrimBfdLiveDet, "local-address "):
+			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["local_address"] =
+				strings.TrimPrefix(itemTrimBfdLiveDet, "local-address ")
+		case strings.HasPrefix(itemTrimBfdLiveDet, "authentication algorithm "):
+			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["authentication_algorithm"] =
+				strings.TrimPrefix(itemTrimBfdLiveDet, "authentication algorithm ")
+		case strings.HasPrefix(itemTrimBfdLiveDet, "authentication key-chain "):
+			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["authentication_key_chain"] =
+				strings.TrimPrefix(itemTrimBfdLiveDet, "authentication key-chain ")
+		case itemTrimBfdLiveDet == "authentication loose-check":
+			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["authentication_loose_check"] =
+				true
+		case strings.HasPrefix(itemTrimBfdLiveDet, "detection-time threshold "):
+			var err error
+			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["detection_time_threshold"],
+				err = strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "detection-time threshold "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrimBfdLiveDet, "holddown-interval "):
+			var err error
+			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["holddown_interval"],
+				err = strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "holddown-interval "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrimBfdLiveDet, "minimum-interval "):
+			var err error
+			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["minimum_interval"],
+				err = strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "minimum-interval "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrimBfdLiveDet, "minimum-receive-interval "):
+			var err error
+			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["minimum_receive_interval"],
+				err = strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "minimum-receive-interval "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrimBfdLiveDet, "multiplier "):
+			var err error
+			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["multiplier"],
+				err = strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "multiplier "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrimBfdLiveDet, "neighbor "):
+			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["neighbor"] =
+				strings.TrimPrefix(itemTrimBfdLiveDet, "neighbor ")
+		case itemTrimBfdLiveDet == "no-adaptation":
+			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["no_adaptation"] =
+				true
+		case strings.HasPrefix(itemTrimBfdLiveDet, "transmit-interval minimum-interval "):
+			var err error
+			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["transmit_interval_minimum_interval"], // nolint: lll
+				err = strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "transmit-interval minimum-interval "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrimBfdLiveDet, "transmit-interval threshold "):
+			var err error
+			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["transmit_interval_threshold"],
+				err = strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "transmit-interval threshold "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrimBfdLiveDet, "version "):
+			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["version"] =
+				strings.TrimPrefix(itemTrimBfdLiveDet, "version ")
+		}
+	case itemTrim == flowControlWords:
+		confRead.parentEtherOpts[0]["flow_control"] = true
+	case itemTrim == noFlowControlWords:
+		confRead.parentEtherOpts[0]["no_flow_control"] = true
+	case strings.HasPrefix(itemTrim, "lacp "):
+		if len(confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})) == 0 {
+			confRead.parentEtherOpts[0]["lacp"] = append(confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{}),
+				map[string]interface{}{
+					"mode":            "",
+					"admin_key":       -1,
+					"periodic":        "",
+					"sync_reset":      "",
+					"system_id":       "",
+					"system_priority": -1,
+				})
+		}
+		itemTrimLacp := strings.TrimPrefix(itemTrim, "lacp ")
+		switch {
+		case itemTrimLacp == activeW || itemTrimLacp == "passive":
+			confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]["mode"] = itemTrimLacp
+		case strings.HasPrefix(itemTrimLacp, "admin-key "):
+			var err error
+			confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]["admin_key"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrimLacp, "admin-key "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrimLacp, "periodic "):
+			confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]["periodic"] =
+				strings.TrimPrefix(itemTrimLacp, "periodic ")
+		case strings.HasPrefix(itemTrimLacp, "sync-reset "):
+			confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]["sync_reset"] =
+				strings.TrimPrefix(itemTrimLacp, "sync-reset ")
+		case strings.HasPrefix(itemTrimLacp, "system-id "):
+			confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]["system_id"] =
+				strings.TrimPrefix(itemTrimLacp, "system-id ")
+		case strings.HasPrefix(itemTrimLacp, "system-priority "):
+			var err error
+			confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]["system_priority"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrimLacp, "system-priority "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		}
+	case itemTrim == loopbackWord:
+		confRead.parentEtherOpts[0]["loopback"] = true
+	case itemTrim == noLoopbackWord:
+		confRead.parentEtherOpts[0]["no_loopback"] = true
+	case strings.HasPrefix(itemTrim, "link-speed "):
+		confRead.parentEtherOpts[0]["link_speed"] = strings.TrimPrefix(itemTrim, "link-speed ")
+	case strings.HasPrefix(itemTrim, "minimum-bandwidth bw-value "):
+		confRead.parentEtherOpts[0]["minimum_bandwidth"] = strings.TrimPrefix(itemTrim, "minimum-bandwidth bw-value ") +
+			confRead.parentEtherOpts[0]["minimum_bandwidth"].(string)
+	case strings.HasPrefix(itemTrim, "minimum-bandwidth bw-unit "):
+		confRead.parentEtherOpts[0]["minimum_bandwidth"] = confRead.parentEtherOpts[0]["minimum_bandwidth"].(string) +
+			" " + strings.TrimPrefix(itemTrim, "minimum-bandwidth bw-unit ")
+	case strings.HasPrefix(itemTrim, "minimum-links "):
+		var err error
+		confRead.parentEtherOpts[0]["minimum_links"], err =
+			strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-links "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "redundancy-group "):
+		var err error
+		confRead.parentEtherOpts[0]["redundancy_group"], err =
+			strconv.Atoi(strings.TrimPrefix(itemTrim, "redundancy-group "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "source-address-filter "):
+		confRead.parentEtherOpts[0]["source_address_filter"] = append(
+			confRead.parentEtherOpts[0]["source_address_filter"].([]string),
+			strings.TrimPrefix(itemTrim, "source-address-filter "))
+	case itemTrim == "source-filtering":
+		confRead.parentEtherOpts[0]["source_filtering"] = true
+	}
+
+	return nil
+}
+
 func delInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	if err := checkInterfacePhysicalContainsUnit(d.Get("name").(string), m, jnprSess); err != nil {
@@ -562,26 +1560,41 @@ func delInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				return err
 			}
 		}
-	} else if d.Get("ether802_3ad").(string) != "" {
-		lastAEchild, err := interfaceAggregatedLastChild(d.Get("ether802_3ad").(string), d.Get("name").(string), m, jnprSess)
-		if err != nil {
-			return err
+	} else if d.Get("ether802_3ad").(string) != "" ||
+		len(d.Get("ether_opts").([]interface{})) != 0 ||
+		len(d.Get("gigether_opts").([]interface{})) != 0 {
+		var aeDel string
+		switch {
+		case d.Get("ether802_3ad").(string) != "":
+			aeDel = d.Get("ether802_3ad").(string)
+		case len(d.Get("ether_opts").([]interface{})) != 0 && d.Get("ether_opts").([]interface{})[0] != nil:
+			v := d.Get("ether_opts").([]interface{})[0].(map[string]interface{})
+			aeDel = v["ae_8023ad"].(string)
+		case len(d.Get("gigether_opts").([]interface{})) != 0 && d.Get("gigether_opts").([]interface{})[0] != nil:
+			v := d.Get("gigether_opts").([]interface{})[0].(map[string]interface{})
+			aeDel = v["ae_8023ad"].(string)
 		}
-		if lastAEchild {
-			aggregatedCount, err := interfaceAggregatedCountSearchMax("ae-1", d.Get("ether802_3ad").(string),
-				d.Get("name").(string), m, jnprSess)
+		if aeDel != "" {
+			lastAEchild, err := interfaceAggregatedLastChild(aeDel, d.Get("name").(string), m, jnprSess)
 			if err != nil {
 				return err
 			}
-			if aggregatedCount == "0" {
-				err = sess.configSet([]string{"delete chassis aggregated-devices ethernet device-count"}, jnprSess)
+			if lastAEchild {
+				aggregatedCount, err := interfaceAggregatedCountSearchMax("ae-1", aeDel,
+					d.Get("name").(string), m, jnprSess)
 				if err != nil {
 					return err
 				}
-			} else {
-				err = sess.configSet([]string{"set chassis aggregated-devices ethernet device-count " + aggregatedCount}, jnprSess)
-				if err != nil {
-					return err
+				if aggregatedCount == "0" {
+					err = sess.configSet([]string{"delete chassis aggregated-devices ethernet device-count"}, jnprSess)
+					if err != nil {
+						return err
+					}
+				} else {
+					err = sess.configSet([]string{"set chassis aggregated-devices ethernet device-count " + aggregatedCount}, jnprSess)
+					if err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -614,6 +1627,7 @@ func checkInterfacePhysicalContainsUnit(interFace string, m interface{}, jnprSes
 
 	return nil
 }
+
 func delInterfaceNC(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
@@ -623,47 +1637,71 @@ func delInterfaceNC(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	}
 	configSet = append(configSet, delPrefix+"description")
 	configSet = append(configSet, delPrefix+"disable")
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
+
 func delInterfacePhysicalOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	delPrefix := "delete interfaces " + d.Get("name").(string) + " "
 	configSet = append(configSet,
 		delPrefix+"aggregated-ether-options",
-		delPrefix+"ether-options 802.3ad",
-		delPrefix+"gigether-options 802.3ad",
+		delPrefix+"description",
+		delPrefix+"esi",
+		delPrefix+"ether-options",
+		delPrefix+"gigether-options",
 		delPrefix+"native-vlan-id",
+		delPrefix+"redundant-ether-options",
 		delPrefix+"unit 0 family ethernet-switching interface-mode",
 		delPrefix+"unit 0 family ethernet-switching vlan members",
 		delPrefix+"vlan-tagging",
 	)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillInterfacePhysicalData(d *schema.ResourceData, interfaceOpt interfacePhysicalOptions) {
-	if tfErr := d.Set("ae_lacp", interfaceOpt.aeLacp); tfErr != nil {
-		panic(tfErr)
+	_, okAeLacp := d.GetOk("ae_lacp")
+	if okAeLacp {
+		if tfErr := d.Set("ae_lacp", interfaceOpt.aeLacp); tfErr != nil {
+			panic(tfErr)
+		}
 	}
-	if tfErr := d.Set("ae_link_speed", interfaceOpt.aeLinkSpeed); tfErr != nil {
-		panic(tfErr)
+	_, okAeLinkSpeed := d.GetOk("ae_link_speed")
+	if okAeLinkSpeed {
+		if tfErr := d.Set("ae_link_speed", interfaceOpt.aeLinkSpeed); tfErr != nil {
+			panic(tfErr)
+		}
 	}
-	if tfErr := d.Set("ae_minimum_links", interfaceOpt.aeMinLink); tfErr != nil {
+	_, okAeMinLinks := d.GetOk("ae_minimum_links")
+	if okAeMinLinks {
+		if tfErr := d.Set("ae_minimum_links", interfaceOpt.aeMinLink); tfErr != nil {
+			panic(tfErr)
+		}
+	}
+	if tfErr := d.Set("esi", interfaceOpt.esi); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("description", interfaceOpt.description); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("ether802_3ad", interfaceOpt.v8023ad); tfErr != nil {
-		panic(tfErr)
+	if _, ok := d.GetOk("ether802_3ad"); ok {
+		if tfErr := d.Set("ether802_3ad", interfaceOpt.v8023ad); tfErr != nil {
+			panic(tfErr)
+		}
+	} else {
+		if tfErr := d.Set("ether_opts", interfaceOpt.etherOpts); tfErr != nil {
+			panic(tfErr)
+		}
+		if tfErr := d.Set("gigether_opts", interfaceOpt.gigetherOpts); tfErr != nil {
+			panic(tfErr)
+		}
+	}
+	if !okAeLacp && !okAeLinkSpeed && !okAeMinLinks {
+		if tfErr := d.Set("parent_ether_opts", interfaceOpt.parentEtherOpts); tfErr != nil {
+			panic(tfErr)
+		}
 	}
 	if tfErr := d.Set("trunk", interfaceOpt.trunk); tfErr != nil {
 		panic(tfErr)

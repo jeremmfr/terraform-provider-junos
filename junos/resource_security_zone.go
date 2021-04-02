@@ -39,7 +39,7 @@ func resourceSecurityZone() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"address_book": {
 				Type:     schema.TypeList,
@@ -49,7 +49,7 @@ func resourceSecurityZone() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
 						},
 						"network": {
 							Type:         schema.TypeString,
@@ -67,7 +67,7 @@ func resourceSecurityZone() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
 						},
 						"address": {
 							Type:     schema.TypeList,
@@ -122,6 +122,14 @@ func resourceSecurityZone() *schema.Resource {
 
 func resourceSecurityZoneCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setSecurityZone(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -337,11 +345,7 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 		configSet = append(configSet, setPrefix+" tcp-rst")
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zoneOptions, error) {
 	sess := m.(*Session)
@@ -433,21 +437,15 @@ func delSecurityZoneOpts(zone string, m interface{}, jnprSess *NetconfObject) er
 	for _, line := range listLinesToDelete {
 		configSet = append(configSet, delPrefix+line)
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func delSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security zones security-zone "+zone)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillSecurityZoneData(d *schema.ResourceData, zoneOptions zoneOptions) {

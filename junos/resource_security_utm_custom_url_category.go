@@ -28,7 +28,7 @@ func resourceSecurityUtmCustomURLCategory() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 			},
 			"value": {
 				Type:     schema.TypeList,
@@ -43,6 +43,14 @@ func resourceSecurityUtmCustomURLCategory() *schema.Resource {
 func resourceSecurityUtmCustomURLCategoryCreate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setUtmCustomURLCategory(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -225,11 +233,7 @@ func setUtmCustomURLCategory(d *schema.ResourceData, m interface{}, jnprSess *Ne
 		configSet = append(configSet, setPrefix+"value "+v.(string))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readUtmCustomURLCategory(urlCategory string, m interface{}, jnprSess *NetconfObject) (
 	utmCustomURLCategoryOptions, error) {
@@ -264,11 +268,8 @@ func delUtmCustomURLCategory(urlCategory string, m interface{}, jnprSess *Netcon
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security utm custom-objects custom-url-category "+urlCategory)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillUtmCustomURLCategoryData(d *schema.ResourceData, utmCustomURLCategoryOptions utmCustomURLCategoryOptions) {

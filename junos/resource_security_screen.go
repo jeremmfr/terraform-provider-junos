@@ -476,7 +476,7 @@ func resourceSecurityScreen() *schema.Resource {
 												"name": {
 													Type:             schema.TypeString,
 													Required:         true,
-													ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+													ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 												},
 												"destination_address": {
 													Type:     schema.TypeList,
@@ -581,6 +581,14 @@ func resourceSecurityScreen() *schema.Resource {
 
 func resourceSecurityScreenCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setSecurityScreen(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -817,11 +825,7 @@ func setSecurityScreen(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		configSet = append(configSet, setSecurityScreenUDP(udp, setPrefix)...)
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func setSecurityScreenIcmp(icmp map[string]interface{}, setPrefix string) []string {
 	configSet := make([]string, 0)
@@ -1804,11 +1808,8 @@ func delSecurityScreen(name string, m interface{}, jnprSess *NetconfObject) erro
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security screen ids-option \""+name+"\"")
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillSecurityScreenData(d *schema.ResourceData, screenOptions screenOptions) {

@@ -102,7 +102,7 @@ func resourceSecurityLogStream() *schema.Resource {
 						"routing_instance": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64),
+							ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, FormatDefault),
 						},
 					},
 				},
@@ -123,6 +123,14 @@ func resourceSecurityLogStream() *schema.Resource {
 
 func resourceSecurityLogStreamCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setSecurityLogStream(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -339,11 +347,7 @@ func setSecurityLogStream(d *schema.ResourceData, m interface{}, jnprSess *Netco
 			d.Get("severity").(string))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSecurityLogStream(securityLogStream string, m interface{}, jnprSess *NetconfObject) (
 	securityLogStreamOptions, error) {
@@ -438,11 +442,8 @@ func delLogStream(securityLogStream string, m interface{}, jnprSess *NetconfObje
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security log stream \""+securityLogStream+"\"")
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillSecurityLogStreamData(d *schema.ResourceData, securityLogStreamOptions securityLogStreamOptions) {

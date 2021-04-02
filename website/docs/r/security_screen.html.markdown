@@ -45,13 +45,13 @@ The following arguments are supported:
 * `name` - (Required, Forces new resource)(`String`) The name of screen.
 * `alarm_without_drop` - (Optional)(`Bool`) Do not drop packet, only generate alarm.
 * `description` - (Optional)(`String`) Text description of screen.
-* `icmp` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'icmp' configuration. See the [`icmp` arguments] (#icmp-arguments) block.
-* `ip` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'ip' configuration. See the [`ip` arguments] (#ip-arguments) block.
-* `limit_session` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'limit-session' configuration.
+* `icmp` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'icmp' configuration. See the [`icmp` arguments] (#icmp-arguments) block.
+* `ip` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'ip' configuration. See the [`ip` arguments] (#ip-arguments) block.
+* `limit_session` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'limit-session' configuration.
   * `destination_ip_based` - (Optional)(`ListOfString`) Limit sessions to the same destination IP (1..2000000).
   * `source_ip_based` - (Optional)(`ListOfString`) Limit sessions from the same source IP (1..2000000).
-* `tcp` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'tcp' configuration. See the [`tcp` arguments] (#tcp-arguments) block.
-* `udp` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'udp' configuration. See the [`udp` arguments] (#udp-arguments) block.
+* `tcp` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'tcp' configuration. See the [`tcp` arguments] (#tcp-arguments) block.
+* `udp` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'udp' configuration. See the [`udp` arguments] (#udp-arguments) block.
 
 ---
 #### icmp arguments
@@ -68,7 +68,7 @@ The following arguments are supported:
 #### ip arguments
 * `bad_option` - (Optional)(`Bool`) Enable ip with bad option ids option.
 * `block_frag` - (Optional)(`Bool`) Enable ip fragment blocking ids option.
-* `ipv6_extension_header` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'ip ipv6-extension-header' configuration. See the [`ipv6_extension_header` arguments for ip] (#ipv6_extension_header-arguments-for-ip) block.
+* `ipv6_extension_header` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'ip ipv6-extension-header' configuration. See the [`ipv6_extension_header` arguments for ip] (#ipv6_extension_header-arguments-for-ip) block.
 * `ipv6_extension_header_limit` - (Optional)(`Int`) Enable ipv6 extension header limit ids option (0..32).
 * `ipv6_malformed_header` - (Optional)(`Bool`) Enable ipv6 malformed header ids option.
 * `loose_source_route_option` - (Optional)(`Bool`) Enable ip with loose source route ids option.
@@ -80,7 +80,7 @@ The following arguments are supported:
 * `strict_source_route_option` - (Optional)(`Bool`) Enable ip with strict source route ids option.
 * `tear_drop` - (Optional)(`Bool`) Enable tear drop ids option.
 * `timestamp_option` - (Optional)(`Bool`) Enable ip with timestamp option ids option.
-* `tunnel` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'ip tunnel' configuration. See the [`tunnel` arguments for ip] (#tunnel-arguments-for-ip) block.
+* `tunnel` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'ip tunnel' configuration. See the [`tunnel` arguments for ip] (#tunnel-arguments-for-ip) block.
 * `unknown_protocol` - (Optional)(`Bool`) Enable ip unknown protocol ids option.
 
 ---
@@ -138,13 +138,13 @@ The following arguments are supported:
 ---
 #### tunnel arguments for ip
 * `bad_inner_header` - (Optional)(`Bool`) Enable IP tunnel bad inner header ids option.
-* `gre` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'ip tunnel gre' configuration.
+* `gre` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'ip tunnel gre' configuration.
   * `gre_4in4` - (Optional)(`Bool`) Enable IP tunnel GRE 4in4 ids option.
   * `gre_4in6` - (Optional)(`Bool`) Enable IP tunnel GRE 4in6 ids option.
   * `gre_6in4` - (Optional)(`Bool`) Enable IP tunnel GRE 6in4 ids option.
   * `gre_6in6` - (Optional)(`Bool`) Enable IP tunnel GRE 6in6 ids option.
 * `ip_in_udp_teredo` - (Optional)(`Bool`) Enable IP tunnel IPinUDP Teredo ids option.
-* `ipip` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'ip tunnel ipip' configuration.
+* `ipip` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'ip tunnel ipip' configuration.
   * `ipip_4in4` - (Optional)(`Bool`) Enable IP tunnel IPIP 4in4 ids option.
   * `ipip_4in6` - (Optional)(`Bool`) Enable IP tunnel IPIP 4in6 ids option.
   * `ipip_6in4` - (Optional)(`Bool`) Enable IP tunnel IPIP 6in4 ids option.

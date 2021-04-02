@@ -9,27 +9,33 @@ import (
 )
 
 const (
-	idSeparator    = "_-_"
-	defaultWord    = "default"
-	inetWord       = "inet"
-	inet6Word      = "inet6"
-	emptyWord      = "empty"
-	matchWord      = "match"
-	permitWord     = "permit"
-	thenWord       = "then"
-	prefixWord     = "prefix"
-	actionNoneWord = "none"
-	addWord        = "add"
-	deleteWord     = "delete"
-	setWord        = "set"
-	setLineStart   = setWord + " "
-	st0Word        = "st0"
-	opsfV2         = "ospf"
-	ospfV3         = "ospf3"
-	passiveW       = "passive"
-	discardW       = "discard"
-	disableW       = "disable"
-	dynamicDB      = "dynamic-db"
+	idSeparator        = "_-_"
+	defaultWord        = "default"
+	inetWord           = "inet"
+	inet6Word          = "inet6"
+	emptyWord          = "empty"
+	matchWord          = "match"
+	permitWord         = "permit"
+	thenWord           = "then"
+	prefixWord         = "prefix"
+	actionNoneWord     = "none"
+	addWord            = "add"
+	deleteWord         = "delete"
+	setWord            = "set"
+	setLineStart       = setWord + " "
+	st0Word            = "st0"
+	opsfV2             = "ospf"
+	ospfV3             = "ospf3"
+	activeW            = "active"
+	passiveW           = "passive"
+	discardW           = "discard"
+	disableW           = "disable"
+	dynamicDB          = "dynamic-db"
+	preemptWord        = "preempt"
+	flowControlWords   = "flow-control"
+	noFlowControlWords = "no-flow-control"
+	loopbackWord       = "loopback"
+	noLoopbackWord     = "no-loopback"
 )
 
 var (
@@ -95,10 +101,21 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JUNOS_SLEEP_SSH_CLOSED", 0),
 			},
+			"file_permission": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				DefaultFunc:      schema.EnvDefaultFunc("JUNOS_FILE_PERMISSION", "644"),
+				ValidateDiagFunc: validateFilePermission(),
+			},
 			"debug_netconf_log_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JUNOS_LOG_PATH", ""),
+			},
+			"fake_create_with_setfile": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("JUNOS_FAKECREATE_SETFILE", ""),
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -107,12 +124,15 @@ func Provider() *schema.Provider {
 			"junos_application_set":                                      resourceApplicationSet(),
 			"junos_bgp_group":                                            resourceBgpGroup(),
 			"junos_bgp_neighbor":                                         resourceBgpNeighbor(),
+			"junos_chassis_cluster":                                      resourceChassisCluster(),
 			"junos_firewall_filter":                                      resourceFirewallFilter(),
 			"junos_firewall_policer":                                     resourceFirewallPolicer(),
+			"junos_group_dual_system":                                    resourceGroupDualSystem(),
 			"junos_interface":                                            resourceInterface(),
 			"junos_interface_logical":                                    resourceInterfaceLogical(),
 			"junos_interface_physical":                                   resourceInterfacePhysical(),
 			"junos_interface_st0_unit":                                   resourceInterfaceSt0Unit(),
+			"junos_null_commit_file":                                     resourceNullCommitFile(),
 			"junos_ospf_area":                                            resourceOspfArea(),
 			"junos_policyoptions_as_path":                                resourcePolicyoptionsAsPath(),
 			"junos_policyoptions_as_path_group":                          resourcePolicyoptionsAsPathGroup(),
@@ -123,6 +143,8 @@ func Provider() *schema.Provider {
 			"junos_routing_instance":                                     resourceRoutingInstance(),
 			"junos_routing_options":                                      resourceRoutingOptions(),
 			"junos_security":                                             resourceSecurity(),
+			"junos_security_address_book":                                resourceSecurityAddressBook(),
+			"junos_security_global_policy":                               resourceSecurityGlobalPolicy(),
 			"junos_security_ike_gateway":                                 resourceIkeGateway(),
 			"junos_security_ike_policy":                                  resourceIkePolicy(),
 			"junos_security_ike_proposal":                                resourceIkeProposal(),
@@ -146,6 +168,10 @@ func Provider() *schema.Provider {
 			"junos_security_utm_profile_web_filtering_juniper_local":     resourceSecurityUtmProfileWebFilteringLocal(),
 			"junos_security_utm_profile_web_filtering_websense_redirect": resourceSecurityUtmProfileWebFilteringWebsense(),
 			"junos_security_zone":                                        resourceSecurityZone(),
+			"junos_services":                                             resourceServices(),
+			"junos_services_proxy_profile":                               resourceServicesProxyProfile(),
+			"junos_services_security_intelligence_policy":                resourceServicesSecurityIntellPolicy(),
+			"junos_services_security_intelligence_profile":               resourceServicesSecurityIntellProfile(),
 			"junos_static_route":                                         resourceStaticRoute(),
 			"junos_system":                                               resourceSystem(),
 			"junos_system_login_class":                                   resourceSystemLoginClass(),
@@ -180,7 +206,9 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		junosCmdSleepShort:       d.Get("cmd_sleep_short").(int),
 		junosCmdSleepLock:        d.Get("cmd_sleep_lock").(int),
 		junosSSHSleepClosed:      d.Get("ssh_sleep_closed").(int),
+		junosFilePermission:      d.Get("file_permission").(string),
 		junosDebugNetconfLogPath: d.Get("debug_netconf_log_path").(string),
+		junosFakeCreateSetFile:   d.Get("fake_create_with_setfile").(string),
 	}
 
 	return config.Session()

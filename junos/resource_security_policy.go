@@ -30,13 +30,13 @@ func resourceSecurityPolicy() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"to_zone": {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"policy": {
 				Type:     schema.TypeList,
@@ -46,7 +46,7 @@ func resourceSecurityPolicy() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 						},
 						"match_source_address": {
 							Type:     schema.TypeList,
@@ -78,6 +78,14 @@ func resourceSecurityPolicy() *schema.Resource {
 							Optional: true,
 						},
 						"log_close": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"match_destination_address_excluded": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"match_source_address_excluded": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
@@ -165,6 +173,14 @@ func resourceSecurityPolicy() *schema.Resource {
 
 func resourceSecurityPolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setSecurityPolicy(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("from_zone").(string) + idSeparator + d.Get("to_zone").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -385,6 +401,12 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		if policy["log_close"].(bool) {
 			configSet = append(configSet, setPrefixPolicy+" then log session-close")
 		}
+		if policy["match_destination_address_excluded"].(bool) {
+			configSet = append(configSet, setPrefixPolicy+" match destination-address-excluded")
+		}
+		if policy["match_source_address_excluded"].(bool) {
+			configSet = append(configSet, setPrefixPolicy+" match source-address-excluded")
+		}
 		if policy["permit_tunnel_ipsec_vpn"].(string) != "" {
 			if policy["then"].(string) != permitWord {
 				return fmt.Errorf("conflict policy then %v and policy permit_tunnel_ipsec_vpn",
@@ -409,11 +431,8 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			configSet = append(configSet, configSetAppSvc...)
 		}
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject) (policyOptions, error) {
 	zone := strings.Split(idPolicy, idSeparator)
@@ -455,6 +474,10 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 				case strings.HasPrefix(itemTrimPolicy, "match application "):
 					m["match_application"] = append(m["match_application"].([]string),
 						strings.TrimPrefix(itemTrimPolicy, "match application "))
+				case strings.HasPrefix(itemTrimPolicy, "match destination-address-excluded"):
+					m["match_destination_address_excluded"] = true
+				case strings.HasPrefix(itemTrimPolicy, "match source-address-excluded"):
+					m["match_source_address_excluded"] = true
 				case strings.HasPrefix(itemTrimPolicy, "then "):
 					switch {
 					case strings.HasSuffix(itemTrimPolicy, permitWord),
@@ -489,11 +512,8 @@ func delSecurityPolicy(fromZone string, toZone string, m interface{}, jnprSess *
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security policies from-zone "+fromZone+" to-zone "+toZone)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillSecurityPolicyData(d *schema.ResourceData, policyOptions policyOptions) {
@@ -510,16 +530,18 @@ func fillSecurityPolicyData(d *schema.ResourceData, policyOptions policyOptions)
 
 func genMapPolicyWithName(name string) map[string]interface{} {
 	return map[string]interface{}{
-		"name":                        name,
-		"match_source_address":        make([]string, 0),
-		"match_destination_address":   make([]string, 0),
-		"match_application":           make([]string, 0),
-		"then":                        "",
-		"count":                       false,
-		"log_init":                    false,
-		"log_close":                   false,
-		"permit_application_services": make([]map[string]interface{}, 0),
-		"permit_tunnel_ipsec_vpn":     "",
+		"name":                               name,
+		"match_source_address":               make([]string, 0),
+		"match_destination_address":          make([]string, 0),
+		"match_application":                  make([]string, 0),
+		"then":                               "",
+		"count":                              false,
+		"log_init":                           false,
+		"log_close":                          false,
+		"match_destination_address_excluded": false,
+		"match_source_address_excluded":      false,
+		"permit_application_services":        make([]map[string]interface{}, 0),
+		"permit_tunnel_ipsec_vpn":            "",
 	}
 }
 

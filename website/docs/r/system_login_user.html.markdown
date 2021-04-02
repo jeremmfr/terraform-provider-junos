@@ -30,7 +30,7 @@ The following arguments are supported:
 * `name` - (Required, Forces new resource)(`String`) The name of system login user.
 * `class` - (Required)(`String`) Login class.
 * `uid` - (Optional, Computed, Forces new resource)(`Int`) User identifier (uid) (100..64000).
-* `authentication` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for declare 'authentication' configuration.
+* `authentication` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'authentication' configuration.
   * `encrypted_password` - (Optional)(`String`) Encrypted password string.
   * `no_public_keys` - (Optional)(`Bool`) Disables ssh public key based authentication.
   * `ssh_public_keys` - (Optional)(`ListOfString`) Secure shell (ssh) public key string.

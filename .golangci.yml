@@ -3,6 +3,9 @@ run:
 linters:
   enable-all: true
   disable:
+    - maligned # deprecated
+    - scopelint # deprecated
+    - interfacer # deprecated
     - funlen
     - gochecknoglobals
     - dupl
@@ -14,6 +17,8 @@ linters:
     - exhaustivestruct
     - paralleltest
     - gci
+    - cyclop
+    - forcetypeassert
 linters-settings:
   gocyclo:
     # minimal code complexity to report, 30 by default

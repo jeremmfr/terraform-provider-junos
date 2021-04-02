@@ -34,7 +34,7 @@ func resourceIkeProposal() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 			},
 			"authentication_algorithm": {
 				Type:     schema.TypeString,
@@ -64,6 +64,14 @@ func resourceIkeProposal() *schema.Resource {
 
 func resourceIkeProposalCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setIkeProposal(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -250,11 +258,7 @@ func setIkeProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 		configSet = append(configSet, setPrefix+" lifetime-seconds "+strconv.Itoa(d.Get("lifetime_seconds").(int)))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readIkeProposal(ikeProposal string, m interface{}, jnprSess *NetconfObject) (ikeProposalOptions, error) {
 	sess := m.(*Session)
@@ -299,11 +303,8 @@ func delIkeProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ike proposal "+d.Get("name").(string))
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillIkeProposalData(d *schema.ResourceData, ikeProposalOptions ikeProposalOptions) {

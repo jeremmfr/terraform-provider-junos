@@ -29,7 +29,7 @@ func resourcePolicyoptionsAsPathGroup() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"as_path": {
 				Type:     schema.TypeList,
@@ -39,7 +39,7 @@ func resourcePolicyoptionsAsPathGroup() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 						},
 						"path": {
 							Type:     schema.TypeString,
@@ -59,6 +59,14 @@ func resourcePolicyoptionsAsPathGroup() *schema.Resource {
 func resourcePolicyoptionsAsPathGroupCreate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setPolicyoptionsAsPathGroup(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -240,11 +248,8 @@ func setPolicyoptionsAsPathGroup(d *schema.ResourceData, m interface{}, jnprSess
 	if d.Get("dynamic_db").(bool) {
 		configSet = append(configSet, setPrefix+" dynamic-db")
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readPolicyoptionsAsPathGroup(asPathGroup string,
 	m interface{}, jnprSess *NetconfObject) (asPathGroupOptions, error) {
@@ -290,11 +295,8 @@ func delPolicyoptionsAsPathGroup(asPathGroup string, m interface{}, jnprSess *Ne
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete policy-options as-path-group "+asPathGroup)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillPolicyoptionsAsPathGroupData(d *schema.ResourceData, asPathGroupOptions asPathGroupOptions) {
 	if tfErr := d.Set("name", asPathGroupOptions.name); tfErr != nil {

@@ -42,7 +42,7 @@ func resourceIkeGateway() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 			},
 			"external_interface": {
 				Type:     schema.TypeString,
@@ -160,7 +160,7 @@ func resourceIkeGateway() *schema.Resource {
 						"access_profile": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 							ConflictsWith: []string{
 								"aaa.0.client_password",
 								"aaa.0.client_username",
@@ -272,6 +272,14 @@ func resourceIkeGateway() *schema.Resource {
 
 func resourceIkeGatewayCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setIkeGateway(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -561,11 +569,7 @@ func setIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 		configSet = append(configSet, setPrefix+" version "+d.Get("version").(string))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (ikeGatewayOptions, error) {
 	sess := m.(*Session)
@@ -738,11 +742,8 @@ func delIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ike gateway "+d.Get("name").(string))
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillIkeGatewayData(d *schema.ResourceData, ikeGatewayOptions ikeGatewayOptions) {

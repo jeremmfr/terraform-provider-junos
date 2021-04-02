@@ -135,6 +135,14 @@ func resourceSecurityUtmPolicy() *schema.Resource {
 
 func resourceSecurityUtmPolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setUtmPolicy(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -395,11 +403,7 @@ func setUtmPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 			d.Get("web_filtering_profile").(string)+"\"")
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readUtmPolicy(policy string, m interface{}, jnprSess *NetconfObject) (
 	utmPolicyOptions, error) {
@@ -499,11 +503,8 @@ func delUtmPolicy(policy string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security utm utm-policy \""+policy+"\"")
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillUtmPolicyData(d *schema.ResourceData, utmPolicyOptions utmPolicyOptions) {

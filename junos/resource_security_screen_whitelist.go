@@ -28,7 +28,7 @@ func resourceSecurityScreenWhiteList() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 			},
 			"address": {
 				Type:     schema.TypeList,
@@ -42,6 +42,14 @@ func resourceSecurityScreenWhiteList() *schema.Resource {
 func resourceSecurityScreenWhiteListCreate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setSecurityScreenWhiteList(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -228,11 +236,7 @@ func setSecurityScreenWhiteList(d *schema.ResourceData, m interface{}, jnprSess 
 		configSet = append(configSet, setPrefix+"address "+v.(string))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func readSecurityScreenWhiteList(name string, m interface{}, jnprSess *NetconfObject) (screenWhiteListOptions, error) {
@@ -267,11 +271,8 @@ func delSecurityScreenWhiteList(name string, m interface{}, jnprSess *NetconfObj
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security screen white-list "+name)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillSecurityScreenWhiteListData(d *schema.ResourceData, whiteListOptions screenWhiteListOptions) {

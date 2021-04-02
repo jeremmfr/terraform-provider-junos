@@ -108,6 +108,14 @@ func resourceSecurityUtmProfileWebFilteringWebsense() *schema.Resource {
 func resourceSecurityUtmProfileWebFilteringWebsenseCreate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setUtmProfileWebFWebsense(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -338,11 +346,7 @@ func setUtmProfileWebFWebsense(d *schema.ResourceData, m interface{}, jnprSess *
 		configSet = append(configSet, setPrefix+"timeout "+strconv.Itoa(d.Get("timeout").(int)))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readUtmProfileWebFWebsense(profile string, m interface{}, jnprSess *NetconfObject) (
 	utmProfileWebFilteringWebsenseOptions, error) {
@@ -430,11 +434,8 @@ func delUtmProfileWebFWebsense(profile string, m interface{}, jnprSess *NetconfO
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security utm feature-profile web-filtering websense-redirect "+
 		"profile \""+profile+"\"")
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillUtmProfileWebFWebsenseData(d *schema.ResourceData,

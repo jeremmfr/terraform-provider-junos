@@ -72,6 +72,14 @@ func resourceRoutingOptions() *schema.Resource {
 
 func resourceRoutingOptionsCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setRoutingOptions(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId("routing_options")
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -201,11 +209,7 @@ func setRoutingOptions(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		}
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func delRoutingOptions(m interface{}, jnprSess *NetconfObject) error {
@@ -220,11 +224,8 @@ func delRoutingOptions(m interface{}, jnprSess *NetconfObject) error {
 		configSet = append(configSet,
 			delPrefix+line)
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsOptions, error) {
 	sess := m.(*Session)

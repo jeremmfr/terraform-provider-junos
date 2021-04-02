@@ -33,7 +33,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"from": {
 				Type:     schema.TypeList,
@@ -69,7 +69,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"inet", "inet-mdt", "inet-mvpn", "inet-vpn",
+								"evpn", "inet", "inet-mdt", "inet-mvpn", "inet-vpn",
 								"inet6", "inet6-mvpn", "inet6-vpn",
 								"iso"}, false),
 						},
@@ -296,7 +296,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"inet", "inet-mdt", "inet-mvpn", "inet-vpn",
+								"evpn", "inet", "inet-mdt", "inet-mvpn", "inet-vpn",
 								"inet6", "inet6-mvpn", "inet6-vpn",
 								"iso"}, false),
 						},
@@ -356,7 +356,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 						},
 						"from": {
 							Type:     schema.TypeList,
@@ -392,7 +392,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											"inet", "inet-mdt", "inet-mvpn", "inet-vpn",
+											"evpn", "inet", "inet-mdt", "inet-mvpn", "inet-vpn",
 											"inet6", "inet6-mvpn", "inet6-vpn",
 											"iso"}, false),
 									},
@@ -619,7 +619,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											"inet", "inet-mdt", "inet-mvpn", "inet-vpn",
+											"evpn", "inet", "inet-mdt", "inet-mvpn", "inet-vpn",
 											"inet6", "inet6-mvpn", "inet6-vpn",
 											"iso"}, false),
 									},
@@ -681,6 +681,14 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 func resourcePolicyoptionsPolicyStatementCreate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setPolicyStatement(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -895,11 +903,7 @@ func setPolicyStatement(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		}
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readPolicyStatement(policyStatement string,
 	m interface{}, jnprSess *NetconfObject) (policyStatementOptions, error) {
@@ -979,11 +983,8 @@ func delPolicyStatement(policyStatement string, m interface{}, jnprSess *Netconf
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete policy-options policy-statement "+policyStatement)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillPolicyStatementData(d *schema.ResourceData, policyStatementOptions policyStatementOptions) {
 	if tfErr := d.Set("name", policyStatementOptions.name); tfErr != nil {

@@ -84,6 +84,14 @@ func resourceSecurityUtmProfileWebFilteringLocal() *schema.Resource {
 func resourceSecurityUtmProfileWebFilteringLocalCreate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setUtmProfileWebFLocal(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -297,11 +305,7 @@ func setUtmProfileWebFLocal(d *schema.ResourceData, m interface{}, jnprSess *Net
 		configSet = append(configSet, setPrefix+"timeout "+strconv.Itoa(d.Get("timeout").(int)))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readUtmProfileWebFLocal(profile string, m interface{}, jnprSess *NetconfObject) (
 	utmProfileWebFilteringLocalOptions, error) {
@@ -366,11 +370,8 @@ func delUtmProfileWebFLocal(profile string, m interface{}, jnprSess *NetconfObje
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security utm feature-profile web-filtering juniper-local "+
 		"profile \""+profile+"\"")
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillUtmProfileWebFLocalData(d *schema.ResourceData,

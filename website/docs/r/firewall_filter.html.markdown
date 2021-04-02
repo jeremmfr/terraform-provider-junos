@@ -91,8 +91,8 @@ The following arguments are supported:
 
 ## Import
 
-Junos firewall filter can be imported using an id made up of `<name>`, e.g.
+Junos firewall filter can be imported using an id made up of `<name>_-_<family>`, e.g.
 
 ```
-$ terraform import junos_firewall_filter.filterdemo filterDemo
+$ terraform import junos_firewall_filter.filterdemo filterDemo_-_inet
 ```

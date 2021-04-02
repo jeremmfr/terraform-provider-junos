@@ -42,6 +42,7 @@ type bgpOptions struct {
 	authenticationKey            string
 	authenticationKeyChain       string
 	bgpType                      string // group only
+	cluster                      string
 	localAddress                 string
 	localAs                      string
 	localInterface               string
@@ -52,6 +53,8 @@ type bgpOptions struct {
 	exportPolicy                 []string
 	importPolicy                 []string
 	bfdLivenessDetection         []map[string]interface{}
+	bgpMultipath                 []map[string]interface{}
+	familyEvpn                   []map[string]interface{}
 	familyInet                   []map[string]interface{}
 	familyInet6                  []map[string]interface{}
 	gracefulRestart              []map[string]interface{}
@@ -90,8 +93,10 @@ func delBgpOpts(d *schema.ResourceData, typebgp string, m interface{}, jnprSess 
 		delPrefix+"authentication-key",
 		delPrefix+"authentication-key-chain",
 		delPrefix+"bfd-liveness-detection",
+		delPrefix+"cluster",
 		delPrefix+"damping",
 		delPrefix+"export",
+		delPrefix+"family evpn",
 		delPrefix+"family inet",
 		delPrefix+"family inet6",
 		delPrefix+"graceful-restart",
@@ -114,11 +119,7 @@ func delBgpOpts(d *schema.ResourceData, typebgp string, m interface{}, jnprSess 
 		delPrefix+"type",
 	)
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
@@ -149,6 +150,24 @@ func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, j
 	}
 	if d.Get("authentication_key_chain").(string) != "" {
 		configSet = append(configSet, setPrefix+"authentication-key-chain "+d.Get("authentication_key_chain").(string))
+	}
+	for _, v := range d.Get("bgp_multipath").([]interface{}) {
+		configSet = append(configSet, setPrefix+"multipath")
+		if v != nil {
+			bgpMultipah := v.(map[string]interface{})
+			if bgpMultipah["allow_protection"].(bool) {
+				configSet = append(configSet, setPrefix+"multipath allow-protection")
+			}
+			if bgpMultipah["disable"].(bool) {
+				configSet = append(configSet, setPrefix+"multipath disable")
+			}
+			if bgpMultipah["multiple_as"].(bool) {
+				configSet = append(configSet, setPrefix+"multipath multiple-as")
+			}
+		}
+	}
+	if v := d.Get("cluster").(string); v != "" {
+		configSet = append(configSet, setPrefix+"cluster "+v)
 	}
 	if d.Get("damping").(bool) {
 		configSet = append(configSet, setPrefix+"damping")
@@ -247,11 +266,8 @@ func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, j
 	if d.Get("remove_private").(bool) {
 		configSet = append(configSet, setPrefix+"remove-private")
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 	var err error
@@ -284,6 +300,9 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 	}
 	if strings.HasPrefix(item, "authentication-key-chain ") {
 		confRead.authenticationKeyChain = strings.TrimPrefix(item, "authentication-key-chain ")
+	}
+	if strings.HasPrefix(item, "cluster ") {
+		confRead.cluster = strings.TrimPrefix(item, "cluster ")
 	}
 	if item == "damping" {
 		confRead.damping = true
@@ -366,8 +385,23 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 	if item == "multihop" {
 		confRead.multihop = true
 	}
-	if item == "multipath" {
+	if strings.HasPrefix(item, "multipath") {
 		confRead.multipath = true
+		if len(confRead.bgpMultipath) == 0 {
+			confRead.bgpMultipath = append(confRead.bgpMultipath, map[string]interface{}{
+				"allow_protection": false,
+				"disable":          false,
+				"multiple_as":      false,
+			})
+		}
+		switch {
+		case item == "multipath allow-protection":
+			confRead.bgpMultipath[0]["allow_protection"] = true
+		case item == "multipath disable":
+			confRead.bgpMultipath[0]["disable"] = true
+		case item == "multipath multiple-as":
+			confRead.bgpMultipath[0]["multiple_as"] = true
+		}
 	}
 	if item == "no-advertise-peer-as" {
 		confRead.noAdvertisePeerAs = true
@@ -561,9 +595,12 @@ func setBgpOptsFamily(setPrefix, familyType string, familyOptsList []interface{}
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	setPrefixFamily := setPrefix + "family "
-	if familyType == inetWord {
+	switch familyType {
+	case "evpn":
+		setPrefixFamily += "evpn "
+	case inetWord:
 		setPrefixFamily += "inet "
-	} else if familyType == inet6Word {
+	case inet6Word:
 		setPrefixFamily += "inet6 "
 	}
 	for _, familyOpts := range familyOptsList {
@@ -625,10 +662,12 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 		"prefix_limit":          make([]map[string]interface{}, 0, 1),
 	}
 	setPrefix := "family "
-	if familyType == inetWord {
+	switch familyType {
+	case "evpn":
+		setPrefix += "evpn "
+	case inetWord:
 		setPrefix += "inet "
-	}
-	if familyType == inet6Word {
+	case inet6Word:
 		setPrefix += "inet6 "
 	}
 	trimSplit := strings.Split(strings.TrimPrefix(item, setPrefix), " ")

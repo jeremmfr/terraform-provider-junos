@@ -46,7 +46,7 @@ func resourceIkePolicy() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 			},
 			"proposals": {
 				Type:         schema.TypeList,
@@ -85,6 +85,14 @@ func resourceIkePolicy() *schema.Resource {
 
 func resourceIkePolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setIkePolicy(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -274,11 +282,7 @@ func setIkePolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 		configSet = append(configSet, setPrefix+" pre-shared-key hexadecimal "+d.Get("pre_shared_key_hexa").(string))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readIkePolicy(ikePolicy string, m interface{}, jnprSess *NetconfObject) (ikePolicyOptions, error) {
 	sess := m.(*Session)
@@ -328,11 +332,8 @@ func delIkePolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ike policy "+d.Get("name").(string))
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillIkePolicyData(d *schema.ResourceData, ikePolicyOptions ikePolicyOptions) {

@@ -591,6 +591,14 @@ func resourceSystem() *schema.Resource {
 
 func resourceSystemCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setSystem(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId("system")
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -803,11 +811,7 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 			d.Get("tracing_dest_override_syslog_host").(string))
 	}
 
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
-
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -898,11 +902,8 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			}
 		}
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func setSystemInternetOptions(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -1007,11 +1008,8 @@ func setSystemInternetOptions(d *schema.ResourceData, m interface{}, jnprSess *N
 			configSet = append(configSet, setPrefix+"tcp-mss "+strconv.Itoa(internetOptions["tcp_mss"].(int)))
 		}
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func setSystemLogin(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -1116,11 +1114,8 @@ func setSystemLogin(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 			}
 		}
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func listLinesLogin() []string {
@@ -1201,11 +1196,8 @@ func delSystem(m interface{}, jnprSess *NetconfObject) error {
 		configSet = append(configSet,
 			delPrefix+line)
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 	sess := m.(*Session)

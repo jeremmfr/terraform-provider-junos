@@ -31,7 +31,7 @@ func resourceSecurityNatSource() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 			},
 			"from": {
 				Type:     schema.TypeList,
@@ -81,7 +81,7 @@ func resourceSecurityNatSource() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 						},
 						"match": {
 							Type:     schema.TypeList,
@@ -121,7 +121,7 @@ func resourceSecurityNatSource() *schema.Resource {
 									"pool": {
 										Type:             schema.TypeString,
 										Optional:         true,
-										ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+										ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 									},
 								},
 							},
@@ -135,6 +135,14 @@ func resourceSecurityNatSource() *schema.Resource {
 
 func resourceSecurityNatSourceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setSecurityNatSource(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -361,11 +369,8 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 			}
 		}
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObject) (natSourceOptions, error) {
 	sess := m.(*Session)
@@ -483,11 +488,8 @@ func delSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObje
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security nat source rule-set "+natSource)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillSecurityNatSourceData(d *schema.ResourceData, natSourceOptions natSourceOptions) {
 	if tfErr := d.Set("name", natSourceOptions.name); tfErr != nil {

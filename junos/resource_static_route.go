@@ -56,7 +56,7 @@ func resourceStaticRoute() *schema.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				Default:          defaultWord,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 			"active": {
 				Type:          schema.TypeBool,
@@ -178,6 +178,14 @@ func resourceStaticRoute() *schema.Resource {
 
 func resourceStaticRouteCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setStaticRoute(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("destination").(string) + idSeparator + d.Get("routing_instance").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -485,11 +493,8 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	if d.Get("no_retain").(bool) {
 		configSet = append(configSet, setPrefix+" no-retain")
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readStaticRoute(destination string, instance string, m interface{},
 	jnprSess *NetconfObject) (staticRouteOptions, error) {
@@ -655,11 +660,8 @@ func delStaticRouteOpts(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 			configSet = append(configSet, delPrefix+"qualified-next-hop "+qualifiedNextHop["next_hop"].(string))
 		}
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func delStaticRoute(destination string, instance string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
@@ -678,11 +680,8 @@ func delStaticRoute(destination string, instance string, m interface{}, jnprSess
 				" routing-options rib "+instance+".inet6.0 static route "+destination)
 		}
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 
 func fillStaticRouteData(d *schema.ResourceData, staticRouteOptions staticRouteOptions) {

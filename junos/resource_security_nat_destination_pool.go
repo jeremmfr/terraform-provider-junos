@@ -33,7 +33,7 @@ func resourceSecurityNatDestinationPool() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
 			},
 			"address": {
 				Type:             schema.TypeString,
@@ -55,7 +55,7 @@ func resourceSecurityNatDestinationPool() *schema.Resource {
 			"routing_instance": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
 		},
 	}
@@ -64,6 +64,14 @@ func resourceSecurityNatDestinationPool() *schema.Resource {
 func resourceSecurityNatDestinationPoolCreate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeCreateSetFile != "" {
+		if err := setSecurityNatDestinationPool(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId(d.Get("name").(string))
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -251,11 +259,8 @@ func setSecurityNatDestinationPool(d *schema.ResourceData, m interface{}, jnprSe
 	if d.Get("routing_instance").(string) != "" {
 		configSet = append(configSet, setPrefix+" routing-instance "+d.Get("routing_instance").(string))
 	}
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func readSecurityNatDestinationPool(natDestinationPool string,
 	m interface{}, jnprSess *NetconfObject) (natDestinationPoolOptions, error) {
@@ -300,11 +305,8 @@ func delSecurityNatDestinationPool(natDestinationPool string, m interface{}, jnp
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security nat destination pool "+natDestinationPool)
-	if err := sess.configSet(configSet, jnprSess); err != nil {
-		return err
-	}
 
-	return nil
+	return sess.configSet(configSet, jnprSess)
 }
 func fillSecurityNatDestinationPoolData(d *schema.ResourceData, natDestinationPoolOptions natDestinationPoolOptions) {
 	if tfErr := d.Set("name", natDestinationPoolOptions.name); tfErr != nil {
