@@ -109,6 +109,7 @@ func resourceServicesSecurityIntellPolicyCreate(ctx context.Context,
 
 	return append(diagWarns, resourceServicesSecurityIntellPolicyReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceServicesSecurityIntellPolicyRead(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -120,6 +121,7 @@ func resourceServicesSecurityIntellPolicyRead(ctx context.Context,
 
 	return resourceServicesSecurityIntellPolicyReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceServicesSecurityIntellPolicyReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -136,6 +138,7 @@ func resourceServicesSecurityIntellPolicyReadWJnprSess(
 
 	return nil
 }
+
 func resourceServicesSecurityIntellPolicyUpdate(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
@@ -168,6 +171,7 @@ func resourceServicesSecurityIntellPolicyUpdate(ctx context.Context,
 
 	return append(diagWarns, resourceServicesSecurityIntellPolicyReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceServicesSecurityIntellPolicyDelete(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -193,6 +197,7 @@ func resourceServicesSecurityIntellPolicyDelete(ctx context.Context,
 
 	return diagWarns
 }
+
 func resourceServicesSecurityIntellPolicyImport(
 	d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
@@ -233,6 +238,7 @@ func checkServicesSecurityIntellPolicyExists(policy string, m interface{}, jnprS
 
 	return true, nil
 }
+
 func setServicesSecurityIntellPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -249,6 +255,7 @@ func setServicesSecurityIntellPolicy(d *schema.ResourceData, m interface{}, jnpr
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readServicesSecurityIntellPolicy(policy string, m interface{}, jnprSess *NetconfObject) (
 	securityIntellPolicyOptions, error) {
 	sess := m.(*Session)

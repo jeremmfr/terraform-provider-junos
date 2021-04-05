@@ -198,6 +198,7 @@ resource junos_interface_physical testacc_interface {
 }
 `
 }
+
 func testAccJunosInterfacePhysicalSWConfigUpdate(interFace string) string {
 	return `
 resource junos_interface_physical testacc_interface {
@@ -250,6 +251,7 @@ resource "junos_interface_physical" "testacc_interfaceAE" {
 }
 `
 }
+
 func testAccJunosInterfacePhysicalConfigUpdate(interFace, interfaceAE, interFace2 string) string {
 	return `
 resource junos_interface_physical testacc_interface {
@@ -306,6 +308,7 @@ resource "junos_interface_physical" "testacc_interfaceAE" {
 }
 `
 }
+
 func testAccJunosInterfacePhysicalConfigUpdate2(interFace, interfaceAE string) string {
 	return `
 resource junos_interface_physical testacc_interface {
@@ -342,6 +345,7 @@ resource "junos_interface_physical" "testacc_interfaceAE" {
 }
 `
 }
+
 func testAccJunosInterfacePhysicalRouterConfigUpdate(interFace, interfaceAE string) string {
 	return `
 resource "junos_interface_physical" "testacc_interface" {

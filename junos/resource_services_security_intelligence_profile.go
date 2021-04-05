@@ -171,6 +171,7 @@ func resourceServicesSecurityIntellProfileCreate(ctx context.Context,
 
 	return append(diagWarns, resourceServicesSecurityIntellProfileReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceServicesSecurityIntellProfileRead(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -182,6 +183,7 @@ func resourceServicesSecurityIntellProfileRead(ctx context.Context,
 
 	return resourceServicesSecurityIntellProfileReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceServicesSecurityIntellProfileReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -198,6 +200,7 @@ func resourceServicesSecurityIntellProfileReadWJnprSess(
 
 	return nil
 }
+
 func resourceServicesSecurityIntellProfileUpdate(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
@@ -230,6 +233,7 @@ func resourceServicesSecurityIntellProfileUpdate(ctx context.Context,
 
 	return append(diagWarns, resourceServicesSecurityIntellProfileReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceServicesSecurityIntellProfileDelete(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -255,6 +259,7 @@ func resourceServicesSecurityIntellProfileDelete(ctx context.Context,
 
 	return diagWarns
 }
+
 func resourceServicesSecurityIntellProfileImport(
 	d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
@@ -295,6 +300,7 @@ func checkServicesSecurityIntellProfileExists(profile string, m interface{}, jnp
 
 	return true, nil
 }
+
 func setServicesSecurityIntellProfile(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -334,6 +340,7 @@ func setServicesSecurityIntellProfile(d *schema.ResourceData, m interface{}, jnp
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readServicesSecurityIntellProfile(profile string, m interface{}, jnprSess *NetconfObject) (
 	securityIntellProfileOptions, error) {
 	sess := m.(*Session)

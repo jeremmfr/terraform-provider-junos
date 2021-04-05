@@ -37,8 +37,8 @@ func resourceFirewallFilter() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					inetWord, inet6Word, "any", "ccc", "mpls", "vpls", "ethernet-switching"}, false),
+				ValidateFunc: validation.StringInSlice(
+					[]string{inetWord, inet6Word, "any", "ccc", "mpls", "vpls", "ethernet-switching"}, false),
 			},
 			"interface_specific": {
 				Type:     schema.TypeBool,
@@ -322,6 +322,7 @@ func resourceFirewallFilterCreate(ctx context.Context, d *schema.ResourceData, m
 
 	return append(diagWarns, resourceFirewallFilterReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceFirewallFilterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -332,6 +333,7 @@ func resourceFirewallFilterRead(ctx context.Context, d *schema.ResourceData, m i
 
 	return resourceFirewallFilterReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceFirewallFilterReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -348,6 +350,7 @@ func resourceFirewallFilterReadWJnprSess(
 
 	return nil
 }
+
 func resourceFirewallFilterUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -379,6 +382,7 @@ func resourceFirewallFilterUpdate(ctx context.Context, d *schema.ResourceData, m
 
 	return append(diagWarns, resourceFirewallFilterReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceFirewallFilterDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -403,6 +407,7 @@ func resourceFirewallFilterDelete(ctx context.Context, d *schema.ResourceData, m
 
 	return diagWarns
 }
+
 func resourceFirewallFilterImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -446,6 +451,7 @@ func checkFirewallFilterExists(name, family string, m interface{}, jnprSess *Net
 
 	return true, nil
 }
+
 func setFirewallFilter(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -475,6 +481,7 @@ func setFirewallFilter(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfObject) (filterOptions, error) {
 	sess := m.(*Session)
 	var confRead filterOptions
@@ -535,6 +542,7 @@ func delFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfOb
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func fillFirewallFilterData(d *schema.ResourceData, filterOptions filterOptions) {
 	if tfErr := d.Set("name", filterOptions.name); tfErr != nil {
 		panic(tfErr)
@@ -694,6 +702,7 @@ func setFirewallFilterOptsFrom(setPrefixTermFrom string,
 
 	return configSet, nil
 }
+
 func setFirewallFilterOptsThen(setPrefixTermThen string, configSet []string, thenMap map[string]interface{}) []string {
 	if thenMap["action"].(string) != "" {
 		configSet = append(configSet, setPrefixTermThen+thenMap["action"].(string))
@@ -725,6 +734,7 @@ func setFirewallFilterOptsThen(setPrefixTermThen string, configSet []string, the
 
 	return configSet
 }
+
 func readFirewallFilterOptsFrom(item string,
 	confReadElement []map[string]interface{}) []map[string]interface{} {
 	fromMap := genMapFirewallFilterOptsFrom()
@@ -834,6 +844,7 @@ func readFirewallFilterOptsFrom(item string,
 	// override (maxItem = 1)
 	return []map[string]interface{}{fromMap}
 }
+
 func readFirewallFilterOptsThen(item string,
 	confReadElement []map[string]interface{}) []map[string]interface{} {
 	thenMap := genMapFirewallFilterOptsThen()
@@ -903,6 +914,7 @@ func genMapFirewallFilterOptsFrom() map[string]interface{} {
 		"tcp_initial":                    false,
 	}
 }
+
 func genMapFirewallFilterOptsThen() map[string]interface{} {
 	return map[string]interface{}{
 		"action":             "",

@@ -12,7 +12,6 @@ linters:
     - gomnd
     - goerr113 
     - nestif
-    - gofumpt
     - exhaustivestruct
     - paralleltest
     - gci

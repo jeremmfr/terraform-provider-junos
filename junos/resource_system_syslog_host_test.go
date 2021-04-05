@@ -103,6 +103,7 @@ resource junos_system_syslog_host testacc_syslogHost {
 }
 `
 }
+
 func testAccJunosSystemSyslogHostConfigUpdate() string {
 	return `
 resource junos_system_syslog_host testacc_syslogHost {
@@ -113,6 +114,7 @@ resource junos_system_syslog_host testacc_syslogHost {
 }
 `
 }
+
 func testAccJunosSystemSyslogHostConfigUpdate2() string {
 	return `
 resource junos_system_syslog_host testacc_syslogHost {

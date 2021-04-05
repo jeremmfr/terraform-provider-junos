@@ -190,6 +190,7 @@ func resourceGroupDualSystemCreate(ctx context.Context, d *schema.ResourceData, 
 
 	return append(diagWarns, resourceGroupDualSystemReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceGroupDualSystemRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -200,6 +201,7 @@ func resourceGroupDualSystemRead(ctx context.Context, d *schema.ResourceData, m 
 
 	return resourceGroupDualSystemReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceGroupDualSystemReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -216,6 +218,7 @@ func resourceGroupDualSystemReadWJnprSess(
 
 	return nil
 }
+
 func resourceGroupDualSystemUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -258,6 +261,7 @@ func resourceGroupDualSystemUpdate(ctx context.Context, d *schema.ResourceData, 
 
 	return append(diagWarns, resourceGroupDualSystemReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceGroupDualSystemDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -293,6 +297,7 @@ func resourceGroupDualSystemDelete(ctx context.Context, d *schema.ResourceData, 
 
 	return diagWarns
 }
+
 func resourceGroupDualSystemImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -335,6 +340,7 @@ func checkGroupDualSystemExists(name string, m interface{}, jnprSess *NetconfObj
 
 	return true, nil
 }
+
 func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -399,6 +405,7 @@ func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readGroupDualSystem(group string, m interface{}, jnprSess *NetconfObject) (groupDualSystemOptions, error) {
 	sess := m.(*Session)
 	var confRead groupDualSystemOptions
@@ -527,6 +534,7 @@ func delGroupDualSystem(group string, m interface{}, jnprSess *NetconfObject) er
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func fillGroupDualSystemData(d *schema.ResourceData, groupDualSystemOptions groupDualSystemOptions) {
 	if tfErr := d.Set("name", groupDualSystemOptions.name); tfErr != nil {
 		panic(tfErr)

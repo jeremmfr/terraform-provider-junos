@@ -97,6 +97,7 @@ func resourceRoutingInstanceCreate(ctx context.Context, d *schema.ResourceData, 
 
 	return append(diagWarns, resourceRoutingInstanceReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceRoutingInstanceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -107,6 +108,7 @@ func resourceRoutingInstanceRead(ctx context.Context, d *schema.ResourceData, m 
 
 	return resourceRoutingInstanceReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceRoutingInstanceReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -123,6 +125,7 @@ func resourceRoutingInstanceReadWJnprSess(
 
 	return nil
 }
+
 func resourceRoutingInstanceUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -155,6 +158,7 @@ func resourceRoutingInstanceUpdate(ctx context.Context, d *schema.ResourceData, 
 
 	return append(diagWarns, resourceRoutingInstanceReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceRoutingInstanceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -179,6 +183,7 @@ func resourceRoutingInstanceDelete(ctx context.Context, d *schema.ResourceData, 
 
 	return diagWarns
 }
+
 func resourceRoutingInstanceImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -216,6 +221,7 @@ func checkRoutingInstanceExists(instance string, m interface{}, jnprSess *Netcon
 
 	return true, nil
 }
+
 func setRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -233,6 +239,7 @@ func setRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject) (instanceOptions, error) {
 	sess := m.(*Session)
 	var confRead instanceOptions
@@ -263,6 +270,7 @@ func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject
 
 	return confRead, nil
 }
+
 func delRoutingInstanceOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -273,6 +281,7 @@ func delRoutingInstanceOpts(d *schema.ResourceData, m interface{}, jnprSess *Net
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func delRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)

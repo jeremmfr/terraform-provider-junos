@@ -237,6 +237,7 @@ func resourceSecurityPolicyCreate(ctx context.Context, d *schema.ResourceData, m
 
 	return append(diagWarns, resourceSecurityPolicyReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -247,6 +248,7 @@ func resourceSecurityPolicyRead(ctx context.Context, d *schema.ResourceData, m i
 
 	return resourceSecurityPolicyReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityPolicyReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -264,6 +266,7 @@ func resourceSecurityPolicyReadWJnprSess(
 
 	return nil
 }
+
 func resourceSecurityPolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -297,6 +300,7 @@ func resourceSecurityPolicyUpdate(ctx context.Context, d *schema.ResourceData, m
 
 	return append(diagWarns, resourceSecurityPolicyReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -321,6 +325,7 @@ func resourceSecurityPolicyDelete(ctx context.Context, d *schema.ResourceData, m
 
 	return diagWarns
 }
+
 func resourceSecurityPolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -364,6 +369,7 @@ func checkSecurityPolicyExists(fromZone, toZone string, m interface{}, jnprSess 
 
 	return true, nil
 }
+
 func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -442,6 +448,7 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject) (policyOptions, error) {
 	zone := strings.Split(idPolicy, idSeparator)
 	fromZone := zone[0]
@@ -519,6 +526,7 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 
 	return confRead, nil
 }
+
 func delSecurityPolicy(fromZone string, toZone string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)

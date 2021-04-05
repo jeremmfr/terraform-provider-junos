@@ -430,10 +430,10 @@ func resourceInterfacePhysical() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"100m",
-								"1g", "2.5g", "5g", "8g",
+								"100m", "1g", "2.5g", "5g", "8g",
 								"10g", "25g", "40g", "50g", "80g",
-								"100g", "400g", "mixed"}, false),
+								"100g", "400g", "mixed",
+							}, false),
 						},
 						"minimum_bandwidth": {
 							Type:          schema.TypeString,
@@ -559,6 +559,7 @@ func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData
 
 	return append(diagWarns, resourceInterfacePhysicalReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -569,6 +570,7 @@ func resourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData, 
 
 	return resourceInterfacePhysicalReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceInterfacePhysicalReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -607,6 +609,7 @@ func resourceInterfacePhysicalReadWJnprSess(
 
 	return nil
 }
+
 func resourceInterfacePhysicalUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -643,6 +646,7 @@ func resourceInterfacePhysicalUpdate(ctx context.Context, d *schema.ResourceData
 
 	return append(diagWarns, resourceInterfacePhysicalReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceInterfacePhysicalDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -686,6 +690,7 @@ func resourceInterfacePhysicalDelete(ctx context.Context, d *schema.ResourceData
 
 	return diagWarns
 }
+
 func resourceInterfacePhysicalImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	if strings.Count(d.Id(), ".") != 0 {
 		return nil, fmt.Errorf("name of interface %s need to doesn't have a dot", d.Id())
@@ -1046,6 +1051,7 @@ func setInterfacePhysicalEsi(setPrefix string, esiParams []interface{},
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func setInterfacePhysicalParentEtherOpts(
 	ethOpts map[string]interface{}, interfaceName string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
@@ -1246,6 +1252,7 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 
 	return confRead, nil
 }
+
 func readInterfacePhysicalEsi(confRead *interfacePhysicalOptions, item string) error {
 	itemTrim := strings.TrimPrefix(item, "esi ")
 	if len(confRead.esi) == 0 {
@@ -1277,6 +1284,7 @@ func readInterfacePhysicalEsi(confRead *interfacePhysicalOptions, item string) e
 
 	return nil
 }
+
 func readInterfacePhysicalEtherOpts(confRead *interfacePhysicalOptions, itemTrim string) {
 	if len(confRead.etherOpts) == 0 {
 		confRead.etherOpts = append(confRead.etherOpts, map[string]interface{}{
@@ -1310,6 +1318,7 @@ func readInterfacePhysicalEtherOpts(confRead *interfacePhysicalOptions, itemTrim
 		confRead.etherOpts[0]["redundant_parent"] = strings.TrimPrefix(itemTrim, "redundant-parent ")
 	}
 }
+
 func readInterfacePhysicalGigetherOpts(confRead *interfacePhysicalOptions, itemTrim string) {
 	if len(confRead.gigetherOpts) == 0 {
 		confRead.gigetherOpts = append(confRead.gigetherOpts, map[string]interface{}{
@@ -1343,6 +1352,7 @@ func readInterfacePhysicalGigetherOpts(confRead *interfacePhysicalOptions, itemT
 		confRead.gigetherOpts[0]["redundant_parent"] = strings.TrimPrefix(itemTrim, "redundant-parent ")
 	}
 }
+
 func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, itemTrim string) error {
 	if len(confRead.parentEtherOpts) == 0 {
 		confRead.parentEtherOpts = append(confRead.parentEtherOpts, map[string]interface{}{
@@ -1733,6 +1743,7 @@ func interfaceAggregatedLastChild(ae, interFace string, m interface{}, jnprSess 
 
 	return lastAE, nil
 }
+
 func interfaceAggregatedCountSearchMax(
 	newAE, oldAE, interFace string, m interface{}, jnprSess *NetconfObject) (string, error) {
 	sess := m.(*Session)

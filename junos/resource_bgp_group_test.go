@@ -296,6 +296,7 @@ resource junos_bgp_group "testacc_bgpgroup" {
 }
 `
 }
+
 func testAccJunosBgpGroupConfigUpdate() string {
 	return `
 resource junos_routing_instance "testacc_bgpgroup" {
@@ -327,6 +328,7 @@ resource junos_bgp_group "testacc_bgpgroup" {
 }
 `
 }
+
 func testAccJunosBgpGroupConfigUpdate2() string {
 	return `
 resource junos_bgp_group "testacc_bgpgroup" {
@@ -353,6 +355,7 @@ resource junos_bgp_group "testacc_bgpgroup" {
 }
 `
 }
+
 func testAccJunosBgpGroupConfigUpdate3() string {
 	return `
 resource junos_bgp_group "testacc_bgpgroup" {

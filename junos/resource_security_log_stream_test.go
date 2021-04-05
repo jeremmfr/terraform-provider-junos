@@ -96,6 +96,7 @@ resource junos_security_log_stream "testacc_logstream" {
 }
 `
 }
+
 func testAccJunosSecurityLogStreamConfigUpdate() string {
 	return `
 resource junos_routing_instance "testacc_logstream" {

@@ -59,6 +59,7 @@ resource "junos_services_security_intelligence_policy" "testacc_svcSecIntelPolic
 }
 `
 }
+
 func testAccJunosServicesSecurityIntellPolicyConfigUpdate() string {
 	return `
 resource "junos_services_security_intelligence_profile" "testacc_svcSecIntelPolicy_CC" {

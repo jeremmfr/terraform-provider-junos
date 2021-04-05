@@ -217,6 +217,7 @@ func resourceSecurityGlobalPolicyCreate(ctx context.Context, d *schema.ResourceD
 
 	return append(diagWarns, resourceSecurityGlobalPolicyReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityGlobalPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -227,6 +228,7 @@ func resourceSecurityGlobalPolicyRead(ctx context.Context, d *schema.ResourceDat
 
 	return resourceSecurityGlobalPolicyReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityGlobalPolicyReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -239,6 +241,7 @@ func resourceSecurityGlobalPolicyReadWJnprSess(
 
 	return nil
 }
+
 func resourceSecurityGlobalPolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -272,6 +275,7 @@ func resourceSecurityGlobalPolicyUpdate(ctx context.Context, d *schema.ResourceD
 
 	return append(diagWarns, resourceSecurityGlobalPolicyReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityGlobalPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -296,6 +300,7 @@ func resourceSecurityGlobalPolicyDelete(ctx context.Context, d *schema.ResourceD
 
 	return diagWarns
 }
+
 func resourceSecurityGlobalPolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -387,6 +392,7 @@ func setSecurityGlobalPolicy(d *schema.ResourceData, m interface{}, jnprSess *Ne
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readSecurityGlobalPolicy(m interface{}, jnprSess *NetconfObject) (globalPolicyOptions, error) {
 	sess := m.(*Session)
 	var confRead globalPolicyOptions
@@ -459,6 +465,7 @@ func readSecurityGlobalPolicy(m interface{}, jnprSess *NetconfObject) (globalPol
 
 	return confRead, nil
 }
+
 func delSecurityGlobalPolicy(m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)

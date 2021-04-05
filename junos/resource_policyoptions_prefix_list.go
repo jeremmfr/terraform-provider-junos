@@ -104,6 +104,7 @@ func resourcePolicyoptionsPrefixListCreate(
 
 	return append(diagWarns, resourcePolicyoptionsPrefixListReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourcePolicyoptionsPrefixListRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -114,6 +115,7 @@ func resourcePolicyoptionsPrefixListRead(ctx context.Context, d *schema.Resource
 
 	return resourcePolicyoptionsPrefixListReadWJnprSess(d, m, jnprSess)
 }
+
 func resourcePolicyoptionsPrefixListReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -130,6 +132,7 @@ func resourcePolicyoptionsPrefixListReadWJnprSess(
 
 	return nil
 }
+
 func resourcePolicyoptionsPrefixListUpdate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
@@ -162,6 +165,7 @@ func resourcePolicyoptionsPrefixListUpdate(
 
 	return append(diagWarns, resourcePolicyoptionsPrefixListReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourcePolicyoptionsPrefixListDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -187,6 +191,7 @@ func resourcePolicyoptionsPrefixListDelete(
 
 	return diagWarns
 }
+
 func resourcePolicyoptionsPrefixListImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -226,6 +231,7 @@ func checkPolicyoptionsPrefixListExists(name string, m interface{}, jnprSess *Ne
 
 	return true, nil
 }
+
 func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -250,6 +256,7 @@ func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess 
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readPolicyoptionsPrefixList(prefixList string, m interface{}, jnprSess *NetconfObject) (prefixListOptions, error) {
 	sess := m.(*Session)
 	var confRead prefixListOptions
@@ -292,6 +299,7 @@ func delPolicyoptionsPrefixList(prefixList string, m interface{}, jnprSess *Netc
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func fillPolicyoptionsPrefixListData(d *schema.ResourceData, prefixListOptions prefixListOptions) {
 	if tfErr := d.Set("name", prefixListOptions.name); tfErr != nil {
 		panic(tfErr)

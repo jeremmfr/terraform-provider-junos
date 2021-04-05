@@ -100,6 +100,7 @@ func resourceServicesProxyProfileCreate(ctx context.Context,
 
 	return append(diagWarns, resourceServicesProxyProfileReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceServicesProxyProfileRead(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -111,6 +112,7 @@ func resourceServicesProxyProfileRead(ctx context.Context,
 
 	return resourceServicesProxyProfileReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceServicesProxyProfileReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -127,6 +129,7 @@ func resourceServicesProxyProfileReadWJnprSess(
 
 	return nil
 }
+
 func resourceServicesProxyProfileUpdate(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
@@ -159,6 +162,7 @@ func resourceServicesProxyProfileUpdate(ctx context.Context,
 
 	return append(diagWarns, resourceServicesProxyProfileReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceServicesProxyProfileDelete(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -184,6 +188,7 @@ func resourceServicesProxyProfileDelete(ctx context.Context,
 
 	return diagWarns
 }
+
 func resourceServicesProxyProfileImport(
 	d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
@@ -224,6 +229,7 @@ func checkServicesProxyProfileExists(profile string, m interface{}, jnprSess *Ne
 
 	return true, nil
 }
+
 func setServicesProxyProfile(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -236,6 +242,7 @@ func setServicesProxyProfile(d *schema.ResourceData, m interface{}, jnprSess *Ne
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readServicesProxyProfile(profile string, m interface{}, jnprSess *NetconfObject) (
 	proxyProfileOptions, error) {
 	sess := m.(*Session)

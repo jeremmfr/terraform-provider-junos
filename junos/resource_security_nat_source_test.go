@@ -131,6 +131,7 @@ resource junos_routing_instance testacc_securitySNAT {
 }
 `
 }
+
 func testAccJunosSecurityNatSourceConfigUpdate() string {
 	return `
 resource junos_security_nat_source testacc_securitySNAT {

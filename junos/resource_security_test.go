@@ -385,6 +385,7 @@ resource junos_security "testacc_security" {
 }
 `
 }
+
 func testAccJunosSecurityConfigUpdate(interFace string) string {
 	return `
 resource junos_interface_logical "testacc_security" {
@@ -465,6 +466,7 @@ resource junos_security "testacc_security" {
 }
 `
 }
+
 func testAccJunosSecurityConfigPostCheck() string {
 	return `
 resource junos_security "testacc_security" {

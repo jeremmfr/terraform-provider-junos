@@ -81,7 +81,8 @@ func resourceSecurityLogStream() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"binary", "sd-syslog", "syslog", "welf"}, false),
+					"binary", "sd-syslog", "syslog", "welf",
+				}, false),
 			},
 			"host": {
 				Type:          schema.TypeList,
@@ -179,6 +180,7 @@ func resourceSecurityLogStreamCreate(ctx context.Context, d *schema.ResourceData
 
 	return append(diagWarns, resourceSecurityLogStreamReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityLogStreamRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -189,6 +191,7 @@ func resourceSecurityLogStreamRead(ctx context.Context, d *schema.ResourceData, 
 
 	return resourceSecurityLogStreamReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityLogStreamReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -205,6 +208,7 @@ func resourceSecurityLogStreamReadWJnprSess(
 
 	return nil
 }
+
 func resourceSecurityLogStreamUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -236,6 +240,7 @@ func resourceSecurityLogStreamUpdate(ctx context.Context, d *schema.ResourceData
 
 	return append(diagWarns, resourceSecurityLogStreamReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityLogStreamDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -260,6 +265,7 @@ func resourceSecurityLogStreamDelete(ctx context.Context, d *schema.ResourceData
 
 	return diagWarns
 }
+
 func resourceSecurityLogStreamImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -299,6 +305,7 @@ func checkSecurityLogStreamExists(securityLogStream string, m interface{}, jnprS
 
 	return true, nil
 }
+
 func setSecurityLogStream(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -349,6 +356,7 @@ func setSecurityLogStream(d *schema.ResourceData, m interface{}, jnprSess *Netco
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readSecurityLogStream(securityLogStream string, m interface{}, jnprSess *NetconfObject) (
 	securityLogStreamOptions, error) {
 	sess := m.(*Session)

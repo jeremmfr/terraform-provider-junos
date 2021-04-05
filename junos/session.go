@@ -58,6 +58,7 @@ func (sess *Session) startNewSession() (*NetconfObject, error) {
 
 	return jnpr, nil
 }
+
 func (sess *Session) closeSession(jnpr *NetconfObject) {
 	err := jnpr.close(sess.junosSleepSSHClosed)
 	if err != nil {
@@ -66,6 +67,7 @@ func (sess *Session) closeSession(jnpr *NetconfObject) {
 		sess.logFile("[closeSession] closed")
 	}
 }
+
 func (sess *Session) command(cmd string, jnpr *NetconfObject) (string, error) {
 	read, err := jnpr.netconfCommand(cmd)
 	sess.logFile(fmt.Sprintf("[command] cmd: %q", cmd))
@@ -79,6 +81,7 @@ func (sess *Session) command(cmd string, jnpr *NetconfObject) (string, error) {
 
 	return read, nil
 }
+
 func (sess *Session) commandXML(cmd string, jnpr *NetconfObject) (string, error) {
 	read, err := jnpr.netconfCommandXML(cmd)
 	sess.logFile(fmt.Sprintf("[commandXML] cmd: %q", cmd))
@@ -92,6 +95,7 @@ func (sess *Session) commandXML(cmd string, jnpr *NetconfObject) (string, error)
 
 	return read, nil
 }
+
 func (sess *Session) configSet(cmd []string, jnpr *NetconfObject) error {
 	if jnpr != nil {
 		message, err := jnpr.netconfConfigSet(cmd)
@@ -133,6 +137,7 @@ func (sess *Session) appendFakeCreateSetFile(lines []string) error {
 
 	return nil
 }
+
 func (sess *Session) commitConf(logMessage string, jnpr *NetconfObject) (_warnings []error, _err error) {
 	sess.logFile(fmt.Sprintf("[commitConf] commit %q", logMessage))
 	warns, err := jnpr.netconfCommit(logMessage)
@@ -166,6 +171,7 @@ func (sess *Session) configLock(jnpr *NetconfObject) {
 		}
 	}
 }
+
 func (sess *Session) configClear(jnpr *NetconfObject) {
 	err := jnpr.netconfConfigClear()
 	sleepShort(sess.junosSleepShort)

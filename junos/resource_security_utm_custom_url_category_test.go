@@ -57,6 +57,7 @@ resource junos_security_utm_custom_url_category "testacc_URLCategory" {
 }
 `
 }
+
 func testAccJunosSecurityUtmCustomURLCategoryConfigUpdate() string {
 	return `
 resource junos_security_utm_custom_url_pattern "testacc_URLCategory1" {

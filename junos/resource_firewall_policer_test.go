@@ -72,6 +72,7 @@ resource junos_firewall_policer testacc_fwPolic {
 }
 `
 }
+
 func testAccJunosFirewallPolicerConfigUpdate() string {
 	return `
 resource junos_firewall_policer testacc_fwPolic {

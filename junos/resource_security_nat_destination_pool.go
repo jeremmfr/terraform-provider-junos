@@ -120,6 +120,7 @@ func resourceSecurityNatDestinationPoolCreate(
 
 	return append(diagWarns, resourceSecurityNatDestinationPoolReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityNatDestinationPoolRead(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -131,6 +132,7 @@ func resourceSecurityNatDestinationPoolRead(
 
 	return resourceSecurityNatDestinationPoolReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityNatDestinationPoolReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -147,6 +149,7 @@ func resourceSecurityNatDestinationPoolReadWJnprSess(
 
 	return nil
 }
+
 func resourceSecurityNatDestinationPoolUpdate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
@@ -179,6 +182,7 @@ func resourceSecurityNatDestinationPoolUpdate(
 
 	return append(diagWarns, resourceSecurityNatDestinationPoolReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityNatDestinationPoolDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -204,6 +208,7 @@ func resourceSecurityNatDestinationPoolDelete(
 
 	return diagWarns
 }
+
 func resourceSecurityNatDestinationPoolImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -244,6 +249,7 @@ func checkSecurityNatDestinationPoolExists(name string, m interface{}, jnprSess 
 
 	return true, nil
 }
+
 func setSecurityNatDestinationPool(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -262,6 +268,7 @@ func setSecurityNatDestinationPool(d *schema.ResourceData, m interface{}, jnprSe
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readSecurityNatDestinationPool(natDestinationPool string,
 	m interface{}, jnprSess *NetconfObject) (natDestinationPoolOptions, error) {
 	sess := m.(*Session)
@@ -308,6 +315,7 @@ func delSecurityNatDestinationPool(natDestinationPool string, m interface{}, jnp
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func fillSecurityNatDestinationPoolData(d *schema.ResourceData, natDestinationPoolOptions natDestinationPoolOptions) {
 	if tfErr := d.Set("name", natDestinationPoolOptions.name); tfErr != nil {
 		panic(tfErr)

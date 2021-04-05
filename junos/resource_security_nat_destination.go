@@ -151,6 +151,7 @@ func resourceSecurityNatDestinationCreate(ctx context.Context, d *schema.Resourc
 
 	return append(diagWarns, resourceSecurityNatDestinationReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityNatDestinationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -161,6 +162,7 @@ func resourceSecurityNatDestinationRead(ctx context.Context, d *schema.ResourceD
 
 	return resourceSecurityNatDestinationReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityNatDestinationReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -177,6 +179,7 @@ func resourceSecurityNatDestinationReadWJnprSess(
 
 	return nil
 }
+
 func resourceSecurityNatDestinationUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -208,6 +211,7 @@ func resourceSecurityNatDestinationUpdate(ctx context.Context, d *schema.Resourc
 
 	return append(diagWarns, resourceSecurityNatDestinationReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityNatDestinationDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -232,6 +236,7 @@ func resourceSecurityNatDestinationDelete(ctx context.Context, d *schema.Resourc
 
 	return diagWarns
 }
+
 func resourceSecurityNatDestinationImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -272,6 +277,7 @@ func checkSecurityNatDestinationExists(name string, m interface{}, jnprSess *Net
 
 	return true, nil
 }
+
 func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -305,6 +311,7 @@ func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readSecurityNatDestination(natDestination string,
 	m interface{}, jnprSess *NetconfObject) (natDestinationOptions, error) {
 	sess := m.(*Session)
@@ -388,6 +395,7 @@ func delSecurityNatDestination(natDestination string, m interface{}, jnprSess *N
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func fillSecurityNatDestinationData(d *schema.ResourceData, natDestinationOptions natDestinationOptions) {
 	if tfErr := d.Set("name", natDestinationOptions.name); tfErr != nil {
 		panic(tfErr)

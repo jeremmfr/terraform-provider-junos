@@ -42,6 +42,7 @@ type sysInfo struct {
 type commandXMLConfig struct {
 	Config string `xml:",innerxml"`
 }
+
 type netconfAuthMethod struct {
 	Password       string
 	Username       string
@@ -49,12 +50,14 @@ type netconfAuthMethod struct {
 	PrivateKeyFile string
 	Passphrase     string
 }
+
 type commitError struct {
 	Path     string `xml:"error-path"`
 	Element  string `xml:"error-info>bad-element"`
 	Message  string `xml:"error-message"`
 	Severity string `xml:"error-severity"`
 }
+
 type commitResults struct {
 	XMLName xml.Name      `xml:"commit-results"`
 	Errors  []commitError `xml:"rpc-error"`
@@ -189,6 +192,7 @@ func (j *NetconfObject) netconfCommand(cmd string) (string, error) {
 
 	return output.Config, nil
 }
+
 func (j *NetconfObject) netconfCommandXML(cmd string) (string, error) {
 	reply, err := j.Session.Exec(netconf.RawMethod(cmd))
 	if err != nil {
@@ -249,6 +253,7 @@ func (j *NetconfObject) netconfConfigUnlock() error {
 
 	return nil
 }
+
 func (j *NetconfObject) netconfConfigClear() error {
 	reply, err := j.Session.Exec(netconf.RawMethod(rpcClearCandidate))
 	if err != nil {

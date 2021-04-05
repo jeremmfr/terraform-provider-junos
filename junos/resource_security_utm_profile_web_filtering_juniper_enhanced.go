@@ -81,7 +81,8 @@ func resourceSecurityUtmProfileWebFilteringEnhanced() *schema.Resource {
 										Type:     schema.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											"fairly-safe", "harmful", "moderately-safe", "suspicious", "very-safe"}, false),
+											"fairly-safe", "harmful", "moderately-safe", "suspicious", "very-safe",
+										}, false),
 									},
 									"action": {
 										Type:         schema.TypeString,
@@ -166,7 +167,8 @@ func resourceSecurityUtmProfileWebFilteringEnhanced() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"fairly-safe", "harmful", "moderately-safe", "suspicious", "very-safe"}, false),
+								"fairly-safe", "harmful", "moderately-safe", "suspicious", "very-safe",
+							}, false),
 						},
 						"action": {
 							Type:         schema.TypeString,
@@ -245,6 +247,7 @@ func resourceSecurityUtmProfileWebFilteringEnhancedCreate(
 
 	return append(diagWarns, resourceSecurityUtmProfileWebFilteringEnhancedReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityUtmProfileWebFilteringEnhancedRead(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -256,6 +259,7 @@ func resourceSecurityUtmProfileWebFilteringEnhancedRead(
 
 	return resourceSecurityUtmProfileWebFilteringEnhancedReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityUtmProfileWebFilteringEnhancedReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -272,6 +276,7 @@ func resourceSecurityUtmProfileWebFilteringEnhancedReadWJnprSess(
 
 	return nil
 }
+
 func resourceSecurityUtmProfileWebFilteringEnhancedUpdate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
@@ -304,6 +309,7 @@ func resourceSecurityUtmProfileWebFilteringEnhancedUpdate(
 
 	return append(diagWarns, resourceSecurityUtmProfileWebFilteringEnhancedReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityUtmProfileWebFilteringEnhancedDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -329,6 +335,7 @@ func resourceSecurityUtmProfileWebFilteringEnhancedDelete(
 
 	return diagWarns
 }
+
 func resourceSecurityUtmProfileWebFilteringEnhancedImport(
 	d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
@@ -370,6 +377,7 @@ func checkUtmProfileWebFEnhancedExists(profile string, m interface{}, jnprSess *
 
 	return true, nil
 }
+
 func setUtmProfileWebFEnhanced(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -459,6 +467,7 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, m interface{}, jnprSess *
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *NetconfObject) (
 	utmProfileWebFilteringEnhancedOptions, error) {
 	sess := m.(*Session)

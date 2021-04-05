@@ -121,6 +121,7 @@ func delBgpOpts(d *schema.ResourceData, typebgp string, m interface{}, jnprSess 
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := []string{setPrefix}
@@ -269,6 +270,7 @@ func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, j
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 	var err error
 	if item == "accept-remote-nexthop" {
@@ -497,6 +499,7 @@ func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{},
 
 	return nil
 }
+
 func readBgpOptsBfd(item string, bfdOpts []map[string]interface{}) ([]map[string]interface{}, error) {
 	itemTrim := strings.TrimPrefix(item, "bfd-liveness-detection ")
 	bfdRead := map[string]interface{}{
@@ -634,6 +637,7 @@ func setBgpOptsFamily(setPrefix, familyType string, familyOptsList []interface{}
 
 	return nil
 }
+
 func setBgpOptsFamilyPrefixLimit(setPrefix string, prefixLimit map[string]interface{}) ([]string, error) {
 	configSet := make([]string, 0)
 	if prefixLimit["maximum"].(int) != 0 {
@@ -655,6 +659,7 @@ func setBgpOptsFamilyPrefixLimit(setPrefix string, prefixLimit map[string]interf
 
 	return configSet, nil
 }
+
 func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) ([]map[string]interface{}, error) {
 	readOpts := map[string]interface{}{
 		"nlri_type":             "",
@@ -756,6 +761,7 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 
 	return append(opts, readOpts), nil
 }
+
 func setBgpOptsGrafefulRestart(setPrefix string, gracefulRestarts []interface{},
 	m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
@@ -786,6 +792,7 @@ func setBgpOptsGrafefulRestart(setPrefix string, gracefulRestarts []interface{},
 
 	return nil
 }
+
 func readBgpOptsGracefulRestart(item string, grOpts []map[string]interface{}) ([]map[string]interface{}, error) {
 	itemTrim := strings.TrimPrefix(item, "graceful-restart ")
 	grRead := map[string]interface{}{

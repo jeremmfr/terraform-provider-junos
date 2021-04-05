@@ -149,6 +149,7 @@ func resourceFirewallPolicerCreate(ctx context.Context, d *schema.ResourceData, 
 
 	return append(diagWarns, resourceFirewallPolicerReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceFirewallPolicerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -159,6 +160,7 @@ func resourceFirewallPolicerRead(ctx context.Context, d *schema.ResourceData, m 
 
 	return resourceFirewallPolicerReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceFirewallPolicerReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -175,6 +177,7 @@ func resourceFirewallPolicerReadWJnprSess(
 
 	return nil
 }
+
 func resourceFirewallPolicerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -206,6 +209,7 @@ func resourceFirewallPolicerUpdate(ctx context.Context, d *schema.ResourceData, 
 
 	return append(diagWarns, resourceFirewallPolicerReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceFirewallPolicerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -230,6 +234,7 @@ func resourceFirewallPolicerDelete(ctx context.Context, d *schema.ResourceData, 
 
 	return diagWarns
 }
+
 func resourceFirewallPolicerImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -269,6 +274,7 @@ func checkFirewallPolicerExists(name string, m interface{}, jnprSess *NetconfObj
 
 	return true, nil
 }
+
 func setFirewallPolicer(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -314,6 +320,7 @@ func setFirewallPolicer(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject) (policerOptions, error) {
 	sess := m.(*Session)
 	var confRead policerOptions
@@ -397,6 +404,7 @@ func delFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject) 
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func fillFirewallPolicerData(d *schema.ResourceData, policerOptions policerOptions) {
 	if tfErr := d.Set("name", policerOptions.name); tfErr != nil {
 		panic(tfErr)

@@ -233,6 +233,7 @@ func resourceSecurityAddressBookRead(ctx context.Context, d *schema.ResourceData
 
 	return resourceSecurityAddressBookReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityAddressBookReadWJnprSess(d *schema.ResourceData, m interface{},
 	jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()

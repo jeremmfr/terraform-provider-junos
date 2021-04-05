@@ -70,6 +70,7 @@ resource junos_rib_group testacc_ribGroup {
 }
 `
 }
+
 func testAccJunosRibGroupConfigUpdate() string {
 	return `
 resource junos_routing_instance "testacc_ribGroup1" {

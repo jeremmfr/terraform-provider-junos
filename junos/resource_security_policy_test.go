@@ -85,6 +85,7 @@ resource junos_security_zone testacc_seczonePolicy1 {
 }
 `
 }
+
 func testAccJunosSecurityPolicyConfigUpdate() string {
 	return `
 resource junos_security_policy testacc_securityPolicy {

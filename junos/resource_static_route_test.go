@@ -307,6 +307,7 @@ resource junos_static_route testacc_staticRoute_ipv6_instance {
 }
 `
 }
+
 func testAccJunosStaticRouteConfigUpdate() string {
 	return `
 resource junos_routing_instance testacc_staticRoute {

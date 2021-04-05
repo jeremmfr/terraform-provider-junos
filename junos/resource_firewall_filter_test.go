@@ -214,6 +214,7 @@ resource junos_policyoptions_prefix_list "testacc_fwFilter2" {
 }
 `
 }
+
 func testAccJunosFirewallFilterConfigUpdate() string {
 	return `
 resource junos_firewall_filter "testacc_fwFilter" {

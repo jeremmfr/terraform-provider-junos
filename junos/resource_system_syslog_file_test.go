@@ -136,6 +136,7 @@ resource junos_system_syslog_file testacc_syslogFile {
 }
 `
 }
+
 func testAccJunosSystemSyslogFileConfigUpdate() string {
 	return `
 resource junos_system_syslog_file testacc_syslogFile {
@@ -162,6 +163,7 @@ resource junos_system_syslog_file testacc_syslogFile {
 }
 `
 }
+
 func testAccJunosSystemSyslogFileConfigUpdate2() string {
 	return `
 resource junos_routing_instance testacc_syslogFile {

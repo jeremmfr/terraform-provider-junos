@@ -173,7 +173,8 @@ func resourceSystemLoginClass() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"audit-administrator", "crypto-administrator", "ids-administrator", "security-administrator"}, false),
+					"audit-administrator", "crypto-administrator", "ids-administrator", "security-administrator",
+				}, false),
 			},
 			"tenant": {
 				Type:     schema.TypeString,
@@ -237,6 +238,7 @@ func resourceSystemLoginClassCreate(ctx context.Context, d *schema.ResourceData,
 
 	return append(diagWarns, resourceSystemLoginClassReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSystemLoginClassRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -247,6 +249,7 @@ func resourceSystemLoginClassRead(ctx context.Context, d *schema.ResourceData, m
 
 	return resourceSystemLoginClassReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSystemLoginClassReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -263,6 +266,7 @@ func resourceSystemLoginClassReadWJnprSess(
 
 	return nil
 }
+
 func resourceSystemLoginClassUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -294,6 +298,7 @@ func resourceSystemLoginClassUpdate(ctx context.Context, d *schema.ResourceData,
 
 	return append(diagWarns, resourceSystemLoginClassReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSystemLoginClassDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -318,6 +323,7 @@ func resourceSystemLoginClassDelete(ctx context.Context, d *schema.ResourceData,
 
 	return diagWarns
 }
+
 func resourceSystemLoginClassImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -357,6 +363,7 @@ func checkSystemLoginClassExists(name string, m interface{}, jnprSess *NetconfOb
 
 	return true, nil
 }
+
 func setSystemLoginClass(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -437,6 +444,7 @@ func setSystemLoginClass(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readSystemLoginClass(class string, m interface{}, jnprSess *NetconfObject) (systemLoginClassOptions, error) {
 	sess := m.(*Session)
 	var confRead systemLoginClassOptions
@@ -532,6 +540,7 @@ func delSystemLoginClass(systemLoginClass string, m interface{}, jnprSess *Netco
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func fillSystemLoginClassData(d *schema.ResourceData, systemLoginClassOptions systemLoginClassOptions) {
 	if tfErr := d.Set("name", systemLoginClassOptions.name); tfErr != nil {
 		panic(tfErr)

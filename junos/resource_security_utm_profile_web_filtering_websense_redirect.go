@@ -165,6 +165,7 @@ func resourceSecurityUtmProfileWebFilteringWebsenseCreate(
 
 	return append(diagWarns, resourceSecurityUtmProfileWebFilteringWebsenseReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityUtmProfileWebFilteringWebsenseRead(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -176,6 +177,7 @@ func resourceSecurityUtmProfileWebFilteringWebsenseRead(
 
 	return resourceSecurityUtmProfileWebFilteringWebsenseReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityUtmProfileWebFilteringWebsenseReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -192,6 +194,7 @@ func resourceSecurityUtmProfileWebFilteringWebsenseReadWJnprSess(
 
 	return nil
 }
+
 func resourceSecurityUtmProfileWebFilteringWebsenseUpdate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
@@ -224,6 +227,7 @@ func resourceSecurityUtmProfileWebFilteringWebsenseUpdate(
 
 	return append(diagWarns, resourceSecurityUtmProfileWebFilteringWebsenseReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityUtmProfileWebFilteringWebsenseDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -249,6 +253,7 @@ func resourceSecurityUtmProfileWebFilteringWebsenseDelete(
 
 	return diagWarns
 }
+
 func resourceSecurityUtmProfileWebFilteringWebsenseImport(
 	d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
@@ -290,6 +295,7 @@ func checkUtmProfileWebFWebsenseExists(profile string, m interface{}, jnprSess *
 
 	return true, nil
 }
+
 func setUtmProfileWebFWebsense(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -348,6 +354,7 @@ func setUtmProfileWebFWebsense(d *schema.ResourceData, m interface{}, jnprSess *
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readUtmProfileWebFWebsense(profile string, m interface{}, jnprSess *NetconfObject) (
 	utmProfileWebFilteringWebsenseOptions, error) {
 	sess := m.(*Session)

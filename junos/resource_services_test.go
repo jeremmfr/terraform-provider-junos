@@ -76,6 +76,7 @@ resource "junos_services" "testacc" {
 }
 `
 }
+
 func testAccJunosServicesConfigUpdate() string {
 	return `
 resource "junos_services_proxy_profile" "testacc_services" {
@@ -155,6 +156,7 @@ resource "junos_services" "testacc" {
 }
   `
 }
+
 func testAccJunosServicesConfigPostCheck() string {
 	return `
 resource "junos_services_proxy_profile" "testacc_services" {

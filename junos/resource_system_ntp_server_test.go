@@ -50,6 +50,7 @@ resource junos_system_ntp_server testacc_ntpServer {
 }
 `
 }
+
 func testAccJunosSystemNtpServerConfigUpdate() string {
 	return `
 resource junos_routing_instance testacc_ntpServer {

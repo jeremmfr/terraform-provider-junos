@@ -245,6 +245,7 @@ func resourceStaticRouteCreate(ctx context.Context, d *schema.ResourceData, m in
 
 	return append(diagWarns, resourceStaticRouteReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceStaticRouteRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -255,6 +256,7 @@ func resourceStaticRouteRead(ctx context.Context, d *schema.ResourceData, m inte
 
 	return resourceStaticRouteReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceStaticRouteReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
 	staticRouteOptions, err := readStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string),
@@ -271,6 +273,7 @@ func resourceStaticRouteReadWJnprSess(d *schema.ResourceData, m interface{}, jnp
 
 	return nil
 }
+
 func resourceStaticRouteUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -304,6 +307,7 @@ func resourceStaticRouteUpdate(ctx context.Context, d *schema.ResourceData, m in
 
 	return append(diagWarns, resourceStaticRouteReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceStaticRouteDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -328,6 +332,7 @@ func resourceStaticRouteDelete(ctx context.Context, d *schema.ResourceData, m in
 
 	return diagWarns
 }
+
 func resourceStaticRouteImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -399,6 +404,7 @@ func checkStaticRouteExists(destination string, instance string, m interface{}, 
 
 	return true, nil
 }
+
 func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -496,6 +502,7 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readStaticRoute(destination string, instance string, m interface{},
 	jnprSess *NetconfObject) (staticRouteOptions, error) {
 	sess := m.(*Session)
@@ -663,6 +670,7 @@ func delStaticRouteOpts(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func delStaticRoute(destination string, instance string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)

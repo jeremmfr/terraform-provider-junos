@@ -133,8 +133,8 @@ func resourceBgpGroup() *schema.Resource {
 						"session_mode": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"automatic", "multihop", "single-hop"}, false),
+							ValidateFunc: validation.StringInSlice(
+								[]string{"automatic", "multihop", "single-hop"}, false),
 						},
 						"transmit_interval_minimum_interval": {
 							Type:         schema.TypeInt,
@@ -267,8 +267,8 @@ func resourceBgpGroup() *schema.Resource {
 						"nlri_type": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"any", "flow", "labeled-unicast", "unicast", "multicast"}, false),
+							ValidateFunc: validation.StringInSlice(
+								[]string{"any", "flow", "labeled-unicast", "unicast", "multicast"}, false),
 						},
 						"accepted_prefix_limit": {
 							Type:     schema.TypeList,
@@ -337,8 +337,8 @@ func resourceBgpGroup() *schema.Resource {
 						"nlri_type": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"any", "flow", "labeled-unicast", "unicast", "multicast"}, false),
+							ValidateFunc: validation.StringInSlice(
+								[]string{"any", "flow", "labeled-unicast", "unicast", "multicast"}, false),
 						},
 						"accepted_prefix_limit": {
 							Type:     schema.TypeList,
@@ -408,8 +408,10 @@ func resourceBgpGroup() *schema.Resource {
 						"disable": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							ConflictsWith: []string{"graceful_restart.0.restart_time",
-								"graceful_restart.0.stale_route_time"},
+							ConflictsWith: []string{
+								"graceful_restart.0.restart_time",
+								"graceful_restart.0.stale_route_time",
+							},
 						},
 						"restart_time": {
 							Type:          schema.TypeInt,
@@ -484,52 +486,64 @@ func resourceBgpGroup() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(0, 4294967295),
 				Default:      -1,
-				ConflictsWith: []string{"metric_out_igp",
+				ConflictsWith: []string{
+					"metric_out_igp",
 					"metric_out_igp_offset",
 					"metric_out_igp_delay_med_update",
 					"metric_out_minimum_igp",
-					"metric_out_minimum_igp_offset"},
+					"metric_out_minimum_igp_offset",
+				},
 			},
 			"metric_out_igp": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
-				ConflictsWith: []string{"metric_out",
+				ConflictsWith: []string{
+					"metric_out",
 					"metric_out_minimum_igp",
-					"metric_out_minimum_igp_offset"},
+					"metric_out_minimum_igp_offset",
+				},
 			},
 			"metric_out_igp_delay_med_update": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				ConflictsWith: []string{"metric_out",
+				ConflictsWith: []string{
+					"metric_out",
 					"metric_out_minimum_igp",
-					"metric_out_minimum_igp_offset"},
+					"metric_out_minimum_igp_offset",
+				},
 			},
 			"metric_out_igp_offset": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(-2147483648, 2147483647),
-				ConflictsWith: []string{"metric_out",
+				ConflictsWith: []string{
+					"metric_out",
 					"metric_out_minimum_igp",
-					"metric_out_minimum_igp_offset"},
+					"metric_out_minimum_igp_offset",
+				},
 			},
 			"metric_out_minimum_igp": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
-				ConflictsWith: []string{"metric_out",
+				ConflictsWith: []string{
+					"metric_out",
 					"metric_out_igp",
 					"metric_out_igp_offset",
-					"metric_out_igp_delay_med_update"},
+					"metric_out_igp_delay_med_update",
+				},
 			},
 			"metric_out_minimum_igp_offset": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(-2147483648, 2147483647),
-				ConflictsWith: []string{"metric_out",
+				ConflictsWith: []string{
+					"metric_out",
 					"metric_out_igp",
 					"metric_out_igp_offset",
-					"metric_out_igp_delay_med_update"},
+					"metric_out_igp_delay_med_update",
+				},
 			},
 			"mtu_discovery": {
 				Type:     schema.TypeBool,
@@ -639,6 +653,7 @@ func resourceBgpGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 	return append(diagWarns, resourceBgpGroupReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceBgpGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -649,6 +664,7 @@ func resourceBgpGroupRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	return resourceBgpGroupReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceBgpGroupReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
 	bgpGroupOptions, err := readBgpGroup(d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
@@ -664,6 +680,7 @@ func resourceBgpGroupReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSe
 
 	return nil
 }
+
 func resourceBgpGroupUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -695,6 +712,7 @@ func resourceBgpGroupUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 	return append(diagWarns, resourceBgpGroupReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceBgpGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -719,6 +737,7 @@ func resourceBgpGroupDelete(ctx context.Context, d *schema.ResourceData, m inter
 
 	return diagWarns
 }
+
 func resourceBgpGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -772,6 +791,7 @@ func checkBgpGroupExists(bgpGroup, instance string, m interface{}, jnprSess *Net
 
 	return true, nil
 }
+
 func setBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	setPrefix := setLineStart
 	if d.Get("routing_instance").(string) == defaultWord {
@@ -810,6 +830,7 @@ func setBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 
 	return setBgpOptsGrafefulRestart(setPrefix, d.Get("graceful_restart").([]interface{}), m, jnprSess)
 }
+
 func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObject) (bgpOptions, error) {
 	sess := m.(*Session)
 	var confRead bgpOptions
@@ -881,6 +902,7 @@ func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObj
 
 	return confRead, nil
 }
+
 func delBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)

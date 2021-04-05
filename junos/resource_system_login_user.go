@@ -140,6 +140,7 @@ func resourceSystemLoginUserCreate(ctx context.Context, d *schema.ResourceData, 
 
 	return append(diagWarns, resourceSystemLoginUserReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSystemLoginUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -150,6 +151,7 @@ func resourceSystemLoginUserRead(ctx context.Context, d *schema.ResourceData, m 
 
 	return resourceSystemLoginUserReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSystemLoginUserReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -166,6 +168,7 @@ func resourceSystemLoginUserReadWJnprSess(
 
 	return nil
 }
+
 func resourceSystemLoginUserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -198,6 +201,7 @@ func resourceSystemLoginUserUpdate(ctx context.Context, d *schema.ResourceData, 
 
 	return append(diagWarns, resourceSystemLoginUserReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSystemLoginUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -222,6 +226,7 @@ func resourceSystemLoginUserDelete(ctx context.Context, d *schema.ResourceData, 
 
 	return diagWarns
 }
+
 func resourceSystemLoginUserImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -261,6 +266,7 @@ func checkSystemLoginUserExists(name string, m interface{}, jnprSess *NetconfObj
 
 	return true, nil
 }
+
 func setSystemLoginUser(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -309,6 +315,7 @@ func setSystemLoginUser(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readSystemLoginUser(user string, m interface{}, jnprSess *NetconfObject) (systemLoginUserOptions, error) {
 	sess := m.(*Session)
 	var confRead systemLoginUserOptions
@@ -382,6 +389,7 @@ func delSystemLoginUser(systemLoginUser string, m interface{}, jnprSess *Netconf
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func fillSystemLoginUserData(d *schema.ResourceData, systemLoginUserOptions systemLoginUserOptions) {
 	if tfErr := d.Set("name", systemLoginUserOptions.name); tfErr != nil {
 		panic(tfErr)

@@ -64,6 +64,7 @@ func resourceInterfaceSt0UnitCreate(ctx context.Context, d *schema.ResourceData,
 
 	return diagWarns
 }
+
 func resourceInterfaceSt0UnitRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -119,6 +120,7 @@ func resourceInterfaceSt0UnitDelete(ctx context.Context, d *schema.ResourceData,
 
 	return diagWarns
 }
+
 func resourceInterfaceSt0UnitImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	if !strings.HasPrefix(d.Id(), "st0.") {

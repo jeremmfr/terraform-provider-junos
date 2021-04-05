@@ -178,6 +178,7 @@ func resourceSecurityZoneCreate(ctx context.Context, d *schema.ResourceData, m i
 
 	return append(diagWarns, resourceSecurityZoneReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityZoneRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -188,6 +189,7 @@ func resourceSecurityZoneRead(ctx context.Context, d *schema.ResourceData, m int
 
 	return resourceSecurityZoneReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityZoneReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -204,6 +206,7 @@ func resourceSecurityZoneReadWJnprSess(
 
 	return nil
 }
+
 func resourceSecurityZoneUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -236,6 +239,7 @@ func resourceSecurityZoneUpdate(ctx context.Context, d *schema.ResourceData, m i
 
 	return append(diagWarns, resourceSecurityZoneReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityZoneDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -260,6 +264,7 @@ func resourceSecurityZoneDelete(ctx context.Context, d *schema.ResourceData, m i
 
 	return diagWarns
 }
+
 func resourceSecurityZoneImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -298,6 +303,7 @@ func checkSecurityZonesExists(zone string, m interface{}, jnprSess *NetconfObjec
 
 	return true, nil
 }
+
 func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -347,6 +353,7 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zoneOptions, error) {
 	sess := m.(*Session)
 	var confRead zoneOptions
@@ -419,6 +426,7 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 
 	return confRead, nil
 }
+
 func delSecurityZoneOpts(zone string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	listLinesToDelete := []string{
@@ -440,6 +448,7 @@ func delSecurityZoneOpts(zone string, m interface{}, jnprSess *NetconfObject) er
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func delSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)

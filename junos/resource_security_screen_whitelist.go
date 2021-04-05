@@ -98,6 +98,7 @@ func resourceSecurityScreenWhiteListCreate(
 
 	return append(diagWarns, resourceSecurityScreenWhiteListReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityScreenWhiteListRead(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -109,6 +110,7 @@ func resourceSecurityScreenWhiteListRead(
 
 	return resourceSecurityScreenWhiteListReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityScreenWhiteListReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -125,6 +127,7 @@ func resourceSecurityScreenWhiteListReadWJnprSess(
 
 	return nil
 }
+
 func resourceSecurityScreenWhiteListUpdate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
@@ -159,6 +162,7 @@ func resourceSecurityScreenWhiteListUpdate(
 
 	return append(diagWarns, resourceSecurityScreenWhiteListReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityScreenWhiteListDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -184,6 +188,7 @@ func resourceSecurityScreenWhiteListDelete(
 
 	return diagWarns
 }
+
 func resourceSecurityScreenWhiteListImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -223,6 +228,7 @@ func checkSecurityScreenWhiteListExists(name string, m interface{}, jnprSess *Ne
 
 	return true, nil
 }
+
 func setSecurityScreenWhiteList(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)

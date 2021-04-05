@@ -140,6 +140,7 @@ func resourceIkePolicyCreate(ctx context.Context, d *schema.ResourceData, m inte
 
 	return append(diagWarns, resourceIkePolicyReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceIkePolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -150,6 +151,7 @@ func resourceIkePolicyRead(ctx context.Context, d *schema.ResourceData, m interf
 
 	return resourceIkePolicyReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceIkePolicyReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
 	ikePolicyOptions, err := readIkePolicy(d.Get("name").(string), m, jnprSess)
@@ -165,6 +167,7 @@ func resourceIkePolicyReadWJnprSess(d *schema.ResourceData, m interface{}, jnprS
 
 	return nil
 }
+
 func resourceIkePolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -197,6 +200,7 @@ func resourceIkePolicyUpdate(ctx context.Context, d *schema.ResourceData, m inte
 
 	return append(diagWarns, resourceIkePolicyReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceIkePolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -221,6 +225,7 @@ func resourceIkePolicyDelete(ctx context.Context, d *schema.ResourceData, m inte
 
 	return diagWarns
 }
+
 func resourceIkePolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -258,6 +263,7 @@ func checkIkePolicyExists(ikePolicy string, m interface{}, jnprSess *NetconfObje
 
 	return true, nil
 }
+
 func setIkePolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -284,6 +290,7 @@ func setIkePolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readIkePolicy(ikePolicy string, m interface{}, jnprSess *NetconfObject) (ikePolicyOptions, error) {
 	sess := m.(*Session)
 	var confRead ikePolicyOptions
@@ -328,6 +335,7 @@ func readIkePolicy(ikePolicy string, m interface{}, jnprSess *NetconfObject) (ik
 
 	return confRead, nil
 }
+
 func delIkePolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)

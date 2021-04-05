@@ -99,6 +99,7 @@ func resourcePolicyoptionsCommunityCreate(ctx context.Context, d *schema.Resourc
 
 	return append(diagWarns, resourcePolicyoptionsCommunityReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourcePolicyoptionsCommunityRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -109,6 +110,7 @@ func resourcePolicyoptionsCommunityRead(ctx context.Context, d *schema.ResourceD
 
 	return resourcePolicyoptionsCommunityReadWJnprSess(d, m, jnprSess)
 }
+
 func resourcePolicyoptionsCommunityReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -125,6 +127,7 @@ func resourcePolicyoptionsCommunityReadWJnprSess(
 
 	return nil
 }
+
 func resourcePolicyoptionsCommunityUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -156,6 +159,7 @@ func resourcePolicyoptionsCommunityUpdate(ctx context.Context, d *schema.Resourc
 
 	return append(diagWarns, resourcePolicyoptionsCommunityReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourcePolicyoptionsCommunityDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -180,6 +184,7 @@ func resourcePolicyoptionsCommunityDelete(ctx context.Context, d *schema.Resourc
 
 	return diagWarns
 }
+
 func resourcePolicyoptionsCommunityImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -219,6 +224,7 @@ func checkPolicyoptionsCommunityExists(name string, m interface{}, jnprSess *Net
 
 	return true, nil
 }
+
 func setPolicyoptionsCommunity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -233,6 +239,7 @@ func setPolicyoptionsCommunity(d *schema.ResourceData, m interface{}, jnprSess *
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readPolicyoptionsCommunity(community string, m interface{}, jnprSess *NetconfObject) (communityOptions, error) {
 	sess := m.(*Session)
 	var confRead communityOptions
@@ -271,6 +278,7 @@ func delPolicyoptionsCommunity(community string, m interface{}, jnprSess *Netcon
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func fillPolicyoptionsCommunityData(d *schema.ResourceData, communityOptions communityOptions) {
 	if tfErr := d.Set("name", communityOptions.name); tfErr != nil {
 		panic(tfErr)

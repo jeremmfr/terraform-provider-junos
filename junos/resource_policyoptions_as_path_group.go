@@ -111,6 +111,7 @@ func resourcePolicyoptionsAsPathGroupCreate(
 
 	return append(diagWarns, resourcePolicyoptionsAsPathGroupReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourcePolicyoptionsAsPathGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -121,6 +122,7 @@ func resourcePolicyoptionsAsPathGroupRead(ctx context.Context, d *schema.Resourc
 
 	return resourcePolicyoptionsAsPathGroupReadWJnprSess(d, m, jnprSess)
 }
+
 func resourcePolicyoptionsAsPathGroupReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -137,6 +139,7 @@ func resourcePolicyoptionsAsPathGroupReadWJnprSess(
 
 	return nil
 }
+
 func resourcePolicyoptionsAsPathGroupUpdate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
@@ -169,6 +172,7 @@ func resourcePolicyoptionsAsPathGroupUpdate(
 
 	return append(diagWarns, resourcePolicyoptionsAsPathGroupReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourcePolicyoptionsAsPathGroupDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -194,6 +198,7 @@ func resourcePolicyoptionsAsPathGroupDelete(
 
 	return diagWarns
 }
+
 func resourcePolicyoptionsAsPathGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -234,6 +239,7 @@ func checkPolicyoptionsAsPathGroupExists(name string, m interface{}, jnprSess *N
 
 	return true, nil
 }
+
 func setPolicyoptionsAsPathGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -251,6 +257,7 @@ func setPolicyoptionsAsPathGroup(d *schema.ResourceData, m interface{}, jnprSess
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readPolicyoptionsAsPathGroup(asPathGroup string,
 	m interface{}, jnprSess *NetconfObject) (asPathGroupOptions, error) {
 	sess := m.(*Session)
@@ -298,6 +305,7 @@ func delPolicyoptionsAsPathGroup(asPathGroup string, m interface{}, jnprSess *Ne
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func fillPolicyoptionsAsPathGroupData(d *schema.ResourceData, asPathGroupOptions asPathGroupOptions) {
 	if tfErr := d.Set("name", asPathGroupOptions.name); tfErr != nil {
 		panic(tfErr)
