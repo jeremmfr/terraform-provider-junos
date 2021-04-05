@@ -138,7 +138,6 @@ func resourcePolicyoptionsPrefixListUpdate(
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	if err := delPolicyoptionsPrefixList(d.Get("name").(string), m, jnprSess); err != nil {
