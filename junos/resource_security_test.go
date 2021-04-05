@@ -455,6 +455,9 @@ resource junos_routing_instance testacc_security {
 
 func testAccJunosSecurityConfigUpdate2() string {
 	return `
+resource junos_routing_instance testacc_security {
+  name = "testacc_security"
+}
 resource junos_security "testacc_security" {
   flow {
     tcp_session {
