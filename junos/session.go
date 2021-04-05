@@ -11,7 +11,7 @@ import (
 
 const directoryPermission = 0755
 
-// Session information to connect on Junos Device.
+// Session information to connect on Junos Device and more.
 type Session struct {
 	junosPort              int
 	junosSleepLock         int
@@ -59,7 +59,7 @@ func (sess *Session) startNewSession() (*NetconfObject, error) {
 	return jnpr, nil
 }
 func (sess *Session) closeSession(jnpr *NetconfObject) {
-	err := jnpr.Close(sess.junosSleepSSHClosed)
+	err := jnpr.close(sess.junosSleepSSHClosed)
 	if err != nil {
 		sess.logFile(fmt.Sprintf("[closeSession] err: %q", err))
 	} else {
@@ -171,7 +171,7 @@ func (sess *Session) configClear(jnpr *NetconfObject) {
 	sleepShort(sess.junosSleepShort)
 	sess.logFile("[configClear] config clear")
 	if err != nil {
-		err := jnpr.Close(sess.junosSleepSSHClosed)
+		err := jnpr.close(sess.junosSleepSSHClosed)
 		if err != nil {
 			sess.logFile(fmt.Sprintf("[configClear] close err: %q", err))
 		}
@@ -181,7 +181,7 @@ func (sess *Session) configClear(jnpr *NetconfObject) {
 	sleepShort(sess.junosSleepShort)
 	sess.logFile("[configClear] config unlock")
 	if err != nil {
-		err := jnpr.Close(sess.junosSleepSSHClosed)
+		err := jnpr.close(sess.junosSleepSSHClosed)
 		if err != nil {
 			sess.logFile(fmt.Sprintf("[configClear] close err: %q", err))
 		}

@@ -194,7 +194,7 @@ func Provider() *schema.Provider {
 }
 
 func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	config := Config{
+	c := configProvider{
 		junosIP:                  d.Get("ip").(string),
 		junosPort:                d.Get("port").(int),
 		junosUserName:            d.Get("username").(string),
@@ -211,5 +211,5 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		junosFakeCreateSetFile:   d.Get("fake_create_with_setfile").(string),
 	}
 
-	return config.Session()
+	return c.prepareSession()
 }

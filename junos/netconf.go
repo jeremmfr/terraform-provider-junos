@@ -10,9 +10,9 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-const warningSeverity string = "warning"
+const (
+	warningSeverity string = "warning"
 
-var (
 	rpcCommand         = "<command format=\"text\">%s</command>"
 	rpcConfigStringSet = "<load-configuration action=\"set\" format=\"text\">" +
 		"<configuration-set>%s</configuration-set></load-configuration>"
@@ -39,11 +39,6 @@ type sysInfo struct {
 	ClusterNode   *bool  `xml:"cluster-node"`
 }
 
-// RoutingEngine : store Platform information.
-type RoutingEngine struct {
-	Model   string
-	Version string
-}
 type commandXMLConfig struct {
 	Config string `xml:",innerxml"`
 }
@@ -316,7 +311,7 @@ func (j *NetconfObject) netconfCommit(logMessage string) (_warn []error, _err er
 }
 
 // Close disconnects our session to the device.
-func (j *NetconfObject) Close(sleepClosed int) error {
+func (j *NetconfObject) close(sleepClosed int) error {
 	_, err := j.Session.Exec(netconf.RawMethod(rpcClose))
 	j.Session.Transport.Close()
 	if err != nil {
