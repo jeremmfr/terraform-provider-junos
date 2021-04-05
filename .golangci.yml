@@ -7,7 +7,6 @@ linters:
     - scopelint # deprecated
     - interfacer # deprecated
     - funlen
-    - gochecknoglobals
     - dupl
     - wsl
     - gomnd

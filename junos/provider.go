@@ -38,9 +38,7 @@ const (
 	noLoopbackWord     = "no-loopback"
 )
 
-var (
-	mutex = &sync.Mutex{}
-)
+var mutex = &sync.Mutex{} // nolint: gochecknoglobals
 
 // Provider junos for terraform.
 func Provider() *schema.Provider {

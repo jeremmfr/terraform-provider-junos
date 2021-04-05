@@ -11,10 +11,10 @@ import (
 )
 
 var (
-	testAccProviders = map[string]*schema.Provider{
+	testAccProviders = map[string]*schema.Provider{ // nolint: gochecknoglobals
 		"junos": testAccProvider,
 	}
-	testAccProvider = junos.Provider()
+	testAccProvider = junos.Provider() // nolint: gochecknoglobals
 )
 
 const defaultInterfaceTestAcc = "ge-0/0/3"
