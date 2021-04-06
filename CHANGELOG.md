@@ -3,12 +3,11 @@ ENHANCEMENTS:
 * add `junos_services_security_intelligence_profile` resource (Fixes parts of #145)
 * add `junos_services_security_intelligence_policy` resource (Fixes parts of #145)
 * add `junos_services_proxy_profile` resource
-* add `junos_services` resource (Fixes parts of #145)
-* add `match_destination_address_excluded` and `match_source_address_excluded` arguments in `junos_security_global_policy` and `junos_security_policy` resources (Fixes #159)
+* add `junos_services` resource (Fixes parts of #145, #158)
+* add `match_destination_address_excluded`, `match_source_address_excluded` and `match_dynamic_application` arguments in `junos_security_global_policy` and `junos_security_policy` resources (Fixes #159, parts of #158)
 * add `vni_extend_evpn` argument on `vxlan` argument in `junos_vlan` resource (Fixes parts of #132) Thanks @dejongm
-* add `match_dynamic_application` argument in `junos_security_global_policy` and `junos_security_policy` resources (Fixes parts of #158)
 * add `forwarding_process` argument in `junos_security` resource (Fixes parts of #158)
-* add `application_identification` argument in `junos_services` resource (Fixes parts of #158)
+* clean code: remove useless type/func exporting, and fixes formating golang code
 
 BUG FIXES:
 
