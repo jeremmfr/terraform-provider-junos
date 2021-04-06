@@ -340,6 +340,9 @@ resource junos_security "testacc_security" {
     mpls_mode             = "flow-based"
     iso_mode_packet_based = "true"
   }
+  forwarding_process {
+    enhanced_services_mode = true
+  }
   ike_traceoptions {
     file {
       name           = "ike.log"

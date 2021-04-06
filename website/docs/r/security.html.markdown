@@ -33,6 +33,8 @@ The following arguments are supported:
 * `alg` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'alg' configuration. See the [`alg` arguments] (#alg-arguments) block.
 * `flow` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'flow' configuration. See the [`flow` arguments] (#flow-arguments) block.
 * `forwarding_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'forwarding-options' configuration. See the [`forwarding_options` arguments] (#forwarding_options-arguments) block.
+* `forwarding_process` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'forwarding-process' configuration.
+  * `enhanced_services_mode` - (Optional)(`Bool`) Enable enhanced application services mode.
 * `ike_traceoptions` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'ike traceoptions' configuration.
   * `file` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'file' configuration. See the [`file` arguments for ike_traceoptions] (#file-arguments-for-ike_traceoptions) block.
   * `flag` - (Optional)(`ListOfString`) Tracing parameters for IKE.

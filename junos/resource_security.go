@@ -12,12 +12,13 @@ import (
 )
 
 type securityOptions struct {
-	alg             []map[string]interface{}
-	flow            []map[string]interface{}
-	forwardingOpts  []map[string]interface{}
-	log             []map[string]interface{}
-	ikeTraceoptions []map[string]interface{}
-	utm             []map[string]interface{}
+	alg               []map[string]interface{}
+	flow              []map[string]interface{}
+	forwardingOpts    []map[string]interface{}
+	forwardingProcess []map[string]interface{}
+	log               []map[string]interface{}
+	ikeTraceoptions   []map[string]interface{}
+	utm               []map[string]interface{}
 }
 
 func resourceSecurity() *schema.Resource {
@@ -386,6 +387,19 @@ func resourceSecurity() *schema.Resource {
 					},
 				},
 			},
+			"forwarding_process": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enhanced_services_mode": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
 			"ike_traceoptions": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -747,6 +761,16 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 			return err
 		}
 		configSet = append(configSet, configSetForwOpts...)
+	}
+	for _, v := range d.Get("forwarding_process").([]interface{}) {
+		if v != nil {
+			forwardingProcess := v.(map[string]interface{})
+			if forwardingProcess["enhanced_services_mode"].(bool) {
+				configSet = append(configSet, setPrefix+"forwarding-process enhanced-services-mode")
+			}
+		} else {
+			return fmt.Errorf("forwarding_process block is empty")
+		}
 	}
 	for _, ikeTrace := range d.Get("ike_traceoptions").([]interface{}) {
 		configSetIkeTrace, err := setSecurityIkeTraceOpts(ikeTrace)
@@ -1244,6 +1268,11 @@ func listLinesSecurityForwardingOptions() []string {
 		"forwarding-options family iso mode",
 	}
 }
+func listLinesSecurityForwardingProcess() []string {
+	return []string{
+		"forwarding-process enhanced-services-mode",
+	}
+}
 func listLinesSecurityLog() []string {
 	return []string{
 		"log disable",
@@ -1275,6 +1304,7 @@ func delSecurity(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityAlg()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityFlow()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityForwardingOptions()...)
+	listLinesToDelete = append(listLinesToDelete, listLinesSecurityForwardingProcess()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityLog()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityUtm()...)
 	sess := m.(*Session)
@@ -1315,7 +1345,15 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 				}
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityForwardingOptions()):
 				readSecurityForwardingOpts(&confRead, itemTrim)
-
+			case checkStringHasPrefixInList(itemTrim, listLinesSecurityForwardingProcess()):
+				if len(confRead.forwardingProcess) == 0 {
+					confRead.forwardingProcess = append(confRead.forwardingProcess, map[string]interface{}{
+						"enhanced_services_mode": false,
+					})
+				}
+				if itemTrim == "forwarding-process enhanced-services-mode" {
+					confRead.forwardingProcess[0]["enhanced_services_mode"] = true
+				}
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityLog()):
 				err := readSecurityLog(&confRead, itemTrim)
 				if err != nil {
@@ -1908,6 +1946,9 @@ func fillSecurity(d *schema.ResourceData, securityOptions securityOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("forwarding_options", securityOptions.forwardingOpts); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("forwarding_process", securityOptions.forwardingProcess); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("ike_traceoptions", securityOptions.ikeTraceoptions); tfErr != nil {
