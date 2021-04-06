@@ -560,6 +560,7 @@ func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 
 	return append(diagWarns, resourceInterfaceReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceInterfaceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -570,6 +571,7 @@ func resourceInterfaceRead(ctx context.Context, d *schema.ResourceData, m interf
 
 	return resourceInterfaceReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceInterfaceReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
 	intExists, err := checkInterfaceExistsOld(d.Get("name").(string), m, jnprSess)
@@ -605,6 +607,7 @@ func resourceInterfaceReadWJnprSess(d *schema.ResourceData, m interface{}, jnprS
 
 	return nil
 }
+
 func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -764,6 +767,7 @@ func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m inte
 
 	return append(diagWarns, resourceInterfaceReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceInterfaceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -808,6 +812,7 @@ func resourceInterfaceDelete(ctx context.Context, d *schema.ResourceData, m inte
 
 	return diagWarns
 }
+
 func resourceInterfaceImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -929,6 +934,7 @@ func checkInterfaceExistsOld(interFace string, m interface{}, jnprSess *NetconfO
 
 	return true, nil
 }
+
 func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	var setName string
@@ -1096,6 +1102,7 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (interfaceOptions, error) {
 	sess := m.(*Session)
 	var confRead interfaceOptions
@@ -1260,6 +1267,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 
 	return confRead, nil
 }
+
 func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	intCut := make([]string, 0, 2)
@@ -1380,6 +1388,7 @@ func checkInterfaceContainsUnit(interFace string, m interface{}, jnprSess *Netco
 
 	return nil
 }
+
 func delInterfaceElement(element string, d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	intCut := make([]string, 0, 2)
@@ -1402,6 +1411,7 @@ func delInterfaceElement(element string, d *schema.ResourceData, m interface{}, 
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func delInterfaceOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	intCut := make([]string, 0, 2)
@@ -1435,6 +1445,7 @@ func delInterfaceOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func delZoneInterface(zone string, d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
@@ -1442,6 +1453,7 @@ func delZoneInterface(zone string, d *schema.ResourceData, m interface{}, jnprSe
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func delRoutingInstanceInterface(instance string, d *schema.ResourceData,
 	m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
@@ -1525,6 +1537,7 @@ func fillInterfaceData(d *schema.ResourceData, interfaceOpt interfaceOptions) {
 		panic(tfErr)
 	}
 }
+
 func fillFamilyInetAddressOld(item string, inetAddress []map[string]interface{},
 	family string) ([]map[string]interface{}, error) {
 	var addressConfig []string
@@ -1633,6 +1646,7 @@ func fillFamilyInetAddressOld(item string, inetAddress []map[string]interface{},
 
 	return inetAddress, nil
 }
+
 func setFamilyAddressOld(inetAddress interface{}, intCut []string, configSet []string, setName string,
 	family string) ([]string, error) {
 	if family != inetWord && family != inet6Word {
@@ -1744,6 +1758,7 @@ func aggregatedLastChild(ae, interFace string, m interface{}, jnprSess *NetconfO
 
 	return lastAE, nil
 }
+
 func aggregatedCountSearchMax(newAE, oldAE, interFace string, m interface{}, jnprSess *NetconfObject) (string, error) {
 	sess := m.(*Session)
 	newAENum := strings.TrimPrefix(newAE, "ae")
@@ -1789,12 +1804,14 @@ func aggregatedCountSearchMax(newAE, oldAE, interFace string, m interface{}, jnp
 
 	return strconv.Itoa(newAENumInt + 1), nil
 }
+
 func genFamilyInetAddressOld(address string) map[string]interface{} {
 	return map[string]interface{}{
 		"address":    address,
 		"vrrp_group": make([]map[string]interface{}, 0),
 	}
 }
+
 func genVRRPGroupOld(family string) map[string]interface{} {
 	m := map[string]interface{}{
 		"identifier":               0,
@@ -1819,6 +1836,7 @@ func genVRRPGroupOld(family string) map[string]interface{} {
 
 	return m
 }
+
 func checkResourceInterfaceConfigAndName(length int, d *schema.ResourceData) error {
 	if length == 1 {
 		if d.Get("vlan_tagging_id").(int) != 0 {

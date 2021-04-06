@@ -54,6 +54,7 @@ resource "junos_services_security_intelligence_profile" "testacc_svcSecIntelProf
 }
 `
 }
+
 func testAccJunosServicesSecurityIntellProfileConfigUpdate() string {
 	return `
 resource "junos_services_security_intelligence_profile" "testacc_svcSecIntelProfile" {

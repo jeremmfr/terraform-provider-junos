@@ -269,6 +269,7 @@ resource junos_interface testacc_interface {
 }
 `)
 }
+
 func testAccJunosInterfaceConfigUpdate(interFace string) string {
 	return fmt.Sprintf(`
 resource junos_interface testacc_interface {
@@ -382,6 +383,7 @@ resource junos_interface testacc_interfaceAEunit {
 }
 `)
 }
+
 func testAccJunosInterfacePlusConfigUpdate(interFace, interfaceAE string) string {
 	return fmt.Sprintf(`
 resource junos_firewall_filter "testacc_interfaceInet" {

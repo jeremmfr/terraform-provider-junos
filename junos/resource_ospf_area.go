@@ -150,6 +150,7 @@ func resourceOspfAreaCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 	return append(diagWarns, resourceOspfAreaReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceOspfAreaRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -160,6 +161,7 @@ func resourceOspfAreaRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	return resourceOspfAreaReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceOspfAreaReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
 	ospfAreaOptions, err := readOspfArea(d.Get("area_id").(string), d.Get("version").(string),
@@ -176,6 +178,7 @@ func resourceOspfAreaReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSe
 
 	return nil
 }
+
 func resourceOspfAreaUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -207,6 +210,7 @@ func resourceOspfAreaUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 	return append(diagWarns, resourceOspfAreaReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceOspfAreaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -231,6 +235,7 @@ func resourceOspfAreaDelete(ctx context.Context, d *schema.ResourceData, m inter
 
 	return diagWarns
 }
+
 func resourceOspfAreaImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -289,6 +294,7 @@ func checkOspfAreaExists(idArea, version, routingInstance string,
 
 	return true, nil
 }
+
 func setOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -332,6 +338,7 @@ func setOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readOspfArea(idArea, version, routingInstance string,
 	m interface{}, jnprSess *NetconfObject) (ospfAreaOptions, error) {
 	sess := m.(*Session)

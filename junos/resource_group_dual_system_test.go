@@ -80,6 +80,7 @@ resource "junos_group_dual_system" "testacc_node0" {
 }
 `
 }
+
 func testAccJunosGroupDualSystemConfigUpdate() string {
 	return `
 resource "junos_group_dual_system" "testacc_node0" {

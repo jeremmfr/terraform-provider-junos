@@ -197,6 +197,7 @@ func resourceChassisClusterCreate(ctx context.Context, d *schema.ResourceData, m
 
 	return append(diagWarns, resourceChassisClusterReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceChassisClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -207,6 +208,7 @@ func resourceChassisClusterRead(ctx context.Context, d *schema.ResourceData, m i
 
 	return resourceChassisClusterReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceChassisClusterReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -219,6 +221,7 @@ func resourceChassisClusterReadWJnprSess(
 
 	return nil
 }
+
 func resourceChassisClusterUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -250,6 +253,7 @@ func resourceChassisClusterUpdate(ctx context.Context, d *schema.ResourceData, m
 
 	return append(diagWarns, resourceChassisClusterReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceChassisClusterDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -274,6 +278,7 @@ func resourceChassisClusterDelete(ctx context.Context, d *schema.ResourceData, m
 
 	return diagWarns
 }
+
 func resourceChassisClusterImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()

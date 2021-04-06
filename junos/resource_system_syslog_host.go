@@ -243,6 +243,7 @@ func resourceSystemSyslogHostCreate(ctx context.Context, d *schema.ResourceData,
 
 	return append(diagWarns, resourceSystemSyslogHostReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSystemSyslogHostRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -253,6 +254,7 @@ func resourceSystemSyslogHostRead(ctx context.Context, d *schema.ResourceData, m
 
 	return resourceSystemSyslogHostReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSystemSyslogHostReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -269,6 +271,7 @@ func resourceSystemSyslogHostReadWJnprSess(
 
 	return nil
 }
+
 func resourceSystemSyslogHostUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -300,6 +303,7 @@ func resourceSystemSyslogHostUpdate(ctx context.Context, d *schema.ResourceData,
 
 	return append(diagWarns, resourceSystemSyslogHostReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSystemSyslogHostDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -324,6 +328,7 @@ func resourceSystemSyslogHostDelete(ctx context.Context, d *schema.ResourceData,
 
 	return diagWarns
 }
+
 func resourceSystemSyslogHostImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -364,6 +369,7 @@ func checkSystemSyslogHostExists(host string, m interface{}, jnprSess *NetconfOb
 
 	return true, nil
 }
+
 func setSystemSyslogHost(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 
@@ -454,6 +460,7 @@ func setSystemSyslogHost(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readSystemSyslogHost(host string, m interface{}, jnprSess *NetconfObject) (syslogHostOptions, error) {
 	sess := m.(*Session)
 	var confRead syslogHostOptions
@@ -550,6 +557,7 @@ func delSystemSyslogHost(host string, m interface{}, jnprSess *NetconfObject) er
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func fillSystemSyslogHostData(d *schema.ResourceData, syslogHostOptions syslogHostOptions) {
 	if tfErr := d.Set("host", syslogHostOptions.host); tfErr != nil {
 		panic(tfErr)

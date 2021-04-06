@@ -7,13 +7,11 @@ linters:
     - scopelint # deprecated
     - interfacer # deprecated
     - funlen
-    - gochecknoglobals
     - dupl
     - wsl
     - gomnd
     - goerr113 
     - nestif
-    - gofumpt
     - exhaustivestruct
     - paralleltest
     - gci
@@ -31,6 +29,4 @@ issues:
     - text: "Use of ssh InsecureIgnoreHostKey"
       linters:
         - gosec
-    - text: "`jnpr` can be `io.Closer`"
-      linters:
-        - interfacer
+   

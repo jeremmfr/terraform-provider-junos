@@ -141,6 +141,7 @@ func resourceSecurityPolicyTunnelPairPolicyCreate(
 
 	return append(diagWarns, resourceSecurityPolicyTunnelPairPolicyReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityPolicyTunnelPairPolicyRead(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -152,6 +153,7 @@ func resourceSecurityPolicyTunnelPairPolicyRead(
 
 	return resourceSecurityPolicyTunnelPairPolicyReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityPolicyTunnelPairPolicyReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -171,6 +173,7 @@ func resourceSecurityPolicyTunnelPairPolicyReadWJnprSess(
 
 	return nil
 }
+
 func resourceSecurityPolicyTunnelPairPolicyDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -196,6 +199,7 @@ func resourceSecurityPolicyTunnelPairPolicyDelete(
 
 	return diagWarns
 }
+
 func resourceSecurityPolicyTunnelPairPolicyImport(d *schema.ResourceData,
 	m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
@@ -252,6 +256,7 @@ func checkSecurityPolicyPairExists(zoneA, policyAtoB, zoneB, policyBtoA string,
 
 	return true, nil
 }
+
 func setSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 2)
@@ -267,6 +272,7 @@ func setSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, m interface{}, jn
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readSecurityPolicyTunnelPairPolicy(idRessource string,
 	m interface{}, jnprSess *NetconfObject) (policyPairPolicyOptions, error) {
 	zone := strings.Split(idRessource, idSeparator)
@@ -327,6 +333,7 @@ func readSecurityPolicyTunnelPairPolicy(idRessource string,
 
 	return confRead, nil
 }
+
 func delSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 2)

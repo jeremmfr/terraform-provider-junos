@@ -141,6 +141,7 @@ func resourceSecurityUtmProfileWebFilteringLocalCreate(
 
 	return append(diagWarns, resourceSecurityUtmProfileWebFilteringLocalReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityUtmProfileWebFilteringLocalRead(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -152,6 +153,7 @@ func resourceSecurityUtmProfileWebFilteringLocalRead(
 
 	return resourceSecurityUtmProfileWebFilteringLocalReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityUtmProfileWebFilteringLocalReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -168,6 +170,7 @@ func resourceSecurityUtmProfileWebFilteringLocalReadWJnprSess(
 
 	return nil
 }
+
 func resourceSecurityUtmProfileWebFilteringLocalUpdate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
@@ -200,6 +203,7 @@ func resourceSecurityUtmProfileWebFilteringLocalUpdate(
 
 	return append(diagWarns, resourceSecurityUtmProfileWebFilteringLocalReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityUtmProfileWebFilteringLocalDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -225,6 +229,7 @@ func resourceSecurityUtmProfileWebFilteringLocalDelete(
 
 	return diagWarns
 }
+
 func resourceSecurityUtmProfileWebFilteringLocalImport(
 	d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
@@ -266,6 +271,7 @@ func checkUtmProfileWebFLocalExists(profile string, m interface{}, jnprSess *Net
 
 	return true, nil
 }
+
 func setUtmProfileWebFLocal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -307,6 +313,7 @@ func setUtmProfileWebFLocal(d *schema.ResourceData, m interface{}, jnprSess *Net
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readUtmProfileWebFLocal(profile string, m interface{}, jnprSess *NetconfObject) (
 	utmProfileWebFilteringLocalOptions, error) {
 	sess := m.(*Session)

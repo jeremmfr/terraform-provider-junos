@@ -194,10 +194,9 @@ func resourceSystem() *schema.Resource {
 							ConflictsWith: []string{"internet_options.0.source_quench"},
 						},
 						"no_tcp_reset": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"drop-all-tcp", "drop-tcp-with-syn-only"}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"drop-all-tcp", "drop-tcp-with-syn-only"}, false),
 						},
 						"no_tcp_rfc1323": {
 							Type:     schema.TypeBool,
@@ -265,16 +264,14 @@ func resourceSystem() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"change_type": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"character-sets", "set-transitions"}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice([]string{"character-sets", "set-transitions"}, false),
 									},
 									"format": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"sha1", "sha256", "sha512"}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice([]string{"sha1", "sha256", "sha512"}, false),
 									},
 									"maximum_length": {
 										Type:         schema.TypeInt,
@@ -443,10 +440,9 @@ func resourceSystem() *schema.Resource {
 										ValidateFunc: validation.IntBetween(1, 250),
 									},
 									"fingerprint_hash": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"md5", "sha2-256"}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice([]string{"md5", "sha2-256"}, false),
 									},
 									"hostkey_algorithm": {
 										Type:     schema.TypeList,
@@ -503,10 +499,9 @@ func resourceSystem() *schema.Resource {
 										ValidateFunc: validation.IntBetween(1, 250),
 									},
 									"root_login": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"allow", "deny", "deny-password"}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice([]string{"allow", "deny", "deny-password"}, false),
 									},
 									"no_tcp_forwarding": {
 										Type:     schema.TypeBool,
@@ -623,6 +618,7 @@ func resourceSystemCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	return append(diagWarns, resourceSystemReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSystemRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -633,6 +629,7 @@ func resourceSystemRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	return resourceSystemReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSystemReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
 	systemOptions, err := readSystem(m, jnprSess)
@@ -644,6 +641,7 @@ func resourceSystemReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess
 
 	return nil
 }
+
 func resourceSystemUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -675,9 +673,11 @@ func resourceSystemUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	return append(diagWarns, resourceSystemReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSystemDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	return nil
 }
+
 func resourceSystemImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -1128,12 +1128,14 @@ func listLinesLogin() []string {
 		"login retry-options",
 	}
 }
+
 func listLinesServices() []string {
 	ls := make([]string, 0)
 	ls = append(ls, listLinesServicesSSH()...)
 
 	return ls
 }
+
 func listLinesServicesSSH() []string {
 	return []string{
 		"services ssh authentication-order",
@@ -1158,6 +1160,7 @@ func listLinesServicesSSH() []string {
 		"services ssh tcp-forwarding",
 	}
 }
+
 func listLinesSyslog() []string {
 	return []string{
 		"syslog archive",
@@ -1165,6 +1168,7 @@ func listLinesSyslog() []string {
 		"syslog source-address",
 	}
 }
+
 func delSystem(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete := make([]string, 0)
 	listLinesToDelete = append(listLinesToDelete, "authentication-order")
@@ -1199,6 +1203,7 @@ func delSystem(m interface{}, jnprSess *NetconfObject) error {
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 	sess := m.(*Session)
 	var confRead systemOptions

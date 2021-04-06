@@ -215,6 +215,7 @@ func resourceIpsecVpnCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 	return append(diagWarns, resourceIpsecVpnReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceIpsecVpnRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -225,6 +226,7 @@ func resourceIpsecVpnRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	return resourceIpsecVpnReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceIpsecVpnReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
 	ipsecVpnOptions, err := readIpsecVpn(d.Get("name").(string), m, jnprSess)
@@ -251,6 +253,7 @@ func resourceIpsecVpnReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSe
 
 	return nil
 }
+
 func resourceIpsecVpnUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -305,6 +308,7 @@ func resourceIpsecVpnUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 	return append(diagWarns, resourceIpsecVpnReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceIpsecVpnDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -329,6 +333,7 @@ func resourceIpsecVpnDelete(ctx context.Context, d *schema.ResourceData, m inter
 
 	return diagWarns
 }
+
 func resourceIpsecVpnImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -366,6 +371,7 @@ func checkIpsecVpnExists(ipsecVpn string, m interface{}, jnprSess *NetconfObject
 
 	return true, nil
 }
+
 func setIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -426,6 +432,7 @@ func setIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readIpsecVpn(ipsecVpn string, m interface{}, jnprSess *NetconfObject) (ipsecVpnOptions, error) {
 	sess := m.(*Session)
 	var confRead ipsecVpnOptions
@@ -524,6 +531,7 @@ func readIpsecVpn(ipsecVpn string, m interface{}, jnprSess *NetconfObject) (ipse
 
 	return confRead, nil
 }
+
 func delIpsecVpnConf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
@@ -531,6 +539,7 @@ func delIpsecVpnConf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func delIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)

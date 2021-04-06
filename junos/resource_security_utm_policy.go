@@ -191,6 +191,7 @@ func resourceSecurityUtmPolicyCreate(ctx context.Context, d *schema.ResourceData
 
 	return append(diagWarns, resourceSecurityUtmPolicyReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityUtmPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -201,6 +202,7 @@ func resourceSecurityUtmPolicyRead(ctx context.Context, d *schema.ResourceData, 
 
 	return resourceSecurityUtmPolicyReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityUtmPolicyReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -217,6 +219,7 @@ func resourceSecurityUtmPolicyReadWJnprSess(
 
 	return nil
 }
+
 func resourceSecurityUtmPolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -248,6 +251,7 @@ func resourceSecurityUtmPolicyUpdate(ctx context.Context, d *schema.ResourceData
 
 	return append(diagWarns, resourceSecurityUtmPolicyReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityUtmPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -272,6 +276,7 @@ func resourceSecurityUtmPolicyDelete(ctx context.Context, d *schema.ResourceData
 
 	return diagWarns
 }
+
 func resourceSecurityUtmPolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -311,6 +316,7 @@ func checkUtmPolicysExists(policy string, m interface{}, jnprSess *NetconfObject
 
 	return true, nil
 }
+
 func setUtmPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -405,6 +411,7 @@ func setUtmPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readUtmPolicy(policy string, m interface{}, jnprSess *NetconfObject) (
 	utmPolicyOptions, error) {
 	sess := m.(*Session)
@@ -476,6 +483,7 @@ func genMapUtmPolicyProfile() map[string]interface{} {
 		"smtp_profile":         "",
 	}
 }
+
 func readUtmPolicyProfile(itemTrimPolicyProfile string, profileMap map[string]interface{}) {
 	switch {
 	case strings.HasPrefix(itemTrimPolicyProfile, "ftp download-profile "):

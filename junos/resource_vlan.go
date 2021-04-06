@@ -205,6 +205,7 @@ func resourceVlanCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 	return append(diagWarns, resourceVlanReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceVlanRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -215,6 +216,7 @@ func resourceVlanRead(ctx context.Context, d *schema.ResourceData, m interface{}
 
 	return resourceVlanReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceVlanReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
 	vlanOptions, err := readVlan(d.Get("name").(string), m, jnprSess)
@@ -230,6 +232,7 @@ func resourceVlanReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *
 
 	return nil
 }
+
 func resourceVlanUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -268,6 +271,7 @@ func resourceVlanUpdate(ctx context.Context, d *schema.ResourceData, m interface
 
 	return append(diagWarns, resourceVlanReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceVlanDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -292,6 +296,7 @@ func resourceVlanDelete(ctx context.Context, d *schema.ResourceData, m interface
 
 	return diagWarns
 }
+
 func resourceVlanImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -330,6 +335,7 @@ func checkVlansExists(vlan string, m interface{}, jnprSess *NetconfObject) (bool
 
 	return true, nil
 }
+
 func setVlan(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -398,6 +404,7 @@ func setVlan(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions, error) {
 	sess := m.(*Session)
 	var confRead vlanOptions

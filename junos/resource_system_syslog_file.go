@@ -285,6 +285,7 @@ func resourceSystemSyslogFileCreate(ctx context.Context, d *schema.ResourceData,
 
 	return append(diagWarns, resourceSystemSyslogFileReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSystemSyslogFileRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -295,6 +296,7 @@ func resourceSystemSyslogFileRead(ctx context.Context, d *schema.ResourceData, m
 
 	return resourceSystemSyslogFileReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSystemSyslogFileReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -311,6 +313,7 @@ func resourceSystemSyslogFileReadWJnprSess(
 
 	return nil
 }
+
 func resourceSystemSyslogFileUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -342,6 +345,7 @@ func resourceSystemSyslogFileUpdate(ctx context.Context, d *schema.ResourceData,
 
 	return append(diagWarns, resourceSystemSyslogFileReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSystemSyslogFileDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -366,6 +370,7 @@ func resourceSystemSyslogFileDelete(ctx context.Context, d *schema.ResourceData,
 
 	return diagWarns
 }
+
 func resourceSystemSyslogFileImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()

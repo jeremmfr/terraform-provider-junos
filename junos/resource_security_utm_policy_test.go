@@ -63,6 +63,7 @@ resource junos_security_utm_policy "testacc_Policy" {
 }
 `
 }
+
 func testAccJunosSecurityUtmPolicyConfigUpdate() string {
 	return `
 resource junos_security_utm_policy "testacc_Policy" {

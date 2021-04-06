@@ -99,6 +99,7 @@ resource "junos_chassis_cluster" "testacc_cluster" {
 }
 `)
 }
+
 func testAccJunosClusterConfigUpdate(interFace, interFace2 string) string {
 	return fmt.Sprintf(`
 resource "junos_interface_physical" "testacc_cluster_int2" {

@@ -94,6 +94,7 @@ resource junos_routing_instance testacc_securityNATStt {
 }
 `
 }
+
 func testAccJunosSecurityNatStaticConfigUpdate() string {
 	return `
 resource junos_security_nat_static testacc_securityNATStt {

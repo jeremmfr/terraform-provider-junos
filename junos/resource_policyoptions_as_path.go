@@ -97,6 +97,7 @@ func resourcePolicyoptionsAsPathCreate(ctx context.Context, d *schema.ResourceDa
 
 	return append(diagWarns, resourcePolicyoptionsAsPathReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourcePolicyoptionsAsPathRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -107,6 +108,7 @@ func resourcePolicyoptionsAsPathRead(ctx context.Context, d *schema.ResourceData
 
 	return resourcePolicyoptionsAsPathReadWJnprSess(d, m, jnprSess)
 }
+
 func resourcePolicyoptionsAsPathReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -123,6 +125,7 @@ func resourcePolicyoptionsAsPathReadWJnprSess(
 
 	return nil
 }
+
 func resourcePolicyoptionsAsPathUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -154,6 +157,7 @@ func resourcePolicyoptionsAsPathUpdate(ctx context.Context, d *schema.ResourceDa
 
 	return append(diagWarns, resourcePolicyoptionsAsPathReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourcePolicyoptionsAsPathDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -178,6 +182,7 @@ func resourcePolicyoptionsAsPathDelete(ctx context.Context, d *schema.ResourceDa
 
 	return diagWarns
 }
+
 func resourcePolicyoptionsAsPathImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -217,6 +222,7 @@ func checkPolicyoptionsAsPathExists(name string, m interface{}, jnprSess *Netcon
 
 	return true, nil
 }
+
 func setPolicyoptionsAsPath(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -232,6 +238,7 @@ func setPolicyoptionsAsPath(d *schema.ResourceData, m interface{}, jnprSess *Net
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readPolicyoptionsAsPath(asPath string, m interface{}, jnprSess *NetconfObject) (asPathOptions, error) {
 	sess := m.(*Session)
 	var confRead asPathOptions
@@ -270,6 +277,7 @@ func delPolicyoptionsAsPath(asPath string, m interface{}, jnprSess *NetconfObjec
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func fillPolicyoptionsAsPathData(d *schema.ResourceData, asPathOptions asPathOptions) {
 	if tfErr := d.Set("name", asPathOptions.name); tfErr != nil {
 		panic(tfErr)

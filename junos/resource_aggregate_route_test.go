@@ -87,6 +87,7 @@ resource junos_aggregate_route testacc_aggregateRoute {
 }
 `
 }
+
 func testAccJunosAggregateRouteConfigUpdate() string {
 	return `
 resource junos_routing_instance testacc_aggregateRoute {

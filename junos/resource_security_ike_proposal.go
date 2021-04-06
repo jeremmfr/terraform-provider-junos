@@ -119,6 +119,7 @@ func resourceIkeProposalCreate(ctx context.Context, d *schema.ResourceData, m in
 
 	return append(diagWarns, resourceIkeProposalReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceIkeProposalRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -129,6 +130,7 @@ func resourceIkeProposalRead(ctx context.Context, d *schema.ResourceData, m inte
 
 	return resourceIkeProposalReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceIkeProposalReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
 	ikeProposalOptions, err := readIkeProposal(d.Get("name").(string), m, jnprSess)
@@ -144,6 +146,7 @@ func resourceIkeProposalReadWJnprSess(d *schema.ResourceData, m interface{}, jnp
 
 	return nil
 }
+
 func resourceIkeProposalUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -175,6 +178,7 @@ func resourceIkeProposalUpdate(ctx context.Context, d *schema.ResourceData, m in
 
 	return append(diagWarns, resourceIkeProposalReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceIkeProposalDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -199,6 +203,7 @@ func resourceIkeProposalDelete(ctx context.Context, d *schema.ResourceData, m in
 
 	return diagWarns
 }
+
 func resourceIkeProposalImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -237,6 +242,7 @@ func checkIkeProposalExists(ikeProposal string, m interface{}, jnprSess *Netconf
 
 	return true, nil
 }
+
 func setIkeProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -260,6 +266,7 @@ func setIkeProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readIkeProposal(ikeProposal string, m interface{}, jnprSess *NetconfObject) (ikeProposalOptions, error) {
 	sess := m.(*Session)
 	var confRead ikeProposalOptions
@@ -299,6 +306,7 @@ func readIkeProposal(ikeProposal string, m interface{}, jnprSess *NetconfObject)
 
 	return confRead, nil
 }
+
 func delIkeProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)

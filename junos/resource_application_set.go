@@ -93,6 +93,7 @@ func resourceApplicationSetCreate(ctx context.Context, d *schema.ResourceData, m
 
 	return append(diagWarns, resourceApplicationSetReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceApplicationSetRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -103,6 +104,7 @@ func resourceApplicationSetRead(ctx context.Context, d *schema.ResourceData, m i
 
 	return resourceApplicationSetReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceApplicationSetReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -119,6 +121,7 @@ func resourceApplicationSetReadWJnprSess(
 
 	return nil
 }
+
 func resourceApplicationSetUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -150,6 +153,7 @@ func resourceApplicationSetUpdate(ctx context.Context, d *schema.ResourceData, m
 
 	return append(diagWarns, resourceApplicationSetReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceApplicationSetDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -174,6 +178,7 @@ func resourceApplicationSetDelete(ctx context.Context, d *schema.ResourceData, m
 
 	return diagWarns
 }
+
 func resourceApplicationSetImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -212,6 +217,7 @@ func checkApplicationSetExists(applicationSet string, m interface{}, jnprSess *N
 
 	return true, nil
 }
+
 func setApplicationSet(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -223,6 +229,7 @@ func setApplicationSet(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readApplicationSet(applicationSet string, m interface{}, jnprSess *NetconfObject) (applicationSetOptions, error) {
 	sess := m.(*Session)
 	var confRead applicationSetOptions
@@ -250,6 +257,7 @@ func readApplicationSet(applicationSet string, m interface{}, jnprSess *NetconfO
 
 	return confRead, nil
 }
+
 func delApplicationSet(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)

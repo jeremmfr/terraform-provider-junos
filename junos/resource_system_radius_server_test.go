@@ -66,6 +66,7 @@ resource junos_system_radius_server testacc_radiusServer {
 }
 `
 }
+
 func testAccJunosSystemRadiusServerConfigUpdate() string {
 	return `
 resource junos_routing_instance testacc_radiusServer {

@@ -285,6 +285,7 @@ func resourceServicesCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 	return append(diagWarns, resourceServicesReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceServicesRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -295,6 +296,7 @@ func resourceServicesRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	return resourceServicesReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceServicesReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
 	servicesOptions, err := readServices(m, jnprSess)
@@ -306,6 +308,7 @@ func resourceServicesReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSe
 
 	return nil
 }
+
 func resourceServicesUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -337,9 +340,11 @@ func resourceServicesUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 	return append(diagWarns, resourceServicesReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceServicesDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	return nil
 }
+
 func resourceServicesImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -546,6 +551,7 @@ func listLinesServicesApplicationIdentification() []string {
 		"application-identification statistics interval",
 	}
 }
+
 func listLinesServicesSecurityIntel() []string {
 	return []string{
 		"security-intelligence authentication",
@@ -571,6 +577,7 @@ func delServices(m interface{}, jnprSess *NetconfObject) error {
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readServices(m interface{}, jnprSess *NetconfObject) (servicesOptions, error) {
 	sess := m.(*Session)
 	var confRead servicesOptions

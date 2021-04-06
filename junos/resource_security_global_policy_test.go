@@ -80,6 +80,7 @@ resource junos_security_global_policy "testacc_secglobpolicy" {
 }
 `
 }
+
 func testAccJunosSecurityGlobalPolicyConfigUpdate() string {
 	return `
 resource junos_security_zone "testacc_secglobpolicy1" {

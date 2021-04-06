@@ -322,6 +322,7 @@ resource junos_security_ipsec_vpn "testacc_ipsecvpn" {
 }
 `
 }
+
 func testAccJunosSecurityIkeIpsecConfigUpdate(interFace string) string {
 	return `
 resource junos_interface_logical "testacc_ikegateway" {
@@ -436,6 +437,7 @@ resource junos_security_policy_tunnel_pair_policy testacc_vpn-in-out {
 }
 `
 }
+
 func testAccJunosSecurityIkeIpsecConfigUpdate2(interFace string) string {
 	return `
 resource junos_interface_logical "testacc_ikegateway" {
@@ -552,6 +554,7 @@ resource junos_security_policy_tunnel_pair_policy testacc_vpn-in-out {
 }
 `
 }
+
 func testAccJunosSecurityIkeIpsecConfigUpdate3(interFace string) string {
 	return `
 resource junos_interface_logical "testacc_ikegateway" {
@@ -620,6 +623,7 @@ resource junos_interface_logical "testacc_ipsecvpn_bind" {
 resource junos_interface_st0_unit testacc_ipsec_vpn {}
 `
 }
+
 func testAccJunosSecurityIkeIpsecConfigUpdate4(interFace string) string {
 	return `
 resource junos_interface_logical "testacc_ikegateway" {
@@ -653,6 +657,7 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
 }
 `
 }
+
 func testAccJunosSecurityIkeIpsecConfigUpdate5(interFace string) string {
 	return `
 resource junos_interface_logical "testacc_ikegateway" {
@@ -686,6 +691,7 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
 }
 `
 }
+
 func testAccJunosSecurityIkeIpsecConfigUpdate6(interFace string) string {
 	return `
 resource junos_interface_logical "testacc_ikegateway" {

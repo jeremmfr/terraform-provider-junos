@@ -323,6 +323,7 @@ resource junos_system "testacc_system" {
 }
 `
 }
+
 func testAccJunosSystemConfigUpdate() string {
 	return `
 resource junos_system "testacc_system" {

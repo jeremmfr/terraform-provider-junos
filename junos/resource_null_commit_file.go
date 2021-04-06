@@ -82,9 +82,11 @@ func resourceNullCommitFileCreate(ctx context.Context, d *schema.ResourceData, m
 
 	return diagWarns
 }
+
 func resourceNullCommitFileRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	return nil
 }
+
 func resourceNullCommitFileDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.SetId("")
 
@@ -105,6 +107,7 @@ func readNullCommitFile(filename string) ([]string, error) {
 
 	return strings.Split(string(fileReadByte), "\n"), nil
 }
+
 func cleanNullCommitFile(filename string, sess *Session) error {
 	if err := replaceTildeToHomeDir(&filename); err != nil {
 		return err

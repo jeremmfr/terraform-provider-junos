@@ -120,6 +120,7 @@ func resourceIpsecProposalCreate(ctx context.Context, d *schema.ResourceData, m 
 
 	return append(diagWarns, resourceIpsecProposalReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceIpsecProposalRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -130,6 +131,7 @@ func resourceIpsecProposalRead(ctx context.Context, d *schema.ResourceData, m in
 
 	return resourceIpsecProposalReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceIpsecProposalReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -146,6 +148,7 @@ func resourceIpsecProposalReadWJnprSess(
 
 	return nil
 }
+
 func resourceIpsecProposalUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -177,6 +180,7 @@ func resourceIpsecProposalUpdate(ctx context.Context, d *schema.ResourceData, m 
 
 	return append(diagWarns, resourceIpsecProposalReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceIpsecProposalDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -201,6 +205,7 @@ func resourceIpsecProposalDelete(ctx context.Context, d *schema.ResourceData, m 
 
 	return diagWarns
 }
+
 func resourceIpsecProposalImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -239,6 +244,7 @@ func checkIpsecProposalExists(ipsecProposal string, m interface{}, jnprSess *Net
 
 	return true, nil
 }
+
 func setIpsecProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -262,6 +268,7 @@ func setIpsecProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readIpsecProposal(ipsecProposal string, m interface{}, jnprSess *NetconfObject) (ipsecProposalOptions, error) {
 	sess := m.(*Session)
 	var confRead ipsecProposalOptions
@@ -304,6 +311,7 @@ func readIpsecProposal(ipsecProposal string, m interface{}, jnprSess *NetconfObj
 
 	return confRead, nil
 }
+
 func delIpsecProposal(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)

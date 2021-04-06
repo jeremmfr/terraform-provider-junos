@@ -265,8 +265,8 @@ func resourceBgpNeighbor() *schema.Resource {
 						"nlri_type": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"any", "flow", "labeled-unicast", "unicast", "multicast"}, false),
+							ValidateFunc: validation.StringInSlice(
+								[]string{"any", "flow", "labeled-unicast", "unicast", "multicast"}, false),
 						},
 						"accepted_prefix_limit": {
 							Type:     schema.TypeList,
@@ -335,8 +335,8 @@ func resourceBgpNeighbor() *schema.Resource {
 						"nlri_type": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"any", "flow", "labeled-unicast", "unicast", "multicast"}, false),
+							ValidateFunc: validation.StringInSlice(
+								[]string{"any", "flow", "labeled-unicast", "unicast", "multicast"}, false),
 						},
 						"accepted_prefix_limit": {
 							Type:     schema.TypeList,
@@ -478,52 +478,64 @@ func resourceBgpNeighbor() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(0, 4294967295),
 				Default:      -1,
-				ConflictsWith: []string{"metric_out_igp",
+				ConflictsWith: []string{
+					"metric_out_igp",
 					"metric_out_igp_offset",
 					"metric_out_igp_delay_med_update",
 					"metric_out_minimum_igp",
-					"metric_out_minimum_igp_offset"},
+					"metric_out_minimum_igp_offset",
+				},
 			},
 			"metric_out_igp": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
-				ConflictsWith: []string{"metric_out",
+				ConflictsWith: []string{
+					"metric_out",
 					"metric_out_minimum_igp",
-					"metric_out_minimum_igp_offset"},
+					"metric_out_minimum_igp_offset",
+				},
 			},
 			"metric_out_igp_delay_med_update": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				ConflictsWith: []string{"metric_out",
+				ConflictsWith: []string{
+					"metric_out",
 					"metric_out_minimum_igp",
-					"metric_out_minimum_igp_offset"},
+					"metric_out_minimum_igp_offset",
+				},
 			},
 			"metric_out_igp_offset": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(-2147483648, 2147483647),
-				ConflictsWith: []string{"metric_out",
+				ConflictsWith: []string{
+					"metric_out",
 					"metric_out_minimum_igp",
-					"metric_out_minimum_igp_offset"},
+					"metric_out_minimum_igp_offset",
+				},
 			},
 			"metric_out_minimum_igp": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
-				ConflictsWith: []string{"metric_out",
+				ConflictsWith: []string{
+					"metric_out",
 					"metric_out_igp",
 					"metric_out_igp_offset",
-					"metric_out_igp_delay_med_update"},
+					"metric_out_igp_delay_med_update",
+				},
 			},
 			"metric_out_minimum_igp_offset": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(-2147483648, 2147483647),
-				ConflictsWith: []string{"metric_out",
+				ConflictsWith: []string{
+					"metric_out",
 					"metric_out_igp",
 					"metric_out_igp_offset",
-					"metric_out_igp_delay_med_update"},
+					"metric_out_igp_delay_med_update",
+				},
 			},
 			"mtu_discovery": {
 				Type:     schema.TypeBool,
@@ -651,6 +663,7 @@ func resourceBgpNeighborCreate(ctx context.Context, d *schema.ResourceData, m in
 
 	return append(diagWarns, resourceBgpNeighborReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceBgpNeighborRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -661,6 +674,7 @@ func resourceBgpNeighborRead(ctx context.Context, d *schema.ResourceData, m inte
 
 	return resourceBgpNeighborReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceBgpNeighborReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
 	bgpNeighborOptions, err := readBgpNeighbor(d.Get("ip").(string),
@@ -677,6 +691,7 @@ func resourceBgpNeighborReadWJnprSess(d *schema.ResourceData, m interface{}, jnp
 
 	return nil
 }
+
 func resourceBgpNeighborUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -708,6 +723,7 @@ func resourceBgpNeighborUpdate(ctx context.Context, d *schema.ResourceData, m in
 
 	return append(diagWarns, resourceBgpNeighborReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceBgpNeighborDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -732,6 +748,7 @@ func resourceBgpNeighborDelete(ctx context.Context, d *schema.ResourceData, m in
 
 	return diagWarns
 }
+
 func resourceBgpNeighborImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -785,6 +802,7 @@ func checkBgpNeighborExists(ip, instance, group string, m interface{}, jnprSess 
 
 	return true, nil
 }
+
 func setBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	setPrefix := setLineStart
 	if d.Get("routing_instance").(string) == defaultWord {
@@ -813,6 +831,7 @@ func setBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 
 	return setBgpOptsGrafefulRestart(setPrefix, d.Get("graceful_restart").([]interface{}), m, jnprSess)
 }
+
 func readBgpNeighbor(ip, instance, group string, m interface{}, jnprSess *NetconfObject) (bgpOptions, error) {
 	sess := m.(*Session)
 	var confRead bgpOptions
@@ -888,6 +907,7 @@ func readBgpNeighbor(ip, instance, group string, m interface{}, jnprSess *Netcon
 
 	return confRead, nil
 }
+
 func delBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)

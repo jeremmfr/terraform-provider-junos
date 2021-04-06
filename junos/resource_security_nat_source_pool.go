@@ -127,6 +127,7 @@ func resourceSecurityNatSourcePoolCreate(ctx context.Context, d *schema.Resource
 
 	return append(diagWarns, resourceSecurityNatSourcePoolReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityNatSourcePoolRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -137,6 +138,7 @@ func resourceSecurityNatSourcePoolRead(ctx context.Context, d *schema.ResourceDa
 
 	return resourceSecurityNatSourcePoolReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityNatSourcePoolReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -153,6 +155,7 @@ func resourceSecurityNatSourcePoolReadWJnprSess(
 
 	return nil
 }
+
 func resourceSecurityNatSourcePoolUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -184,6 +187,7 @@ func resourceSecurityNatSourcePoolUpdate(ctx context.Context, d *schema.Resource
 
 	return append(diagWarns, resourceSecurityNatSourcePoolReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityNatSourcePoolDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -208,6 +212,7 @@ func resourceSecurityNatSourcePoolDelete(ctx context.Context, d *schema.Resource
 
 	return diagWarns
 }
+
 func resourceSecurityNatSourcePoolImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -248,6 +253,7 @@ func checkSecurityNatSourcePoolExists(name string, m interface{}, jnprSess *Netc
 
 	return true, nil
 }
+
 func setSecurityNatSourcePool(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -278,6 +284,7 @@ func setSecurityNatSourcePool(d *schema.ResourceData, m interface{}, jnprSess *N
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readSecurityNatSourcePool(natSourcePool string,
 	m interface{}, jnprSess *NetconfObject) (natSourcePoolOptions, error) {
 	sess := m.(*Session)
@@ -331,6 +338,7 @@ func delSecurityNatSourcePool(natSourcePool string, m interface{}, jnprSess *Net
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func fillSecurityNatSourcePoolData(d *schema.ResourceData, natSourcePoolOptions natSourcePoolOptions) {
 	if tfErr := d.Set("name", natSourcePoolOptions.name); tfErr != nil {
 		panic(tfErr)

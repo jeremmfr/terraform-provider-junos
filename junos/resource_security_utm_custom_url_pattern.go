@@ -99,6 +99,7 @@ func resourceSecurityUtmCustomURLPatternCreate(
 
 	return append(diagWarns, resourceSecurityUtmCustomURLPatternReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityUtmCustomURLPatternRead(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -110,6 +111,7 @@ func resourceSecurityUtmCustomURLPatternRead(
 
 	return resourceSecurityUtmCustomURLPatternReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityUtmCustomURLPatternReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -126,6 +128,7 @@ func resourceSecurityUtmCustomURLPatternReadWJnprSess(
 
 	return nil
 }
+
 func resourceSecurityUtmCustomURLPatternUpdate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
@@ -158,6 +161,7 @@ func resourceSecurityUtmCustomURLPatternUpdate(
 
 	return append(diagWarns, resourceSecurityUtmCustomURLPatternReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityUtmCustomURLPatternDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -183,6 +187,7 @@ func resourceSecurityUtmCustomURLPatternDelete(
 
 	return diagWarns
 }
+
 func resourceSecurityUtmCustomURLPatternImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -222,6 +227,7 @@ func checkUtmCustomURLPatternsExists(urlPattern string, m interface{}, jnprSess 
 
 	return true, nil
 }
+
 func setUtmCustomURLPattern(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -233,6 +239,7 @@ func setUtmCustomURLPattern(d *schema.ResourceData, m interface{}, jnprSess *Net
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readUtmCustomURLPattern(urlPattern string, m interface{}, jnprSess *NetconfObject) (
 	utmCustomURLPatternOptions, error) {
 	sess := m.(*Session)

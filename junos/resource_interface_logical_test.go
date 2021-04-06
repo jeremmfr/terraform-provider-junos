@@ -287,6 +287,7 @@ resource junos_interface_logical testacc_interface_logical {
 }
 `)
 }
+
 func testAccJunosInterfaceLogicalConfigUpdate(interFace string) string {
 	return fmt.Sprintf(`
 resource junos_firewall_filter "testacc_intlogicalInet" {

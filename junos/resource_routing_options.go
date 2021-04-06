@@ -104,6 +104,7 @@ func resourceRoutingOptionsCreate(ctx context.Context, d *schema.ResourceData, m
 
 	return append(diagWarns, resourceRoutingOptionsReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceRoutingOptionsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -114,6 +115,7 @@ func resourceRoutingOptionsRead(ctx context.Context, d *schema.ResourceData, m i
 
 	return resourceRoutingOptionsReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceRoutingOptionsReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -126,6 +128,7 @@ func resourceRoutingOptionsReadWJnprSess(
 
 	return nil
 }
+
 func resourceRoutingOptionsUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -157,9 +160,11 @@ func resourceRoutingOptionsUpdate(ctx context.Context, d *schema.ResourceData, m
 
 	return append(diagWarns, resourceRoutingOptionsReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceRoutingOptionsDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	return nil
 }
+
 func resourceRoutingOptionsImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -227,6 +232,7 @@ func delRoutingOptions(m interface{}, jnprSess *NetconfObject) error {
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsOptions, error) {
 	sess := m.(*Session)
 	var confRead routingOptionsOptions

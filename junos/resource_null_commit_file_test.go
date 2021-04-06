@@ -54,6 +54,7 @@ resource junos_interface_physical testacc_nullcommitfile {
 }
 `
 }
+
 func testAccJunosNullCommitFileCreate(interFace string) string {
 	return `
 resource junos_interface_physical testacc_nullcommitfile {
@@ -71,6 +72,7 @@ resource junos_null_commit_file "testacc_nullcommitfile" {
 }
 `
 }
+
 func testAccJunosNullCommitFileRead(interFace string) string {
 	return `
 resource junos_interface_physical testacc_nullcommitfile {

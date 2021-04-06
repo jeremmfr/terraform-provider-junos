@@ -306,6 +306,7 @@ resource junos_bgp_neighbor "testacc_bgpneighbor" {
 }
 `
 }
+
 func testAccJunosBgpNeighborConfigUpdate() string {
 	return `
 resource junos_routing_instance "testacc_bgpneighbor" {
@@ -343,6 +344,7 @@ resource junos_bgp_neighbor "testacc_bgpneighbor" {
 
 `
 }
+
 func testAccJunosBgpNeighborConfigUpdate2() string {
 	return `
 resource junos_routing_instance "testacc_bgpneighbor2" {
@@ -387,6 +389,7 @@ resource junos_bgp_neighbor "testacc_bgpneighbor2b" {
 }
 `
 }
+
 func testAccJunosBgpNeighborConfigUpdate3() string {
 	return `
 resource junos_routing_instance "testacc_bgpneighbor2" {

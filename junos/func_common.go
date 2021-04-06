@@ -63,6 +63,7 @@ func validateIPwithMask(ip string) error {
 
 	return nil
 }
+
 func validateCIDRNetwork(network string) error {
 	if !strings.Contains(network, "/") {
 		return fmt.Errorf("%v missing mask", network)
@@ -77,6 +78,7 @@ func validateCIDRNetwork(network string) error {
 
 	return nil
 }
+
 func validateCIDR(cidr string) error {
 	if !strings.Contains(cidr, "/") {
 		return fmt.Errorf("%v missing mask", cidr)
@@ -179,6 +181,7 @@ func validateNameObjectJunos(exclude []string, length int, format FormatName) sc
 		return diags
 	}
 }
+
 func validateAddress() schema.SchemaValidateDiagFunc {
 	return func(i interface{}, path cty.Path) diag.Diagnostics {
 		var diags diag.Diagnostics
@@ -198,6 +201,7 @@ func validateAddress() schema.SchemaValidateDiagFunc {
 		return diags
 	}
 }
+
 func validateFilePermission() schema.SchemaValidateDiagFunc {
 	return func(i interface{}, path cty.Path) diag.Diagnostics {
 		var diags diag.Diagnostics
@@ -244,6 +248,7 @@ func stringInSlice(str string, list []string) bool {
 
 	return false
 }
+
 func copyAndRemoveItemMapList(identifier string, integer bool,
 	m map[string]interface{}, list []map[string]interface{}) (map[string]interface{}, []map[string]interface{}) {
 	for i, element := range list {
@@ -291,6 +296,7 @@ func listOfSyslogSeverity() []string {
 		"emergency", "error", "info", "none", "notice", "warning",
 	}
 }
+
 func listOfSyslogFacility() []string {
 	return []string{
 		"authorization", "daemon", "ftp", "kernel", "user",
@@ -316,9 +322,11 @@ type sortStringsLength []string
 func (s sortStringsLength) Len() int {
 	return len(s)
 }
+
 func (s sortStringsLength) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
+
 func (s sortStringsLength) Less(i, j int) bool {
 	if len(s[i]) < len(s[j]) {
 		return true

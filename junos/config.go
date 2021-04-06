@@ -7,8 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 )
 
-// Config : provider config.
-type Config struct {
+// configProvider.
+type configProvider struct {
 	junosPort                int
 	junosCmdSleepShort       int
 	junosCmdSleepLock        int
@@ -25,8 +25,8 @@ type Config struct {
 	junosFakeCreateSetFile   string
 }
 
-// Session : read session information for Junos Device.
-func (c *Config) Session() (*Session, diag.Diagnostics) {
+// prepareSession : prepare information to connect to Junos Device and more.
+func (c *configProvider) prepareSession() (*Session, diag.Diagnostics) {
 	sess := &Session{
 		junosIP:             c.junosIP,
 		junosPort:           c.junosPort,

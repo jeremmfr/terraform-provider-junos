@@ -47,6 +47,7 @@ resource junos_routing_instance "testacc_routingInst" {
 }
 `
 }
+
 func testAccJunosRoutingInstanceConfigUpdate() string {
 	return `
 resource junos_routing_instance "testacc_routingInst" {

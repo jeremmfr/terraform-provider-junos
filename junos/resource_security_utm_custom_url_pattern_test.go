@@ -51,6 +51,7 @@ resource junos_security_utm_custom_url_pattern "testacc_UrlPattern" {
 }
 `
 }
+
 func testAccJunosSecurityUtmCustomURLPatternConfigUpdate() string {
 	return `
 resource junos_security_utm_custom_url_pattern "testacc_UrlPattern" {

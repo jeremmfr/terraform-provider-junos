@@ -100,6 +100,7 @@ func resourceSecurityUtmCustomURLCategoryCreate(
 
 	return append(diagWarns, resourceSecurityUtmCustomURLCategoryReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityUtmCustomURLCategoryRead(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -111,6 +112,7 @@ func resourceSecurityUtmCustomURLCategoryRead(
 
 	return resourceSecurityUtmCustomURLCategoryReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityUtmCustomURLCategoryReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -127,6 +129,7 @@ func resourceSecurityUtmCustomURLCategoryReadWJnprSess(
 
 	return nil
 }
+
 func resourceSecurityUtmCustomURLCategoryUpdate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
@@ -159,6 +162,7 @@ func resourceSecurityUtmCustomURLCategoryUpdate(
 
 	return append(diagWarns, resourceSecurityUtmCustomURLCategoryReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityUtmCustomURLCategoryDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -184,6 +188,7 @@ func resourceSecurityUtmCustomURLCategoryDelete(
 
 	return diagWarns
 }
+
 func resourceSecurityUtmCustomURLCategoryImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -224,6 +229,7 @@ func checkUtmCustomURLCategorysExists(urlCategory string, m interface{}, jnprSes
 
 	return true, nil
 }
+
 func setUtmCustomURLCategory(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -235,6 +241,7 @@ func setUtmCustomURLCategory(d *schema.ResourceData, m interface{}, jnprSess *Ne
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readUtmCustomURLCategory(urlCategory string, m interface{}, jnprSess *NetconfObject) (
 	utmCustomURLCategoryOptions, error) {
 	sess := m.(*Session)

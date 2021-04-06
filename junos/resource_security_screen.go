@@ -637,6 +637,7 @@ func resourceSecurityScreenCreate(ctx context.Context, d *schema.ResourceData, m
 
 	return append(diagWarns, resourceSecurityScreenReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityScreenRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -647,6 +648,7 @@ func resourceSecurityScreenRead(ctx context.Context, d *schema.ResourceData, m i
 
 	return resourceSecurityScreenReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityScreenReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -663,6 +665,7 @@ func resourceSecurityScreenReadWJnprSess(
 
 	return nil
 }
+
 func resourceSecurityScreenUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -696,6 +699,7 @@ func resourceSecurityScreenUpdate(ctx context.Context, d *schema.ResourceData, m
 
 	return append(diagWarns, resourceSecurityScreenReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityScreenDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -720,6 +724,7 @@ func resourceSecurityScreenDelete(ctx context.Context, d *schema.ResourceData, m
 
 	return diagWarns
 }
+
 func resourceSecurityScreenImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -759,6 +764,7 @@ func checkSecurityScreenExists(name string, m interface{}, jnprSess *NetconfObje
 
 	return true, nil
 }
+
 func setSecurityScreen(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -827,6 +833,7 @@ func setSecurityScreen(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func setSecurityScreenIcmp(icmp map[string]interface{}, setPrefix string) []string {
 	configSet := make([]string, 0)
 	setPrefix += "icmp "
@@ -865,6 +872,7 @@ func setSecurityScreenIcmp(icmp map[string]interface{}, setPrefix string) []stri
 
 	return configSet
 }
+
 func checkSetSecurityScreenIP(ip map[string]interface{}) error {
 	if !ip["bad_option"].(bool) &&
 		!ip["block_frag"].(bool) &&
@@ -887,6 +895,7 @@ func checkSetSecurityScreenIP(ip map[string]interface{}) error {
 
 	return nil
 }
+
 func setSecurityScreenIP(ip map[string]interface{}, setPrefix string) ([]string, error) {
 	configSet := make([]string, 0)
 	setPrefix += "ip "
@@ -1092,6 +1101,7 @@ func setSecurityScreenIP(ip map[string]interface{}, setPrefix string) ([]string,
 
 	return configSet, nil
 }
+
 func setSecurityScreenTCP(tcp map[string]interface{}, setPrefix string) ([]string, error) {
 	configSet := make([]string, 0)
 	setPrefix += "tcp "
@@ -1194,6 +1204,7 @@ func setSecurityScreenTCP(tcp map[string]interface{}, setPrefix string) ([]strin
 
 	return configSet, nil
 }
+
 func setSecurityScreenUDP(udp map[string]interface{}, setPrefix string) []string {
 	configSet := make([]string, 0)
 	setPrefix += "udp "
@@ -1233,6 +1244,7 @@ func setSecurityScreenUDP(udp map[string]interface{}, setPrefix string) []string
 
 	return configSet
 }
+
 func readSecurityScreen(name string, m interface{}, jnprSess *NetconfObject) (screenOptions, error) {
 	sess := m.(*Session)
 	var confRead screenOptions
@@ -1302,6 +1314,7 @@ func readSecurityScreen(name string, m interface{}, jnprSess *NetconfObject) (sc
 
 	return confRead, nil
 }
+
 func readSecurityScreenIcmp(confRead *screenOptions, itemTrim string) error {
 	if len(confRead.icmp) == 0 {
 		confRead.icmp = append(confRead.icmp, map[string]interface{}{
@@ -1354,6 +1367,7 @@ func readSecurityScreenIcmp(confRead *screenOptions, itemTrim string) error {
 
 	return nil
 }
+
 func readSecurityScreenIP(confRead *screenOptions, itemTrim string) error {
 	if len(confRead.ip) == 0 {
 		confRead.ip = append(confRead.ip, map[string]interface{}{
@@ -1593,6 +1607,7 @@ func readSecurityScreenIP(confRead *screenOptions, itemTrim string) error {
 
 	return nil
 }
+
 func readSecurityScreenTCP(confRead *screenOptions, itemTrim string) error {
 	if len(confRead.tcp) == 0 {
 		confRead.tcp = append(confRead.tcp, map[string]interface{}{
@@ -1740,6 +1755,7 @@ func readSecurityScreenTCP(confRead *screenOptions, itemTrim string) error {
 
 	return nil
 }
+
 func readSecurityScreenUDP(confRead *screenOptions, itemTrim string) error {
 	if len(confRead.udp) == 0 {
 		confRead.udp = append(confRead.udp, map[string]interface{}{

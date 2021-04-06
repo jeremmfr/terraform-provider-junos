@@ -112,6 +112,7 @@ func resourceSystemNtpServerCreate(ctx context.Context, d *schema.ResourceData, 
 
 	return append(diagWarns, resourceSystemNtpServerReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSystemNtpServerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -122,6 +123,7 @@ func resourceSystemNtpServerRead(ctx context.Context, d *schema.ResourceData, m 
 
 	return resourceSystemNtpServerReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSystemNtpServerReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -138,6 +140,7 @@ func resourceSystemNtpServerReadWJnprSess(
 
 	return nil
 }
+
 func resourceSystemNtpServerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -170,6 +173,7 @@ func resourceSystemNtpServerUpdate(ctx context.Context, d *schema.ResourceData, 
 
 	return append(diagWarns, resourceSystemNtpServerReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSystemNtpServerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -194,6 +198,7 @@ func resourceSystemNtpServerDelete(ctx context.Context, d *schema.ResourceData, 
 
 	return diagWarns
 }
+
 func resourceSystemNtpServerImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -234,6 +239,7 @@ func checkSystemNtpServerExists(address string, m interface{}, jnprSess *Netconf
 
 	return true, nil
 }
+
 func setSystemNtpServer(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 
@@ -255,6 +261,7 @@ func setSystemNtpServer(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readSystemNtpServer(address string, m interface{}, jnprSess *NetconfObject) (ntpServerOptions, error) {
 	sess := m.(*Session)
 	var confRead ntpServerOptions
@@ -305,6 +312,7 @@ func delSystemNtpServer(address string, m interface{}, jnprSess *NetconfObject) 
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func fillSystemNtpServerData(d *schema.ResourceData, ntpServerOptions ntpServerOptions) {
 	if tfErr := d.Set("address", ntpServerOptions.address); tfErr != nil {
 		panic(tfErr)

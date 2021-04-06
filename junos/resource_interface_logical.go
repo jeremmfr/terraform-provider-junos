@@ -490,6 +490,7 @@ func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData,
 
 	return append(diagWarns, resourceInterfaceLogicalReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceInterfaceLogicalRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -500,6 +501,7 @@ func resourceInterfaceLogicalRead(ctx context.Context, d *schema.ResourceData, m
 
 	return resourceInterfaceLogicalReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceInterfaceLogicalReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -538,6 +540,7 @@ func resourceInterfaceLogicalReadWJnprSess(
 
 	return nil
 }
+
 func resourceInterfaceLogicalUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -629,6 +632,7 @@ func resourceInterfaceLogicalUpdate(ctx context.Context, d *schema.ResourceData,
 
 	return append(diagWarns, resourceInterfaceLogicalReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceInterfaceLogicalDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -653,6 +657,7 @@ func resourceInterfaceLogicalDelete(ctx context.Context, d *schema.ResourceData,
 
 	return diagWarns
 }
+
 func resourceInterfaceLogicalImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	if strings.Count(d.Id(), ".") != 1 {
 		return nil, fmt.Errorf("name of interface %s need to have 1 dot", d.Id())
@@ -856,6 +861,7 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObject) (interfaceLogicalOptions, error) {
 	sess := m.(*Session)
 	var confRead interfaceLogicalOptions
@@ -1016,6 +1022,7 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 
 	return confRead, nil
 }
+
 func readInterfaceLogicalSecurityInboundTraffic(interFace string, confRead *interfaceLogicalOptions,
 	m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
@@ -1088,6 +1095,7 @@ func delInterfaceLogicalOpts(d *schema.ResourceData, m interface{}, jnprSess *Ne
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func delZoneInterfaceLogical(zone string, d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
@@ -1095,6 +1103,7 @@ func delZoneInterfaceLogical(zone string, d *schema.ResourceData, m interface{},
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func delRoutingInstanceInterfaceLogical(instance string, d *schema.ResourceData,
 	m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
@@ -1239,6 +1248,7 @@ func fillFamilyInetAddress(item string, inetAddress []map[string]interface{},
 
 	return inetAddress, nil
 }
+
 func setFamilyAddress(inetAddress interface{}, configSet []string, setPrefix string,
 	family string) ([]string, error) {
 	if family != inetWord && family != inet6Word {
@@ -1331,12 +1341,14 @@ func setFamilyAddress(inetAddress interface{}, configSet []string, setPrefix str
 
 	return configSet, nil
 }
+
 func genFamilyInetAddress(address string) map[string]interface{} {
 	return map[string]interface{}{
 		"cidr_ip":    address,
 		"vrrp_group": make([]map[string]interface{}, 0),
 	}
 }
+
 func genVRRPGroup(family string) map[string]interface{} {
 	m := map[string]interface{}{
 		"identifier":               0,
