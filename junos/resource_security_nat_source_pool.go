@@ -304,9 +304,12 @@ func setSecurityNatSourcePool(d *schema.ResourceData, m interface{}, jnprSess *N
 	}
 	for _, v := range d.Get("pool_utilization_alarm").([]interface{}) {
 		pua := v.(map[string]interface{})
-		configSet = append(configSet, setPrefix+" pool-utilization-alarm raise-threshold "+strconv.Itoa(pua["raise_threshold"].(int)))
-		configSet = append(configSet, setPrefix+" pool-utilization-alarm clear-threshold "+strconv.Itoa(pua["clear_threshold"].(int)))
+		configSet = append(configSet, setPrefix+" pool-utilization-alarm raise-threshold "+
+			strconv.Itoa(pua["raise_threshold"].(int)))
+		configSet = append(configSet, setPrefix+" pool-utilization-alarm clear-threshold "+
+			strconv.Itoa(pua["clear_threshold"].(int)))
 	}
+
 	return sess.configSet(configSet, jnprSess)
 }
 
@@ -354,12 +357,14 @@ func readSecurityNatSourcePool(natSourcePool string,
 				}
 				switch {
 				case strings.HasPrefix(itemTrim, "pool-utilization-alarm raise-threshold "):
-					confRead.poolUtilizationAlarm[0]["raise_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "pool-utilization-alarm raise-threshold "))
+					confRead.poolUtilizationAlarm[0]["raise_threshold"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrim, "pool-utilization-alarm raise-threshold "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "pool-utilization-alarm clear-threshold "):
-					confRead.poolUtilizationAlarm[0]["clear_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "pool-utilization-alarm clear-threshold "))
+					confRead.poolUtilizationAlarm[0]["clear_threshold"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrim, "pool-utilization-alarm clear-threshold "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}

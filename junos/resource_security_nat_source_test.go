@@ -128,8 +128,8 @@ resource junos_security_nat_source_pool testacc_securitySNATPool {
   routing_instance    = junos_routing_instance.testacc_securitySNAT.name
   port_no_translation = true
   pool_utilization_alarm {
-	raise_threshold = 80
-	clear_threshold = 60
+    raise_threshold = 80
+    clear_threshold = 60
   }
 }
 
