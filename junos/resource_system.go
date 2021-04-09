@@ -515,6 +515,45 @@ func resourceSystem() *schema.Resource {
 								},
 							},
 						},
+						"web_management": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"http": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"interface": {
+													Type:     schema.TypeList,
+													Optional: true,
+													Elem:     &schema.Schema{Type: schema.TypeString},
+												},
+											},
+										},
+									},
+									"https": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"system_generated_certificate": {
+													Type:     schema.TypeBool,
+													Required: true,
+												},
+												"interface": {
+													Type:     schema.TypeList,
+													Optional: true,
+													Elem:     &schema.Schema{Type: schema.TypeString},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -901,6 +940,35 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 				configSet = append(configSet, setPrefix+"ssh tcp-forwarding")
 			}
 		}
+		for _, servicesWeb := range servicesM["web_management"].([]interface{}) {
+			if servicesWeb == nil {
+				return fmt.Errorf("services.0.web_management block is empty")
+			}
+			servicesWebM := servicesWeb.(map[string]interface{})
+			for _, http := range servicesWebM["http"].([]interface{}) {
+				configSet = append(configSet, setPrefix+"web-management http")
+				if http != nil {
+					httpInterfaces := http.(map[string]interface{})
+					for _, interf := range httpInterfaces["interface"].([]interface{}) {
+						configSet = append(configSet, setPrefix+"web-management http interface "+interf.(string))
+					}
+				}
+			}
+			for _, https := range servicesWebM["https"].([]interface{}) {
+				configSet = append(configSet, setPrefix+"web-management https")
+				if https != nil {
+					httpsInterfaces := https.(map[string]interface{})
+					for _, interf := range httpsInterfaces["interface"].([]interface{}) {
+						configSet = append(configSet, setPrefix+"web-management https interface "+interf.(string))
+					}
+					if httpsInterfaces["system_generated_certificate"].(bool) {
+						configSet = append(configSet, setPrefix+"web-management https system-generated-certificate")
+					} else {
+						return fmt.Errorf("https must have a certificate")
+					}
+				}
+			}
+		}
 	}
 
 	return sess.configSet(configSet, jnprSess)
@@ -1132,6 +1200,7 @@ func listLinesLogin() []string {
 func listLinesServices() []string {
 	ls := make([]string, 0)
 	ls = append(ls, listLinesServicesSSH()...)
+	ls = append(ls, listLinesServicesWebManagement()...)
 
 	return ls
 }
@@ -1158,6 +1227,16 @@ func listLinesServicesSSH() []string {
 		"services ssh root-login",
 		"services ssh no-tcp-forwarding",
 		"services ssh tcp-forwarding",
+	}
+}
+
+func listLinesServicesWebManagement() []string {
+	return []string{
+		"services web-management http interface",
+		"services web-management http",
+		"services web-management https interface",
+		"services web-management https system-generated-certificate",
+		"services web-management https",
 	}
 }
 
@@ -1286,11 +1365,17 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 			case checkStringHasPrefixInList(itemTrim, listLinesServices()):
 				if len(confRead.services) == 0 {
 					confRead.services = append(confRead.services, map[string]interface{}{
-						"ssh": make([]map[string]interface{}, 0),
+						"ssh":            make([]map[string]interface{}, 0),
+						"web_management": make([]map[string]interface{}, 0),
 					})
 				}
 				if checkStringHasPrefixInList(itemTrim, listLinesServicesSSH()) {
 					if err := readSystemServicesSSH(&confRead, itemTrim); err != nil {
+						return confRead, err
+					}
+				}
+				if checkStringHasPrefixInList(itemTrim, listLinesServicesWebManagement()) {
+					if err := readSystemServicesWebManagement(&confRead, itemTrim); err != nil {
 						return confRead, err
 					}
 				}
@@ -1741,6 +1826,51 @@ func readSystemServicesSSH(confRead *systemOptions, itemTrim string) error {
 		confRead.services[0]["ssh"].([]map[string]interface{})[0]["no_tcp_forwarding"] = true
 	case itemTrim == "services ssh tcp-forwarding":
 		confRead.services[0]["ssh"].([]map[string]interface{})[0]["tcp_forwarding"] = true
+	}
+
+	return nil
+}
+
+func readSystemServicesWebManagement(confRead *systemOptions, itemTrim string) error {
+	if len(confRead.services[0]["web_management"].([]map[string]interface{})) == 0 {
+		confRead.services[0]["web_management"] = append(confRead.services[0]["web_management"].([]map[string]interface{}),
+			map[string]interface{}{
+				"http":  make([]map[string]interface{}, 0),
+				"https": make([]map[string]interface{}, 0),
+			})
+	}
+	switch {
+	case strings.HasPrefix(itemTrim, "services web-management http "):
+		if len(confRead.services[0]["web_management"].([]map[string]interface{})[0]["http"].([]map[string]interface{})) == 0 {
+			confRead.services[0]["web_management"].([]map[string]interface{})[0]["http"] = append(
+				confRead.services[0]["web_management"].([]map[string]interface{})[0]["http"].([]map[string]interface{}),
+				map[string]interface{}{
+					"interface": make([]string, 0),
+				})
+		}
+		switch {
+		case strings.HasPrefix(itemTrim, "services web-management http interface "):
+			confRead.services[0]["web_management"].([]map[string]interface{})[0]["http"].([]map[string]interface{})[0]["interface"] = append(
+				confRead.services[0]["web_management"].([]map[string]interface{})[0]["http"].([]map[string]interface{})[0]["interface"].([]string),
+				strings.TrimPrefix(itemTrim, "services web-management http interface "))
+		}
+	case strings.HasPrefix(itemTrim, "services web-management https "):
+		if len(confRead.services[0]["web_management"].([]map[string]interface{})[0]["https"].([]map[string]interface{})) == 0 {
+			confRead.services[0]["web_management"].([]map[string]interface{})[0]["https"] = append(
+				confRead.services[0]["web_management"].([]map[string]interface{})[0]["https"].([]map[string]interface{}),
+				map[string]interface{}{
+					"interface":                    make([]string, 0),
+					"system_generated_certificate": false,
+				})
+		}
+		switch {
+		case strings.HasPrefix(itemTrim, "services web-management https interface "):
+			confRead.services[0]["web_management"].([]map[string]interface{})[0]["https"].([]map[string]interface{})[0]["interface"] = append(
+				confRead.services[0]["web_management"].([]map[string]interface{})[0]["https"].([]map[string]interface{})[0]["interface"].([]string),
+				strings.TrimPrefix(itemTrim, "services web-management https interface "))
+		case itemTrim == "services web-management https system-generated-certificate":
+			confRead.services[0]["web_management"].([]map[string]interface{})[0]["https"].([]map[string]interface{})[0]["system_generated_certificate"] = true
+		}
 	}
 
 	return nil

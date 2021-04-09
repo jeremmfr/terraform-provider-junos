@@ -145,6 +145,22 @@ func TestAccJunosSystem_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"services.0.ssh.0.tcp_forwarding", "true"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management.0.http.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management.0.http.0.interface.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management.0.http.0.interface.0", "fxp0.0"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management.0.https.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management.0.https.0.system_generated_certificate", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management.0.https.0.interface.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management.0.https.0.interface.0", "fxp0.0"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"syslog.#", "1"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"syslog.0.archive.#", "1"),
@@ -307,6 +323,15 @@ resource junos_system "testacc_system" {
       root_login                     = "deny"
       tcp_forwarding                 = true
     }
+	web_management {
+		http {
+			interface	=	["fxp0.0"]
+		}
+		https {
+			interface	=	["fxp0.0"]
+			system_generated_certificate = true
+		}
+	}
   }
   syslog {
     archive {

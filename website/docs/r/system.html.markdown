@@ -24,6 +24,15 @@ resource junos_system "system" {
     ssh {
       root_login = "deny"
     }
+    web_management {
+      http {
+          interface   =   ["fxp0.0"]
+      }
+      https {
+          interface   =   ["fxp0.0"]
+          system_generated_certificate = true
+      }
+    }
   }
   syslog {
     archive {
@@ -58,6 +67,7 @@ The following arguments are supported:
 * `no_redirects_ipv6` - (Optional)(`Bool`) Disable IPV6 ICMP redirects.
 * `services` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'services' configuration.
   * `ssh` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'ssh' configuration. See the [`ssh` arguments for services] (#ssh-arguments-for-services) block.
+  * `web_management` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'web_management' configuration. See the [`web_management` arguments for services] (#web_management-arguments-for-services) block.
 * `syslog` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'syslog' configuration.
   * `archive` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'archive' configuration. See the [`archive` arguments for syslog] (#archive-arguments-for-syslog) block.
   * `log_rotate_frequency` - (Optional)(`Int`) Rotate log frequency (1..59 minutes).
@@ -141,6 +151,14 @@ The following arguments are supported:
 * `root_login` - (Optional)(`String`) Configure root access via ssh. Need to be 'allow', 'deny' or 'deny-password'.
 * `no_tcp_forwarding` - (Optional)(`Bool`) Do not allow forwarding TCP connections via SSH.
 * `tcp_forwarding` - (Optional)(`Bool`) Allow forwarding TCP connections via SSH.
+
+---
+#### web_management arguments for services
+* `http` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified to declare 'http' configuration. 
+  * `interface` - (Optional)(`ListOfString`) Specify the name of one or more interfaces on which to accept access through the HTTP service.
+* `https` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified to declare 'https' configuration.
+  * `interface` - (Optional)(`ListOfString`) Specify the name of one or more interfaces on which to accept access through the HTTPS service.
+  * `system_generated_certificate` - (Required)(`Bool`) Automatically generate a self-signed certificate for enabling the HTTPS service.
 
 ---
 #### archive arguments for syslog
