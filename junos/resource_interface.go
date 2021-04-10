@@ -461,80 +461,84 @@ func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if intExists {
 		ncInt, emptyInt, err := checkInterfaceNC(d.Get("name").(string), m, jnprSess)
 		if err != nil {
-			sess.configClear(jnprSess)
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-			return diag.FromErr(err)
+			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if !ncInt && !emptyInt {
-			return diag.FromErr(fmt.Errorf("interface %s already configured", d.Get("name").(string)))
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+			return append(diagWarns, diag.FromErr(fmt.Errorf("interface %s already configured", d.Get("name").(string)))...)
 		}
 		if sess.junosGroupIntDel != "" {
 			err = delInterfaceElement("apply-groups "+sess.junosGroupIntDel, d, m, jnprSess)
 			if err != nil {
-				sess.configClear(jnprSess)
+				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-				return diag.FromErr(err)
+				return append(diagWarns, diag.FromErr(err)...)
 			}
 		} else {
 			err = delInterfaceElement("disable", d, m, jnprSess)
 			if err != nil {
-				sess.configClear(jnprSess)
+				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-				return diag.FromErr(err)
+				return append(diagWarns, diag.FromErr(err)...)
 			}
 			err = delInterfaceElement("description", d, m, jnprSess)
 			if err != nil {
-				sess.configClear(jnprSess)
+				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-				return diag.FromErr(err)
+				return append(diagWarns, diag.FromErr(err)...)
 			}
 		}
 	}
 	if d.Get("security_zone").(string) != "" {
 		if !checkCompatibilitySecurity(jnprSess) {
-			sess.configClear(jnprSess)
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-			return diag.FromErr(fmt.Errorf("security zone not compatible with Junos device %s",
-				jnprSess.SystemInformation.HardwareModel))
+			return append(diagWarns, diag.FromErr(fmt.Errorf("security zone not compatible with Junos device %s",
+				jnprSess.SystemInformation.HardwareModel))...)
 		}
 		zonesExists, err := checkSecurityZonesExists(d.Get("security_zone").(string), m, jnprSess)
 		if err != nil {
-			sess.configClear(jnprSess)
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-			return diag.FromErr(err)
+			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if !zonesExists {
-			sess.configClear(jnprSess)
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-			return diag.FromErr(fmt.Errorf("security zones %v doesn't exist", d.Get("security_zone").(string)))
+			return append(diagWarns,
+				diag.FromErr(fmt.Errorf("security zones %v doesn't exist", d.Get("security_zone").(string)))...)
 		}
 	}
 	if d.Get("routing_instance").(string) != "" {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
-			sess.configClear(jnprSess)
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-			return diag.FromErr(err)
+			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if !instanceExists {
-			sess.configClear(jnprSess)
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-			return diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))
+			return append(diagWarns,
+				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))...)
 		}
 	}
 	if err := setInterface(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("create resource junos_interface", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -617,10 +621,11 @@ func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m inte
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if err := delInterfaceOpts(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if d.HasChange("ether802_3ad") {
 		oAE, nAE := d.GetChange("ether802_3ad")
@@ -631,64 +636,64 @@ func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m inte
 			}
 			lastAEchild, err := aggregatedLastChild(oAE.(string), d.Get("name").(string), m, jnprSess)
 			if err != nil {
-				sess.configClear(jnprSess)
+				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-				return diag.FromErr(err)
+				return append(diagWarns, diag.FromErr(err)...)
 			}
 			if lastAEchild {
 				aggregatedCount, err := aggregatedCountSearchMax(newAE, oAE.(string), d.Get("name").(string), m, jnprSess)
 				if err != nil {
-					sess.configClear(jnprSess)
+					appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-					return diag.FromErr(err)
+					return append(diagWarns, diag.FromErr(err)...)
 				}
 				if aggregatedCount == "0" {
 					err = sess.configSet([]string{"delete chassis aggregated-devices ethernet device-count"}, jnprSess)
 					if err != nil {
-						sess.configClear(jnprSess)
+						appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-						return diag.FromErr(err)
+						return append(diagWarns, diag.FromErr(err)...)
 					}
 					oAEintNC, oAEintEmpty, err := checkInterfaceNC(oAE.(string), m, jnprSess)
 					if err != nil {
-						sess.configClear(jnprSess)
+						appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-						return diag.FromErr(err)
+						return append(diagWarns, diag.FromErr(err)...)
 					}
 					if oAEintNC || oAEintEmpty {
 						err = sess.configSet([]string{"delete interfaces " + oAE.(string)}, jnprSess)
 						if err != nil {
-							sess.configClear(jnprSess)
+							appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-							return diag.FromErr(err)
+							return append(diagWarns, diag.FromErr(err)...)
 						}
 					}
 				} else {
 					oldAEInt, err := strconv.Atoi(strings.TrimPrefix(oAE.(string), "ae"))
 					if err != nil {
-						sess.configClear(jnprSess)
+						appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-						return diag.FromErr(err)
+						return append(diagWarns, diag.FromErr(err)...)
 					}
 					aggregatedCountInt, err := strconv.Atoi(aggregatedCount)
 					if err != nil {
-						sess.configClear(jnprSess)
+						appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-						return diag.FromErr(err)
+						return append(diagWarns, diag.FromErr(err)...)
 					}
 					if aggregatedCountInt < oldAEInt+1 {
 						oAEintNC, oAEintEmpty, err := checkInterfaceNC(oAE.(string), m, jnprSess)
 						if err != nil {
-							sess.configClear(jnprSess)
+							appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-							return diag.FromErr(err)
+							return append(diagWarns, diag.FromErr(err)...)
 						}
 						if oAEintNC || oAEintEmpty {
 							err = sess.configSet([]string{"delete interfaces " + oAE.(string)}, jnprSess)
 							if err != nil {
-								sess.configClear(jnprSess)
+								appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-								return diag.FromErr(err)
+								return append(diagWarns, diag.FromErr(err)...)
 							}
 						}
 					}
@@ -700,29 +705,29 @@ func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m inte
 		oSecurityZone, nSecurityZone := d.GetChange("security_zone")
 		if nSecurityZone.(string) != "" {
 			if !checkCompatibilitySecurity(jnprSess) {
-				sess.configClear(jnprSess)
+				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-				return diag.FromErr(fmt.Errorf("security zone not compatible with Junos device %s",
-					jnprSess.SystemInformation.HardwareModel))
+				return append(diagWarns, diag.FromErr(fmt.Errorf("security zone not compatible with Junos device %s",
+					jnprSess.SystemInformation.HardwareModel))...)
 			}
 			zonesExists, err := checkSecurityZonesExists(nSecurityZone.(string), m, jnprSess)
 			if err != nil {
-				sess.configClear(jnprSess)
+				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-				return diag.FromErr(err)
+				return append(diagWarns, diag.FromErr(err)...)
 			}
 			if !zonesExists {
-				sess.configClear(jnprSess)
+				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-				return diag.FromErr(fmt.Errorf("security zones %v doesn't exist", nSecurityZone.(string)))
+				return append(diagWarns, diag.FromErr(fmt.Errorf("security zones %v doesn't exist", nSecurityZone.(string)))...)
 			}
 		}
 		if oSecurityZone.(string) != "" {
 			err = delZoneInterface(oSecurityZone.(string), d, m, jnprSess)
 			if err != nil {
-				sess.configClear(jnprSess)
+				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-				return diag.FromErr(err)
+				return append(diagWarns, diag.FromErr(err)...)
 			}
 		}
 	}
@@ -731,35 +736,35 @@ func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m inte
 		if nRoutingInstance.(string) != "" {
 			instanceExists, err := checkRoutingInstanceExists(nRoutingInstance.(string), m, jnprSess)
 			if err != nil {
-				sess.configClear(jnprSess)
+				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-				return diag.FromErr(err)
+				return append(diagWarns, diag.FromErr(err)...)
 			}
 			if !instanceExists {
-				sess.configClear(jnprSess)
+				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-				return diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", nRoutingInstance.(string)))
+				return append(diagWarns,
+					diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", nRoutingInstance.(string)))...)
 			}
 		}
 		if oRoutingInstance.(string) != "" {
 			err = delRoutingInstanceInterface(oRoutingInstance.(string), d, m, jnprSess)
 			if err != nil {
-				sess.configClear(jnprSess)
+				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-				return diag.FromErr(err)
+				return append(diagWarns, diag.FromErr(err)...)
 			}
 		}
 	}
 	if err := setInterface(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("update resource junos_interface", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -776,16 +781,16 @@ func resourceInterfaceDelete(ctx context.Context, d *schema.ResourceData, m inte
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if err := delInterface(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := delInterface(d, m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("delete resource junos_interface", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -797,13 +802,13 @@ func resourceInterfaceDelete(ctx context.Context, d *schema.ResourceData, m inte
 		if intExists {
 			err = addInterfaceNC(d.Get("name").(string), m, jnprSess)
 			if err != nil {
-				sess.configClear(jnprSess)
+				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 				return append(diagWarns, diag.FromErr(err)...)
 			}
 			_, err = sess.commitConf("disable(NC) resource junos_interface", jnprSess)
 			if err != nil {
-				sess.configClear(jnprSess)
+				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 				return append(diagWarns, diag.FromErr(err)...)
 			}

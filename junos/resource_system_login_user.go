@@ -102,28 +102,28 @@ func resourceSystemLoginUserCreate(ctx context.Context, d *schema.ResourceData, 
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	systemLoginUserExists, err := checkSystemLoginUserExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if systemLoginUserExists {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(fmt.Errorf("system login user %v already exists", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("system login user %v already exists", d.Get("name").(string)))...)
 	}
 
 	if err := setSystemLoginUser(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("create resource junos_system_login_user", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -178,21 +178,21 @@ func resourceSystemLoginUserUpdate(ctx context.Context, d *schema.ResourceData, 
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if err := delSystemLoginUser(d.Get("name").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setSystemLoginUser(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("update resource junos_system_login_user", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -210,16 +210,16 @@ func resourceSystemLoginUserDelete(ctx context.Context, d *schema.ResourceData, 
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if err := delSystemLoginUser(d.Get("name").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := delSystemLoginUser(d.Get("name").(string), m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("delete resource junos_system_login_user", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}

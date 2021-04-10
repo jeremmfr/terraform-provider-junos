@@ -267,17 +267,16 @@ func resourceServicesCreate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-
-	if err := setServices(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := setServices(d, m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("create resource junos_services", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -318,21 +317,21 @@ func resourceServicesUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if err := delServices(m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setServices(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("update resource junos_services", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}

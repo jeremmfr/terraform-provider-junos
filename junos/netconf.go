@@ -240,32 +240,38 @@ func (j *NetconfObject) netconfConfigLock() bool {
 }
 
 // Unlock unlocks the candidate configuration.
-func (j *NetconfObject) netconfConfigUnlock() error {
+func (j *NetconfObject) netconfConfigUnlock() []error {
 	reply, err := j.Session.Exec(netconf.RawMethod(rpcCandidateUnlock))
 	if err != nil {
-		return fmt.Errorf("failed to netconf config unlock : %w", err)
+		return []error{fmt.Errorf("failed to netconf config unlock : %w", err)}
 	}
 	if reply.Errors != nil {
+		errs := make([]error, 0)
 		for _, m := range reply.Errors {
-			return errors.New(m.Message)
+			errs = append(errs, errors.New("config unlock: "+m.Message))
 		}
+
+		return errs
 	}
 
-	return nil
+	return []error{}
 }
 
-func (j *NetconfObject) netconfConfigClear() error {
+func (j *NetconfObject) netconfConfigClear() []error {
 	reply, err := j.Session.Exec(netconf.RawMethod(rpcClearCandidate))
 	if err != nil {
-		return fmt.Errorf("failed to netconf config clear : %w", err)
+		return []error{fmt.Errorf("failed to netconf config clear : %w", err)}
 	}
 	if reply.Errors != nil {
+		errs := make([]error, 0)
 		for _, m := range reply.Errors {
-			return errors.New(m.Message)
+			errs = append(errs, errors.New("config clear: "+m.Message))
 		}
+
+		return errs
 	}
 
-	return nil
+	return []error{}
 }
 
 // netconfCommit commits the configuration.
@@ -291,7 +297,7 @@ func (j *NetconfObject) netconfCommit(logMessage string) (_warn []error, _err er
 	if reply.Data != "\n<ok/>\n" {
 		err = xml.Unmarshal([]byte(reply.Data), &errs)
 		if err != nil {
-			return []error{}, fmt.Errorf("failed to xml unmarshal reply : %w", err)
+			return []error{}, fmt.Errorf("failed to xml unmarshal reply %s : %w", reply.Data, err)
 		}
 
 		if errs.Errors != nil {

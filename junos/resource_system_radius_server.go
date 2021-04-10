@@ -138,28 +138,29 @@ func resourceSystemRadiusServerCreate(ctx context.Context, d *schema.ResourceDat
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	radiusServerExists, err := checkSystemRadiusServerExists(d.Get("address").(string), m, jnprSess)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if radiusServerExists {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(fmt.Errorf("system radius-server %v already exists", d.Get("address").(string)))
+		return append(diagWarns,
+			diag.FromErr(fmt.Errorf("system radius-server %v already exists", d.Get("address").(string)))...)
 	}
 
 	if err := setSystemRadiusServer(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("create resource junos_system_radius_server", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -214,21 +215,21 @@ func resourceSystemRadiusServerUpdate(ctx context.Context, d *schema.ResourceDat
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if err := delSystemRadiusServer(d.Get("address").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setSystemRadiusServer(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("update resource junos_system_radius_server", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -245,16 +246,16 @@ func resourceSystemRadiusServerDelete(ctx context.Context, d *schema.ResourceDat
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if err := delSystemRadiusServer(d.Get("address").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := delSystemRadiusServer(d.Get("address").(string), m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("delete resource junos_system_radius_server", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}

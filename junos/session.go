@@ -172,27 +172,16 @@ func (sess *Session) configLock(jnpr *NetconfObject) {
 	}
 }
 
-func (sess *Session) configClear(jnpr *NetconfObject) {
-	err := jnpr.netconfConfigClear()
+func (sess *Session) configClear(jnpr *NetconfObject) (errs []error) {
+	errs = append(errs, jnpr.netconfConfigClear()...)
 	sleepShort(sess.junosSleepShort)
 	sess.logFile("[configClear] config clear")
-	if err != nil {
-		err := jnpr.close(sess.junosSleepSSHClosed)
-		if err != nil {
-			sess.logFile(fmt.Sprintf("[configClear] close err: %q", err))
-		}
-		panic(err)
-	}
-	err = jnpr.netconfConfigUnlock()
+
+	errs = append(errs, jnpr.netconfConfigUnlock()...)
 	sleepShort(sess.junosSleepShort)
 	sess.logFile("[configClear] config unlock")
-	if err != nil {
-		err := jnpr.close(sess.junosSleepSSHClosed)
-		if err != nil {
-			sess.logFile(fmt.Sprintf("[configClear] close err: %q", err))
-		}
-		panic(err)
-	}
+
+	return
 }
 
 // log message in junosLogFile.
