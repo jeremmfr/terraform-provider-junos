@@ -204,6 +204,14 @@ func resourceInterfaceLogical() *schema.Resource {
 								},
 							},
 						},
+						"sampling_input": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"sampling_output": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -350,6 +358,14 @@ func resourceInterfaceLogical() *schema.Resource {
 									},
 								},
 							},
+						},
+						"sampling_input": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"sampling_output": {
+							Type:     schema.TypeBool,
+							Optional: true,
 						},
 					},
 				},
@@ -798,6 +814,12 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 					}
 				}
 			}
+			if familyInet["sampling_input"].(bool) {
+				configSet = append(configSet, setPrefix+"family inet sampling input")
+			}
+			if familyInet["sampling_output"].(bool) {
+				configSet = append(configSet, setPrefix+"family inet sampling output")
+			}
 		}
 	}
 	for _, v := range d.Get("family_inet6").([]interface{}) {
@@ -835,6 +857,12 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 						configSet = append(configSet, setPrefix+"family inet6 rpf-check mode loose ")
 					}
 				}
+			}
+			if familyInet6["sampling_input"].(bool) {
+				configSet = append(configSet, setPrefix+"family inet6 sampling input")
+			}
+			if familyInet6["sampling_output"].(bool) {
+				configSet = append(configSet, setPrefix+"family inet6 sampling output")
 			}
 		}
 	}
@@ -893,11 +921,13 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 			case strings.HasPrefix(itemTrim, "family inet6"):
 				if len(confRead.familyInet6) == 0 {
 					confRead.familyInet6 = append(confRead.familyInet6, map[string]interface{}{
-						"address":       make([]map[string]interface{}, 0),
-						"filter_input":  "",
-						"filter_output": "",
-						"mtu":           0,
-						"rpf_check":     make([]map[string]interface{}, 0),
+						"address":         make([]map[string]interface{}, 0),
+						"filter_input":    "",
+						"filter_output":   "",
+						"mtu":             0,
+						"rpf_check":       make([]map[string]interface{}, 0),
+						"sampling_input":  false,
+						"sampling_output": false,
 					})
 				}
 				switch {
@@ -933,15 +963,21 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 					case itemTrim == "family inet6 rpf-check mode loose":
 						confRead.familyInet6[0]["rpf_check"].([]map[string]interface{})[0]["mode_loose"] = true
 					}
+				case itemTrim == "family inet6 sampling input":
+					confRead.familyInet6[0]["sampling_input"] = true
+				case itemTrim == "family inet6 sampling output":
+					confRead.familyInet6[0]["sampling_output"] = true
 				}
 			case strings.HasPrefix(itemTrim, "family inet"):
 				if len(confRead.familyInet) == 0 {
 					confRead.familyInet = append(confRead.familyInet, map[string]interface{}{
-						"address":       make([]map[string]interface{}, 0),
-						"mtu":           0,
-						"filter_input":  "",
-						"filter_output": "",
-						"rpf_check":     make([]map[string]interface{}, 0),
+						"address":         make([]map[string]interface{}, 0),
+						"mtu":             0,
+						"filter_input":    "",
+						"filter_output":   "",
+						"rpf_check":       make([]map[string]interface{}, 0),
+						"sampling_input":  false,
+						"sampling_output": false,
 					})
 				}
 				switch {
@@ -977,6 +1013,10 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 					case itemTrim == "family inet rpf-check mode loose":
 						confRead.familyInet[0]["rpf_check"].([]map[string]interface{})[0]["mode_loose"] = true
 					}
+				case itemTrim == "family inet sampling input":
+					confRead.familyInet[0]["sampling_input"] = true
+				case itemTrim == "family inet sampling output":
+					confRead.familyInet[0]["sampling_output"] = true
 				}
 			case strings.HasPrefix(itemTrim, "vlan-id "):
 				var err error

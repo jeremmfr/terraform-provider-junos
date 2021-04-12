@@ -38,12 +38,16 @@ The following arguments are supported:
   * `filter_output` - (Optional)(`String`) Filter to be applied to transmitted packets.
   * `mtu` - (Optional)(`Int`) Maximum transmission unit.
   * `rpf_check` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for enable reverse-path-forwarding checks on this interface. See the [`rpf_check` arguments](#rpf_check-arguments) block for optional arguments.
+  * `sampling_input` - (Optional)(`Bool`) Sample all packets input on this interface.
+  * `sampling_output` - (Optional)(`Bool`) Sample all packets output on this interface.
 * `family_inet6` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Enable family inet6 and add configurations if specified.
   * `address` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each ipv6 address to declare. See the [`address` arguments for family_inet6](#address-arguments-for-family_inet6) block.
   * `filter_input` - (Optional)(`String`) Filter to be applied to received packets.
   * `filter_output` - (Optional)(`String`) Filter to be applied to transmitted packets.
   * `mtu` - (Optional)(`Int`) Maximum transmission unit.
   * `rpf_check` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for enable reverse-path-forwarding checks on this interface. See the [`rpf_check` arguments](#rpf_check-arguments) block for optional arguments. 
+  * `sampling_input` - (Optional)(`Bool`) Sample all packets input on this interface.
+  * `sampling_output` - (Optional)(`Bool`) Sample all packets output on this interface.
 * `routing_instance` - (Optional)(`String`) Add this interface in routing_instance. Need to be created before.
 * `security_inbound_protocols` - (Optional)(`ListOfString`) The inbound protocols allowed. Must be a list of Junos protocols. `security_zone` need to be set.
 * `security_inbound_services` - (Optional)(`ListOfString`) The inbound services allowed. Must be a list of Junos services. `security_zone` need to be set.
