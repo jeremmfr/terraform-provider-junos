@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * clean code: remove useless type/func exporting, and fixes formating golang code
 
 BUG FIXES:
+* fix panic when candidate config clear or unlock generate Junos error(s)
 
 ## 1.14.0 (March 19, 2021)
 FEATURES:
