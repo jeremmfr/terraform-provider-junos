@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * add `forwarding_process` argument in `junos_security` resource (Fixes parts of #158)
 * clean code: remove useless type/func exporting, and fixes formating golang code
 * add `junos_services_flowmonitoring_vipfix_template` resource (Fixes parts of #165)
+* add `junos_forwardingoptions_sampling_instance` resource (Fixes parts of #165)
 
 BUG FIXES:
 * fix panic when candidate config clear or unlock generate Junos error(s)
