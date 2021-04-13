@@ -56,6 +56,9 @@ resource "junos_group_dual_system" "testacc_node0" {
     family_inet_address {
       cidr_ip = "192.0.2.193/26"
     }
+    family_inet6_address {
+      cidr_ip = "fe80::2/64"
+    }
   }
   routing_options {
     static_route {
@@ -93,6 +96,10 @@ resource "junos_group_dual_system" "testacc_node0" {
     }
     family_inet_address {
       cidr_ip     = "192.0.2.194/26"
+      master_only = true
+    }
+    family_inet6_address {
+      cidr_ip     = "fe80::2/64"
       master_only = true
     }
   }

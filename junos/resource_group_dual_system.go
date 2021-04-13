@@ -67,6 +67,23 @@ func resourceGroupDualSystem() *schema.Resource {
 								},
 							},
 						},
+						"family_inet6_address": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"cidr_ip": {
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateDiagFunc: validateIPMaskFunc(),
+									},
+									"master_only": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -370,6 +387,15 @@ func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 					familyInetAddress["cidr_ip"].(string)+" master-only")
 			}
 		}
+		for _, v2 := range interfaceFxp0["family_inet6_address"].([]interface{}) {
+			familyInet6Address := v2.(map[string]interface{})
+			configSet = append(configSet, setPrefix+"interfaces fxp0 unit 0 family inet6 address "+
+				familyInet6Address["cidr_ip"].(string))
+			if familyInet6Address["master_only"].(bool) {
+				configSet = append(configSet, setPrefix+"interfaces fxp0 unit 0 family inet6 address "+
+					familyInet6Address["cidr_ip"].(string)+" master-only")
+			}
+		}
 	}
 	for _, v := range d.Get("routing_options").([]interface{}) {
 		routingOptions := v.(map[string]interface{})
@@ -428,8 +454,9 @@ func readGroupDualSystem(group string, m interface{}, jnprSess *NetconfObject) (
 			case strings.HasPrefix(itemTrim, "interfaces fxp0 "):
 				if len(confRead.interfaceFxp0) == 0 {
 					confRead.interfaceFxp0 = append(confRead.interfaceFxp0, map[string]interface{}{
-						"description":         "",
-						"family_inet_address": make([]map[string]interface{}, 0),
+						"description":          "",
+						"family_inet_address":  make([]map[string]interface{}, 0),
+						"family_inet6_address": make([]map[string]interface{}, 0),
 					})
 				}
 				switch {
@@ -447,6 +474,21 @@ func readGroupDualSystem(group string, m interface{}, jnprSess *NetconfObject) (
 						confRead.interfaceFxp0[0]["family_inet_address"] = append(
 							confRead.interfaceFxp0[0]["family_inet_address"].([]map[string]interface{}), map[string]interface{}{
 								"cidr_ip":     strings.TrimPrefix(itemTrim, "interfaces fxp0 unit 0 family inet address "),
+								"master_only": false,
+							})
+					}
+				case strings.HasPrefix(itemTrim, "interfaces fxp0 unit 0 family inet6 address "):
+					if strings.HasSuffix(itemTrim, "master-only") {
+						confRead.interfaceFxp0[0]["family_inet6_address"] = append(
+							confRead.interfaceFxp0[0]["family_inet6_address"].([]map[string]interface{}), map[string]interface{}{
+								"cidr_ip": strings.TrimSuffix(strings.TrimPrefix(
+									itemTrim, "interfaces fxp0 unit 0 family inet6 address "), " master-only"),
+								"master_only": true,
+							})
+					} else {
+						confRead.interfaceFxp0[0]["family_inet6_address"] = append(
+							confRead.interfaceFxp0[0]["family_inet6_address"].([]map[string]interface{}), map[string]interface{}{
+								"cidr_ip":     strings.TrimPrefix(itemTrim, "interfaces fxp0 unit 0 family inet6 address "),
 								"master_only": false,
 							})
 					}
