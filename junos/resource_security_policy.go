@@ -475,49 +475,49 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			if strings.Contains(itemTrim, " match ") || strings.Contains(itemTrim, " then ") {
 				policyLineCut := strings.Split(itemTrim, " ")
-				m := genMapPolicyWithName(policyLineCut[1])
-				m, policyList = copyAndRemoveItemMapList("name", false, m, policyList)
+				policy := genMapPolicyWithName(policyLineCut[1])
+				policy, policyList = copyAndRemoveItemMapList("name", false, policy, policyList)
 				itemTrimPolicy := strings.TrimPrefix(itemTrim, "policy "+policyLineCut[1]+" ")
 				switch {
 				case strings.HasPrefix(itemTrimPolicy, "match source-address "):
-					m["match_source_address"] = append(m["match_source_address"].([]string),
+					policy["match_source_address"] = append(policy["match_source_address"].([]string),
 						strings.TrimPrefix(itemTrimPolicy, "match source-address "))
 				case strings.HasPrefix(itemTrimPolicy, "match destination-address "):
-					m["match_destination_address"] = append(m["match_destination_address"].([]string),
+					policy["match_destination_address"] = append(policy["match_destination_address"].([]string),
 						strings.TrimPrefix(itemTrimPolicy, "match destination-address "))
 				case strings.HasPrefix(itemTrimPolicy, "match application "):
-					m["match_application"] = append(m["match_application"].([]string),
+					policy["match_application"] = append(policy["match_application"].([]string),
 						strings.TrimPrefix(itemTrimPolicy, "match application "))
 				case strings.HasPrefix(itemTrimPolicy, "match destination-address-excluded"):
-					m["match_destination_address_excluded"] = true
+					policy["match_destination_address_excluded"] = true
 				case strings.HasPrefix(itemTrimPolicy, "match dynamic-application "):
-					m["match_dynamic_application"] = append(m["match_dynamic_application"].([]string),
+					policy["match_dynamic_application"] = append(policy["match_dynamic_application"].([]string),
 						strings.TrimPrefix(itemTrimPolicy, "match dynamic-application "))
 				case strings.HasPrefix(itemTrimPolicy, "match source-address-excluded"):
-					m["match_source_address_excluded"] = true
+					policy["match_source_address_excluded"] = true
 				case strings.HasPrefix(itemTrimPolicy, "then "):
 					switch {
 					case strings.HasSuffix(itemTrimPolicy, permitWord),
 						strings.HasSuffix(itemTrimPolicy, "deny"),
 						strings.HasSuffix(itemTrimPolicy, "reject"):
-						m["then"] = strings.TrimPrefix(itemTrimPolicy, "then ")
+						policy["then"] = strings.TrimPrefix(itemTrimPolicy, "then ")
 					case itemTrimPolicy == "then count":
-						m["count"] = true
+						policy["count"] = true
 					case itemTrimPolicy == "then log session-init":
-						m["log_init"] = true
+						policy["log_init"] = true
 					case itemTrimPolicy == "then log session-close":
-						m["log_close"] = true
+						policy["log_close"] = true
 					case strings.HasPrefix(itemTrimPolicy, "then permit tunnel ipsec-vpn "):
-						m["then"] = permitWord
-						m["permit_tunnel_ipsec_vpn"] = strings.TrimPrefix(itemTrimPolicy,
+						policy["then"] = permitWord
+						policy["permit_tunnel_ipsec_vpn"] = strings.TrimPrefix(itemTrimPolicy,
 							"then permit tunnel ipsec-vpn ")
 					case strings.HasPrefix(itemTrimPolicy, "then permit application-services"):
-						m["then"] = permitWord
-						m["permit_application_services"] = readPolicyPermitApplicationServices(itemTrimPolicy,
-							m["permit_application_services"])
+						policy["then"] = permitWord
+						policy["permit_application_services"] = readPolicyPermitApplicationServices(itemTrimPolicy,
+							policy["permit_application_services"])
 					}
 				}
-				policyList = append(policyList, m)
+				policyList = append(policyList, policy)
 			}
 		}
 	}

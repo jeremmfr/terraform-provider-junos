@@ -406,8 +406,8 @@ func setSystemSyslogHost(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 	for _, v := range d.Get("structured_data").([]interface{}) {
 		configSet = append(configSet, setPrefix+" structured-data")
 		if v != nil {
-			m := v.(map[string]interface{})
-			if m["brief"].(bool) {
+			ma := v.(map[string]interface{})
+			if ma["brief"].(bool) {
 				configSet = append(configSet, setPrefix+" structured-data brief")
 			}
 		}
