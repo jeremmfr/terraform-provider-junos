@@ -8,6 +8,7 @@ ENHANCEMENTS:
 * add `vni_extend_evpn` argument on `vxlan` argument in `junos_vlan` resource (Fixes parts of #132) Thanks @dejongm
 * add `forwarding_process` argument in `junos_security` resource (Fixes parts of #158)
 * clean code: remove useless type/func exporting, and fixes formating golang code
+* add `family_inet6_address` argument inside `interface_fxp0` argument in `junos_group_dual_system` resource (Fixes #177)
 
 BUG FIXES:
 * fix panic when candidate config clear or unlock generate Junos error(s)

@@ -62,6 +62,9 @@ Can be specified only once for configure `system` block.
 * `family_inet_address` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each ip address to declare.
   * `cidr_ip` - (Required)(`String`) Address IP/Mask v4.
   * `master_only` - (Optional)(`Bool`) Master management IP address.
+* `family_inet6_address` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each ip v6 address to declare.
+  * `cidr_ip` - (Required)(`String`) Address IP/Mask v6.
+  * `master_only` - (Optional)(`Bool`) Master management IP address.
 
 ---
 #### routing_options arguments
