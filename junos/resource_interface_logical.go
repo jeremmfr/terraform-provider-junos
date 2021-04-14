@@ -1196,8 +1196,8 @@ func fillFamilyInetAddress(item string, inetAddress []map[string]interface{},
 		itemTrim = strings.TrimPrefix(item, "family inet6 address "+addressConfig[0]+" ")
 	}
 
-	m := genFamilyInetAddress(addressConfig[0])
-	m, inetAddress = copyAndRemoveItemMapList("cidr_ip", false, m, inetAddress)
+	mAddr := genFamilyInetAddress(addressConfig[0])
+	mAddr, inetAddress = copyAndRemoveItemMapList("cidr_ip", false, mAddr, inetAddress)
 
 	if strings.HasPrefix(itemTrim, "vrrp-group ") || strings.HasPrefix(itemTrim, "vrrp-inet6-group ") {
 		vrrpGroup := genVRRPGroup(family)
@@ -1210,8 +1210,8 @@ func fillFamilyInetAddress(item string, inetAddress []map[string]interface{},
 			itemTrimVrrp = strings.TrimPrefix(itemTrim, "vrrp-inet6-group "+strconv.Itoa(vrrpID)+" ")
 		}
 		vrrpGroup["identifier"] = vrrpID
-		vrrpGroup, m["vrrp_group"] = copyAndRemoveItemMapList("identifier", true, vrrpGroup,
-			m["vrrp_group"].([]map[string]interface{}))
+		vrrpGroup, mAddr["vrrp_group"] = copyAndRemoveItemMapList("identifier", true, vrrpGroup,
+			mAddr["vrrp_group"].([]map[string]interface{}))
 		switch {
 		case strings.HasPrefix(itemTrimVrrp, "virtual-address "):
 			vrrpGroup["virtual_address"] = append(vrrpGroup["virtual_address"].([]string),
@@ -1285,9 +1285,9 @@ func fillFamilyInetAddress(item string, inetAddress []map[string]interface{},
 			}
 			vrrpGroup["track_route"] = append(vrrpGroup["track_route"].([]map[string]interface{}), trackRoute)
 		}
-		m["vrrp_group"] = append(m["vrrp_group"].([]map[string]interface{}), vrrpGroup)
+		mAddr["vrrp_group"] = append(mAddr["vrrp_group"].([]map[string]interface{}), vrrpGroup)
 	}
-	inetAddress = append(inetAddress, m)
+	inetAddress = append(inetAddress, mAddr)
 
 	return inetAddress, nil
 }
@@ -1393,7 +1393,7 @@ func genFamilyInetAddress(address string) map[string]interface{} {
 }
 
 func genVRRPGroup(family string) map[string]interface{} {
-	m := map[string]interface{}{
+	vrrpGroup := map[string]interface{}{
 		"identifier":               0,
 		"virtual_address":          make([]string, 0),
 		"accept_data":              false,
@@ -1407,12 +1407,12 @@ func genVRRPGroup(family string) map[string]interface{} {
 		"track_route":              make([]map[string]interface{}, 0),
 	}
 	if family == inetWord {
-		m["authentication_key"] = ""
-		m["authentication_type"] = ""
+		vrrpGroup["authentication_key"] = ""
+		vrrpGroup["authentication_type"] = ""
 	}
 	if family == inet6Word {
-		m["virtual_link_local_address"] = ""
+		vrrpGroup["virtual_link_local_address"] = ""
 	}
 
-	return m
+	return vrrpGroup
 }

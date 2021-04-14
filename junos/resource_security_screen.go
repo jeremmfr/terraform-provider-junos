@@ -1726,25 +1726,25 @@ func readSecurityScreenTCP(confRead *screenOptions, itemTrim string) error {
 			}
 		case strings.HasPrefix(itemTrim, "tcp syn-flood white-list "):
 			whiteListLineCut := strings.Split(strings.TrimPrefix(itemTrim, "tcp syn-flood white-list "), " ")
-			m := map[string]interface{}{
+			wList := map[string]interface{}{
 				"name":                whiteListLineCut[0],
 				"destination_address": make([]string, 0),
 				"source_address":      make([]string, 0),
 			}
-			m, confRead.tcp[0]["syn_flood"].([]map[string]interface{})[0]["whitelist"] = copyAndRemoveItemMapList(
-				"name", false, m,
+			wList, confRead.tcp[0]["syn_flood"].([]map[string]interface{})[0]["whitelist"] = copyAndRemoveItemMapList(
+				"name", false, wList,
 				confRead.tcp[0]["syn_flood"].([]map[string]interface{})[0]["whitelist"].([]map[string]interface{}))
 			itemTrimWhiteList := strings.TrimPrefix(itemTrim, "tcp syn-flood white-list "+whiteListLineCut[0]+" ")
 			switch {
 			case strings.HasPrefix(itemTrimWhiteList, "destination-address "):
-				m["destination_address"] = append(m["destination_address"].([]string),
+				wList["destination_address"] = append(wList["destination_address"].([]string),
 					strings.TrimPrefix(itemTrimWhiteList, "destination-address "))
 			case strings.HasPrefix(itemTrimWhiteList, "source-address "):
-				m["source_address"] = append(m["source_address"].([]string),
+				wList["source_address"] = append(wList["source_address"].([]string),
 					strings.TrimPrefix(itemTrimWhiteList, "source-address "))
 			}
 			confRead.tcp[0]["syn_flood"].([]map[string]interface{})[0]["whitelist"] = append(
-				confRead.tcp[0]["syn_flood"].([]map[string]interface{})[0]["whitelist"].([]map[string]interface{}), m)
+				confRead.tcp[0]["syn_flood"].([]map[string]interface{})[0]["whitelist"].([]map[string]interface{}), wList)
 		}
 	case itemTrim == "tcp syn-frag":
 		confRead.tcp[0]["syn_frag"] = true

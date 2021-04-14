@@ -903,33 +903,33 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				if v == nil {
 					return fmt.Errorf("ether_opts block is empty")
 				}
-				m := v.(map[string]interface{})
-				if m["ae_8023ad"].(string) != "" {
-					newAE = m["ae_8023ad"].(string)
+				eOpts := v.(map[string]interface{})
+				if eOpts["ae_8023ad"].(string) != "" {
+					newAE = eOpts["ae_8023ad"].(string)
 					configSet = append(configSet, setPrefix+"ether-options 802.3ad "+
-						m["ae_8023ad"].(string))
+						eOpts["ae_8023ad"].(string))
 				}
-				if m["auto_negotiation"].(bool) {
+				if eOpts["auto_negotiation"].(bool) {
 					configSet = append(configSet, setPrefix+"ether-options auto-negotiation")
 				}
-				if m["no_auto_negotiation"].(bool) {
+				if eOpts["no_auto_negotiation"].(bool) {
 					configSet = append(configSet, setPrefix+"ether-options no-auto-negotiation")
 				}
-				if m["flow_control"].(bool) {
+				if eOpts["flow_control"].(bool) {
 					configSet = append(configSet, setPrefix+"ether-options flow-control")
 				}
-				if m["no_flow_control"].(bool) {
+				if eOpts["no_flow_control"].(bool) {
 					configSet = append(configSet, setPrefix+"ether-options no-flow-control")
 				}
-				if m["loopback"].(bool) {
+				if eOpts["loopback"].(bool) {
 					configSet = append(configSet, setPrefix+"ether-options loopback")
 				}
-				if m["no_loopback"].(bool) {
+				if eOpts["no_loopback"].(bool) {
 					configSet = append(configSet, setPrefix+"ether-options no-loopback")
 				}
-				if m["redundant_parent"].(string) != "" {
+				if eOpts["redundant_parent"].(string) != "" {
 					configSet = append(configSet, setPrefix+"ether-options redundant-parent "+
-						m["redundant_parent"].(string))
+						eOpts["redundant_parent"].(string))
 				}
 			}
 		case len(d.Get("gigether_opts").([]interface{})) != 0:
@@ -937,33 +937,33 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				if v == nil {
 					return fmt.Errorf("gigether_opts block is empty")
 				}
-				m := v.(map[string]interface{})
-				if m["ae_8023ad"].(string) != "" {
-					newAE = m["ae_8023ad"].(string)
+				geOpts := v.(map[string]interface{})
+				if geOpts["ae_8023ad"].(string) != "" {
+					newAE = geOpts["ae_8023ad"].(string)
 					configSet = append(configSet, setPrefix+"gigether-options 802.3ad "+
-						m["ae_8023ad"].(string))
+						geOpts["ae_8023ad"].(string))
 				}
-				if m["auto_negotiation"].(bool) {
+				if geOpts["auto_negotiation"].(bool) {
 					configSet = append(configSet, setPrefix+"gigether-options auto-negotiation")
 				}
-				if m["no_auto_negotiation"].(bool) {
+				if geOpts["no_auto_negotiation"].(bool) {
 					configSet = append(configSet, setPrefix+"gigether-options no-auto-negotiation")
 				}
-				if m["flow_control"].(bool) {
+				if geOpts["flow_control"].(bool) {
 					configSet = append(configSet, setPrefix+"gigether-options flow-control")
 				}
-				if m["no_flow_control"].(bool) {
+				if geOpts["no_flow_control"].(bool) {
 					configSet = append(configSet, setPrefix+"gigether-options no-flow-control")
 				}
-				if m["loopback"].(bool) {
+				if geOpts["loopback"].(bool) {
 					configSet = append(configSet, setPrefix+"gigether-options loopback")
 				}
-				if m["no_loopback"].(bool) {
+				if geOpts["no_loopback"].(bool) {
 					configSet = append(configSet, setPrefix+"gigether-options no-loopback")
 				}
-				if m["redundant_parent"].(string) != "" {
+				if geOpts["redundant_parent"].(string) != "" {
 					configSet = append(configSet, setPrefix+"gigether-options redundant-parent "+
-						m["redundant_parent"].(string))
+						geOpts["redundant_parent"].(string))
 				}
 			}
 		}
@@ -1031,21 +1031,21 @@ func setInterfacePhysicalEsi(setPrefix string, esiParams []interface{},
 	configSet := make([]string, 0)
 
 	for _, v := range esiParams {
-		m := v.(map[string]interface{})
-		if m["mode"].(string) != "" {
-			configSet = append(configSet, setPrefix+"esi "+m["mode"].(string))
+		esi := v.(map[string]interface{})
+		if esi["mode"].(string) != "" {
+			configSet = append(configSet, setPrefix+"esi "+esi["mode"].(string))
 		}
-		if m["auto_derive_lacp"].(bool) {
+		if esi["auto_derive_lacp"].(bool) {
 			configSet = append(configSet, setPrefix+"esi auto-derive lacp")
 		}
-		if m["df_election_type"].(string) != "" {
-			configSet = append(configSet, setPrefix+"esi df-election-type "+m["df_election_type"].(string))
+		if esi["df_election_type"].(string) != "" {
+			configSet = append(configSet, setPrefix+"esi df-election-type "+esi["df_election_type"].(string))
 		}
-		if m["identifier"].(string) != "" {
-			configSet = append(configSet, setPrefix+"esi "+m["identifier"].(string))
+		if esi["identifier"].(string) != "" {
+			configSet = append(configSet, setPrefix+"esi "+esi["identifier"].(string))
 		}
-		if m["source_bmac"].(string) != "" {
-			configSet = append(configSet, setPrefix+"esi source-bmac "+m["source_bmac"].(string))
+		if esi["source_bmac"].(string) != "" {
+			configSet = append(configSet, setPrefix+"esi source-bmac "+esi["source_bmac"].(string))
 		}
 	}
 

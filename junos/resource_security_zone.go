@@ -389,15 +389,15 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 				// addressWords[0] = name of address-set
 				// addressWords[1] = "address"
 				// addressWords[2] = name of address
-				m := map[string]interface{}{
+				adSet := map[string]interface{}{
 					"name":    addressWords[0],
 					"address": make([]string, 0),
 				}
 				// search if name of address-set already create
-				m, confRead.addressBookSet = copyAndRemoveItemMapList("name", false, m, confRead.addressBookSet)
+				adSet, confRead.addressBookSet = copyAndRemoveItemMapList("name", false, adSet, confRead.addressBookSet)
 				// append new address find
-				m["address"] = append(m["address"].([]string), addressWords[2])
-				confRead.addressBookSet = append(confRead.addressBookSet, m)
+				adSet["address"] = append(adSet["address"].([]string), addressWords[2])
+				confRead.addressBookSet = append(confRead.addressBookSet, adSet)
 			case strings.HasPrefix(itemTrim, "advance-policy-based-routing-profile "):
 				confRead.advancePolicyBasedRoutingProfile = strings.Trim(strings.TrimPrefix(itemTrim,
 					"advance-policy-based-routing-profile "), "\"")

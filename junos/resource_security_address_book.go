@@ -471,19 +471,19 @@ func readSecurityAddressBook(addrBook string, m interface{}, jnprSess *NetconfOb
 				}
 			case strings.HasPrefix(itemTrim, "address-set "):
 				addressSetSplit := strings.Split(strings.TrimPrefix(itemTrim, "address-set "), " ")
-				m := map[string]interface{}{
+				adSet := map[string]interface{}{
 					"name":        addressSetSplit[0],
 					"address":     make([]string, 0),
 					"description": "",
 				}
-				m, confRead.addressSet = copyAndRemoveItemMapList("name", false, m, confRead.addressSet)
+				adSet, confRead.addressSet = copyAndRemoveItemMapList("name", false, adSet, confRead.addressSet)
 				if addressSetSplit[1] == "description" {
-					m["description"] = strings.Trim(strings.TrimPrefix(
+					adSet["description"] = strings.Trim(strings.TrimPrefix(
 						itemTrim, "address-set "+addressSetSplit[0]+" description "), "\"")
 				} else {
-					m["address"] = append(m["address"].([]string), addressSetSplit[2])
+					adSet["address"] = append(adSet["address"].([]string), addressSetSplit[2])
 				}
-				confRead.addressSet = append(confRead.addressSet, m)
+				confRead.addressSet = append(confRead.addressSet, adSet)
 			case strings.HasPrefix(itemTrim, "attach zone"):
 				confRead.attachZone = append(confRead.attachZone, strings.TrimPrefix(itemTrim, "attach zone "))
 			}
