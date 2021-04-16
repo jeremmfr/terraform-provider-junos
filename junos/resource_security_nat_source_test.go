@@ -63,11 +63,9 @@ func TestAccJunosSecurityNatSource_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_nat_source_pool.testacc_securitySNATPool",
 							"port_no_translation", "true"),
 						resource.TestCheckResourceAttr("junos_security_nat_source_pool.testacc_securitySNATPool",
-							"pool_utilization_alarm.#", "1"),
+							"pool_utilization_alarm_raise_threshold", "80"),
 						resource.TestCheckResourceAttr("junos_security_nat_source_pool.testacc_securitySNATPool",
-							"pool_utilization_alarm.0.raise_threshold", "80"),
-						resource.TestCheckResourceAttr("junos_security_nat_source_pool.testacc_securitySNATPool",
-							"pool_utilization_alarm.0.clear_threshold", "60"),
+							"pool_utilization_alarm_clear_threshold", "60"),
 					),
 				},
 				{
@@ -127,10 +125,8 @@ resource junos_security_nat_source_pool testacc_securitySNATPool {
   address             = ["192.0.2.1/32", "192.0.2.64/27"]
   routing_instance    = junos_routing_instance.testacc_securitySNAT.name
   port_no_translation = true
-  pool_utilization_alarm {
-    raise_threshold = 80
-    clear_threshold = 60
-  }
+  pool_utilization_alarm_raise_threshold = 80
+  pool_utilization_alarm_clear_threshold = 60
 }
 
 resource junos_security_zone testacc_securitySNAT {

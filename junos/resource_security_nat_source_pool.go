@@ -13,13 +13,14 @@ import (
 )
 
 type natSourcePoolOptions struct {
-	portNoTranslation     bool
-	portOverloadingFactor int
-	name                  string
-	portRange             string
-	routingInstance       string
-	address               []string
-	poolUtilizationAlarm  []map[string]interface{}
+	portNoTranslation                      bool
+	portOverloadingFactor                  int
+	name                                   string
+	portRange                              string
+	routingInstance                        string
+	address                                []string
+	pool_utilization_alarm_raise_threshold int
+	pool_utilization_alarm_clear_threshold int
 }
 
 func resourceSecurityNatSourcePool() *schema.Resource {
@@ -66,24 +67,15 @@ func resourceSecurityNatSourcePool() *schema.Resource {
 				Optional:         true,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
 			},
-			"pool_utilization_alarm": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"raise_threshold": {
-							Type:         schema.TypeInt,
-							ValidateFunc: validation.IntBetween(50, 100),
-							Required:     true,
-						},
-						"clear_threshold": {
-							Type:         schema.TypeInt,
-							ValidateFunc: validation.IntBetween(40, 100),
-							Optional:     true,
-						},
-					},
-				},
+			"pool_utilization_alarm_raise_threshold": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(50, 100),
+			},
+			"pool_utilization_alarm_clear_threshold": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(40, 100),
 			},
 		},
 	}
@@ -302,12 +294,13 @@ func setSecurityNatSourcePool(d *schema.ResourceData, m interface{}, jnprSess *N
 	if d.Get("routing_instance").(string) != "" {
 		configSet = append(configSet, setPrefix+" routing-instance "+d.Get("routing_instance").(string))
 	}
-	for _, v := range d.Get("pool_utilization_alarm").([]interface{}) {
-		pua := v.(map[string]interface{})
+	if d.Get("pool_utilization_alarm_raise_threshold").(int) != 0 {
 		configSet = append(configSet, setPrefix+" pool-utilization-alarm raise-threshold "+
-			strconv.Itoa(pua["raise_threshold"].(int)))
+			strconv.Itoa(d.Get("pool_utilization_alarm_raise_threshold").(int)))
+	}
+	if d.Get("pool_utilization_alarm_clear_threshold").(int) != 0 {
 		configSet = append(configSet, setPrefix+" pool-utilization-alarm clear-threshold "+
-			strconv.Itoa(pua["clear_threshold"].(int)))
+			strconv.Itoa(d.Get("pool_utilization_alarm_clear_threshold").(int)))
 	}
 
 	return sess.configSet(configSet, jnprSess)
@@ -351,23 +344,17 @@ func readSecurityNatSourcePool(natSourcePool string,
 				portRange = strings.TrimPrefix(itemTrim, "port range ")
 			case strings.HasPrefix(itemTrim, "routing-instance"):
 				confRead.routingInstance = strings.TrimPrefix(itemTrim, "routing-instance ")
-			case strings.HasPrefix(itemTrim, "pool-utilization-alarm "):
-				if len(confRead.poolUtilizationAlarm) == 0 {
-					confRead.poolUtilizationAlarm = append(confRead.poolUtilizationAlarm, map[string]interface{}{})
+			case strings.HasPrefix(itemTrim, "pool-utilization-alarm raise-threshold "):
+				confRead.pool_utilization_alarm_raise_threshold, err = strconv.Atoi(
+					strings.TrimPrefix(itemTrim, "pool-utilization-alarm raise-threshold "))
+				if err != nil {
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
-				switch {
-				case strings.HasPrefix(itemTrim, "pool-utilization-alarm raise-threshold "):
-					confRead.poolUtilizationAlarm[0]["raise_threshold"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "pool-utilization-alarm raise-threshold "))
-					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
-					}
-				case strings.HasPrefix(itemTrim, "pool-utilization-alarm clear-threshold "):
-					confRead.poolUtilizationAlarm[0]["clear_threshold"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "pool-utilization-alarm clear-threshold "))
-					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
-					}
+			case strings.HasPrefix(itemTrim, "pool-utilization-alarm clear-threshold "):
+				confRead.pool_utilization_alarm_clear_threshold, err = strconv.Atoi(
+					strings.TrimPrefix(itemTrim, "pool-utilization-alarm clear-threshold "))
+				if err != nil {
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			}
 		}
@@ -404,7 +391,10 @@ func fillSecurityNatSourcePoolData(d *schema.ResourceData, natSourcePoolOptions 
 	if tfErr := d.Set("routing_instance", natSourcePoolOptions.routingInstance); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("pool_utilization_alarm", natSourcePoolOptions.poolUtilizationAlarm); tfErr != nil {
+	if tfErr := d.Set("pool_utilization_alarm_raise_threshold", natSourcePoolOptions.pool_utilization_alarm_raise_threshold); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("pool_utilization_alarm_clear_threshold", natSourcePoolOptions.pool_utilization_alarm_clear_threshold); tfErr != nil {
 		panic(tfErr)
 	}
 }

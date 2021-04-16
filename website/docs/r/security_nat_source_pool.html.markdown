@@ -30,9 +30,8 @@ The following arguments are supported:
 * `port_overloading_factor` - (Optional)(`Int`) Port overloading factor for each IP.
 * `port_range` - (Optional)(`String`) Range of port for source nat.
 * `routing_instance` - (Optional)(`String`) Name of routing instance for switch with nat.
-* `pool_utilization_alarm` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Define utilization alarm thresholds for a specific source nat pool.
-  * `raise_threshold` - (Required)(`Int`) Upper threshold at which an SNMP trap is triggered. Range 50 through 100.
-  * `clear_threshold` - (Optional)(`Int`) Lower threshold at which an SNMP trap is triggered. Range 40 through 100.
+* `pool_utilization_alarm_raise_threshold` - (Optional)(`Int`) Upper threshold at which an SNMP trap is triggered. Range 50 through 100.
+* `pool_utilization_alarm_clear_threshold` - (Optional)(`Int`) Lower threshold at which an SNMP trap is triggered. Range 40 through 100.
 
 ## Import
 
