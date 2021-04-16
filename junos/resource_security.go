@@ -61,6 +61,10 @@ func resourceSecurity() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+						"rsh_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
 						"rtsp_disable": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -70,6 +74,10 @@ func resourceSecurity() *schema.Resource {
 							Optional: true,
 						},
 						"sip_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"sql_disable": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
@@ -845,6 +853,9 @@ func setSecurityAlg(alg interface{}) ([]string, error) {
 		if algM["pptp_disable"].(bool) {
 			configSet = append(configSet, setPrefix+"pptp disable")
 		}
+		if algM["rsh_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"rsh disable")
+		}
 		if algM["rtsp_disable"].(bool) {
 			configSet = append(configSet, setPrefix+"rtsp disable")
 		}
@@ -853,6 +864,9 @@ func setSecurityAlg(alg interface{}) ([]string, error) {
 		}
 		if algM["sip_disable"].(bool) {
 			configSet = append(configSet, setPrefix+"sip disable")
+		}
+		if algM["sql_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"sql disable")
 		}
 		if algM["sunrpc_disable"].(bool) {
 			configSet = append(configSet, setPrefix+"sunrpc disable")
@@ -1236,9 +1250,11 @@ func listLinesSecurityAlg() []string {
 		"alg mgcp disable",
 		"alg msrpc disable",
 		"alg pptp disable",
+		"alg rsh disable",
 		"alg rtsp disable",
 		"alg sccp disable",
 		"alg sip disable",
+		"alg sql disable",
 		"alg sunrpc disable",
 		"alg talk disable",
 		"alg tftp disable",
@@ -1396,9 +1412,11 @@ func readSecurityAlg(confRead *securityOptions, itemTrimAlg string) {
 			"mgcp_disable":   false,
 			"msrpc_disable":  false,
 			"pptp_disable":   false,
+			"rsh_disable":    false,
 			"rtsp_disable":   false,
 			"sccp_disable":   false,
 			"sip_disable":    false,
+			"sql_disable":    false,
 			"sunrpc_disable": false,
 			"talk_disable":   false,
 			"tftp_disable":   false,
@@ -1422,6 +1440,9 @@ func readSecurityAlg(confRead *securityOptions, itemTrimAlg string) {
 	if itemTrim == "pptp disable" {
 		confRead.alg[0]["pptp_disable"] = true
 	}
+	if itemTrim == "rsh disable" {
+		confRead.alg[0]["rsh_disable"] = true
+	}
 	if itemTrim == "rtsp disable" {
 		confRead.alg[0]["rtsp_disable"] = true
 	}
@@ -1430,6 +1451,9 @@ func readSecurityAlg(confRead *securityOptions, itemTrimAlg string) {
 	}
 	if itemTrim == "sip disable" {
 		confRead.alg[0]["sip_disable"] = true
+	}
+	if itemTrim == "sql disable" {
+		confRead.alg[0]["sql_disable"] = true
 	}
 	if itemTrim == "sunrpc disable" {
 		confRead.alg[0]["sunrpc_disable"] = true
