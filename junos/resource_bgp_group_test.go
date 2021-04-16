@@ -139,8 +139,6 @@ func TestAccJunosBgpGroup_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
 							"routing_instance", "testacc_bgpgroup"),
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
-							"type", "internal"),
-						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
 							"advertise_external_conditional", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
 							"bgp_multipath.#", "1"),
@@ -317,7 +315,6 @@ resource junos_bgp_group "testacc_bgpgroup" {
   metric_out_igp_offset           = -10
   metric_out_igp_delay_med_update = true
   authentication_key              = "password"
-  type                            = "internal"
   bgp_multipath {
     multiple_as = true
   }
