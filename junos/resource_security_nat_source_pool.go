@@ -13,14 +13,14 @@ import (
 )
 
 type natSourcePoolOptions struct {
-	portNoTranslation                      bool
-	portOverloadingFactor                  int
-	name                                   string
-	portRange                              string
-	routingInstance                        string
-	address                                []string
-	pool_utilization_alarm_raise_threshold int
-	pool_utilization_alarm_clear_threshold int
+	portNoTranslation                  bool
+	portOverloadingFactor              int
+	name                               string
+	portRange                          string
+	routingInstance                    string
+	address                            []string
+	poolUtilizationAlarmRaiseThreshold int
+	poolUtilizationAlarmClearThreshold int
 }
 
 func resourceSecurityNatSourcePool() *schema.Resource {
@@ -345,13 +345,13 @@ func readSecurityNatSourcePool(natSourcePool string,
 			case strings.HasPrefix(itemTrim, "routing-instance"):
 				confRead.routingInstance = strings.TrimPrefix(itemTrim, "routing-instance ")
 			case strings.HasPrefix(itemTrim, "pool-utilization-alarm raise-threshold "):
-				confRead.pool_utilization_alarm_raise_threshold, err = strconv.Atoi(
+				confRead.poolUtilizationAlarmRaiseThreshold, err = strconv.Atoi(
 					strings.TrimPrefix(itemTrim, "pool-utilization-alarm raise-threshold "))
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "pool-utilization-alarm clear-threshold "):
-				confRead.pool_utilization_alarm_clear_threshold, err = strconv.Atoi(
+				confRead.poolUtilizationAlarmClearThreshold, err = strconv.Atoi(
 					strings.TrimPrefix(itemTrim, "pool-utilization-alarm clear-threshold "))
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
@@ -391,10 +391,12 @@ func fillSecurityNatSourcePoolData(d *schema.ResourceData, natSourcePoolOptions 
 	if tfErr := d.Set("routing_instance", natSourcePoolOptions.routingInstance); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("pool_utilization_alarm_raise_threshold", natSourcePoolOptions.pool_utilization_alarm_raise_threshold); tfErr != nil {
+	if tfErr := d.Set("pool_utilization_alarm_raise_threshold",
+		natSourcePoolOptions.poolUtilizationAlarmRaiseThreshold); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("pool_utilization_alarm_clear_threshold", natSourcePoolOptions.pool_utilization_alarm_clear_threshold); tfErr != nil {
+	if tfErr := d.Set("pool_utilization_alarm_clear_threshold",
+		natSourcePoolOptions.poolUtilizationAlarmClearThreshold); tfErr != nil {
 		panic(tfErr)
 	}
 }
