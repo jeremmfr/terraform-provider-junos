@@ -430,6 +430,16 @@ func resourceBgpNeighbor() *schema.Resource {
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+			"keep_all": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"keep_none"},
+			},
+			"keep_none": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"keep_all"},
+			},
 			"local_address": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -991,6 +1001,12 @@ func fillBgpNeighborData(d *schema.ResourceData, bgpNeighborOptions bgpOptions) 
 		panic(tfErr)
 	}
 	if tfErr := d.Set("import", bgpNeighborOptions.importPolicy); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("keep_all", bgpNeighborOptions.keepAll); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("keep_none", bgpNeighborOptions.keepNone); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("local_address", bgpNeighborOptions.localAddress); tfErr != nil {

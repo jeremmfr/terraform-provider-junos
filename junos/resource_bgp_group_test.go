@@ -226,6 +226,7 @@ resource junos_bgp_group "testacc_bgpgroup" {
   remove_private           = true
   passive                  = true
   hold_time                = 30
+  keep_none                = true
   local_as                 = "65001"
   local_as_private         = true
   local_as_loops           = 1
@@ -311,6 +312,7 @@ resource junos_bgp_group "testacc_bgpgroup" {
   name                            = "testacc_bgpgroup"
   routing_instance                = junos_routing_instance.testacc_bgpgroup.name
   advertise_external_conditional  = true
+  keep_all                        = true
   no_advertise_peer_as            = true
   metric_out_igp_offset           = -10
   metric_out_igp_delay_med_update = true

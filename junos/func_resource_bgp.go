@@ -17,6 +17,8 @@ type bgpOptions struct {
 	advertisePeerAs              bool
 	asOverride                   bool
 	damping                      bool
+	keepAll                      bool
+	keepNone                     bool
 	localAsPrivate               bool
 	localAsAlias                 bool
 	localAsNoPrependGlobalAs     bool
@@ -182,6 +184,12 @@ func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, j
 	for _, v := range d.Get("import").([]interface{}) {
 		configSet = append(configSet, setPrefix+"import "+v.(string))
 	}
+	if d.Get("keep_all").(bool) {
+		configSet = append(configSet, setPrefix+"keep all")
+	}
+	if d.Get("keep_none").(bool) {
+		configSet = append(configSet, setPrefix+"keep none")
+	}
 	if d.Get("local_address").(string) != "" {
 		configSet = append(configSet, setPrefix+"local-address "+d.Get("local_address").(string))
 	}
@@ -309,6 +317,10 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 		}
 	case strings.HasPrefix(item, "import "):
 		confRead.importPolicy = append(confRead.importPolicy, strings.TrimPrefix(item, "import "))
+	case item == "keep all":
+		confRead.keepAll = true
+	case item == "keep none":
+		confRead.keepNone = true
 	case strings.HasPrefix(item, "local-address "):
 		confRead.localAddress = strings.TrimPrefix(item, "local-address ")
 	case strings.HasPrefix(item, "local-as "):

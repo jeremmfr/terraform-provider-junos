@@ -57,6 +57,8 @@ See the [`family_inet` arguments](#family_inet-arguments) block.
 * `graceful_restart` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Define BGP graceful restart options.See the [`graceful_restart` arguments](#graceful_restart-arguments) block. Max of 1.
 * `hold_time` - (Optional)(`Int`) Hold time used when negotiating with a peer.
 * `import` - (Optional)(`ListOfString`) Import policy list.
+* `keep_all` - (Optional)(`Bool`) Retain all routes. Conflict with `keep_none`.
+* `keep_none` - (Optional)(`Bool`) Retain no routes. Conflict with `keep_all`.
 * `local_address` - (Optional)(`String`) Address of local end of BGP session.
 * `local_as` - (Optional)(`String`) Local autonomous system number.
 * `local_as_alias` - (Optional)(`Bool`) Treat this AS as an alias to the system AS. Conflict with other local_as options.
