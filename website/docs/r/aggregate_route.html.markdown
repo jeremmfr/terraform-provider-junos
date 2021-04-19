@@ -28,6 +28,11 @@ The following arguments are supported:
 * `destination` - (Required, Forces new resource)(`String`) The destination for aggregate route.
 * `routing_instance` - (Optional, Forces new resource)(`String`) Routing instance for route. Need to be default or name of routing instance. Defaults to `default`
 * `active` - (Optional)(`Bool`) Remove inactive route from forwarding table.
+* `as_path_aggregator_address` - (Optional)(`String`) Address of BGP system to add AGGREGATOR path attribute to route.
+* `as_path_aggregator_as_number` - (Optional)(`String`) AS number to add AGGREGATOR path attribute to route.
+* `as_path_atomic_aggregate` - (Optional)(`Bool`) Add ATOMIC_AGGREGATE path attribute to route.
+* `as_path_origin` - (Optional)(`String`) Define origin. Need to be 'egp', 'igp' or 'incomplete'.
+* `as_path_path` - (Optional)(`String`) Path to as-path.
 * `brief` - (Optional)(`Bool`) Include longest common sequences from contributing paths.
 * `community` - (Optional)(`ListOfString`) List of BGP community.
 * `discard` - (Optional)(`Bool`) Drop packets to destination; send no ICMP unreachables.

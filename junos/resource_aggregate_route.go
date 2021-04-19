@@ -12,17 +12,22 @@ import (
 )
 
 type aggregateRouteOptions struct {
-	active          bool
-	brief           bool
-	discard         bool
-	full            bool
-	passive         bool
-	metric          int
-	preference      int
-	destination     string
-	routingInstance string
-	community       []string
-	policy          []string
+	active                   bool
+	asPathAtomicAggregate    bool
+	brief                    bool
+	discard                  bool
+	full                     bool
+	passive                  bool
+	metric                   int
+	preference               int
+	asPathAggregatorAddress  string
+	asPathAggregatorAsNumber string
+	asPathOrigin             string
+	asPathPath               string
+	destination              string
+	routingInstance          string
+	community                []string
+	policy                   []string
 }
 
 func resourceAggregateRoute() *schema.Resource {
@@ -52,6 +57,30 @@ func resourceAggregateRoute() *schema.Resource {
 				Type:          schema.TypeBool,
 				Optional:      true,
 				ConflictsWith: []string{"passive"},
+			},
+			"as_path_aggregator_address": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				RequiredWith: []string{"as_path_aggregator_as_number"},
+				ValidateFunc: validation.IsIPAddress,
+			},
+			"as_path_aggregator_as_number": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				RequiredWith: []string{"as_path_aggregator_address"},
+			},
+			"as_path_atomic_aggregate": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"as_path_origin": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"egp", "igp", "incomplete"}, false),
+			},
+			"as_path_path": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"brief": {
 				Type:          schema.TypeBool,
@@ -326,6 +355,21 @@ func setAggregateRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	if d.Get("active").(bool) {
 		configSet = append(configSet, setPrefix+" active")
 	}
+	if d.Get("as_path_aggregator_address").(string) != "" &&
+		d.Get("as_path_aggregator_as_number").(string) != "" {
+		configSet = append(configSet, setPrefix+" as-path aggregator "+
+			d.Get("as_path_aggregator_as_number").(string)+" "+
+			d.Get("as_path_aggregator_address").(string))
+	}
+	if d.Get("as_path_atomic_aggregate").(bool) {
+		configSet = append(configSet, setPrefix+" as-path atomic-aggregate")
+	}
+	if v := d.Get("as_path_origin").(string); v != "" {
+		configSet = append(configSet, setPrefix+" as-path origin "+v)
+	}
+	if v := d.Get("as_path_path").(string); v != "" {
+		configSet = append(configSet, setPrefix+" as-path path \""+v+"\"")
+	}
 	if d.Get("brief").(bool) {
 		configSet = append(configSet, setPrefix+" brief")
 	}
@@ -386,6 +430,16 @@ func readAggregateRoute(destination string, instance string, m interface{},
 			switch {
 			case itemTrim == activeW:
 				confRead.active = true
+			case strings.HasPrefix(itemTrim, "as-path aggregator "):
+				itemTrimSplit := strings.Split(itemTrim, " ")
+				confRead.asPathAggregatorAsNumber = itemTrimSplit[2]
+				confRead.asPathAggregatorAddress = itemTrimSplit[3]
+			case itemTrim == asPathAtomicAggregate:
+				confRead.asPathAtomicAggregate = true
+			case strings.HasPrefix(itemTrim, "as-path origin "):
+				confRead.asPathOrigin = strings.TrimPrefix(itemTrim, "as-path origin ")
+			case strings.HasPrefix(itemTrim, "as-path path "):
+				confRead.asPathPath = strings.Trim(strings.TrimPrefix(itemTrim, "as-path path "), "\"")
 			case itemTrim == "brief":
 				confRead.brief = true
 			case strings.HasPrefix(itemTrim, "community "):
@@ -460,6 +514,21 @@ func fillAggregateRouteData(d *schema.ResourceData, aggregateRouteOptions aggreg
 		panic(tfErr)
 	}
 	if tfErr := d.Set("active", aggregateRouteOptions.active); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("as_path_aggregator_address", aggregateRouteOptions.asPathAggregatorAddress); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("as_path_aggregator_as_number", aggregateRouteOptions.asPathAggregatorAsNumber); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("as_path_atomic_aggregate", aggregateRouteOptions.asPathAtomicAggregate); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("as_path_origin", aggregateRouteOptions.asPathOrigin); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("as_path_path", aggregateRouteOptions.asPathPath); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("brief", aggregateRouteOptions.brief); tfErr != nil {
