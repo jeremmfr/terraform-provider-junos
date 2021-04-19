@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * add `junos_snmp` resource (Fixes parts of #170)
 * add `junos_snmp_clientlist` resource
 * add `junos_snmp_community` resource (Fixes parts of #170)
+* add `junos_snmp_view` resource
 
 BUG FIXES:
 * fix panic when candidate config clear or unlock generate Junos error(s)
