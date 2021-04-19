@@ -127,6 +127,7 @@ func Provider() *schema.Provider {
 			"junos_firewall_filter":                                      resourceFirewallFilter(),
 			"junos_firewall_policer":                                     resourceFirewallPolicer(),
 			"junos_forwardingoptions_sampling_instance":                  resourceForwardingoptionsSamplingInstance(),
+			"junos_generate_route":                                       resourceGenerateRoute(),
 			"junos_group_dual_system":                                    resourceGroupDualSystem(),
 			"junos_interface":                                            resourceInterface(),
 			"junos_interface_logical":                                    resourceInterfaceLogical(),

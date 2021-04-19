@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * add `family_inet6_address` argument inside `interface_fxp0` argument in `junos_group_dual_system` resource (Fixes #177)
 * add `as_path_*` arguments and simplify delete lines when update in `junos_static_route` resource
 * add `as_path_*` arguments, add support IPv6 Routes and simplify delete lines when update in `junos_aggregate_route` resource
+* add `junos_generate_route` resource
 
 BUG FIXES:
 * fix panic when candidate config clear or unlock generate Junos error(s)
