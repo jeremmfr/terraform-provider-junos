@@ -37,26 +37,31 @@ func resourceSecurityGlobalPolicy() *schema.Resource {
 						"match_source_address": {
 							Type:     schema.TypeList,
 							Required: true,
+							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"match_destination_address": {
 							Type:     schema.TypeList,
 							Required: true,
+							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"match_application": {
 							Type:     schema.TypeList,
 							Required: true,
+							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"match_from_zone": {
 							Type:     schema.TypeList,
 							Required: true,
+							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"match_to_zone": {
 							Type:     schema.TypeList,
 							Required: true,
+							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"then": {

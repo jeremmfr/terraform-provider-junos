@@ -17,6 +17,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 * fix panic when candidate config clear or unlock generate Junos error(s)
+* fix missing MinItems=1 on a part of required `ListOfString` arguments
 
 ## 1.14.0 (March 19, 2021)
 FEATURES:
