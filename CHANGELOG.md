@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * add `family_inet6_address` argument inside `interface_fxp0` argument in `junos_group_dual_system` resource (Fixes #177)
 * add `keep_all` and `keep_none` arguments in `junos_bgp_group` and `junos_bgp_neighbor` resource
 * add `junos_snmp` resource (Fixes parts of #170)
+* add `junos_snmp_clientlist` resource
 
 BUG FIXES:
 * fix panic when candidate config clear or unlock generate Junos error(s)

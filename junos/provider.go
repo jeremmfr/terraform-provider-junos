@@ -173,6 +173,7 @@ func Provider() *schema.Provider {
 			"junos_services_security_intelligence_policy":                resourceServicesSecurityIntellPolicy(),
 			"junos_services_security_intelligence_profile":               resourceServicesSecurityIntellProfile(),
 			"junos_snmp":                                                 resourceSnmp(),
+			"junos_snmp_clientlist":                                      resourceSnmpClientlist(),
 			"junos_static_route":                                         resourceStaticRoute(),
 			"junos_system":                                               resourceSystem(),
 			"junos_system_login_class":                                   resourceSystemLoginClass(),
