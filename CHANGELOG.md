@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * add `junos_forwardingoptions_sampling_instance` resource (Fixes parts of #165)
 * add `sampling_input` and `sampling_output` arguments in `family_inet` and `family_inet6` arguments of `junos_interface_logical` resource (Fixes parts of #165)
 * add `family_inet6_address` argument inside `interface_fxp0` argument in `junos_group_dual_system` resource (Fixes #177)
+* add `keep_all` and `keep_none` arguments in `junos_bgp_group` and `junos_bgp_neighbor` resource
 
 BUG FIXES:
 * fix panic when candidate config clear or unlock generate Junos error(s)

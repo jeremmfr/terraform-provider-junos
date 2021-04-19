@@ -134,12 +134,15 @@ func TestAccJunosBgpGroup_basic(t *testing.T) {
 					),
 				},
 				{
+					ResourceName:      "junos_bgp_group.testacc_bgpgroup",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				{
 					Config: testAccJunosBgpGroupConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
 							"routing_instance", "testacc_bgpgroup"),
-						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
-							"type", "internal"),
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
 							"advertise_external_conditional", "true"),
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
@@ -192,11 +195,6 @@ func TestAccJunosBgpGroup_basic(t *testing.T) {
 							"type", "external"),
 					),
 				},
-				{
-					ResourceName:      "junos_bgp_group.testacc_bgpgroup",
-					ImportState:       true,
-					ImportStateVerify: true,
-				},
 			},
 		})
 	}
@@ -228,6 +226,7 @@ resource junos_bgp_group "testacc_bgpgroup" {
   remove_private           = true
   passive                  = true
   hold_time                = 30
+  keep_none                = true
   local_as                 = "65001"
   local_as_private         = true
   local_as_loops           = 1
@@ -313,11 +312,11 @@ resource junos_bgp_group "testacc_bgpgroup" {
   name                            = "testacc_bgpgroup"
   routing_instance                = junos_routing_instance.testacc_bgpgroup.name
   advertise_external_conditional  = true
+  keep_all                        = true
   no_advertise_peer_as            = true
   metric_out_igp_offset           = -10
   metric_out_igp_delay_med_update = true
   authentication_key              = "password"
-  type                            = "internal"
   bgp_multipath {
     multiple_as = true
   }
