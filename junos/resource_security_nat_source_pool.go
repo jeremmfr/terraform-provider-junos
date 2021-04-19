@@ -14,13 +14,13 @@ import (
 
 type natSourcePoolOptions struct {
 	portNoTranslation                  bool
+	poolUtilizationAlarmClearThreshold int
+	poolUtilizationAlarmRaiseThreshold int
 	portOverloadingFactor              int
 	name                               string
 	portRange                          string
 	routingInstance                    string
 	address                            []string
-	poolUtilizationAlarmRaiseThreshold int
-	poolUtilizationAlarmClearThreshold int
 }
 
 func resourceSecurityNatSourcePool() *schema.Resource {
