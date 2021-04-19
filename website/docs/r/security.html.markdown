@@ -52,9 +52,11 @@ The following arguments are supported:
 * `mgcp_disable` - (Optional)(`Bool`) Disable mgcp alg.
 * `msrpc_disable` - (Optional)(`Bool`) Disable msrpc alg.
 * `pptp_disable` - (Optional)(`Bool`) Disable pptp alg.
+* `rsh_disable` - (Optional)(`Bool`) Disable rsh alg.
 * `rtsp_disable` - (Optional)(`Bool`) Disable rtsp alg.
 * `sccp_disable` - (Optional)(`Bool`) Disable sccp alg.
 * `sip_disable` - (Optional)(`Bool`) Disable sip alg.
+* `sql_disable` - (Optional)(`Bool`) Disable sql alg.
 * `sunrpc_disable` - (Optional)(`Bool`) Disable sunrpc alg.
 * `talk_disable` - (Optional)(`Bool`) Disable talk alg.
 * `tftp_disable` - (Optional)(`Bool`) Disable tftp alg.
