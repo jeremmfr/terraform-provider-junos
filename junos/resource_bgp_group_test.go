@@ -134,6 +134,11 @@ func TestAccJunosBgpGroup_basic(t *testing.T) {
 					),
 				},
 				{
+					ResourceName:      "junos_bgp_group.testacc_bgpgroup",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				{
 					Config: testAccJunosBgpGroupConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
@@ -189,11 +194,6 @@ func TestAccJunosBgpGroup_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
 							"type", "external"),
 					),
-				},
-				{
-					ResourceName:      "junos_bgp_group.testacc_bgpgroup",
-					ImportState:       true,
-					ImportStateVerify: true,
 				},
 			},
 		})
