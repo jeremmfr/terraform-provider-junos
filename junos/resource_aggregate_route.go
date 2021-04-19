@@ -320,16 +320,32 @@ func checkAggregateRouteExists(destination string, instance string, m interface{
 	var aggregateRouteConfig string
 	var err error
 	if instance == defaultWord {
-		aggregateRouteConfig, err = sess.command("show configuration"+
-			" routing-options aggregate route "+destination+" | display set", jnprSess)
-		if err != nil {
-			return false, err
+		if !strings.Contains(destination, ":") {
+			aggregateRouteConfig, err = sess.command("show configuration"+
+				" routing-options aggregate route "+destination+" | display set", jnprSess)
+			if err != nil {
+				return false, err
+			}
+		} else {
+			aggregateRouteConfig, err = sess.command("show configuration"+
+				" routing-options rib inet6.0 aggregate route "+destination+" | display set", jnprSess)
+			if err != nil {
+				return false, err
+			}
 		}
 	} else {
-		aggregateRouteConfig, err = sess.command("show configuration routing-instances "+instance+
-			" routing-options aggregate route "+destination+" | display set", jnprSess)
-		if err != nil {
-			return false, err
+		if !strings.Contains(destination, ":") {
+			aggregateRouteConfig, err = sess.command("show configuration routing-instances "+instance+
+				" routing-options aggregate route "+destination+" | display set", jnprSess)
+			if err != nil {
+				return false, err
+			}
+		} else {
+			aggregateRouteConfig, err = sess.command("show configuration routing-instances "+instance+
+				" routing-options rib "+instance+".inet6.0 aggregate route "+destination+" | display set", jnprSess)
+			if err != nil {
+				return false, err
+			}
 		}
 	}
 
@@ -346,10 +362,20 @@ func setAggregateRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 
 	var setPrefix string
 	if d.Get("routing_instance").(string) == defaultWord {
-		setPrefix = "set routing-options aggregate route " + d.Get("destination").(string)
+		if !strings.Contains(d.Get("destination").(string), ":") {
+			setPrefix = "set routing-options aggregate route " + d.Get("destination").(string)
+		} else {
+			setPrefix = "set routing-options rib inet6.0 aggregate route " + d.Get("destination").(string)
+		}
 	} else {
-		setPrefix = "set routing-instances " + d.Get("routing_instance").(string) +
-			" routing-options aggregate route " + d.Get("destination").(string)
+		if !strings.Contains(d.Get("destination").(string), ":") {
+			setPrefix = "set routing-instances " + d.Get("routing_instance").(string) +
+				" routing-options aggregate route " + d.Get("destination").(string)
+		} else {
+			setPrefix = "set routing-instances " + d.Get("routing_instance").(string) +
+				" routing-options rib " + d.Get("routing_instance").(string) + ".inet6.0 " +
+				"aggregate route " + d.Get("destination").(string)
+		}
 	}
 	configSet = append(configSet, setPrefix)
 	if d.Get("active").(bool) {
@@ -406,11 +432,21 @@ func readAggregateRoute(destination string, instance string, m interface{},
 	var err error
 
 	if instance == defaultWord {
-		destinationConfig, err = sess.command("show configuration"+
-			" routing-options aggregate route "+destination+" | display set relative", jnprSess)
+		if !strings.Contains(destination, ":") {
+			destinationConfig, err = sess.command("show configuration"+
+				" routing-options aggregate route "+destination+" | display set relative", jnprSess)
+		} else {
+			destinationConfig, err = sess.command("show configuration"+
+				" routing-options rib inet6.0 aggregate route "+destination+" | display set relative", jnprSess)
+		}
 	} else {
-		destinationConfig, err = sess.command("show configuration routing-instances "+instance+
-			" routing-options aggregate route "+destination+" | display set relative", jnprSess)
+		if !strings.Contains(destination, ":") {
+			destinationConfig, err = sess.command("show configuration routing-instances "+instance+
+				" routing-options aggregate route "+destination+" | display set relative", jnprSess)
+		} else {
+			destinationConfig, err = sess.command("show configuration routing-instances "+instance+
+				" routing-options rib "+instance+".inet6.0 aggregate route "+destination+" | display set relative", jnprSess)
+		}
 	}
 	if err != nil {
 		return confRead, err
@@ -473,9 +509,18 @@ func delAggregateRoute(destination string, instance string, m interface{}, jnprS
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	if instance == defaultWord {
-		configSet = append(configSet, "delete routing-options aggregate route "+destination)
+		if !strings.Contains(destination, ":") {
+			configSet = append(configSet, "delete routing-options aggregate route "+destination)
+		} else {
+			configSet = append(configSet, "delete routing-options rib inet6.0 aggregate route "+destination)
+		}
 	} else {
-		configSet = append(configSet, "delete routing-instances "+instance+" routing-options aggregate route "+destination)
+		if !strings.Contains(destination, ":") {
+			configSet = append(configSet, "delete routing-instances "+instance+" routing-options aggregate route "+destination)
+		} else {
+			configSet = append(configSet, "delete routing-instances "+instance+
+				" routing-options rib "+instance+".inet6.0 aggregate route "+destination)
+		}
 	}
 
 	return sess.configSet(configSet, jnprSess)
