@@ -234,12 +234,12 @@ func resourceAggregateRouteUpdate(ctx context.Context, d *schema.ResourceData, m
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if err := delAggregateRouteOpts(d, m, jnprSess); err != nil {
+	if err := delAggregateRoute(d.Get("destination").(string), d.Get("routing_instance").(string),
+		m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-
 	if err := setAggregateRoute(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -467,31 +467,6 @@ func readAggregateRoute(destination string, instance string, m interface{},
 	}
 
 	return confRead, nil
-}
-
-func delAggregateRouteOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
-	configSet := make([]string, 0)
-	delPrefix := "delete "
-	if d.Get("routing_instance").(string) == defaultWord {
-		delPrefix += "routing-options aggregate route "
-	} else {
-		delPrefix += "routing-instances " + d.Get("routing_instance").(string) + " routing-options aggregate route "
-	}
-	delPrefix += d.Get("destination").(string) + " "
-	configSet = append(configSet,
-		delPrefix+activeW,
-		delPrefix+"brief",
-		delPrefix+"community",
-		delPrefix+"discard",
-		delPrefix+"full",
-		delPrefix+"metric",
-		delPrefix+"passive",
-		delPrefix+"policy",
-		delPrefix+"preference",
-	)
-
-	return sess.configSet(configSet, jnprSess)
 }
 
 func delAggregateRoute(destination string, instance string, m interface{}, jnprSess *NetconfObject) error {
