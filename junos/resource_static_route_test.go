@@ -264,7 +264,12 @@ resource junos_static_route testacc_staticRoute_default {
     preference = 101
     metric     = 101
   }
-  community = ["no-advertise"]
+  community                    = ["no-advertise"]
+  as_path_aggregator_as_number = "65000"
+  as_path_aggregator_address   = "192.0.2.1"
+  as_path_atomic_aggregate     = true
+  as_path_origin               = "igp"
+  as_path_path                 = "65000 65000"
 }
 resource junos_static_route testacc_staticRoute_ipv6_default {
   destination = "2001:db8:85a3::/48"
@@ -281,7 +286,12 @@ resource junos_static_route testacc_staticRoute_ipv6_default {
     preference = 101
     metric     = 101
   }
-  community = ["no-advertise"]
+  community                    = ["no-advertise"]
+  as_path_aggregator_as_number = "65000"
+  as_path_aggregator_address   = "192.0.2.1"
+  as_path_atomic_aggregate     = true
+  as_path_origin               = "igp"
+  as_path_path                 = "65000 65000"
 }
 resource junos_static_route testacc_staticRoute_ipv6_instance {
   destination      = "2001:db8:85a3::/48"
