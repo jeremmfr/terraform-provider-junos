@@ -314,12 +314,11 @@ func resourceStaticRouteUpdate(ctx context.Context, d *schema.ResourceData, m in
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if err := delStaticRouteOpts(d, m, jnprSess); err != nil {
+	if err := delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-
 	if err := setStaticRoute(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -675,55 +674,6 @@ func readStaticRoute(destination string, instance string, m interface{},
 	}
 
 	return confRead, nil
-}
-
-func delStaticRouteOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
-	configSet := make([]string, 0)
-	delPrefix := "delete "
-	if d.Get("routing_instance").(string) == defaultWord {
-		if !strings.Contains(d.Get("destination").(string), ":") {
-			delPrefix += "routing-options static route "
-		} else {
-			delPrefix += "routing-options rib inet6.0 static route "
-		}
-	} else {
-		if !strings.Contains(d.Get("destination").(string), ":") {
-			delPrefix += "routing-instances " + d.Get("routing_instance").(string) + " routing-options static route "
-		} else {
-			delPrefix += "routing-instances " + d.Get("routing_instance").(string) +
-				" routing-options rib " + d.Get("routing_instance").(string) + ".inet6.0 static route "
-		}
-	}
-	delPrefix += d.Get("destination").(string) + " "
-	configSet = append(configSet,
-		delPrefix+"active",
-		delPrefix+"community",
-		delPrefix+"discard",
-		delPrefix+"install",
-		delPrefix+"no-install",
-		delPrefix+"metric",
-		delPrefix+"next-hop",
-		delPrefix+"next-table",
-		delPrefix+"passive",
-		delPrefix+"preference",
-		delPrefix+"readvertise",
-		delPrefix+"no-readvertise",
-		delPrefix+"receive",
-		delPrefix+"reject",
-		delPrefix+"resolve",
-		delPrefix+"no-resolve",
-		delPrefix+"retain",
-		delPrefix+"no-retain")
-	if d.HasChange("qualified_next_hop") {
-		oQualifiedNextHop, _ := d.GetChange("qualified_next_hop")
-		for _, v := range oQualifiedNextHop.([]interface{}) {
-			qualifiedNextHop := v.(map[string]interface{})
-			configSet = append(configSet, delPrefix+"qualified-next-hop "+qualifiedNextHop["next_hop"].(string))
-		}
-	}
-
-	return sess.configSet(configSet, jnprSess)
 }
 
 func delStaticRoute(destination string, instance string, m interface{}, jnprSess *NetconfObject) error {
