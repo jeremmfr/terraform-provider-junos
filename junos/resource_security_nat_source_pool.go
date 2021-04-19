@@ -75,6 +75,7 @@ func resourceSecurityNatSourcePool() *schema.Resource {
 			"pool_utilization_alarm_clear_threshold": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				RequiredWith: []string{"pool_utilization_alarm_raise_threshold"},
 				ValidateFunc: validation.IntBetween(40, 100),
 			},
 		},
