@@ -15,6 +15,10 @@ ENHANCEMENTS:
 * add `keep_all` and `keep_none` arguments in `junos_bgp_group` and `junos_bgp_neighbor` resource
 * add `rsh_disable` and `sql_disable` arguments in `junos_security` resource (Fixes #182) Thanks @edpio19
 * add `pool_utilization_alarm_raise_threshold` and `pool_utilization_alarm_clear_threshold` arguments in `junos_security_nat_source_pool` resource (Fixes #171) Thanks @edpio19
+* add `junos_snmp` resource (Fixes parts of #170)
+* add `junos_snmp_clientlist` resource
+* add `junos_snmp_community` resource (Fixes parts of #170)
+* add `junos_snmp_view` resource
 
 BUG FIXES:
 * fix panic when candidate config clear or unlock generate Junos error(s)

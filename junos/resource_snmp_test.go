@@ -1,0 +1,81 @@
+package junos_test
+
+import (
+	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+)
+
+func TestAccJunosSnmp_basic(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccJunosSnmpConfigCreate(),
+			},
+			{
+				ResourceName:      "junos_snmp.testacc_snmp",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccJunosSnmpConfigUpdate(),
+			},
+			{
+				Config: testAccJunosSnmpConfigPostCheck(),
+			},
+		},
+	})
+}
+
+func testAccJunosSnmpConfigCreate() string {
+	return `
+resource "junos_snmp" "testacc_snmp" {
+  arp                        = true
+  contact                    = "contact@example.com"
+  description                = "snmp description"
+  filter_duplicates          = true
+  filter_interfaces          = ["(ge|xe|ae).*\\.0", "fxp0"]
+  filter_internal_interfaces = true
+  health_monitor {
+    falling_threshold     = 41
+    idp                   = true
+    idp_falling_threshold = 42
+    idp_interval          = 43
+    idp_rising_threshold  = 44
+    interval              = 45
+    rising_threshold      = 46
+  }
+  if_count_with_filter_interfaces = true
+  interface                       = ["fxp0.0"]
+  location                        = "Paris, France"
+  routing_instance_access         = true
+  routing_instance_access_list    = [junos_routing_instance.testacc_snmp.name]
+}
+resource "junos_routing_instance" "testacc_snmp" {
+  name = "testacc_snmp"
+}
+`
+}
+
+func testAccJunosSnmpConfigUpdate() string {
+	return `
+resource "junos_routing_instance" "testacc_snmp" {
+  name = "testacc_snmp"
+}
+resource "junos_snmp" "testacc_snmp" {
+  arp                      = true
+  arp_host_name_resolution = true
+  health_monitor {}
+  routing_instance_access = true
+}
+
+`
+}
+
+func testAccJunosSnmpConfigPostCheck() string {
+	return `
+resource "junos_snmp" "testacc_snmp" {}
+`
+}
