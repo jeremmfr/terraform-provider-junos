@@ -43,12 +43,16 @@ The following arguments are supported:
   * `filter_output` - Filter applied to transmitted packets.
   * `mtu` - Maximum transmission unit.
   * `rpf_check` - Reverse-path-forwarding checks enabled and possible configuration. See the [`rpf_check` attributes](#rpf_check-attributes) block for attributes.
+  * `sampling_input` - Sample all packets input on this interface.
+  * `sampling_output` - Sample all packets output on this interface.
 * `family_inet6` - Family inet6 enabled and possible configuration.
   * `address` - List of address. See the [`address` attributes for family_inet6](#address-attributes-for-family_inet6) block.
   * `filter_input` - Filter applied to received packets.
   * `filter_output` - Filter applied to transmitted packets.
   * `mtu` - Maximum transmission unit.
   * `rpf_check` - Reverse-path-forwarding checks enabled and possible configuration. See the [`rpf_check` attributes](#rpf_check-attributes) block for attributes.
+  * `sampling_input` - Sample all packets input on this interface.
+  * `sampling_output` - Sample all packets output on this interface.
 * `routing_instance` - Routing_instance where the interface is (if not default instance).
 * `security_inbound_protocols` - The inbound protocols allowed.
 * `security_inbound_services` - The inbound services allowed.
