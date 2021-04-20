@@ -8,36 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-const (
-	idSeparator        = "_-_"
-	defaultWord        = "default"
-	inetWord           = "inet"
-	inet6Word          = "inet6"
-	emptyWord          = "empty"
-	matchWord          = "match"
-	permitWord         = "permit"
-	thenWord           = "then"
-	prefixWord         = "prefix"
-	actionNoneWord     = "none"
-	addWord            = "add"
-	deleteWord         = "delete"
-	setWord            = "set"
-	setLineStart       = setWord + " "
-	st0Word            = "st0"
-	opsfV2             = "ospf"
-	ospfV3             = "ospf3"
-	activeW            = "active"
-	passiveW           = "passive"
-	discardW           = "discard"
-	disableW           = "disable"
-	dynamicDB          = "dynamic-db"
-	preemptWord        = "preempt"
-	flowControlWords   = "flow-control"
-	noFlowControlWords = "no-flow-control"
-	loopbackWord       = "loopback"
-	noLoopbackWord     = "no-loopback"
-)
-
 var mutex = &sync.Mutex{} // nolint: gochecknoglobals
 
 // Provider junos for terraform.
@@ -126,6 +96,7 @@ func Provider() *schema.Provider {
 			"junos_firewall_filter":                                      resourceFirewallFilter(),
 			"junos_firewall_policer":                                     resourceFirewallPolicer(),
 			"junos_forwardingoptions_sampling_instance":                  resourceForwardingoptionsSamplingInstance(),
+			"junos_generate_route":                                       resourceGenerateRoute(),
 			"junos_group_dual_system":                                    resourceGroupDualSystem(),
 			"junos_interface":                                            resourceInterface(),
 			"junos_interface_logical":                                    resourceInterfaceLogical(),

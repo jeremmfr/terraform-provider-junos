@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-type aggregateRouteOptions struct {
+type generateRouteOptions struct {
 	active                   bool
 	asPathAtomicAggregate    bool
 	brief                    bool
@@ -25,19 +25,20 @@ type aggregateRouteOptions struct {
 	asPathOrigin             string
 	asPathPath               string
 	destination              string
+	nextTable                string
 	routingInstance          string
 	community                []string
 	policy                   []string
 }
 
-func resourceAggregateRoute() *schema.Resource {
+func resourceGenerateRoute() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceAggregateRouteCreate,
-		ReadContext:   resourceAggregateRouteRead,
-		UpdateContext: resourceAggregateRouteUpdate,
-		DeleteContext: resourceAggregateRouteDelete,
+		CreateContext: resourceGenerateRouteCreate,
+		ReadContext:   resourceGenerateRouteRead,
+		UpdateContext: resourceGenerateRouteUpdate,
+		DeleteContext: resourceGenerateRouteDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceAggregateRouteImport,
+			State: resourceGenerateRouteImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"destination": {
@@ -93,8 +94,9 @@ func resourceAggregateRoute() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"discard": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"next_table"},
 			},
 			"full": {
 				Type:          schema.TypeBool,
@@ -104,6 +106,11 @@ func resourceAggregateRoute() *schema.Resource {
 			"metric": {
 				Type:     schema.TypeInt,
 				Optional: true,
+			},
+			"next_table": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"discard"},
 			},
 			"passive": {
 				Type:          schema.TypeBool,
@@ -123,10 +130,10 @@ func resourceAggregateRoute() *schema.Resource {
 	}
 }
 
-func resourceAggregateRouteCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceGenerateRouteCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setAggregateRoute(d, m, nil); err != nil {
+		if err := setGenerateRoute(d, m, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("destination").(string) + idSeparator + d.Get("routing_instance").(string))
@@ -154,48 +161,47 @@ func resourceAggregateRouteCreate(ctx context.Context, d *schema.ResourceData, m
 				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))...)
 		}
 	}
-	aggregateRouteExists, err := checkAggregateRouteExists(
-		d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess)
+	generateRouteExists, err := checkGenerateRouteExists(d.Get("destination").(string), d.Get("routing_instance").(string),
+		m, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if aggregateRouteExists {
+	if generateRouteExists {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return append(diagWarns, diag.FromErr(fmt.Errorf("aggregate route %v already exists on table %s",
+		return append(diagWarns, diag.FromErr(fmt.Errorf("generate route %v already exists on table %s",
 			d.Get("destination").(string), d.Get("routing_instance").(string)))...)
 	}
-	if err := setAggregateRoute(d, m, jnprSess); err != nil {
+	if err := setGenerateRoute(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_aggregate_route", jnprSess)
+	warns, err := sess.commitConf("create resource junos_generate_route", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	aggregateRouteExists, err = checkAggregateRouteExists(
-		d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess)
+	generateRouteExists, err = checkGenerateRouteExists(d.Get("destination").(string), d.Get("routing_instance").(string),
+		m, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if aggregateRouteExists {
+	if generateRouteExists {
 		d.SetId(d.Get("destination").(string) + idSeparator + d.Get("routing_instance").(string))
 	} else {
-		return append(diagWarns,
-			diag.FromErr(fmt.Errorf("aggregate route %v not exists in routing_instance %v after commit "+
-				"=> check your config", d.Get("destination").(string), d.Get("routing_instance").(string)))...)
+		return append(diagWarns, diag.FromErr(fmt.Errorf("generate route %v not exists in routing_instance %v after commit "+
+			"=> check your config", d.Get("destination").(string), d.Get("routing_instance").(string)))...)
 	}
 
-	return append(diagWarns, resourceAggregateRouteReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceGenerateRouteReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceAggregateRouteRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceGenerateRouteRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -203,28 +209,28 @@ func resourceAggregateRouteRead(ctx context.Context, d *schema.ResourceData, m i
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceAggregateRouteReadWJnprSess(d, m, jnprSess)
+	return resourceGenerateRouteReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceAggregateRouteReadWJnprSess(
+func resourceGenerateRouteReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
-	aggregateRouteOptions, err := readAggregateRoute(d.Get("destination").(string), d.Get("routing_instance").(string),
+	generateRouteOptions, err := readGenerateRoute(d.Get("destination").(string), d.Get("routing_instance").(string),
 		m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	if aggregateRouteOptions.destination == "" {
+	if generateRouteOptions.destination == "" {
 		d.SetId("")
 	} else {
-		fillAggregateRouteData(d, aggregateRouteOptions)
+		fillGenerateRouteData(d, generateRouteOptions)
 	}
 
 	return nil
 }
 
-func resourceAggregateRouteUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceGenerateRouteUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -234,30 +240,31 @@ func resourceAggregateRouteUpdate(ctx context.Context, d *schema.ResourceData, m
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if err := delAggregateRoute(d.Get("destination").(string), d.Get("routing_instance").(string),
-		m, jnprSess); err != nil {
+	if err := delGenerateRoute(
+		d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setAggregateRoute(d, m, jnprSess); err != nil {
+	if err := setGenerateRoute(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_aggregate_route", jnprSess)
+	warns, err := sess.commitConf("update resource junos_generate_route", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
+
 	d.Partial(false)
 
-	return append(diagWarns, resourceAggregateRouteReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceGenerateRouteReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceAggregateRouteDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceGenerateRouteDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -266,13 +273,13 @@ func resourceAggregateRouteDelete(ctx context.Context, d *schema.ResourceData, m
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if err := delAggregateRoute(d.Get("destination").(string), d.Get("routing_instance").(string),
-		m, jnprSess); err != nil {
+	if err := delGenerateRoute(
+		d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_aggregate_route", jnprSess)
+	warns, err := sess.commitConf("delete resource junos_generate_route", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -283,7 +290,7 @@ func resourceAggregateRouteDelete(ctx context.Context, d *schema.ResourceData, m
 	return diagWarns
 }
 
-func resourceAggregateRouteImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceGenerateRouteImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -295,157 +302,160 @@ func resourceAggregateRouteImport(d *schema.ResourceData, m interface{}) ([]*sch
 	if len(idSplit) < 2 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", idSeparator)
 	}
-	aggregateRouteExists, err := checkAggregateRouteExists(idSplit[0], idSplit[1], m, jnprSess)
+	generateRouteExists, err := checkGenerateRouteExists(idSplit[0], idSplit[1], m, jnprSess)
 	if err != nil {
 		return nil, err
 	}
-	if !aggregateRouteExists {
-		return nil, fmt.Errorf("don't find aggregate route with id '%v' (id must be "+
+	if !generateRouteExists {
+		return nil, fmt.Errorf("don't find generate route with id '%v' (id must be "+
 			"<destination>"+idSeparator+"<routing_instance>)", d.Id())
 	}
-	aggregateRouteOptions, err := readAggregateRoute(idSplit[0], idSplit[1], m, jnprSess)
+	generateRouteOptions, err := readGenerateRoute(idSplit[0], idSplit[1], m, jnprSess)
 	if err != nil {
 		return nil, err
 	}
-	fillAggregateRouteData(d, aggregateRouteOptions)
+	fillGenerateRouteData(d, generateRouteOptions)
 
 	result[0] = d
 
 	return result, nil
 }
 
-func checkAggregateRouteExists(destination string, instance string, m interface{},
-	jnprSess *NetconfObject) (bool, error) {
+func checkGenerateRouteExists(
+	destination string, instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	var aggregateRouteConfig string
+	var generateRouteConfig string
 	var err error
 	if instance == defaultWord {
 		if !strings.Contains(destination, ":") {
-			aggregateRouteConfig, err = sess.command("show configuration"+
-				" routing-options aggregate route "+destination+" | display set", jnprSess)
+			generateRouteConfig, err = sess.command("show configuration"+
+				" routing-options generate route "+destination+" | display set", jnprSess)
 			if err != nil {
 				return false, err
 			}
 		} else {
-			aggregateRouteConfig, err = sess.command("show configuration"+
-				" routing-options rib inet6.0 aggregate route "+destination+" | display set", jnprSess)
+			generateRouteConfig, err = sess.command("show configuration routing-options rib inet6.0 "+
+				"generate route "+destination+" | display set", jnprSess)
 			if err != nil {
 				return false, err
 			}
 		}
 	} else {
 		if !strings.Contains(destination, ":") {
-			aggregateRouteConfig, err = sess.command("show configuration routing-instances "+instance+
-				" routing-options aggregate route "+destination+" | display set", jnprSess)
+			generateRouteConfig, err = sess.command("show configuration routing-instances "+instance+
+				" routing-options generate route "+destination+" | display set", jnprSess)
 			if err != nil {
 				return false, err
 			}
 		} else {
-			aggregateRouteConfig, err = sess.command("show configuration routing-instances "+instance+
-				" routing-options rib "+instance+".inet6.0 aggregate route "+destination+" | display set", jnprSess)
+			generateRouteConfig, err = sess.command("show configuration routing-instances "+instance+
+				" routing-options rib "+instance+".inet6.0 generate route "+destination+" | display set", jnprSess)
 			if err != nil {
 				return false, err
 			}
 		}
 	}
 
-	if aggregateRouteConfig == emptyWord {
+	if generateRouteConfig == emptyWord {
 		return false, nil
 	}
 
 	return true, nil
 }
 
-func setAggregateRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
+func setGenerateRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 
 	var setPrefix string
 	if d.Get("routing_instance").(string) == defaultWord {
 		if !strings.Contains(d.Get("destination").(string), ":") {
-			setPrefix = "set routing-options aggregate route " + d.Get("destination").(string)
+			setPrefix = "set routing-options generate route " + d.Get("destination").(string) + " "
 		} else {
-			setPrefix = "set routing-options rib inet6.0 aggregate route " + d.Get("destination").(string)
+			setPrefix = "set routing-options rib inet6.0 generate route " + d.Get("destination").(string) + " "
 		}
 	} else {
 		if !strings.Contains(d.Get("destination").(string), ":") {
 			setPrefix = "set routing-instances " + d.Get("routing_instance").(string) +
-				" routing-options aggregate route " + d.Get("destination").(string)
+				" routing-options generate route " + d.Get("destination").(string) + " "
 		} else {
 			setPrefix = "set routing-instances " + d.Get("routing_instance").(string) +
 				" routing-options rib " + d.Get("routing_instance").(string) + ".inet6.0 " +
-				"aggregate route " + d.Get("destination").(string)
+				"generate route " + d.Get("destination").(string) + " "
 		}
 	}
-	configSet = append(configSet, setPrefix)
 	if d.Get("active").(bool) {
-		configSet = append(configSet, setPrefix+" active")
+		configSet = append(configSet, setPrefix+"active")
 	}
 	if d.Get("as_path_aggregator_address").(string) != "" &&
 		d.Get("as_path_aggregator_as_number").(string) != "" {
-		configSet = append(configSet, setPrefix+" as-path aggregator "+
+		configSet = append(configSet, setPrefix+"as-path aggregator "+
 			d.Get("as_path_aggregator_as_number").(string)+" "+
 			d.Get("as_path_aggregator_address").(string))
 	}
 	if d.Get("as_path_atomic_aggregate").(bool) {
-		configSet = append(configSet, setPrefix+" as-path atomic-aggregate")
+		configSet = append(configSet, setPrefix+"as-path atomic-aggregate")
 	}
 	if v := d.Get("as_path_origin").(string); v != "" {
-		configSet = append(configSet, setPrefix+" as-path origin "+v)
+		configSet = append(configSet, setPrefix+"as-path origin "+v)
 	}
 	if v := d.Get("as_path_path").(string); v != "" {
-		configSet = append(configSet, setPrefix+" as-path path \""+v+"\"")
+		configSet = append(configSet, setPrefix+"as-path path \""+v+"\"")
 	}
 	if d.Get("brief").(bool) {
-		configSet = append(configSet, setPrefix+" brief")
+		configSet = append(configSet, setPrefix+"brief")
 	}
 	for _, v := range d.Get("community").([]interface{}) {
-		configSet = append(configSet, setPrefix+" community "+v.(string))
+		configSet = append(configSet, setPrefix+"community "+v.(string))
 	}
 	if d.Get("discard").(bool) {
-		configSet = append(configSet, setPrefix+" discard")
+		configSet = append(configSet, setPrefix+"discard")
 	}
 	if d.Get("full").(bool) {
-		configSet = append(configSet, setPrefix+" full")
+		configSet = append(configSet, setPrefix+"full")
 	}
 	if d.Get("metric").(int) > 0 {
-		configSet = append(configSet, setPrefix+" metric "+strconv.Itoa(d.Get("metric").(int)))
+		configSet = append(configSet, setPrefix+"metric "+strconv.Itoa(d.Get("metric").(int)))
+	}
+	if d.Get("next_table").(string) != "" {
+		configSet = append(configSet, setPrefix+"next-table "+d.Get("next_table").(string))
 	}
 	if d.Get("passive").(bool) {
-		configSet = append(configSet, setPrefix+" passive")
+		configSet = append(configSet, setPrefix+"passive")
 	}
 	for _, v := range d.Get("policy").([]interface{}) {
-		configSet = append(configSet, setPrefix+" policy "+v.(string))
+		configSet = append(configSet, setPrefix+"policy "+v.(string))
 	}
 	if d.Get("preference").(int) > 0 {
-		configSet = append(configSet, setPrefix+" preference "+strconv.Itoa(d.Get("preference").(int)))
+		configSet = append(configSet, setPrefix+"preference "+strconv.Itoa(d.Get("preference").(int)))
 	}
 
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readAggregateRoute(destination string, instance string, m interface{},
-	jnprSess *NetconfObject) (aggregateRouteOptions, error) {
+func readGenerateRoute(destination string, instance string, m interface{},
+	jnprSess *NetconfObject) (generateRouteOptions, error) {
 	sess := m.(*Session)
-	var confRead aggregateRouteOptions
+	var confRead generateRouteOptions
 	var destinationConfig string
 	var err error
 
 	if instance == defaultWord {
 		if !strings.Contains(destination, ":") {
-			destinationConfig, err = sess.command("show configuration"+
-				" routing-options aggregate route "+destination+" | display set relative", jnprSess)
+			destinationConfig, err = sess.command("show configuration routing-options "+
+				"generate route "+destination+" | display set relative", jnprSess)
 		} else {
-			destinationConfig, err = sess.command("show configuration"+
-				" routing-options rib inet6.0 aggregate route "+destination+" | display set relative", jnprSess)
+			destinationConfig, err = sess.command("show configuration routing-options rib inet6.0 "+
+				"generate route "+destination+" | display set relative", jnprSess)
 		}
 	} else {
 		if !strings.Contains(destination, ":") {
 			destinationConfig, err = sess.command("show configuration routing-instances "+instance+
-				" routing-options aggregate route "+destination+" | display set relative", jnprSess)
+				" routing-options generate route "+destination+" | display set relative", jnprSess)
 		} else {
 			destinationConfig, err = sess.command("show configuration routing-instances "+instance+
-				" routing-options rib "+instance+".inet6.0 aggregate route "+destination+" | display set relative", jnprSess)
+				" routing-options rib "+instance+".inet6.0 "+
+				"generate route "+destination+" | display set relative", jnprSess)
 		}
 	}
 	if err != nil {
@@ -464,7 +474,7 @@ func readAggregateRoute(destination string, instance string, m interface{},
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case itemTrim == activeW:
+			case itemTrim == "active":
 				confRead.active = true
 			case strings.HasPrefix(itemTrim, "as-path aggregator "):
 				itemTrimSplit := strings.Split(itemTrim, " ")
@@ -489,6 +499,8 @@ func readAggregateRoute(destination string, instance string, m interface{},
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
+			case strings.HasPrefix(itemTrim, "next-table "):
+				confRead.nextTable = strings.TrimPrefix(itemTrim, "next-table ")
 			case itemTrim == passiveW:
 				confRead.passive = true
 			case strings.HasPrefix(itemTrim, "policy "):
@@ -505,74 +517,80 @@ func readAggregateRoute(destination string, instance string, m interface{},
 	return confRead, nil
 }
 
-func delAggregateRoute(destination string, instance string, m interface{}, jnprSess *NetconfObject) error {
+func delGenerateRoute(destination string, instance string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	if instance == defaultWord {
 		if !strings.Contains(destination, ":") {
-			configSet = append(configSet, "delete routing-options aggregate route "+destination)
+			configSet = append(configSet, "delete routing-options generate route "+destination)
 		} else {
-			configSet = append(configSet, "delete routing-options rib inet6.0 aggregate route "+destination)
+			configSet = append(configSet, "delete routing-options rib inet6.0 generate route "+destination)
 		}
 	} else {
 		if !strings.Contains(destination, ":") {
-			configSet = append(configSet, "delete routing-instances "+instance+" routing-options aggregate route "+destination)
+			configSet = append(configSet, "delete routing-instances "+instance+" routing-options generate route "+destination)
 		} else {
 			configSet = append(configSet, "delete routing-instances "+instance+
-				" routing-options rib "+instance+".inet6.0 aggregate route "+destination)
+				" routing-options rib "+instance+".inet6.0 generate route "+destination)
 		}
 	}
 
 	return sess.configSet(configSet, jnprSess)
 }
 
-func fillAggregateRouteData(d *schema.ResourceData, aggregateRouteOptions aggregateRouteOptions) {
-	if tfErr := d.Set("destination", aggregateRouteOptions.destination); tfErr != nil {
+func fillGenerateRouteData(d *schema.ResourceData, generateRouteOptions generateRouteOptions) {
+	if tfErr := d.Set("destination", generateRouteOptions.destination); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("routing_instance", aggregateRouteOptions.routingInstance); tfErr != nil {
+	if tfErr := d.Set("routing_instance", generateRouteOptions.routingInstance); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("active", aggregateRouteOptions.active); tfErr != nil {
+	if tfErr := d.Set("active", generateRouteOptions.active); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("as_path_aggregator_address", aggregateRouteOptions.asPathAggregatorAddress); tfErr != nil {
+	if tfErr := d.Set("as_path_aggregator_address", generateRouteOptions.asPathAggregatorAddress); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("as_path_aggregator_as_number", aggregateRouteOptions.asPathAggregatorAsNumber); tfErr != nil {
+	if tfErr := d.Set("as_path_aggregator_as_number", generateRouteOptions.asPathAggregatorAsNumber); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("as_path_atomic_aggregate", aggregateRouteOptions.asPathAtomicAggregate); tfErr != nil {
+	if tfErr := d.Set("as_path_atomic_aggregate", generateRouteOptions.asPathAtomicAggregate); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("as_path_origin", aggregateRouteOptions.asPathOrigin); tfErr != nil {
+	if tfErr := d.Set("as_path_origin", generateRouteOptions.asPathOrigin); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("as_path_path", aggregateRouteOptions.asPathPath); tfErr != nil {
+	if tfErr := d.Set("as_path_path", generateRouteOptions.asPathPath); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("brief", aggregateRouteOptions.brief); tfErr != nil {
+	if tfErr := d.Set("brief", generateRouteOptions.brief); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("community", aggregateRouteOptions.community); tfErr != nil {
+	if tfErr := d.Set("community", generateRouteOptions.community); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("discard", aggregateRouteOptions.discard); tfErr != nil {
+	if tfErr := d.Set("discard", generateRouteOptions.discard); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("full", aggregateRouteOptions.full); tfErr != nil {
+	if tfErr := d.Set("discard", generateRouteOptions.discard); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("metric", aggregateRouteOptions.metric); tfErr != nil {
+	if tfErr := d.Set("full", generateRouteOptions.full); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("passive", aggregateRouteOptions.passive); tfErr != nil {
+	if tfErr := d.Set("metric", generateRouteOptions.metric); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("policy", aggregateRouteOptions.policy); tfErr != nil {
+	if tfErr := d.Set("next_table", generateRouteOptions.nextTable); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("preference", aggregateRouteOptions.preference); tfErr != nil {
+	if tfErr := d.Set("passive", generateRouteOptions.passive); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("policy", generateRouteOptions.policy); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("preference", generateRouteOptions.preference); tfErr != nil {
 		panic(tfErr)
 	}
 }
