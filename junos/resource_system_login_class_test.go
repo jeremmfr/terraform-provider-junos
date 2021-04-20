@@ -82,6 +82,7 @@ resource "junos_system_login_class" "testacc" {
 }
 `
 }
+
 func testAccJunosSystemLoginClassConfigUpdate() string {
 	return `
 resource "junos_system_login_class" "testacc" {

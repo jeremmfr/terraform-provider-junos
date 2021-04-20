@@ -8,39 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-const (
-	idSeparator        = "_-_"
-	defaultWord        = "default"
-	inetWord           = "inet"
-	inet6Word          = "inet6"
-	emptyWord          = "empty"
-	matchWord          = "match"
-	permitWord         = "permit"
-	thenWord           = "then"
-	prefixWord         = "prefix"
-	actionNoneWord     = "none"
-	addWord            = "add"
-	deleteWord         = "delete"
-	setWord            = "set"
-	setLineStart       = setWord + " "
-	st0Word            = "st0"
-	opsfV2             = "ospf"
-	ospfV3             = "ospf3"
-	activeW            = "active"
-	passiveW           = "passive"
-	discardW           = "discard"
-	disableW           = "disable"
-	dynamicDB          = "dynamic-db"
-	preemptWord        = "preempt"
-	flowControlWords   = "flow-control"
-	noFlowControlWords = "no-flow-control"
-	loopbackWord       = "loopback"
-	noLoopbackWord     = "no-loopback"
-)
-
-var (
-	mutex = &sync.Mutex{}
-)
+var mutex = &sync.Mutex{} // nolint: gochecknoglobals
 
 // Provider junos for terraform.
 func Provider() *schema.Provider {
@@ -127,6 +95,8 @@ func Provider() *schema.Provider {
 			"junos_chassis_cluster":                                      resourceChassisCluster(),
 			"junos_firewall_filter":                                      resourceFirewallFilter(),
 			"junos_firewall_policer":                                     resourceFirewallPolicer(),
+			"junos_forwardingoptions_sampling_instance":                  resourceForwardingoptionsSamplingInstance(),
+			"junos_generate_route":                                       resourceGenerateRoute(),
 			"junos_group_dual_system":                                    resourceGroupDualSystem(),
 			"junos_interface":                                            resourceInterface(),
 			"junos_interface_logical":                                    resourceInterfaceLogical(),
@@ -168,6 +138,15 @@ func Provider() *schema.Provider {
 			"junos_security_utm_profile_web_filtering_juniper_local":     resourceSecurityUtmProfileWebFilteringLocal(),
 			"junos_security_utm_profile_web_filtering_websense_redirect": resourceSecurityUtmProfileWebFilteringWebsense(),
 			"junos_security_zone":                                        resourceSecurityZone(),
+			"junos_services":                                             resourceServices(),
+			"junos_services_flowmonitoring_vipfix_template":              resourceServicesFlowMonitoringVIPFixTemplate(),
+			"junos_services_proxy_profile":                               resourceServicesProxyProfile(),
+			"junos_services_security_intelligence_policy":                resourceServicesSecurityIntellPolicy(),
+			"junos_services_security_intelligence_profile":               resourceServicesSecurityIntellProfile(),
+			"junos_snmp":                                                 resourceSnmp(),
+			"junos_snmp_clientlist":                                      resourceSnmpClientlist(),
+			"junos_snmp_community":                                       resourceSnmpCommunity(),
+			"junos_snmp_view":                                            resourceSnmpView(),
 			"junos_static_route":                                         resourceStaticRoute(),
 			"junos_system":                                               resourceSystem(),
 			"junos_system_login_class":                                   resourceSystemLoginClass(),
@@ -190,7 +169,7 @@ func Provider() *schema.Provider {
 }
 
 func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	config := Config{
+	c := configProvider{
 		junosIP:                  d.Get("ip").(string),
 		junosPort:                d.Get("port").(int),
 		junosUserName:            d.Get("username").(string),
@@ -207,5 +186,5 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		junosFakeCreateSetFile:   d.Get("fake_create_with_setfile").(string),
 	}
 
-	return config.Session()
+	return c.prepareSession()
 }

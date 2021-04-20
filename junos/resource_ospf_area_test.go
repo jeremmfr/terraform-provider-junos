@@ -87,6 +87,7 @@ resource junos_ospf_area "testacc_ospfarea" {
 }
 `
 }
+
 func testAccJunosOspfAreaConfigUpdate(interFace string) string {
 	return `
 resource junos_interface_logical "testacc_ospfarea" {

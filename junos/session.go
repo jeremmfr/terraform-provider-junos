@@ -11,7 +11,7 @@ import (
 
 const directoryPermission = 0755
 
-// Session information to connect on Junos Device.
+// Session information to connect on Junos Device and more.
 type Session struct {
 	junosPort              int
 	junosSleepLock         int
@@ -58,14 +58,16 @@ func (sess *Session) startNewSession() (*NetconfObject, error) {
 
 	return jnpr, nil
 }
+
 func (sess *Session) closeSession(jnpr *NetconfObject) {
-	err := jnpr.Close(sess.junosSleepSSHClosed)
+	err := jnpr.close(sess.junosSleepSSHClosed)
 	if err != nil {
 		sess.logFile(fmt.Sprintf("[closeSession] err: %q", err))
 	} else {
 		sess.logFile("[closeSession] closed")
 	}
 }
+
 func (sess *Session) command(cmd string, jnpr *NetconfObject) (string, error) {
 	read, err := jnpr.netconfCommand(cmd)
 	sess.logFile(fmt.Sprintf("[command] cmd: %q", cmd))
@@ -79,6 +81,7 @@ func (sess *Session) command(cmd string, jnpr *NetconfObject) (string, error) {
 
 	return read, nil
 }
+
 func (sess *Session) commandXML(cmd string, jnpr *NetconfObject) (string, error) {
 	read, err := jnpr.netconfCommandXML(cmd)
 	sess.logFile(fmt.Sprintf("[commandXML] cmd: %q", cmd))
@@ -92,6 +95,7 @@ func (sess *Session) commandXML(cmd string, jnpr *NetconfObject) (string, error)
 
 	return read, nil
 }
+
 func (sess *Session) configSet(cmd []string, jnpr *NetconfObject) error {
 	if jnpr != nil {
 		message, err := jnpr.netconfConfigSet(cmd)
@@ -133,6 +137,7 @@ func (sess *Session) appendFakeCreateSetFile(lines []string) error {
 
 	return nil
 }
+
 func (sess *Session) commitConf(logMessage string, jnpr *NetconfObject) (_warnings []error, _err error) {
 	sess.logFile(fmt.Sprintf("[commitConf] commit %q", logMessage))
 	warns, err := jnpr.netconfCommit(logMessage)
@@ -166,27 +171,17 @@ func (sess *Session) configLock(jnpr *NetconfObject) {
 		}
 	}
 }
-func (sess *Session) configClear(jnpr *NetconfObject) {
-	err := jnpr.netconfConfigClear()
+
+func (sess *Session) configClear(jnpr *NetconfObject) (errs []error) {
+	errs = append(errs, jnpr.netconfConfigClear()...)
 	sleepShort(sess.junosSleepShort)
 	sess.logFile("[configClear] config clear")
-	if err != nil {
-		err := jnpr.Close(sess.junosSleepSSHClosed)
-		if err != nil {
-			sess.logFile(fmt.Sprintf("[configClear] close err: %q", err))
-		}
-		panic(err)
-	}
-	err = jnpr.netconfConfigUnlock()
+
+	errs = append(errs, jnpr.netconfConfigUnlock()...)
 	sleepShort(sess.junosSleepShort)
 	sess.logFile("[configClear] config unlock")
-	if err != nil {
-		err := jnpr.Close(sess.junosSleepSSHClosed)
-		if err != nil {
-			sess.logFile(fmt.Sprintf("[configClear] close err: %q", err))
-		}
-		panic(err)
-	}
+
+	return
 }
 
 // log message in junosLogFile.

@@ -70,8 +70,8 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"evpn", "inet", "inet-mdt", "inet-mvpn", "inet-vpn",
-								"inet6", "inet6-mvpn", "inet6-vpn",
-								"iso"}, false),
+								"inet6", "inet6-mvpn", "inet6-vpn", "iso",
+							}, false),
 						},
 						"local_preference": {
 							Type:     schema.TypeInt,
@@ -136,8 +136,9 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 									"option": {
 										Type:     schema.TypeString,
 										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{"address-mask", "exact", "longer",
-											"orlonger", "prefix-length-range", "through", "upto"}, false),
+										ValidateFunc: validation.StringInSlice([]string{
+											"address-mask", "exact", "longer", "orlonger", "prefix-length-range", "through", "upto",
+										}, false),
 									},
 									"option_value": {
 										Type:     schema.TypeString,
@@ -297,8 +298,8 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"evpn", "inet", "inet-mdt", "inet-mvpn", "inet-vpn",
-								"inet6", "inet6-mvpn", "inet6-vpn",
-								"iso"}, false),
+								"inet6", "inet6-mvpn", "inet6-vpn", "iso",
+							}, false),
 						},
 						"local_preference": {
 							Type:     schema.TypeInt,
@@ -393,8 +394,8 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											"evpn", "inet", "inet-mdt", "inet-mvpn", "inet-vpn",
-											"inet6", "inet6-mvpn", "inet6-vpn",
-											"iso"}, false),
+											"inet6", "inet6-mvpn", "inet6-vpn", "iso",
+										}, false),
 									},
 									"local_preference": {
 										Type:     schema.TypeInt,
@@ -459,8 +460,9 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 												"option": {
 													Type:     schema.TypeString,
 													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{"address-mask", "exact", "longer",
-														"orlonger", "prefix-length-range", "through", "upto"}, false),
+													ValidateFunc: validation.StringInSlice([]string{
+														"address-mask", "exact", "longer", "orlonger", "prefix-length-range", "through", "upto",
+													}, false),
 												},
 												"option_value": {
 													Type:     schema.TypeString,
@@ -620,8 +622,8 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											"evpn", "inet", "inet-mdt", "inet-mvpn", "inet-vpn",
-											"inet6", "inet6-mvpn", "inet6-vpn",
-											"iso"}, false),
+											"inet6", "inet6-mvpn", "inet6-vpn", "iso",
+										}, false),
 									},
 									"local_preference": {
 										Type:     schema.TypeInt,
@@ -695,28 +697,29 @@ func resourcePolicyoptionsPolicyStatementCreate(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	policyStatementExists, err := checkPolicyStatementExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if policyStatementExists {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(fmt.Errorf("policy-options policy-statement %v already exists", d.Get("name").(string)))
+		return append(diagWarns,
+			diag.FromErr(fmt.Errorf("policy-options policy-statement %v already exists", d.Get("name").(string)))...)
 	}
 
 	if err := setPolicyStatement(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("create resource junos_policyoptions_policy_statement", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -733,6 +736,7 @@ func resourcePolicyoptionsPolicyStatementCreate(
 
 	return append(diagWarns, resourcePolicyoptionsPolicyStatementReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourcePolicyoptionsPolicyStatementRead(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -744,6 +748,7 @@ func resourcePolicyoptionsPolicyStatementRead(
 
 	return resourcePolicyoptionsPolicyStatementReadWJnprSess(d, m, jnprSess)
 }
+
 func resourcePolicyoptionsPolicyStatementReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -760,6 +765,7 @@ func resourcePolicyoptionsPolicyStatementReadWJnprSess(
 
 	return nil
 }
+
 func resourcePolicyoptionsPolicyStatementUpdate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
@@ -770,21 +776,21 @@ func resourcePolicyoptionsPolicyStatementUpdate(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if err := delPolicyStatement(d.Get("name").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setPolicyStatement(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("update resource junos_policyoptions_policy_statement", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -792,6 +798,7 @@ func resourcePolicyoptionsPolicyStatementUpdate(
 
 	return append(diagWarns, resourcePolicyoptionsPolicyStatementReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourcePolicyoptionsPolicyStatementDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -801,22 +808,23 @@ func resourcePolicyoptionsPolicyStatementDelete(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if err := delPolicyStatement(d.Get("name").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := delPolicyStatement(d.Get("name").(string), m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("delete resource junos_policyoptions_policy_statement", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	return diagWarns
 }
+
 func resourcePolicyoptionsPolicyStatementImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -857,6 +865,7 @@ func checkPolicyStatementExists(name string, m interface{}, jnprSess *NetconfObj
 
 	return true, nil
 }
+
 func setPolicyStatement(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -905,6 +914,7 @@ func setPolicyStatement(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readPolicyStatement(policyStatement string,
 	m interface{}, jnprSess *NetconfObject) (policyStatementOptions, error) {
 	sess := m.(*Session)
@@ -986,6 +996,7 @@ func delPolicyStatement(policyStatement string, m interface{}, jnprSess *Netconf
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func fillPolicyStatementData(d *schema.ResourceData, policyStatementOptions policyStatementOptions) {
 	if tfErr := d.Set("name", policyStatementOptions.name); tfErr != nil {
 		panic(tfErr)
@@ -1071,6 +1082,7 @@ func setPolicyStatementOptsFrom(setPrefix string, opts map[string]interface{}) [
 
 	return configSet
 }
+
 func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) []string {
 	configSet := make([]string, 0)
 	setPrefixThen := setPrefix + " then "
@@ -1145,6 +1157,7 @@ func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) [
 
 	return configSet
 }
+
 func setPolicyStatementOptsTo(setPrefix string, opts map[string]interface{}) []string {
 	configSet := make([]string, 0)
 	setPrefixTo := setPrefix + " to "
@@ -1197,6 +1210,7 @@ func setPolicyStatementOptsTo(setPrefix string, opts map[string]interface{}) []s
 
 	return configSet
 }
+
 func readPolicyStatementOptsFrom(item string,
 	confReadElement []map[string]interface{}) ([]map[string]interface{}, error) {
 	fromMap := genMapPolicyStatementOptsFrom()
@@ -1269,6 +1283,7 @@ func readPolicyStatementOptsFrom(item string,
 	// override (maxItem = 1)
 	return []map[string]interface{}{fromMap}, nil
 }
+
 func readPolicyStatementOptsThen(item string,
 	confReadElement []map[string]interface{}) ([]map[string]interface{}, error) {
 	thenMap := genMapPolicyStatementOptsThen()
@@ -1371,6 +1386,7 @@ func readPolicyStatementOptsThen(item string,
 	// override (maxItem = 1)
 	return []map[string]interface{}{thenMap}, nil
 }
+
 func readPolicyStatementOptsTo(item string,
 	confReadElement []map[string]interface{}) ([]map[string]interface{}, error) {
 	toMap := genMapPolicyStatementOptsTo()
@@ -1448,6 +1464,7 @@ func genMapPolicyStatementOptsFrom() map[string]interface{} {
 		"route_filter":          make([]map[string]interface{}, 0),
 	}
 }
+
 func genMapPolicyStatementOptsThen() map[string]interface{} {
 	return map[string]interface{}{
 		"action":           "",
@@ -1464,6 +1481,7 @@ func genMapPolicyStatementOptsThen() map[string]interface{} {
 		"preference":       make([]map[string]interface{}, 0),
 	}
 }
+
 func genMapPolicyStatementOptsTo() map[string]interface{} {
 	return map[string]interface{}{
 		"bgp_as_path":       make([]string, 0),

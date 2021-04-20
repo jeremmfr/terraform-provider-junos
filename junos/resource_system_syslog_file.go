@@ -247,28 +247,29 @@ func resourceSystemSyslogFileCreate(ctx context.Context, d *schema.ResourceData,
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	syslogFileExists, err := checkSystemSyslogFileExists(d.Get("filename").(string), m, jnprSess)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if syslogFileExists {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(fmt.Errorf("system syslog file %v already exists", d.Get("filename").(string)))
+		return append(diagWarns,
+			diag.FromErr(fmt.Errorf("system syslog file %v already exists", d.Get("filename").(string)))...)
 	}
 
 	if err := setSystemSyslogFile(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("create resource junos_system_syslog_file", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -285,6 +286,7 @@ func resourceSystemSyslogFileCreate(ctx context.Context, d *schema.ResourceData,
 
 	return append(diagWarns, resourceSystemSyslogFileReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSystemSyslogFileRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -295,6 +297,7 @@ func resourceSystemSyslogFileRead(ctx context.Context, d *schema.ResourceData, m
 
 	return resourceSystemSyslogFileReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSystemSyslogFileReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -311,6 +314,7 @@ func resourceSystemSyslogFileReadWJnprSess(
 
 	return nil
 }
+
 func resourceSystemSyslogFileUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -320,21 +324,21 @@ func resourceSystemSyslogFileUpdate(ctx context.Context, d *schema.ResourceData,
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if err := delSystemSyslogFile(d.Get("filename").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setSystemSyslogFile(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("update resource junos_system_syslog_file", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -342,6 +346,7 @@ func resourceSystemSyslogFileUpdate(ctx context.Context, d *schema.ResourceData,
 
 	return append(diagWarns, resourceSystemSyslogFileReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSystemSyslogFileDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -350,22 +355,23 @@ func resourceSystemSyslogFileDelete(ctx context.Context, d *schema.ResourceData,
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if err := delSystemSyslogFile(d.Get("filename").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := delSystemSyslogFile(d.Get("filename").(string), m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("delete resource junos_system_syslog_file", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	return diagWarns
 }
+
 func resourceSystemSyslogFileImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -428,8 +434,8 @@ func setSystemSyslogFile(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 	for _, v := range d.Get("structured_data").([]interface{}) {
 		configSet = append(configSet, setPrefix+" structured-data")
 		if v != nil {
-			m := v.(map[string]interface{})
-			if m["brief"].(bool) {
+			ma := v.(map[string]interface{})
+			if ma["brief"].(bool) {
 				configSet = append(configSet, setPrefix+" structured-data brief")
 			}
 		}
@@ -483,47 +489,47 @@ func setSystemSyslogFile(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 		setPrefixArchive := setPrefix + " archive"
 		configSet = append(configSet, setPrefixArchive)
 		if v != nil {
-			m := v.(map[string]interface{})
-			for _, v2 := range m["sites"].([]interface{}) {
-				m2 := v2.(map[string]interface{})
-				setPrefixArchiveSite := setPrefixArchive + " archive-sites " + m2["url"].(string)
+			archive := v.(map[string]interface{})
+			for _, v2 := range archive["sites"].([]interface{}) {
+				sites := v2.(map[string]interface{})
+				setPrefixArchiveSite := setPrefixArchive + " archive-sites " + sites["url"].(string)
 				configSet = append(configSet, setPrefixArchiveSite)
-				if m2["password"].(string) != "" {
+				if sites["password"].(string) != "" {
 					configSet = append(configSet, setPrefixArchiveSite+" password \""+
-						m2["password"].(string)+"\"")
+						sites["password"].(string)+"\"")
 				}
-				if m2["routing_instance"].(string) != "" {
+				if sites["routing_instance"].(string) != "" {
 					configSet = append(configSet, setPrefixArchiveSite+" routing-instance "+
-						m2["routing_instance"].(string))
+						sites["routing_instance"].(string))
 				}
 			}
-			if m["binary_data"].(bool) {
+			if archive["binary_data"].(bool) {
 				configSet = append(configSet, setPrefixArchive+" binary-data")
 			}
-			if m["no_binary_data"].(bool) {
+			if archive["no_binary_data"].(bool) {
 				configSet = append(configSet, setPrefixArchive+" no-binary-data")
 			}
-			if m["world_readable"].(bool) {
+			if archive["world_readable"].(bool) {
 				configSet = append(configSet, setPrefixArchive+" world-readable")
 			}
-			if m["no_world_readable"].(bool) {
+			if archive["no_world_readable"].(bool) {
 				configSet = append(configSet, setPrefixArchive+" no-world-readable")
 			}
-			if m["files"].(int) != 0 {
+			if archive["files"].(int) != 0 {
 				configSet = append(configSet, setPrefixArchive+" files "+
-					strconv.Itoa(m["files"].(int)))
+					strconv.Itoa(archive["files"].(int)))
 			}
-			if m["size"].(int) != 0 {
+			if archive["size"].(int) != 0 {
 				configSet = append(configSet, setPrefixArchive+" size "+
-					strconv.Itoa(m["size"].(int)))
+					strconv.Itoa(archive["size"].(int)))
 			}
-			if m["start_time"].(string) != "" {
+			if archive["start_time"].(string) != "" {
 				configSet = append(configSet, setPrefixArchive+" start-time "+
-					m["start_time"].(string))
+					archive["start_time"].(string))
 			}
-			if m["transfer_interval"].(int) != 0 {
+			if archive["transfer_interval"].(int) != 0 {
 				configSet = append(configSet, setPrefixArchive+" transfer-interval "+
-					strconv.Itoa(m["transfer_interval"].(int)))
+					strconv.Itoa(archive["transfer_interval"].(int)))
 			}
 		}
 	}

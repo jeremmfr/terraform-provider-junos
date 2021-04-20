@@ -185,27 +185,28 @@ func resourceSecurityAddressBookCreate(ctx context.Context, d *schema.ResourceDa
 			jnprSess.SystemInformation.HardwareModel))
 	}
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	addressBookExists, err := checkAddressBookExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if addressBookExists {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(fmt.Errorf("security address book %v already exists", d.Get("name").(string)))
+		return append(diagWarns,
+			diag.FromErr(fmt.Errorf("security address book %v already exists", d.Get("name").(string)))...)
 	}
 	if err := setAddressBook(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("create resource junos_security_address_book", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -233,6 +234,7 @@ func resourceSecurityAddressBookRead(ctx context.Context, d *schema.ResourceData
 
 	return resourceSecurityAddressBookReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityAddressBookReadWJnprSess(d *schema.ResourceData, m interface{},
 	jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -259,23 +261,22 @@ func resourceSecurityAddressBookUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-
+	var diagWarns diag.Diagnostics
 	if err := delSecurityAddressBook(d.Get("name").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	if err := setAddressBook(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("update resource junos_security_address_book", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -292,16 +293,16 @@ func resourceSecurityAddressBookDelete(ctx context.Context, d *schema.ResourceDa
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if err := delSecurityAddressBook(d.Get("name").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := delSecurityAddressBook(d.Get("name").(string), m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("delete resource junos_security_address_book", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -470,19 +471,19 @@ func readSecurityAddressBook(addrBook string, m interface{}, jnprSess *NetconfOb
 				}
 			case strings.HasPrefix(itemTrim, "address-set "):
 				addressSetSplit := strings.Split(strings.TrimPrefix(itemTrim, "address-set "), " ")
-				m := map[string]interface{}{
+				adSet := map[string]interface{}{
 					"name":        addressSetSplit[0],
 					"address":     make([]string, 0),
 					"description": "",
 				}
-				m, confRead.addressSet = copyAndRemoveItemMapList("name", false, m, confRead.addressSet)
+				adSet, confRead.addressSet = copyAndRemoveItemMapList("name", false, adSet, confRead.addressSet)
 				if addressSetSplit[1] == "description" {
-					m["description"] = strings.Trim(strings.TrimPrefix(
+					adSet["description"] = strings.Trim(strings.TrimPrefix(
 						itemTrim, "address-set "+addressSetSplit[0]+" description "), "\"")
 				} else {
-					m["address"] = append(m["address"].([]string), addressSetSplit[2])
+					adSet["address"] = append(adSet["address"].([]string), addressSetSplit[2])
 				}
-				confRead.addressSet = append(confRead.addressSet, m)
+				confRead.addressSet = append(confRead.addressSet, adSet)
 			case strings.HasPrefix(itemTrim, "attach zone"):
 				confRead.attachZone = append(confRead.attachZone, strings.TrimPrefix(itemTrim, "attach zone "))
 			}

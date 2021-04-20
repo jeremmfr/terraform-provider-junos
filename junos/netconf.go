@@ -10,9 +10,9 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-const warningSeverity string = "warning"
+const (
+	warningSeverity string = "warning"
 
-var (
 	rpcCommand         = "<command format=\"text\">%s</command>"
 	rpcConfigStringSet = "<load-configuration action=\"set\" format=\"text\">" +
 		"<configuration-set>%s</configuration-set></load-configuration>"
@@ -39,14 +39,10 @@ type sysInfo struct {
 	ClusterNode   *bool  `xml:"cluster-node"`
 }
 
-// RoutingEngine : store Platform information.
-type RoutingEngine struct {
-	Model   string
-	Version string
-}
 type commandXMLConfig struct {
 	Config string `xml:",innerxml"`
 }
+
 type netconfAuthMethod struct {
 	Password       string
 	Username       string
@@ -54,12 +50,14 @@ type netconfAuthMethod struct {
 	PrivateKeyFile string
 	Passphrase     string
 }
+
 type commitError struct {
 	Path     string `xml:"error-path"`
 	Element  string `xml:"error-info>bad-element"`
 	Message  string `xml:"error-message"`
 	Severity string `xml:"error-severity"`
 }
+
 type commitResults struct {
 	XMLName xml.Name      `xml:"commit-results"`
 	Errors  []commitError `xml:"rpc-error"`
@@ -194,6 +192,7 @@ func (j *NetconfObject) netconfCommand(cmd string) (string, error) {
 
 	return output.Config, nil
 }
+
 func (j *NetconfObject) netconfCommandXML(cmd string) (string, error) {
 	reply, err := j.Session.Exec(netconf.RawMethod(cmd))
 	if err != nil {
@@ -241,31 +240,38 @@ func (j *NetconfObject) netconfConfigLock() bool {
 }
 
 // Unlock unlocks the candidate configuration.
-func (j *NetconfObject) netconfConfigUnlock() error {
+func (j *NetconfObject) netconfConfigUnlock() []error {
 	reply, err := j.Session.Exec(netconf.RawMethod(rpcCandidateUnlock))
 	if err != nil {
-		return fmt.Errorf("failed to netconf config unlock : %w", err)
+		return []error{fmt.Errorf("failed to netconf config unlock : %w", err)}
 	}
 	if reply.Errors != nil {
+		errs := make([]error, 0)
 		for _, m := range reply.Errors {
-			return errors.New(m.Message)
+			errs = append(errs, errors.New("config unlock: "+m.Message))
 		}
+
+		return errs
 	}
 
-	return nil
+	return []error{}
 }
-func (j *NetconfObject) netconfConfigClear() error {
+
+func (j *NetconfObject) netconfConfigClear() []error {
 	reply, err := j.Session.Exec(netconf.RawMethod(rpcClearCandidate))
 	if err != nil {
-		return fmt.Errorf("failed to netconf config clear : %w", err)
+		return []error{fmt.Errorf("failed to netconf config clear : %w", err)}
 	}
 	if reply.Errors != nil {
+		errs := make([]error, 0)
 		for _, m := range reply.Errors {
-			return errors.New(m.Message)
+			errs = append(errs, errors.New("config clear: "+m.Message))
 		}
+
+		return errs
 	}
 
-	return nil
+	return []error{}
 }
 
 // netconfCommit commits the configuration.
@@ -291,7 +297,7 @@ func (j *NetconfObject) netconfCommit(logMessage string) (_warn []error, _err er
 	if reply.Data != "\n<ok/>\n" {
 		err = xml.Unmarshal([]byte(reply.Data), &errs)
 		if err != nil {
-			return []error{}, fmt.Errorf("failed to xml unmarshal reply : %w", err)
+			return []error{}, fmt.Errorf("failed to xml unmarshal reply %s : %w", reply.Data, err)
 		}
 
 		if errs.Errors != nil {
@@ -316,7 +322,7 @@ func (j *NetconfObject) netconfCommit(logMessage string) (_warn []error, _err er
 }
 
 // Close disconnects our session to the device.
-func (j *NetconfObject) Close(sleepClosed int) error {
+func (j *NetconfObject) close(sleepClosed int) error {
 	_, err := j.Session.Exec(netconf.RawMethod(rpcClose))
 	j.Session.Transport.Close()
 	if err != nil {

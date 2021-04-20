@@ -205,28 +205,28 @@ func resourceSystemSyslogHostCreate(ctx context.Context, d *schema.ResourceData,
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	syslogHostExists, err := checkSystemSyslogHostExists(d.Get("host").(string), m, jnprSess)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if syslogHostExists {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(fmt.Errorf("system syslog host %v already exists", d.Get("host").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("system syslog host %v already exists", d.Get("host").(string)))...)
 	}
 
 	if err := setSystemSyslogHost(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("create resource junos_system_syslog_host", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -243,6 +243,7 @@ func resourceSystemSyslogHostCreate(ctx context.Context, d *schema.ResourceData,
 
 	return append(diagWarns, resourceSystemSyslogHostReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSystemSyslogHostRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -253,6 +254,7 @@ func resourceSystemSyslogHostRead(ctx context.Context, d *schema.ResourceData, m
 
 	return resourceSystemSyslogHostReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSystemSyslogHostReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -269,6 +271,7 @@ func resourceSystemSyslogHostReadWJnprSess(
 
 	return nil
 }
+
 func resourceSystemSyslogHostUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -278,21 +281,21 @@ func resourceSystemSyslogHostUpdate(ctx context.Context, d *schema.ResourceData,
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if err := delSystemSyslogHost(d.Get("host").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setSystemSyslogHost(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("update resource junos_system_syslog_host", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -300,6 +303,7 @@ func resourceSystemSyslogHostUpdate(ctx context.Context, d *schema.ResourceData,
 
 	return append(diagWarns, resourceSystemSyslogHostReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSystemSyslogHostDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -308,22 +312,23 @@ func resourceSystemSyslogHostDelete(ctx context.Context, d *schema.ResourceData,
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if err := delSystemSyslogHost(d.Get("host").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := delSystemSyslogHost(d.Get("host").(string), m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("delete resource junos_system_syslog_host", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	return diagWarns
 }
+
 func resourceSystemSyslogHostImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -364,6 +369,7 @@ func checkSystemSyslogHostExists(host string, m interface{}, jnprSess *NetconfOb
 
 	return true, nil
 }
+
 func setSystemSyslogHost(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 
@@ -400,8 +406,8 @@ func setSystemSyslogHost(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 	for _, v := range d.Get("structured_data").([]interface{}) {
 		configSet = append(configSet, setPrefix+" structured-data")
 		if v != nil {
-			m := v.(map[string]interface{})
-			if m["brief"].(bool) {
+			ma := v.(map[string]interface{})
+			if ma["brief"].(bool) {
 				configSet = append(configSet, setPrefix+" structured-data brief")
 			}
 		}
@@ -454,6 +460,7 @@ func setSystemSyslogHost(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readSystemSyslogHost(host string, m interface{}, jnprSess *NetconfObject) (syslogHostOptions, error) {
 	sess := m.(*Session)
 	var confRead syslogHostOptions
@@ -550,6 +557,7 @@ func delSystemSyslogHost(host string, m interface{}, jnprSess *NetconfObject) er
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func fillSystemSyslogHostData(d *schema.ResourceData, syslogHostOptions syslogHostOptions) {
 	if tfErr := d.Set("host", syslogHostOptions.host); tfErr != nil {
 		panic(tfErr)

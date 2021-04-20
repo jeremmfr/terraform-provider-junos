@@ -17,6 +17,8 @@ type bgpOptions struct {
 	advertisePeerAs              bool
 	asOverride                   bool
 	damping                      bool
+	keepAll                      bool
+	keepNone                     bool
 	localAsPrivate               bool
 	localAsAlias                 bool
 	localAsNoPrependGlobalAs     bool
@@ -121,6 +123,7 @@ func delBgpOpts(d *schema.ResourceData, typebgp string, m interface{}, jnprSess 
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := []string{setPrefix}
@@ -180,6 +183,12 @@ func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, j
 	}
 	for _, v := range d.Get("import").([]interface{}) {
 		configSet = append(configSet, setPrefix+"import "+v.(string))
+	}
+	if d.Get("keep_all").(bool) {
+		configSet = append(configSet, setPrefix+"keep all")
+	}
+	if d.Get("keep_none").(bool) {
+		configSet = append(configSet, setPrefix+"keep none")
 	}
 	if d.Get("local_address").(string) != "" {
 		configSet = append(configSet, setPrefix+"local-address "+d.Get("local_address").(string))
@@ -269,60 +278,52 @@ func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, j
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readBgpOptsSimple(item string, confRead *bgpOptions) error {
-	var err error
-	if item == "accept-remote-nexthop" {
+	switch {
+	case item == "accept-remote-nexthop":
 		confRead.acceptRemoteNexthop = true
-	}
-	if item == "advertise-external" {
+	case item == "advertise-external":
 		confRead.advertiseExternal = true
-	}
-	if item == "advertise-external conditional" {
+	case item == "advertise-external conditional":
 		confRead.advertiseExternalConditional = true
-	}
-	if item == "advertise-inactive" {
+	case item == "advertise-inactive":
 		confRead.advertiseInactive = true
-	}
-	if item == "advertise-peer-as" {
+	case item == "advertise-peer-as":
 		confRead.advertisePeerAs = true
-	}
-	if item == "as-override" {
+	case item == "as-override":
 		confRead.asOverride = true
-	}
-	if strings.HasPrefix(item, "authentication-algorithm ") {
+	case strings.HasPrefix(item, "authentication-algorithm "):
 		confRead.authenticationAlgorithm = strings.TrimPrefix(item, "authentication-algorithm ")
-	}
-	if strings.HasPrefix(item, "authentication-key ") {
+	case strings.HasPrefix(item, "authentication-key "):
+		var err error
 		confRead.authenticationKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(item, "authentication-key "), "\""))
 		if err != nil {
 			return fmt.Errorf("failed to decode authentication-key : %w", err)
 		}
-	}
-	if strings.HasPrefix(item, "authentication-key-chain ") {
+	case strings.HasPrefix(item, "authentication-key-chain "):
 		confRead.authenticationKeyChain = strings.TrimPrefix(item, "authentication-key-chain ")
-	}
-	if strings.HasPrefix(item, "cluster ") {
+	case strings.HasPrefix(item, "cluster "):
 		confRead.cluster = strings.TrimPrefix(item, "cluster ")
-	}
-	if item == "damping" {
+	case item == "damping":
 		confRead.damping = true
-	}
-	if strings.HasPrefix(item, "export ") {
+	case strings.HasPrefix(item, "export "):
 		confRead.exportPolicy = append(confRead.exportPolicy, strings.TrimPrefix(item, "export "))
-	}
-	if strings.HasPrefix(item, "hold-time ") {
+	case strings.HasPrefix(item, "hold-time "):
+		var err error
 		confRead.holdTime, err = strconv.Atoi(strings.TrimPrefix(item, "hold-time "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 		}
-	}
-	if strings.HasPrefix(item, "import ") {
+	case strings.HasPrefix(item, "import "):
 		confRead.importPolicy = append(confRead.importPolicy, strings.TrimPrefix(item, "import "))
-	}
-	if strings.HasPrefix(item, "local-address ") {
+	case item == "keep all":
+		confRead.keepAll = true
+	case item == "keep none":
+		confRead.keepNone = true
+	case strings.HasPrefix(item, "local-address "):
 		confRead.localAddress = strings.TrimPrefix(item, "local-address ")
-	}
-	if strings.HasPrefix(item, "local-as ") {
+	case strings.HasPrefix(item, "local-as "):
 		switch {
 		case strings.HasSuffix(item, " private"):
 			confRead.localAsPrivate = true
@@ -331,6 +332,7 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 		case strings.HasSuffix(item, " no-prepend-global-as"):
 			confRead.localAsNoPrependGlobalAs = true
 		case strings.HasPrefix(item, "local-as loops "):
+			var err error
 			confRead.localAsLoops, err = strconv.Atoi(strings.TrimPrefix(item, "local-as loops "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
@@ -338,21 +340,19 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 		default:
 			confRead.localAs = strings.TrimPrefix(item, "local-as ")
 		}
-	}
-	if strings.HasPrefix(item, "local-interface ") {
+	case strings.HasPrefix(item, "local-interface "):
 		confRead.localInterface = strings.TrimPrefix(item, "local-interface ")
-	}
-	if strings.HasPrefix(item, "local-preference ") {
+	case strings.HasPrefix(item, "local-preference "):
+		var err error
 		confRead.localPreference, err = strconv.Atoi(strings.TrimPrefix(item, "local-preference "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 		}
-	}
-	if item == "log-updown" {
+	case item == "log-updown":
 		confRead.logUpdown = true
-	}
-	if strings.HasPrefix(item, "metric-out ") {
+	case strings.HasPrefix(item, "metric-out "):
 		if !strings.Contains(item, "igp") {
+			var err error
 			confRead.metricOut, err = strconv.Atoi(strings.TrimPrefix(item, "metric-out "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
@@ -363,6 +363,7 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 				if item == "metric-out igp delay-med-update" {
 					confRead.metricOutIgpDelayMedUpdate = true
 				} else if strings.HasPrefix(item, "metric-out igp ") {
+					var err error
 					confRead.metricOutIgpOffset, err = strconv.Atoi(strings.TrimPrefix(item, "metric-out igp "))
 					if err != nil {
 						return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
@@ -371,6 +372,7 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 			} else {
 				confRead.metricOutMinimumIgp = true
 				if strings.HasPrefix(item, "metric-out minimum-igp ") {
+					var err error
 					confRead.metricOutMinimumIgpOffset, err = strconv.Atoi(strings.TrimPrefix(item, "metric-out minimum-igp "))
 					if err != nil {
 						return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
@@ -378,14 +380,11 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 				}
 			}
 		}
-	}
-	if item == "mtu-discovery" {
+	case item == "mtu-discovery":
 		confRead.mtuDiscovery = true
-	}
-	if item == "multihop" {
+	case item == "multihop":
 		confRead.multihop = true
-	}
-	if strings.HasPrefix(item, "multipath") {
+	case strings.HasPrefix(item, "multipath"):
 		confRead.multipath = true
 		if len(confRead.bgpMultipath) == 0 {
 			confRead.bgpMultipath = append(confRead.bgpMultipath, map[string]interface{}{
@@ -402,32 +401,27 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 		case item == "multipath multiple-as":
 			confRead.bgpMultipath[0]["multiple_as"] = true
 		}
-	}
-	if item == "no-advertise-peer-as" {
+	case item == "no-advertise-peer-as":
 		confRead.noAdvertisePeerAs = true
-	}
-	if strings.HasPrefix(item, "out-delay ") {
+	case strings.HasPrefix(item, "out-delay "):
+		var err error
 		confRead.outDelay, err = strconv.Atoi(strings.TrimPrefix(item, "out-delay "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 		}
-	}
-	if item == passiveW {
+	case item == passiveW:
 		confRead.passive = true
-	}
-	if strings.HasPrefix(item, "peer-as ") {
+	case strings.HasPrefix(item, "peer-as "):
 		confRead.peerAs = strings.TrimPrefix(item, "peer-as ")
-	}
-	if strings.HasPrefix(item, "preference ") {
+	case strings.HasPrefix(item, "preference "):
+		var err error
 		confRead.preference, err = strconv.Atoi(strings.TrimPrefix(item, "preference "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 		}
-	}
-	if item == "remove-private" {
+	case item == "remove-private":
 		confRead.removePrivate = true
-	}
-	if strings.HasPrefix(item, "type ") {
+	case strings.HasPrefix(item, "type "):
 		confRead.bgpType = strings.TrimPrefix(item, "type ")
 	}
 
@@ -442,49 +436,49 @@ func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{},
 	setPrefixBfd := setPrefix + "bfd-liveness-detection "
 	for _, v := range bfdLivenessDetection {
 		if v != nil {
-			m := v.(map[string]interface{})
-			if m["authentication_algorithm"].(string) != "" {
-				configSet = append(configSet, setPrefixBfd+"authentication algorithm "+m["authentication_algorithm"].(string))
+			bfdLD := v.(map[string]interface{})
+			if bfdLD["authentication_algorithm"].(string) != "" {
+				configSet = append(configSet, setPrefixBfd+"authentication algorithm "+bfdLD["authentication_algorithm"].(string))
 			}
-			if m["authentication_key_chain"].(string) != "" {
-				configSet = append(configSet, setPrefixBfd+"authentication key-chain "+m["authentication_key_chain"].(string))
+			if bfdLD["authentication_key_chain"].(string) != "" {
+				configSet = append(configSet, setPrefixBfd+"authentication key-chain "+bfdLD["authentication_key_chain"].(string))
 			}
-			if m["authentication_loose_check"].(bool) {
+			if bfdLD["authentication_loose_check"].(bool) {
 				configSet = append(configSet, setPrefixBfd+"authentication loose-check")
 			}
-			if m["detection_time_threshold"].(int) != 0 {
+			if bfdLD["detection_time_threshold"].(int) != 0 {
 				configSet = append(configSet, setPrefixBfd+"detection-time threshold "+
-					strconv.Itoa(m["detection_time_threshold"].(int)))
+					strconv.Itoa(bfdLD["detection_time_threshold"].(int)))
 			}
-			if m["holddown_interval"].(int) != 0 {
+			if bfdLD["holddown_interval"].(int) != 0 {
 				configSet = append(configSet, setPrefixBfd+"holddown-interval "+
-					strconv.Itoa(m["holddown_interval"].(int)))
+					strconv.Itoa(bfdLD["holddown_interval"].(int)))
 			}
-			if m["minimum_interval"].(int) != 0 {
+			if bfdLD["minimum_interval"].(int) != 0 {
 				configSet = append(configSet, setPrefixBfd+"minimum-interval "+
-					strconv.Itoa(m["minimum_interval"].(int)))
+					strconv.Itoa(bfdLD["minimum_interval"].(int)))
 			}
-			if m["minimum_receive_interval"].(int) != 0 {
+			if bfdLD["minimum_receive_interval"].(int) != 0 {
 				configSet = append(configSet, setPrefixBfd+"minimum-receive-interval "+
-					strconv.Itoa(m["minimum_receive_interval"].(int)))
+					strconv.Itoa(bfdLD["minimum_receive_interval"].(int)))
 			}
-			if m["multiplier"].(int) != 0 {
+			if bfdLD["multiplier"].(int) != 0 {
 				configSet = append(configSet, setPrefixBfd+"multiplier "+
-					strconv.Itoa(m["multiplier"].(int)))
+					strconv.Itoa(bfdLD["multiplier"].(int)))
 			}
-			if m["session_mode"].(string) != "" {
-				configSet = append(configSet, setPrefixBfd+"session-mode "+m["session_mode"].(string))
+			if bfdLD["session_mode"].(string) != "" {
+				configSet = append(configSet, setPrefixBfd+"session-mode "+bfdLD["session_mode"].(string))
 			}
-			if m["transmit_interval_minimum_interval"].(int) != 0 {
+			if bfdLD["transmit_interval_minimum_interval"].(int) != 0 {
 				configSet = append(configSet, setPrefixBfd+"transmit-interval minimum-interval "+
-					strconv.Itoa(m["transmit_interval_minimum_interval"].(int)))
+					strconv.Itoa(bfdLD["transmit_interval_minimum_interval"].(int)))
 			}
-			if m["transmit_interval_threshold"].(int) != 0 {
+			if bfdLD["transmit_interval_threshold"].(int) != 0 {
 				configSet = append(configSet, setPrefixBfd+"transmit-interval threshold "+
-					strconv.Itoa(m["transmit_interval_threshold"].(int)))
+					strconv.Itoa(bfdLD["transmit_interval_threshold"].(int)))
 			}
-			if m["version"].(string) != "" {
-				configSet = append(configSet, setPrefixBfd+"version "+m["version"].(string))
+			if bfdLD["version"].(string) != "" {
+				configSet = append(configSet, setPrefixBfd+"version "+bfdLD["version"].(string))
 			}
 		}
 	}
@@ -497,6 +491,7 @@ func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{},
 
 	return nil
 }
+
 func readBgpOptsBfd(item string, bfdOpts []map[string]interface{}) ([]map[string]interface{}, error) {
 	itemTrim := strings.TrimPrefix(item, "bfd-liveness-detection ")
 	bfdRead := map[string]interface{}{
@@ -518,71 +513,67 @@ func readBgpOptsBfd(item string, bfdOpts []map[string]interface{}) ([]map[string
 			bfdRead[k] = v
 		}
 	}
-	var err error
-	if strings.HasPrefix(itemTrim, "authentication algorithm ") {
+	switch {
+	case strings.HasPrefix(itemTrim, "authentication algorithm "):
 		bfdRead["authentication_algorithm"] = strings.TrimPrefix(itemTrim, "authentication algorithm ")
-	}
-	if strings.HasPrefix(itemTrim, "authentication key-chain ") {
+	case strings.HasPrefix(itemTrim, "authentication key-chain "):
 		bfdRead["authentication_key_chain"] = strings.TrimPrefix(itemTrim, "authentication key-chain ")
-	}
-	if itemTrim == "authentication loose-check" {
+	case itemTrim == "authentication loose-check":
 		bfdRead["authentication_loose_check"] = true
-	}
-	if strings.HasPrefix(itemTrim, "detection-time threshold ") {
+	case strings.HasPrefix(itemTrim, "detection-time threshold "):
+		var err error
 		bfdRead["detection_time_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "detection-time threshold "))
 		if err != nil {
 			return []map[string]interface{}{bfdRead},
 				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
-	}
-	if strings.HasPrefix(itemTrim, "holddown-interval ") {
+	case strings.HasPrefix(itemTrim, "holddown-interval "):
+		var err error
 		bfdRead["holddown_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "holddown-interval "))
 		if err != nil {
 			return []map[string]interface{}{bfdRead},
 				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
-	}
-	if strings.HasPrefix(itemTrim, "minimum-interval ") {
+	case strings.HasPrefix(itemTrim, "minimum-interval "):
+		var err error
 		bfdRead["minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-interval "))
 		if err != nil {
 			return []map[string]interface{}{bfdRead},
 				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
-	}
-	if strings.HasPrefix(itemTrim, "minimum-receive-interval ") {
+	case strings.HasPrefix(itemTrim, "minimum-receive-interval "):
+		var err error
 		bfdRead["minimum_receive_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-receive-interval "))
 		if err != nil {
 			return []map[string]interface{}{bfdRead},
 				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
-	}
-	if strings.HasPrefix(itemTrim, "multiplier ") {
+	case strings.HasPrefix(itemTrim, "multiplier "):
+		var err error
 		bfdRead["multiplier"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "multiplier "))
 		if err != nil {
 			return []map[string]interface{}{bfdRead},
 				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
-	}
-	if strings.HasPrefix(itemTrim, "session-mode ") {
+	case strings.HasPrefix(itemTrim, "session-mode "):
 		bfdRead["session_mode"] = strings.TrimPrefix(itemTrim, "session-mode ")
-	}
-	if strings.HasPrefix(itemTrim, "transmit-interval threshold ") {
+	case strings.HasPrefix(itemTrim, "transmit-interval threshold "):
+		var err error
 		bfdRead["transmit_interval_threshold"], err = strconv.Atoi(
 			strings.TrimPrefix(itemTrim, "transmit-interval threshold "))
 		if err != nil {
 			return []map[string]interface{}{bfdRead},
 				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
-	}
-	if strings.HasPrefix(itemTrim, "transmit-interval minimum-interval ") {
+	case strings.HasPrefix(itemTrim, "transmit-interval minimum-interval "):
+		var err error
 		bfdRead["transmit_interval_minimum_interval"], err = strconv.Atoi(
 			strings.TrimPrefix(itemTrim, "transmit-interval minimum-interval "))
 		if err != nil {
 			return []map[string]interface{}{bfdRead},
 				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
-	}
-	if strings.HasPrefix(itemTrim, "version ") {
+	case strings.HasPrefix(itemTrim, "version "):
 		bfdRead["version"] = strings.TrimPrefix(itemTrim, "version ")
 	}
 
@@ -634,6 +625,7 @@ func setBgpOptsFamily(setPrefix, familyType string, familyOptsList []interface{}
 
 	return nil
 }
+
 func setBgpOptsFamilyPrefixLimit(setPrefix string, prefixLimit map[string]interface{}) ([]string, error) {
 	configSet := make([]string, 0)
 	if prefixLimit["maximum"].(int) != 0 {
@@ -655,6 +647,7 @@ func setBgpOptsFamilyPrefixLimit(setPrefix string, prefixLimit map[string]interf
 
 	return configSet, nil
 }
+
 func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) ([]map[string]interface{}, error) {
 	readOpts := map[string]interface{}{
 		"nlri_type":             "",
@@ -673,10 +666,9 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 	trimSplit := strings.Split(strings.TrimPrefix(item, setPrefix), " ")
 	readOpts["nlri_type"] = trimSplit[0]
 	readOpts, opts = copyAndRemoveItemMapList("nlri_type", false, readOpts, opts)
-
-	var err error
 	itemTrim := strings.TrimPrefix(item, setPrefix+readOpts["nlri_type"].(string)+" ")
-	if strings.HasPrefix(itemTrim, "accepted-prefix-limit ") {
+	switch {
+	case strings.HasPrefix(itemTrim, "accepted-prefix-limit "):
 		readOptsPL := map[string]interface{}{
 			"maximum":                       0,
 			"teardown":                      0,
@@ -688,19 +680,16 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 				readOptsPL[k] = v
 			}
 		}
-		if strings.HasPrefix(itemTrim, "accepted-prefix-limit maximum") {
+		switch {
+		case strings.HasPrefix(itemTrim, "accepted-prefix-limit maximum"):
+			var err error
 			readOptsPL["maximum"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "accepted-prefix-limit maximum "))
 			if err != nil {
 				return append(opts, readOpts), fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
-		}
-		if strings.HasPrefix(itemTrim, "accepted-prefix-limit teardown ") && !strings.Contains(itemTrim, " idle-timeout ") {
-			readOptsPL["teardown"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "accepted-prefix-limit teardown "))
-			if err != nil {
-				return append(opts, readOpts), fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
-			}
-		}
-		if strings.HasPrefix(itemTrim, "accepted-prefix-limit teardown idle-timeout ") {
+
+		case strings.HasPrefix(itemTrim, "accepted-prefix-limit teardown idle-timeout "):
+			var err error
 			if !strings.HasSuffix(itemTrim, " forever") {
 				readOptsPL["teardown_idle_timeout"], err = strconv.Atoi(
 					strings.TrimPrefix(itemTrim, "accepted-prefix-limit teardown idle-timeout "))
@@ -710,11 +699,16 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 			} else {
 				readOptsPL["teardown_idle_timeout_forever"] = true
 			}
+		case strings.HasPrefix(itemTrim, "accepted-prefix-limit teardown "):
+			var err error
+			readOptsPL["teardown"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "accepted-prefix-limit teardown "))
+			if err != nil {
+				return append(opts, readOpts), fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
 		}
 		// override (maxItem = 1)
 		readOpts["accepted_prefix_limit"] = []map[string]interface{}{readOptsPL}
-	}
-	if strings.HasPrefix(itemTrim, "prefix-limit ") {
+	case strings.HasPrefix(itemTrim, "prefix-limit "):
 		readOptsPL := map[string]interface{}{
 			"maximum":                       0,
 			"teardown":                      0,
@@ -726,20 +720,15 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 				readOptsPL[k] = v
 			}
 		}
-
-		if strings.HasPrefix(itemTrim, "prefix-limit maximum ") {
+		switch {
+		case strings.HasPrefix(itemTrim, "prefix-limit maximum "):
+			var err error
 			readOptsPL["maximum"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "prefix-limit maximum "))
 			if err != nil {
 				return append(opts, readOpts), fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
-		}
-		if strings.HasPrefix(itemTrim, "prefix-limit teardown ") && !strings.Contains(itemTrim, " idle-timeout ") {
-			readOptsPL["teardown"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "prefix-limit teardown "))
-			if err != nil {
-				return append(opts, readOpts), fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
-			}
-		}
-		if strings.HasPrefix(itemTrim, "prefix-limit teardown idle-timeout ") {
+		case strings.HasPrefix(itemTrim, "prefix-limit teardown idle-timeout "):
+			var err error
 			if !strings.HasSuffix(itemTrim, " forever") {
 				readOptsPL["teardown_idle_timeout"], err = strconv.Atoi(
 					strings.TrimPrefix(itemTrim, "prefix-limit teardown idle-timeout "))
@@ -749,6 +738,12 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 			} else {
 				readOptsPL["teardown_idle_timeout_forever"] = true
 			}
+		case strings.HasPrefix(itemTrim, "prefix-limit teardown "):
+			var err error
+			readOptsPL["teardown"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "prefix-limit teardown "))
+			if err != nil {
+				return append(opts, readOpts), fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
 		}
 		// override (maxItem = 1)
 		readOpts["prefix_limit"] = []map[string]interface{}{readOptsPL}
@@ -756,6 +751,7 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 
 	return append(opts, readOpts), nil
 }
+
 func setBgpOptsGrafefulRestart(setPrefix string, gracefulRestarts []interface{},
 	m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
@@ -763,17 +759,17 @@ func setBgpOptsGrafefulRestart(setPrefix string, gracefulRestarts []interface{},
 
 	for _, v := range gracefulRestarts {
 		if v != nil {
-			m := v.(map[string]interface{})
-			if m["disable"].(bool) {
+			gRestart := v.(map[string]interface{})
+			if gRestart["disable"].(bool) {
 				configSet = append(configSet, setPrefix+"graceful-restart disable")
 			}
-			if m["restart_time"].(int) != 0 {
+			if gRestart["restart_time"].(int) != 0 {
 				configSet = append(configSet, setPrefix+"graceful-restart restart-time "+
-					strconv.Itoa(m["restart_time"].(int)))
+					strconv.Itoa(gRestart["restart_time"].(int)))
 			}
-			if m["stale_route_time"].(int) != 0 {
+			if gRestart["stale_route_time"].(int) != 0 {
 				configSet = append(configSet, setPrefix+"graceful-restart stale-routes-time "+
-					strconv.Itoa(m["stale_route_time"].(int)))
+					strconv.Itoa(gRestart["stale_route_time"].(int)))
 			}
 		}
 	}
@@ -786,6 +782,7 @@ func setBgpOptsGrafefulRestart(setPrefix string, gracefulRestarts []interface{},
 
 	return nil
 }
+
 func readBgpOptsGracefulRestart(item string, grOpts []map[string]interface{}) ([]map[string]interface{}, error) {
 	itemTrim := strings.TrimPrefix(item, "graceful-restart ")
 	grRead := map[string]interface{}{
@@ -798,18 +795,18 @@ func readBgpOptsGracefulRestart(item string, grOpts []map[string]interface{}) ([
 			grRead[k] = v
 		}
 	}
-	var err error
-	if itemTrim == disableW {
+	switch {
+	case itemTrim == disableW:
 		grRead["disable"] = true
-	}
-	if strings.HasPrefix(itemTrim, "restart-time ") {
+	case strings.HasPrefix(itemTrim, "restart-time "):
+		var err error
 		grRead["restart_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "restart-time "))
 		if err != nil {
 			return []map[string]interface{}{grRead},
 				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
-	}
-	if strings.HasPrefix(itemTrim, "stale-routes-time ") {
+	case strings.HasPrefix(itemTrim, "stale-routes-time "):
+		var err error
 		grRead["stale_route_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "stale-routes-time "))
 		if err != nil {
 			return []map[string]interface{}{grRead},

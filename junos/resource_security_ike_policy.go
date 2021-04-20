@@ -103,27 +103,27 @@ func resourceIkePolicyCreate(ctx context.Context, d *schema.ResourceData, m inte
 			jnprSess.SystemInformation.HardwareModel))
 	}
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	ikePolicyExists, err := checkIkePolicyExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if ikePolicyExists {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(fmt.Errorf("security ike policy %v already exists", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("security ike policy %v already exists", d.Get("name").(string)))...)
 	}
 	if err := setIkePolicy(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("create resource junos_security_ike_policy", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -140,6 +140,7 @@ func resourceIkePolicyCreate(ctx context.Context, d *schema.ResourceData, m inte
 
 	return append(diagWarns, resourceIkePolicyReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceIkePolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -150,6 +151,7 @@ func resourceIkePolicyRead(ctx context.Context, d *schema.ResourceData, m interf
 
 	return resourceIkePolicyReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceIkePolicyReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
 	ikePolicyOptions, err := readIkePolicy(d.Get("name").(string), m, jnprSess)
@@ -165,6 +167,7 @@ func resourceIkePolicyReadWJnprSess(d *schema.ResourceData, m interface{}, jnprS
 
 	return nil
 }
+
 func resourceIkePolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -174,21 +177,21 @@ func resourceIkePolicyUpdate(ctx context.Context, d *schema.ResourceData, m inte
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if err := delIkePolicy(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setIkePolicy(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("update resource junos_security_ike_policy", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -197,6 +200,7 @@ func resourceIkePolicyUpdate(ctx context.Context, d *schema.ResourceData, m inte
 
 	return append(diagWarns, resourceIkePolicyReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceIkePolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -205,22 +209,23 @@ func resourceIkePolicyDelete(ctx context.Context, d *schema.ResourceData, m inte
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if err := delIkePolicy(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := delIkePolicy(d, m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("delete resource junos_security_ike_policy", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	return diagWarns
 }
+
 func resourceIkePolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -258,6 +263,7 @@ func checkIkePolicyExists(ikePolicy string, m interface{}, jnprSess *NetconfObje
 
 	return true, nil
 }
+
 func setIkePolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -284,6 +290,7 @@ func setIkePolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readIkePolicy(ikePolicy string, m interface{}, jnprSess *NetconfObject) (ikePolicyOptions, error) {
 	sess := m.(*Session)
 	var confRead ikePolicyOptions
@@ -328,6 +335,7 @@ func readIkePolicy(ikePolicy string, m interface{}, jnprSess *NetconfObject) (ik
 
 	return confRead, nil
 }
+
 func delIkePolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)

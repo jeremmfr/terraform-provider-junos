@@ -64,6 +64,7 @@ resource junos_routing_options "testacc_routing_options" {
 }
 `
 }
+
 func testAccJunosRoutingOptionsConfigUpdate() string {
 	return `
 resource junos_routing_options "testacc_routing_options" {

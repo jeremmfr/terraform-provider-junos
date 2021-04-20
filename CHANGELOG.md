@@ -3,6 +3,42 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+## 1.15.0 (April 20, 2021)
+FEATURES:
+* add `junos_forwardingoptions_sampling_instance` resource (Fixes parts of [#165](https://github.com/jeremmfr/terraform-provider-junos/issues/165))
+* add `junos_generate_route` resource
+* add `junos_services` resource (Fixes parts of [#145](https://github.com/jeremmfr/terraform-provider-junos/issues/145), [#158](https://github.com/jeremmfr/terraform-provider-junos/issues/158))
+* add `junos_services_flowmonitoring_vipfix_template` resource (Fixes parts of [#165](https://github.com/jeremmfr/terraform-provider-junos/issues/165))
+* add `junos_services_proxy_profile` resource
+* add `junos_services_security_intelligence_policy` resource (Fixes parts of [#145](https://github.com/jeremmfr/terraform-provider-junos/issues/145))
+* add `junos_services_security_intelligence_profile` resource (Fixes parts of [#145](https://github.com/jeremmfr/terraform-provider-junos/issues/145))
+* add `junos_snmp` resource (Fixes parts of [#170](https://github.com/jeremmfr/terraform-provider-junos/issues/170))
+* add `junos_snmp_clientlist` resource
+* add `junos_snmp_community` resource (Fixes parts of [#170](https://github.com/jeremmfr/terraform-provider-junos/issues/170))
+* add `junos_snmp_view` resource
+
+ENHANCEMENTS:
+* resource/`junos_aggregate_route`: add `as_path_*` arguments, add support IPv6 Routes and simplify delete lines when update
+* resource/`junos_bgp_group`: add `keep_all` and `keep_none` arguments
+* resource/`junos_bgp_neighbor`: add `keep_all` and `keep_none` arguments
+* resource/`junos_group_dual_system`: add `family_inet6_address` argument inside `interface_fxp0` argument (Fixes [#177](https://github.com/jeremmfr/terraform-provider-junos/issues/177))
+* resource/`junos_interface_logical`: add `sampling_input` and `sampling_output` arguments in `family_inet` and `family_inet6` arguments (Fixes parts of [#165](https://github.com/jeremmfr/terraform-provider-junos/issues/165))
+* data-source/`junos_interface_logical`: add `sampling_input` and `sampling_output` attributes in `family_inet` and `family_inet6` attributes
+* resource/`junos_security`: add `forwarding_process` argument (Fixes parts of [#158](https://github.com/jeremmfr/terraform-provider-junos/issues/158))
+* resource/`junos_security`: add `rsh_disable` and `sql_disable` arguments (Fixes [#182](https://github.com/jeremmfr/terraform-provider-junos/issues/182)) Thanks [@edpio19](https://github.com/edpio19)
+* resource/`junos_security_global_policy`: add `match_destination_address_excluded` and `match_source_address_excluded` arguments (Fixes [#159](https://github.com/jeremmfr/terraform-provider-junos/issues/159))
+* resource/`junos_security_global_policy`: add `match_dynamic_application` arguments (Fixes parts of [#158](https://github.com/jeremmfr/terraform-provider-junos/issues/158))
+* resource/`junos_security_nat_source_pool`: add `pool_utilization_alarm_raise_threshold` and `pool_utilization_alarm_clear_threshold` arguments (Fixes [#171](https://github.com/jeremmfr/terraform-provider-junos/issues/171)) Thanks [@edpio19](https://github.com/edpio19)
+* resource/`junos_security_policy`: add `match_destination_address_excluded` and `match_source_address_excluded` arguments (Fixes [#159](https://github.com/jeremmfr/terraform-provider-junos/issues/159))
+* resource/`junos_security_policy`: add `match_dynamic_application` arguments (Fixes parts of [#158](https://github.com/jeremmfr/terraform-provider-junos/issues/158))
+* resource/`junos_static_route`: add `as_path_*` arguments and simplify delete lines when update
+* resource/`junos_vlan`: add `vni_extend_evpn` argument inside `vxlan` argument (Fixes [#132](https://github.com/jeremmfr/terraform-provider-junos/issues/132)) Thanks [@dejongm](https://github.com/dejongm)
+* clean code: remove useless type/func exporting, and fixes formating golang code
+
+BUG FIXES:
+* fix panic when candidate config clear or unlock generate Junos error(s)
+* fix missing MinItems=1 on a part of required `ListOfString` arguments
+
 ## 1.14.0 (March 19, 2021)
 FEATURES:
 * add `junos_chassis_cluster` resource (Fixes parts of [#106](https://github.com/jeremmfr/terraform-provider-junos/issues/106))

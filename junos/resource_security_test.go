@@ -283,9 +283,11 @@ resource junos_security "testacc_security" {
     mgcp_disable   = true
     msrpc_disable  = true
     pptp_disable   = true
+    rsh_disable    = true
     rtsp_disable   = true
     sccp_disable   = true
     sip_disable    = true
+    sql_disable    = true
     sunrpc_disable = true
     talk_disable   = true
     tftp_disable   = true
@@ -340,6 +342,9 @@ resource junos_security "testacc_security" {
     mpls_mode             = "flow-based"
     iso_mode_packet_based = "true"
   }
+  forwarding_process {
+    enhanced_services_mode = true
+  }
   ike_traceoptions {
     file {
       name           = "ike.log"
@@ -382,6 +387,7 @@ resource junos_security "testacc_security" {
 }
 `
 }
+
 func testAccJunosSecurityConfigUpdate(interFace string) string {
 	return `
 resource junos_interface_logical "testacc_security" {
@@ -451,6 +457,9 @@ resource junos_routing_instance testacc_security {
 
 func testAccJunosSecurityConfigUpdate2() string {
 	return `
+resource junos_routing_instance testacc_security {
+  name = "testacc_security"
+}
 resource junos_security "testacc_security" {
   flow {
     tcp_session {
@@ -462,6 +471,7 @@ resource junos_security "testacc_security" {
 }
 `
 }
+
 func testAccJunosSecurityConfigPostCheck() string {
 	return `
 resource junos_security "testacc_security" {
@@ -472,9 +482,11 @@ resource junos_security "testacc_security" {
     mgcp_disable   = true
     msrpc_disable  = true
     pptp_disable   = true
+    rsh_disable    = true
     rtsp_disable   = true
     sccp_disable   = true
     sip_disable    = true
+    sql_disable    = true
     sunrpc_disable = true
     talk_disable   = true
     tftp_disable   = true

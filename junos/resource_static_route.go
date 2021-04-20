@@ -12,27 +12,32 @@ import (
 )
 
 type staticRouteOptions struct {
-	active           bool
-	discard          bool
-	install          bool
-	noInstall        bool
-	passive          bool
-	readvertise      bool
-	noReadvertise    bool
-	receive          bool
-	reject           bool
-	resolve          bool
-	noResolve        bool
-	retain           bool
-	noRetain         bool
-	preference       int
-	metric           int
-	destination      string
-	routingInstance  string
-	nextTable        string
-	community        []string
-	nextHop          []string
-	qualifiedNextHop []map[string]interface{}
+	active                   bool
+	asPathAtomicAggregate    bool
+	discard                  bool
+	install                  bool
+	noInstall                bool
+	passive                  bool
+	readvertise              bool
+	noReadvertise            bool
+	receive                  bool
+	reject                   bool
+	resolve                  bool
+	noResolve                bool
+	retain                   bool
+	noRetain                 bool
+	preference               int
+	metric                   int
+	asPathAggregatorAddress  string
+	asPathAggregatorAsNumber string
+	asPathOrigin             string
+	asPathPath               string
+	destination              string
+	routingInstance          string
+	nextTable                string
+	community                []string
+	nextHop                  []string
+	qualifiedNextHop         []map[string]interface{}
 }
 
 func resourceStaticRoute() *schema.Resource {
@@ -62,6 +67,30 @@ func resourceStaticRoute() *schema.Resource {
 				Type:          schema.TypeBool,
 				Optional:      true,
 				ConflictsWith: []string{"passive"},
+			},
+			"as_path_aggregator_address": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				RequiredWith: []string{"as_path_aggregator_as_number"},
+				ValidateFunc: validation.IsIPAddress,
+			},
+			"as_path_aggregator_as_number": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				RequiredWith: []string{"as_path_aggregator_address"},
+			},
+			"as_path_atomic_aggregate": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"as_path_origin": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"egp", "igp", "incomplete"}, false),
+			},
+			"as_path_path": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"community": {
 				Type:     schema.TypeList,
@@ -192,42 +221,43 @@ func resourceStaticRouteCreate(ctx context.Context, d *schema.ResourceData, m in
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultWord {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
-			sess.configClear(jnprSess)
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-			return diag.FromErr(err)
+			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if !instanceExists {
-			sess.configClear(jnprSess)
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-			return diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))
+			return append(diagWarns,
+				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))...)
 		}
 	}
 	staticRouteExists, err := checkStaticRouteExists(d.Get("destination").(string), d.Get("routing_instance").(string),
 		m, jnprSess)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if staticRouteExists {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(fmt.Errorf("static route %v already exists on table %s",
-			d.Get("destination").(string), d.Get("routing_instance").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("static route %v already exists on table %s",
+			d.Get("destination").(string), d.Get("routing_instance").(string)))...)
 	}
 	if err := setStaticRoute(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("create resource junos_static_route", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -245,6 +275,7 @@ func resourceStaticRouteCreate(ctx context.Context, d *schema.ResourceData, m in
 
 	return append(diagWarns, resourceStaticRouteReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceStaticRouteRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -255,6 +286,7 @@ func resourceStaticRouteRead(ctx context.Context, d *schema.ResourceData, m inte
 
 	return resourceStaticRouteReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceStaticRouteReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
 	staticRouteOptions, err := readStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string),
@@ -271,6 +303,7 @@ func resourceStaticRouteReadWJnprSess(d *schema.ResourceData, m interface{}, jnp
 
 	return nil
 }
+
 func resourceStaticRouteUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -280,22 +313,21 @@ func resourceStaticRouteUpdate(ctx context.Context, d *schema.ResourceData, m in
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if err := delStaticRouteOpts(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
-
-	if err := setStaticRoute(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
+	if err := setStaticRoute(d, m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("update resource junos_static_route", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -304,6 +336,7 @@ func resourceStaticRouteUpdate(ctx context.Context, d *schema.ResourceData, m in
 
 	return append(diagWarns, resourceStaticRouteReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceStaticRouteDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -312,22 +345,23 @@ func resourceStaticRouteDelete(ctx context.Context, d *schema.ResourceData, m in
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if err := delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("delete resource junos_static_route", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	return diagWarns
 }
+
 func resourceStaticRouteImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -399,6 +433,7 @@ func checkStaticRouteExists(destination string, instance string, m interface{}, 
 
 	return true, nil
 }
+
 func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -422,6 +457,21 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	}
 	if d.Get("active").(bool) {
 		configSet = append(configSet, setPrefix+" active")
+	}
+	if d.Get("as_path_aggregator_address").(string) != "" &&
+		d.Get("as_path_aggregator_as_number").(string) != "" {
+		configSet = append(configSet, setPrefix+" as-path aggregator "+
+			d.Get("as_path_aggregator_as_number").(string)+" "+
+			d.Get("as_path_aggregator_address").(string))
+	}
+	if d.Get("as_path_atomic_aggregate").(bool) {
+		configSet = append(configSet, setPrefix+" as-path atomic-aggregate")
+	}
+	if v := d.Get("as_path_origin").(string); v != "" {
+		configSet = append(configSet, setPrefix+" as-path origin "+v)
+	}
+	if v := d.Get("as_path_path").(string); v != "" {
+		configSet = append(configSet, setPrefix+" as-path path \""+v+"\"")
 	}
 	for _, v := range d.Get("community").([]interface{}) {
 		configSet = append(configSet, setPrefix+" community "+v.(string))
@@ -496,6 +546,7 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readStaticRoute(destination string, instance string, m interface{},
 	jnprSess *NetconfObject) (staticRouteOptions, error) {
 	sess := m.(*Session)
@@ -539,6 +590,16 @@ func readStaticRoute(destination string, instance string, m interface{},
 			switch {
 			case itemTrim == "active":
 				confRead.active = true
+			case strings.HasPrefix(itemTrim, "as-path aggregator "):
+				itemTrimSplit := strings.Split(itemTrim, " ")
+				confRead.asPathAggregatorAsNumber = itemTrimSplit[2]
+				confRead.asPathAggregatorAddress = itemTrimSplit[3]
+			case itemTrim == asPathAtomicAggregate:
+				confRead.asPathAtomicAggregate = true
+			case strings.HasPrefix(itemTrim, "as-path origin "):
+				confRead.asPathOrigin = strings.TrimPrefix(itemTrim, "as-path origin ")
+			case strings.HasPrefix(itemTrim, "as-path path "):
+				confRead.asPathPath = strings.Trim(strings.TrimPrefix(itemTrim, "as-path path "), "\"")
 			case strings.HasPrefix(itemTrim, "community "):
 				confRead.community = append(confRead.community, strings.TrimPrefix(itemTrim, "community "))
 			case itemTrim == discardW:
@@ -615,54 +676,6 @@ func readStaticRoute(destination string, instance string, m interface{},
 	return confRead, nil
 }
 
-func delStaticRouteOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
-	configSet := make([]string, 0)
-	delPrefix := "delete "
-	if d.Get("routing_instance").(string) == defaultWord {
-		if !strings.Contains(d.Get("destination").(string), ":") {
-			delPrefix += "routing-options static route "
-		} else {
-			delPrefix += "routing-options rib inet6.0 static route "
-		}
-	} else {
-		if !strings.Contains(d.Get("destination").(string), ":") {
-			delPrefix += "routing-instances " + d.Get("routing_instance").(string) + " routing-options static route "
-		} else {
-			delPrefix += "routing-instances " + d.Get("routing_instance").(string) +
-				" routing-options rib " + d.Get("routing_instance").(string) + ".inet6.0 static route "
-		}
-	}
-	delPrefix += d.Get("destination").(string) + " "
-	configSet = append(configSet,
-		delPrefix+"active",
-		delPrefix+"community",
-		delPrefix+"discard",
-		delPrefix+"install",
-		delPrefix+"no-install",
-		delPrefix+"metric",
-		delPrefix+"next-hop",
-		delPrefix+"next-table",
-		delPrefix+"passive",
-		delPrefix+"preference",
-		delPrefix+"readvertise",
-		delPrefix+"no-readvertise",
-		delPrefix+"receive",
-		delPrefix+"reject",
-		delPrefix+"resolve",
-		delPrefix+"no-resolve",
-		delPrefix+"retain",
-		delPrefix+"no-retain")
-	if d.HasChange("qualified_next_hop") {
-		oQualifiedNextHop, _ := d.GetChange("qualified_next_hop")
-		for _, v := range oQualifiedNextHop.([]interface{}) {
-			qualifiedNextHop := v.(map[string]interface{})
-			configSet = append(configSet, delPrefix+"qualified-next-hop "+qualifiedNextHop["next_hop"].(string))
-		}
-	}
-
-	return sess.configSet(configSet, jnprSess)
-}
 func delStaticRoute(destination string, instance string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
@@ -692,6 +705,21 @@ func fillStaticRouteData(d *schema.ResourceData, staticRouteOptions staticRouteO
 		panic(tfErr)
 	}
 	if tfErr := d.Set("active", staticRouteOptions.active); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("as_path_aggregator_address", staticRouteOptions.asPathAggregatorAddress); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("as_path_aggregator_as_number", staticRouteOptions.asPathAggregatorAsNumber); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("as_path_atomic_aggregate", staticRouteOptions.asPathAtomicAggregate); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("as_path_origin", staticRouteOptions.asPathOrigin); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("as_path_path", staticRouteOptions.asPathPath); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("community", staticRouteOptions.community); tfErr != nil {

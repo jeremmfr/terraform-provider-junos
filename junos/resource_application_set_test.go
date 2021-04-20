@@ -46,6 +46,7 @@ resource "junos_application_set" "testacc_app_set" {
 }
 `
 }
+
 func testAccJunosApplicationSetConfigUpdate() string {
 	return `
 resource "junos_application_set" "testacc_app_set" {

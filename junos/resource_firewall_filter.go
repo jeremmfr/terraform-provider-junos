@@ -37,8 +37,8 @@ func resourceFirewallFilter() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					inetWord, inet6Word, "any", "ccc", "mpls", "vpls", "ethernet-switching"}, false),
+				ValidateFunc: validation.StringInSlice(
+					[]string{inetWord, inet6Word, "any", "ccc", "mpls", "vpls", "ethernet-switching"}, false),
 			},
 			"interface_specific": {
 				Type:     schema.TypeBool,
@@ -284,28 +284,28 @@ func resourceFirewallFilterCreate(ctx context.Context, d *schema.ResourceData, m
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	firewallFilterExists, err := checkFirewallFilterExists(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if firewallFilterExists {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(fmt.Errorf("firewall filter %v already exists", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("firewall filter %v already exists", d.Get("name").(string)))...)
 	}
 
 	if err := setFirewallFilter(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("create resource junos_firewall_filter", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -322,6 +322,7 @@ func resourceFirewallFilterCreate(ctx context.Context, d *schema.ResourceData, m
 
 	return append(diagWarns, resourceFirewallFilterReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceFirewallFilterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -332,6 +333,7 @@ func resourceFirewallFilterRead(ctx context.Context, d *schema.ResourceData, m i
 
 	return resourceFirewallFilterReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceFirewallFilterReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -348,6 +350,7 @@ func resourceFirewallFilterReadWJnprSess(
 
 	return nil
 }
+
 func resourceFirewallFilterUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -357,21 +360,21 @@ func resourceFirewallFilterUpdate(ctx context.Context, d *schema.ResourceData, m
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setFirewallFilter(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("update resource junos_firewall_filter", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -379,6 +382,7 @@ func resourceFirewallFilterUpdate(ctx context.Context, d *schema.ResourceData, m
 
 	return append(diagWarns, resourceFirewallFilterReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceFirewallFilterDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -387,22 +391,23 @@ func resourceFirewallFilterDelete(ctx context.Context, d *schema.ResourceData, m
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("delete resource junos_firewall_filter", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	return diagWarns
 }
+
 func resourceFirewallFilterImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -446,6 +451,7 @@ func checkFirewallFilterExists(name, family string, m interface{}, jnprSess *Net
 
 	return true, nil
 }
+
 func setFirewallFilter(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -475,6 +481,7 @@ func setFirewallFilter(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfObject) (filterOptions, error) {
 	sess := m.(*Session)
 	var confRead filterOptions
@@ -535,6 +542,7 @@ func delFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfOb
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func fillFirewallFilterData(d *schema.ResourceData, filterOptions filterOptions) {
 	if tfErr := d.Set("name", filterOptions.name); tfErr != nil {
 		panic(tfErr)
@@ -694,6 +702,7 @@ func setFirewallFilterOptsFrom(setPrefixTermFrom string,
 
 	return configSet, nil
 }
+
 func setFirewallFilterOptsThen(setPrefixTermThen string, configSet []string, thenMap map[string]interface{}) []string {
 	if thenMap["action"].(string) != "" {
 		configSet = append(configSet, setPrefixTermThen+thenMap["action"].(string))
@@ -725,6 +734,7 @@ func setFirewallFilterOptsThen(setPrefixTermThen string, configSet []string, the
 
 	return configSet
 }
+
 func readFirewallFilterOptsFrom(item string,
 	confReadElement []map[string]interface{}) []map[string]interface{} {
 	fromMap := genMapFirewallFilterOptsFrom()
@@ -834,6 +844,7 @@ func readFirewallFilterOptsFrom(item string,
 	// override (maxItem = 1)
 	return []map[string]interface{}{fromMap}
 }
+
 func readFirewallFilterOptsThen(item string,
 	confReadElement []map[string]interface{}) []map[string]interface{} {
 	thenMap := genMapFirewallFilterOptsThen()
@@ -903,6 +914,7 @@ func genMapFirewallFilterOptsFrom() map[string]interface{} {
 		"tcp_initial":                    false,
 	}
 }
+
 func genMapFirewallFilterOptsThen() map[string]interface{} {
 	return map[string]interface{}{
 		"action":             "",

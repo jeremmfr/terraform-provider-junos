@@ -39,7 +39,6 @@ func dataSourceSystemInformation() *schema.Resource {
 func dataSourceSystemInformationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	j, err := sess.startNewSession()
-
 	if err != nil {
 		return diag.FromErr(err)
 	}

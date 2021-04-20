@@ -173,6 +173,14 @@ func dataSourceInterfaceLogical() *schema.Resource {
 								},
 							},
 						},
+						"sampling_input": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"sampling_output": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -301,6 +309,14 @@ func dataSourceInterfaceLogical() *schema.Resource {
 									},
 								},
 							},
+						},
+						"sampling_input": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"sampling_output": {
+							Type:     schema.TypeBool,
+							Computed: true,
 						},
 					},
 				},

@@ -87,6 +87,7 @@ resource junos_vlan "testacc_vlansw" {
 }
 `
 }
+
 func testAccJunosVlanSwConfigUpdate() string {
 	return `
 resource junos_firewall_filter "testacc_vlansw" {

@@ -82,28 +82,29 @@ func resourceSecurityNatDestinationPoolCreate(
 			jnprSess.SystemInformation.HardwareModel))
 	}
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	securityNatDestinationPoolExists, err := checkSecurityNatDestinationPoolExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityNatDestinationPoolExists {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(fmt.Errorf("security nat destination pool %v already exists", d.Get("name").(string)))
+		return append(diagWarns,
+			diag.FromErr(fmt.Errorf("security nat destination pool %v already exists", d.Get("name").(string)))...)
 	}
 
 	if err := setSecurityNatDestinationPool(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("create resource junos_security_nat_destination_pool", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -120,6 +121,7 @@ func resourceSecurityNatDestinationPoolCreate(
 
 	return append(diagWarns, resourceSecurityNatDestinationPoolReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityNatDestinationPoolRead(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -131,6 +133,7 @@ func resourceSecurityNatDestinationPoolRead(
 
 	return resourceSecurityNatDestinationPoolReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityNatDestinationPoolReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -147,6 +150,7 @@ func resourceSecurityNatDestinationPoolReadWJnprSess(
 
 	return nil
 }
+
 func resourceSecurityNatDestinationPoolUpdate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
@@ -157,21 +161,21 @@ func resourceSecurityNatDestinationPoolUpdate(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if err := delSecurityNatDestinationPool(d.Get("name").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setSecurityNatDestinationPool(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("update resource junos_security_nat_destination_pool", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -179,6 +183,7 @@ func resourceSecurityNatDestinationPoolUpdate(
 
 	return append(diagWarns, resourceSecurityNatDestinationPoolReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityNatDestinationPoolDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
@@ -188,22 +193,23 @@ func resourceSecurityNatDestinationPoolDelete(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if err := delSecurityNatDestinationPool(d.Get("name").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := delSecurityNatDestinationPool(d.Get("name").(string), m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("delete resource junos_security_nat_destination_pool", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	return diagWarns
 }
+
 func resourceSecurityNatDestinationPoolImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -244,6 +250,7 @@ func checkSecurityNatDestinationPoolExists(name string, m interface{}, jnprSess 
 
 	return true, nil
 }
+
 func setSecurityNatDestinationPool(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -262,6 +269,7 @@ func setSecurityNatDestinationPool(d *schema.ResourceData, m interface{}, jnprSe
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readSecurityNatDestinationPool(natDestinationPool string,
 	m interface{}, jnprSess *NetconfObject) (natDestinationPoolOptions, error) {
 	sess := m.(*Session)
@@ -308,6 +316,7 @@ func delSecurityNatDestinationPool(natDestinationPool string, m interface{}, jnp
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func fillSecurityNatDestinationPoolData(d *schema.ResourceData, natDestinationPoolOptions natDestinationPoolOptions) {
 	if tfErr := d.Set("name", natDestinationPoolOptions.name); tfErr != nil {
 		panic(tfErr)

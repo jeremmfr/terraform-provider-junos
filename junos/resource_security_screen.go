@@ -599,28 +599,28 @@ func resourceSecurityScreenCreate(ctx context.Context, d *schema.ResourceData, m
 			jnprSess.SystemInformation.HardwareModel))
 	}
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	securityScreenExists, err := checkSecurityScreenExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityScreenExists {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(fmt.Errorf("security screen %v already exists", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("security screen %v already exists", d.Get("name").(string)))...)
 	}
 
 	if err := setSecurityScreen(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("create resource junos_security_screen", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -637,6 +637,7 @@ func resourceSecurityScreenCreate(ctx context.Context, d *schema.ResourceData, m
 
 	return append(diagWarns, resourceSecurityScreenReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityScreenRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -647,6 +648,7 @@ func resourceSecurityScreenRead(ctx context.Context, d *schema.ResourceData, m i
 
 	return resourceSecurityScreenReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityScreenReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -663,6 +665,7 @@ func resourceSecurityScreenReadWJnprSess(
 
 	return nil
 }
+
 func resourceSecurityScreenUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -672,23 +675,22 @@ func resourceSecurityScreenUpdate(ctx context.Context, d *schema.ResourceData, m
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-
+	var diagWarns diag.Diagnostics
 	if err := delSecurityScreen(d.Get("name").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	if err := setSecurityScreen(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("update resource junos_security_screen", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -696,6 +698,7 @@ func resourceSecurityScreenUpdate(ctx context.Context, d *schema.ResourceData, m
 
 	return append(diagWarns, resourceSecurityScreenReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityScreenDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -704,22 +707,23 @@ func resourceSecurityScreenDelete(ctx context.Context, d *schema.ResourceData, m
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if err := delSecurityScreen(d.Get("name").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := delSecurityScreen(d.Get("name").(string), m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("delete resource junos_security_screen", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	return diagWarns
 }
+
 func resourceSecurityScreenImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -759,6 +763,7 @@ func checkSecurityScreenExists(name string, m interface{}, jnprSess *NetconfObje
 
 	return true, nil
 }
+
 func setSecurityScreen(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -827,6 +832,7 @@ func setSecurityScreen(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func setSecurityScreenIcmp(icmp map[string]interface{}, setPrefix string) []string {
 	configSet := make([]string, 0)
 	setPrefix += "icmp "
@@ -865,6 +871,7 @@ func setSecurityScreenIcmp(icmp map[string]interface{}, setPrefix string) []stri
 
 	return configSet
 }
+
 func checkSetSecurityScreenIP(ip map[string]interface{}) error {
 	if !ip["bad_option"].(bool) &&
 		!ip["block_frag"].(bool) &&
@@ -887,6 +894,7 @@ func checkSetSecurityScreenIP(ip map[string]interface{}) error {
 
 	return nil
 }
+
 func setSecurityScreenIP(ip map[string]interface{}, setPrefix string) ([]string, error) {
 	configSet := make([]string, 0)
 	setPrefix += "ip "
@@ -1092,6 +1100,7 @@ func setSecurityScreenIP(ip map[string]interface{}, setPrefix string) ([]string,
 
 	return configSet, nil
 }
+
 func setSecurityScreenTCP(tcp map[string]interface{}, setPrefix string) ([]string, error) {
 	configSet := make([]string, 0)
 	setPrefix += "tcp "
@@ -1194,6 +1203,7 @@ func setSecurityScreenTCP(tcp map[string]interface{}, setPrefix string) ([]strin
 
 	return configSet, nil
 }
+
 func setSecurityScreenUDP(udp map[string]interface{}, setPrefix string) []string {
 	configSet := make([]string, 0)
 	setPrefix += "udp "
@@ -1233,6 +1243,7 @@ func setSecurityScreenUDP(udp map[string]interface{}, setPrefix string) []string
 
 	return configSet
 }
+
 func readSecurityScreen(name string, m interface{}, jnprSess *NetconfObject) (screenOptions, error) {
 	sess := m.(*Session)
 	var confRead screenOptions
@@ -1302,6 +1313,7 @@ func readSecurityScreen(name string, m interface{}, jnprSess *NetconfObject) (sc
 
 	return confRead, nil
 }
+
 func readSecurityScreenIcmp(confRead *screenOptions, itemTrim string) error {
 	if len(confRead.icmp) == 0 {
 		confRead.icmp = append(confRead.icmp, map[string]interface{}{
@@ -1354,6 +1366,7 @@ func readSecurityScreenIcmp(confRead *screenOptions, itemTrim string) error {
 
 	return nil
 }
+
 func readSecurityScreenIP(confRead *screenOptions, itemTrim string) error {
 	if len(confRead.ip) == 0 {
 		confRead.ip = append(confRead.ip, map[string]interface{}{
@@ -1593,6 +1606,7 @@ func readSecurityScreenIP(confRead *screenOptions, itemTrim string) error {
 
 	return nil
 }
+
 func readSecurityScreenTCP(confRead *screenOptions, itemTrim string) error {
 	if len(confRead.tcp) == 0 {
 		confRead.tcp = append(confRead.tcp, map[string]interface{}{
@@ -1712,25 +1726,25 @@ func readSecurityScreenTCP(confRead *screenOptions, itemTrim string) error {
 			}
 		case strings.HasPrefix(itemTrim, "tcp syn-flood white-list "):
 			whiteListLineCut := strings.Split(strings.TrimPrefix(itemTrim, "tcp syn-flood white-list "), " ")
-			m := map[string]interface{}{
+			wList := map[string]interface{}{
 				"name":                whiteListLineCut[0],
 				"destination_address": make([]string, 0),
 				"source_address":      make([]string, 0),
 			}
-			m, confRead.tcp[0]["syn_flood"].([]map[string]interface{})[0]["whitelist"] = copyAndRemoveItemMapList(
-				"name", false, m,
+			wList, confRead.tcp[0]["syn_flood"].([]map[string]interface{})[0]["whitelist"] = copyAndRemoveItemMapList(
+				"name", false, wList,
 				confRead.tcp[0]["syn_flood"].([]map[string]interface{})[0]["whitelist"].([]map[string]interface{}))
 			itemTrimWhiteList := strings.TrimPrefix(itemTrim, "tcp syn-flood white-list "+whiteListLineCut[0]+" ")
 			switch {
 			case strings.HasPrefix(itemTrimWhiteList, "destination-address "):
-				m["destination_address"] = append(m["destination_address"].([]string),
+				wList["destination_address"] = append(wList["destination_address"].([]string),
 					strings.TrimPrefix(itemTrimWhiteList, "destination-address "))
 			case strings.HasPrefix(itemTrimWhiteList, "source-address "):
-				m["source_address"] = append(m["source_address"].([]string),
+				wList["source_address"] = append(wList["source_address"].([]string),
 					strings.TrimPrefix(itemTrimWhiteList, "source-address "))
 			}
 			confRead.tcp[0]["syn_flood"].([]map[string]interface{})[0]["whitelist"] = append(
-				confRead.tcp[0]["syn_flood"].([]map[string]interface{})[0]["whitelist"].([]map[string]interface{}), m)
+				confRead.tcp[0]["syn_flood"].([]map[string]interface{})[0]["whitelist"].([]map[string]interface{}), wList)
 		}
 	case itemTrim == "tcp syn-frag":
 		confRead.tcp[0]["syn_frag"] = true
@@ -1740,6 +1754,7 @@ func readSecurityScreenTCP(confRead *screenOptions, itemTrim string) error {
 
 	return nil
 }
+
 func readSecurityScreenUDP(confRead *screenOptions, itemTrim string) error {
 	if len(confRead.udp) == 0 {
 		confRead.udp = append(confRead.udp, map[string]interface{}{

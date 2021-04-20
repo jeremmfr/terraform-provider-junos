@@ -37,26 +37,31 @@ func resourceSecurityGlobalPolicy() *schema.Resource {
 						"match_source_address": {
 							Type:     schema.TypeList,
 							Required: true,
+							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"match_destination_address": {
 							Type:     schema.TypeList,
 							Required: true,
+							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"match_application": {
 							Type:     schema.TypeList,
 							Required: true,
+							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"match_from_zone": {
 							Type:     schema.TypeList,
 							Required: true,
+							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"match_to_zone": {
 							Type:     schema.TypeList,
 							Required: true,
+							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"then": {
@@ -74,6 +79,19 @@ func resourceSecurityGlobalPolicy() *schema.Resource {
 							Optional: true,
 						},
 						"log_close": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"match_destination_address_excluded": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"match_dynamic_application": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"match_source_address_excluded": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
@@ -175,28 +193,28 @@ func resourceSecurityGlobalPolicyCreate(ctx context.Context, d *schema.ResourceD
 			jnprSess.SystemInformation.HardwareModel))
 	}
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	glbPolicy, err := readSecurityGlobalPolicy(m, jnprSess)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if len(glbPolicy.policy) != 0 {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(fmt.Errorf("security policies global already set"))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("security policies global already set"))...)
 	}
 
 	if err := setSecurityGlobalPolicy(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("create resource junos_security_global_policy", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -204,6 +222,7 @@ func resourceSecurityGlobalPolicyCreate(ctx context.Context, d *schema.ResourceD
 
 	return append(diagWarns, resourceSecurityGlobalPolicyReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityGlobalPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -214,6 +233,7 @@ func resourceSecurityGlobalPolicyRead(ctx context.Context, d *schema.ResourceDat
 
 	return resourceSecurityGlobalPolicyReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityGlobalPolicyReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -226,6 +246,7 @@ func resourceSecurityGlobalPolicyReadWJnprSess(
 
 	return nil
 }
+
 func resourceSecurityGlobalPolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -235,23 +256,22 @@ func resourceSecurityGlobalPolicyUpdate(ctx context.Context, d *schema.ResourceD
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-
+	var diagWarns diag.Diagnostics
 	if err := delSecurityGlobalPolicy(m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	if err := setSecurityGlobalPolicy(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("update resource junos_security_global_policy", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -259,6 +279,7 @@ func resourceSecurityGlobalPolicyUpdate(ctx context.Context, d *schema.ResourceD
 
 	return append(diagWarns, resourceSecurityGlobalPolicyReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityGlobalPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -267,22 +288,23 @@ func resourceSecurityGlobalPolicyDelete(ctx context.Context, d *schema.ResourceD
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if err := delSecurityGlobalPolicy(m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := delSecurityGlobalPolicy(m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("delete resource junos_security_global_policy", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	return diagWarns
 }
+
 func resourceSecurityGlobalPolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -346,6 +368,15 @@ func setSecurityGlobalPolicy(d *schema.ResourceData, m interface{}, jnprSess *Ne
 		if policy["log_close"].(bool) {
 			configSet = append(configSet, setPrefixPolicy+" then log session-close")
 		}
+		if policy["match_destination_address_excluded"].(bool) {
+			configSet = append(configSet, setPrefixPolicy+" match destination-address-excluded")
+		}
+		for _, v := range policy["match_dynamic_application"].([]interface{}) {
+			configSet = append(configSet, setPrefixPolicy+" match dynamic-application "+v.(string))
+		}
+		if policy["match_source_address_excluded"].(bool) {
+			configSet = append(configSet, setPrefixPolicy+" match source-address-excluded")
+		}
 		if len(policy["permit_application_services"].([]interface{})) > 0 {
 			if policy["permit_application_services"].([]interface{})[0] == nil {
 				return fmt.Errorf("permit_application_services block is empty")
@@ -365,6 +396,7 @@ func setSecurityGlobalPolicy(d *schema.ResourceData, m interface{}, jnprSess *Ne
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readSecurityGlobalPolicy(m interface{}, jnprSess *NetconfObject) (globalPolicyOptions, error) {
 	sess := m.(*Session)
 	var confRead globalPolicyOptions
@@ -385,44 +417,51 @@ func readSecurityGlobalPolicy(m interface{}, jnprSess *NetconfObject) (globalPol
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			if strings.HasPrefix(itemTrim, "policy ") {
 				policyLineCut := strings.Split(itemTrim, " ")
-				m := genMapGlobalPolicyWithName(policyLineCut[1])
-				m, policyList = copyAndRemoveItemMapList("name", false, m, policyList)
+				policy := genMapGlobalPolicyWithName(policyLineCut[1])
+				policy, policyList = copyAndRemoveItemMapList("name", false, policy, policyList)
 				itemTrimPolicy := strings.TrimPrefix(itemTrim, "policy "+policyLineCut[1]+" ")
 				switch {
 				case strings.HasPrefix(itemTrimPolicy, "match source-address "):
-					m["match_source_address"] = append(m["match_source_address"].([]string),
+					policy["match_source_address"] = append(policy["match_source_address"].([]string),
 						strings.TrimPrefix(itemTrimPolicy, "match source-address "))
 				case strings.HasPrefix(itemTrimPolicy, "match destination-address "):
-					m["match_destination_address"] = append(m["match_destination_address"].([]string),
+					policy["match_destination_address"] = append(policy["match_destination_address"].([]string),
 						strings.TrimPrefix(itemTrimPolicy, "match destination-address "))
 				case strings.HasPrefix(itemTrimPolicy, "match application "):
-					m["match_application"] = append(m["match_application"].([]string),
+					policy["match_application"] = append(policy["match_application"].([]string),
 						strings.TrimPrefix(itemTrimPolicy, "match application "))
 				case strings.HasPrefix(itemTrimPolicy, "match from-zone "):
-					m["match_from_zone"] = append(m["match_from_zone"].([]string),
+					policy["match_from_zone"] = append(policy["match_from_zone"].([]string),
 						strings.TrimPrefix(itemTrimPolicy, "match from-zone "))
 				case strings.HasPrefix(itemTrimPolicy, "match to-zone "):
-					m["match_to_zone"] = append(m["match_to_zone"].([]string),
+					policy["match_to_zone"] = append(policy["match_to_zone"].([]string),
 						strings.TrimPrefix(itemTrimPolicy, "match to-zone "))
+				case strings.HasPrefix(itemTrimPolicy, "match destination-address-excluded"):
+					policy["match_destination_address_excluded"] = true
+				case strings.HasPrefix(itemTrimPolicy, "match dynamic-application "):
+					policy["match_dynamic_application"] = append(policy["match_dynamic_application"].([]string),
+						strings.TrimPrefix(itemTrimPolicy, "match dynamic-application "))
+				case strings.HasPrefix(itemTrimPolicy, "match source-address-excluded"):
+					policy["match_source_address_excluded"] = true
 				case strings.HasPrefix(itemTrimPolicy, "then "):
 					switch {
 					case strings.HasSuffix(itemTrimPolicy, permitWord),
 						strings.HasSuffix(itemTrimPolicy, "deny"),
 						strings.HasSuffix(itemTrimPolicy, "reject"):
-						m["then"] = strings.TrimPrefix(itemTrimPolicy, "then ")
+						policy["then"] = strings.TrimPrefix(itemTrimPolicy, "then ")
 					case itemTrimPolicy == "then count":
-						m["count"] = true
+						policy["count"] = true
 					case itemTrimPolicy == "then log session-init":
-						m["log_init"] = true
+						policy["log_init"] = true
 					case itemTrimPolicy == "then log session-close":
-						m["log_close"] = true
+						policy["log_close"] = true
 					case strings.HasPrefix(itemTrimPolicy, "then permit application-services"):
-						m["then"] = permitWord
-						m["permit_application_services"] = readGlobalPolicyPermitApplicationServices(itemTrimPolicy,
-							m["permit_application_services"])
+						policy["then"] = permitWord
+						policy["permit_application_services"] = readGlobalPolicyPermitApplicationServices(itemTrimPolicy,
+							policy["permit_application_services"])
 					}
 				}
-				policyList = append(policyList, m)
+				policyList = append(policyList, policy)
 			}
 		}
 	}
@@ -430,6 +469,7 @@ func readSecurityGlobalPolicy(m interface{}, jnprSess *NetconfObject) (globalPol
 
 	return confRead, nil
 }
+
 func delSecurityGlobalPolicy(m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
@@ -446,17 +486,20 @@ func fillSecurityGlobalPolicyData(d *schema.ResourceData, globalPolicyOptions gl
 
 func genMapGlobalPolicyWithName(name string) map[string]interface{} {
 	return map[string]interface{}{
-		"name":                        name,
-		"match_source_address":        make([]string, 0),
-		"match_destination_address":   make([]string, 0),
-		"match_application":           make([]string, 0),
-		"match_from_zone":             make([]string, 0),
-		"match_to_zone":               make([]string, 0),
-		"then":                        "",
-		"count":                       false,
-		"log_init":                    false,
-		"log_close":                   false,
-		"permit_application_services": make([]map[string]interface{}, 0),
+		"name":                               name,
+		"match_source_address":               make([]string, 0),
+		"match_destination_address":          make([]string, 0),
+		"match_application":                  make([]string, 0),
+		"match_from_zone":                    make([]string, 0),
+		"match_to_zone":                      make([]string, 0),
+		"then":                               "",
+		"count":                              false,
+		"log_init":                           false,
+		"log_close":                          false,
+		"match_destination_address_excluded": false,
+		"match_dynamic_application":          make([]string, 0),
+		"match_source_address_excluded":      false,
+		"permit_application_services":        make([]map[string]interface{}, 0),
 	}
 }
 

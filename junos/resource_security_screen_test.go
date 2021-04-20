@@ -161,6 +161,7 @@ resource "junos_security_screen_whitelist" "testacc1" {
 }
 `
 }
+
 func testAccJunosSecurityScreenConfigUpdate() string {
 	return `
 resource junos_security_screen testacc_securityScreen {

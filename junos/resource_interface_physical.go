@@ -430,10 +430,10 @@ func resourceInterfacePhysical() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"100m",
-								"1g", "2.5g", "5g", "8g",
+								"100m", "1g", "2.5g", "5g", "8g",
 								"10g", "25g", "40g", "50g", "80g",
-								"100g", "400g", "mixed"}, false),
+								"100g", "400g", "mixed",
+							}, false),
 						},
 						"minimum_bandwidth": {
 							Type:          schema.TypeString,
@@ -506,34 +506,34 @@ func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if !ncInt && !emptyInt {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(fmt.Errorf("interface %s already configured", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("interface %s already configured", d.Get("name").(string)))...)
 	}
 	if ncInt {
 		if err := delInterfaceNC(d, m, jnprSess); err != nil {
-			sess.configClear(jnprSess)
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-			return diag.FromErr(err)
+			return append(diagWarns, diag.FromErr(err)...)
 		}
 	}
 	if err := setInterfacePhysical(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("create resource junos_interface_physical", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -559,6 +559,7 @@ func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData
 
 	return append(diagWarns, resourceInterfacePhysicalReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -569,6 +570,7 @@ func resourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData, 
 
 	return resourceInterfacePhysicalReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceInterfacePhysicalReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -607,6 +609,7 @@ func resourceInterfacePhysicalReadWJnprSess(
 
 	return nil
 }
+
 func resourceInterfacePhysicalUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -616,26 +619,26 @@ func resourceInterfacePhysicalUpdate(ctx context.Context, d *schema.ResourceData
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if err := delInterfacePhysicalOpts(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := unsetInterfacePhysicalAE(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setInterfacePhysical(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("update resource junos_interface_physical", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -643,6 +646,7 @@ func resourceInterfacePhysicalUpdate(ctx context.Context, d *schema.ResourceData
 
 	return append(diagWarns, resourceInterfacePhysicalReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceInterfacePhysicalDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -651,16 +655,16 @@ func resourceInterfacePhysicalDelete(ctx context.Context, d *schema.ResourceData
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if err := delInterfacePhysical(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := delInterfacePhysical(d, m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("delete resource junos_interface_physical", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -671,13 +675,13 @@ func resourceInterfacePhysicalDelete(ctx context.Context, d *schema.ResourceData
 		} else if intExists {
 			err = addInterfacePhysicalNC(d.Get("name").(string), m, jnprSess)
 			if err != nil {
-				sess.configClear(jnprSess)
+				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 				return append(diagWarns, diag.FromErr(err)...)
 			}
 			_, err = sess.commitConf("disable(NC) resource junos_interface_physical", jnprSess)
 			if err != nil {
-				sess.configClear(jnprSess)
+				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 				return append(diagWarns, diag.FromErr(err)...)
 			}
@@ -686,6 +690,7 @@ func resourceInterfacePhysicalDelete(ctx context.Context, d *schema.ResourceData
 
 	return diagWarns
 }
+
 func resourceInterfacePhysicalImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	if strings.Count(d.Id(), ".") != 0 {
 		return nil, fmt.Errorf("name of interface %s need to doesn't have a dot", d.Id())
@@ -898,33 +903,33 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				if v == nil {
 					return fmt.Errorf("ether_opts block is empty")
 				}
-				m := v.(map[string]interface{})
-				if m["ae_8023ad"].(string) != "" {
-					newAE = m["ae_8023ad"].(string)
+				eOpts := v.(map[string]interface{})
+				if eOpts["ae_8023ad"].(string) != "" {
+					newAE = eOpts["ae_8023ad"].(string)
 					configSet = append(configSet, setPrefix+"ether-options 802.3ad "+
-						m["ae_8023ad"].(string))
+						eOpts["ae_8023ad"].(string))
 				}
-				if m["auto_negotiation"].(bool) {
+				if eOpts["auto_negotiation"].(bool) {
 					configSet = append(configSet, setPrefix+"ether-options auto-negotiation")
 				}
-				if m["no_auto_negotiation"].(bool) {
+				if eOpts["no_auto_negotiation"].(bool) {
 					configSet = append(configSet, setPrefix+"ether-options no-auto-negotiation")
 				}
-				if m["flow_control"].(bool) {
+				if eOpts["flow_control"].(bool) {
 					configSet = append(configSet, setPrefix+"ether-options flow-control")
 				}
-				if m["no_flow_control"].(bool) {
+				if eOpts["no_flow_control"].(bool) {
 					configSet = append(configSet, setPrefix+"ether-options no-flow-control")
 				}
-				if m["loopback"].(bool) {
+				if eOpts["loopback"].(bool) {
 					configSet = append(configSet, setPrefix+"ether-options loopback")
 				}
-				if m["no_loopback"].(bool) {
+				if eOpts["no_loopback"].(bool) {
 					configSet = append(configSet, setPrefix+"ether-options no-loopback")
 				}
-				if m["redundant_parent"].(string) != "" {
+				if eOpts["redundant_parent"].(string) != "" {
 					configSet = append(configSet, setPrefix+"ether-options redundant-parent "+
-						m["redundant_parent"].(string))
+						eOpts["redundant_parent"].(string))
 				}
 			}
 		case len(d.Get("gigether_opts").([]interface{})) != 0:
@@ -932,33 +937,33 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				if v == nil {
 					return fmt.Errorf("gigether_opts block is empty")
 				}
-				m := v.(map[string]interface{})
-				if m["ae_8023ad"].(string) != "" {
-					newAE = m["ae_8023ad"].(string)
+				geOpts := v.(map[string]interface{})
+				if geOpts["ae_8023ad"].(string) != "" {
+					newAE = geOpts["ae_8023ad"].(string)
 					configSet = append(configSet, setPrefix+"gigether-options 802.3ad "+
-						m["ae_8023ad"].(string))
+						geOpts["ae_8023ad"].(string))
 				}
-				if m["auto_negotiation"].(bool) {
+				if geOpts["auto_negotiation"].(bool) {
 					configSet = append(configSet, setPrefix+"gigether-options auto-negotiation")
 				}
-				if m["no_auto_negotiation"].(bool) {
+				if geOpts["no_auto_negotiation"].(bool) {
 					configSet = append(configSet, setPrefix+"gigether-options no-auto-negotiation")
 				}
-				if m["flow_control"].(bool) {
+				if geOpts["flow_control"].(bool) {
 					configSet = append(configSet, setPrefix+"gigether-options flow-control")
 				}
-				if m["no_flow_control"].(bool) {
+				if geOpts["no_flow_control"].(bool) {
 					configSet = append(configSet, setPrefix+"gigether-options no-flow-control")
 				}
-				if m["loopback"].(bool) {
+				if geOpts["loopback"].(bool) {
 					configSet = append(configSet, setPrefix+"gigether-options loopback")
 				}
-				if m["no_loopback"].(bool) {
+				if geOpts["no_loopback"].(bool) {
 					configSet = append(configSet, setPrefix+"gigether-options no-loopback")
 				}
-				if m["redundant_parent"].(string) != "" {
+				if geOpts["redundant_parent"].(string) != "" {
 					configSet = append(configSet, setPrefix+"gigether-options redundant-parent "+
-						m["redundant_parent"].(string))
+						geOpts["redundant_parent"].(string))
 				}
 			}
 		}
@@ -1026,26 +1031,27 @@ func setInterfacePhysicalEsi(setPrefix string, esiParams []interface{},
 	configSet := make([]string, 0)
 
 	for _, v := range esiParams {
-		m := v.(map[string]interface{})
-		if m["mode"].(string) != "" {
-			configSet = append(configSet, setPrefix+"esi "+m["mode"].(string))
+		esi := v.(map[string]interface{})
+		if esi["mode"].(string) != "" {
+			configSet = append(configSet, setPrefix+"esi "+esi["mode"].(string))
 		}
-		if m["auto_derive_lacp"].(bool) {
+		if esi["auto_derive_lacp"].(bool) {
 			configSet = append(configSet, setPrefix+"esi auto-derive lacp")
 		}
-		if m["df_election_type"].(string) != "" {
-			configSet = append(configSet, setPrefix+"esi df-election-type "+m["df_election_type"].(string))
+		if esi["df_election_type"].(string) != "" {
+			configSet = append(configSet, setPrefix+"esi df-election-type "+esi["df_election_type"].(string))
 		}
-		if m["identifier"].(string) != "" {
-			configSet = append(configSet, setPrefix+"esi "+m["identifier"].(string))
+		if esi["identifier"].(string) != "" {
+			configSet = append(configSet, setPrefix+"esi "+esi["identifier"].(string))
 		}
-		if m["source_bmac"].(string) != "" {
-			configSet = append(configSet, setPrefix+"esi source-bmac "+m["source_bmac"].(string))
+		if esi["source_bmac"].(string) != "" {
+			configSet = append(configSet, setPrefix+"esi source-bmac "+esi["source_bmac"].(string))
 		}
 	}
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func setInterfacePhysicalParentEtherOpts(
 	ethOpts map[string]interface{}, interfaceName string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
@@ -1246,6 +1252,7 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 
 	return confRead, nil
 }
+
 func readInterfacePhysicalEsi(confRead *interfacePhysicalOptions, item string) error {
 	itemTrim := strings.TrimPrefix(item, "esi ")
 	if len(confRead.esi) == 0 {
@@ -1277,6 +1284,7 @@ func readInterfacePhysicalEsi(confRead *interfacePhysicalOptions, item string) e
 
 	return nil
 }
+
 func readInterfacePhysicalEtherOpts(confRead *interfacePhysicalOptions, itemTrim string) {
 	if len(confRead.etherOpts) == 0 {
 		confRead.etherOpts = append(confRead.etherOpts, map[string]interface{}{
@@ -1310,6 +1318,7 @@ func readInterfacePhysicalEtherOpts(confRead *interfacePhysicalOptions, itemTrim
 		confRead.etherOpts[0]["redundant_parent"] = strings.TrimPrefix(itemTrim, "redundant-parent ")
 	}
 }
+
 func readInterfacePhysicalGigetherOpts(confRead *interfacePhysicalOptions, itemTrim string) {
 	if len(confRead.gigetherOpts) == 0 {
 		confRead.gigetherOpts = append(confRead.gigetherOpts, map[string]interface{}{
@@ -1343,6 +1352,7 @@ func readInterfacePhysicalGigetherOpts(confRead *interfacePhysicalOptions, itemT
 		confRead.gigetherOpts[0]["redundant_parent"] = strings.TrimPrefix(itemTrim, "redundant-parent ")
 	}
 }
+
 func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, itemTrim string) error {
 	if len(confRead.parentEtherOpts) == 0 {
 		confRead.parentEtherOpts = append(confRead.parentEtherOpts, map[string]interface{}{
@@ -1733,6 +1743,7 @@ func interfaceAggregatedLastChild(ae, interFace string, m interface{}, jnprSess 
 
 	return lastAE, nil
 }
+
 func interfaceAggregatedCountSearchMax(
 	newAE, oldAE, interFace string, m interface{}, jnprSess *NetconfObject) (string, error) {
 	sess := m.(*Session)

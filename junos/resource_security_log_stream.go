@@ -81,7 +81,8 @@ func resourceSecurityLogStream() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"binary", "sd-syslog", "syslog", "welf"}, false),
+					"binary", "sd-syslog", "syslog", "welf",
+				}, false),
 			},
 			"host": {
 				Type:          schema.TypeList,
@@ -141,28 +142,28 @@ func resourceSecurityLogStreamCreate(ctx context.Context, d *schema.ResourceData
 			"not compatible with Junos device %s", jnprSess.SystemInformation.HardwareModel))
 	}
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	securityLogStreamExists, err := checkSecurityLogStreamExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityLogStreamExists {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(fmt.Errorf("security log stream %v already exists", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("security log stream %v already exists", d.Get("name").(string)))...)
 	}
 
 	if err := setSecurityLogStream(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("create resource junos_security_log_stream", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -179,6 +180,7 @@ func resourceSecurityLogStreamCreate(ctx context.Context, d *schema.ResourceData
 
 	return append(diagWarns, resourceSecurityLogStreamReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityLogStreamRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -189,6 +191,7 @@ func resourceSecurityLogStreamRead(ctx context.Context, d *schema.ResourceData, 
 
 	return resourceSecurityLogStreamReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityLogStreamReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -205,6 +208,7 @@ func resourceSecurityLogStreamReadWJnprSess(
 
 	return nil
 }
+
 func resourceSecurityLogStreamUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -214,21 +218,21 @@ func resourceSecurityLogStreamUpdate(ctx context.Context, d *schema.ResourceData
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if err := delLogStream(d.Get("name").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setSecurityLogStream(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("update resource junos_security_log_stream", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -236,6 +240,7 @@ func resourceSecurityLogStreamUpdate(ctx context.Context, d *schema.ResourceData
 
 	return append(diagWarns, resourceSecurityLogStreamReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityLogStreamDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -244,22 +249,23 @@ func resourceSecurityLogStreamDelete(ctx context.Context, d *schema.ResourceData
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if err := delLogStream(d.Get("name").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := delLogStream(d.Get("name").(string), m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("delete resource junos_security_log_stream", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	return diagWarns
 }
+
 func resourceSecurityLogStreamImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -299,6 +305,7 @@ func checkSecurityLogStreamExists(securityLogStream string, m interface{}, jnprS
 
 	return true, nil
 }
+
 func setSecurityLogStream(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -349,6 +356,7 @@ func setSecurityLogStream(d *schema.ResourceData, m interface{}, jnprSess *Netco
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readSecurityLogStream(securityLogStream string, m interface{}, jnprSess *NetconfObject) (
 	securityLogStreamOptions, error) {
 	sess := m.(*Session)

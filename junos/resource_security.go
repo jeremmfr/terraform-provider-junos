@@ -12,12 +12,13 @@ import (
 )
 
 type securityOptions struct {
-	alg             []map[string]interface{}
-	flow            []map[string]interface{}
-	forwardingOpts  []map[string]interface{}
-	log             []map[string]interface{}
-	ikeTraceoptions []map[string]interface{}
-	utm             []map[string]interface{}
+	alg               []map[string]interface{}
+	flow              []map[string]interface{}
+	forwardingOpts    []map[string]interface{}
+	forwardingProcess []map[string]interface{}
+	log               []map[string]interface{}
+	ikeTraceoptions   []map[string]interface{}
+	utm               []map[string]interface{}
 }
 
 func resourceSecurity() *schema.Resource {
@@ -60,6 +61,10 @@ func resourceSecurity() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+						"rsh_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
 						"rtsp_disable": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -69,6 +74,10 @@ func resourceSecurity() *schema.Resource {
 							Optional: true,
 						},
 						"sip_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"sql_disable": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
@@ -297,7 +306,8 @@ func resourceSecurity() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											"64K", "128K", "256K", "512K", "1M"}, false),
+											"64K", "128K", "256K", "512K", "1M",
+										}, false),
 									},
 									"no_sequence_check": {
 										Type:     schema.TypeBool,
@@ -368,20 +378,31 @@ func resourceSecurity() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"inet6_mode": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"drop", "flow-based", "packet-based"}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"drop", "flow-based", "packet-based"}, false),
 						},
 						"iso_mode_packet_based": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
 						"mpls_mode": {
-							Type:     schema.TypeString,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"flow-based", "packet-based"}, false),
+						},
+					},
+				},
+			},
+			"forwarding_process": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enhanced_services_mode": {
+							Type:     schema.TypeBool,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"flow-based", "packet-based"}, false),
 						},
 					},
 				},
@@ -494,10 +515,9 @@ func resourceSecurity() *schema.Resource {
 							},
 						},
 						"format": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"binary", "sd-syslog", "syslog"}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"binary", "sd-syslog", "syslog"}, false),
 						},
 						"max_database_record": {
 							Type:         schema.TypeInt,
@@ -506,10 +526,9 @@ func resourceSecurity() *schema.Resource {
 							ValidateFunc: validation.IntBetween(0, 1000000),
 						},
 						"mode": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"event", "stream"}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"event", "stream"}, false),
 						},
 						"rate_cap": {
 							Type:         schema.TypeInt,
@@ -539,10 +558,9 @@ func resourceSecurity() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"protocol": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"tcp", "tls", "udp"}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice([]string{"tcp", "tls", "udp"}, false),
 									},
 									"tcp_connections": {
 										Type:         schema.TypeInt,
@@ -629,17 +647,16 @@ func resourceSecurityCreate(ctx context.Context, d *schema.ResourceData, m inter
 			jnprSess.SystemInformation.HardwareModel))
 	}
 	sess.configLock(jnprSess)
-
-	if err := setSecurity(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := setSecurity(d, m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("create resource junos_security", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -647,6 +664,7 @@ func resourceSecurityCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 	return append(diagWarns, resourceSecurityReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -657,6 +675,7 @@ func resourceSecurityRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	return resourceSecurityReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
 	securityOptions, err := readSecurity(m, jnprSess)
@@ -668,6 +687,7 @@ func resourceSecurityReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSe
 
 	return nil
 }
+
 func resourceSecurityUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -677,21 +697,21 @@ func resourceSecurityUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if err := delSecurity(m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setSecurity(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("update resource junos_security", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -699,9 +719,11 @@ func resourceSecurityUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 	return append(diagWarns, resourceSecurityReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	return nil
 }
+
 func resourceSecurityImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -747,6 +769,16 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 			return err
 		}
 		configSet = append(configSet, configSetForwOpts...)
+	}
+	for _, v := range d.Get("forwarding_process").([]interface{}) {
+		if v != nil {
+			forwardingProcess := v.(map[string]interface{})
+			if forwardingProcess["enhanced_services_mode"].(bool) {
+				configSet = append(configSet, setPrefix+"forwarding-process enhanced-services-mode")
+			}
+		} else {
+			return fmt.Errorf("forwarding_process block is empty")
+		}
 	}
 	for _, ikeTrace := range d.Get("ike_traceoptions").([]interface{}) {
 		configSetIkeTrace, err := setSecurityIkeTraceOpts(ikeTrace)
@@ -821,6 +853,9 @@ func setSecurityAlg(alg interface{}) ([]string, error) {
 		if algM["pptp_disable"].(bool) {
 			configSet = append(configSet, setPrefix+"pptp disable")
 		}
+		if algM["rsh_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"rsh disable")
+		}
 		if algM["rtsp_disable"].(bool) {
 			configSet = append(configSet, setPrefix+"rtsp disable")
 		}
@@ -829,6 +864,9 @@ func setSecurityAlg(alg interface{}) ([]string, error) {
 		}
 		if algM["sip_disable"].(bool) {
 			configSet = append(configSet, setPrefix+"sip disable")
+		}
+		if algM["sql_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"sql disable")
 		}
 		if algM["sunrpc_disable"].(bool) {
 			configSet = append(configSet, setPrefix+"sunrpc disable")
@@ -845,6 +883,7 @@ func setSecurityAlg(alg interface{}) ([]string, error) {
 
 	return configSet, nil
 }
+
 func setSecurityFlow(flow interface{}) ([]string, error) { // nolint: gocognit
 	setPrefix := "set security flow "
 	configSet := make([]string, 0)
@@ -1048,6 +1087,7 @@ func setSecurityFlow(flow interface{}) ([]string, error) { // nolint: gocognit
 
 	return configSet, nil
 }
+
 func setSecurityForwOpts(forwOpts interface{}) ([]string, error) {
 	setPrefix := "set security forwarding-options "
 	configSet := make([]string, 0)
@@ -1068,6 +1108,7 @@ func setSecurityForwOpts(forwOpts interface{}) ([]string, error) {
 
 	return configSet, nil
 }
+
 func setSecurityIkeTraceOpts(ikeTrace interface{}) ([]string, error) {
 	setPrefix := "set security ike traceoptions "
 	configSet := make([]string, 0)
@@ -1121,6 +1162,7 @@ func setSecurityIkeTraceOpts(ikeTrace interface{}) ([]string, error) {
 
 	return configSet, nil
 }
+
 func setSecurityLog(log interface{}) ([]string, error) {
 	setPrefix := "set security log "
 	configSet := make([]string, 0)
@@ -1208,14 +1250,17 @@ func listLinesSecurityAlg() []string {
 		"alg mgcp disable",
 		"alg msrpc disable",
 		"alg pptp disable",
+		"alg rsh disable",
 		"alg rtsp disable",
 		"alg sccp disable",
 		"alg sip disable",
+		"alg sql disable",
 		"alg sunrpc disable",
 		"alg talk disable",
 		"alg tftp disable",
 	}
 }
+
 func listLinesSecurityFlow() []string {
 	return []string{
 		"flow advanced-options",
@@ -1237,6 +1282,7 @@ func listLinesSecurityFlow() []string {
 		"flow tcp-session",
 	}
 }
+
 func listLinesSecurityForwardingOptions() []string {
 	return []string{
 		"forwarding-options family mpls mode",
@@ -1244,6 +1290,13 @@ func listLinesSecurityForwardingOptions() []string {
 		"forwarding-options family iso mode",
 	}
 }
+
+func listLinesSecurityForwardingProcess() []string {
+	return []string{
+		"forwarding-process enhanced-services-mode",
+	}
+}
+
 func listLinesSecurityLog() []string {
 	return []string{
 		"log disable",
@@ -1261,6 +1314,7 @@ func listLinesSecurityLog() []string {
 		"log utc-timestamp",
 	}
 }
+
 func listLinesSecurityUtm() []string {
 	return []string{
 		"utm feature-profile web-filtering type",
@@ -1275,6 +1329,7 @@ func delSecurity(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityAlg()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityFlow()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityForwardingOptions()...)
+	listLinesToDelete = append(listLinesToDelete, listLinesSecurityForwardingProcess()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityLog()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityUtm()...)
 	sess := m.(*Session)
@@ -1287,6 +1342,7 @@ func delSecurity(m interface{}, jnprSess *NetconfObject) error {
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, error) {
 	sess := m.(*Session)
 	var confRead securityOptions
@@ -1315,7 +1371,15 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 				}
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityForwardingOptions()):
 				readSecurityForwardingOpts(&confRead, itemTrim)
-
+			case checkStringHasPrefixInList(itemTrim, listLinesSecurityForwardingProcess()):
+				if len(confRead.forwardingProcess) == 0 {
+					confRead.forwardingProcess = append(confRead.forwardingProcess, map[string]interface{}{
+						"enhanced_services_mode": false,
+					})
+				}
+				if itemTrim == "forwarding-process enhanced-services-mode" {
+					confRead.forwardingProcess[0]["enhanced_services_mode"] = true
+				}
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityLog()):
 				err := readSecurityLog(&confRead, itemTrim)
 				if err != nil {
@@ -1348,9 +1412,11 @@ func readSecurityAlg(confRead *securityOptions, itemTrimAlg string) {
 			"mgcp_disable":   false,
 			"msrpc_disable":  false,
 			"pptp_disable":   false,
+			"rsh_disable":    false,
 			"rtsp_disable":   false,
 			"sccp_disable":   false,
 			"sip_disable":    false,
+			"sql_disable":    false,
 			"sunrpc_disable": false,
 			"talk_disable":   false,
 			"tftp_disable":   false,
@@ -1374,6 +1440,9 @@ func readSecurityAlg(confRead *securityOptions, itemTrimAlg string) {
 	if itemTrim == "pptp disable" {
 		confRead.alg[0]["pptp_disable"] = true
 	}
+	if itemTrim == "rsh disable" {
+		confRead.alg[0]["rsh_disable"] = true
+	}
 	if itemTrim == "rtsp disable" {
 		confRead.alg[0]["rtsp_disable"] = true
 	}
@@ -1382,6 +1451,9 @@ func readSecurityAlg(confRead *securityOptions, itemTrimAlg string) {
 	}
 	if itemTrim == "sip disable" {
 		confRead.alg[0]["sip_disable"] = true
+	}
+	if itemTrim == "sql disable" {
+		confRead.alg[0]["sql_disable"] = true
 	}
 	if itemTrim == "sunrpc disable" {
 		confRead.alg[0]["sunrpc_disable"] = true
@@ -1393,6 +1465,7 @@ func readSecurityAlg(confRead *securityOptions, itemTrimAlg string) {
 		confRead.alg[0]["tftp_disable"] = true
 	}
 }
+
 func readSecurityFlow(confRead *securityOptions, itemTrimFlow string) error {
 	itemTrim := strings.TrimPrefix(itemTrimFlow, "flow ")
 	if len(confRead.flow) == 0 {
@@ -1659,6 +1732,7 @@ func readSecurityFlow(confRead *securityOptions, itemTrimFlow string) error {
 
 	return nil
 }
+
 func readSecurityForwardingOpts(confRead *securityOptions, itemTrimFwOpts string) {
 	itemTrim := strings.TrimPrefix(itemTrimFwOpts, "forwarding-options ")
 	if len(confRead.forwardingOpts) == 0 {
@@ -1677,6 +1751,7 @@ func readSecurityForwardingOpts(confRead *securityOptions, itemTrimFwOpts string
 		confRead.forwardingOpts[0]["mpls_mode"] = strings.TrimPrefix(itemTrim, "family mpls mode ")
 	}
 }
+
 func readSecurityIkeTraceOptions(confRead *securityOptions, itemTrimIkeTraceOpts string) error {
 	itemTrim := strings.TrimPrefix(itemTrimIkeTraceOpts, "ike traceoptions ")
 	if len(confRead.ikeTraceoptions) == 0 {
@@ -1742,6 +1817,7 @@ func readSecurityIkeTraceOptions(confRead *securityOptions, itemTrimIkeTraceOpts
 
 	return nil
 }
+
 func readSecurityLog(confRead *securityOptions, itemTrimLog string) error {
 	itemTrim := strings.TrimPrefix(itemTrimLog, "log ")
 	if len(confRead.log) == 0 {
@@ -1908,6 +1984,9 @@ func fillSecurity(d *schema.ResourceData, securityOptions securityOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("forwarding_options", securityOptions.forwardingOpts); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("forwarding_process", securityOptions.forwardingProcess); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("ike_traceoptions", securityOptions.ikeTraceoptions); tfErr != nil {

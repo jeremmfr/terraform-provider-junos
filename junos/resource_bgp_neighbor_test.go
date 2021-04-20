@@ -238,6 +238,7 @@ resource junos_bgp_neighbor "testacc_bgpneighbor" {
   remove_private           = true
   passive                  = true
   hold_time                = 30
+  keep_all                 = true
   local_as                 = "65001"
   local_as_private         = true
   local_as_loops           = 1
@@ -306,6 +307,7 @@ resource junos_bgp_neighbor "testacc_bgpneighbor" {
 }
 `
 }
+
 func testAccJunosBgpNeighborConfigUpdate() string {
 	return `
 resource junos_routing_instance "testacc_bgpneighbor" {
@@ -328,6 +330,7 @@ resource junos_bgp_neighbor "testacc_bgpneighbor" {
   routing_instance                = junos_routing_instance.testacc_bgpneighbor.name
   group                           = junos_bgp_group.testacc_bgpneighbor.name
   advertise_external_conditional  = true
+  keep_none                       = true
   no_advertise_peer_as            = true
   metric_out_igp_offset           = -10
   metric_out_igp_delay_med_update = true
@@ -343,6 +346,7 @@ resource junos_bgp_neighbor "testacc_bgpneighbor" {
 
 `
 }
+
 func testAccJunosBgpNeighborConfigUpdate2() string {
 	return `
 resource junos_routing_instance "testacc_bgpneighbor2" {
@@ -387,6 +391,7 @@ resource junos_bgp_neighbor "testacc_bgpneighbor2b" {
 }
 `
 }
+
 func testAccJunosBgpNeighborConfigUpdate3() string {
 	return `
 resource junos_routing_instance "testacc_bgpneighbor2" {

@@ -13,12 +13,14 @@ import (
 )
 
 type natSourcePoolOptions struct {
-	portNoTranslation     bool
-	portOverloadingFactor int
-	name                  string
-	portRange             string
-	routingInstance       string
-	address               []string
+	portNoTranslation                  bool
+	poolUtilizationAlarmClearThreshold int
+	poolUtilizationAlarmRaiseThreshold int
+	portOverloadingFactor              int
+	name                               string
+	portRange                          string
+	routingInstance                    string
+	address                            []string
 }
 
 func resourceSecurityNatSourcePool() *schema.Resource {
@@ -42,6 +44,17 @@ func resourceSecurityNatSourcePool() *schema.Resource {
 				Required: true,
 				MinItems: 1,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"pool_utilization_alarm_raise_threshold": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(50, 100),
+			},
+			"pool_utilization_alarm_clear_threshold": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				RequiredWith: []string{"pool_utilization_alarm_raise_threshold"},
+				ValidateFunc: validation.IntBetween(40, 100),
 			},
 			"port_no_translation": {
 				Type:          schema.TypeBool,
@@ -89,28 +102,29 @@ func resourceSecurityNatSourcePoolCreate(ctx context.Context, d *schema.Resource
 			jnprSess.SystemInformation.HardwareModel))
 	}
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	securityNatSourcePoolExists, err := checkSecurityNatSourcePoolExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityNatSourcePoolExists {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(fmt.Errorf("security nat source pool %v already exists", d.Get("name").(string)))
+		return append(diagWarns,
+			diag.FromErr(fmt.Errorf("security nat source pool %v already exists", d.Get("name").(string)))...)
 	}
 
 	if err := setSecurityNatSourcePool(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("create resource junos_security_nat_source_pool", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -127,6 +141,7 @@ func resourceSecurityNatSourcePoolCreate(ctx context.Context, d *schema.Resource
 
 	return append(diagWarns, resourceSecurityNatSourcePoolReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityNatSourcePoolRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -137,6 +152,7 @@ func resourceSecurityNatSourcePoolRead(ctx context.Context, d *schema.ResourceDa
 
 	return resourceSecurityNatSourcePoolReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSecurityNatSourcePoolReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -153,6 +169,7 @@ func resourceSecurityNatSourcePoolReadWJnprSess(
 
 	return nil
 }
+
 func resourceSecurityNatSourcePoolUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -162,21 +179,21 @@ func resourceSecurityNatSourcePoolUpdate(ctx context.Context, d *schema.Resource
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if err := delSecurityNatSourcePool(d.Get("name").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setSecurityNatSourcePool(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("update resource junos_security_nat_source_pool", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -184,6 +201,7 @@ func resourceSecurityNatSourcePoolUpdate(ctx context.Context, d *schema.Resource
 
 	return append(diagWarns, resourceSecurityNatSourcePoolReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSecurityNatSourcePoolDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -192,22 +210,23 @@ func resourceSecurityNatSourcePoolDelete(ctx context.Context, d *schema.Resource
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if err := delSecurityNatSourcePool(d.Get("name").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := delSecurityNatSourcePool(d.Get("name").(string), m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("delete resource junos_security_nat_source_pool", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	return diagWarns
 }
+
 func resourceSecurityNatSourcePoolImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -248,6 +267,7 @@ func checkSecurityNatSourcePoolExists(name string, m interface{}, jnprSess *Netc
 
 	return true, nil
 }
+
 func setSecurityNatSourcePool(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -261,6 +281,14 @@ func setSecurityNatSourcePool(d *schema.ResourceData, m interface{}, jnprSess *N
 		configSet = append(configSet, setPrefix+" address "+v.(string))
 	}
 
+	if d.Get("pool_utilization_alarm_clear_threshold").(int) != 0 {
+		configSet = append(configSet, setPrefix+" pool-utilization-alarm clear-threshold "+
+			strconv.Itoa(d.Get("pool_utilization_alarm_clear_threshold").(int)))
+	}
+	if d.Get("pool_utilization_alarm_raise_threshold").(int) != 0 {
+		configSet = append(configSet, setPrefix+" pool-utilization-alarm raise-threshold "+
+			strconv.Itoa(d.Get("pool_utilization_alarm_raise_threshold").(int)))
+	}
 	if d.Get("port_no_translation").(bool) {
 		configSet = append(configSet, setPrefix+" port no-translation ")
 	}
@@ -278,6 +306,7 @@ func setSecurityNatSourcePool(d *schema.ResourceData, m interface{}, jnprSess *N
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readSecurityNatSourcePool(natSourcePool string,
 	m interface{}, jnprSess *NetconfObject) (natSourcePoolOptions, error) {
 	sess := m.(*Session)
@@ -302,6 +331,18 @@ func readSecurityNatSourcePool(natSourcePool string,
 			switch {
 			case strings.HasPrefix(itemTrim, "address "):
 				confRead.address = append(confRead.address, strings.TrimPrefix(itemTrim, "address "))
+			case strings.HasPrefix(itemTrim, "pool-utilization-alarm clear-threshold "):
+				confRead.poolUtilizationAlarmClearThreshold, err = strconv.Atoi(
+					strings.TrimPrefix(itemTrim, "pool-utilization-alarm clear-threshold "))
+				if err != nil {
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				}
+			case strings.HasPrefix(itemTrim, "pool-utilization-alarm raise-threshold "):
+				confRead.poolUtilizationAlarmRaiseThreshold, err = strconv.Atoi(
+					strings.TrimPrefix(itemTrim, "pool-utilization-alarm raise-threshold "))
+				if err != nil {
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				}
 			case itemTrim == "port no-translation":
 				confRead.portNoTranslation = true
 			case strings.HasPrefix(itemTrim, "port port-overloading-factor"):
@@ -331,11 +372,20 @@ func delSecurityNatSourcePool(natSourcePool string, m interface{}, jnprSess *Net
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func fillSecurityNatSourcePoolData(d *schema.ResourceData, natSourcePoolOptions natSourcePoolOptions) {
 	if tfErr := d.Set("name", natSourcePoolOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("address", natSourcePoolOptions.address); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("pool_utilization_alarm_clear_threshold",
+		natSourcePoolOptions.poolUtilizationAlarmClearThreshold); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("pool_utilization_alarm_raise_threshold",
+		natSourcePoolOptions.poolUtilizationAlarmRaiseThreshold); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("port_no_translation", natSourcePoolOptions.portNoTranslation); tfErr != nil {

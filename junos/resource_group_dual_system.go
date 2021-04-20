@@ -67,6 +67,23 @@ func resourceGroupDualSystem() *schema.Resource {
 								},
 							},
 						},
+						"family_inet6_address": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"cidr_ip": {
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateDiagFunc: validateIPMaskFunc(),
+									},
+									"master_only": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -152,28 +169,28 @@ func resourceGroupDualSystemCreate(ctx context.Context, d *schema.ResourceData, 
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	groupDualSystemExists, err := checkGroupDualSystemExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if groupDualSystemExists {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(fmt.Errorf("group %v already exists", d.Get("name").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("group %v already exists", d.Get("name").(string)))...)
 	}
 
 	if err := setGroupDualSystem(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("create resource junos_group_dual_system", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -190,6 +207,7 @@ func resourceGroupDualSystemCreate(ctx context.Context, d *schema.ResourceData, 
 
 	return append(diagWarns, resourceGroupDualSystemReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceGroupDualSystemRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -200,6 +218,7 @@ func resourceGroupDualSystemRead(ctx context.Context, d *schema.ResourceData, m 
 
 	return resourceGroupDualSystemReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceGroupDualSystemReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -216,6 +235,7 @@ func resourceGroupDualSystemReadWJnprSess(
 
 	return nil
 }
+
 func resourceGroupDualSystemUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -225,32 +245,32 @@ func resourceGroupDualSystemUpdate(ctx context.Context, d *schema.ResourceData, 
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if err := delGroupDualSystem(d.Get("name").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if strings.HasPrefix(d.Get("name").(string), "node") {
 		if err := sess.configSet([]string{"delete apply-groups \"${node}\""}, jnprSess); err != nil {
-			sess.configClear(jnprSess)
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-			return diag.FromErr(err)
+			return append(diagWarns, diag.FromErr(err)...)
 		}
 	} else if err := sess.configSet([]string{"delete apply-groups " + d.Get("name").(string)}, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setGroupDualSystem(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("update resource junos_group_dual_system", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -258,6 +278,7 @@ func resourceGroupDualSystemUpdate(ctx context.Context, d *schema.ResourceData, 
 
 	return append(diagWarns, resourceGroupDualSystemReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceGroupDualSystemDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -266,33 +287,34 @@ func resourceGroupDualSystemDelete(ctx context.Context, d *schema.ResourceData, 
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if err := delGroupDualSystem(d.Get("name").(string), m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if strings.HasPrefix(d.Get("name").(string), "node") {
 		if err := sess.configSet([]string{"delete apply-groups \"${node}\""}, jnprSess); err != nil {
-			sess.configClear(jnprSess)
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-			return diag.FromErr(err)
+			return append(diagWarns, diag.FromErr(err)...)
 		}
 	} else if err := sess.configSet([]string{"delete apply-groups " + d.Get("name").(string)}, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("delete resource junos_group_dual_system", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	return diagWarns
 }
+
 func resourceGroupDualSystemImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -335,6 +357,7 @@ func checkGroupDualSystemExists(name string, m interface{}, jnprSess *NetconfObj
 
 	return true, nil
 }
+
 func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -362,6 +385,15 @@ func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 			if familyInetAddress["master_only"].(bool) {
 				configSet = append(configSet, setPrefix+"interfaces fxp0 unit 0 family inet address "+
 					familyInetAddress["cidr_ip"].(string)+" master-only")
+			}
+		}
+		for _, v2 := range interfaceFxp0["family_inet6_address"].([]interface{}) {
+			familyInet6Address := v2.(map[string]interface{})
+			configSet = append(configSet, setPrefix+"interfaces fxp0 unit 0 family inet6 address "+
+				familyInet6Address["cidr_ip"].(string))
+			if familyInet6Address["master_only"].(bool) {
+				configSet = append(configSet, setPrefix+"interfaces fxp0 unit 0 family inet6 address "+
+					familyInet6Address["cidr_ip"].(string)+" master-only")
 			}
 		}
 	}
@@ -399,6 +431,7 @@ func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readGroupDualSystem(group string, m interface{}, jnprSess *NetconfObject) (groupDualSystemOptions, error) {
 	sess := m.(*Session)
 	var confRead groupDualSystemOptions
@@ -421,8 +454,9 @@ func readGroupDualSystem(group string, m interface{}, jnprSess *NetconfObject) (
 			case strings.HasPrefix(itemTrim, "interfaces fxp0 "):
 				if len(confRead.interfaceFxp0) == 0 {
 					confRead.interfaceFxp0 = append(confRead.interfaceFxp0, map[string]interface{}{
-						"description":         "",
-						"family_inet_address": make([]map[string]interface{}, 0),
+						"description":          "",
+						"family_inet_address":  make([]map[string]interface{}, 0),
+						"family_inet6_address": make([]map[string]interface{}, 0),
 					})
 				}
 				switch {
@@ -440,6 +474,21 @@ func readGroupDualSystem(group string, m interface{}, jnprSess *NetconfObject) (
 						confRead.interfaceFxp0[0]["family_inet_address"] = append(
 							confRead.interfaceFxp0[0]["family_inet_address"].([]map[string]interface{}), map[string]interface{}{
 								"cidr_ip":     strings.TrimPrefix(itemTrim, "interfaces fxp0 unit 0 family inet address "),
+								"master_only": false,
+							})
+					}
+				case strings.HasPrefix(itemTrim, "interfaces fxp0 unit 0 family inet6 address "):
+					if strings.HasSuffix(itemTrim, "master-only") {
+						confRead.interfaceFxp0[0]["family_inet6_address"] = append(
+							confRead.interfaceFxp0[0]["family_inet6_address"].([]map[string]interface{}), map[string]interface{}{
+								"cidr_ip": strings.TrimSuffix(strings.TrimPrefix(
+									itemTrim, "interfaces fxp0 unit 0 family inet6 address "), " master-only"),
+								"master_only": true,
+							})
+					} else {
+						confRead.interfaceFxp0[0]["family_inet6_address"] = append(
+							confRead.interfaceFxp0[0]["family_inet6_address"].([]map[string]interface{}), map[string]interface{}{
+								"cidr_ip":     strings.TrimPrefix(itemTrim, "interfaces fxp0 unit 0 family inet6 address "),
 								"master_only": false,
 							})
 					}
@@ -527,6 +576,7 @@ func delGroupDualSystem(group string, m interface{}, jnprSess *NetconfObject) er
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func fillGroupDualSystemData(d *schema.ResourceData, groupDualSystemOptions groupDualSystemOptions) {
 	if tfErr := d.Set("name", groupDualSystemOptions.name); tfErr != nil {
 		panic(tfErr)

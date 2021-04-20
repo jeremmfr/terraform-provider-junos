@@ -703,6 +703,7 @@ resource junos_policyoptions_policy_statement "testacc_policyOptions2" {
 }
 `
 }
+
 func testAccJunosPolicyOptionsConfigUpdate() string {
 	return `
 resource junos_routing_instance "testacc_policyOptions" {

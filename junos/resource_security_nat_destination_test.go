@@ -107,6 +107,7 @@ resource junos_routing_instance testacc_securityDNAT {
 }
 `
 }
+
 func testAccJunosSecurityNatDestinationConfigUpdate() string {
 	return `
 resource junos_security_nat_destination testacc_securityDNAT {

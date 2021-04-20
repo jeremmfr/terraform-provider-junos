@@ -133,8 +133,8 @@ func resourceBgpGroup() *schema.Resource {
 						"session_mode": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"automatic", "multihop", "single-hop"}, false),
+							ValidateFunc: validation.StringInSlice(
+								[]string{"automatic", "multihop", "single-hop"}, false),
 						},
 						"transmit_interval_minimum_interval": {
 							Type:         schema.TypeInt,
@@ -267,8 +267,8 @@ func resourceBgpGroup() *schema.Resource {
 						"nlri_type": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"any", "flow", "labeled-unicast", "unicast", "multicast"}, false),
+							ValidateFunc: validation.StringInSlice(
+								[]string{"any", "flow", "labeled-unicast", "unicast", "multicast"}, false),
 						},
 						"accepted_prefix_limit": {
 							Type:     schema.TypeList,
@@ -337,8 +337,8 @@ func resourceBgpGroup() *schema.Resource {
 						"nlri_type": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"any", "flow", "labeled-unicast", "unicast", "multicast"}, false),
+							ValidateFunc: validation.StringInSlice(
+								[]string{"any", "flow", "labeled-unicast", "unicast", "multicast"}, false),
 						},
 						"accepted_prefix_limit": {
 							Type:     schema.TypeList,
@@ -408,8 +408,10 @@ func resourceBgpGroup() *schema.Resource {
 						"disable": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							ConflictsWith: []string{"graceful_restart.0.restart_time",
-								"graceful_restart.0.stale_route_time"},
+							ConflictsWith: []string{
+								"graceful_restart.0.restart_time",
+								"graceful_restart.0.stale_route_time",
+							},
 						},
 						"restart_time": {
 							Type:          schema.TypeInt,
@@ -435,6 +437,16 @@ func resourceBgpGroup() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"keep_all": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"keep_none"},
+			},
+			"keep_none": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"keep_all"},
 			},
 			"local_address": {
 				Type:         schema.TypeString,
@@ -484,52 +496,64 @@ func resourceBgpGroup() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(0, 4294967295),
 				Default:      -1,
-				ConflictsWith: []string{"metric_out_igp",
+				ConflictsWith: []string{
+					"metric_out_igp",
 					"metric_out_igp_offset",
 					"metric_out_igp_delay_med_update",
 					"metric_out_minimum_igp",
-					"metric_out_minimum_igp_offset"},
+					"metric_out_minimum_igp_offset",
+				},
 			},
 			"metric_out_igp": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
-				ConflictsWith: []string{"metric_out",
+				ConflictsWith: []string{
+					"metric_out",
 					"metric_out_minimum_igp",
-					"metric_out_minimum_igp_offset"},
+					"metric_out_minimum_igp_offset",
+				},
 			},
 			"metric_out_igp_delay_med_update": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				ConflictsWith: []string{"metric_out",
+				ConflictsWith: []string{
+					"metric_out",
 					"metric_out_minimum_igp",
-					"metric_out_minimum_igp_offset"},
+					"metric_out_minimum_igp_offset",
+				},
 			},
 			"metric_out_igp_offset": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(-2147483648, 2147483647),
-				ConflictsWith: []string{"metric_out",
+				ConflictsWith: []string{
+					"metric_out",
 					"metric_out_minimum_igp",
-					"metric_out_minimum_igp_offset"},
+					"metric_out_minimum_igp_offset",
+				},
 			},
 			"metric_out_minimum_igp": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
-				ConflictsWith: []string{"metric_out",
+				ConflictsWith: []string{
+					"metric_out",
 					"metric_out_igp",
 					"metric_out_igp_offset",
-					"metric_out_igp_delay_med_update"},
+					"metric_out_igp_delay_med_update",
+				},
 			},
 			"metric_out_minimum_igp_offset": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(-2147483648, 2147483647),
-				ConflictsWith: []string{"metric_out",
+				ConflictsWith: []string{
+					"metric_out",
 					"metric_out_igp",
 					"metric_out_igp_offset",
-					"metric_out_igp_delay_med_update"},
+					"metric_out_igp_delay_med_update",
+				},
 			},
 			"mtu_discovery": {
 				Type:     schema.TypeBool,
@@ -588,41 +612,42 @@ func resourceBgpGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultWord {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
-			sess.configClear(jnprSess)
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-			return diag.FromErr(err)
+			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if !instanceExists {
-			sess.configClear(jnprSess)
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-			return diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))
+			return append(diagWarns,
+				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))...)
 		}
 	}
 	bgpGroupxists, err := checkBgpGroupExists(d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if bgpGroupxists {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(fmt.Errorf("bgp group %v already exists in routing-instance %v",
-			d.Get("name").(string), d.Get("routing_instance").(string)))
+		return append(diagWarns, diag.FromErr(fmt.Errorf("bgp group %v already exists in routing-instance %v",
+			d.Get("name").(string), d.Get("routing_instance").(string)))...)
 	}
 	if err := setBgpGroup(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("create resource junos_bgp_group", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -639,6 +664,7 @@ func resourceBgpGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 	return append(diagWarns, resourceBgpGroupReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceBgpGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -649,6 +675,7 @@ func resourceBgpGroupRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	return resourceBgpGroupReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceBgpGroupReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
 	bgpGroupOptions, err := readBgpGroup(d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
@@ -664,6 +691,7 @@ func resourceBgpGroupReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSe
 
 	return nil
 }
+
 func resourceBgpGroupUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -673,21 +701,21 @@ func resourceBgpGroupUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if err := delBgpOpts(d, "group", m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setBgpGroup(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("update resource junos_bgp_group", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -695,6 +723,7 @@ func resourceBgpGroupUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 	return append(diagWarns, resourceBgpGroupReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceBgpGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -703,22 +732,23 @@ func resourceBgpGroupDelete(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if err := delBgpGroup(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := delBgpGroup(d, m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("delete resource junos_bgp_group", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	return diagWarns
 }
+
 func resourceBgpGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -772,6 +802,7 @@ func checkBgpGroupExists(bgpGroup, instance string, m interface{}, jnprSess *Net
 
 	return true, nil
 }
+
 func setBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	setPrefix := setLineStart
 	if d.Get("routing_instance").(string) == defaultWord {
@@ -810,6 +841,7 @@ func setBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 
 	return setBgpOptsGrafefulRestart(setPrefix, d.Get("graceful_restart").([]interface{}), m, jnprSess)
 }
+
 func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObject) (bgpOptions, error) {
 	sess := m.(*Session)
 	var confRead bgpOptions
@@ -881,6 +913,7 @@ func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObj
 
 	return confRead, nil
 }
+
 func delBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
@@ -956,6 +989,12 @@ func fillBgpGroupData(d *schema.ResourceData, bgpGroupOptions bgpOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("import", bgpGroupOptions.importPolicy); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("keep_all", bgpGroupOptions.keepAll); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("keep_none", bgpGroupOptions.keepNone); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("local_address", bgpGroupOptions.localAddress); tfErr != nil {

@@ -50,26 +50,26 @@ func resourceNullCommitFileCreate(ctx context.Context, d *schema.ResourceData, m
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	fileName := d.Get("filename").(string)
 	configSet, err := readNullCommitFile(fileName)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	for _, v := range d.Get("append_lines").([]interface{}) {
 		configSet = append(configSet, v.(string))
 	}
 	if err := sess.configSet(configSet, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("commit a file with resource junos_null_commit_file", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -82,9 +82,11 @@ func resourceNullCommitFileCreate(ctx context.Context, d *schema.ResourceData, m
 
 	return diagWarns
 }
+
 func resourceNullCommitFileRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	return nil
 }
+
 func resourceNullCommitFileDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.SetId("")
 
@@ -95,8 +97,7 @@ func readNullCommitFile(filename string) ([]string, error) {
 	if err := replaceTildeToHomeDir(&filename); err != nil {
 		return []string{}, err
 	}
-	_, err := os.Stat(filename)
-	if os.IsNotExist(err) {
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		return []string{}, fmt.Errorf("file `%s` doesn't exist", filename)
 	}
 	fileReadByte, err := ioutil.ReadFile(filename)
@@ -106,6 +107,7 @@ func readNullCommitFile(filename string) ([]string, error) {
 
 	return strings.Split(string(fileReadByte), "\n"), nil
 }
+
 func cleanNullCommitFile(filename string, sess *Session) error {
 	if err := replaceTildeToHomeDir(&filename); err != nil {
 		return err

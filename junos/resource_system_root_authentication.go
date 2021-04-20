@@ -64,17 +64,16 @@ func resourceSystemRootAuthenticationCreate(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-
-	if err := setSystemRootAuthentication(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := setSystemRootAuthentication(d, m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("create resource junos_system_root_authentication", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -82,6 +81,7 @@ func resourceSystemRootAuthenticationCreate(
 
 	return append(diagWarns, resourceSystemRootAuthenticationReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSystemRootAuthenticationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -92,6 +92,7 @@ func resourceSystemRootAuthenticationRead(ctx context.Context, d *schema.Resourc
 
 	return resourceSystemRootAuthenticationReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceSystemRootAuthenticationReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
@@ -104,6 +105,7 @@ func resourceSystemRootAuthenticationReadWJnprSess(
 
 	return nil
 }
+
 func resourceSystemRootAuthenticationUpdate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
@@ -114,21 +116,21 @@ func resourceSystemRootAuthenticationUpdate(
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if err := delSystemRootAuthentication(m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setSystemRootAuthentication(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("update resource junos_system_root_authentication", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -136,10 +138,12 @@ func resourceSystemRootAuthenticationUpdate(
 
 	return append(diagWarns, resourceSystemRootAuthenticationReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceSystemRootAuthenticationDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	return nil
 }
+
 func resourceSystemRootAuthenticationImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -188,6 +192,7 @@ func setSystemRootAuthentication(d *schema.ResourceData, m interface{}, jnprSess
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readSystemRootAuthentication(m interface{}, jnprSess *NetconfObject) (systemRootAuthOptions, error) {
 	sess := m.(*Session)
 	var confRead systemRootAuthOptions
@@ -237,6 +242,7 @@ func delSystemRootAuthentication(m interface{}, jnprSess *NetconfObject) error {
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func fillSystemRootAuthenticationData(d *schema.ResourceData, systemRootAuthOptions systemRootAuthOptions) {
 	if tfErr := d.Set("encrypted_password", systemRootAuthOptions.encryptedPassword); tfErr != nil {
 		panic(tfErr)

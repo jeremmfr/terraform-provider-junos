@@ -229,7 +229,8 @@ func resourceIkeGateway() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"distinguished-name", "hostname", "inet", "inet6", "user-at-hostname"}, false),
+								"distinguished-name", "hostname", "inet", "inet6", "user-at-hostname",
+							}, false),
 						},
 						"value": {
 							Type:     schema.TypeString,
@@ -252,7 +253,8 @@ func resourceIkeGateway() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"distinguished-name", "hostname", "inet", "inet6", "user-at-hostname"}, false),
+								"distinguished-name", "hostname", "inet", "inet6", "user-at-hostname",
+							}, false),
 						},
 						"value": {
 							Type:     schema.TypeString,
@@ -290,27 +292,28 @@ func resourceIkeGatewayCreate(ctx context.Context, d *schema.ResourceData, m int
 			jnprSess.SystemInformation.HardwareModel))
 	}
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	ikeGatewayExists, err := checkIkeGatewayExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if ikeGatewayExists {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(fmt.Errorf("security ike gateway %v already exists", d.Get("name").(string)))
+		return append(diagWarns,
+			diag.FromErr(fmt.Errorf("security ike gateway %v already exists", d.Get("name").(string)))...)
 	}
 	if err := setIkeGateway(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("create resource junos_security_ike_gateway", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -327,6 +330,7 @@ func resourceIkeGatewayCreate(ctx context.Context, d *schema.ResourceData, m int
 
 	return append(diagWarns, resourceIkeGatewayReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceIkeGatewayRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -337,6 +341,7 @@ func resourceIkeGatewayRead(ctx context.Context, d *schema.ResourceData, m inter
 
 	return resourceIkeGatewayReadWJnprSess(d, m, jnprSess)
 }
+
 func resourceIkeGatewayReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
 	ikeGatewayOptions, err := readIkeGateway(d.Get("name").(string), m, jnprSess)
@@ -352,6 +357,7 @@ func resourceIkeGatewayReadWJnprSess(d *schema.ResourceData, m interface{}, jnpr
 
 	return nil
 }
+
 func resourceIkeGatewayUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
@@ -361,21 +367,21 @@ func resourceIkeGatewayUpdate(ctx context.Context, d *schema.ResourceData, m int
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
+	var diagWarns diag.Diagnostics
 	if err := delIkeGateway(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if err := setIkeGateway(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return diag.FromErr(err)
+		return append(diagWarns, diag.FromErr(err)...)
 	}
-	var diagWarns diag.Diagnostics
 	warns, err := sess.commitConf("update resource junos_security_ike_gateway", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -383,6 +389,7 @@ func resourceIkeGatewayUpdate(ctx context.Context, d *schema.ResourceData, m int
 
 	return append(diagWarns, resourceIkeGatewayReadWJnprSess(d, m, jnprSess)...)
 }
+
 func resourceIkeGatewayDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -391,22 +398,23 @@ func resourceIkeGatewayDelete(ctx context.Context, d *schema.ResourceData, m int
 	}
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
-	if err := delIkeGateway(d, m, jnprSess); err != nil {
-		sess.configClear(jnprSess)
-
-		return diag.FromErr(err)
-	}
 	var diagWarns diag.Diagnostics
+	if err := delIkeGateway(d, m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	warns, err := sess.commitConf("delete resource junos_security_ike_gateway", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		sess.configClear(jnprSess)
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	return diagWarns
 }
+
 func resourceIkeGatewayImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
@@ -444,6 +452,7 @@ func checkIkeGatewayExists(ikeGateway string, m interface{}, jnprSess *NetconfOb
 
 	return true, nil
 }
+
 func setIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -571,6 +580,7 @@ func setIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 
 	return sess.configSet(configSet, jnprSess)
 }
+
 func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (ikeGatewayOptions, error) {
 	sess := m.(*Session)
 	var confRead ikeGatewayOptions
@@ -738,6 +748,7 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 
 	return confRead, nil
 }
+
 func delIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)

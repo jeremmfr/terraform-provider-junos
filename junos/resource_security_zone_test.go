@@ -110,6 +110,7 @@ resource junos_security_zone "testacc_securityZone" {
 }
 `
 }
+
 func testAccJunosSecurityZoneConfigUpdate(interFace string) string {
 	return `
 resource junos_security_screen "testaccZone" {
@@ -139,6 +140,7 @@ resource junos_interface_logical "testacc_securityZone" {
 }
 `
 }
+
 func testAccJunosSecurityZoneConfigUpdate2(interFace string) string {
 	return `
 resource junos_security_zone "testacc_securityZone" {
