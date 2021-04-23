@@ -40,6 +40,9 @@ The following arguments are supported:
   * `flag` - (Optional)(`ListOfString`) Tracing parameters for IKE.
   * `rate_limit` - (Optional)(`Int`) Limit the incoming rate of trace messages (0..4294967295)
 * `log` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'log' configuration. See the [`log` arguments] (#log-arguments) block.
+* `policies` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'policies' configuration.
+  * `policy_rematch` - (Optional)(`Bool`) Can be specified to allow session to remain open when an associated security policy is modified. Conflict with `policy_rematch_extensive`.
+  * `policy_rematch_extensive` - (Optional)(`Bool`) Can be specified to allow session to remain open when an associated security policy is modified, renamed, deactivated, or deleted. Conflict with `policy_rematch`.
 * `utm` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'utm' configuration.
   * `feature_profile_web_filtering_type` - (Optional)(`String`) Configuring feature-profile web-filtering type. Need to be 'juniper-enhanced', 'juniper-local', 'web-filtering-none' or 'websense-redirect'.
   * `feature_profile_web_filtering_juniper_enhanced_server` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'server' configuration. See the [`feature_profile_web_filtering_juniper_enhanced_server` arguments for utm] (#feature_profile_web_filtering_juniper_enhanced_server-arguments-for-utm) block.
