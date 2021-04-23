@@ -45,13 +45,13 @@ The following arguments are supported:
   * `name` - (Required)(`String`) Security policy name.
   * `match_source_address` - (Required)(`ListOfString`) List of source address match.
   * `match_destination_address` - (Required)(`ListOfString`) List of destination address match.
-  * `match_application` - (Required)(`ListOfString`) List of applications match.
   * `match_from_zone` - (Required)(`ListOfString`) Match multiple source zone.
   * `match_to_zone` - (Required)(`ListOfString`) Match multiple destination zone.
   * `then` - (Optional)(`String`) Action of policy. Defaults to `permit`.
   * `count` - (Optional)(`Bool`) Enable count.
   * `log_init` - (Optional)(`Bool`) Log at session init time.
   * `log_close` - (Optional)(`Bool`) Log at session close time.
+  * `match_application` - (Optional)(`ListOfString`) List of applications match.
   * `match_destination_address_excluded` - (Optional)(`Bool`) Exclude destination addresses.
   * `match_dynamic_application` - (Optional)(`ListOfString`) List of dynamic application or group match.
   * `match_source_address_excluded` - (Optional)(`Bool`) Exclude source addresses.
