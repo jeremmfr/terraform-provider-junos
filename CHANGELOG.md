@@ -5,8 +5,8 @@ BUG FIXES:
 
 ## 1.15.1 (April 23, 2021)
 BUG FIXES:
-* resource/`junos_security_global_policy`: fix `match_application` argument not required if `match_dynamic_application` is set and Junos version is > 19.1R1 (Fixes #188)
-* resource/`junos_security_policy`: fix `match_application` argument not required if `match_dynamic_application` is set and Junos version is > 19.1R1 (Fixes #188)
+* resource/`junos_security_global_policy`: fix `match_application` argument not required if `match_dynamic_application` is set and Junos version is > 19.1R1 (Fixes [#188](https://github.com/jeremmfr/terraform-provider-junos/issues/188))
+* resource/`junos_security_policy`: fix `match_application` argument not required if `match_dynamic_application` is set and Junos version is > 19.1R1 (Fixes [#188](https://github.com/jeremmfr/terraform-provider-junos/issues/188))
 
 ## 1.15.0 (April 20, 2021)
 FEATURES:
