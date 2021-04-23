@@ -60,12 +60,6 @@ func resourceSecurityPolicy() *schema.Resource {
 							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
-						"match_application": {
-							Type:     schema.TypeList,
-							Required: true,
-							MinItems: 1,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
 						"then": {
 							Type:         schema.TypeString,
 							Optional:     true,
@@ -83,6 +77,11 @@ func resourceSecurityPolicy() *schema.Resource {
 						"log_close": {
 							Type:     schema.TypeBool,
 							Optional: true,
+						},
+						"match_application": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"match_destination_address_excluded": {
 							Type:     schema.TypeBool,
@@ -383,26 +382,11 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	for _, v := range d.Get("policy").([]interface{}) {
 		policy := v.(map[string]interface{})
 		setPrefixPolicy := setPrefix + policy["name"].(string)
-		if len(policy["match_source_address"].([]interface{})) != 0 {
-			for _, address := range policy["match_source_address"].([]interface{}) {
-				configSet = append(configSet, setPrefixPolicy+" match source-address "+address.(string))
-			}
-		} else {
-			configSet = append(configSet, setPrefixPolicy+" match source-address any")
+		for _, address := range policy["match_source_address"].([]interface{}) {
+			configSet = append(configSet, setPrefixPolicy+" match source-address "+address.(string))
 		}
-		if len(policy["match_destination_address"].([]interface{})) != 0 {
-			for _, address := range policy["match_destination_address"].([]interface{}) {
-				configSet = append(configSet, setPrefixPolicy+" match destination-address "+address.(string))
-			}
-		} else {
-			configSet = append(configSet, setPrefixPolicy+" match destination-address any")
-		}
-		if len(policy["match_application"].([]interface{})) != 0 {
-			for _, app := range policy["match_application"].([]interface{}) {
-				configSet = append(configSet, setPrefixPolicy+" match application "+app.(string))
-			}
-		} else {
-			configSet = append(configSet, setPrefixPolicy+" match application any")
+		for _, address := range policy["match_destination_address"].([]interface{}) {
+			configSet = append(configSet, setPrefixPolicy+" match destination-address "+address.(string))
 		}
 		configSet = append(configSet, setPrefixPolicy+" then "+policy["then"].(string))
 		if policy["count"].(bool) {
@@ -413,6 +397,14 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		}
 		if policy["log_close"].(bool) {
 			configSet = append(configSet, setPrefixPolicy+" then log session-close")
+		}
+		if len(policy["match_application"].([]interface{})) == 0 &&
+			len(policy["match_dynamic_application"].([]interface{})) == 0 {
+			return fmt.Errorf("1 minimum item must be set in 'match_application' or 'match_dynamic_application' "+
+				"argument in '%s' policy", policy["name"].(string))
+		}
+		for _, app := range policy["match_application"].([]interface{}) {
+			configSet = append(configSet, setPrefixPolicy+" match application "+app.(string))
 		}
 		if policy["match_destination_address_excluded"].(bool) {
 			configSet = append(configSet, setPrefixPolicy+" match destination-address-excluded")
