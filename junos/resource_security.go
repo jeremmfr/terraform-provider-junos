@@ -1351,7 +1351,6 @@ func listLinesSecurityLog() []string {
 func listLinesSecurityPolicies() []string {
 	return []string{
 		"policies policy-rematch",
-		"policies policy-rematch extensive",
 	}
 }
 
