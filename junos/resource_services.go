@@ -702,13 +702,12 @@ func readServicesApplicationIdentification(confRead *servicesOptions, itemTrimAp
 					"security_services":         false,
 				})
 		}
+		applicationSystemCache := confRead.appIdent[0]["application_system_cache"].([]map[string]interface{})[0]
 		switch {
 		case itemTrim == "application-system-cache no-miscellaneous-services":
-			confRead.appIdent[0]["application_system_cache"].([]map[string]interface{})[0]["no_miscellaneous_services"] = // nolint: lll
-				true
+			applicationSystemCache["no_miscellaneous_services"] = true
 		case itemTrim == "application-system-cache security-services":
-			confRead.appIdent[0]["application_system_cache"].([]map[string]interface{})[0]["security_services"] =
-				true
+			applicationSystemCache["security_services"] = true
 		}
 	case itemTrim == "no-application-system-cache":
 		confRead.appIdent[0]["no_application_system_cache"] = true

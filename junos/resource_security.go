@@ -1609,23 +1609,23 @@ func readSecurityFlow(confRead *securityOptions, itemTrimFlow string) error {
 					"no_packet_flooding":    make([]map[string]interface{}, 0),
 				})
 		}
+		flowEthernetSwitching := confRead.flow[0]["ethernet_switching"].([]map[string]interface{})[0]
 		switch {
 		case itemTrim == "ethernet-switching block-non-ip-all":
-			confRead.flow[0]["ethernet_switching"].([]map[string]interface{})[0]["block_non_ip_all"] = true
+			flowEthernetSwitching["block_non_ip_all"] = true
 		case itemTrim == "ethernet-switching bypass-non-ip-unicast":
-			confRead.flow[0]["ethernet_switching"].([]map[string]interface{})[0]["bypass_non_ip_unicast"] = true
+			flowEthernetSwitching["bypass_non_ip_unicast"] = true
 		case itemTrim == "ethernet-switching bpdu-vlan-flooding":
-			confRead.flow[0]["ethernet_switching"].([]map[string]interface{})[0]["bpdu_vlan_flooding"] = true
+			flowEthernetSwitching["bpdu_vlan_flooding"] = true
 		case strings.HasPrefix(itemTrim, "ethernet-switching no-packet-flooding"):
-			if len(confRead.flow[0]["ethernet_switching"].([]map[string]interface{})[0]["no_packet_flooding"].([]map[string]interface{})) == 0 { // nolint: lll
-				confRead.flow[0]["ethernet_switching"].([]map[string]interface{})[0]["no_packet_flooding"] = append(
-					confRead.flow[0]["ethernet_switching"].([]map[string]interface{})[0]["no_packet_flooding"].([]map[string]interface{}), // nolint: lll
-					map[string]interface{}{
+			if len(flowEthernetSwitching["no_packet_flooding"].([]map[string]interface{})) == 0 {
+				flowEthernetSwitching["no_packet_flooding"] = append(
+					flowEthernetSwitching["no_packet_flooding"].([]map[string]interface{}), map[string]interface{}{
 						"no_trace_route": false,
 					})
 			}
 			if itemTrim == "ethernet-switching no-packet-flooding no-trace-route" {
-				confRead.flow[0]["ethernet_switching"].([]map[string]interface{})[0]["no_packet_flooding"].([]map[string]interface{})[0]["no_trace_route"] = true // nolint: lll
+				flowEthernetSwitching["no_packet_flooding"].([]map[string]interface{})[0]["no_trace_route"] = true
 			}
 		}
 	case itemTrim == "force-ip-reassembly":
@@ -1732,35 +1732,34 @@ func readSecurityFlow(confRead *securityOptions, itemTrimFlow string) error {
 					"time_wait_state":        make([]map[string]interface{}, 0),
 				})
 		}
+		flowTCPSession := confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]
 		switch {
 		case itemTrim == "tcp-session fin-invalidate-session":
-			confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["fin_invalidate_session"] = true
+			flowTCPSession["fin_invalidate_session"] = true
 		case strings.HasPrefix(itemTrim, "tcp-session maximum-window "):
-			confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["maximum_window"] =
-				strings.TrimPrefix(itemTrim, "tcp-session maximum-window ")
+			flowTCPSession["maximum_window"] = strings.TrimPrefix(itemTrim, "tcp-session maximum-window ")
 		case itemTrim == "tcp-session no-sequence-check":
-			confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["no_sequence_check"] = true
+			flowTCPSession["no_sequence_check"] = true
 		case itemTrim == "tcp-session no-syn-check":
-			confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["no_syn_check"] = true
+			flowTCPSession["no_syn_check"] = true
 		case itemTrim == "tcp-session no-syn-check-in-tunnel":
-			confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["no_syn_check_in_tunnel"] = true
+			flowTCPSession["no_syn_check_in_tunnel"] = true
 		case itemTrim == "tcp-session rst-invalidate-session":
-			confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["rst_invalidate_session"] = true
+			flowTCPSession["rst_invalidate_session"] = true
 		case itemTrim == "tcp-session rst-sequence-check":
-			confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["rst_sequence_check"] = true
+			flowTCPSession["rst_sequence_check"] = true
 		case itemTrim == "tcp-session strict-syn-check":
-			confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["strict_syn_check"] = true
+			flowTCPSession["strict_syn_check"] = true
 		case strings.HasPrefix(itemTrim, "tcp-session tcp-initial-timeout "):
 			var err error
-			confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["tcp_initial_timeout"], err =
+			flowTCPSession["tcp_initial_timeout"], err =
 				strconv.Atoi(strings.TrimPrefix(itemTrim, "tcp-session tcp-initial-timeout "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "tcp-session time-wait-state"):
-			if len(confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["time_wait_state"].([]map[string]interface{})) == 0 { // nolint: lll
-				confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["time_wait_state"] = append(
-					confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["time_wait_state"].([]map[string]interface{}),
+			if len(flowTCPSession["time_wait_state"].([]map[string]interface{})) == 0 {
+				flowTCPSession["time_wait_state"] = append(flowTCPSession["time_wait_state"].([]map[string]interface{}),
 					map[string]interface{}{
 						"apply_to_half_close_state": false,
 						"session_ageout":            false,
@@ -1769,12 +1768,12 @@ func readSecurityFlow(confRead *securityOptions, itemTrimFlow string) error {
 			}
 			switch {
 			case itemTrim == "tcp-session time-wait-state apply-to-half-close-state":
-				confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["time_wait_state"].([]map[string]interface{})[0]["apply_to_half_close_state"] = true // nolint: lll
+				flowTCPSession["time_wait_state"].([]map[string]interface{})[0]["apply_to_half_close_state"] = true
 			case itemTrim == "tcp-session time-wait-state session-ageout":
-				confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["time_wait_state"].([]map[string]interface{})[0]["session_ageout"] = true // nolint: lll
+				flowTCPSession["time_wait_state"].([]map[string]interface{})[0]["session_ageout"] = true
 			case strings.HasPrefix(itemTrim, "tcp-session time-wait-state session-timeout "):
 				var err error
-				confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["time_wait_state"].([]map[string]interface{})[0]["session_timeout"], err = // nolint: lll
+				flowTCPSession["time_wait_state"].([]map[string]interface{})[0]["session_timeout"], err =
 					strconv.Atoi(strings.TrimPrefix(itemTrim, "tcp-session time-wait-state session-timeout "))
 				if err != nil {
 					return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
@@ -2006,23 +2005,22 @@ func readSecurityUtm(confRead *securityOptions, itemTrimUtm string) error {
 				})
 		}
 		itemTrimServer := strings.TrimPrefix(itemTrimUtm, "utm feature-profile web-filtering juniper-enhanced server")
+		utmFeatProfWebFiltJunEnhServer :=
+			confRead.utm[0]["feature_profile_web_filtering_juniper_enhanced_server"].([]map[string]interface{})[0]
 		switch {
 		case strings.HasPrefix(itemTrimServer, " host "):
-			confRead.utm[0]["feature_profile_web_filtering_juniper_enhanced_server"].([]map[string]interface{})[0]["host"] =
-				strings.TrimPrefix(itemTrimServer, " host ")
+			utmFeatProfWebFiltJunEnhServer["host"] = strings.TrimPrefix(itemTrimServer, " host ")
 		case strings.HasPrefix(itemTrimServer, " port "):
 			var err error
-			confRead.utm[0]["feature_profile_web_filtering_juniper_enhanced_server"].([]map[string]interface{})[0]["port"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrimServer, " port "))
+			utmFeatProfWebFiltJunEnhServer["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrimServer, " port "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimUtm, err)
 			}
 		case strings.HasPrefix(itemTrimServer, " proxy-profile "):
-			confRead.utm[0]["feature_profile_web_filtering_juniper_enhanced_server"].([]map[string]interface{})[0]["proxy_profile"] = //nolint: lll
+			utmFeatProfWebFiltJunEnhServer["proxy_profile"] =
 				strings.Trim(strings.TrimPrefix(itemTrimServer, " proxy-profile "), "\"")
 		case strings.HasPrefix(itemTrimServer, " routing-instance "):
-			confRead.utm[0]["feature_profile_web_filtering_juniper_enhanced_server"].([]map[string]interface{})[0]["routing_instance"] = //nolint: lll
-				strings.TrimPrefix(itemTrimServer, " routing-instance ")
+			utmFeatProfWebFiltJunEnhServer["routing_instance"] = strings.TrimPrefix(itemTrimServer, " routing-instance ")
 		}
 	}
 
