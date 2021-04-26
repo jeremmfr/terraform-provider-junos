@@ -521,11 +521,19 @@ func readFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfO
 				case strings.HasPrefix(itemTrimTerm, "filter "):
 					termOptions["filter"] = strings.TrimPrefix(itemTrimTerm, "filter ")
 				case strings.HasPrefix(itemTrimTerm, "from "):
-					termOptions["from"] = readFirewallFilterOptsFrom(strings.TrimPrefix(itemTrimTerm, "from "),
-						termOptions["from"].([]map[string]interface{}))
+					if len(termOptions["from"].([]map[string]interface{})) == 0 {
+						termOptions["from"] = append(termOptions["from"].([]map[string]interface{}),
+							genMapFirewallFilterOptsFrom())
+					}
+					readFirewallFilterOptsFrom(strings.TrimPrefix(itemTrimTerm, "from "),
+						termOptions["from"].([]map[string]interface{})[0])
 				case strings.HasPrefix(itemTrimTerm, "then "):
-					termOptions["then"] = readFirewallFilterOptsThen(strings.TrimPrefix(itemTrimTerm, "then "),
-						termOptions["then"].([]map[string]interface{}))
+					if len(termOptions["then"].([]map[string]interface{})) == 0 {
+						termOptions["then"] = append(termOptions["then"].([]map[string]interface{}),
+							genMapFirewallFilterOptsThen())
+					}
+					readFirewallFilterOptsThen(strings.TrimPrefix(itemTrimTerm, "then "),
+						termOptions["then"].([]map[string]interface{})[0])
 				}
 				confRead.term = append(confRead.term, termOptions)
 			}
@@ -735,14 +743,7 @@ func setFirewallFilterOptsThen(setPrefixTermThen string, configSet []string, the
 	return configSet
 }
 
-func readFirewallFilterOptsFrom(item string,
-	confReadElement []map[string]interface{}) []map[string]interface{} {
-	fromMap := genMapFirewallFilterOptsFrom()
-	if len(confReadElement) > 0 {
-		for k, v := range confReadElement[0] {
-			fromMap[k] = v
-		}
-	}
+func readFirewallFilterOptsFrom(item string, fromMap map[string]interface{}) {
 	switch {
 	case strings.HasPrefix(item, "address "):
 		if strings.HasSuffix(item, " except") {
@@ -840,19 +841,9 @@ func readFirewallFilterOptsFrom(item string,
 	case item == "tcp-initial":
 		fromMap["tcp_initial"] = true
 	}
-
-	// override (maxItem = 1)
-	return []map[string]interface{}{fromMap}
 }
 
-func readFirewallFilterOptsThen(item string,
-	confReadElement []map[string]interface{}) []map[string]interface{} {
-	thenMap := genMapFirewallFilterOptsThen()
-	if len(confReadElement) > 0 {
-		for k, v := range confReadElement[0] {
-			thenMap[k] = v
-		}
-	}
+func readFirewallFilterOptsThen(item string, thenMap map[string]interface{}) {
 	switch {
 	case item == "accept",
 		item == "reject",
@@ -876,8 +867,6 @@ func readFirewallFilterOptsThen(item string,
 	case item == "syslog":
 		thenMap["syslog"] = true
 	}
-	// override (maxItem = 1)
-	return []map[string]interface{}{thenMap}
 }
 
 func genMapFirewallFilterOptsFrom() map[string]interface{} {

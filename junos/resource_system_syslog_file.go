@@ -567,14 +567,14 @@ func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObjec
 				confRead.matchStrings = append(confRead.matchStrings,
 					strings.Trim(strings.TrimPrefix(itemTrim, "match-strings "), "\""))
 			case strings.HasPrefix(itemTrim, "structured-data"):
-				structuredData := map[string]interface{}{
-					"brief": false,
+				if len(confRead.structuredData) == 0 {
+					confRead.structuredData = append(confRead.structuredData, map[string]interface{}{
+						"brief": false,
+					})
 				}
 				if itemTrim == "structured-data brief" {
-					structuredData["brief"] = true
+					confRead.structuredData[0]["brief"] = true
 				}
-				// override (maxItem = 1)
-				confRead.structuredData = []map[string]interface{}{structuredData}
 			case strings.HasPrefix(itemTrim, "any "):
 				confRead.anySeverity = strings.TrimPrefix(itemTrim, "any ")
 			case strings.HasPrefix(itemTrim, "authorization "):
@@ -606,49 +606,49 @@ func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObjec
 			case strings.HasPrefix(itemTrim, "user "):
 				confRead.userSeverity = strings.TrimPrefix(itemTrim, "user ")
 			case strings.HasPrefix(itemTrim, "archive"):
-				archiveM := map[string]interface{}{
-					"sites":             make([]map[string]interface{}, 0),
-					"binary_data":       false,
-					"no_binary_data":    false,
-					"world_readable":    false,
-					"no_world_readable": false,
-					"files":             0,
-					"size":              0,
-					"transfer_interval": 0,
-					"start_time":        "",
-				}
-				if len(confRead.archive) == 1 {
-					archiveM = confRead.archive[0]
+				if len(confRead.archive) == 0 {
+					confRead.archive = append(confRead.archive, map[string]interface{}{
+						"sites":             make([]map[string]interface{}, 0),
+						"binary_data":       false,
+						"no_binary_data":    false,
+						"world_readable":    false,
+						"no_world_readable": false,
+						"files":             0,
+						"size":              0,
+						"transfer_interval": 0,
+						"start_time":        "",
+					})
 				}
 				switch {
 				case itemTrim == "archive binary-data":
-					archiveM["binary_data"] = true
+					confRead.archive[0]["binary_data"] = true
 				case itemTrim == "archive no-binary-data":
-					archiveM["no_binary_data"] = true
+					confRead.archive[0]["no_binary_data"] = true
 				case itemTrim == "archive world-readable":
-					archiveM["world_readable"] = true
+					confRead.archive[0]["world_readable"] = true
 				case itemTrim == "archive no-world-readable":
-					archiveM["no_world_readable"] = true
+					confRead.archive[0]["no_world_readable"] = true
 				case strings.HasPrefix(itemTrim, "archive files "):
 					var err error
-					archiveM["files"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "archive files "))
+					confRead.archive[0]["files"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "archive files "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "archive size "):
 					var err error
-					archiveM["size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "archive size "))
+					confRead.archive[0]["size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "archive size "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "archive transfer-interval "):
 					var err error
-					archiveM["transfer_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "archive transfer-interval "))
+					confRead.archive[0]["transfer_interval"], err =
+						strconv.Atoi(strings.TrimPrefix(itemTrim, "archive transfer-interval "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "archive start-time "):
-					archiveM["start_time"] = strings.TrimPrefix(itemTrim, "archive start-time ")
+					confRead.archive[0]["start_time"] = strings.TrimPrefix(itemTrim, "archive start-time ")
 				case strings.HasPrefix(itemTrim, "archive archive-sites "):
 					itemTrimArchSitesSplit := strings.Split(
 						strings.TrimPrefix(itemTrim, "archive archive-sites "), " ")
@@ -658,8 +658,8 @@ func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObjec
 						"password":         "",
 						"routing_instance": "",
 					}
-					sitesOptions, archiveM["sites"] = copyAndRemoveItemMapList("url", false, sitesOptions,
-						archiveM["sites"].([]map[string]interface{}))
+					sitesOptions, confRead.archive[0]["sites"] = copyAndRemoveItemMapList("url", false, sitesOptions,
+						confRead.archive[0]["sites"].([]map[string]interface{}))
 					switch {
 					case strings.HasPrefix(itemTrimArchSites, "password "):
 						var err error
@@ -671,11 +671,8 @@ func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObjec
 					case strings.HasPrefix(itemTrimArchSites, "routing-instance "):
 						sitesOptions["routing_instance"] = strings.TrimPrefix(itemTrimArchSites, "routing-instance ")
 					}
-					archiveM["sites"] = append(archiveM["sites"].([]map[string]interface{}), sitesOptions)
+					confRead.archive[0]["sites"] = append(confRead.archive[0]["sites"].([]map[string]interface{}), sitesOptions)
 				}
-
-				// override (maxItem = 1)
-				confRead.archive = []map[string]interface{}{archiveM}
 			}
 		}
 	}

@@ -335,26 +335,20 @@ func readSecurityNatDestination(natDestination string,
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
 			case strings.HasPrefix(itemTrim, "from "):
-				fromOptions := map[string]interface{}{
-					"type":  "",
-					"value": []string{},
-				}
-				if len(confRead.from) > 0 {
-					for k, v := range confRead.from[0] {
-						fromOptions[k] = v
-					}
-				}
 				fromWords := strings.Split(strings.TrimPrefix(itemTrim, "from "), " ")
-				fromOptions["type"] = fromWords[0]
-				fromOptions["value"] = append(fromOptions["value"].([]string), fromWords[1])
-				confRead.from = []map[string]interface{}{fromOptions}
+				if len(confRead.from) == 0 {
+					confRead.from = append(confRead.from, map[string]interface{}{
+						"type":  fromWords[0],
+						"value": make([]string, 0),
+					})
+				}
+				confRead.from[0]["value"] = append(confRead.from[0]["value"].([]string), fromWords[1])
 			case strings.HasPrefix(itemTrim, "rule "):
 				ruleConfig := strings.Split(strings.TrimPrefix(itemTrim, "rule "), " ")
-
 				ruleOptions := map[string]interface{}{
 					"name":                ruleConfig[0],
 					"destination_address": "",
-					thenWord:              make([]map[string]interface{}, 0),
+					"then":                make([]map[string]interface{}, 0),
 				}
 				ruleOptions, confRead.rule = copyAndRemoveItemMapList("name", false, ruleOptions, confRead.rule)
 				switch {
@@ -363,15 +357,13 @@ func readSecurityNatDestination(natDestination string,
 						"rule "+ruleConfig[0]+" match destination-address ")
 				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" then destination-nat "):
 					itemTrimThen := strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" then destination-nat ")
-					ruleThenOptions := map[string]interface{}{
-						"type": "",
-						"pool": "",
+					if len(ruleOptions["then"].([]map[string]interface{})) == 0 {
+						ruleOptions["then"] = append(ruleOptions["then"].([]map[string]interface{}), map[string]interface{}{
+							"type": "",
+							"pool": "",
+						})
 					}
-					if len(ruleOptions[thenWord].([]map[string]interface{})) > 0 {
-						for k, v := range ruleOptions[thenWord].([]map[string]interface{})[0] {
-							ruleThenOptions[k] = v
-						}
-					}
+					ruleThenOptions := ruleOptions["then"].([]map[string]interface{})[0]
 					if strings.HasPrefix(itemTrimThen, "pool ") {
 						thenSplit := strings.Split(itemTrimThen, " ")
 						ruleThenOptions["type"] = thenSplit[0]
@@ -379,7 +371,6 @@ func readSecurityNatDestination(natDestination string,
 					} else {
 						ruleThenOptions["type"] = itemTrimThen
 					}
-					ruleOptions[thenWord] = []map[string]interface{}{ruleThenOptions}
 				}
 				confRead.rule = append(confRead.rule, ruleOptions)
 			}

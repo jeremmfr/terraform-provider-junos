@@ -347,26 +347,20 @@ func readSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObj
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
 			case strings.HasPrefix(itemTrim, "from "):
-				fromOptions := map[string]interface{}{
-					"type":  "",
-					"value": []string{},
-				}
-				if len(confRead.from) > 0 {
-					for k, v := range confRead.from[0] {
-						fromOptions[k] = v
-					}
-				}
 				fromWords := strings.Split(strings.TrimPrefix(itemTrim, "from "), " ")
-				fromOptions["type"] = fromWords[0]
-				fromOptions["value"] = append(fromOptions["value"].([]string), fromWords[1])
-				confRead.from = []map[string]interface{}{fromOptions}
+				if len(confRead.from) == 0 {
+					confRead.from = append(confRead.from, map[string]interface{}{
+						"type":  fromWords[0],
+						"value": make([]string, 0),
+					})
+				}
+				confRead.from[0]["value"] = append(confRead.from[0]["value"].([]string), fromWords[1])
 			case strings.HasPrefix(itemTrim, "rule "):
 				ruleConfig := strings.Split(strings.TrimPrefix(itemTrim, "rule "), " ")
-
 				ruleOptions := map[string]interface{}{
 					"name":                ruleConfig[0],
 					"destination_address": "",
-					thenWord:              make([]map[string]interface{}, 0),
+					"then":                make([]map[string]interface{}, 0),
 				}
 				ruleOptions, confRead.rule = copyAndRemoveItemMapList("name", false, ruleOptions, confRead.rule)
 				switch {
@@ -375,16 +369,15 @@ func readSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObj
 						"rule "+ruleConfig[0]+" match destination-address ")
 				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" then static-nat "):
 					itemThen := strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" then static-nat ")
-					ruleThenOptions := map[string]interface{}{
-						"type":             "",
-						prefixWord:         "",
-						"routing_instance": "",
+					if len(ruleOptions["then"].([]map[string]interface{})) == 0 {
+						ruleOptions["then"] = append(ruleOptions["then"].([]map[string]interface{}),
+							map[string]interface{}{
+								"type":             "",
+								"prefix":           "",
+								"routing_instance": "",
+							})
 					}
-					if len(ruleOptions[thenWord].([]map[string]interface{})) > 0 {
-						for k, v := range ruleOptions[thenWord].([]map[string]interface{})[0] {
-							ruleThenOptions[k] = v
-						}
-					}
+					ruleThenOptions := ruleOptions["then"].([]map[string]interface{})[0]
 					switch {
 					case strings.HasPrefix(itemThen, "prefix "):
 						ruleThenOptions["type"] = prefixWord
@@ -397,8 +390,6 @@ func readSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObj
 						ruleThenOptions["type"] = inetWord
 						ruleThenOptions["routing_instance"] = strings.TrimPrefix(itemThen, "inet routing-instance ")
 					}
-					// override (maxItem = 1)
-					ruleOptions[thenWord] = []map[string]interface{}{ruleThenOptions}
 				}
 				confRead.rule = append(confRead.rule, ruleOptions)
 			}

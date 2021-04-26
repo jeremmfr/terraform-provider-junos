@@ -1,6 +1,7 @@
 ## upcoming release
 ENHANCEMENTS:
 * resource/`junos_security`: add `policies` argument with `policy_rematch` and `policy_rematch_extensive` arguments inside (Fixes #185) Thanks @Sha-San-P
+* clean code: remove override of the lists of 1 map to handle directly the map
 
 BUG FIXES:
 

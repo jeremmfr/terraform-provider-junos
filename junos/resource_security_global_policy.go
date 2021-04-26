@@ -449,8 +449,25 @@ func readSecurityGlobalPolicy(m interface{}, jnprSess *NetconfObject) (globalPol
 						policy["log_close"] = true
 					case strings.HasPrefix(itemTrimPolicy, "then permit application-services"):
 						policy["then"] = permitWord
-						policy["permit_application_services"] = readGlobalPolicyPermitApplicationServices(itemTrimPolicy,
-							policy["permit_application_services"])
+						if len(policy["permit_application_services"].([]map[string]interface{})) == 0 {
+							policy["permit_application_services"] = append(
+								policy["permit_application_services"].([]map[string]interface{}),
+								map[string]interface{}{
+									"application_firewall_rule_set":        "",
+									"application_traffic_control_rule_set": "",
+									"gprs_gtp_profile":                     "",
+									"gprs_sctp_profile":                    "",
+									"idp":                                  false,
+									"redirect_wx":                          false,
+									"reverse_redirect_wx":                  false,
+									"security_intelligence_policy":         "",
+									"ssl_proxy":                            make([]map[string]interface{}, 0, 1),
+									"uac_policy":                           make([]map[string]interface{}, 0, 1),
+									"utm_policy":                           "",
+								})
+						}
+						readGlobalPolicyPermitApplicationServices(itemTrimPolicy,
+							policy["permit_application_services"].([]map[string]interface{})[0])
 					}
 				}
 				policyList = append(policyList, policy)
@@ -495,26 +512,7 @@ func genMapGlobalPolicyWithName(name string) map[string]interface{} {
 	}
 }
 
-func readGlobalPolicyPermitApplicationServices(itemTrimPolicy string,
-	permitApplicationServices interface{}) []map[string]interface{} {
-	applicationServices := map[string]interface{}{
-		"application_firewall_rule_set":        "",
-		"application_traffic_control_rule_set": "",
-		"gprs_gtp_profile":                     "",
-		"gprs_sctp_profile":                    "",
-		"idp":                                  false,
-		"redirect_wx":                          false,
-		"reverse_redirect_wx":                  false,
-		"security_intelligence_policy":         "",
-		"ssl_proxy":                            make([]map[string]interface{}, 0, 1),
-		"uac_policy":                           make([]map[string]interface{}, 0, 1),
-		"utm_policy":                           "",
-	}
-	if len(permitApplicationServices.([]map[string]interface{})) > 0 {
-		for k, v := range permitApplicationServices.([]map[string]interface{})[0] {
-			applicationServices[k] = v
-		}
-	}
+func readGlobalPolicyPermitApplicationServices(itemTrimPolicy string, applicationServices map[string]interface{}) {
 	itemTrimPolicyPermitAppSvc := strings.TrimPrefix(itemTrimPolicy, "then permit application-services ")
 	switch {
 	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "application-firewall rule-set "):
@@ -565,9 +563,6 @@ func readGlobalPolicyPermitApplicationServices(itemTrimPolicy string,
 	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "utm-policy "):
 		applicationServices["utm_policy"] = strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc, "utm-policy "), "\"")
 	}
-
-	// override (maxItem = 1)
-	return []map[string]interface{}{applicationServices}
 }
 
 func setGlobalPolicyPermitApplicationServices(setPrefixPolicy string,
