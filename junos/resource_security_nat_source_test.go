@@ -128,7 +128,7 @@ resource junos_security_nat_source_pool testacc_securitySNATPool {
   name                                   = "testacc_securitySNATPool"
   address                                = ["192.0.2.1/32", "192.0.2.64/27"]
   routing_instance                       = junos_routing_instance.testacc_securitySNAT.name
-  address_pooling_paired                 = true 
+  address_pooling_paired                 = true
   port_no_translation                    = true
   pool_utilization_alarm_raise_threshold = 80
   pool_utilization_alarm_clear_threshold = 60
