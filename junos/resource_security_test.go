@@ -171,6 +171,10 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"log.0.utc_timestamp", "true"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"policies.#", "1"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"policies.0.policy_rematch", "true"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"utm.#", "1"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"utm.0.feature_profile_web_filtering_type", "juniper-enhanced"),
@@ -238,6 +242,10 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 							"log.0.rate_cap", "100"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"log.0.source_address", "192.0.2.1"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"policies.#", "1"),
+						resource.TestCheckResourceAttr("junos_security.testacc_security",
+							"policies.0.policy_rematch_extensive", "true"),
 					),
 				},
 				{
@@ -377,6 +385,9 @@ resource junos_security "testacc_security" {
     }
     utc_timestamp = true
   }
+  policies {
+    policy_rematch = true
+  }
   utm {
     feature_profile_web_filtering_type = "juniper-enhanced"
     feature_profile_web_filtering_juniper_enhanced_server {
@@ -439,6 +450,9 @@ resource junos_security "testacc_security" {
     max_database_record = 1000
     rate_cap            = 100
     source_address      = "192.0.2.1"
+  }
+  policies {
+    policy_rematch_extensive = true
   }
   utm {
     feature_profile_web_filtering_type = "juniper-enhanced"

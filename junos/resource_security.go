@@ -18,6 +18,7 @@ type securityOptions struct {
 	forwardingProcess []map[string]interface{}
 	log               []map[string]interface{}
 	ikeTraceoptions   []map[string]interface{}
+	policies          []map[string]interface{}
 	utm               []map[string]interface{}
 }
 
@@ -581,6 +582,25 @@ func resourceSecurity() *schema.Resource {
 					},
 				},
 			},
+			"policies": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"policy_rematch": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"policies.0.policy_rematch_extensive"},
+						},
+						"policy_rematch_extensive": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"policies.0.policy_rematch"},
+						},
+					},
+				},
+			},
 			"utm": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -793,6 +813,19 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 			return err
 		}
 		configSet = append(configSet, configSetLog...)
+	}
+	for _, v := range d.Get("policies").([]interface{}) {
+		if v != nil {
+			policies := v.(map[string]interface{})
+			if policies["policy_rematch"].(bool) {
+				configSet = append(configSet, setPrefix+"policies policy-rematch")
+			}
+			if policies["policy_rematch_extensive"].(bool) {
+				configSet = append(configSet, setPrefix+"policies policy-rematch extensive")
+			}
+		} else {
+			return fmt.Errorf("policies block is empty")
+		}
 	}
 	for _, v := range d.Get("utm").([]interface{}) {
 		if v != nil {
@@ -1315,6 +1348,12 @@ func listLinesSecurityLog() []string {
 	}
 }
 
+func listLinesSecurityPolicies() []string {
+	return []string{
+		"policies policy-rematch",
+	}
+}
+
 func listLinesSecurityUtm() []string {
 	return []string{
 		"utm feature-profile web-filtering type",
@@ -1331,6 +1370,7 @@ func delSecurity(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityForwardingOptions()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityForwardingProcess()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityLog()...)
+	listLinesToDelete = append(listLinesToDelete, listLinesSecurityPolicies()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityUtm()...)
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -1389,6 +1429,19 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 				err := readSecurityIkeTraceOptions(&confRead, itemTrim)
 				if err != nil {
 					return confRead, err
+				}
+			case checkStringHasPrefixInList(itemTrim, listLinesSecurityPolicies()):
+				if len(confRead.policies) == 0 {
+					confRead.policies = append(confRead.policies, map[string]interface{}{
+						"policy_rematch":           false,
+						"policy_rematch_extensive": false,
+					})
+				}
+				if itemTrim == "policies policy-rematch" {
+					confRead.policies[0]["policy_rematch"] = true
+				}
+				if itemTrim == "policies policy-rematch extensive" {
+					confRead.policies[0]["policy_rematch_extensive"] = true
 				}
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityUtm()):
 				err := readSecurityUtm(&confRead, itemTrim)
@@ -1993,6 +2046,9 @@ func fillSecurity(d *schema.ResourceData, securityOptions securityOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("log", securityOptions.log); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("policies", securityOptions.policies); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("utm", securityOptions.utm); tfErr != nil {
