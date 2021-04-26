@@ -13,6 +13,8 @@ import (
 )
 
 type natSourcePoolOptions struct {
+	addressPoolingNoPaired             bool
+	addressPoolingPaired               bool
 	portNoTranslation                  bool
 	poolUtilizationAlarmClearThreshold int
 	poolUtilizationAlarmRaiseThreshold int
@@ -44,6 +46,16 @@ func resourceSecurityNatSourcePool() *schema.Resource {
 				Required: true,
 				MinItems: 1,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"address_pooling_no_paired": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"address_pooling_paired"},
+			},
+			"address_pooling_paired": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"address_pooling_no_paired"},
 			},
 			"pool_utilization_alarm_raise_threshold": {
 				Type:         schema.TypeInt,
@@ -280,7 +292,12 @@ func setSecurityNatSourcePool(d *schema.ResourceData, m interface{}, jnprSess *N
 		}
 		configSet = append(configSet, setPrefix+" address "+v.(string))
 	}
-
+	if d.Get("address_pooling_no_paired").(bool) {
+		configSet = append(configSet, setPrefix+" address-pooling no-paired ")
+	}
+	if d.Get("address_pooling_paired").(bool) {
+		configSet = append(configSet, setPrefix+" address-pooling paired ")
+	}
 	if d.Get("pool_utilization_alarm_clear_threshold").(int) != 0 {
 		configSet = append(configSet, setPrefix+" pool-utilization-alarm clear-threshold "+
 			strconv.Itoa(d.Get("pool_utilization_alarm_clear_threshold").(int)))
@@ -331,6 +348,10 @@ func readSecurityNatSourcePool(natSourcePool string,
 			switch {
 			case strings.HasPrefix(itemTrim, "address "):
 				confRead.address = append(confRead.address, strings.TrimPrefix(itemTrim, "address "))
+			case itemTrim == "address-pooling no-paired":
+				confRead.addressPoolingNoPaired = true
+			case itemTrim == "address-pooling paired":
+				confRead.addressPoolingPaired = true
 			case strings.HasPrefix(itemTrim, "pool-utilization-alarm clear-threshold "):
 				confRead.poolUtilizationAlarmClearThreshold, err = strconv.Atoi(
 					strings.TrimPrefix(itemTrim, "pool-utilization-alarm clear-threshold "))
@@ -378,6 +399,12 @@ func fillSecurityNatSourcePoolData(d *schema.ResourceData, natSourcePoolOptions 
 		panic(tfErr)
 	}
 	if tfErr := d.Set("address", natSourcePoolOptions.address); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("address_pooling_no_paired", natSourcePoolOptions.addressPoolingNoPaired); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("address_pooling_paired", natSourcePoolOptions.addressPoolingPaired); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("pool_utilization_alarm_clear_threshold",
