@@ -1410,17 +1410,18 @@ func readSecurityScreenIP(confRead *screenOptions, itemTrim string) error {
 					"user_defined_header_type": make([]string, 0),
 				})
 		}
+		ipIPv6ExtensionHeader := confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]
 		switch {
 		case strings.HasPrefix(itemTrim, "ip ipv6-extension-header AH-header"):
-			confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["ah_header"] = true
+			ipIPv6ExtensionHeader["ah_header"] = true
 		case strings.HasPrefix(itemTrim, "ip ipv6-extension-header ESP-header"):
-			confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["esp_header"] = true
+			ipIPv6ExtensionHeader["esp_header"] = true
 		case strings.HasPrefix(itemTrim, "ip ipv6-extension-header HIP-header"):
-			confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["hip_header"] = true
+			ipIPv6ExtensionHeader["hip_header"] = true
 		case strings.HasPrefix(itemTrim, "ip ipv6-extension-header destination-header"):
-			if len(confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["destination_header"].([]map[string]interface{})) == 0 { // nolint: lll
-				confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["destination_header"] = append(
-					confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["destination_header"].([]map[string]interface{}), // nolint: lll
+			if len(ipIPv6ExtensionHeader["destination_header"].([]map[string]interface{})) == 0 {
+				ipIPv6ExtensionHeader["destination_header"] = append(
+					ipIPv6ExtensionHeader["destination_header"].([]map[string]interface{}),
 					map[string]interface{}{
 						"ilnp_nonce_option":                 false,
 						"home_address_option":               false,
@@ -1429,31 +1430,27 @@ func readSecurityScreenIP(confRead *screenOptions, itemTrim string) error {
 						"user_defined_option_type":          make([]string, 0),
 					})
 			}
+			ipIPv6ExtensionHeaderDstHeader := ipIPv6ExtensionHeader["destination_header"].([]map[string]interface{})[0]
 			switch {
 			case itemTrim == "ip ipv6-extension-header destination-header ILNP-nonce-option":
-				confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["destination_header"].([]map[string]interface{})[0]["ilnp_nonce_option"] = // nolint: lll
-					true
+				ipIPv6ExtensionHeaderDstHeader["ilnp_nonce_option"] = true
 			case itemTrim == "ip ipv6-extension-header destination-header home-address-option":
-				confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["destination_header"].([]map[string]interface{})[0]["home_address_option"] = // nolint: lll
-					true
+				ipIPv6ExtensionHeaderDstHeader["home_address_option"] = true
 			case itemTrim == "ip ipv6-extension-header destination-header line-identification-option":
-				confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["destination_header"].([]map[string]interface{})[0]["line_identification_option"] = // nolint: lll
-					true
+				ipIPv6ExtensionHeaderDstHeader["line_identification_option"] = true
 			case itemTrim == "ip ipv6-extension-header destination-header tunnel-encapsulation-limit-option":
-				confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["destination_header"].([]map[string]interface{})[0]["tunnel_encapsulation_limit_option"] = // nolint: lll
-					true
+				ipIPv6ExtensionHeaderDstHeader["tunnel_encapsulation_limit_option"] = true
 			case strings.HasPrefix(itemTrim, "ip ipv6-extension-header destination-header user-defined-option-type "):
-				confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["destination_header"].([]map[string]interface{})[0]["user_defined_option_type"] = // nolint: lll
-					append(
-						confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["destination_header"].([]map[string]interface{})[0]["user_defined_option_type"].([]string), // nolint: lll
-						strings.TrimPrefix(itemTrim, "ip ipv6-extension-header destination-header user-defined-option-type "))
+				ipIPv6ExtensionHeaderDstHeader["user_defined_option_type"] = append(
+					ipIPv6ExtensionHeaderDstHeader["user_defined_option_type"].([]string),
+					strings.TrimPrefix(itemTrim, "ip ipv6-extension-header destination-header user-defined-option-type "))
 			}
 		case strings.HasPrefix(itemTrim, "ip ipv6-extension-header fragment-header"):
-			confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["fragment_header"] = true
+			ipIPv6ExtensionHeader["fragment_header"] = true
 		case strings.HasPrefix(itemTrim, "ip ipv6-extension-header hop-by-hop-header"):
-			if len(confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["hop_by_hop_header"].([]map[string]interface{})) == 0 { // nolint: lll
-				confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["hop_by_hop_header"] = append(
-					confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["hop_by_hop_header"].([]map[string]interface{}), // nolint: lll
+			if len(ipIPv6ExtensionHeader["hop_by_hop_header"].([]map[string]interface{})) == 0 {
+				ipIPv6ExtensionHeader["hop_by_hop_header"] = append(
+					ipIPv6ExtensionHeader["hop_by_hop_header"].([]map[string]interface{}),
 					map[string]interface{}{
 						"calipso_option":           false,
 						"rpl_option":               false,
@@ -1464,42 +1461,36 @@ func readSecurityScreenIP(confRead *screenOptions, itemTrim string) error {
 						"user_defined_option_type": make([]string, 0),
 					})
 			}
+			ipIPv6ExtensionHeaderHopByHopHeader := ipIPv6ExtensionHeader["hop_by_hop_header"].([]map[string]interface{})[0]
 			switch {
 			case itemTrim == "ip ipv6-extension-header hop-by-hop-header CALIPSO-option":
-				confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["hop_by_hop_header"].([]map[string]interface{})[0]["calipso_option"] = // nolint: lll
-					true
+				ipIPv6ExtensionHeaderHopByHopHeader["calipso_option"] = true
 			case itemTrim == "ip ipv6-extension-header hop-by-hop-header RPL-option":
-				confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["hop_by_hop_header"].([]map[string]interface{})[0]["rpl_option"] = // nolint: lll
-					true
+				ipIPv6ExtensionHeaderHopByHopHeader["rpl_option"] = true
 			case itemTrim == "ip ipv6-extension-header hop-by-hop-header SMF-DPD-option":
-				confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["hop_by_hop_header"].([]map[string]interface{})[0]["smf_dpd_option"] = // nolint: lll
-					true
+				ipIPv6ExtensionHeaderHopByHopHeader["smf_dpd_option"] = true
 			case itemTrim == "ip ipv6-extension-header hop-by-hop-header jumbo-payload-option":
-				confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["hop_by_hop_header"].([]map[string]interface{})[0]["jumbo_payload_option"] = // nolint: lll
-					true
+				ipIPv6ExtensionHeaderHopByHopHeader["jumbo_payload_option"] = true
 			case itemTrim == "ip ipv6-extension-header hop-by-hop-header quick-start-option":
-				confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["hop_by_hop_header"].([]map[string]interface{})[0]["quick_start_option"] = // nolint: lll
-					true
+				ipIPv6ExtensionHeaderHopByHopHeader["quick_start_option"] = true
 			case itemTrim == "ip ipv6-extension-header hop-by-hop-header router-alert-option":
-				confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["hop_by_hop_header"].([]map[string]interface{})[0]["router_alert_option"] = // nolint: lll
-					true
+				ipIPv6ExtensionHeaderHopByHopHeader["router_alert_option"] = true
 			case strings.HasPrefix(itemTrim, "ip ipv6-extension-header hop-by-hop-header user-defined-option-type "):
-				confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["hop_by_hop_header"].([]map[string]interface{})[0]["user_defined_option_type"] = // nolint: lll
-					append(
-						confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["hop_by_hop_header"].([]map[string]interface{})[0]["user_defined_option_type"].([]string), // nolint: lll
-						strings.TrimPrefix(itemTrim, "ip ipv6-extension-header hop-by-hop-header user-defined-option-type "))
+				ipIPv6ExtensionHeaderHopByHopHeader["user_defined_option_type"] = append(
+					ipIPv6ExtensionHeaderHopByHopHeader["user_defined_option_type"].([]string),
+					strings.TrimPrefix(itemTrim, "ip ipv6-extension-header hop-by-hop-header user-defined-option-type "))
 			}
 		case itemTrim == "ip ipv6-extension-header mobility-header":
-			confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["mobility_header"] = true
+			ipIPv6ExtensionHeader["mobility_header"] = true
 		case itemTrim == "ip ipv6-extension-header no-next-header":
-			confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["no_next_header"] = true
+			ipIPv6ExtensionHeader["no_next_header"] = true
 		case itemTrim == "ip ipv6-extension-header routing-header":
-			confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["routing_header"] = true
+			ipIPv6ExtensionHeader["routing_header"] = true
 		case itemTrim == "ip ipv6-extension-header shim6-header":
-			confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["shim6_header"] = true
+			ipIPv6ExtensionHeader["shim6_header"] = true
 		case strings.HasPrefix(itemTrim, "ip ipv6-extension-header user-defined-header-type "):
-			confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["user_defined_header_type"] = append(
-				confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]["user_defined_header_type"].([]string),
+			ipIPv6ExtensionHeader["user_defined_header_type"] = append(
+				ipIPv6ExtensionHeader["user_defined_header_type"].([]string),
 				strings.TrimPrefix(itemTrim, "ip ipv6-extension-header user-defined-header-type "))
 		}
 	case strings.HasPrefix(itemTrim, "ip ipv6-extension-header-limit "):

@@ -461,20 +461,18 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 			case strings.HasPrefix(itemTrim, "vlan-id-list "):
 				confRead.vlanIDList = append(confRead.vlanIDList, strings.TrimPrefix(itemTrim, "vlan-id-list "))
 			case strings.HasPrefix(itemTrim, "vxlan "):
-				vxlan := map[string]interface{}{
-					"vni":                          -1,
-					"vni_extend_evpn":              false,
-					"encapsulate_inner_vlan":       false,
-					"ingress_node_replication":     false,
-					"multicast_group":              "",
-					"ovsdb_managed":                false,
-					"unreachable_vtep_aging_timer": 0,
+				if len(confRead.vxlan) == 0 {
+					confRead.vxlan = append(confRead.vxlan, map[string]interface{}{
+						"vni":                          -1,
+						"vni_extend_evpn":              false,
+						"encapsulate_inner_vlan":       false,
+						"ingress_node_replication":     false,
+						"multicast_group":              "",
+						"ovsdb_managed":                false,
+						"unreachable_vtep_aging_timer": 0,
+					})
 				}
-				if len(confRead.vxlan) > 0 {
-					for k, v := range confRead.vxlan[0] {
-						vxlan[k] = v
-					}
-				}
+				vxlan := confRead.vxlan[0]
 				switch {
 				case strings.HasPrefix(itemTrim, "vxlan vni "):
 					vxlan["vni"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vxlan vni "))
@@ -516,7 +514,6 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				}
-				confRead.vxlan = []map[string]interface{}{vxlan}
 			}
 		}
 	}

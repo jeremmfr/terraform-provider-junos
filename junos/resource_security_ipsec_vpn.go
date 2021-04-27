@@ -236,9 +236,7 @@ func resourceIpsecVpnReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSe
 		for _, v := range d.Get("vpn_monitor").([]interface{}) {
 			if v != nil {
 				stateMonitor := v.(map[string]interface{})
-				vpnMonitor := ipsecVpnOptions.vpnMonitor[0]
-				vpnMonitor["source_interface_auto"] = stateMonitor["source_interface_auto"].(bool)
-				ipsecVpnOptions.vpnMonitor = []map[string]interface{}{vpnMonitor}
+				ipsecVpnOptions.vpnMonitor[0]["source_interface_auto"] = stateMonitor["source_interface_auto"].(bool)
 			}
 		}
 	}
@@ -460,32 +458,27 @@ func readIpsecVpn(ipsecVpn string, m interface{}, jnprSess *NetconfObject) (ipse
 			case strings.HasPrefix(itemTrim, "establish-tunnels "):
 				confRead.establishTunnels = strings.TrimPrefix(itemTrim, "establish-tunnels ")
 			case strings.HasPrefix(itemTrim, "ike "):
-				ikeOptions := map[string]interface{}{
-					"gateway":          "",
-					"policy":           "",
-					"identity_local":   "",
-					"identity_remote":  "",
-					"identity_service": "",
-				}
-				if len(confRead.ike) > 0 {
-					for k, v := range confRead.ike[0] {
-						ikeOptions[k] = v
-					}
+				if len(confRead.ike) == 0 {
+					confRead.ike = append(confRead.ike, map[string]interface{}{
+						"gateway":          "",
+						"policy":           "",
+						"identity_local":   "",
+						"identity_remote":  "",
+						"identity_service": "",
+					})
 				}
 				switch {
 				case strings.HasPrefix(itemTrim, "ike gateway "):
-					ikeOptions["gateway"] = strings.TrimPrefix(itemTrim, "ike gateway ")
+					confRead.ike[0]["gateway"] = strings.TrimPrefix(itemTrim, "ike gateway ")
 				case strings.HasPrefix(itemTrim, "ike ipsec-policy "):
-					ikeOptions["policy"] = strings.TrimPrefix(itemTrim, "ike ipsec-policy ")
+					confRead.ike[0]["policy"] = strings.TrimPrefix(itemTrim, "ike ipsec-policy ")
 				case strings.HasPrefix(itemTrim, "ike proxy-identity local "):
-					ikeOptions["identity_local"] = strings.TrimPrefix(itemTrim, "ike proxy-identity local ")
+					confRead.ike[0]["identity_local"] = strings.TrimPrefix(itemTrim, "ike proxy-identity local ")
 				case strings.HasPrefix(itemTrim, "ike proxy-identity remote "):
-					ikeOptions["identity_remote"] = strings.TrimPrefix(itemTrim, "ike proxy-identity remote ")
+					confRead.ike[0]["identity_remote"] = strings.TrimPrefix(itemTrim, "ike proxy-identity remote ")
 				case strings.HasPrefix(itemTrim, "ike proxy-identity service "):
-					ikeOptions["identity_service"] = strings.TrimPrefix(itemTrim, "ike proxy-identity service ")
+					confRead.ike[0]["identity_service"] = strings.TrimPrefix(itemTrim, "ike proxy-identity service ")
 				}
-				// override (maxItem = 1)
-				confRead.ike = []map[string]interface{}{ikeOptions}
 			case strings.HasPrefix(itemTrim, "traffic-selector "):
 				tsSplit := strings.Split(strings.TrimPrefix(itemTrim, "traffic-selector "), " ")
 				tsOptions := map[string]interface{}{
@@ -505,26 +498,21 @@ func readIpsecVpn(ipsecVpn string, m interface{}, jnprSess *NetconfObject) (ipse
 				}
 				confRead.trafficSelector = append(confRead.trafficSelector, tsOptions)
 			case strings.HasPrefix(itemTrim, "vpn-monitor "):
-				monitorOptions := map[string]interface{}{
-					"destination_ip":   "",
-					"optimized":        false,
-					"source_interface": "",
-				}
-				if len(confRead.vpnMonitor) > 0 {
-					for k, v := range confRead.vpnMonitor[0] {
-						monitorOptions[k] = v
-					}
+				if len(confRead.vpnMonitor) == 0 {
+					confRead.vpnMonitor = append(confRead.vpnMonitor, map[string]interface{}{
+						"destination_ip":   "",
+						"optimized":        false,
+						"source_interface": "",
+					})
 				}
 				switch {
 				case strings.HasPrefix(itemTrim, "vpn-monitor destination-ip "):
-					monitorOptions["destination_ip"] = strings.TrimPrefix(itemTrim, "vpn-monitor destination-ip ")
+					confRead.vpnMonitor[0]["destination_ip"] = strings.TrimPrefix(itemTrim, "vpn-monitor destination-ip ")
 				case itemTrim == "vpn-monitor optimized":
-					monitorOptions["optimized"] = true
+					confRead.vpnMonitor[0]["optimized"] = true
 				case strings.HasPrefix(itemTrim, "vpn-monitor source-interface "):
-					monitorOptions["source_interface"] = strings.TrimPrefix(itemTrim, "vpn-monitor source-interface ")
+					confRead.vpnMonitor[0]["source_interface"] = strings.TrimPrefix(itemTrim, "vpn-monitor source-interface ")
 				}
-				// override (maxItem = 1)
-				confRead.vpnMonitor = []map[string]interface{}{monitorOptions}
 			}
 		}
 	}

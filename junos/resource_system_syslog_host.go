@@ -505,14 +505,14 @@ func readSystemSyslogHost(host string, m interface{}, jnprSess *NetconfObject) (
 			case strings.HasPrefix(itemTrim, "source-address "):
 				confRead.sourceAddress = strings.TrimPrefix(itemTrim, "source-address ")
 			case strings.HasPrefix(itemTrim, "structured-data"):
-				structuredData := map[string]interface{}{
-					"brief": false,
+				if len(confRead.structuredData) == 0 {
+					confRead.structuredData = append(confRead.structuredData, map[string]interface{}{
+						"brief": false,
+					})
 				}
 				if itemTrim == "structured-data brief" {
-					structuredData["brief"] = true
+					confRead.structuredData[0]["brief"] = true
 				}
-				// override (maxItem = 1)
-				confRead.structuredData = []map[string]interface{}{structuredData}
 			case strings.HasPrefix(itemTrim, "any "):
 				confRead.anySeverity = strings.TrimPrefix(itemTrim, "any ")
 			case strings.HasPrefix(itemTrim, "authorization "):
