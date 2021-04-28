@@ -32,6 +32,7 @@ The following arguments are supported:
 * `address_book` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each address to declare.
   * `name` - (Required)(`String`) Name of address.
   * `network` - (Required)(`String`) CIDR of address.
+* `address_book_configure_singly` - (Optional)(`Bool`) Disable management of address-book in this resource to be able to manage them with specific resources. Conflict with `address_book_*`.
 * `address_book_set` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each address-set to declare.
   * `name` - (Required)(`String`) Name of address-set.
   * `address` - (Required)(`ListOfString`) List of address names.

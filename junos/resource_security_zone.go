@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -58,6 +59,11 @@ func resourceSecurityZone() *schema.Resource {
 						},
 					},
 				},
+			},
+			"address_book_configure_singly": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"address_book", "address_book_set"},
 			},
 			"address_book_set": {
 				Type:     schema.TypeList,
@@ -217,8 +223,29 @@ func resourceSecurityZoneUpdate(ctx context.Context, d *schema.ResourceData, m i
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	err = delSecurityZoneOpts(d.Get("name").(string), m, jnprSess)
-	if err != nil {
+	addressBookConfiguredSingly := d.Get("address_book_configure_singly").(bool)
+	if d.HasChange("address_book_configure_singly") {
+		if o, _ := d.GetChange("address_book_configure_singly"); o.(bool) {
+			addressBookConfiguredSingly = o.(bool)
+			diagWarns = append(diagWarns, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary: "Disable address_book_configure_singly on resource already created doesn't " +
+					"delete addresses and address-sets already configured.",
+				Detail:        "So refresh resource after apply to detect address-book entries that need to be deleted",
+				AttributePath: cty.Path{cty.GetAttrStep{Name: "address_book_configure_singly"}},
+			})
+		} else {
+			diagWarns = append(diagWarns, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary: "Enable address_book_configure_singly on resource already created doesn't " +
+					"delete addresses and address-sets already configured.",
+				Detail:        "So import address-book entries in dedicated resource(s) to be able to manage them",
+				AttributePath: cty.Path{cty.GetAttrStep{Name: "address_book_configure_singly"}},
+			})
+		}
+	}
+	if err := delSecurityZoneOpts(
+		d.Get("name").(string), addressBookConfiguredSingly, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -310,16 +337,18 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 
 	setPrefix := "set security zones security-zone " + d.Get("name").(string)
 	configSet = append(configSet, setPrefix)
-	for _, v := range d.Get("address_book").([]interface{}) {
-		addressBook := v.(map[string]interface{})
-		configSet = append(configSet, setPrefix+" address-book address "+
-			addressBook["name"].(string)+" "+addressBook["network"].(string))
-	}
-	for _, v := range d.Get("address_book_set").([]interface{}) {
-		addressBookSet := v.(map[string]interface{})
-		for _, addressBookSetAddress := range addressBookSet["address"].([]interface{}) {
-			configSet = append(configSet, setPrefix+" address-book address-set "+addressBookSet["name"].(string)+
-				" address "+addressBookSetAddress.(string))
+	if !d.Get("address_book_configure_singly").(bool) {
+		for _, v := range d.Get("address_book").([]interface{}) {
+			addressBook := v.(map[string]interface{})
+			configSet = append(configSet, setPrefix+" address-book address "+
+				addressBook["name"].(string)+" "+addressBook["network"].(string))
+		}
+		for _, v := range d.Get("address_book_set").([]interface{}) {
+			addressBookSet := v.(map[string]interface{})
+			for _, addressBookSetAddress := range addressBookSet["address"].([]interface{}) {
+				configSet = append(configSet, setPrefix+" address-book address-set "+addressBookSet["name"].(string)+
+					" address "+addressBookSetAddress.(string))
+			}
 		}
 	}
 	if d.Get("advance_policy_based_routing_profile").(string) != "" {
@@ -427,10 +456,9 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 	return confRead, nil
 }
 
-func delSecurityZoneOpts(zone string, m interface{}, jnprSess *NetconfObject) error {
+func delSecurityZoneOpts(zone string, addressBookSingly bool, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	listLinesToDelete := []string{
-		"address-book",
 		"advance-policy-based-routing-profile",
 		"description",
 		"application-tracking",
@@ -439,6 +467,9 @@ func delSecurityZoneOpts(zone string, m interface{}, jnprSess *NetconfObject) er
 		"screen",
 		"source-identity-log",
 		"tcp-rst",
+	}
+	if !addressBookSingly {
+		listLinesToDelete = append(listLinesToDelete, "address-book")
 	}
 	configSet := make([]string, 0, 1)
 	delPrefix := "delete security zones security-zone " + zone + " "
@@ -461,11 +492,13 @@ func fillSecurityZoneData(d *schema.ResourceData, zoneOptions zoneOptions) {
 	if tfErr := d.Set("name", zoneOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("address_book", zoneOptions.addressBook); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("address_book_set", zoneOptions.addressBookSet); tfErr != nil {
-		panic(tfErr)
+	if !d.Get("address_book_configure_singly").(bool) {
+		if tfErr := d.Set("address_book", zoneOptions.addressBook); tfErr != nil {
+			panic(tfErr)
+		}
+		if tfErr := d.Set("address_book_set", zoneOptions.addressBookSet); tfErr != nil {
+			panic(tfErr)
+		}
 	}
 	if tfErr := d.Set("advance_policy_based_routing_profile", zoneOptions.advancePolicyBasedRoutingProfile); tfErr != nil {
 		panic(tfErr)
