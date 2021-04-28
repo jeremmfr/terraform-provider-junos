@@ -23,7 +23,10 @@ type zoneOptions struct {
 	inboundProtocols                 []string
 	inboundServices                  []string
 	addressBook                      []map[string]interface{}
+	addressBookDNS                   []map[string]interface{}
+	addressBookRange                 []map[string]interface{}
 	addressBookSet                   []map[string]interface{}
+	addressBookWildcard              []map[string]interface{}
 }
 
 func resourceSecurityZone() *schema.Resource {
@@ -57,13 +60,79 @@ func resourceSecurityZone() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validation.IsCIDRNetwork(0, 128),
 						},
+						"description": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 					},
 				},
 			},
 			"address_book_configure_singly": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				ConflictsWith: []string{"address_book", "address_book_set"},
+				Type:     schema.TypeBool,
+				Optional: true,
+				ConflictsWith: []string{
+					"address_book",
+					"address_book_dns",
+					"address_book_range",
+					"address_book_set",
+					"address_book_wildcard",
+				},
+			},
+			"address_book_dns": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
+						},
+						"fqdn": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"description": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"ipv4_only": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"ipv6_only": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
+			"address_book_range": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
+						},
+						"from": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsIPAddress,
+						},
+						"to": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsIPAddress,
+						},
+						"description": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
 			},
 			"address_book_set": {
 				Type:     schema.TypeList,
@@ -80,6 +149,32 @@ func resourceSecurityZone() *schema.Resource {
 							Required: true,
 							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"description": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+			"address_book_wildcard": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
+						},
+						"network": {
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateWildcardFunc(),
+						},
+						"description": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 					},
 				},
@@ -342,12 +437,55 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 			addressBook := v.(map[string]interface{})
 			configSet = append(configSet, setPrefix+" address-book address "+
 				addressBook["name"].(string)+" "+addressBook["network"].(string))
+			if v2 := addressBook["description"].(string); v2 != "" {
+				configSet = append(configSet, setPrefix+" address-book address "+
+					addressBook["name"].(string)+" description \""+v2+"\"")
+			}
+		}
+		for _, v := range d.Get("address_book_dns").([]interface{}) {
+			addressBook := v.(map[string]interface{})
+			setLine := setPrefix + " address-book address " + addressBook["name"].(string) +
+				" dns-name " + addressBook["fqdn"].(string)
+			configSet = append(configSet, setLine)
+			if addressBook["ipv4_only"].(bool) {
+				configSet = append(configSet, setLine+" ipv4-only")
+			}
+			if addressBook["ipv6_only"].(bool) {
+				configSet = append(configSet, setLine+" ipv6-only")
+			}
+			if v2 := addressBook["description"].(string); v2 != "" {
+				configSet = append(configSet, setPrefix+" address-book address "+
+					addressBook["name"].(string)+" description \""+v2+"\"")
+			}
+		}
+		for _, v := range d.Get("address_book_range").([]interface{}) {
+			addressBook := v.(map[string]interface{})
+			configSet = append(configSet, setPrefix+" address-book address "+
+				addressBook["name"].(string)+" range-address "+addressBook["from"].(string)+
+				" to "+addressBook["to"].(string))
+			if v2 := addressBook["description"].(string); v2 != "" {
+				configSet = append(configSet, setPrefix+" address-book address "+
+					addressBook["name"].(string)+" description \""+v2+"\"")
+			}
 		}
 		for _, v := range d.Get("address_book_set").([]interface{}) {
 			addressBookSet := v.(map[string]interface{})
 			for _, addressBookSetAddress := range addressBookSet["address"].([]interface{}) {
 				configSet = append(configSet, setPrefix+" address-book address-set "+addressBookSet["name"].(string)+
 					" address "+addressBookSetAddress.(string))
+			}
+			if v2 := addressBookSet["description"].(string); v2 != "" {
+				configSet = append(configSet, setPrefix+" address-book address-set "+
+					addressBookSet["name"].(string)+" description \""+v2+"\"")
+			}
+		}
+		for _, v := range d.Get("address_book_wildcard").([]interface{}) {
+			addressBook := v.(map[string]interface{})
+			configSet = append(configSet, setPrefix+" address-book address "+
+				addressBook["name"].(string)+" wildcard-address "+addressBook["network"].(string))
+			if v2 := addressBook["description"].(string); v2 != "" {
+				configSet = append(configSet, setPrefix+" address-book address "+
+					addressBook["name"].(string)+" description \""+v2+"\"")
 			}
 		}
 	}
@@ -392,6 +530,7 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 	if err != nil {
 		return confRead, err
 	}
+	descAddressBookMap := make(map[string]string)
 	if zoneConfig != emptyWord {
 		confRead.name = zone
 		for _, item := range strings.Split(zoneConfig, "\n") {
@@ -404,28 +543,66 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
 			case strings.HasPrefix(itemTrim, "address-book address "):
-				address := strings.TrimPrefix(itemTrim, "address-book address ")
-				addressWords := strings.Split(address, " ")
-				// addressWords[0] = name of address
-				// addressWords[1] = network
-				confRead.addressBook = append(confRead.addressBook, map[string]interface{}{
-					"name":    addressWords[0],
-					"network": addressWords[1],
-				})
+				addressSplit := strings.Split(strings.TrimPrefix(itemTrim, "address-book address "), " ")
+				itemTrimAddress := strings.TrimPrefix(itemTrim, "address-book address "+addressSplit[0]+" ")
+				switch {
+				case strings.HasPrefix(itemTrimAddress, "description "):
+					descAddressBookMap[addressSplit[0]] = strings.Trim(strings.TrimPrefix(itemTrimAddress, "description "), "\"")
+				case strings.HasPrefix(itemTrimAddress, "dns-name "):
+					dnsValue := strings.TrimPrefix(itemTrimAddress, "dns-name ")
+					var ipv4Only, ipv6Only bool
+					switch {
+					case strings.HasSuffix(itemTrimAddress, " ipv4-only"):
+						ipv4Only = true
+						dnsValue = strings.TrimSuffix(strings.TrimPrefix(itemTrimAddress, "dns-name "), " ipv4-only")
+					case strings.HasSuffix(itemTrimAddress, " ipv6-only"):
+						ipv6Only = true
+						dnsValue = strings.TrimSuffix(strings.TrimPrefix(itemTrimAddress, "dns-name "), " ipv6-only")
+					}
+					confRead.addressBookDNS = append(confRead.addressBookDNS, map[string]interface{}{
+						"name":        addressSplit[0],
+						"description": descAddressBookMap[addressSplit[0]],
+						"fqdn":        dnsValue,
+						"ipv4_only":   ipv4Only,
+						"ipv6_only":   ipv6Only,
+					})
+				case strings.HasPrefix(itemTrimAddress, "range-address "):
+					rangeAddress := strings.Split(strings.TrimPrefix(itemTrimAddress, "range-address "), " ")
+					confRead.addressBookRange = append(confRead.addressBookRange, map[string]interface{}{
+						"name":        addressSplit[0],
+						"description": descAddressBookMap[addressSplit[0]],
+						"from":        rangeAddress[0],
+						"to":          rangeAddress[2],
+					})
+				case strings.HasPrefix(itemTrimAddress, "wildcard-address "):
+					confRead.addressBookWildcard = append(confRead.addressBookWildcard, map[string]interface{}{
+						"name":        addressSplit[0],
+						"description": descAddressBookMap[addressSplit[0]],
+						"network":     strings.TrimPrefix(itemTrimAddress, "wildcard-address "),
+					})
+				default:
+					confRead.addressBook = append(confRead.addressBook, map[string]interface{}{
+						"name":        addressSplit[0],
+						"description": descAddressBookMap[addressSplit[0]],
+						"network":     itemTrimAddress,
+					})
+				}
 			case strings.HasPrefix(itemTrim, "address-book address-set "):
-				address := strings.TrimPrefix(itemTrim, "address-book address-set ")
-				addressWords := strings.Split(address, " ")
-				// addressWords[0] = name of address-set
-				// addressWords[1] = "address"
-				// addressWords[2] = name of address
+				addressSetSplit := strings.Split(strings.TrimPrefix(itemTrim, "address-book address-set "), " ")
 				adSet := map[string]interface{}{
-					"name":    addressWords[0],
-					"address": make([]string, 0),
+					"name":        addressSetSplit[0],
+					"address":     make([]string, 0),
+					"description": "",
 				}
 				// search if name of address-set already create
 				adSet, confRead.addressBookSet = copyAndRemoveItemMapList("name", false, adSet, confRead.addressBookSet)
 				// append new address find
-				adSet["address"] = append(adSet["address"].([]string), addressWords[2])
+				if addressSetSplit[1] == "description" {
+					adSet["description"] = strings.Trim(strings.TrimPrefix(
+						itemTrim, "address-book address-set "+addressSetSplit[0]+" description "), "\"")
+				} else {
+					adSet["address"] = append(adSet["address"].([]string), addressSetSplit[2])
+				}
 				confRead.addressBookSet = append(confRead.addressBookSet, adSet)
 			case strings.HasPrefix(itemTrim, "advance-policy-based-routing-profile "):
 				confRead.advancePolicyBasedRoutingProfile = strings.Trim(strings.TrimPrefix(itemTrim,
@@ -496,7 +673,16 @@ func fillSecurityZoneData(d *schema.ResourceData, zoneOptions zoneOptions) {
 		if tfErr := d.Set("address_book", zoneOptions.addressBook); tfErr != nil {
 			panic(tfErr)
 		}
+		if tfErr := d.Set("address_book_dns", zoneOptions.addressBookDNS); tfErr != nil {
+			panic(tfErr)
+		}
+		if tfErr := d.Set("address_book_range", zoneOptions.addressBookRange); tfErr != nil {
+			panic(tfErr)
+		}
 		if tfErr := d.Set("address_book_set", zoneOptions.addressBookSet); tfErr != nil {
+			panic(tfErr)
+		}
+		if tfErr := d.Set("address_book_wildcard", zoneOptions.addressBookWildcard); tfErr != nil {
 			panic(tfErr)
 		}
 	}
