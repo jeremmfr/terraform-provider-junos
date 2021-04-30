@@ -2,6 +2,7 @@
 ENHANCEMENTS:
 * add `junos_services_user_identification_device_identity_profile` resource (Fixes parts of #189)
 * resource/`junos_security_global_policy`: add `match_source_end_user_profile` argument inside `policy` argument
+* resource/`junos_security_policy`: add `match_source_end_user_profile` argument inside `policy` argument
 
 BUG FIXES:
 
