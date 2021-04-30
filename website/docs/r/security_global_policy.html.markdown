@@ -55,6 +55,7 @@ The following arguments are supported:
   * `match_destination_address_excluded` - (Optional)(`Bool`) Exclude destination addresses.
   * `match_dynamic_application` - (Optional)(`ListOfString`) List of dynamic application or group match.
   * `match_source_address_excluded` - (Optional)(`Bool`) Exclude source addresses.
+  * `match_source_end_user_profile` - (Optional)(`String`) Match source end user profile (device identity profile).
   * `permit_application_services` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'permit application-services' configuration. See the [`permit_application_services` arguments] (#permit_application_services-arguments) block.
 
 ---
