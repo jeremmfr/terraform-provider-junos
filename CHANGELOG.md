@@ -5,6 +5,7 @@ ENHANCEMENTS:
 * resource/`junos_security_nat_source_pool`: add `address_pooling` argument (Fixes #193) Thanks @edpio19
 * resource/`junos_security_zone`: add `address_book_configure_singly` argument to disable management of address-book in this resource. (Fixes parts of #192)
 * resource/`junos_security_zone`: add `address_book_dns`, `address_book_range` and `address_book_wildcard` arguments and add `description` on existing `address_book_*` arguments
+* resource/`junos_security_zone`: list of string for `address` argument inside `address_book_set` argument is now unordered
 * add `junos_security_zone_book_address` resource (Fixes parts of #192)
 * add `junos_security_zone_book_address_set` resource (Fixes parts of #192)
 * clean code: remove override of the lists of 1 map to handle directly the map

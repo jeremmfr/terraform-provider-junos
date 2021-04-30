@@ -145,7 +145,7 @@ func resourceSecurityZone() *schema.Resource {
 							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
 						},
 						"address": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Required: true,
 							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
@@ -470,7 +470,7 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 		}
 		for _, v := range d.Get("address_book_set").([]interface{}) {
 			addressBookSet := v.(map[string]interface{})
-			for _, addressBookSetAddress := range addressBookSet["address"].([]interface{}) {
+			for _, addressBookSetAddress := range addressBookSet["address"].(*schema.Set).List() {
 				configSet = append(configSet, setPrefix+" address-book address-set "+addressBookSet["name"].(string)+
 					" address "+addressBookSetAddress.(string))
 			}
