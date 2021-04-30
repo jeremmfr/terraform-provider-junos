@@ -17,6 +17,7 @@ type FormatName int
 const (
 	FormatDefault FormatName = iota
 	FormatAddressName
+	FormatDefAndDots
 )
 
 func appendDiagWarns(diags *diag.Diagnostics, warns []error) {
@@ -150,12 +151,18 @@ func validateNameObjectJunos(exclude []string, length int, format FormatName) sc
 			return (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') &&
 				r != '-' && r != '_' && r != ':' && r != '.' && r != '/'
 		}
+		f3 := func(r rune) bool {
+			return (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') &&
+				r != '-' && r != '_' && r != '.'
+		}
 		resultRune := -1
 		switch format {
 		case FormatDefault:
 			resultRune = strings.IndexFunc(v, f1)
 		case FormatAddressName:
 			resultRune = strings.IndexFunc(v, f2)
+		case FormatDefAndDots:
+			resultRune = strings.IndexFunc(v, f3)
 		default:
 			diags = append(diags, diag.Diagnostic{
 				Severity:      diag.Error,

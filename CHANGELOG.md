@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* add `junos_services_user_identification_device_identity_profile` resource (Fixes parts of #189)
 
 BUG FIXES:
 
