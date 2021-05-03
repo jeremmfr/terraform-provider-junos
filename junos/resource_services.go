@@ -369,6 +369,9 @@ func setServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	// setPrefix := "set services "
 	configSet := make([]string, 0)
 
+	if len(d.Get("application_identification").([]interface{})) == 0 {
+		configSet = append(configSet, "delete services application-identification")
+	}
 	for _, v := range d.Get("application_identification").([]interface{}) {
 		configSetApplicationIdentification, err := setServicesApplicationIdentification(v)
 		if err != nil {
@@ -391,6 +394,7 @@ func setServicesApplicationIdentification(appID interface{}) ([]string, error) {
 	setPrefix := "set services application-identification "
 	configSet := make([]string, 0)
 	appIDM := appID.(map[string]interface{})
+	configSet = append(configSet, setPrefix)
 	for _, v := range appIDM["application_system_cache"].([]interface{}) {
 		configSet = append(configSet, setPrefix+"application-system-cache")
 		if v != nil {
@@ -484,9 +488,6 @@ func setServicesApplicationIdentification(appID interface{}) ([]string, error) {
 	}
 	if v := appIDM["statistics_interval"].(int); v != 0 {
 		configSet = append(configSet, setPrefix+"statistics interval "+strconv.Itoa(v))
-	}
-	if len(configSet) == 0 {
-		return configSet, fmt.Errorf("application_identification block is empty")
 	}
 
 	return configSet, nil
@@ -595,7 +596,7 @@ func readServices(m interface{}, jnprSess *NetconfObject) (servicesOptions, erro
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case checkStringHasPrefixInList(itemTrim, listLinesServicesApplicationIdentification()):
+			case strings.HasPrefix(itemTrim, "application-identification"):
 				if err := readServicesApplicationIdentification(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
