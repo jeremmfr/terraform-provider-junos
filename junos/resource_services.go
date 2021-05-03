@@ -254,15 +254,62 @@ func resourceServices() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"ad_access": {
+							Type:          schema.TypeList,
+							Optional:      true,
+							ConflictsWith: []string{"user_identification.0.identity_management"},
+							MaxItems:      1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"auth_entry_timeout": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      -1,
+										ValidateFunc: validation.IntBetween(0, 1440),
+									},
+									"filter_exclude": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"filter_include": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"firewall_auth_forced_timeout": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(10, 1440),
+									},
+									"invalid_auth_entry_timeout": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      -1,
+										ValidateFunc: validation.IntBetween(0, 1440),
+									},
+									"no_on_demand_probe": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"wmi_timeout": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(3, 120),
+									},
+								},
+							},
+						},
 						"device_info_auth_source": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringInSlice([]string{"active-directory", "network-access-controller"}, false),
 						},
 						"identity_management": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
+							Type:          schema.TypeList,
+							Optional:      true,
+							ConflictsWith: []string{"user_identification.0.ad_access"},
+							MaxItems:      1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"connection": {
@@ -527,6 +574,9 @@ func setServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		}
 		configSet = append(configSet, configSetSecurityIntel...)
 	}
+	if len(d.Get("user_identification").([]interface{})) == 0 {
+		configSet = append(configSet, "delete services user-identification active-directory-access")
+	}
 	for _, v := range d.Get("user_identification").([]interface{}) {
 		configSetUserIdent, err := setServicesUserIdentification(v)
 		if err != nil {
@@ -688,6 +738,37 @@ func setServicesUserIdentification(userIdentification interface{}) ([]string, er
 	configSet := make([]string, 0)
 	if userIdentification != nil {
 		userIdent := userIdentification.(map[string]interface{})
+		if len(userIdent["ad_access"].([]interface{})) == 0 {
+			configSet = append(configSet, "delete services user-identification active-directory-access")
+		}
+		for _, v := range userIdent["ad_access"].([]interface{}) {
+			adAccess := v.(map[string]interface{})
+			configSet = append(configSet, setPrefix+"active-directory-access")
+			if v2 := adAccess["auth_entry_timeout"].(int); v2 != -1 {
+				configSet = append(configSet, setPrefix+"active-directory-access authentication-entry-timeout "+
+					strconv.Itoa(v2))
+			}
+			for _, v2 := range adAccess["filter_exclude"].(*schema.Set).List() {
+				configSet = append(configSet, setPrefix+"active-directory-access filter exclude "+v2.(string))
+			}
+			for _, v2 := range adAccess["filter_include"].(*schema.Set).List() {
+				configSet = append(configSet, setPrefix+"active-directory-access filter include "+v2.(string))
+			}
+			if v2 := adAccess["firewall_auth_forced_timeout"].(int); v2 != 0 {
+				configSet = append(configSet, setPrefix+"active-directory-access firewall-authentication-forced-timeout "+
+					strconv.Itoa(v2))
+			}
+			if v2 := adAccess["invalid_auth_entry_timeout"].(int); v2 != -1 {
+				configSet = append(configSet, setPrefix+"active-directory-access invalid-authentication-entry-timeout "+
+					strconv.Itoa(v2))
+			}
+			if adAccess["no_on_demand_probe"].(bool) {
+				configSet = append(configSet, setPrefix+"active-directory-access no-on-demand-probe")
+			}
+			if v2 := adAccess["wmi_timeout"].(int); v2 != 0 {
+				configSet = append(configSet, setPrefix+"active-directory-access wmi-timeout "+strconv.Itoa(v2))
+			}
+		}
 		if v := userIdent["device_info_auth_source"].(string); v != "" {
 			configSet = append(configSet, setPrefix+"device-information authentication-source "+v)
 		}
@@ -803,9 +884,23 @@ func listLinesServicesSecurityIntel() []string {
 }
 
 func listLinesServicesUserIdentification() []string {
-	return []string{
+	r := []string{
 		"user-identification device-information authentication-source",
 		"user-identification identity-management",
+	}
+	r = append(r, listLinesServicesUserIdentificationAdAccess()...)
+
+	return r
+}
+
+func listLinesServicesUserIdentificationAdAccess() []string {
+	return []string{
+		"user-identification active-directory-access authentication-entry-timeout",
+		"user-identification active-directory-access filter",
+		"user-identification active-directory-access firewall-authentication-forced-timeout",
+		"user-identification active-directory-access invalid-authentication-entry-timeout",
+		"user-identification active-directory-access no-on-demand-probe",
+		"user-identification active-directory-access wmi-timeout",
 	}
 }
 
@@ -852,7 +947,8 @@ func readServices(m interface{}, jnprSess *NetconfObject) (servicesOptions, erro
 				if err := readServicesSecurityIntel(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
-			case checkStringHasPrefixInList(itemTrim, listLinesServicesUserIdentification()):
+			case checkStringHasPrefixInList(itemTrim, listLinesServicesUserIdentification()) ||
+				strings.HasPrefix(itemTrim, "user-identification active-directory-access"):
 				if err := readServicesUserIdentification(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
@@ -1112,11 +1208,64 @@ func readServicesUserIdentification(confRead *servicesOptions, itemTrimUserIdent
 	itemTrim := strings.TrimPrefix(itemTrimUserIdentification, "user-identification ")
 	if len(confRead.userIdentification) == 0 {
 		confRead.userIdentification = append(confRead.userIdentification, map[string]interface{}{
+			"ad_access":               make([]map[string]interface{}, 0),
 			"device_info_auth_source": "",
 			"identity_management":     make([]map[string]interface{}, 0),
 		})
 	}
 	switch {
+	case strings.HasPrefix(itemTrim, "active-directory-access"):
+		if len(confRead.userIdentification[0]["ad_access"].([]map[string]interface{})) == 0 {
+			confRead.userIdentification[0]["ad_access"] = append(
+				confRead.userIdentification[0]["ad_access"].([]map[string]interface{}),
+				map[string]interface{}{
+					"auth_entry_timeout":           -1,
+					"filter_exclude":               make([]string, 0),
+					"filter_include":               make([]string, 0),
+					"firewall_auth_forced_timeout": 0,
+					"invalid_auth_entry_timeout":   -1,
+					"no_on_demand_probe":           false,
+					"wmi_timeout":                  0,
+				})
+		}
+		adAccess := confRead.userIdentification[0]["ad_access"].([]map[string]interface{})[0]
+		switch {
+		case strings.HasPrefix(itemTrim, "active-directory-access authentication-entry-timeout "):
+			var err error
+			adAccess["auth_entry_timeout"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "active-directory-access authentication-entry-timeout "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "active-directory-access filter exclude "):
+			adAccess["filter_exclude"] = append(adAccess["filter_exclude"].([]string), strings.TrimPrefix(
+				itemTrim, "active-directory-access filter exclude "))
+		case strings.HasPrefix(itemTrim, "active-directory-access filter include "):
+			adAccess["filter_include"] = append(adAccess["filter_include"].([]string), strings.TrimPrefix(
+				itemTrim, "active-directory-access filter include "))
+		case strings.HasPrefix(itemTrim, "active-directory-access firewall-authentication-forced-timeout "):
+			var err error
+			adAccess["firewall_auth_forced_timeout"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "active-directory-access firewall-authentication-forced-timeout "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "active-directory-access invalid-authentication-entry-timeout "):
+			var err error
+			adAccess["invalid_auth_entry_timeout"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "active-directory-access invalid-authentication-entry-timeout "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case itemTrim == "active-directory-access no-on-demand-probe":
+			adAccess["no_on_demand_probe"] = true
+		case strings.HasPrefix(itemTrim, "active-directory-access wmi-timeout "):
+			var err error
+			adAccess["wmi_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "active-directory-access wmi-timeout "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		}
 	case strings.HasPrefix(itemTrim, "device-information authentication-source "):
 		confRead.userIdentification[0]["device_info_auth_source"] =
 			strings.TrimPrefix(itemTrim, "device-information authentication-source ")

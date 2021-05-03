@@ -75,8 +75,16 @@ The following arguments are supported:
 
 ---
 #### user_identification arguments
+* `ad_access` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to enable 'active-directory-access'. Conflict with `identity_management`.
+  * `auth_entry_timeout` - (Optional)(`Int`) Authentication entry timeout number (0, 10-1440) (minutes).
+  * `filter_exclude` - (Optional)(`ListOfString`) Exclude addresses.
+  * `filter_include` - (Optional)(`ListOfString`) Include addresses.
+  * `firewall_auth_forced_timeout` - (Optional)(`Int`) Firewallauth fallback authentication entry forced timeout number (10-1440) (minutes).
+  * `invalid_auth_entry_timeout` - (Optional)(`Int`) Invalid authentication entry timeout number (0, 10-1440) (minutes).
+  * `no_on_demand_probe` - (Optional)(`bool`) Disable on-demand probe.
+  * `wmi_timeout` - (Optional)(`Int`) Wmi timeout number (3..120 seconds).
 * `device_info_auth_source` - (Optional)(`String`) Configure authentication-source on device information configuration. Need to be 'active-directory' or 'network-access-controller'.
-* `identity_management` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'identity-management' configuration. See the [`identity_management` arguments for user_identification] (#identity_management-arguments-for-user_identification) block.
+* `identity_management` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'identity-management' configuration. See the [`identity_management` arguments for user_identification] (#identity_management-arguments-for-user_identification) block. Conflict with `ad_access`.
 
 ---
 #### identity_management arguments for user_identification
