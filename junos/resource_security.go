@@ -939,21 +939,20 @@ func setSecurityFlow(flow interface{}) ([]string, error) { // nolint: gocognit
 			}
 		}
 		for _, v := range flowM["aging"].([]interface{}) {
-			if v != nil {
-				aging := v.(map[string]interface{})
-				if aging["early_ageout"].(int) != 0 {
-					configSet = append(configSet, setPrefix+"aging early-ageout "+
-						strconv.Itoa(aging["early_ageout"].(int)))
-				}
-				if aging["high_watermark"].(int) != -1 {
-					configSet = append(configSet, setPrefix+"aging high-watermark "+
-						strconv.Itoa(aging["high_watermark"].(int)))
-				}
-				if aging["low_watermark"].(int) != -1 {
-					configSet = append(configSet, setPrefix+"aging low-watermark "+
-						strconv.Itoa(aging["low_watermark"].(int)))
-				}
-			} else {
+			aging := v.(map[string]interface{})
+			if aging["early_ageout"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"aging early-ageout "+
+					strconv.Itoa(aging["early_ageout"].(int)))
+			}
+			if aging["high_watermark"].(int) != -1 {
+				configSet = append(configSet, setPrefix+"aging high-watermark "+
+					strconv.Itoa(aging["high_watermark"].(int)))
+			}
+			if aging["low_watermark"].(int) != -1 {
+				configSet = append(configSet, setPrefix+"aging low-watermark "+
+					strconv.Itoa(aging["low_watermark"].(int)))
+			}
+			if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefix+"aging ") {
 				return configSet, fmt.Errorf("flow aging block is empty")
 			}
 		}
@@ -1145,51 +1144,50 @@ func setSecurityForwOpts(forwOpts interface{}) ([]string, error) {
 func setSecurityIkeTraceOpts(ikeTrace interface{}) ([]string, error) {
 	setPrefix := "set security ike traceoptions "
 	configSet := make([]string, 0)
-	if ikeTrace != nil {
-		ikeTraceM := ikeTrace.(map[string]interface{})
-		for _, v := range ikeTraceM["file"].([]interface{}) {
-			if v != nil {
-				ikeTraceFile := v.(map[string]interface{})
-				if ikeTraceFile["name"].(string) != "" {
-					configSet = append(configSet, setPrefix+"file "+
-						ikeTraceFile["name"].(string))
-				}
-				if ikeTraceFile["files"].(int) > 0 {
-					configSet = append(configSet, setPrefix+"file files "+
-						strconv.Itoa(ikeTraceFile["files"].(int)))
-				}
-				if ikeTraceFile["match"].(string) != "" {
-					configSet = append(configSet, setPrefix+"file match \""+
-						ikeTraceFile["match"].(string)+"\"")
-				}
-				if ikeTraceFile["size"].(int) > 0 {
-					configSet = append(configSet, setPrefix+"file size "+
-						strconv.Itoa(ikeTraceFile["size"].(int)))
-				}
-				if ikeTraceFile["world_readable"].(bool) && ikeTraceFile["no_world_readable"].(bool) {
-					return configSet, fmt.Errorf("conflict between 'world_readable' and 'no_world_readable' for ike_traceoptions file")
-				}
-				if ikeTraceFile["world_readable"].(bool) {
-					configSet = append(configSet, setPrefix+"file world-readable")
-				}
-				if ikeTraceFile["no_world_readable"].(bool) {
-					configSet = append(configSet, setPrefix+"file no-world-readable")
-				}
-			} else {
-				return configSet, fmt.Errorf("ike_traceoptions file block is empty")
+	ikeTraceM := ikeTrace.(map[string]interface{})
+	for _, v := range ikeTraceM["file"].([]interface{}) {
+		if v != nil {
+			ikeTraceFile := v.(map[string]interface{})
+			if ikeTraceFile["name"].(string) != "" {
+				configSet = append(configSet, setPrefix+"file "+
+					ikeTraceFile["name"].(string))
 			}
+			if ikeTraceFile["files"].(int) > 0 {
+				configSet = append(configSet, setPrefix+"file files "+
+					strconv.Itoa(ikeTraceFile["files"].(int)))
+			}
+			if ikeTraceFile["match"].(string) != "" {
+				configSet = append(configSet, setPrefix+"file match \""+
+					ikeTraceFile["match"].(string)+"\"")
+			}
+			if ikeTraceFile["size"].(int) > 0 {
+				configSet = append(configSet, setPrefix+"file size "+
+					strconv.Itoa(ikeTraceFile["size"].(int)))
+			}
+			if ikeTraceFile["world_readable"].(bool) && ikeTraceFile["no_world_readable"].(bool) {
+				return configSet, fmt.Errorf("conflict between 'world_readable' and 'no_world_readable' for ike_traceoptions file")
+			}
+			if ikeTraceFile["world_readable"].(bool) {
+				configSet = append(configSet, setPrefix+"file world-readable")
+			}
+			if ikeTraceFile["no_world_readable"].(bool) {
+				configSet = append(configSet, setPrefix+"file no-world-readable")
+			}
+		} else {
+			return configSet, fmt.Errorf("ike_traceoptions file block is empty")
 		}
-		for _, ikeTraceFlag := range ikeTraceM["flag"].([]interface{}) {
-			configSet = append(configSet, setPrefix+"flag "+ikeTraceFlag.(string))
-		}
-		if ikeTraceM["no_remote_trace"].(bool) {
-			configSet = append(configSet, setPrefix+"no-remote-trace")
-		}
-		if ikeTraceM["rate_limit"].(int) > -1 {
-			configSet = append(configSet, setPrefix+"rate-limit "+
-				strconv.Itoa(ikeTraceM["rate_limit"].(int)))
-		}
-	} else {
+	}
+	for _, ikeTraceFlag := range ikeTraceM["flag"].([]interface{}) {
+		configSet = append(configSet, setPrefix+"flag "+ikeTraceFlag.(string))
+	}
+	if ikeTraceM["no_remote_trace"].(bool) {
+		configSet = append(configSet, setPrefix+"no-remote-trace")
+	}
+	if ikeTraceM["rate_limit"].(int) > -1 {
+		configSet = append(configSet, setPrefix+"rate-limit "+
+			strconv.Itoa(ikeTraceM["rate_limit"].(int)))
+	}
+	if len(configSet) == 0 {
 		return configSet, fmt.Errorf("ike_traceoptions block is empty")
 	}
 
@@ -1199,76 +1197,75 @@ func setSecurityIkeTraceOpts(ikeTrace interface{}) ([]string, error) {
 func setSecurityLog(log interface{}) ([]string, error) {
 	setPrefix := "set security log "
 	configSet := make([]string, 0)
-	if log != nil {
-		logM := log.(map[string]interface{})
-		if logM["disable"].(bool) {
-			configSet = append(configSet, setPrefix+"disable")
+	logM := log.(map[string]interface{})
+	if logM["disable"].(bool) {
+		configSet = append(configSet, setPrefix+"disable")
+	}
+	if logM["event_rate"].(int) != -1 {
+		configSet = append(configSet, setPrefix+"event-rate "+strconv.Itoa(logM["event_rate"].(int)))
+	}
+	if logM["facility_override"].(string) != "" {
+		configSet = append(configSet, setPrefix+"facility-override "+logM["facility_override"].(string))
+	}
+	for _, v := range logM["file"].([]interface{}) {
+		if v != nil {
+			file := v.(map[string]interface{})
+			if file["files"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"file files "+strconv.Itoa(file["files"].(int)))
+			}
+			if file["name"].(string) != "" {
+				configSet = append(configSet, setPrefix+"file name "+file["name"].(string))
+			}
+			if file["path"].(string) != "" {
+				configSet = append(configSet, setPrefix+"file path "+file["path"].(string))
+			}
+			if file["size"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"file size "+strconv.Itoa(file["size"].(int)))
+			}
+		} else {
+			return configSet, fmt.Errorf("log file block is empty")
 		}
-		if logM["event_rate"].(int) != -1 {
-			configSet = append(configSet, setPrefix+"event-rate "+strconv.Itoa(logM["event_rate"].(int)))
-		}
-		if logM["facility_override"].(string) != "" {
-			configSet = append(configSet, setPrefix+"facility-override "+logM["facility_override"].(string))
-		}
-		for _, v := range logM["file"].([]interface{}) {
-			if v != nil {
-				file := v.(map[string]interface{})
-				if file["files"].(int) != 0 {
-					configSet = append(configSet, setPrefix+"file files "+strconv.Itoa(file["files"].(int)))
-				}
-				if file["name"].(string) != "" {
-					configSet = append(configSet, setPrefix+"file name "+file["name"].(string))
-				}
-				if file["path"].(string) != "" {
-					configSet = append(configSet, setPrefix+"file path "+file["path"].(string))
-				}
-				if file["size"].(int) != 0 {
-					configSet = append(configSet, setPrefix+"file size "+strconv.Itoa(file["size"].(int)))
-				}
-			} else {
-				return configSet, fmt.Errorf("log file block is empty")
+	}
+	if logM["format"].(string) != "" {
+		configSet = append(configSet, setPrefix+"format "+logM["format"].(string))
+	}
+	if logM["max_database_record"].(int) != -1 {
+		configSet = append(configSet, setPrefix+"max-database-record "+strconv.Itoa(logM["max_database_record"].(int)))
+	}
+	if logM["mode"].(string) != "" {
+		configSet = append(configSet, setPrefix+"mode "+logM["mode"].(string))
+	}
+	if logM["rate_cap"].(int) != -1 {
+		configSet = append(configSet, setPrefix+"rate-cap "+strconv.Itoa(logM["rate_cap"].(int)))
+	}
+	if logM["report"].(bool) {
+		configSet = append(configSet, setPrefix+"report")
+	}
+	if logM["source_address"].(string) != "" {
+		configSet = append(configSet, setPrefix+"source-address "+logM["source_address"].(string))
+	}
+	if logM["source_interface"].(string) != "" {
+		configSet = append(configSet, setPrefix+"source-interface "+logM["source_interface"].(string))
+	}
+	for _, v := range logM["transport"].([]interface{}) {
+		configSet = append(configSet, setPrefix+"transport")
+		if v != nil {
+			trans := v.(map[string]interface{})
+			if trans["protocol"].(string) != "" {
+				configSet = append(configSet, setPrefix+"transport protocol "+trans["protocol"].(string))
+			}
+			if trans["tcp_connections"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"transport tcp-connections "+strconv.Itoa(trans["tcp_connections"].(int)))
+			}
+			if trans["tls_profile"].(string) != "" {
+				configSet = append(configSet, setPrefix+"transport tls-profile "+trans["tls_profile"].(string))
 			}
 		}
-		if logM["format"].(string) != "" {
-			configSet = append(configSet, setPrefix+"format "+logM["format"].(string))
-		}
-		if logM["max_database_record"].(int) != -1 {
-			configSet = append(configSet, setPrefix+"max-database-record "+strconv.Itoa(logM["max_database_record"].(int)))
-		}
-		if logM["mode"].(string) != "" {
-			configSet = append(configSet, setPrefix+"mode "+logM["mode"].(string))
-		}
-		if logM["rate_cap"].(int) != -1 {
-			configSet = append(configSet, setPrefix+"rate-cap "+strconv.Itoa(logM["rate_cap"].(int)))
-		}
-		if logM["report"].(bool) {
-			configSet = append(configSet, setPrefix+"report")
-		}
-		if logM["source_address"].(string) != "" {
-			configSet = append(configSet, setPrefix+"source-address "+logM["source_address"].(string))
-		}
-		if logM["source_interface"].(string) != "" {
-			configSet = append(configSet, setPrefix+"source-interface "+logM["source_interface"].(string))
-		}
-		for _, v := range logM["transport"].([]interface{}) {
-			configSet = append(configSet, setPrefix+"transport")
-			if v != nil {
-				trans := v.(map[string]interface{})
-				if trans["protocol"].(string) != "" {
-					configSet = append(configSet, setPrefix+"transport protocol "+trans["protocol"].(string))
-				}
-				if trans["tcp_connections"].(int) != 0 {
-					configSet = append(configSet, setPrefix+"transport tcp-connections "+strconv.Itoa(trans["tcp_connections"].(int)))
-				}
-				if trans["tls_profile"].(string) != "" {
-					configSet = append(configSet, setPrefix+"transport tls-profile "+trans["tls_profile"].(string))
-				}
-			}
-		}
-		if logM["utc_timestamp"].(bool) {
-			configSet = append(configSet, setPrefix+"utc-timestamp")
-		}
-	} else {
+	}
+	if logM["utc_timestamp"].(bool) {
+		configSet = append(configSet, setPrefix+"utc-timestamp")
+	}
+	if len(configSet) == 0 {
 		return configSet, fmt.Errorf("log block is empty")
 	}
 

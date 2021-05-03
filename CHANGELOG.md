@@ -6,6 +6,7 @@ ENHANCEMENTS:
 * clean code: fix lll linter errors with a var to map
 
 BUG FIXES:
+* fix errors not generated with certain nested blocks empty and default integer argument = -1 in these blocks
 
 ## 1.15.1 (April 23, 2021)
 BUG FIXES:

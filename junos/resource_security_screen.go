@@ -784,14 +784,7 @@ func setSecurityScreen(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		configSet = append(configSet, setSecurityScreenIcmp(icmp, setPrefix)...)
 	}
 	for _, v := range d.Get("ip").([]interface{}) {
-		if v == nil {
-			return fmt.Errorf("ip block is empty")
-		}
-		ip := v.(map[string]interface{})
-		if err := checkSetSecurityScreenIP(ip); err != nil {
-			return err
-		}
-		ipSet, err := setSecurityScreenIP(ip, setPrefix)
+		ipSet, err := setSecurityScreenIP(v.(map[string]interface{}), setPrefix)
 		if err != nil {
 			return err
 		}
@@ -870,29 +863,6 @@ func setSecurityScreenIcmp(icmp map[string]interface{}, setPrefix string) []stri
 	}
 
 	return configSet
-}
-
-func checkSetSecurityScreenIP(ip map[string]interface{}) error {
-	if !ip["bad_option"].(bool) &&
-		!ip["block_frag"].(bool) &&
-		len(ip["ipv6_extension_header"].([]interface{})) == 0 &&
-		ip["ipv6_extension_header_limit"].(int) == -1 &&
-		!ip["ipv6_malformed_header"].(bool) &&
-		!ip["loose_source_route_option"].(bool) &&
-		!ip["record_route_option"].(bool) &&
-		!ip["security_option"].(bool) &&
-		!ip["source_route_option"].(bool) &&
-		!ip["spoofing"].(bool) &&
-		!ip["stream_option"].(bool) &&
-		!ip["strict_source_route_option"].(bool) &&
-		!ip["tear_drop"].(bool) &&
-		!ip["timestamp_option"].(bool) &&
-		len(ip["tunnel"].([]interface{})) == 0 &&
-		!ip["unknown_protocol"].(bool) {
-		return fmt.Errorf("ip block is empty")
-	}
-
-	return nil
 }
 
 func setSecurityScreenIP(ip map[string]interface{}, setPrefix string) ([]string, error) {
@@ -1096,6 +1066,9 @@ func setSecurityScreenIP(ip map[string]interface{}, setPrefix string) ([]string,
 	}
 	if ip["unknown_protocol"].(bool) {
 		configSet = append(configSet, setPrefix+"unknown-protocol")
+	}
+	if len(configSet) == 0 {
+		return configSet, fmt.Errorf("ip block is empty")
 	}
 
 	return configSet, nil
