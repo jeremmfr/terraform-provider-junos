@@ -3,19 +3,19 @@ layout: "junos"
 page_title: "Junos: junos_security_zone_book_address"
 sidebar_current: "docs-junos-resource-security-zone-book-address"
 description: |-
-  Create a address in address-book of security zone (when Junos device supports it)
+  Create an address in address-book of security zone (when Junos device supports it)
 ---
 
 # junos_security_zone_book_address
 
-Provides a address resource in address-book of security zone.
+Provides an address resource in address-book of security zone.
 
--> **Note:** The `security_zone` resource need to be have `address_book_configure_singly` to true otherwise there will be a conflict between resources.
+-> **Note:** The `security_zone` resource needs to have `address_book_configure_singly` set to true otherwise there will be a conflict between resources.
 
 ## Example Usage
 
 ```hcl
-# Add a address
+# Add an address
 resource junos_security_zone_book_address "demo" {
   name = "address1"
   zone = "theZone"
@@ -36,9 +36,9 @@ The following arguments are supported:
 * `dns_name` - (Optional)(`String`) DNS address name.
 * `range_from` - (Optional)(`String`) Lower limit of address range.
 * `range_to` - (Optional)(`String`) Upper limit of address range.
-* `wildcard` - (Optional)(`String`) Numeric IPv4 wildcard address with in the form of a.d.d.r/netmask.
+* `wildcard` - (Optional)(`String`) Numeric IPv4 wildcard address in the form of a.d.d.r/netmask.
 
--> **Note:** One of `cidr`, `dns_name`, `range_from` or `wildcard` argument need to be set.
+-> **Note:** One of `cidr`, `dns_name`, `range_from` or `wildcard` arguments need to be set.
 
 ## Import
 
