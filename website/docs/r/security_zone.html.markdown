@@ -32,9 +32,27 @@ The following arguments are supported:
 * `address_book` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each address to declare.
   * `name` - (Required)(`String`) Name of address.
   * `network` - (Required)(`String`) CIDR of address.
+  * `description` - (Optional)(`String`) Description of address.
+* `address_book_configure_singly` - (Optional)(`Bool`) Disable management of address-book in this resource to be able to manage them with specific resources. Conflict with `address_book_*`.
+* `address_book_dns` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each dns-name address to declare.
+  * `name` - (Required)(`String`) Name of address.
+  * `fqdn` - (Required)(`String`) Fully qualified domain name.
+  * `description` - (Optional)(`String`) Description of address.
+  * `ipv4_only` - (Optional)(`Bool`) IPv4 dns address.
+  * `ipv6_only` - (Optional)(`Bool`) IPv6 dns address.
+* `address_book_range` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each range-address to declare.
+  * `name` - (Required)(`String`) Name of address.
+  * `from` - (Required)(`String`) Lower limit of address range.
+  * `to` - (Required)(`String`) Upper limit of address range.
+  * `description` - (Optional)(`String`) Description of address.
 * `address_book_set` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each address-set to declare.
   * `name` - (Required)(`String`) Name of address-set.
   * `address` - (Required)(`ListOfString`) List of address names.
+  * `description` - (Optional)(`String`) Description of address-set.
+* `address_book_wildcard` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each wildcard-address to declare.
+  * `name` - (Required)(`String`) Name of address.
+  * `network` - (Required)(`String`) Numeric IPv4 wildcard address with in the form of a.d.d.r/netmask.
+  * `description` - (Optional)(`String`) Description of address.
 * `advance_policy_based_routing_profile` - (Optional)(`String`) Enable Advance Policy Based Routing on this zone with a profile.
 * `application_tracking` - (Optional)(`Bool`) Enable Application tracking support for this zone.
 * `description` - (Optional)(`String`) Text description of zone.

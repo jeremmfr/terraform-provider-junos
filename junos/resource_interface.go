@@ -513,7 +513,7 @@ func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 			return append(diagWarns,
-				diag.FromErr(fmt.Errorf("security zones %v doesn't exist", d.Get("security_zone").(string)))...)
+				diag.FromErr(fmt.Errorf("security zone %v doesn't exist", d.Get("security_zone").(string)))...)
 		}
 	}
 	if d.Get("routing_instance").(string) != "" {
@@ -719,7 +719,7 @@ func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m inte
 			if !zonesExists {
 				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-				return append(diagWarns, diag.FromErr(fmt.Errorf("security zones %v doesn't exist", nSecurityZone.(string)))...)
+				return append(diagWarns, diag.FromErr(fmt.Errorf("security zone %v doesn't exist", nSecurityZone.(string)))...)
 			}
 		}
 		if oSecurityZone.(string) != "" {
