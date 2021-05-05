@@ -825,9 +825,6 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		}
 		servicesM := services.(map[string]interface{})
 		for _, servicesSSH := range servicesM["ssh"].([]interface{}) {
-			if servicesSSH == nil {
-				return fmt.Errorf("services.0.ssh block is empty")
-			}
 			servicesSSHM := servicesSSH.(map[string]interface{})
 			for _, auth := range servicesSSHM["authentication_order"].([]interface{}) {
 				configSet = append(configSet, setPrefix+"ssh authentication-order "+auth.(string))
@@ -900,6 +897,9 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			if servicesSSHM["tcp_forwarding"].(bool) {
 				configSet = append(configSet, setPrefix+"ssh tcp-forwarding")
 			}
+			if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefix+"ssh") {
+				return fmt.Errorf("services.0.ssh block is empty")
+			}
 		}
 	}
 
@@ -911,17 +911,11 @@ func setSystemInternetOptions(d *schema.ResourceData, m interface{}, jnprSess *N
 	setPrefix := "set system internet-options "
 	configSet := make([]string, 0)
 	for _, v := range d.Get("internet_options").([]interface{}) {
-		if v == nil {
-			return fmt.Errorf("internet_options block is empty")
-		}
 		internetOptions := v.(map[string]interface{})
 		if internetOptions["gre_path_mtu_discovery"].(bool) {
 			configSet = append(configSet, setPrefix+"gre-path-mtu-discovery")
 		}
 		for _, v2 := range internetOptions["icmpv4_rate_limit"].([]interface{}) {
-			if v2 == nil {
-				return fmt.Errorf("internet_options.0.icmpv4_rate_limit block is empty")
-			}
 			icmpv4RL := v2.(map[string]interface{})
 			if icmpv4RL["bucket_size"].(int) != -1 {
 				configSet = append(configSet,
@@ -931,11 +925,11 @@ func setSystemInternetOptions(d *schema.ResourceData, m interface{}, jnprSess *N
 				configSet = append(configSet,
 					setPrefix+"icmpv4-rate-limit packet-rate "+strconv.Itoa(icmpv4RL["packet_rate"].(int)))
 			}
+			if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefix+"icmpv4-rate-limit") {
+				return fmt.Errorf("internet_options.0.icmpv4_rate_limit block is empty")
+			}
 		}
 		for _, v2 := range internetOptions["icmpv6_rate_limit"].([]interface{}) {
-			if v2 == nil {
-				return fmt.Errorf("internet_options.0.icmpv6_rate_limit block is empty")
-			}
 			icmpv6RL := v2.(map[string]interface{})
 			if icmpv6RL["bucket_size"].(int) != -1 {
 				configSet = append(configSet,
@@ -944,6 +938,9 @@ func setSystemInternetOptions(d *schema.ResourceData, m interface{}, jnprSess *N
 			if icmpv6RL["packet_rate"].(int) != -1 {
 				configSet = append(configSet,
 					setPrefix+"icmpv6-rate-limit packet-rate "+strconv.Itoa(icmpv6RL["packet_rate"].(int)))
+			}
+			if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefix+"icmpv6-rate-limit") {
+				return fmt.Errorf("internet_options.0.icmpv6_rate_limit block is empty")
 			}
 		}
 		if internetOptions["ipip_path_mtu_discovery"].(bool) {
@@ -1007,6 +1004,9 @@ func setSystemInternetOptions(d *schema.ResourceData, m interface{}, jnprSess *N
 		if internetOptions["tcp_mss"].(int) != 0 {
 			configSet = append(configSet, setPrefix+"tcp-mss "+strconv.Itoa(internetOptions["tcp_mss"].(int)))
 		}
+	}
+	if len(configSet) == 0 && len(d.Get("internet_options").([]interface{})) != 0 {
+		return fmt.Errorf("internet_options block is empty")
 	}
 
 	return sess.configSet(configSet, jnprSess)

@@ -369,6 +369,9 @@ func setServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	// setPrefix := "set services "
 	configSet := make([]string, 0)
 
+	if len(d.Get("application_identification").([]interface{})) == 0 {
+		configSet = append(configSet, "delete services application-identification")
+	}
 	for _, v := range d.Get("application_identification").([]interface{}) {
 		configSetApplicationIdentification, err := setServicesApplicationIdentification(v)
 		if err != nil {
@@ -390,104 +393,101 @@ func setServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 func setServicesApplicationIdentification(appID interface{}) ([]string, error) {
 	setPrefix := "set services application-identification "
 	configSet := make([]string, 0)
-	if appID != nil {
-		appIDM := appID.(map[string]interface{})
-		for _, v := range appIDM["application_system_cache"].([]interface{}) {
-			configSet = append(configSet, setPrefix+"application-system-cache")
-			if v != nil {
-				appSysCache := v.(map[string]interface{})
-				if appSysCache["no_miscellaneous_services"].(bool) {
-					configSet = append(configSet, setPrefix+"application-system-cache no-miscellaneous-services")
-				}
-				if appSysCache["security_services"].(bool) {
-					configSet = append(configSet, setPrefix+"application-system-cache security-services")
-				}
+	appIDM := appID.(map[string]interface{})
+	configSet = append(configSet, setPrefix)
+	for _, v := range appIDM["application_system_cache"].([]interface{}) {
+		configSet = append(configSet, setPrefix+"application-system-cache")
+		if v != nil {
+			appSysCache := v.(map[string]interface{})
+			if appSysCache["no_miscellaneous_services"].(bool) {
+				configSet = append(configSet, setPrefix+"application-system-cache no-miscellaneous-services")
+			}
+			if appSysCache["security_services"].(bool) {
+				configSet = append(configSet, setPrefix+"application-system-cache security-services")
 			}
 		}
-		if appIDM["no_application_system_cache"].(bool) {
-			configSet = append(configSet, setPrefix+"no-application-system-cache")
+	}
+	if appIDM["no_application_system_cache"].(bool) {
+		configSet = append(configSet, setPrefix+"no-application-system-cache")
+	}
+	if v := appIDM["application_system_cache_timeout"].(int); v != -1 {
+		configSet = append(configSet, setPrefix+"application-system-cache-timeout "+strconv.Itoa(v))
+	}
+	for _, v := range appIDM["download"].([]interface{}) {
+		if v != nil {
+			download := v.(map[string]interface{})
+			if v2 := download["automatic_interval"].(int); v2 != 0 {
+				configSet = append(configSet, setPrefix+"download automatic interval "+strconv.Itoa(v2))
+			}
+			if v2 := download["automatic_start_time"].(string); v2 != "" {
+				configSet = append(configSet, setPrefix+"download automatic start-time "+v2)
+			}
+			if download["ignore_server_validation"].(bool) {
+				configSet = append(configSet, setPrefix+"download ignore-server-validation")
+			}
+			if v2 := download["proxy_profile"].(string); v2 != "" {
+				configSet = append(configSet, setPrefix+"download proxy-profile \""+v2+"\"")
+			}
+			if v2 := download["url"].(string); v2 != "" {
+				configSet = append(configSet, setPrefix+"download url \""+v2+"\"")
+			}
+		} else {
+			return configSet, fmt.Errorf("application_identification.0.download block is empty")
 		}
-		if v := appIDM["application_system_cache_timeout"].(int); v != -1 {
-			configSet = append(configSet, setPrefix+"application-system-cache-timeout "+strconv.Itoa(v))
-		}
-		for _, v := range appIDM["download"].([]interface{}) {
-			if v != nil {
-				download := v.(map[string]interface{})
-				if v2 := download["automatic_interval"].(int); v2 != 0 {
-					configSet = append(configSet, setPrefix+"download automatic interval "+strconv.Itoa(v2))
-				}
-				if v2 := download["automatic_start_time"].(string); v2 != "" {
-					configSet = append(configSet, setPrefix+"download automatic start-time "+v2)
-				}
-				if download["ignore_server_validation"].(bool) {
-					configSet = append(configSet, setPrefix+"download ignore-server-validation")
-				}
-				if v2 := download["proxy_profile"].(string); v2 != "" {
-					configSet = append(configSet, setPrefix+"download proxy-profile \""+v2+"\"")
-				}
-				if v2 := download["url"].(string); v2 != "" {
-					configSet = append(configSet, setPrefix+"download url \""+v2+"\"")
-				}
-			} else {
-				return configSet, fmt.Errorf("application_identification.0.download block is empty")
+	}
+	for _, v := range appIDM["enable_performance_mode"].([]interface{}) {
+		configSet = append(configSet, setPrefix+"enable-performance-mode")
+		if v != nil {
+			enPerfMode := v.(map[string]interface{})
+			if v := enPerfMode["max_packet_threshold"].(int); v != 0 {
+				configSet = append(configSet, setPrefix+"enable-performance-mode max-packet-threshold "+strconv.Itoa(v))
 			}
 		}
-		for _, v := range appIDM["enable_performance_mode"].([]interface{}) {
-			configSet = append(configSet, setPrefix+"enable-performance-mode")
-			if v != nil {
-				enPerfMode := v.(map[string]interface{})
-				if v := enPerfMode["max_packet_threshold"].(int); v != 0 {
-					configSet = append(configSet, setPrefix+"enable-performance-mode max-packet-threshold "+strconv.Itoa(v))
-				}
+	}
+	if v := appIDM["global_offload_byte_limit"].(int); v != -1 {
+		configSet = append(configSet, setPrefix+"global-offload-byte-limit "+strconv.Itoa(v))
+	}
+	if v := appIDM["imap_cache_size"].(int); v != 0 {
+		configSet = append(configSet, setPrefix+"imap-cache-size "+strconv.Itoa(v))
+	}
+	if v := appIDM["imap_cache_timeout"].(int); v != 0 {
+		configSet = append(configSet, setPrefix+"imap-cache-timeout "+strconv.Itoa(v))
+	}
+	for _, v := range appIDM["inspection_limit_tcp"].([]interface{}) {
+		configSet = append(configSet, setPrefix+"inspection-limit tcp")
+		if v != nil {
+			inspLimitTCP := v.(map[string]interface{})
+			if v := inspLimitTCP["byte_limit"].(int); v != -1 {
+				configSet = append(configSet, setPrefix+"inspection-limit tcp byte-limit "+strconv.Itoa(v))
+			}
+			if v := inspLimitTCP["packet_limit"].(int); v != -1 {
+				configSet = append(configSet, setPrefix+"inspection-limit tcp packet-limit "+strconv.Itoa(v))
 			}
 		}
-		if v := appIDM["global_offload_byte_limit"].(int); v != -1 {
-			configSet = append(configSet, setPrefix+"global-offload-byte-limit "+strconv.Itoa(v))
-		}
-		if v := appIDM["imap_cache_size"].(int); v != 0 {
-			configSet = append(configSet, setPrefix+"imap-cache-size "+strconv.Itoa(v))
-		}
-		if v := appIDM["imap_cache_timeout"].(int); v != 0 {
-			configSet = append(configSet, setPrefix+"imap-cache-timeout "+strconv.Itoa(v))
-		}
-		for _, v := range appIDM["inspection_limit_tcp"].([]interface{}) {
-			configSet = append(configSet, setPrefix+"inspection-limit tcp")
-			if v != nil {
-				inspLimitTCP := v.(map[string]interface{})
-				if v := inspLimitTCP["byte_limit"].(int); v != -1 {
-					configSet = append(configSet, setPrefix+"inspection-limit tcp byte-limit "+strconv.Itoa(v))
-				}
-				if v := inspLimitTCP["packet_limit"].(int); v != -1 {
-					configSet = append(configSet, setPrefix+"inspection-limit tcp packet-limit "+strconv.Itoa(v))
-				}
+	}
+	for _, v := range appIDM["inspection_limit_udp"].([]interface{}) {
+		configSet = append(configSet, setPrefix+"inspection-limit udp")
+		if v != nil {
+			inspLimitUDP := v.(map[string]interface{})
+			if v := inspLimitUDP["byte_limit"].(int); v != -1 {
+				configSet = append(configSet, setPrefix+"inspection-limit udp byte-limit "+strconv.Itoa(v))
+			}
+			if v := inspLimitUDP["packet_limit"].(int); v != -1 {
+				configSet = append(configSet, setPrefix+"inspection-limit udp packet-limit "+strconv.Itoa(v))
 			}
 		}
-		for _, v := range appIDM["inspection_limit_udp"].([]interface{}) {
-			configSet = append(configSet, setPrefix+"inspection-limit udp")
-			if v != nil {
-				inspLimitUDP := v.(map[string]interface{})
-				if v := inspLimitUDP["byte_limit"].(int); v != -1 {
-					configSet = append(configSet, setPrefix+"inspection-limit udp byte-limit "+strconv.Itoa(v))
-				}
-				if v := inspLimitUDP["packet_limit"].(int); v != -1 {
-					configSet = append(configSet, setPrefix+"inspection-limit udp packet-limit "+strconv.Itoa(v))
-				}
-			}
-		}
-		if v := appIDM["max_memory"].(int); v != 0 {
-			configSet = append(configSet, setPrefix+"max-memory "+strconv.Itoa(v))
-		}
-		if v := appIDM["max_transactions"].(int); v != -1 {
-			configSet = append(configSet, setPrefix+"max-transactions "+strconv.Itoa(v))
-		}
-		if appIDM["micro_apps"].(bool) {
-			configSet = append(configSet, setPrefix+"micro-apps")
-		}
-		if v := appIDM["statistics_interval"].(int); v != 0 {
-			configSet = append(configSet, setPrefix+"statistics interval "+strconv.Itoa(v))
-		}
-	} else {
-		return configSet, fmt.Errorf("application_identification block is empty")
+	}
+	if v := appIDM["max_memory"].(int); v != 0 {
+		configSet = append(configSet, setPrefix+"max-memory "+strconv.Itoa(v))
+	}
+	if v := appIDM["max_transactions"].(int); v != -1 {
+		configSet = append(configSet, setPrefix+"max-transactions "+strconv.Itoa(v))
+	}
+	if appIDM["micro_apps"].(bool) {
+		configSet = append(configSet, setPrefix+"micro-apps")
+	}
+	if v := appIDM["statistics_interval"].(int); v != 0 {
+		configSet = append(configSet, setPrefix+"statistics interval "+strconv.Itoa(v))
 	}
 
 	return configSet, nil
@@ -596,7 +596,7 @@ func readServices(m interface{}, jnprSess *NetconfObject) (servicesOptions, erro
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case checkStringHasPrefixInList(itemTrim, listLinesServicesApplicationIdentification()):
+			case strings.HasPrefix(itemTrim, "application-identification"):
 				if err := readServicesApplicationIdentification(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}

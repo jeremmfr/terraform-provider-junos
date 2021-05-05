@@ -28,7 +28,7 @@ resource junos_services "services" {
 
 The following arguments are supported:
 
-* `application_identification` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'application-identification' configuration. See the [`application_identification` arguments] (#application_identification-arguments) block.
+* `application_identification` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to enable 'application-identification'. See the [`application_identification` arguments] (#application_identification-arguments) block.
 * `security_intelligence` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'security-intelligence' configuration. See the [`security_intelligence` arguments] (#security_intelligence-arguments) block.
 
 ---
