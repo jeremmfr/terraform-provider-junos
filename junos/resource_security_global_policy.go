@@ -94,6 +94,11 @@ func resourceSecurityGlobalPolicy() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+						"match_source_end_user_profile": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "profile can also be named device identity profile",
+						},
 						"permit_application_services": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -369,6 +374,9 @@ func setSecurityGlobalPolicy(d *schema.ResourceData, m interface{}, jnprSess *Ne
 		if policy["match_source_address_excluded"].(bool) {
 			configSet = append(configSet, setPrefixPolicy+" match source-address-excluded")
 		}
+		if v := policy["match_source_end_user_profile"].(string); v != "" {
+			configSet = append(configSet, setPrefixPolicy+" match source-end-user-profile \""+v+"\"")
+		}
 		if len(policy["permit_application_services"].([]interface{})) > 0 {
 			if policy["permit_application_services"].([]interface{})[0] == nil {
 				return fmt.Errorf("permit_application_services block is empty")
@@ -435,6 +443,9 @@ func readSecurityGlobalPolicy(m interface{}, jnprSess *NetconfObject) (globalPol
 						strings.TrimPrefix(itemTrimPolicy, "match dynamic-application "))
 				case strings.HasPrefix(itemTrimPolicy, "match source-address-excluded"):
 					policy["match_source_address_excluded"] = true
+				case strings.HasPrefix(itemTrimPolicy, "match source-end-user-profile "):
+					policy["match_source_end_user_profile"] = strings.Trim(strings.TrimPrefix(
+						itemTrimPolicy, "match source-end-user-profile "), "\"")
 				case strings.HasPrefix(itemTrimPolicy, "then "):
 					switch {
 					case strings.HasSuffix(itemTrimPolicy, permitWord),
@@ -508,6 +519,7 @@ func genMapGlobalPolicyWithName(name string) map[string]interface{} {
 		"match_destination_address_excluded": false,
 		"match_dynamic_application":          make([]string, 0),
 		"match_source_address_excluded":      false,
+		"match_source_end_user_profile":      "",
 		"permit_application_services":        make([]map[string]interface{}, 0),
 	}
 }

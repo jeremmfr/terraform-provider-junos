@@ -16,6 +16,7 @@ import (
 type servicesOptions struct {
 	appIdent             []map[string]interface{}
 	securityIntelligence []map[string]interface{}
+	userIdentification   []map[string]interface{}
 }
 
 func resourceServices() *schema.Resource {
@@ -247,6 +248,196 @@ func resourceServices() *schema.Resource {
 					},
 				},
 			},
+			"user_identification": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"ad_access": {
+							Type:          schema.TypeList,
+							Optional:      true,
+							ConflictsWith: []string{"user_identification.0.identity_management"},
+							MaxItems:      1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"auth_entry_timeout": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      -1,
+										ValidateFunc: validation.IntBetween(0, 1440),
+									},
+									"filter_exclude": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"filter_include": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"firewall_auth_forced_timeout": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(10, 1440),
+									},
+									"invalid_auth_entry_timeout": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      -1,
+										ValidateFunc: validation.IntBetween(0, 1440),
+									},
+									"no_on_demand_probe": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"wmi_timeout": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(3, 120),
+									},
+								},
+							},
+						},
+						"device_info_auth_source": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"active-directory", "network-access-controller"}, false),
+						},
+						"identity_management": {
+							Type:          schema.TypeList,
+							Optional:      true,
+							ConflictsWith: []string{"user_identification.0.ad_access"},
+							MaxItems:      1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"connection": {
+										Type:     schema.TypeList,
+										Required: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"primary_address": {
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.IsIPAddress,
+												},
+												"primary_client_id": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+												"primary_client_secret": {
+													Type:      schema.TypeString,
+													Required:  true,
+													Sensitive: true,
+												},
+												"connect_method": {
+													Type:         schema.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.StringInSlice([]string{"http", "https"}, false),
+												},
+												"port": {
+													Type:         schema.TypeInt,
+													Optional:     true,
+													ValidateFunc: validation.IntBetween(1, 65535),
+												},
+												"primary_ca_certificate": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+												"query_api": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+												"secondary_address": {
+													Type:         schema.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.IsIPAddress,
+												},
+												"secondary_ca_certificate": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+												"secondary_client_id": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+												"secondary_client_secret": {
+													Type:      schema.TypeString,
+													Optional:  true,
+													Sensitive: true,
+												},
+												"token_api": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+											},
+										},
+									},
+									"authentication_entry_timeout": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      -1,
+										ValidateFunc: validation.IntBetween(0, 1440),
+									},
+									"batch_query_items_per_batch": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(100, 1000),
+									},
+									"batch_query_interval": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 60),
+									},
+									"filter_domain": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"filter_exclude_ip_address_book": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										RequiredWith: []string{"user_identification.0.identity_management.0.filter_exclude_ip_address_set"},
+									},
+									"filter_exclude_ip_address_set": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										RequiredWith: []string{"user_identification.0.identity_management.0.filter_exclude_ip_address_book"},
+									},
+									"filter_include_ip_address_book": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										RequiredWith: []string{"user_identification.0.identity_management.0.filter_include_ip_address_set"},
+									},
+									"filter_include_ip_address_set": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										RequiredWith: []string{"user_identification.0.identity_management.0.filter_include_ip_address_book"},
+									},
+									"invalid_authentication_entry_timeout": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      -1,
+										ValidateFunc: validation.IntBetween(0, 1440),
+									},
+									"ip_query_disable": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"ip_query_delay_time": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      -1,
+										ValidateFunc: validation.IntBetween(0, 60),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -385,6 +576,16 @@ func setServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 			return err
 		}
 		configSet = append(configSet, configSetSecurityIntel...)
+	}
+	if len(d.Get("user_identification").([]interface{})) == 0 {
+		configSet = append(configSet, "delete services user-identification active-directory-access")
+	}
+	for _, v := range d.Get("user_identification").([]interface{}) {
+		configSetUserIdent, err := setServicesUserIdentification(v)
+		if err != nil {
+			return err
+		}
+		configSet = append(configSet, configSetUserIdent...)
 	}
 
 	return sess.configSet(configSet, jnprSess)
@@ -532,6 +733,126 @@ func setServicesSecurityIntell(secuIntel interface{}) ([]string, error) {
 	return configSet, nil
 }
 
+func setServicesUserIdentification(userIdentification interface{}) ([]string, error) {
+	setPrefix := "set services user-identification "
+	configSet := make([]string, 0)
+	if userIdentification != nil {
+		userIdent := userIdentification.(map[string]interface{})
+		if len(userIdent["ad_access"].([]interface{})) == 0 {
+			configSet = append(configSet, "delete services user-identification active-directory-access")
+		}
+		for _, v := range userIdent["ad_access"].([]interface{}) {
+			adAccess := v.(map[string]interface{})
+			configSet = append(configSet, setPrefix+"active-directory-access")
+			if v2 := adAccess["auth_entry_timeout"].(int); v2 != -1 {
+				configSet = append(configSet, setPrefix+"active-directory-access authentication-entry-timeout "+
+					strconv.Itoa(v2))
+			}
+			for _, v2 := range adAccess["filter_exclude"].(*schema.Set).List() {
+				configSet = append(configSet, setPrefix+"active-directory-access filter exclude "+v2.(string))
+			}
+			for _, v2 := range adAccess["filter_include"].(*schema.Set).List() {
+				configSet = append(configSet, setPrefix+"active-directory-access filter include "+v2.(string))
+			}
+			if v2 := adAccess["firewall_auth_forced_timeout"].(int); v2 != 0 {
+				configSet = append(configSet, setPrefix+"active-directory-access firewall-authentication-forced-timeout "+
+					strconv.Itoa(v2))
+			}
+			if v2 := adAccess["invalid_auth_entry_timeout"].(int); v2 != -1 {
+				configSet = append(configSet, setPrefix+"active-directory-access invalid-authentication-entry-timeout "+
+					strconv.Itoa(v2))
+			}
+			if adAccess["no_on_demand_probe"].(bool) {
+				configSet = append(configSet, setPrefix+"active-directory-access no-on-demand-probe")
+			}
+			if v2 := adAccess["wmi_timeout"].(int); v2 != 0 {
+				configSet = append(configSet, setPrefix+"active-directory-access wmi-timeout "+strconv.Itoa(v2))
+			}
+		}
+		if v := userIdent["device_info_auth_source"].(string); v != "" {
+			configSet = append(configSet, setPrefix+"device-information authentication-source "+v)
+		}
+		for _, v := range userIdent["identity_management"].([]interface{}) {
+			setPrefixIdentMgmt := setPrefix + "identity-management "
+			identMgmt := v.(map[string]interface{})
+			for _, v2 := range identMgmt["connection"].([]interface{}) {
+				connection := v2.(map[string]interface{})
+				setPrefixIMConn := setPrefixIdentMgmt + "connection "
+				configSet = append(configSet, setPrefixIMConn+"primary address "+
+					connection["primary_address"].(string))
+				configSet = append(configSet, setPrefixIMConn+"primary client-id \""+
+					connection["primary_client_id"].(string)+"\"")
+				configSet = append(configSet, setPrefixIMConn+"primary client-secret \""+
+					connection["primary_client_secret"].(string)+"\"")
+				if v3 := connection["connect_method"].(string); v3 != "" {
+					configSet = append(configSet, setPrefixIMConn+"connect-method "+v3)
+				}
+				if v3 := connection["port"].(int); v3 != 0 {
+					configSet = append(configSet, setPrefixIMConn+"port "+strconv.Itoa(v3))
+				}
+				if v3 := connection["primary_ca_certificate"].(string); v3 != "" {
+					configSet = append(configSet, setPrefixIMConn+"primary ca-certificate \""+v3+"\"")
+				}
+				if v3 := connection["query_api"].(string); v3 != "" {
+					configSet = append(configSet, setPrefixIMConn+"query-api \""+v3+"\"")
+				}
+				if v3 := connection["secondary_address"].(string); v3 != "" {
+					configSet = append(configSet, setPrefixIMConn+"secondary address "+v3)
+				}
+				if v3 := connection["secondary_ca_certificate"].(string); v3 != "" {
+					configSet = append(configSet, setPrefixIMConn+"secondary ca-certificate \""+v3+"\"")
+				}
+				if v3 := connection["secondary_client_id"].(string); v3 != "" {
+					configSet = append(configSet, setPrefixIMConn+"secondary client-id \""+v3+"\"")
+				}
+				if v3 := connection["secondary_client_secret"].(string); v3 != "" {
+					configSet = append(configSet, setPrefixIMConn+"secondary client-secret \""+v3+"\"")
+				}
+				if v3 := connection["token_api"].(string); v3 != "" {
+					configSet = append(configSet, setPrefixIMConn+"token-api \""+v3+"\"")
+				}
+			}
+			if v2 := identMgmt["authentication_entry_timeout"].(int); v2 != -1 {
+				configSet = append(configSet, setPrefixIdentMgmt+"authentication-entry-timeout "+strconv.Itoa(v2))
+			}
+			if v2 := identMgmt["batch_query_items_per_batch"].(int); v2 != 0 {
+				configSet = append(configSet, setPrefixIdentMgmt+"batch-query items-per-batch "+strconv.Itoa(v2))
+			}
+			if v2 := identMgmt["batch_query_interval"].(int); v2 != 0 {
+				configSet = append(configSet, setPrefixIdentMgmt+"batch-query query-interval "+strconv.Itoa(v2))
+			}
+			for _, v2 := range identMgmt["filter_domain"].(*schema.Set).List() {
+				configSet = append(configSet, setPrefixIdentMgmt+"filter domain "+v2.(string))
+			}
+			if v2 := identMgmt["filter_exclude_ip_address_book"].(string); v2 != "" {
+				configSet = append(configSet, setPrefixIdentMgmt+"filter exclude-ip address-book \""+v2+"\"")
+			}
+			if v2 := identMgmt["filter_exclude_ip_address_set"].(string); v2 != "" {
+				configSet = append(configSet, setPrefixIdentMgmt+"filter exclude-ip address-set \""+v2+"\"")
+			}
+			if v2 := identMgmt["filter_include_ip_address_book"].(string); v2 != "" {
+				configSet = append(configSet, setPrefixIdentMgmt+"filter include-ip address-book \""+v2+"\"")
+			}
+			if v2 := identMgmt["filter_include_ip_address_set"].(string); v2 != "" {
+				configSet = append(configSet, setPrefixIdentMgmt+"filter include-ip address-set \""+v2+"\"")
+			}
+			if v2 := identMgmt["invalid_authentication_entry_timeout"].(int); v2 != -1 {
+				configSet = append(configSet, setPrefixIdentMgmt+"invalid-authentication-entry-timeout "+strconv.Itoa(v2))
+			}
+			if identMgmt["ip_query_disable"].(bool) {
+				configSet = append(configSet, setPrefixIdentMgmt+"ip-query no-ip-query")
+			}
+			if v2 := identMgmt["ip_query_delay_time"].(int); v2 != -1 {
+				configSet = append(configSet, setPrefixIdentMgmt+"ip-query query-delay-time "+strconv.Itoa(v2))
+			}
+		}
+	} else {
+		return configSet, fmt.Errorf("user_identification block is empty")
+	}
+
+	return configSet, nil
+}
+
 func listLinesServicesApplicationIdentification() []string {
 	return []string{
 		"application-identification application-system-cache",
@@ -562,10 +883,32 @@ func listLinesServicesSecurityIntel() []string {
 	}
 }
 
+func listLinesServicesUserIdentification() []string {
+	r := []string{
+		"user-identification device-information authentication-source",
+		"user-identification identity-management",
+	}
+	r = append(r, listLinesServicesUserIdentificationAdAccess()...)
+
+	return r
+}
+
+func listLinesServicesUserIdentificationAdAccess() []string {
+	return []string{
+		"user-identification active-directory-access authentication-entry-timeout",
+		"user-identification active-directory-access filter",
+		"user-identification active-directory-access firewall-authentication-forced-timeout",
+		"user-identification active-directory-access invalid-authentication-entry-timeout",
+		"user-identification active-directory-access no-on-demand-probe",
+		"user-identification active-directory-access wmi-timeout",
+	}
+}
+
 func delServices(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete := make([]string, 0)
 	listLinesToDelete = append(listLinesToDelete, listLinesServicesApplicationIdentification()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesServicesSecurityIntel()...)
+	listLinesToDelete = append(listLinesToDelete, listLinesServicesUserIdentification()...)
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	delPrefix := "delete services "
@@ -602,6 +945,11 @@ func readServices(m interface{}, jnprSess *NetconfObject) (servicesOptions, erro
 				}
 			case checkStringHasPrefixInList(itemTrim, listLinesServicesSecurityIntel()):
 				if err := readServicesSecurityIntel(&confRead, itemTrim); err != nil {
+					return confRead, err
+				}
+			case checkStringHasPrefixInList(itemTrim, listLinesServicesUserIdentification()) ||
+				strings.HasPrefix(itemTrim, "user-identification active-directory-access"):
+				if err := readServicesUserIdentification(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
 			}
@@ -855,11 +1203,228 @@ func readServicesApplicationIdentification(confRead *servicesOptions, itemTrimAp
 	return nil
 }
 
+func readServicesUserIdentification(confRead *servicesOptions, itemTrimUserIdentification string) error {
+	itemTrim := strings.TrimPrefix(itemTrimUserIdentification, "user-identification ")
+	if len(confRead.userIdentification) == 0 {
+		confRead.userIdentification = append(confRead.userIdentification, map[string]interface{}{
+			"ad_access":               make([]map[string]interface{}, 0),
+			"device_info_auth_source": "",
+			"identity_management":     make([]map[string]interface{}, 0),
+		})
+	}
+	switch {
+	case strings.HasPrefix(itemTrim, "active-directory-access"):
+		if len(confRead.userIdentification[0]["ad_access"].([]map[string]interface{})) == 0 {
+			confRead.userIdentification[0]["ad_access"] = append(
+				confRead.userIdentification[0]["ad_access"].([]map[string]interface{}),
+				map[string]interface{}{
+					"auth_entry_timeout":           -1,
+					"filter_exclude":               make([]string, 0),
+					"filter_include":               make([]string, 0),
+					"firewall_auth_forced_timeout": 0,
+					"invalid_auth_entry_timeout":   -1,
+					"no_on_demand_probe":           false,
+					"wmi_timeout":                  0,
+				})
+		}
+		adAccess := confRead.userIdentification[0]["ad_access"].([]map[string]interface{})[0]
+		switch {
+		case strings.HasPrefix(itemTrim, "active-directory-access authentication-entry-timeout "):
+			var err error
+			adAccess["auth_entry_timeout"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "active-directory-access authentication-entry-timeout "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "active-directory-access filter exclude "):
+			adAccess["filter_exclude"] = append(adAccess["filter_exclude"].([]string), strings.TrimPrefix(
+				itemTrim, "active-directory-access filter exclude "))
+		case strings.HasPrefix(itemTrim, "active-directory-access filter include "):
+			adAccess["filter_include"] = append(adAccess["filter_include"].([]string), strings.TrimPrefix(
+				itemTrim, "active-directory-access filter include "))
+		case strings.HasPrefix(itemTrim, "active-directory-access firewall-authentication-forced-timeout "):
+			var err error
+			adAccess["firewall_auth_forced_timeout"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "active-directory-access firewall-authentication-forced-timeout "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "active-directory-access invalid-authentication-entry-timeout "):
+			var err error
+			adAccess["invalid_auth_entry_timeout"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "active-directory-access invalid-authentication-entry-timeout "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case itemTrim == "active-directory-access no-on-demand-probe":
+			adAccess["no_on_demand_probe"] = true
+		case strings.HasPrefix(itemTrim, "active-directory-access wmi-timeout "):
+			var err error
+			adAccess["wmi_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "active-directory-access wmi-timeout "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		}
+	case strings.HasPrefix(itemTrim, "device-information authentication-source "):
+		confRead.userIdentification[0]["device_info_auth_source"] =
+			strings.TrimPrefix(itemTrim, "device-information authentication-source ")
+	case strings.HasPrefix(itemTrim, "identity-management "):
+		if len(confRead.userIdentification[0]["identity_management"].([]map[string]interface{})) == 0 {
+			confRead.userIdentification[0]["identity_management"] = append(
+				confRead.userIdentification[0]["identity_management"].([]map[string]interface{}),
+				map[string]interface{}{
+					"connection":                           make([]map[string]interface{}, 0),
+					"authentication_entry_timeout":         -1,
+					"batch_query_items_per_batch":          0,
+					"batch_query_interval":                 0,
+					"filter_domain":                        make([]string, 0),
+					"filter_exclude_ip_address_book":       "",
+					"filter_exclude_ip_address_set":        "",
+					"filter_include_ip_address_book":       "",
+					"filter_include_ip_address_set":        "",
+					"invalid_authentication_entry_timeout": -1,
+					"ip_query_disable":                     false,
+					"ip_query_delay_time":                  -1,
+				})
+		}
+		userIdentIdentityMgmt := confRead.userIdentification[0]["identity_management"].([]map[string]interface{})[0]
+		itemTrimIdentMgmt := strings.TrimPrefix(itemTrim, "identity-management ")
+		switch {
+		case strings.HasPrefix(itemTrimIdentMgmt, "authentication-entry-timeout "):
+			var err error
+			userIdentIdentityMgmt["authentication_entry_timeout"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrimIdentMgmt, "authentication-entry-timeout "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrimIdentMgmt, "batch-query items-per-batch "):
+			var err error
+			userIdentIdentityMgmt["batch_query_items_per_batch"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrimIdentMgmt, "batch-query items-per-batch "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrimIdentMgmt, "batch-query query-interval "):
+			var err error
+			userIdentIdentityMgmt["batch_query_interval"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrimIdentMgmt, "batch-query query-interval "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrimIdentMgmt, "connection "):
+			if len(userIdentIdentityMgmt["connection"].([]map[string]interface{})) == 0 {
+				userIdentIdentityMgmt["connection"] = append(
+					userIdentIdentityMgmt["connection"].([]map[string]interface{}), map[string]interface{}{
+						"primary_address":          "",
+						"primary_client_id":        "",
+						"primary_client_secret":    "",
+						"connect_method":           "",
+						"port":                     0,
+						"primary_ca_certificate":   "",
+						"query_api":                "",
+						"secondary_address":        "",
+						"secondary_ca_certificate": "",
+						"secondary_client_id":      "",
+						"secondary_client_secret":  "",
+						"token_api":                "",
+					})
+			}
+			userIdentIdentityMgmtConnect := userIdentIdentityMgmt["connection"].([]map[string]interface{})[0]
+			switch {
+			case strings.HasPrefix(itemTrimIdentMgmt, "connection primary address "):
+				userIdentIdentityMgmtConnect["primary_address"] =
+					strings.TrimPrefix(itemTrimIdentMgmt, "connection primary address ")
+			case strings.HasPrefix(itemTrimIdentMgmt, "connection primary client-id "):
+				userIdentIdentityMgmtConnect["primary_client_id"] =
+					strings.Trim(strings.TrimPrefix(itemTrimIdentMgmt, "connection primary client-id "), "\"")
+			case strings.HasPrefix(itemTrimIdentMgmt, "connection primary client-secret "):
+				var err error
+				userIdentIdentityMgmtConnect["primary_client_secret"], err = jdecode.Decode(
+					strings.Trim(strings.TrimPrefix(itemTrimIdentMgmt, "connection primary client-secret "), "\""))
+				if err != nil {
+					return fmt.Errorf("failed to decode primary client-secret : %w", err)
+				}
+			case strings.HasPrefix(itemTrimIdentMgmt, "connection connect-method "):
+				userIdentIdentityMgmtConnect["connect_method"] =
+					strings.TrimPrefix(itemTrimIdentMgmt, "connection connect-method ")
+			case strings.HasPrefix(itemTrimIdentMgmt, "connection port "):
+				var err error
+				userIdentIdentityMgmtConnect["port"], err =
+					strconv.Atoi(strings.TrimPrefix(itemTrimIdentMgmt, "connection port "))
+				if err != nil {
+					return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				}
+			case strings.HasPrefix(itemTrimIdentMgmt, "connection primary ca-certificate "):
+				userIdentIdentityMgmtConnect["primary_ca_certificate"] =
+					strings.Trim(strings.TrimPrefix(itemTrimIdentMgmt, "connection primary ca-certificate "), "\"")
+			case strings.HasPrefix(itemTrimIdentMgmt, "connection query-api "):
+				userIdentIdentityMgmtConnect["query_api"] =
+					strings.Trim(strings.TrimPrefix(itemTrimIdentMgmt, "connection query-api "), "\"")
+			case strings.HasPrefix(itemTrimIdentMgmt, "connection secondary address "):
+				userIdentIdentityMgmtConnect["secondary_address"] =
+					strings.TrimPrefix(itemTrimIdentMgmt, "connection secondary address ")
+			case strings.HasPrefix(itemTrimIdentMgmt, "connection secondary ca-certificate "):
+				userIdentIdentityMgmtConnect["secondary_ca_certificate"] =
+					strings.Trim(strings.TrimPrefix(itemTrimIdentMgmt, "connection secondary ca-certificate "), "\"")
+			case strings.HasPrefix(itemTrimIdentMgmt, "connection secondary client-id "):
+				userIdentIdentityMgmtConnect["secondary_client_id"] =
+					strings.Trim(strings.TrimPrefix(itemTrimIdentMgmt, "connection secondary client-id "), "\"")
+			case strings.HasPrefix(itemTrimIdentMgmt, "connection secondary client-secret "):
+				var err error
+				userIdentIdentityMgmtConnect["secondary_client_secret"], err = jdecode.Decode(
+					strings.Trim(strings.TrimPrefix(itemTrimIdentMgmt, "connection secondary client-secret "), "\""))
+				if err != nil {
+					return fmt.Errorf("failed to decode secondary client-secret : %w", err)
+				}
+			case strings.HasPrefix(itemTrimIdentMgmt, "connection token-api "):
+				userIdentIdentityMgmtConnect["token_api"] =
+					strings.Trim(strings.TrimPrefix(itemTrimIdentMgmt, "connection token-api "), "\"")
+			}
+		case strings.HasPrefix(itemTrimIdentMgmt, "filter domain "):
+			userIdentIdentityMgmt["filter_domain"] = append(userIdentIdentityMgmt["filter_domain"].([]string),
+				strings.TrimPrefix(itemTrimIdentMgmt, "filter domain "))
+		case strings.HasPrefix(itemTrimIdentMgmt, "filter exclude-ip address-book "):
+			userIdentIdentityMgmt["filter_exclude_ip_address_book"] =
+				strings.Trim(strings.TrimPrefix(itemTrimIdentMgmt, "filter exclude-ip address-book "), "\"")
+		case strings.HasPrefix(itemTrimIdentMgmt, "filter exclude-ip address-set "):
+			userIdentIdentityMgmt["filter_exclude_ip_address_set"] =
+				strings.Trim(strings.TrimPrefix(itemTrimIdentMgmt, "filter exclude-ip address-set "), "\"")
+		case strings.HasPrefix(itemTrimIdentMgmt, "filter include-ip address-book "):
+			userIdentIdentityMgmt["filter_include_ip_address_book"] =
+				strings.Trim(strings.TrimPrefix(itemTrimIdentMgmt, "filter include-ip address-book "), "\"")
+		case strings.HasPrefix(itemTrimIdentMgmt, "filter include-ip address-set "):
+			userIdentIdentityMgmt["filter_include_ip_address_set"] =
+				strings.Trim(strings.TrimPrefix(itemTrimIdentMgmt, "filter include-ip address-set "), "\"")
+		case strings.HasPrefix(itemTrimIdentMgmt, "invalid-authentication-entry-timeout "):
+			var err error
+			userIdentIdentityMgmt["invalid_authentication_entry_timeout"], err = strconv.Atoi(
+				strings.TrimPrefix(itemTrimIdentMgmt, "invalid-authentication-entry-timeout "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case itemTrimIdentMgmt == "ip-query no-ip-query":
+			userIdentIdentityMgmt["ip_query_disable"] = true
+		case strings.HasPrefix(itemTrimIdentMgmt, "ip-query query-delay-time "):
+			var err error
+			userIdentIdentityMgmt["ip_query_delay_time"], err = strconv.Atoi(
+				strings.TrimPrefix(itemTrimIdentMgmt, "ip-query query-delay-time "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		}
+	}
+
+	return nil
+}
+
 func fillServices(d *schema.ResourceData, servicesOptions servicesOptions) {
 	if tfErr := d.Set("application_identification", servicesOptions.appIdent); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("security_intelligence", servicesOptions.securityIntelligence); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("user_identification", servicesOptions.userIdentification); tfErr != nil {
 		panic(tfErr)
 	}
 }

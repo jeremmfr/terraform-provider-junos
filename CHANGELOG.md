@@ -4,6 +4,11 @@ ENHANCEMENTS:
 * resource/`junos_security_nat_source_pool`: add `address_pooling` argument (Fixes #193) Thanks @edpio19
 * clean code: remove override of the lists of 1 map to handle directly the map
 * clean code: fix lll linter errors with a var to map
+* add `junos_services_user_identification_ad_access_domain` resource
+* add `junos_services_user_identification_device_identity_profile` resource (Fixes parts of #189)
+* resource/`junos_security_global_policy`: add `match_source_end_user_profile` argument inside `policy` argument
+* resource/`junos_security_policy`: add `match_source_end_user_profile` argument inside `policy` argument
+* resource/`junos_services`: add `user_identification` argument (Fixes parts of #189)
 
 BUG FIXES:
 * fix errors not generated with certain nested blocks empty and default integer argument = -1 in these blocks
