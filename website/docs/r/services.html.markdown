@@ -71,7 +71,8 @@ The following arguments are supported:
   * `profile_name` - (Optional)(`String`) Name of profile.
 * `proxy_profile` - (Optional)(`String`) The proxy profile name.
 * `url` - (Optional)(`String`) Configure the url of feed server [https://<ip or hostname>:<port>/<uri>].
-* `url_parameter` - (Optional)(`String`) Configure the parameter of url.
+* `url_parameter` - (Optional)(`String`) Configure the parameter of url.  
+  **WARNING** Clear in tfstate.
 
 ---
 #### user_identification arguments

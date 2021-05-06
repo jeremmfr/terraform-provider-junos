@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * resource/`junos_security_global_policy`: add `match_source_end_user_profile` argument inside `policy` argument
 * resource/`junos_security_policy`: add `match_source_end_user_profile` argument inside `policy` argument
 * resource/`junos_services`: add `user_identification` argument (Fixes parts of #189)
+* resource/`junos_services`: `url_parameter` is now a sensitive argument
 
 BUG FIXES:
 * fix errors not generated with certain nested blocks empty and default integer argument = -1 in these blocks
