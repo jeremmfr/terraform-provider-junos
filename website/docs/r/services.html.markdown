@@ -63,15 +63,19 @@ The following arguments are supported:
 
 ---
 #### security_intelligence arguments
-* `authentication_token` - (Optional)(`String`) Token string for authentication to use feed update services. Conflict with `authentication_tls_profile`.
-* `authentication_tls_profile` - (Optional)(`String`) TLS profile for authentication to use feed update services. Conflict with `authentication_token`.
+* `authentication_token` - (Optional)(`String`) Token string for authentication to use feed update services. Conflict with `authentication_tls_profile`.  
+  **Note:** If not set, token is only read from the Junos configuration (so as not to be in conflict with enrollment process).
+* `authentication_tls_profile` - (Optional)(`String`) TLS profile for authentication to use feed update services. Conflict with `authentication_token`.  
+  **Note:** If not set, tls-profile is only read from the Junos configuration (so as not to be in conflict with enrollment process). 
 * `category_disable` - (Optional)(`ListOfString`) Categories to be disabled
 * `default_policy` - (Optional)[attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Configure default-policy for a category. Can be specified multiple times for each category.
   * `category_name` - (Optional)(`String`) Name of security intelligence category.
   * `profile_name` - (Optional)(`String`) Name of profile.
 * `proxy_profile` - (Optional)(`String`) The proxy profile name.
-* `url` - (Optional)(`String`) Configure the url of feed server [https://<ip or hostname>:<port>/<uri>].
-* `url_parameter` - (Optional)(`String`) Configure the parameter of url.
+* `url` - (Optional)(`String`) Configure the url of feed server [https://<ip or hostname>:<port>/<uri>].  
+  **Note:** If not set url is only read from the Junos configuration (so as not to be in conflict with enrollment process).
+* `url_parameter` - (Optional)(`String`) Configure the parameter of url.  
+  **WARNING** Clear in tfstate.
 
 ---
 #### user_identification arguments

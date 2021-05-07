@@ -202,6 +202,7 @@ func resourceServices() *schema.Resource {
 						"authentication_token": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 							ValidateFunc: validation.StringMatch(regexp.MustCompile(
 								`^[a-zA-Z0-9]{32}$`),
 								"Auth token must be consisted of 32 alphanumeric characters"),
@@ -210,6 +211,7 @@ func resourceServices() *schema.Resource {
 						"authentication_tls_profile": {
 							Type:          schema.TypeString,
 							Optional:      true,
+							Computed:      true,
 							ConflictsWith: []string{"security_intelligence.0.authentication_token"},
 						},
 						"category_disable": {
@@ -240,10 +242,12 @@ func resourceServices() *schema.Resource {
 						"url": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 						"url_parameter": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
 						},
 					},
 				},
@@ -509,7 +513,7 @@ func resourceServicesUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if err := delServices(m, jnprSess); err != nil {
+	if err := delServices(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -557,12 +561,7 @@ func resourceServicesImport(d *schema.ResourceData, m interface{}) ([]*schema.Re
 func setServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 
-	// setPrefix := "set services "
 	configSet := make([]string, 0)
-
-	if len(d.Get("application_identification").([]interface{})) == 0 {
-		configSet = append(configSet, "delete services application-identification")
-	}
 	for _, v := range d.Get("application_identification").([]interface{}) {
 		configSetApplicationIdentification, err := setServicesApplicationIdentification(v)
 		if err != nil {
@@ -571,14 +570,7 @@ func setServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		configSet = append(configSet, configSetApplicationIdentification...)
 	}
 	for _, v := range d.Get("security_intelligence").([]interface{}) {
-		configSetSecurityIntel, err := setServicesSecurityIntell(v)
-		if err != nil {
-			return err
-		}
-		configSet = append(configSet, configSetSecurityIntel...)
-	}
-	if len(d.Get("user_identification").([]interface{})) == 0 {
-		configSet = append(configSet, "delete services user-identification active-directory-access")
+		configSet = append(configSet, setServicesSecurityIntell(d, v)...)
 	}
 	for _, v := range d.Get("user_identification").([]interface{}) {
 		configSetUserIdent, err := setServicesUserIdentification(v)
@@ -694,16 +686,22 @@ func setServicesApplicationIdentification(appID interface{}) ([]string, error) {
 	return configSet, nil
 }
 
-func setServicesSecurityIntell(secuIntel interface{}) ([]string, error) {
+func setServicesSecurityIntell(d *schema.ResourceData, secuIntel interface{}) []string {
 	setPrefix := "set services security-intelligence "
 	configSet := make([]string, 0)
 	if secuIntel != nil {
 		secuIntelM := secuIntel.(map[string]interface{})
-		if v := secuIntelM["authentication_token"].(string); v != "" {
-			configSet = append(configSet, setPrefix+"authentication auth-token "+v)
+		if d.HasChange("security_intelligence.0.authentication_token") &&
+			secuIntelM["authentication_token"].(string) != "" {
+			configSet = append(configSet, "delete services security-intelligence authentication")
+			configSet = append(configSet,
+				setPrefix+"authentication auth-token "+secuIntelM["authentication_token"].(string))
 		}
-		if v := secuIntelM["authentication_tls_profile"].(string); v != "" {
-			configSet = append(configSet, setPrefix+"authentication tls-profile \""+v+"\"")
+		if d.HasChange("security_intelligence.0.authentication_tls_profile") &&
+			secuIntelM["authentication_tls_profile"].(string) != "" {
+			configSet = append(configSet, "delete services security-intelligence authentication")
+			configSet = append(configSet,
+				setPrefix+"authentication tls-profile \""+secuIntelM["authentication_tls_profile"].(string)+"\"")
 		}
 		for _, v := range secuIntelM["category_disable"].(*schema.Set).List() {
 			if v.(string) == "all" {
@@ -720,17 +718,16 @@ func setServicesSecurityIntell(secuIntel interface{}) ([]string, error) {
 		if v := secuIntelM["proxy_profile"].(string); v != "" {
 			configSet = append(configSet, setPrefix+"proxy-profile \""+v+"\"")
 		}
-		if v := secuIntelM["url"].(string); v != "" {
-			configSet = append(configSet, setPrefix+"url \""+v+"\"")
+		if d.HasChange("security_intelligence.0.url") &&
+			secuIntelM["url"].(string) != "" {
+			configSet = append(configSet, setPrefix+"url \""+secuIntelM["url"].(string)+"\"")
 		}
 		if v := secuIntelM["url_parameter"].(string); v != "" {
 			configSet = append(configSet, setPrefix+"url-parameter \""+v+"\"")
 		}
-	} else {
-		return configSet, fmt.Errorf("security_intelligence block is empty")
 	}
 
-	return configSet, nil
+	return configSet
 }
 
 func setServicesUserIdentification(userIdentification interface{}) ([]string, error) {
@@ -874,11 +871,9 @@ func listLinesServicesApplicationIdentification() []string {
 
 func listLinesServicesSecurityIntel() []string {
 	return []string{
-		"security-intelligence authentication",
 		"security-intelligence category",
 		"security-intelligence default-policy",
 		"security-intelligence proxy-profile",
-		"security-intelligence url",
 		"security-intelligence url-parameter",
 	}
 }
@@ -904,7 +899,7 @@ func listLinesServicesUserIdentificationAdAccess() []string {
 	}
 }
 
-func delServices(m interface{}, jnprSess *NetconfObject) error {
+func delServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete := make([]string, 0)
 	listLinesToDelete = append(listLinesToDelete, listLinesServicesApplicationIdentification()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesServicesSecurityIntel()...)
@@ -915,6 +910,16 @@ func delServices(m interface{}, jnprSess *NetconfObject) error {
 	for _, line := range listLinesToDelete {
 		configSet = append(configSet,
 			delPrefix+line)
+	}
+	if len(d.Get("application_identification").([]interface{})) == 0 {
+		configSet = append(configSet, delPrefix+"application-identification")
+	}
+	if len(d.Get("security_intelligence").([]interface{})) == 0 {
+		configSet = append(configSet, delPrefix+"security-intelligence authentication")
+		configSet = append(configSet, delPrefix+"security-intelligence url")
+	}
+	if len(d.Get("user_identification").([]interface{})) == 0 {
+		configSet = append(configSet, delPrefix+"user-identification active-directory-access")
 	}
 
 	return sess.configSet(configSet, jnprSess)
@@ -943,7 +948,9 @@ func readServices(m interface{}, jnprSess *NetconfObject) (servicesOptions, erro
 				if err := readServicesApplicationIdentification(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
-			case checkStringHasPrefixInList(itemTrim, listLinesServicesSecurityIntel()):
+			case checkStringHasPrefixInList(itemTrim, listLinesServicesSecurityIntel()) ||
+				strings.HasPrefix(itemTrim, "security-intelligence authentication ") ||
+				strings.HasPrefix(itemTrim, "security-intelligence url "):
 				if err := readServicesSecurityIntel(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
