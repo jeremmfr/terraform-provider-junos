@@ -145,21 +145,23 @@ func TestAccJunosSystem_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"services.0.ssh.0.tcp_forwarding", "true"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
-							"services.0.web_management.#", "1"),
+							"services.0.web_management_http.#", "1"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
-							"services.0.web_management.0.http.#", "1"),
+							"services.0.web_management_http.0.interface.#", "1"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
-							"services.0.web_management.0.http.0.interface.#", "1"),
+							"services.0.web_management_http.0.interface.0", "fxp0.0"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
-							"services.0.web_management.0.http.0.interface.0", "fxp0.0"),
+							"services.0.web_management_http.0.port", "22"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
-							"services.0.web_management.0.https.#", "1"),
+							"services.0.web_management_https.#", "1"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
-							"services.0.web_management.0.https.0.system_generated_certificate", "true"),
+							"services.0.web_management_https.0.port", "22"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
-							"services.0.web_management.0.https.0.interface.#", "1"),
+							"services.0.web_management_https.0.system_generated_certificate", "true"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
-							"services.0.web_management.0.https.0.interface.0", "fxp0.0"),
+							"services.0.web_management_https.0.interface.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management_https.0.interface.0", "fxp0.0"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"syslog.#", "1"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
@@ -323,15 +325,15 @@ resource junos_system "testacc_system" {
       root_login                     = "deny"
       tcp_forwarding                 = true
     }
-	web_management {
-		http {
-			interface	=	["fxp0.0"]
-		}
-		https {
-			interface	=	["fxp0.0"]
-			system_generated_certificate = true
-		}
-	}
+    web_management_http {
+      interface = ["fxp0.0"]
+     port      = 22
+    }
+    web_management_https {
+      interface                    = ["fxp0.0"]
+      system_generated_certificate = true
+      port                         = 22
+    }
   }
   syslog {
     archive {

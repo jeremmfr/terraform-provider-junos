@@ -515,40 +515,65 @@ func resourceSystem() *schema.Resource {
 								},
 							},
 						},
-						"web_management": {
+						"web_management_http": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"interface": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"port": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 65535),
+									},
+								},
+							},
+						},
+						"web_management_https": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"http": {
+									"interface": {
 										Type:     schema.TypeList,
 										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"interface": {
-													Type:     schema.TypeList,
-													Optional: true,
-													Elem:     &schema.Schema{Type: schema.TypeString},
-												},
-											},
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"local_certificate": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ExactlyOneOf: []string{
+											"services.0.web_management_https.0.local_certificate",
+											"services.0.web_management_https.0.pki_local_certificate",
+											"services.0.web_management_https.0.system_generated_certificate",
 										},
 									},
-									"https": {
-										Type:     schema.TypeList,
+									"pki_local_certificate": {
+										Type:     schema.TypeString,
 										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"system_generated_certificate": {
-													Type:     schema.TypeBool,
-													Required: true,
-												},
-												"interface": {
-													Type:     schema.TypeList,
-													Optional: true,
-													Elem:     &schema.Schema{Type: schema.TypeString},
-												},
-											},
+										ExactlyOneOf: []string{
+											"services.0.web_management_https.0.local_certificate",
+											"services.0.web_management_https.0.pki_local_certificate",
+											"services.0.web_management_https.0.system_generated_certificate",
+										},
+									},
+									"port": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 65535),
+									},
+									"system_generated_certificate": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										ExactlyOneOf: []string{
+											"services.0.web_management_https.0.local_certificate",
+											"services.0.web_management_https.0.pki_local_certificate",
+											"services.0.web_management_https.0.system_generated_certificate",
 										},
 									},
 								},
@@ -940,32 +965,38 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 				configSet = append(configSet, setPrefix+"ssh tcp-forwarding")
 			}
 		}
-		for _, servicesWeb := range servicesM["web_management"].([]interface{}) {
-			if servicesWeb == nil {
-				return fmt.Errorf("services.0.web_management block is empty")
-			}
-			servicesWebM := servicesWeb.(map[string]interface{})
-			for _, http := range servicesWebM["http"].([]interface{}) {
-				configSet = append(configSet, setPrefix+"web-management http")
-				if http != nil {
-					httpInterfaces := http.(map[string]interface{})
-					for _, interf := range httpInterfaces["interface"].([]interface{}) {
-						configSet = append(configSet, setPrefix+"web-management http interface "+interf.(string))
-					}
+		for _, http := range servicesM["web_management_http"].([]interface{}) {
+			configSet = append(configSet, setPrefix+"web-management http")
+			if http != nil {
+				httpOptions := http.(map[string]interface{})
+				for _, interf := range httpOptions["interface"].([]interface{}) {
+					configSet = append(configSet, setPrefix+"web-management http interface "+interf.(string))
+				}
+				if httpOptions["port"].(int) > 0 {
+					configSet = append(configSet, setPrefix+"web-management http port "+
+						strconv.Itoa(httpOptions["port"].(int)))
 				}
 			}
-			for _, https := range servicesWebM["https"].([]interface{}) {
-				configSet = append(configSet, setPrefix+"web-management https")
-				if https != nil {
-					httpsInterfaces := https.(map[string]interface{})
-					for _, interf := range httpsInterfaces["interface"].([]interface{}) {
-						configSet = append(configSet, setPrefix+"web-management https interface "+interf.(string))
-					}
-					if httpsInterfaces["system_generated_certificate"].(bool) {
-						configSet = append(configSet, setPrefix+"web-management https system-generated-certificate")
-					} else {
-						return fmt.Errorf("https must have a certificate")
-					}
+		}
+		for _, https := range servicesM["web_management_https"].([]interface{}) {
+			configSet = append(configSet, setPrefix+"web-management https")
+			if https != nil {
+				httpsOptions := https.(map[string]interface{})
+				for _, interf := range httpsOptions["interface"].([]interface{}) {
+					configSet = append(configSet, setPrefix+"web-management https interface "+interf.(string))
+				}
+				if httpsOptions["local_certificate"].(string) != "" {
+					configSet = append(configSet, setPrefix+"web-management https local-certificate "+httpsOptions["local_certificate"].(string))
+				}
+				if httpsOptions["pki_local_certificate"].(string) != "" {
+					configSet = append(configSet, setPrefix+"web-management https pki-local-certificate "+httpsOptions["pki_local_certificate"].(string))
+				}
+				if httpsOptions["port"].(int) > 0 {
+					configSet = append(configSet, setPrefix+"web-management https port "+
+						strconv.Itoa(httpsOptions["port"].(int)))
+				}
+				if httpsOptions["system_generated_certificate"].(bool) {
+					configSet = append(configSet, setPrefix+"web-management https system-generated-certificate")
 				}
 			}
 		}
@@ -1233,8 +1264,12 @@ func listLinesServicesSSH() []string {
 func listLinesServicesWebManagement() []string {
 	return []string{
 		"services web-management http interface",
+		"services web-management http port",
 		"services web-management http",
 		"services web-management https interface",
+		"services web-management https port",
+		"services web-management https pki-local-certificate",
+		"services web-management https local-certificate",
 		"services web-management https system-generated-certificate",
 		"services web-management https",
 	}
@@ -1365,8 +1400,9 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 			case checkStringHasPrefixInList(itemTrim, listLinesServices()):
 				if len(confRead.services) == 0 {
 					confRead.services = append(confRead.services, map[string]interface{}{
-						"ssh":            make([]map[string]interface{}, 0),
-						"web_management": make([]map[string]interface{}, 0),
+						"ssh":                  make([]map[string]interface{}, 0),
+						"web_management_http":  make([]map[string]interface{}, 0),
+						"web_management_https": make([]map[string]interface{}, 0),
 					})
 				}
 				if checkStringHasPrefixInList(itemTrim, listLinesServicesSSH()) {
@@ -1832,44 +1868,60 @@ func readSystemServicesSSH(confRead *systemOptions, itemTrim string) error {
 }
 
 func readSystemServicesWebManagement(confRead *systemOptions, itemTrim string) error {
-	if len(confRead.services[0]["web_management"].([]map[string]interface{})) == 0 {
-		confRead.services[0]["web_management"] = append(confRead.services[0]["web_management"].([]map[string]interface{}),
-			map[string]interface{}{
-				"http":  make([]map[string]interface{}, 0),
-				"https": make([]map[string]interface{}, 0),
-			})
-	}
 	switch {
 	case strings.HasPrefix(itemTrim, "services web-management http "):
-		if len(confRead.services[0]["web_management"].([]map[string]interface{})[0]["http"].([]map[string]interface{})) == 0 {
-			confRead.services[0]["web_management"].([]map[string]interface{})[0]["http"] = append(
-				confRead.services[0]["web_management"].([]map[string]interface{})[0]["http"].([]map[string]interface{}),
+		if len(confRead.services[0]["web_management_http"].([]map[string]interface{})) == 0 {
+			confRead.services[0]["web_management_http"] = append(confRead.services[0]["web_management_http"].([]map[string]interface{}),
 				map[string]interface{}{
 					"interface": make([]string, 0),
+					"port":      0,
 				})
 		}
-		switch {
-		case strings.HasPrefix(itemTrim, "services web-management http interface "):
-			confRead.services[0]["web_management"].([]map[string]interface{})[0]["http"].([]map[string]interface{})[0]["interface"] = append(
-				confRead.services[0]["web_management"].([]map[string]interface{})[0]["http"].([]map[string]interface{})[0]["interface"].([]string),
-				strings.TrimPrefix(itemTrim, "services web-management http interface "))
+		webM_http := confRead.services[0]["web_management_http"].([]map[string]interface{})
+
+		if strings.HasPrefix(itemTrim, "services web-management http interface ") {
+			webM_http[0]["interface"] = append(webM_http[0]["interface"].([]string), strings.TrimPrefix(itemTrim, "services web-management http interface "))
+		}
+		if strings.HasPrefix(itemTrim, "services web-management http port ") {
+			var err error
+			webM_http[0]["port"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "services web-management http port "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
 		}
 	case strings.HasPrefix(itemTrim, "services web-management https "):
-		if len(confRead.services[0]["web_management"].([]map[string]interface{})[0]["https"].([]map[string]interface{})) == 0 {
-			confRead.services[0]["web_management"].([]map[string]interface{})[0]["https"] = append(
-				confRead.services[0]["web_management"].([]map[string]interface{})[0]["https"].([]map[string]interface{}),
+		if len(confRead.services[0]["web_management_https"].([]map[string]interface{})) == 0 {
+			confRead.services[0]["web_management_https"] = append(confRead.services[0]["web_management_https"].([]map[string]interface{}),
 				map[string]interface{}{
 					"interface":                    make([]string, 0),
+					"port":                         0,
+					"local_certificate":            "",
+					"pki_local_certificate":        "",
 					"system_generated_certificate": false,
 				})
 		}
-		switch {
-		case strings.HasPrefix(itemTrim, "services web-management https interface "):
-			confRead.services[0]["web_management"].([]map[string]interface{})[0]["https"].([]map[string]interface{})[0]["interface"] = append(
-				confRead.services[0]["web_management"].([]map[string]interface{})[0]["https"].([]map[string]interface{})[0]["interface"].([]string),
-				strings.TrimPrefix(itemTrim, "services web-management https interface "))
-		case itemTrim == "services web-management https system-generated-certificate":
-			confRead.services[0]["web_management"].([]map[string]interface{})[0]["https"].([]map[string]interface{})[0]["system_generated_certificate"] = true
+		webM_https := confRead.services[0]["web_management_https"].([]map[string]interface{})
+
+		if strings.HasPrefix(itemTrim, "services web-management https interface ") {
+			webM_https[0]["interface"] = append(webM_https[0]["interface"].([]string), strings.TrimPrefix(itemTrim, "services web-management https interface "))
+		}
+		if strings.HasPrefix(itemTrim, "services web-management https port ") {
+			var err error
+			webM_https[0]["port"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "services web-management https port "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		}
+		if strings.HasPrefix(itemTrim, "services web-management https local-certificate ") {
+			webM_https[0]["local_certificate"] = strings.TrimPrefix(itemTrim, "services web-management https local-certificate ")
+		}
+		if strings.HasPrefix(itemTrim, "services web-management https pki-local-certificate ") {
+			webM_https[0]["pki_local_certificate"] = strings.TrimPrefix(itemTrim, "services web-management https pki-local-certificate ")
+		}
+		if itemTrim == "services web-management https system-generated-certificate" {
+			webM_https[0]["system_generated_certificate"] = true
 		}
 	}
 
