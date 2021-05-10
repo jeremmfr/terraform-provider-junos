@@ -145,6 +145,24 @@ func TestAccJunosSystem_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"services.0.ssh.0.tcp_forwarding", "true"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management_http.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management_http.0.interface.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management_http.0.interface.0", "fxp0.0"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management_http.0.port", "80"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management_https.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management_https.0.port", "443"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management_https.0.system_generated_certificate", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management_https.0.interface.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management_https.0.interface.0", "fxp0.0"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"syslog.#", "1"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"syslog.0.archive.#", "1"),
@@ -307,6 +325,15 @@ resource junos_system "testacc_system" {
       root_login                     = "deny"
       tcp_forwarding                 = true
     }
+    web_management_http {
+      interface = ["fxp0.0"]
+      port      = 80
+    }
+    web_management_https {
+      interface                    = ["fxp0.0"]
+      system_generated_certificate = true
+      port                         = 443
+    }
   }
   syslog {
     archive {
@@ -344,6 +371,10 @@ resource junos_system "testacc_system" {
     ssh {
       ciphers           = ["aes256-ctr"]
       no_tcp_forwarding = true
+    }
+    web_management_http {}
+    web_management_https {
+      system_generated_certificate = true
     }
   }
   syslog {
