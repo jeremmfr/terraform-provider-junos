@@ -141,6 +141,7 @@ func Provider() *schema.Provider {
 			"junos_security_zone_book_address":                           resourceSecurityZoneBookAddress(),
 			"junos_security_zone_book_address_set":                       resourceSecurityZoneBookAddressSet(),
 			"junos_services":                                             resourceServices(),
+			"junos_services_advanced_anti_malware_policy":                resourceServicesAdvancedAntiMalwarePolicy(),
 			"junos_services_flowmonitoring_vipfix_template":              resourceServicesFlowMonitoringVIPFixTemplate(),
 			"junos_services_proxy_profile":                               resourceServicesProxyProfile(),
 			"junos_services_ssl_initiation_profile":                      resourceServicesSSLInitiationProfile(),
