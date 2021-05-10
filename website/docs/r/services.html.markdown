@@ -28,9 +28,39 @@ resource junos_services "services" {
 
 The following arguments are supported:
 
+* `advanced_anti_malware` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'advanced-anti-malware' static configuration. See the [`advanced_anti_malware` arguments] (#advanced_anti_malware-arguments) block.
 * `application_identification` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to enable 'application-identification'. See the [`application_identification` arguments] (#application_identification-arguments) block.
 * `security_intelligence` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'security-intelligence' configuration. See the [`security_intelligence` arguments] (#security_intelligence-arguments) block.
 * `user_identification` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'user-identification' configuration. See the [`user_identification` arguments] (#user_identification-arguments) block.
+
+---
+#### advanced_anti_malware arguments
+* `connection` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'connection' configuration.
+  * `auth_tls_profile` - (Optional)(`String`) Authentication TLS profile.  
+  **Note:** If not set, tls-profile is only read from the Junos configuration (so as not to be in conflict with enrollment process).
+  * `proxy_profile` - (Optional)(`String`) Proxy profile.
+  * `source_address` - (Optional)(`String`) The source ip for connecting to the cloud server. Conflict with `source_interface`.
+  * `source_interface` - (Optional)(`String`) The source interface for connecting to the cloud server. Conflict with `source_address`.
+  * `url` - (Optional)(`String`) The url of the cloud server [https://<ip or hostname>:<port>].  
+  **Note:** If not set, url is only read from the Junos configuration (so as not to be in conflict with enrollment process).
+* `default_policy` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'default-policy' configuration.
+  * `blacklist_notification_log` - (Optional)(`Bool`) Logging option for Advanced Anti-malware blacklist hit.
+  * `default_notification_log` - (Optional)(`Bool`) Logging option for Advanced Anti-malware action.
+  * `fallback_options_action` - (Optional)(`String`) Notification action taken for fallback action. Need to be 'block' or 'permit'.
+  * `fallback_options_notification_log` - (Optional)(`Bool`) Logging option for Advanced Anti-malware fallback action.
+  * `http_action` - (Optional)(`String`) Action taken for contents with verdict meet threshold for HTTP. Need to be 'block' or 'permit'. Required with `http_inspection_profile`.
+  * `http_client_notify_file` - (Optional)(`String`) File name for http response to client notification action taken for contents with verdict meet threshold. Conflict with others `http_client_notify_*`. Required with `http_action` and `http_inspection_profile`.
+  * `http_client_notify_message` - (Optional)(`String`) Block message to client notification action taken for contents with verdict meet threshold. Conflict with others `http_client_notify_*`. Required with `http_action` and `http_inspection_profile`.
+  * `http_client_notify_redirect_url` - (Optional)(`String`) Redirect url to client notification action taken for contents with verdict meet threshold. Conflict with others `http_client_notify_*`. Required with `http_action` and `http_inspection_profile`.
+  * `http_file_verdict_unknown` - (Optional)(`String`) Action taken for contents with verdict unknown. Required with `http_action` and `http_inspection_profile`.
+  * `http_inspection_profile` - (Optional)(`String`) Advanced Anti-malware inspection-profile name for HTTP. Required with `http_action`.
+  * `http_notification_log` - (Optional)(`Bool`) Logging option for Advanced Anti-malware actions for HTTP. Required with `http_action` and `http_inspection_profile`.
+  * `imap_inspection_profile` - (Optional)(`String`) Advanced Anti-malware inspection-profile name for IMAP.
+  * `imap_notification_log` - (Optional)(`Bool`) Logging option for Advanced Anti-malware actions for IMAP. Required with `imap_inspection_profile`.
+  * `smtp_inspection_profile` - (Optional)(`String`) Advanced Anti-malware inspection-profile name for SMTP.
+  * `smtp_notification_log` - (Optional)(`Bool`) Logging option for Advanced Anti-malware actions for SMTP. Required with `smtp_inspection_profile`.
+  * `verdict_threshold` - (Optional)(`String`) Verdict threshold.
+  * `whitelist_notification_log` - (Optional)(`Bool`) Logging option for Advanced Anti-malware whitelist hit.
 
 ---
 #### application_identification arguments
@@ -73,7 +103,7 @@ The following arguments are supported:
   * `profile_name` - (Optional)(`String`) Name of profile.
 * `proxy_profile` - (Optional)(`String`) The proxy profile name.
 * `url` - (Optional)(`String`) Configure the url of feed server [https://<ip or hostname>:<port>/<uri>].  
-  **Note:** If not set url is only read from the Junos configuration (so as not to be in conflict with enrollment process).
+  **Note:** If not set, url is only read from the Junos configuration (so as not to be in conflict with enrollment process).
 * `url_parameter` - (Optional)(`String`) Configure the parameter of url.  
   **WARNING** Clear in tfstate.
 

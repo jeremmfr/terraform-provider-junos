@@ -14,6 +14,7 @@ import (
 )
 
 type servicesOptions struct {
+	advAntiMalware       []map[string]interface{}
 	appIdent             []map[string]interface{}
 	securityIntelligence []map[string]interface{}
 	userIdentification   []map[string]interface{}
@@ -29,6 +30,168 @@ func resourceServices() *schema.Resource {
 			State: resourceServicesImport,
 		},
 		Schema: map[string]*schema.Schema{
+			"advanced_anti_malware": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"connection": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"auth_tls_profile": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Computed: true,
+									},
+									"proxy_profile": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"source_address": {
+										Type:          schema.TypeString,
+										Optional:      true,
+										ValidateFunc:  validation.IsIPAddress,
+										ConflictsWith: []string{"advanced_anti_malware.0.connection.0.source_interface"},
+									},
+									"source_interface": {
+										Type:          schema.TypeString,
+										Optional:      true,
+										ConflictsWith: []string{"advanced_anti_malware.0.connection.0.source_address"},
+									},
+									"url": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"default_policy": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"blacklist_notification_log": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"default_notification_log": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"fallback_options_action": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice([]string{"block", "permit"}, false),
+									},
+									"fallback_options_notification_log": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"http_action": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice([]string{"block", "permit"}, false),
+										RequiredWith: []string{"advanced_anti_malware.0.default_policy.0.http_inspection_profile"},
+									},
+									"http_client_notify_file": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ConflictsWith: []string{
+											"advanced_anti_malware.0.default_policy.0.http_client_notify_message",
+											"advanced_anti_malware.0.default_policy.0.http_client_notify_redirect_url",
+										},
+										RequiredWith: []string{
+											"advanced_anti_malware.0.default_policy.0.http_action",
+											"advanced_anti_malware.0.default_policy.0.http_inspection_profile",
+										},
+									},
+									"http_client_notify_message": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ConflictsWith: []string{
+											"advanced_anti_malware.0.default_policy.0.http_client_notify_file",
+											"advanced_anti_malware.0.default_policy.0.http_client_notify_redirect_url",
+										},
+										RequiredWith: []string{
+											"advanced_anti_malware.0.default_policy.0.http_action",
+											"advanced_anti_malware.0.default_policy.0.http_inspection_profile",
+										},
+									},
+									"http_client_notify_redirect_url": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ConflictsWith: []string{
+											"advanced_anti_malware.0.default_policy.0.http_client_notify_file",
+											"advanced_anti_malware.0.default_policy.0.http_client_notify_message",
+										},
+										RequiredWith: []string{
+											"advanced_anti_malware.0.default_policy.0.http_action",
+											"advanced_anti_malware.0.default_policy.0.http_inspection_profile",
+										},
+									},
+									"http_file_verdict_unknown": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice([]string{"block", "permit"}, false),
+										RequiredWith: []string{
+											"advanced_anti_malware.0.default_policy.0.http_action",
+											"advanced_anti_malware.0.default_policy.0.http_inspection_profile",
+										},
+									},
+									"http_inspection_profile": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										RequiredWith: []string{"advanced_anti_malware.0.default_policy.0.http_action"},
+									},
+									"http_notification_log": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										RequiredWith: []string{
+											"advanced_anti_malware.0.default_policy.0.http_action",
+											"advanced_anti_malware.0.default_policy.0.http_inspection_profile",
+										},
+									},
+									"imap_inspection_profile": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"imap_notification_log": {
+										Type:         schema.TypeBool,
+										Optional:     true,
+										RequiredWith: []string{"advanced_anti_malware.0.default_policy.0.imap_inspection_profile"},
+									},
+									"smtp_inspection_profile": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"smtp_notification_log": {
+										Type:         schema.TypeBool,
+										Optional:     true,
+										RequiredWith: []string{"advanced_anti_malware.0.default_policy.0.smtp_inspection_profile"},
+									},
+									"verdict_threshold": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"recommended", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+										}, false),
+									},
+									"whitelist_notification_log": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			"application_identification": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -562,6 +725,13 @@ func setServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 
 	configSet := make([]string, 0)
+	for _, v := range d.Get("advanced_anti_malware").([]interface{}) {
+		configSetAdvAntiMalware, err := setServicesAdvancedAntiMalware(d, v)
+		if err != nil {
+			return err
+		}
+		configSet = append(configSet, configSetAdvAntiMalware...)
+	}
 	for _, v := range d.Get("application_identification").([]interface{}) {
 		configSetApplicationIdentification, err := setServicesApplicationIdentification(v)
 		if err != nil {
@@ -581,6 +751,101 @@ func setServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	}
 
 	return sess.configSet(configSet, jnprSess)
+}
+
+func setServicesAdvancedAntiMalware(d *schema.ResourceData, advAntiMalware interface{}) ([]string, error) {
+	setPrefix := "set services advanced-anti-malware "
+	configSet := make([]string, 0)
+	if advAntiMalware != nil {
+		advAntiMalwareM := advAntiMalware.(map[string]interface{})
+		for _, v := range advAntiMalwareM["connection"].([]interface{}) {
+			setPrefixConn := setPrefix + "connection "
+			configSet = append(configSet, setPrefixConn)
+			if v != nil {
+				connection := v.(map[string]interface{})
+				if d.HasChange("advanced_anti_malware.0.connection.0.auth_tls_profile") &&
+					connection["auth_tls_profile"].(string) != "" {
+					configSet = append(configSet, setPrefixConn+"authentication tls-profile \""+
+						connection["auth_tls_profile"].(string)+"\"")
+				}
+				if v2 := connection["proxy_profile"].(string); v2 != "" {
+					configSet = append(configSet, setPrefixConn+"proxy-profile \""+v2+"\"")
+				}
+				if v2 := connection["source_address"].(string); v2 != "" {
+					configSet = append(configSet, setPrefixConn+"source-address "+v2)
+				}
+				if v2 := connection["source_interface"].(string); v2 != "" {
+					configSet = append(configSet, setPrefixConn+"source-interface "+v2)
+				}
+				if d.HasChange("advanced_anti_malware.0.connection.0.url") &&
+					connection["url"].(string) != "" {
+					configSet = append(configSet, setPrefixConn+"url \""+connection["url"].(string)+"\"")
+				}
+			}
+		}
+		for _, v := range advAntiMalwareM["default_policy"].([]interface{}) {
+			setPrefixDefPolicy := setPrefix + "default-policy "
+			configSet = append(configSet, setPrefixDefPolicy)
+			if v != nil {
+				defPolicy := v.(map[string]interface{})
+				if defPolicy["blacklist_notification_log"].(bool) {
+					configSet = append(configSet, setPrefixDefPolicy+"blacklist-notification log")
+				}
+				if defPolicy["default_notification_log"].(bool) {
+					configSet = append(configSet, setPrefixDefPolicy+"default-notification log")
+				}
+				if v2 := defPolicy["fallback_options_action"].(string); v2 != "" {
+					configSet = append(configSet, setPrefixDefPolicy+"fallback-options action "+v2)
+				}
+				if defPolicy["fallback_options_notification_log"].(bool) {
+					configSet = append(configSet, setPrefixDefPolicy+"fallback-options notification log")
+				}
+				if v2 := defPolicy["http_action"].(string); v2 != "" {
+					configSet = append(configSet, setPrefixDefPolicy+"http action "+v2)
+				}
+				if v := defPolicy["http_client_notify_file"].(string); v != "" {
+					configSet = append(configSet, setPrefixDefPolicy+"http client-notify file \""+v+"\"")
+				}
+				if v := defPolicy["http_client_notify_message"].(string); v != "" {
+					configSet = append(configSet, setPrefixDefPolicy+"http client-notify message \""+v+"\"")
+				}
+				if v := defPolicy["http_client_notify_redirect_url"].(string); v != "" {
+					configSet = append(configSet, setPrefixDefPolicy+"http client-notify redirect-url \""+v+"\"")
+				}
+				if v := defPolicy["http_file_verdict_unknown"].(string); v != "" {
+					configSet = append(configSet, setPrefixDefPolicy+"http file-verdict-unknown "+v)
+				}
+				if v2 := defPolicy["http_inspection_profile"].(string); v2 != "" {
+					configSet = append(configSet, setPrefixDefPolicy+"http inspection-profile \""+v2+"\"")
+				}
+				if defPolicy["http_notification_log"].(bool) {
+					configSet = append(configSet, setPrefixDefPolicy+"http notification log")
+				}
+				if v2 := defPolicy["imap_inspection_profile"].(string); v2 != "" {
+					configSet = append(configSet, setPrefixDefPolicy+"imap inspection-profile \""+v2+"\"")
+				}
+				if defPolicy["imap_notification_log"].(bool) {
+					configSet = append(configSet, setPrefixDefPolicy+"imap notification log")
+				}
+				if v2 := defPolicy["smtp_inspection_profile"].(string); v2 != "" {
+					configSet = append(configSet, setPrefixDefPolicy+"smtp inspection-profile \""+v2+"\"")
+				}
+				if defPolicy["smtp_notification_log"].(bool) {
+					configSet = append(configSet, setPrefixDefPolicy+"smtp notification log")
+				}
+				if v2 := defPolicy["verdict_threshold"].(string); v2 != "" {
+					configSet = append(configSet, setPrefixDefPolicy+"verdict-threshold "+v2)
+				}
+				if defPolicy["whitelist_notification_log"].(bool) {
+					configSet = append(configSet, setPrefixDefPolicy+"whitelist-notification log")
+				}
+			}
+		}
+	} else {
+		return configSet, fmt.Errorf("advanced_anti_malware block is empty")
+	}
+
+	return configSet, nil
 }
 
 func setServicesApplicationIdentification(appID interface{}) ([]string, error) {
@@ -850,6 +1115,15 @@ func setServicesUserIdentification(userIdentification interface{}) ([]string, er
 	return configSet, nil
 }
 
+func listLinesServicesAdvancedAntiMalware() []string {
+	return []string{
+		"advanced-anti-malware connection proxy-profile",
+		"advanced-anti-malware connection source-address",
+		"advanced-anti-malware connection source-interface",
+		"advanced-anti-malware default-policy",
+	}
+}
+
 func listLinesServicesApplicationIdentification() []string {
 	return []string{
 		"application-identification application-system-cache",
@@ -901,6 +1175,7 @@ func listLinesServicesUserIdentificationAdAccess() []string {
 
 func delServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete := make([]string, 0)
+	listLinesToDelete = append(listLinesToDelete, listLinesServicesAdvancedAntiMalware()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesServicesApplicationIdentification()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesServicesSecurityIntel()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesServicesUserIdentification()...)
@@ -910,6 +1185,14 @@ func delServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	for _, line := range listLinesToDelete {
 		configSet = append(configSet,
 			delPrefix+line)
+	}
+	if len(d.Get("advanced_anti_malware").([]interface{})) == 0 {
+		configSet = append(configSet, delPrefix+"advanced-anti-malware connection")
+	} else {
+		advAntiMalware := d.Get("advanced_anti_malware").([]interface{})[0].(map[string]interface{})
+		if len(advAntiMalware["connection"].([]interface{})) == 0 {
+			configSet = append(configSet, delPrefix+"advanced-anti-malware connection")
+		}
 	}
 	if len(d.Get("application_identification").([]interface{})) == 0 {
 		configSet = append(configSet, delPrefix+"application-identification")
@@ -944,6 +1227,9 @@ func readServices(m interface{}, jnprSess *NetconfObject) (servicesOptions, erro
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
+			case checkStringHasPrefixInList(itemTrim, listLinesServicesAdvancedAntiMalware()) ||
+				strings.HasPrefix(itemTrim, "advanced-anti-malware connection"):
+				readServicesAdvancedAntiMalware(&confRead, itemTrim)
 			case strings.HasPrefix(itemTrim, "application-identification"):
 				if err := readServicesApplicationIdentification(&confRead, itemTrim); err != nil {
 					return confRead, err
@@ -964,6 +1250,117 @@ func readServices(m interface{}, jnprSess *NetconfObject) (servicesOptions, erro
 	}
 
 	return confRead, nil
+}
+
+func readServicesAdvancedAntiMalware(confRead *servicesOptions, itemTrimAdvAntiMalware string) {
+	itemTrim := strings.TrimPrefix(itemTrimAdvAntiMalware, "advanced-anti-malware ")
+	if len(confRead.advAntiMalware) == 0 {
+		confRead.advAntiMalware = append(confRead.advAntiMalware, map[string]interface{}{
+			"connection":     make([]map[string]interface{}, 0),
+			"default_policy": make([]map[string]interface{}, 0),
+		})
+	}
+	switch {
+	case strings.HasPrefix(itemTrim, "connection"):
+		if len(confRead.advAntiMalware[0]["connection"].([]map[string]interface{})) == 0 {
+			confRead.advAntiMalware[0]["connection"] = append(
+				confRead.advAntiMalware[0]["connection"].([]map[string]interface{}),
+				map[string]interface{}{
+					"auth_tls_profile": "",
+					"proxy_profile":    "",
+					"source_address":   "",
+					"source_interface": "",
+					"url":              "",
+				})
+		}
+		connection := confRead.advAntiMalware[0]["connection"].([]map[string]interface{})[0]
+		switch {
+		case strings.HasPrefix(itemTrim, "connection authentication tls-profile "):
+			connection["auth_tls_profile"] = strings.Trim(strings.TrimPrefix(
+				itemTrim, "connection authentication tls-profile "), "\"")
+		case strings.HasPrefix(itemTrim, "connection proxy-profile "):
+			connection["proxy_profile"] = strings.Trim(strings.TrimPrefix(
+				itemTrim, "connection proxy-profile "), "\"")
+		case strings.HasPrefix(itemTrim, "connection source-address "):
+			connection["source_address"] = strings.Trim(strings.TrimPrefix(
+				itemTrim, "connection source-address "), "\"")
+		case strings.HasPrefix(itemTrim, "connection source-interface "):
+			connection["source_interface"] = strings.Trim(strings.TrimPrefix(
+				itemTrim, "connection source-interface "), "\"")
+		case strings.HasPrefix(itemTrim, "connection url "):
+			connection["url"] = strings.Trim(strings.TrimPrefix(
+				itemTrim, "connection url "), "\"")
+		}
+	case strings.HasPrefix(itemTrim, "default-policy"):
+		if len(confRead.advAntiMalware[0]["default_policy"].([]map[string]interface{})) == 0 {
+			confRead.advAntiMalware[0]["default_policy"] = append(
+				confRead.advAntiMalware[0]["default_policy"].([]map[string]interface{}),
+				map[string]interface{}{
+					"blacklist_notification_log":        false,
+					"default_notification_log":          false,
+					"fallback_options_action":           "",
+					"fallback_options_notification_log": false,
+					"http_action":                       "",
+					"http_client_notify_file":           "",
+					"http_client_notify_message":        "",
+					"http_client_notify_redirect_url":   "",
+					"http_file_verdict_unknown":         "",
+					"http_inspection_profile":           "",
+					"http_notification_log":             false,
+					"imap_inspection_profile":           "",
+					"imap_notification_log":             false,
+					"smtp_inspection_profile":           "",
+					"smtp_notification_log":             false,
+					"verdict_threshold":                 "",
+					"whitelist_notification_log":        false,
+				})
+		}
+		defaultPolicy := confRead.advAntiMalware[0]["default_policy"].([]map[string]interface{})[0]
+		switch {
+		case itemTrim == "default-policy blacklist-notification log":
+			defaultPolicy["blacklist_notification_log"] = true
+		case itemTrim == "default-policy default-notification log":
+			defaultPolicy["default_notification_log"] = true
+		case strings.HasPrefix(itemTrim, "default-policy fallback-options action "):
+			defaultPolicy["fallback_options_action"] =
+				strings.TrimPrefix(itemTrim, "default-policy fallback-options action ")
+		case itemTrim == "default-policy fallback-options notification log":
+			defaultPolicy["fallback_options_notification_log"] = true
+		case strings.HasPrefix(itemTrim, "default-policy http action "):
+			defaultPolicy["http_action"] = strings.TrimPrefix(itemTrim, "default-policy http action ")
+		case strings.HasPrefix(itemTrim, "default-policy http client-notify file "):
+			defaultPolicy["http_client_notify_file"] =
+				strings.Trim(strings.TrimPrefix(itemTrim, "default-policy http client-notify file "), "\"")
+		case strings.HasPrefix(itemTrim, "default-policy http client-notify message "):
+			defaultPolicy["http_client_notify_message"] =
+				strings.Trim(strings.TrimPrefix(itemTrim, "default-policy http client-notify message "), "\"")
+		case strings.HasPrefix(itemTrim, "default-policy http client-notify redirect-url "):
+			defaultPolicy["http_client_notify_redirect_url"] =
+				strings.Trim(strings.TrimPrefix(itemTrim, "default-policy http client-notify redirect-url "), "\"")
+		case strings.HasPrefix(itemTrim, "default-policy http file-verdict-unknown "):
+			defaultPolicy["http_file_verdict_unknown"] =
+				strings.TrimPrefix(itemTrim, "default-policy http file-verdict-unknown ")
+		case strings.HasPrefix(itemTrim, "default-policy http inspection-profile "):
+			defaultPolicy["http_inspection_profile"] =
+				strings.TrimPrefix(strings.TrimPrefix(itemTrim, "default-policy http inspection-profile "), "\"")
+		case itemTrim == "default-policy http notification log":
+			defaultPolicy["http_notification_log"] = true
+		case strings.HasPrefix(itemTrim, "default-policy imap inspection-profile "):
+			defaultPolicy["imap_inspection_profile"] =
+				strings.TrimPrefix(strings.TrimPrefix(itemTrim, "default-policy imap inspection-profile "), "\"")
+		case itemTrim == "default-policy imap notification log":
+			defaultPolicy["imap_notification_log"] = true
+		case strings.HasPrefix(itemTrim, "default-policy smtp inspection-profile "):
+			defaultPolicy["smtp_inspection_profile"] =
+				strings.TrimPrefix(strings.TrimPrefix(itemTrim, "default-policy smtp inspection-profile "), "\"")
+		case itemTrim == "default-policy smtp notification log":
+			defaultPolicy["smtp_notification_log"] = true
+		case strings.HasPrefix(itemTrim, "default-policy verdict-threshold "):
+			defaultPolicy["verdict_threshold"] = strings.TrimPrefix(itemTrim, "default-policy verdict-threshold ")
+		case itemTrim == "default-policy whitelist-notification log":
+			defaultPolicy["whitelist_notification_log"] = true
+		}
+	}
 }
 
 func readServicesSecurityIntel(confRead *servicesOptions, itemTrimSecurityIntel string) error {
@@ -1425,6 +1822,9 @@ func readServicesUserIdentification(confRead *servicesOptions, itemTrimUserIdent
 }
 
 func fillServices(d *schema.ResourceData, servicesOptions servicesOptions) {
+	if tfErr := d.Set("advanced_anti_malware", servicesOptions.advAntiMalware); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("application_identification", servicesOptions.appIdent); tfErr != nil {
 		panic(tfErr)
 	}
