@@ -143,6 +143,7 @@ func Provider() *schema.Provider {
 			"junos_services":                                             resourceServices(),
 			"junos_services_flowmonitoring_vipfix_template":              resourceServicesFlowMonitoringVIPFixTemplate(),
 			"junos_services_proxy_profile":                               resourceServicesProxyProfile(),
+			"junos_services_ssl_initiation_profile":                      resourceServicesSSLInitiationProfile(),
 			"junos_services_security_intelligence_policy":                resourceServicesSecurityIntellPolicy(),
 			"junos_services_security_intelligence_profile":               resourceServicesSecurityIntellProfile(),
 			"junos_services_user_identification_ad_access_domain":        resourceServicesUserIdentAdAccessDomain(),
