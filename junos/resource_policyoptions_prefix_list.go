@@ -30,7 +30,7 @@ func resourcePolicyoptionsPrefixList() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"apply_path": {
 				Type:     schema.TypeString,

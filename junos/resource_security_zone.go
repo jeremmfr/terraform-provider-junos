@@ -43,7 +43,7 @@ func resourceSecurityZone() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"address_book": {
 				Type:     schema.TypeList,
@@ -53,7 +53,7 @@ func resourceSecurityZone() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
 						},
 						"network": {
 							Type:         schema.TypeString,
@@ -86,7 +86,7 @@ func resourceSecurityZone() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
 						},
 						"fqdn": {
 							Type:     schema.TypeString,
@@ -115,7 +115,7 @@ func resourceSecurityZone() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
 						},
 						"from": {
 							Type:         schema.TypeString,
@@ -142,7 +142,7 @@ func resourceSecurityZone() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
 						},
 						"address": {
 							Type:     schema.TypeSet,
@@ -165,7 +165,7 @@ func resourceSecurityZone() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
 						},
 						"network": {
 							Type:             schema.TypeString,

@@ -76,7 +76,7 @@ func resourceSystemSyslogHost() *schema.Resource {
 			"log_prefix": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, formatDefault),
 			},
 			"match": {
 				Type:     schema.TypeString,

@@ -31,13 +31,13 @@ func resourceBgpNeighbor() *schema.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				Default:          defaultWord,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"group": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"accept_remote_nexthop": {
 				Type:     schema.TypeBool,

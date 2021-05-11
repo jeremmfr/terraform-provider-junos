@@ -106,7 +106,7 @@ func resourceSystemRadiusServer() *schema.Resource {
 			"routing_instance": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"source_address": {
 				Type:         schema.TypeString,

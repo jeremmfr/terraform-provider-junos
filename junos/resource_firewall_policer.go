@@ -32,7 +32,7 @@ func resourceFirewallPolicer() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"filter_specific": {
 				Type:     schema.TypeBool,

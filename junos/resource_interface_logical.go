@@ -175,12 +175,12 @@ func resourceInterfaceLogical() *schema.Resource {
 						"filter_input": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 						},
 						"filter_output": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 						},
 						"mtu": {
 							Type:         schema.TypeInt,
@@ -330,12 +330,12 @@ func resourceInterfaceLogical() *schema.Resource {
 						"filter_input": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 						},
 						"filter_output": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 						},
 						"mtu": {
 							Type:         schema.TypeInt,
@@ -373,7 +373,7 @@ func resourceInterfaceLogical() *schema.Resource {
 			"routing_instance": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"security_inbound_protocols": {
 				Type:         schema.TypeList,
@@ -390,7 +390,7 @@ func resourceInterfaceLogical() *schema.Resource {
 			"security_zone": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"vlan_id": {
 				Type:         schema.TypeInt,

@@ -63,7 +63,7 @@ func resourceSnmpCommunity() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, FormatDefault),
+							ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
 						},
 						"client_list_name": {
 							Type:     schema.TypeString,

@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-type FormatName int
+type formatName int
 
 const (
-	FormatDefault FormatName = iota
-	FormatAddressName
-	FormatDefAndDots
+	formatDefault formatName = iota
+	formatAddressName
+	formatDefAndDots
 )
 
 func appendDiagWarns(diags *diag.Diagnostics, warns []error) {
@@ -133,7 +133,7 @@ func validateWildcardWithMask(wildcard string) error {
 	return nil
 }
 
-func validateNameObjectJunos(exclude []string, length int, format FormatName) schema.SchemaValidateDiagFunc {
+func validateNameObjectJunos(exclude []string, length int, format formatName) schema.SchemaValidateDiagFunc {
 	return func(i interface{}, path cty.Path) diag.Diagnostics {
 		var diags diag.Diagnostics
 		v := i.(string)
@@ -157,11 +157,11 @@ func validateNameObjectJunos(exclude []string, length int, format FormatName) sc
 		}
 		resultRune := -1
 		switch format {
-		case FormatDefault:
+		case formatDefault:
 			resultRune = strings.IndexFunc(v, f1)
-		case FormatAddressName:
+		case formatAddressName:
 			resultRune = strings.IndexFunc(v, f2)
-		case FormatDefAndDots:
+		case formatDefAndDots:
 			resultRune = strings.IndexFunc(v, f3)
 		default:
 			diags = append(diags, diag.Diagnostic{

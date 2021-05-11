@@ -31,7 +31,7 @@ func resourceIpsecPolicy() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, formatDefault),
 			},
 			"pfs_keys": {
 				Type:     schema.TypeString,

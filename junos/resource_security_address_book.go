@@ -54,7 +54,7 @@ func resourceSecurityAddressBook() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
 						},
 						"description": {
 							Type:     schema.TypeString,
@@ -76,7 +76,7 @@ func resourceSecurityAddressBook() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
 						},
 						"description": {
 							Type:     schema.TypeString,
@@ -98,7 +98,7 @@ func resourceSecurityAddressBook() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
 						},
 						"description": {
 							Type:     schema.TypeString,
@@ -119,7 +119,7 @@ func resourceSecurityAddressBook() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
 						},
 						"description": {
 							Type:     schema.TypeString,
@@ -146,7 +146,7 @@ func resourceSecurityAddressBook() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
 						},
 						"address": {
 							Type:     schema.TypeSet,

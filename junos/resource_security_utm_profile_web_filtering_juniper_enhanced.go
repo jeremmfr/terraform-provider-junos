@@ -65,7 +65,7 @@ func resourceSecurityUtmProfileWebFilteringEnhanced() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 128, FormatDefault),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 128, formatDefault),
 						},
 						"action": {
 							Type:         schema.TypeString,

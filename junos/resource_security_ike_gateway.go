@@ -42,7 +42,7 @@ func resourceIkeGateway() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, formatDefault),
 			},
 			"external_interface": {
 				Type:     schema.TypeString,
@@ -160,7 +160,7 @@ func resourceIkeGateway() *schema.Resource {
 						"access_profile": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 							ConflictsWith: []string{
 								"aaa.0.client_password",
 								"aaa.0.client_username",

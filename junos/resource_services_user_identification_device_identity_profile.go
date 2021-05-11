@@ -29,12 +29,12 @@ func resourceServicesUserIdentDeviceIdentityProfile() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{"any"}, 64, FormatDefAndDots),
+				ValidateDiagFunc: validateNameObjectJunos([]string{"any"}, 64, formatDefAndDots),
 			},
 			"domain": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefAndDots),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefAndDots),
 			},
 			"attribute": {
 				Type:     schema.TypeList,
@@ -44,7 +44,7 @@ func resourceServicesUserIdentDeviceIdentityProfile() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefAndDots),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefAndDots),
 						},
 						"value": {
 							Type:     schema.TypeSet,

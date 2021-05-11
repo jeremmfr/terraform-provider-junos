@@ -35,12 +35,12 @@ func resourceServicesUserIdentAdAccessDomain() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefAndDots),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefAndDots),
 			},
 			"user_name": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefAndDots),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefAndDots),
 			},
 			"user_password": {
 				Type:      schema.TypeString,
@@ -55,7 +55,7 @@ func resourceServicesUserIdentAdAccessDomain() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefAndDots),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefAndDots),
 						},
 						"address": {
 							Type:         schema.TypeString,
@@ -110,7 +110,7 @@ func resourceServicesUserIdentAdAccessDomain() *schema.Resource {
 						"user_name": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefAndDots),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefAndDots),
 						},
 						"user_password": {
 							Type:      schema.TypeString,

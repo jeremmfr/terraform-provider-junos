@@ -37,13 +37,13 @@ func resourceSecurityZoneBookAddress() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
 			},
 			"zone": {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"cidr": {
 				Type:         schema.TypeString,

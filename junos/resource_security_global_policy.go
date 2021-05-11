@@ -32,7 +32,7 @@ func resourceSecurityGlobalPolicy() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 						},
 						"match_source_address": {
 							Type:     schema.TypeList,

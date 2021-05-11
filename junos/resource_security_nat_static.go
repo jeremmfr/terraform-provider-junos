@@ -30,7 +30,7 @@ func resourceSecurityNatStatic() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, formatDefault),
 			},
 			"from": {
 				Type:     schema.TypeList,
@@ -60,7 +60,7 @@ func resourceSecurityNatStatic() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, formatDefault),
 						},
 						"destination_address": {
 							Type:         schema.TypeString,
@@ -86,7 +86,7 @@ func resourceSecurityNatStatic() *schema.Resource {
 									"routing_instance": {
 										Type:             schema.TypeString,
 										Optional:         true,
-										ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+										ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 									},
 								},
 							},
