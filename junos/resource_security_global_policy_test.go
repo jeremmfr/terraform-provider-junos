@@ -116,6 +116,11 @@ resource "junos_services_user_identification_device_identity_profile" "profile" 
     value = ["testacc_secglobpolicy"]
   }
 }
+resource junos_services_advanced_anti_malware_policy "testacc_secglobpolicy" {
+  name                     = "testacc_secglobpolicy"
+  verdict_threshold        = "recommended"
+  default_notification_log = true
+}
 resource junos_security_global_policy "testacc_secglobpolicy" {
   depends_on = [
     junos_security_address_book.testacc_secglobpolicy
@@ -131,8 +136,9 @@ resource junos_security_global_policy "testacc_secglobpolicy" {
     log_init                  = true
     log_close                 = true
     permit_application_services {
-      idp         = true
-      redirect_wx = true
+      advanced_anti_malware_policy = junos_services_advanced_anti_malware_policy.testacc_secglobpolicy.name
+      idp                          = true
+      redirect_wx                  = true
       ssl_proxy {}
       uac_policy {}
     }

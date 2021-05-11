@@ -20,6 +20,7 @@ ENHANCEMENTS:
 * add `junos_services_ssl_initiation_profile` resource
 * resource/`junos_services`: add `advanced_anti_malware` argument (Fixes #201)
 * add `junos_services_advanced_anti_malware_policy` resource
+* resource/`junos_security_global_policy`: add `advanced_anti_malware_policy` argument inside `permit_application_services` argument
 
 BUG FIXES:
 * fix errors not generated with certain nested blocks empty and default integer argument = -1 in these blocks
