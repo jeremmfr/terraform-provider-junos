@@ -105,6 +105,11 @@ resource "junos_services_user_identification_device_identity_profile" "profile" 
     value = ["testacc_securityPolicy"]
   }
 }
+resource junos_services_advanced_anti_malware_policy "testacc_securityPolicy" {
+  name                     = "testacc_securityPolicy"
+  verdict_threshold        = "recommended"
+  default_notification_log = true
+}
 resource junos_security_policy testacc_securityPolicy {
   from_zone = junos_security_zone.testacc_seczonePolicy1.name
   to_zone   = junos_security_zone.testacc_seczonePolicy1.name
@@ -117,6 +122,9 @@ resource junos_security_policy testacc_securityPolicy {
     log_init                      = true
     log_close                     = true
     count                         = true
+    permit_application_services {
+      advanced_anti_malware_policy = junos_services_advanced_anti_malware_policy.testacc_securityPolicy.name
+    }
   }
   policy {
     name                               = "testacc_Policy_2"

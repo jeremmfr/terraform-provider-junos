@@ -50,7 +50,8 @@ The following arguments are supported:
 
 ---
 #### permit_application_services arguments for policy
-* `application_firewall_rule_set` - (Optional)(`String`) Servie rule-set Name for Application firewall.
+* `advanced_anti_malware_policy` - (Optional)(`String`) Specify advanced-anti-malware policy name.
+* `application_firewall_rule_set` - (Optional)(`String`) Service rule-set name for Application firewall.
 * `application_traffic_control_rule_set` - (Optional)(`String`) Service rule-set name Application traffic control.
 * `gprs_gtp_profile` - (Optional)(`String`) Specify GPRS Tunneling Protocol profile name.
 * `gprs_sctp_profile` - (Optional)(`String`) Specify GPRS stream control protocol profile name.
