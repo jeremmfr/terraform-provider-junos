@@ -107,6 +107,10 @@ func resourceSecurityPolicy() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"advanced_anti_malware_policy": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
 									"application_firewall_rule_set": {
 										Type:     schema.TypeString,
 										Optional: true,
@@ -523,6 +527,7 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 							policy["permit_application_services"] = append(
 								policy["permit_application_services"].([]map[string]interface{}),
 								map[string]interface{}{
+									"advanced_anti_malware_policy":         "",
 									"application_firewall_rule_set":        "",
 									"application_traffic_control_rule_set": "",
 									"gprs_gtp_profile":                     "",
@@ -591,6 +596,9 @@ func genMapPolicyWithName(name string) map[string]interface{} {
 func readPolicyPermitApplicationServices(itemTrimPolicy string, applicationServices map[string]interface{}) {
 	itemTrimPolicyPermitAppSvc := strings.TrimPrefix(itemTrimPolicy, "then permit application-services ")
 	switch {
+	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "advanced-anti-malware-policy "):
+		applicationServices["advanced_anti_malware_policy"] = strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
+			"advanced-anti-malware-policy "), "\"")
 	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "application-firewall rule-set "):
 		applicationServices["application_firewall_rule_set"] = strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
 			"application-firewall rule-set "), "\"")
@@ -645,6 +653,9 @@ func setPolicyPermitApplicationServices(setPrefixPolicy string,
 	policyPermitApplicationServices map[string]interface{}) ([]string, error) {
 	configSet := make([]string, 0)
 	setPrefixPolicyPermitAppSvc := setPrefixPolicy + " then permit application-services"
+	if v := policyPermitApplicationServices["advanced_anti_malware_policy"].(string); v != "" {
+		configSet = append(configSet, setPrefixPolicyPermitAppSvc+" advanced-anti-malware-policy \""+v+"\"")
+	}
 	if policyPermitApplicationServices["application_firewall_rule_set"].(string) != "" {
 		configSet = append(configSet, setPrefixPolicyPermitAppSvc+
 			" application-firewall rule-set \""+

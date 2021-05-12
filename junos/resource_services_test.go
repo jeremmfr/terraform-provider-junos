@@ -68,7 +68,33 @@ resource "junos_security_address_book" "testacc_services" {
     address = ["testacc_services_add"]
   }
 }
+resource "junos_services_ssl_initiation_profile" "testacc_services" {
+  name = "testacc_services"
+}
 resource "junos_services" "testacc" {
+  advanced_anti_malware {
+    connection {
+      auth_tls_profile = junos_services_ssl_initiation_profile.testacc_services.name
+      proxy_profile    = junos_services_proxy_profile.testacc_services.name
+      source_address   = "192.0.2.1"
+      url              = "https://example.com/api/test.xml"
+    }
+    default_policy {
+      blacklist_notification_log        = true
+      default_notification_log          = true
+      fallback_options_action           = "permit"
+      fallback_options_notification_log = true
+      http_action                       = "block"
+      http_inspection_profile           = "testacc_services"
+      http_notification_log             = true
+      imap_inspection_profile           = "testacc_services"
+      imap_notification_log             = true
+      smtp_inspection_profile           = "testacc_services"
+      smtp_notification_log             = true
+      verdict_threshold                 = 5
+      whitelist_notification_log        = true
+    }
+  }
   application_identification {
     application_system_cache {}
     download {
@@ -147,7 +173,17 @@ resource "junos_security_address_book" "testacc_services" {
     address = ["testacc_services_add"]
   }
 }
+resource "junos_services_ssl_initiation_profile" "testacc_services" {
+  name = "testacc_services"
+}
 resource "junos_services" "testacc" {
+  advanced_anti_malware {
+    connection {
+      auth_tls_profile = junos_services_ssl_initiation_profile.testacc_services.name
+      source_interface = "fxp0.0"
+      url              = "https://example.com/api/test.xml"
+    }
+  }
   application_identification {
     application_system_cache {
       security_services = true
@@ -215,6 +251,9 @@ resource "junos_services_security_intelligence_profile" "testacc_services" {
     }
     then_action = "permit"
   }
+}
+resource "junos_services_ssl_initiation_profile" "testacc_services" {
+  name = "testacc_services"
 }
 resource "junos_services" "testacc" {
   application_identification {
