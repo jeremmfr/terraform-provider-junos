@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * resource/`junos_services`: add `user_identification` argument (Fixes parts of #189)
 * resource/`junos_services`: `url_parameter` is now a sensitive argument
 * resource/`junos_services`: `authentication_token`, `authentication_tls_profile` and `url` are now attributes (information read from Junos config) when not set in Terraform config. (Fixes #200)
+* resource/`junos_system`: add `web_management_http` and `web_management_https` arguments (Fixes #173) Thanks @MerryPlant
 
 BUG FIXES:
 * fix errors not generated with certain nested blocks empty and default integer argument = -1 in these blocks
