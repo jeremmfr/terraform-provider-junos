@@ -257,7 +257,7 @@ func stringInSlice(str string, list []string) bool {
 }
 
 func copyAndRemoveItemMapList(identifier string, integer bool,
-	m map[string]interface{}, list []map[string]interface{}) (map[string]interface{}, []map[string]interface{}) {
+	m map[string]interface{}, list []map[string]interface{}) []map[string]interface{} {
 	for i, element := range list {
 		if integer {
 			if element[identifier].(int) == m[identifier].(int) {
@@ -280,7 +280,7 @@ func copyAndRemoveItemMapList(identifier string, integer bool,
 		}
 	}
 
-	return m, list
+	return list
 }
 
 func checkCompatibilitySecurity(jnprSess *NetconfObject) bool {

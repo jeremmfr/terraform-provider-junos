@@ -350,7 +350,7 @@ func readSecurityNatDestination(natDestination string,
 					"destination_address": "",
 					"then":                make([]map[string]interface{}, 0),
 				}
-				ruleOptions, confRead.rule = copyAndRemoveItemMapList("name", false, ruleOptions, confRead.rule)
+				confRead.rule = copyAndRemoveItemMapList("name", false, ruleOptions, confRead.rule)
 				switch {
 				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-address "):
 					ruleOptions["destination_address"] = strings.TrimPrefix(itemTrim,

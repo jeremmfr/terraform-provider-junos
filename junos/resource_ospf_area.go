@@ -387,7 +387,7 @@ func readOspfArea(idArea, version, routingInstance string,
 					"retransmit_interval": 0,
 				}
 				itemTrimInterface := strings.TrimPrefix(itemTrim, "interface "+itemInterfaceList[0]+" ")
-				interfaceOptions, confRead.interFace = copyAndRemoveItemMapList("name", false, interfaceOptions, confRead.interFace)
+				confRead.interFace = copyAndRemoveItemMapList("name", false, interfaceOptions, confRead.interFace)
 				switch {
 				case strings.HasPrefix(itemTrimInterface, "dead-interval "):
 					interfaceOptions["dead_interval"], err = strconv.Atoi(

@@ -342,7 +342,7 @@ func readSnmpCommunity(name string, m interface{}, jnprSess *NetconfObject) (snm
 					"client_list_name": "",
 					"clients":          make([]string, 0),
 				}
-				mRoutingInstance, confRead.routingInstance = copyAndRemoveItemMapList(
+				confRead.routingInstance = copyAndRemoveItemMapList(
 					"name", false, mRoutingInstance, confRead.routingInstance)
 				itemTrimRoutingInstance := strings.TrimPrefix(itemTrim, "routing-instance "+routingInstanceLineCut[1]+" ")
 				switch {

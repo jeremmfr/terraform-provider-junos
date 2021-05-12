@@ -633,7 +633,7 @@ func readStaticRoute(destination string, instance string, m interface{},
 					"metric":     0,
 					"preference": 0,
 				}
-				qualifiedNextHopOptions, confRead.qualifiedNextHop = copyAndRemoveItemMapList("next_hop",
+				confRead.qualifiedNextHop = copyAndRemoveItemMapList("next_hop",
 					false, qualifiedNextHopOptions, confRead.qualifiedNextHop)
 				itemTrimQnh := strings.TrimPrefix(itemTrim, "qualified-next-hop "+nextHopWords[0]+" ")
 				switch {

@@ -945,7 +945,7 @@ func readPolicyStatement(policyStatement string,
 					"to":   make([]map[string]interface{}, 0),
 				}
 				itemTrimTerm := strings.TrimPrefix(itemTrim, "term "+itemTermList[0]+" ")
-				termOptions, confRead.term = copyAndRemoveItemMapList("name", false, termOptions, confRead.term)
+				confRead.term = copyAndRemoveItemMapList("name", false, termOptions, confRead.term)
 				switch {
 				case strings.HasPrefix(itemTrimTerm, "from "):
 					if len(termOptions["from"].([]map[string]interface{})) == 0 {

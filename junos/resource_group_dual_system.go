@@ -505,7 +505,7 @@ func readGroupDualSystem(group string, m interface{}, jnprSess *NetconfObject) (
 					"destination": routeTrimSplit[0],
 					"next_hop":    make([]string, 0),
 				}
-				destOptions, confRead.routingOptions[0]["static_route"] = copyAndRemoveItemMapList(
+				confRead.routingOptions[0]["static_route"] = copyAndRemoveItemMapList(
 					"destination", false, destOptions, confRead.routingOptions[0]["static_route"].([]map[string]interface{}))
 				if strings.HasPrefix(routeTrim, routeTrimSplit[0]+" next-hop ") {
 					destOptions["next_hop"] = append(destOptions["next_hop"].([]string),

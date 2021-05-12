@@ -515,7 +515,7 @@ func readFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfO
 				}
 				itemTrimTerm := strings.TrimPrefix(itemTrim, "term "+termSplit[0]+" ")
 				if len(confRead.term) > 0 {
-					termOptions, confRead.term = copyAndRemoveItemMapList("name", false, termOptions, confRead.term)
+					confRead.term = copyAndRemoveItemMapList("name", false, termOptions, confRead.term)
 				}
 				switch {
 				case strings.HasPrefix(itemTrimTerm, "filter "):

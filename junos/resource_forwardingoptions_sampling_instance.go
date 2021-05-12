@@ -1241,7 +1241,7 @@ func readForwardingoptionsSamplingInstanceOutput(
 		if family == inetWord {
 			flowServer["version"] = 0
 		}
-		flowServer, outputRead["flow_server"] = copyAndRemoveItemMapList(
+		outputRead["flow_server"] = copyAndRemoveItemMapList(
 			"hostname", false, flowServer, outputRead["flow_server"].([]map[string]interface{}))
 		itemTrimFlowServer := strings.TrimPrefix(itemTrim, "flow-server "+flowServerLineCut[1]+" ")
 		switch {
@@ -1312,7 +1312,7 @@ func readForwardingoptionsSamplingInstanceOutput(
 			"engine_type":    -1,
 			"source_address": "",
 		}
-		iFace, outputRead["interface"] = copyAndRemoveItemMapList(
+		outputRead["interface"] = copyAndRemoveItemMapList(
 			"name", false, iFace, outputRead["interface"].([]map[string]interface{}))
 		itemTrimInterface := strings.TrimPrefix(itemTrim, "interface "+interfaceLineCut[1]+" ")
 		switch {

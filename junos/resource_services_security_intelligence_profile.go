@@ -367,18 +367,18 @@ func readServicesSecurityIntellProfile(profile string, m interface{}, jnprSess *
 				confRead.category = strings.TrimPrefix(itemTrim, "category ")
 			case strings.HasPrefix(itemTrim, "rule "):
 				ruleLineCut := strings.Split(itemTrim, " ")
-				m := map[string]interface{}{
+				rule := map[string]interface{}{
 					"name":        strings.Trim(ruleLineCut[1], "\""),
 					"match":       make([]map[string]interface{}, 0),
 					"then_action": "",
 					"then_log":    false,
 				}
-				m, confRead.rule = copyAndRemoveItemMapList("name", false, m, confRead.rule)
+				confRead.rule = copyAndRemoveItemMapList("name", false, rule, confRead.rule)
 				itemTrimRule := strings.TrimPrefix(itemTrim, "rule "+ruleLineCut[1]+" ")
-				if err := readServicesSecurityIntellProfileRule(itemTrimRule, m); err != nil {
+				if err := readServicesSecurityIntellProfileRule(itemTrimRule, rule); err != nil {
 					return confRead, err
 				}
-				confRead.rule = append(confRead.rule, m)
+				confRead.rule = append(confRead.rule, rule)
 			case strings.HasPrefix(itemTrim, "default-rule then "):
 				if len(confRead.defaultRuleThen) == 0 {
 					confRead.defaultRuleThen = append(confRead.defaultRuleThen, map[string]interface{}{

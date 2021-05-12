@@ -483,7 +483,7 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 			if strings.Contains(itemTrim, " match ") || strings.Contains(itemTrim, " then ") {
 				policyLineCut := strings.Split(itemTrim, " ")
 				policy := genMapPolicyWithName(policyLineCut[1])
-				policy, policyList = copyAndRemoveItemMapList("name", false, policy, policyList)
+				policyList = copyAndRemoveItemMapList("name", false, policy, policyList)
 				itemTrimPolicy := strings.TrimPrefix(itemTrim, "policy "+policyLineCut[1]+" ")
 				switch {
 				case strings.HasPrefix(itemTrimPolicy, "match source-address "):
