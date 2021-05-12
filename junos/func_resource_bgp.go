@@ -571,18 +571,18 @@ func setBgpOptsFamily(setPrefix, familyType string, familyOptsList []interface{}
 		familyOptsM := familyOpts.(map[string]interface{})
 		configSet = append(configSet, setPrefixFamily+familyOptsM["nlri_type"].(string))
 		for _, v := range familyOptsM["accepted_prefix_limit"].([]interface{}) {
-			m := v.(map[string]interface{})
+			mAccPrefixLimit := v.(map[string]interface{})
 			setP := setPrefixFamily + familyOptsM["nlri_type"].(string) + " accepted-prefix-limit "
-			configSetBgpOptsFamilyPrefixLimit, err := setBgpOptsFamilyPrefixLimit(setP, m)
+			configSetBgpOptsFamilyPrefixLimit, err := setBgpOptsFamilyPrefixLimit(setP, mAccPrefixLimit)
 			if err != nil {
 				return err
 			}
 			configSet = append(configSet, configSetBgpOptsFamilyPrefixLimit...)
 		}
 		for _, v := range familyOptsM["prefix_limit"].([]interface{}) {
-			m := v.(map[string]interface{})
+			mPrefixLimit := v.(map[string]interface{})
 			setP := setPrefixFamily + familyOptsM["nlri_type"].(string) + " prefix-limit "
-			configSetBgpOptsFamilyPrefixLimit, err := setBgpOptsFamilyPrefixLimit(setP, m)
+			configSetBgpOptsFamilyPrefixLimit, err := setBgpOptsFamilyPrefixLimit(setP, mPrefixLimit)
 			if err != nil {
 				return err
 			}
