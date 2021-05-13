@@ -510,7 +510,7 @@ func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *Netconf
 					"action":            "",
 					"reputation_action": make([]map[string]interface{}, 0),
 				}
-				categoryList = copyAndRemoveItemMapList("name", false, c, categoryList)
+				categoryList = copyAndRemoveItemMapList("name", c, categoryList)
 				itemTrimCategory := strings.TrimPrefix(itemTrim, "category "+catergoryLineCut[1]+" ")
 				switch {
 				case strings.HasPrefix(itemTrimCategory, "action "):

@@ -488,7 +488,7 @@ func readIpsecVpn(ipsecVpn string, m interface{}, jnprSess *NetconfObject) (ipse
 				}
 				itemTrimTS := strings.TrimPrefix(itemTrim, "traffic-selector "+tsSplit[0]+" ")
 				if len(confRead.trafficSelector) > 0 {
-					confRead.trafficSelector = copyAndRemoveItemMapList("name", false, tsOptions, confRead.trafficSelector)
+					confRead.trafficSelector = copyAndRemoveItemMapList("name", tsOptions, confRead.trafficSelector)
 				}
 				switch {
 				case strings.HasPrefix(itemTrimTS, "local-ip "):

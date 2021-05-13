@@ -23,7 +23,7 @@ ENHANCEMENTS:
 * add `junos_services_advanced_anti_malware_policy` resource
 * resource/`junos_security_global_policy`: add `advanced_anti_malware_policy` argument inside `permit_application_services` argument
 * resource/`junos_security_policy`: add `advanced_anti_malware_policy` argument inside `permit_application_services` argument
-* clean code: remove a useless override of map with himself
+* clean code: remove a useless override of map with himself and a useless option to compare different type
 
 BUG FIXES:
 * fix errors not generated with certain nested blocks empty and default integer argument = -1 in these blocks

@@ -1242,7 +1242,7 @@ func readForwardingoptionsSamplingInstanceOutput(
 			flowServer["version"] = 0
 		}
 		outputRead["flow_server"] = copyAndRemoveItemMapList(
-			"hostname", false, flowServer, outputRead["flow_server"].([]map[string]interface{}))
+			"hostname", flowServer, outputRead["flow_server"].([]map[string]interface{}))
 		itemTrimFlowServer := strings.TrimPrefix(itemTrim, "flow-server "+flowServerLineCut[1]+" ")
 		switch {
 		case strings.HasPrefix(itemTrimFlowServer, "port "):
@@ -1313,7 +1313,7 @@ func readForwardingoptionsSamplingInstanceOutput(
 			"source_address": "",
 		}
 		outputRead["interface"] = copyAndRemoveItemMapList(
-			"name", false, iFace, outputRead["interface"].([]map[string]interface{}))
+			"name", iFace, outputRead["interface"].([]map[string]interface{}))
 		itemTrimInterface := strings.TrimPrefix(itemTrim, "interface "+interfaceLineCut[1]+" ")
 		switch {
 		case strings.HasPrefix(itemTrimInterface, "engine-id "):

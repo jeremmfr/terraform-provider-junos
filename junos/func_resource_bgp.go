@@ -638,7 +638,7 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 	}
 	trimSplit := strings.Split(strings.TrimPrefix(item, setPrefix), " ")
 	readOpts["nlri_type"] = trimSplit[0]
-	opts = copyAndRemoveItemMapList("nlri_type", false, readOpts, opts)
+	opts = copyAndRemoveItemMapList("nlri_type", readOpts, opts)
 	itemTrim := strings.TrimPrefix(item, setPrefix+readOpts["nlri_type"].(string)+" ")
 	switch {
 	case strings.HasPrefix(itemTrim, "accepted-prefix-limit "):

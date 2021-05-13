@@ -658,7 +658,7 @@ func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObjec
 						"password":         "",
 						"routing_instance": "",
 					}
-					confRead.archive[0]["sites"] = copyAndRemoveItemMapList("url", false, sitesOptions,
+					confRead.archive[0]["sites"] = copyAndRemoveItemMapList("url", sitesOptions,
 						confRead.archive[0]["sites"].([]map[string]interface{}))
 					switch {
 					case strings.HasPrefix(itemTrimArchSites, "password "):

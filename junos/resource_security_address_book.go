@@ -476,7 +476,7 @@ func readSecurityAddressBook(addrBook string, m interface{}, jnprSess *NetconfOb
 					"address":     make([]string, 0),
 					"description": "",
 				}
-				confRead.addressSet = copyAndRemoveItemMapList("name", false, adSet, confRead.addressSet)
+				confRead.addressSet = copyAndRemoveItemMapList("name", adSet, confRead.addressSet)
 				if addressSetSplit[1] == "description" {
 					adSet["description"] = strings.Trim(strings.TrimPrefix(
 						itemTrim, "address-set "+addressSetSplit[0]+" description "), "\"")

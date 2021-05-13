@@ -1557,7 +1557,7 @@ func fillFamilyInetAddressOld(item string, inetAddress []map[string]interface{},
 	}
 
 	mAddr := genFamilyInetAddressOld(addressConfig[0])
-	inetAddress = copyAndRemoveItemMapList("address", false, mAddr, inetAddress)
+	inetAddress = copyAndRemoveItemMapList("address", mAddr, inetAddress)
 
 	if strings.HasPrefix(itemTrim, "vrrp-group ") || strings.HasPrefix(itemTrim, "vrrp-inet6-group ") {
 		vrrpGroup := genVRRPGroupOld(family)
@@ -1570,7 +1570,7 @@ func fillFamilyInetAddressOld(item string, inetAddress []map[string]interface{},
 			itemTrimVrrp = strings.TrimPrefix(itemTrim, "vrrp-inet6-group "+strconv.Itoa(vrrpID)+" ")
 		}
 		vrrpGroup["identifier"] = vrrpID
-		mAddr["vrrp_group"] = copyAndRemoveItemMapList("identifier", true, vrrpGroup,
+		mAddr["vrrp_group"] = copyAndRemoveItemMapList("identifier", vrrpGroup,
 			mAddr["vrrp_group"].([]map[string]interface{}))
 		switch {
 		case strings.HasPrefix(itemTrimVrrp, "virtual-address "):

@@ -373,7 +373,7 @@ func readServicesSecurityIntellProfile(profile string, m interface{}, jnprSess *
 					"then_action": "",
 					"then_log":    false,
 				}
-				confRead.rule = copyAndRemoveItemMapList("name", false, rule, confRead.rule)
+				confRead.rule = copyAndRemoveItemMapList("name", rule, confRead.rule)
 				itemTrimRule := strings.TrimPrefix(itemTrim, "rule "+ruleLineCut[1]+" ")
 				if err := readServicesSecurityIntellProfileRule(itemTrimRule, rule); err != nil {
 					return confRead, err

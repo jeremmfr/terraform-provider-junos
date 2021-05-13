@@ -424,7 +424,7 @@ func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObj
 					"match": make([]map[string]interface{}, 0),
 					"then":  make([]map[string]interface{}, 0),
 				}
-				confRead.rule = copyAndRemoveItemMapList("name", false, ruleOptions, confRead.rule)
+				confRead.rule = copyAndRemoveItemMapList("name", ruleOptions, confRead.rule)
 				switch {
 				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match "):
 					itemTrimMatch := strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match ")

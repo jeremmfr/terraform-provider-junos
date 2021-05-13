@@ -595,7 +595,7 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 					"description": "",
 				}
 				// search if name of address-set already create
-				confRead.addressBookSet = copyAndRemoveItemMapList("name", false, adSet, confRead.addressBookSet)
+				confRead.addressBookSet = copyAndRemoveItemMapList("name", adSet, confRead.addressBookSet)
 				// append new address find
 				if addressSetSplit[1] == "description" {
 					adSet["description"] = strings.Trim(strings.TrimPrefix(
