@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	jdecode "github.com/jeremmfr/junosdecode"
 )
 
 type systemOptions struct {
@@ -29,6 +30,7 @@ type systemOptions struct {
 	nameServer                           []string
 	inet6BackupRouter                    []map[string]interface{}
 	internetOptions                      []map[string]interface{}
+	license                              []map[string]interface{}
 	login                                []map[string]interface{}
 	services                             []map[string]interface{}
 	syslog                               []map[string]interface{}
@@ -230,6 +232,38 @@ func resourceSystem() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(64, 65535),
+						},
+					},
+				},
+			},
+			"license": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"autoupdate_password": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							RequiredWith: []string{"license.0.autoupdate_url"},
+						},
+						"autoupdate_url": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"renew_before_expiration": {
+							Type:         schema.TypeInt,
+							Default:      -1,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 60),
+							RequiredWith: []string{"license.0.renew_interval"},
+						},
+						"renew_interval": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 336),
+							RequiredWith: []string{"license.0.renew_before_expiration"},
 						},
 					},
 				},
@@ -793,6 +827,29 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 	if err := setSystemInternetOptions(d, m, jnprSess); err != nil {
 		return err
 	}
+	for _, v := range d.Get("license").([]interface{}) {
+		setPrefixLicense := setPrefix + " license"
+		if v != nil {
+			license := v.(map[string]interface{})
+			if license["autoupdate_url"].(string) != "" {
+				setPrefixLicenseUpdate := setPrefixLicense + " autoupdate url " + license["autoupdate_url"].(string)
+				if license["autoupdate_password"].(string) != "" {
+					configSet = append(configSet, setPrefixLicenseUpdate+" password "+
+						license["autoupdate_password"].(string))
+				} else {
+					configSet = append(configSet, setPrefixLicenseUpdate)
+				}
+			}
+			if license["renew_before_expiration"].(int) != -1 {
+				configSet = append(configSet, setPrefixLicense+" renew before-expiration "+
+					strconv.Itoa(license["renew_before_expiration"].(int)))
+			}
+			if license["renew_interval"].(int) > 0 {
+				configSet = append(configSet, setPrefixLicense+" renew interval "+
+					strconv.Itoa(license["renew_interval"].(int)))
+			}
+		}
+	}
 	if err := setSystemLogin(d, m, jnprSess); err != nil {
 		return err
 	}
@@ -1228,6 +1285,14 @@ func listLinesLogin() []string {
 	}
 }
 
+func listLinesLicense() []string {
+	return []string{
+		"license autoupdate",
+		"license renew",
+		"license",
+	}
+}
+
 func listLinesServices() []string {
 	ls := make([]string, 0)
 	ls = append(ls, listLinesServicesSSH()...)
@@ -1285,6 +1350,7 @@ func delSystem(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete = append(listLinesToDelete, "host-name")
 	listLinesToDelete = append(listLinesToDelete, "inet6-backup-router")
 	listLinesToDelete = append(listLinesToDelete, "internet-options")
+	listLinesToDelete = append(listLinesToDelete, listLinesLicense()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesLogin()...)
 	listLinesToDelete = append(listLinesToDelete, "max-configuration-rollbacks")
 	listLinesToDelete = append(listLinesToDelete, "max-configurations-on-flash")
@@ -1360,6 +1426,10 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 				}
 			case strings.HasPrefix(itemTrim, "internet-options "):
 				if err := readSystemInternetOptions(&confRead, itemTrim); err != nil {
+					return confRead, err
+				}
+			case strings.HasPrefix(itemTrim, "license "):
+				if err := readSystemLicense(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
 			case checkStringHasPrefixInList(itemTrim, listLinesLogin()):
@@ -1739,6 +1809,48 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 	return nil
 }
 
+func readSystemLicense(confRead *systemOptions, itemTrim string) error {
+	if len(confRead.license) == 0 {
+		confRead.license = append(confRead.license, map[string]interface{}{
+			"autoupdate_password":     "",
+			"autoupdate_url":          "",
+			"renew_before_expiration": -1,
+			"renew_interval":          0,
+		})
+	}
+	switch {
+	case strings.HasPrefix(itemTrim, "license autoupdate url "):
+		itemTrimAutoupdateSplit := strings.Split(strings.TrimPrefix(itemTrim, "license autoupdate url "), " ")
+		confRead.license[0]["autoupdate_url"] = itemTrimAutoupdateSplit[0]
+
+		itemTrimPassword := strings.TrimPrefix(itemTrim, "license autoupdate url "+itemTrimAutoupdateSplit[0]+" ")
+		if strings.HasPrefix(itemTrimPassword, "password ") {
+			var err error
+			confRead.license[0]["autoupdate_password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
+				itemTrimPassword, "password "), "\""))
+			if err != nil {
+				return fmt.Errorf("failed to decode password : %w", err)
+			}
+		}
+	case strings.HasPrefix(itemTrim, "license renew before-expiration "):
+		var err error
+		confRead.license[0]["renew_before_expiration"], err =
+			strconv.Atoi(strings.TrimPrefix(itemTrim, "license renew before-expiration "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "license renew interval "):
+		var err error
+		confRead.license[0]["renew_interval"], err =
+			strconv.Atoi(strings.TrimPrefix(itemTrim, "license renew interval "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	}
+
+	return nil
+}
+
 func readSystemServicesSSH(confRead *systemOptions, itemTrim string) error {
 	if len(confRead.services[0]["ssh"].([]map[string]interface{})) == 0 {
 		confRead.services[0]["ssh"] = append(confRead.services[0]["ssh"].([]map[string]interface{}),
@@ -2005,6 +2117,9 @@ func fillSystem(d *schema.ResourceData, systemOptions systemOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("internet_options", systemOptions.internetOptions); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("license", systemOptions.license); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("login", systemOptions.login); tfErr != nil {

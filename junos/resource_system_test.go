@@ -71,6 +71,16 @@ func TestAccJunosSystem_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"internet_options.0.tcp_mss", "1400"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"license.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"license.0.autoupdate_password", "some_password"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"license.0.autoupdate_url", "some_url"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"license.0.renew_interval", "24"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"license.0.renew_before_expiration", "30"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"login.#", "1"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"login.0.deny_sources_address.#", "1"),
@@ -270,6 +280,12 @@ resource junos_system "testacc_system" {
     source_quench                           = true
     tcp_drop_synfin_set                     = true
     tcp_mss                                 = 1400
+  }
+  license {
+    autoupdate_password     = "some_password"
+    autoupdate_url          = "some_url"
+    renew_interval          = 24
+    renew_before_expiration = 30
   }
   login {
     announcement         = "test announce"
