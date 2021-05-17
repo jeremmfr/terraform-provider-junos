@@ -300,7 +300,7 @@ func readServicesUserIdentDeviceIdentityProfile(profile string, m interface{}, j
 					"name":  itemTrimCut[1],
 					"value": make([]string, 0),
 				}
-				attribute, confRead.attribute = copyAndRemoveItemMapList("name", false, attribute, confRead.attribute)
+				confRead.attribute = copyAndRemoveItemMapList("name", attribute, confRead.attribute)
 				attribute["value"] = append(attribute["value"].([]string), strings.Trim(strings.TrimPrefix(
 					itemTrim, "attribute "+itemTrimCut[1]+" string "), "\""))
 				confRead.attribute = append(confRead.attribute, attribute)

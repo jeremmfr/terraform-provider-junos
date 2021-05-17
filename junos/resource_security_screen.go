@@ -1695,9 +1695,8 @@ func readSecurityScreenTCP(confRead *screenOptions, itemTrim string) error {
 				"destination_address": make([]string, 0),
 				"source_address":      make([]string, 0),
 			}
-			wList, confRead.tcp[0]["syn_flood"].([]map[string]interface{})[0]["whitelist"] = copyAndRemoveItemMapList(
-				"name", false, wList,
-				confRead.tcp[0]["syn_flood"].([]map[string]interface{})[0]["whitelist"].([]map[string]interface{}))
+			confRead.tcp[0]["syn_flood"].([]map[string]interface{})[0]["whitelist"] = copyAndRemoveItemMapList(
+				"name", wList, confRead.tcp[0]["syn_flood"].([]map[string]interface{})[0]["whitelist"].([]map[string]interface{}))
 			itemTrimWhiteList := strings.TrimPrefix(itemTrim, "tcp syn-flood white-list "+whiteListLineCut[0]+" ")
 			switch {
 			case strings.HasPrefix(itemTrimWhiteList, "destination-address "):

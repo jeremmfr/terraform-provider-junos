@@ -1241,8 +1241,8 @@ func readForwardingoptionsSamplingInstanceOutput(
 		if family == inetWord {
 			flowServer["version"] = 0
 		}
-		flowServer, outputRead["flow_server"] = copyAndRemoveItemMapList(
-			"hostname", false, flowServer, outputRead["flow_server"].([]map[string]interface{}))
+		outputRead["flow_server"] = copyAndRemoveItemMapList(
+			"hostname", flowServer, outputRead["flow_server"].([]map[string]interface{}))
 		itemTrimFlowServer := strings.TrimPrefix(itemTrim, "flow-server "+flowServerLineCut[1]+" ")
 		switch {
 		case strings.HasPrefix(itemTrimFlowServer, "port "):
@@ -1312,8 +1312,8 @@ func readForwardingoptionsSamplingInstanceOutput(
 			"engine_type":    -1,
 			"source_address": "",
 		}
-		iFace, outputRead["interface"] = copyAndRemoveItemMapList(
-			"name", false, iFace, outputRead["interface"].([]map[string]interface{}))
+		outputRead["interface"] = copyAndRemoveItemMapList(
+			"name", iFace, outputRead["interface"].([]map[string]interface{}))
 		itemTrimInterface := strings.TrimPrefix(itemTrim, "interface "+interfaceLineCut[1]+" ")
 		switch {
 		case strings.HasPrefix(itemTrimInterface, "engine-id "):

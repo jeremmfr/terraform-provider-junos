@@ -256,31 +256,23 @@ func stringInSlice(str string, list []string) bool {
 	return false
 }
 
-func copyAndRemoveItemMapList(identifier string, integer bool,
-	m map[string]interface{}, list []map[string]interface{}) (map[string]interface{}, []map[string]interface{}) {
+func copyAndRemoveItemMapList(identifier string,
+	m map[string]interface{}, list []map[string]interface{}) []map[string]interface{} {
+	if m[identifier] == nil {
+		panic(fmt.Errorf("internal error: can't find identifier %s in map", identifier))
+	}
 	for i, element := range list {
-		if integer {
-			if element[identifier].(int) == m[identifier].(int) {
-				for key, value := range element {
-					m[key] = value
-				}
-				list = append(list[:i], list[i+1:]...)
-
-				break
+		if element[identifier] == m[identifier] {
+			for key, value := range element {
+				m[key] = value
 			}
-		} else {
-			if element[identifier].(string) == m[identifier].(string) {
-				for key, value := range element {
-					m[key] = value
-				}
-				list = append(list[:i], list[i+1:]...)
+			list = append(list[:i], list[i+1:]...)
 
-				break
-			}
+			break
 		}
 	}
 
-	return m, list
+	return list
 }
 
 func checkCompatibilitySecurity(jnprSess *NetconfObject) bool {
