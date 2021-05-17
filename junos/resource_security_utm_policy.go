@@ -391,17 +391,17 @@ func setUtmPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 		}
 	}
 	for _, v := range d.Get("traffic_sessions_per_client").([]interface{}) {
-		if v != nil {
-			trafficSessPerClient := v.(map[string]interface{})
-			if trafficSessPerClient["limit"].(int) != -1 {
-				configSet = append(configSet, setPrefix+"traffic-options sessions-per-client limit "+
-					strconv.Itoa(trafficSessPerClient["limit"].(int)))
-			}
-			if trafficSessPerClient["over_limit"].(string) != "" {
-				configSet = append(configSet, setPrefix+"traffic-options sessions-per-client over-limit "+
-					trafficSessPerClient["over_limit"].(string))
-			}
-		} else {
+		trafficSessPerClient := v.(map[string]interface{})
+		if trafficSessPerClient["limit"].(int) != -1 {
+			configSet = append(configSet, setPrefix+"traffic-options sessions-per-client limit "+
+				strconv.Itoa(trafficSessPerClient["limit"].(int)))
+		}
+		if trafficSessPerClient["over_limit"].(string) != "" {
+			configSet = append(configSet, setPrefix+"traffic-options sessions-per-client over-limit "+
+				trafficSessPerClient["over_limit"].(string))
+		}
+		if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1],
+			setPrefix+"traffic-options sessions-per-client") {
 			return fmt.Errorf("traffic_sessions_per_client block is empty")
 		}
 	}

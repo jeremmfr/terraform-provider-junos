@@ -63,7 +63,7 @@ func resourceSnmpCommunity() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, FormatDefault),
+							ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
 						},
 						"client_list_name": {
 							Type:     schema.TypeString,
@@ -342,8 +342,7 @@ func readSnmpCommunity(name string, m interface{}, jnprSess *NetconfObject) (snm
 					"client_list_name": "",
 					"clients":          make([]string, 0),
 				}
-				mRoutingInstance, confRead.routingInstance = copyAndRemoveItemMapList(
-					"name", false, mRoutingInstance, confRead.routingInstance)
+				confRead.routingInstance = copyAndRemoveItemMapList("name", mRoutingInstance, confRead.routingInstance)
 				itemTrimRoutingInstance := strings.TrimPrefix(itemTrim, "routing-instance "+routingInstanceLineCut[1]+" ")
 				switch {
 				case strings.HasPrefix(itemTrimRoutingInstance, "client-list-name "):

@@ -1392,78 +1392,74 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 					"version":                            "",
 				})
 		}
+		parentEtherOptsBFDLiveDetect := confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]
 		itemTrimBfdLiveDet := strings.TrimPrefix(itemTrim, "bfd-liveness-detection ")
 		switch {
 		case strings.HasPrefix(itemTrimBfdLiveDet, "local-address "):
-			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["local_address"] =
-				strings.TrimPrefix(itemTrimBfdLiveDet, "local-address ")
+			parentEtherOptsBFDLiveDetect["local_address"] = strings.TrimPrefix(itemTrimBfdLiveDet, "local-address ")
 		case strings.HasPrefix(itemTrimBfdLiveDet, "authentication algorithm "):
-			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["authentication_algorithm"] =
+			parentEtherOptsBFDLiveDetect["authentication_algorithm"] =
 				strings.TrimPrefix(itemTrimBfdLiveDet, "authentication algorithm ")
 		case strings.HasPrefix(itemTrimBfdLiveDet, "authentication key-chain "):
-			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["authentication_key_chain"] =
+			parentEtherOptsBFDLiveDetect["authentication_key_chain"] =
 				strings.TrimPrefix(itemTrimBfdLiveDet, "authentication key-chain ")
 		case itemTrimBfdLiveDet == "authentication loose-check":
-			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["authentication_loose_check"] =
-				true
+			parentEtherOptsBFDLiveDetect["authentication_loose_check"] = true
 		case strings.HasPrefix(itemTrimBfdLiveDet, "detection-time threshold "):
 			var err error
-			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["detection_time_threshold"],
-				err = strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "detection-time threshold "))
+			parentEtherOptsBFDLiveDetect["detection_time_threshold"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "detection-time threshold "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "holddown-interval "):
 			var err error
-			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["holddown_interval"],
-				err = strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "holddown-interval "))
+			parentEtherOptsBFDLiveDetect["holddown_interval"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "holddown-interval "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "minimum-interval "):
 			var err error
-			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["minimum_interval"],
-				err = strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "minimum-interval "))
+			parentEtherOptsBFDLiveDetect["minimum_interval"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "minimum-interval "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "minimum-receive-interval "):
 			var err error
-			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["minimum_receive_interval"],
-				err = strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "minimum-receive-interval "))
+			parentEtherOptsBFDLiveDetect["minimum_receive_interval"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "minimum-receive-interval "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "multiplier "):
 			var err error
-			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["multiplier"],
-				err = strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "multiplier "))
+			parentEtherOptsBFDLiveDetect["multiplier"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "multiplier "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "neighbor "):
-			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["neighbor"] =
-				strings.TrimPrefix(itemTrimBfdLiveDet, "neighbor ")
+			parentEtherOptsBFDLiveDetect["neighbor"] = strings.TrimPrefix(itemTrimBfdLiveDet, "neighbor ")
 		case itemTrimBfdLiveDet == "no-adaptation":
-			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["no_adaptation"] =
-				true
+			parentEtherOptsBFDLiveDetect["no_adaptation"] = true
 		case strings.HasPrefix(itemTrimBfdLiveDet, "transmit-interval minimum-interval "):
 			var err error
-			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["transmit_interval_minimum_interval"], // nolint: lll
-				err = strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "transmit-interval minimum-interval "))
+			parentEtherOptsBFDLiveDetect["transmit_interval_minimum_interval"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "transmit-interval minimum-interval "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "transmit-interval threshold "):
 			var err error
-			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["transmit_interval_threshold"],
-				err = strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "transmit-interval threshold "))
+			parentEtherOptsBFDLiveDetect["transmit_interval_threshold"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "transmit-interval threshold "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "version "):
-			confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]["version"] =
-				strings.TrimPrefix(itemTrimBfdLiveDet, "version ")
+			parentEtherOptsBFDLiveDetect["version"] = strings.TrimPrefix(itemTrimBfdLiveDet, "version ")
 		}
 	case itemTrim == flowControlWords:
 		confRead.parentEtherOpts[0]["flow_control"] = true

@@ -61,6 +61,8 @@ func TestAccJunosSecurityNatSource_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_nat_source_pool.testacc_securitySNATPool",
 							"routing_instance", "testacc_securitySNAT"),
 						resource.TestCheckResourceAttr("junos_security_nat_source_pool.testacc_securitySNATPool",
+							"address_pooling", "paired"),
+						resource.TestCheckResourceAttr("junos_security_nat_source_pool.testacc_securitySNATPool",
 							"port_no_translation", "true"),
 						resource.TestCheckResourceAttr("junos_security_nat_source_pool.testacc_securitySNATPool",
 							"pool_utilization_alarm_raise_threshold", "80"),
@@ -79,6 +81,8 @@ func TestAccJunosSecurityNatSource_basic(t *testing.T) {
 							"rule.1.then.#", "1"),
 						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
 							"rule.1.then.0.type", "off"),
+						resource.TestCheckResourceAttr("junos_security_nat_source_pool.testacc_securitySNATPool",
+							"address_pooling", "no-paired"),
 						resource.TestCheckResourceAttr("junos_security_nat_source_pool.testacc_securitySNATPool",
 							"port_no_translation", "false"),
 						resource.TestCheckResourceAttr("junos_security_nat_source_pool.testacc_securitySNATPool",
@@ -124,6 +128,7 @@ resource junos_security_nat_source_pool testacc_securitySNATPool {
   name                                   = "testacc_securitySNATPool"
   address                                = ["192.0.2.1/32", "192.0.2.64/27"]
   routing_instance                       = junos_routing_instance.testacc_securitySNAT.name
+  address_pooling                        = "paired"
   port_no_translation                    = true
   pool_utilization_alarm_raise_threshold = 80
   pool_utilization_alarm_clear_threshold = 60
@@ -178,6 +183,7 @@ resource junos_security_nat_source_pool testacc_securitySNATPool {
   name                    = "testacc_securitySNATPool"
   address                 = ["192.0.2.1/32"]
   routing_instance        = junos_routing_instance.testacc_securitySNAT.name
+  address_pooling         = "no-paired"
   port_overloading_factor = 3
 }
 

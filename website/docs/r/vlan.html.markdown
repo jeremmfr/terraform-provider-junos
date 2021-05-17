@@ -46,8 +46,6 @@ The following arguments are supported:
   * `vni_extend_evpn` - (Optional)(`Bool`) Extend VNI to EVPN.
   * `unreachable_vtep_aging_timer` - (Optional)(`Int`) Unreachable VXLAN tunnel endpoint removal timer.
 
-
-
 ## Import
 
 Junos vlan can be imported using an id made up of `<name>`, e.g.

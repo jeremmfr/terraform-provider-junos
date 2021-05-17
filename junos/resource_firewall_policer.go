@@ -32,7 +32,7 @@ func resourceFirewallPolicer() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"filter_specific": {
 				Type:     schema.TypeBool,
@@ -343,53 +343,44 @@ func readFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject)
 			case itemTrim == "filter-specific":
 				confRead.filterSpecific = true
 			case strings.HasPrefix(itemTrim, "if-exceeding "):
-				ifExceeding := map[string]interface{}{
-					"bandwidth_percent": 0,
-					"bandwidth_limit":   "",
-					"burst_size_limit":  "",
-				}
-				if len(confRead.ifExceeding) > 0 {
-					for k, v := range confRead.ifExceeding[0] {
-						ifExceeding[k] = v
-					}
+				if len(confRead.ifExceeding) == 0 {
+					confRead.ifExceeding = append(confRead.ifExceeding, map[string]interface{}{
+						"bandwidth_percent": 0,
+						"bandwidth_limit":   "",
+						"burst_size_limit":  "",
+					})
 				}
 				switch {
 				case strings.HasPrefix(itemTrim, "if-exceeding bandwidth-percent "):
-					ifExceeding["bandwidth_percent"], err = strconv.Atoi(
+					confRead.ifExceeding[0]["bandwidth_percent"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrim, "if-exceeding bandwidth-percent "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "if-exceeding bandwidth-limit "):
-					ifExceeding["bandwidth_limit"] = strings.TrimPrefix(itemTrim, "if-exceeding bandwidth-limit ")
+					confRead.ifExceeding[0]["bandwidth_limit"] = strings.TrimPrefix(itemTrim, "if-exceeding bandwidth-limit ")
 				case strings.HasPrefix(itemTrim, "if-exceeding burst-size-limit "):
-					ifExceeding["burst_size_limit"] = strings.TrimPrefix(itemTrim, "if-exceeding burst-size-limit ")
+					confRead.ifExceeding[0]["burst_size_limit"] = strings.TrimPrefix(itemTrim, "if-exceeding burst-size-limit ")
 				}
-				// override (maxItem = 1)
-				confRead.ifExceeding = []map[string]interface{}{ifExceeding}
 			case strings.HasPrefix(itemTrim, "then "):
-				then := map[string]interface{}{
-					"discard":          false,
-					"forwarding_class": "",
-					"loss_priority":    "",
-					"out_of_profile":   false,
-				}
-				if len(confRead.then) > 0 {
-					for k, v := range confRead.then[0] {
-						then[k] = v
-					}
+				if len(confRead.then) == 0 {
+					confRead.then = append(confRead.then, map[string]interface{}{
+						"discard":          false,
+						"forwarding_class": "",
+						"loss_priority":    "",
+						"out_of_profile":   false,
+					})
 				}
 				switch {
 				case itemTrim == "then discard":
-					then["discard"] = true
+					confRead.then[0]["discard"] = true
 				case strings.HasPrefix(itemTrim, "then forwarding-class "):
-					then["forwarding_class"] = strings.TrimPrefix(itemTrim, "then forwarding-class ")
+					confRead.then[0]["forwarding_class"] = strings.TrimPrefix(itemTrim, "then forwarding-class ")
 				case strings.HasPrefix(itemTrim, "then loss-priority "):
-					then["loss_priority"] = strings.TrimPrefix(itemTrim, "then loss-priority ")
+					confRead.then[0]["loss_priority"] = strings.TrimPrefix(itemTrim, "then loss-priority ")
 				case itemTrim == "then out-of-profile":
-					then["out_of_profile"] = true
+					confRead.then[0]["out_of_profile"] = true
 				}
-				confRead.then = []map[string]interface{}{then}
 			}
 		}
 	}

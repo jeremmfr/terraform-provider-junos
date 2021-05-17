@@ -42,7 +42,7 @@ func resourceIkeGateway() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, formatDefault),
 			},
 			"external_interface": {
 				Type:     schema.TypeString,
@@ -160,7 +160,7 @@ func resourceIkeGateway() *schema.Resource {
 						"access_profile": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 							ConflictsWith: []string{
 								"aaa.0.client_password",
 								"aaa.0.client_username",
@@ -678,68 +678,51 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 					confRead.aaa[0]["client_username"] = strings.TrimPrefix(itemTrim, "aaa client username ")
 				}
 			case strings.HasPrefix(itemTrim, "dead-peer-detection"):
-				deadPeerOptions := map[string]interface{}{
-					"interval":  0,
-					"send_mode": "",
-					"threshold": 0,
-				}
-				if len(confRead.deadPeerDetection) > 0 {
-					for k, v := range confRead.deadPeerDetection[0] {
-						deadPeerOptions[k] = v
-					}
+				if len(confRead.deadPeerDetection) == 0 {
+					confRead.deadPeerDetection = append(confRead.deadPeerDetection, map[string]interface{}{
+						"interval":  0,
+						"send_mode": "",
+						"threshold": 0,
+					})
 				}
 				switch {
 				case strings.HasPrefix(itemTrim, "dead-peer-detection interval "):
-					deadPeerOptions["interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
+					confRead.deadPeerDetection[0]["interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 						"dead-peer-detection interval "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasSuffix(itemTrim, " always-send"):
-					deadPeerOptions["send_mode"] = "always-send"
+					confRead.deadPeerDetection[0]["send_mode"] = "always-send"
 				case strings.HasSuffix(itemTrim, " optimized"):
-					deadPeerOptions["send_mode"] = "optimized"
+					confRead.deadPeerDetection[0]["send_mode"] = "optimized"
 				case strings.HasSuffix(itemTrim, " probe-idle-tunnel"):
-					deadPeerOptions["send_mode"] = "probe-idle-tunnel"
+					confRead.deadPeerDetection[0]["send_mode"] = "probe-idle-tunnel"
 				case strings.HasPrefix(itemTrim, "dead-peer-detection threshold "):
-					deadPeerOptions["threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
+					confRead.deadPeerDetection[0]["threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 						"dead-peer-detection threshold "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				}
-				// override (maxItem = 1)
-				confRead.deadPeerDetection = []map[string]interface{}{deadPeerOptions}
 			case itemTrim == "general-ikeid":
 				confRead.generalIkeid = true
 			case strings.HasPrefix(itemTrim, "local-address "):
 				confRead.localAddress = strings.TrimPrefix(itemTrim, "local-address ")
 			case strings.HasPrefix(itemTrim, "local-identity "):
-				localIdentityOptions := map[string]interface{}{
-					"type":  "",
-					"value": "",
-				}
-				readLocalIdentity := strings.TrimPrefix(itemTrim, "local-identity ")
-				readLocalIdentityList := strings.Split(readLocalIdentity, " ")
-				localIdentityOptions["type"] = readLocalIdentityList[0]
-				if len(readLocalIdentityList) > 1 {
-					localIdentityOptions["value"] = readLocalIdentityList[1]
-				}
-				// override (maxItem = 1)
-				confRead.localIdentity = []map[string]interface{}{localIdentityOptions}
+				readLocalIdentityList := strings.Split(strings.TrimPrefix(itemTrim, "local-identity "), " ")
+				confRead.localIdentity = append(confRead.localIdentity, map[string]interface{}{
+					"type":  readLocalIdentityList[0],
+					"value": readLocalIdentityList[1],
+				})
 			case itemTrim == "no-nat-traversal":
 				confRead.noNatTraversal = true
 			case strings.HasPrefix(itemTrim, "remote-identity "):
-				remoteIdentityOptions := map[string]interface{}{
-					"type":  "",
-					"value": "",
-				}
-				readRemoteIdentity := strings.TrimPrefix(itemTrim, "remote-identity ")
-				readRemoteIdentityList := strings.Split(readRemoteIdentity, " ")
-				remoteIdentityOptions["type"] = readRemoteIdentityList[0]
-				remoteIdentityOptions["value"] = readRemoteIdentityList[1]
-				// override (maxItem = 1)
-				confRead.remoteIdentity = []map[string]interface{}{remoteIdentityOptions}
+				readRemoteIdentityList := strings.Split(strings.TrimPrefix(itemTrim, "remote-identity "), " ")
+				confRead.remoteIdentity = append(confRead.remoteIdentity, map[string]interface{}{
+					"type":  readRemoteIdentityList[0],
+					"value": readRemoteIdentityList[1],
+				})
 			case strings.HasPrefix(itemTrim, "version "):
 				confRead.version = strings.TrimPrefix(itemTrim, "version ")
 			}

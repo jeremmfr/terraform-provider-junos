@@ -103,7 +103,7 @@ func resourceSecurityLogStream() *schema.Resource {
 						"routing_instance": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, FormatDefault),
+							ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
 						},
 					},
 				},

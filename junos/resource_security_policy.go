@@ -30,13 +30,13 @@ func resourceSecurityPolicy() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"to_zone": {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"policy": {
 				Type:     schema.TypeList,
@@ -46,7 +46,7 @@ func resourceSecurityPolicy() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 						},
 						"match_source_address": {
 							Type:     schema.TypeList,
@@ -96,12 +96,21 @@ func resourceSecurityPolicy() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+						"match_source_end_user_profile": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "profile can also be named device identity profile",
+						},
 						"permit_application_services": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"advanced_anti_malware_policy": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
 									"application_firewall_rule_set": {
 										Type:     schema.TypeString,
 										Optional: true,
@@ -415,6 +424,9 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		if policy["match_source_address_excluded"].(bool) {
 			configSet = append(configSet, setPrefixPolicy+" match source-address-excluded")
 		}
+		if v := policy["match_source_end_user_profile"].(string); v != "" {
+			configSet = append(configSet, setPrefixPolicy+" match source-end-user-profile \""+v+"\"")
+		}
 		if policy["permit_tunnel_ipsec_vpn"].(string) != "" {
 			if policy["then"].(string) != permitWord {
 				return fmt.Errorf("conflict policy then %v and policy permit_tunnel_ipsec_vpn",
@@ -471,7 +483,7 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 			if strings.Contains(itemTrim, " match ") || strings.Contains(itemTrim, " then ") {
 				policyLineCut := strings.Split(itemTrim, " ")
 				policy := genMapPolicyWithName(policyLineCut[1])
-				policy, policyList = copyAndRemoveItemMapList("name", false, policy, policyList)
+				policyList = copyAndRemoveItemMapList("name", policy, policyList)
 				itemTrimPolicy := strings.TrimPrefix(itemTrim, "policy "+policyLineCut[1]+" ")
 				switch {
 				case strings.HasPrefix(itemTrimPolicy, "match source-address "):
@@ -490,6 +502,9 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 						strings.TrimPrefix(itemTrimPolicy, "match dynamic-application "))
 				case strings.HasPrefix(itemTrimPolicy, "match source-address-excluded"):
 					policy["match_source_address_excluded"] = true
+				case strings.HasPrefix(itemTrimPolicy, "match source-end-user-profile "):
+					policy["match_source_end_user_profile"] = strings.Trim(strings.TrimPrefix(
+						itemTrimPolicy, "match source-end-user-profile "), "\"")
 				case strings.HasPrefix(itemTrimPolicy, "then "):
 					switch {
 					case strings.HasSuffix(itemTrimPolicy, permitWord),
@@ -508,8 +523,26 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 							"then permit tunnel ipsec-vpn ")
 					case strings.HasPrefix(itemTrimPolicy, "then permit application-services"):
 						policy["then"] = permitWord
-						policy["permit_application_services"] = readPolicyPermitApplicationServices(itemTrimPolicy,
-							policy["permit_application_services"])
+						if len(policy["permit_application_services"].([]map[string]interface{})) == 0 {
+							policy["permit_application_services"] = append(
+								policy["permit_application_services"].([]map[string]interface{}),
+								map[string]interface{}{
+									"advanced_anti_malware_policy":         "",
+									"application_firewall_rule_set":        "",
+									"application_traffic_control_rule_set": "",
+									"gprs_gtp_profile":                     "",
+									"gprs_sctp_profile":                    "",
+									"idp":                                  false,
+									"redirect_wx":                          false,
+									"reverse_redirect_wx":                  false,
+									"security_intelligence_policy":         "",
+									"ssl_proxy":                            make([]map[string]interface{}, 0, 1),
+									"uac_policy":                           make([]map[string]interface{}, 0, 1),
+									"utm_policy":                           "",
+								})
+						}
+						readPolicyPermitApplicationServices(itemTrimPolicy,
+							policy["permit_application_services"].([]map[string]interface{})[0])
 					}
 				}
 				policyList = append(policyList, policy)
@@ -554,33 +587,18 @@ func genMapPolicyWithName(name string) map[string]interface{} {
 		"match_destination_address_excluded": false,
 		"match_dynamic_application":          make([]string, 0),
 		"match_source_address_excluded":      false,
+		"match_source_end_user_profile":      "",
 		"permit_application_services":        make([]map[string]interface{}, 0),
 		"permit_tunnel_ipsec_vpn":            "",
 	}
 }
 
-func readPolicyPermitApplicationServices(itemTrimPolicy string,
-	permitApplicationServices interface{}) []map[string]interface{} {
-	applicationServices := map[string]interface{}{
-		"application_firewall_rule_set":        "",
-		"application_traffic_control_rule_set": "",
-		"gprs_gtp_profile":                     "",
-		"gprs_sctp_profile":                    "",
-		"idp":                                  false,
-		"redirect_wx":                          false,
-		"reverse_redirect_wx":                  false,
-		"security_intelligence_policy":         "",
-		"ssl_proxy":                            make([]map[string]interface{}, 0, 1),
-		"uac_policy":                           make([]map[string]interface{}, 0, 1),
-		"utm_policy":                           "",
-	}
-	if len(permitApplicationServices.([]map[string]interface{})) > 0 {
-		for k, v := range permitApplicationServices.([]map[string]interface{})[0] {
-			applicationServices[k] = v
-		}
-	}
+func readPolicyPermitApplicationServices(itemTrimPolicy string, applicationServices map[string]interface{}) {
 	itemTrimPolicyPermitAppSvc := strings.TrimPrefix(itemTrimPolicy, "then permit application-services ")
 	switch {
+	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "advanced-anti-malware-policy "):
+		applicationServices["advanced_anti_malware_policy"] = strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
+			"advanced-anti-malware-policy "), "\"")
 	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "application-firewall rule-set "):
 		applicationServices["application_firewall_rule_set"] = strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
 			"application-firewall rule-set "), "\"")
@@ -629,15 +647,15 @@ func readPolicyPermitApplicationServices(itemTrimPolicy string,
 	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "utm-policy "):
 		applicationServices["utm_policy"] = strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc, "utm-policy "), "\"")
 	}
-
-	// override (maxItem = 1)
-	return []map[string]interface{}{applicationServices}
 }
 
 func setPolicyPermitApplicationServices(setPrefixPolicy string,
 	policyPermitApplicationServices map[string]interface{}) ([]string, error) {
 	configSet := make([]string, 0)
 	setPrefixPolicyPermitAppSvc := setPrefixPolicy + " then permit application-services"
+	if v := policyPermitApplicationServices["advanced_anti_malware_policy"].(string); v != "" {
+		configSet = append(configSet, setPrefixPolicyPermitAppSvc+" advanced-anti-malware-policy \""+v+"\"")
+	}
 	if policyPermitApplicationServices["application_firewall_rule_set"].(string) != "" {
 		configSet = append(configSet, setPrefixPolicyPermitAppSvc+
 			" application-firewall rule-set \""+

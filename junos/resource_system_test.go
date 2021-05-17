@@ -71,6 +71,16 @@ func TestAccJunosSystem_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"internet_options.0.tcp_mss", "1400"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"license.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"license.0.autoupdate_password", "some_password"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"license.0.autoupdate_url", "some_url"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"license.0.renew_interval", "24"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"license.0.renew_before_expiration", "30"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"login.#", "1"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"login.0.deny_sources_address.#", "1"),
@@ -144,6 +154,24 @@ func TestAccJunosSystem_basic(t *testing.T) {
 							"services.0.ssh.0.root_login", "deny"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"services.0.ssh.0.tcp_forwarding", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management_http.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management_http.0.interface.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management_http.0.interface.0", "fxp0.0"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management_http.0.port", "80"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management_https.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management_https.0.port", "443"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management_https.0.system_generated_certificate", "true"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management_https.0.interface.#", "1"),
+						resource.TestCheckResourceAttr("junos_system.testacc_system",
+							"services.0.web_management_https.0.interface.0", "fxp0.0"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"syslog.#", "1"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
@@ -253,6 +281,13 @@ resource junos_system "testacc_system" {
     tcp_drop_synfin_set                     = true
     tcp_mss                                 = 1400
   }
+  license {
+    autoupdate              = true
+    autoupdate_password     = "some_password"
+    autoupdate_url          = "some_url"
+    renew_interval          = 24
+    renew_before_expiration = 30
+  }
   login {
     announcement         = "test announce"
     deny_sources_address = ["127.0.0.1"]
@@ -307,6 +342,15 @@ resource junos_system "testacc_system" {
       root_login                     = "deny"
       tcp_forwarding                 = true
     }
+    web_management_http {
+      interface = ["fxp0.0"]
+      port      = 80
+    }
+    web_management_https {
+      interface                    = ["fxp0.0"]
+      system_generated_certificate = true
+      port                         = 443
+    }
   }
   syslog {
     archive {
@@ -344,6 +388,10 @@ resource junos_system "testacc_system" {
     ssh {
       ciphers           = ["aes256-ctr"]
       no_tcp_forwarding = true
+    }
+    web_management_http {}
+    web_management_https {
+      system_generated_certificate = true
     }
   }
   syslog {

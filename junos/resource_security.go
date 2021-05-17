@@ -18,6 +18,7 @@ type securityOptions struct {
 	forwardingProcess []map[string]interface{}
 	log               []map[string]interface{}
 	ikeTraceoptions   []map[string]interface{}
+	policies          []map[string]interface{}
 	utm               []map[string]interface{}
 }
 
@@ -581,6 +582,25 @@ func resourceSecurity() *schema.Resource {
 					},
 				},
 			},
+			"policies": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"policy_rematch": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"policies.0.policy_rematch_extensive"},
+						},
+						"policy_rematch_extensive": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"policies.0.policy_rematch"},
+						},
+					},
+				},
+			},
 			"utm": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -794,6 +814,19 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		}
 		configSet = append(configSet, configSetLog...)
 	}
+	for _, v := range d.Get("policies").([]interface{}) {
+		if v != nil {
+			policies := v.(map[string]interface{})
+			if policies["policy_rematch"].(bool) {
+				configSet = append(configSet, setPrefix+"policies policy-rematch")
+			}
+			if policies["policy_rematch_extensive"].(bool) {
+				configSet = append(configSet, setPrefix+"policies policy-rematch extensive")
+			}
+		} else {
+			return fmt.Errorf("policies block is empty")
+		}
+	}
 	for _, v := range d.Get("utm").([]interface{}) {
 		if v != nil {
 			utm := v.(map[string]interface{})
@@ -906,21 +939,20 @@ func setSecurityFlow(flow interface{}) ([]string, error) { // nolint: gocognit
 			}
 		}
 		for _, v := range flowM["aging"].([]interface{}) {
-			if v != nil {
-				aging := v.(map[string]interface{})
-				if aging["early_ageout"].(int) != 0 {
-					configSet = append(configSet, setPrefix+"aging early-ageout "+
-						strconv.Itoa(aging["early_ageout"].(int)))
-				}
-				if aging["high_watermark"].(int) != -1 {
-					configSet = append(configSet, setPrefix+"aging high-watermark "+
-						strconv.Itoa(aging["high_watermark"].(int)))
-				}
-				if aging["low_watermark"].(int) != -1 {
-					configSet = append(configSet, setPrefix+"aging low-watermark "+
-						strconv.Itoa(aging["low_watermark"].(int)))
-				}
-			} else {
+			aging := v.(map[string]interface{})
+			if aging["early_ageout"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"aging early-ageout "+
+					strconv.Itoa(aging["early_ageout"].(int)))
+			}
+			if aging["high_watermark"].(int) != -1 {
+				configSet = append(configSet, setPrefix+"aging high-watermark "+
+					strconv.Itoa(aging["high_watermark"].(int)))
+			}
+			if aging["low_watermark"].(int) != -1 {
+				configSet = append(configSet, setPrefix+"aging low-watermark "+
+					strconv.Itoa(aging["low_watermark"].(int)))
+			}
+			if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefix+"aging ") {
 				return configSet, fmt.Errorf("flow aging block is empty")
 			}
 		}
@@ -1112,51 +1144,50 @@ func setSecurityForwOpts(forwOpts interface{}) ([]string, error) {
 func setSecurityIkeTraceOpts(ikeTrace interface{}) ([]string, error) {
 	setPrefix := "set security ike traceoptions "
 	configSet := make([]string, 0)
-	if ikeTrace != nil {
-		ikeTraceM := ikeTrace.(map[string]interface{})
-		for _, v := range ikeTraceM["file"].([]interface{}) {
-			if v != nil {
-				ikeTraceFile := v.(map[string]interface{})
-				if ikeTraceFile["name"].(string) != "" {
-					configSet = append(configSet, setPrefix+"file "+
-						ikeTraceFile["name"].(string))
-				}
-				if ikeTraceFile["files"].(int) > 0 {
-					configSet = append(configSet, setPrefix+"file files "+
-						strconv.Itoa(ikeTraceFile["files"].(int)))
-				}
-				if ikeTraceFile["match"].(string) != "" {
-					configSet = append(configSet, setPrefix+"file match \""+
-						ikeTraceFile["match"].(string)+"\"")
-				}
-				if ikeTraceFile["size"].(int) > 0 {
-					configSet = append(configSet, setPrefix+"file size "+
-						strconv.Itoa(ikeTraceFile["size"].(int)))
-				}
-				if ikeTraceFile["world_readable"].(bool) && ikeTraceFile["no_world_readable"].(bool) {
-					return configSet, fmt.Errorf("conflict between 'world_readable' and 'no_world_readable' for ike_traceoptions file")
-				}
-				if ikeTraceFile["world_readable"].(bool) {
-					configSet = append(configSet, setPrefix+"file world-readable")
-				}
-				if ikeTraceFile["no_world_readable"].(bool) {
-					configSet = append(configSet, setPrefix+"file no-world-readable")
-				}
-			} else {
-				return configSet, fmt.Errorf("ike_traceoptions file block is empty")
+	ikeTraceM := ikeTrace.(map[string]interface{})
+	for _, v := range ikeTraceM["file"].([]interface{}) {
+		if v != nil {
+			ikeTraceFile := v.(map[string]interface{})
+			if ikeTraceFile["name"].(string) != "" {
+				configSet = append(configSet, setPrefix+"file "+
+					ikeTraceFile["name"].(string))
 			}
+			if ikeTraceFile["files"].(int) > 0 {
+				configSet = append(configSet, setPrefix+"file files "+
+					strconv.Itoa(ikeTraceFile["files"].(int)))
+			}
+			if ikeTraceFile["match"].(string) != "" {
+				configSet = append(configSet, setPrefix+"file match \""+
+					ikeTraceFile["match"].(string)+"\"")
+			}
+			if ikeTraceFile["size"].(int) > 0 {
+				configSet = append(configSet, setPrefix+"file size "+
+					strconv.Itoa(ikeTraceFile["size"].(int)))
+			}
+			if ikeTraceFile["world_readable"].(bool) && ikeTraceFile["no_world_readable"].(bool) {
+				return configSet, fmt.Errorf("conflict between 'world_readable' and 'no_world_readable' for ike_traceoptions file")
+			}
+			if ikeTraceFile["world_readable"].(bool) {
+				configSet = append(configSet, setPrefix+"file world-readable")
+			}
+			if ikeTraceFile["no_world_readable"].(bool) {
+				configSet = append(configSet, setPrefix+"file no-world-readable")
+			}
+		} else {
+			return configSet, fmt.Errorf("ike_traceoptions file block is empty")
 		}
-		for _, ikeTraceFlag := range ikeTraceM["flag"].([]interface{}) {
-			configSet = append(configSet, setPrefix+"flag "+ikeTraceFlag.(string))
-		}
-		if ikeTraceM["no_remote_trace"].(bool) {
-			configSet = append(configSet, setPrefix+"no-remote-trace")
-		}
-		if ikeTraceM["rate_limit"].(int) > -1 {
-			configSet = append(configSet, setPrefix+"rate-limit "+
-				strconv.Itoa(ikeTraceM["rate_limit"].(int)))
-		}
-	} else {
+	}
+	for _, ikeTraceFlag := range ikeTraceM["flag"].([]interface{}) {
+		configSet = append(configSet, setPrefix+"flag "+ikeTraceFlag.(string))
+	}
+	if ikeTraceM["no_remote_trace"].(bool) {
+		configSet = append(configSet, setPrefix+"no-remote-trace")
+	}
+	if ikeTraceM["rate_limit"].(int) > -1 {
+		configSet = append(configSet, setPrefix+"rate-limit "+
+			strconv.Itoa(ikeTraceM["rate_limit"].(int)))
+	}
+	if len(configSet) == 0 {
 		return configSet, fmt.Errorf("ike_traceoptions block is empty")
 	}
 
@@ -1166,76 +1197,75 @@ func setSecurityIkeTraceOpts(ikeTrace interface{}) ([]string, error) {
 func setSecurityLog(log interface{}) ([]string, error) {
 	setPrefix := "set security log "
 	configSet := make([]string, 0)
-	if log != nil {
-		logM := log.(map[string]interface{})
-		if logM["disable"].(bool) {
-			configSet = append(configSet, setPrefix+"disable")
+	logM := log.(map[string]interface{})
+	if logM["disable"].(bool) {
+		configSet = append(configSet, setPrefix+"disable")
+	}
+	if logM["event_rate"].(int) != -1 {
+		configSet = append(configSet, setPrefix+"event-rate "+strconv.Itoa(logM["event_rate"].(int)))
+	}
+	if logM["facility_override"].(string) != "" {
+		configSet = append(configSet, setPrefix+"facility-override "+logM["facility_override"].(string))
+	}
+	for _, v := range logM["file"].([]interface{}) {
+		if v != nil {
+			file := v.(map[string]interface{})
+			if file["files"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"file files "+strconv.Itoa(file["files"].(int)))
+			}
+			if file["name"].(string) != "" {
+				configSet = append(configSet, setPrefix+"file name "+file["name"].(string))
+			}
+			if file["path"].(string) != "" {
+				configSet = append(configSet, setPrefix+"file path "+file["path"].(string))
+			}
+			if file["size"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"file size "+strconv.Itoa(file["size"].(int)))
+			}
+		} else {
+			return configSet, fmt.Errorf("log file block is empty")
 		}
-		if logM["event_rate"].(int) != -1 {
-			configSet = append(configSet, setPrefix+"event-rate "+strconv.Itoa(logM["event_rate"].(int)))
-		}
-		if logM["facility_override"].(string) != "" {
-			configSet = append(configSet, setPrefix+"facility-override "+logM["facility_override"].(string))
-		}
-		for _, v := range logM["file"].([]interface{}) {
-			if v != nil {
-				file := v.(map[string]interface{})
-				if file["files"].(int) != 0 {
-					configSet = append(configSet, setPrefix+"file files "+strconv.Itoa(file["files"].(int)))
-				}
-				if file["name"].(string) != "" {
-					configSet = append(configSet, setPrefix+"file name "+file["name"].(string))
-				}
-				if file["path"].(string) != "" {
-					configSet = append(configSet, setPrefix+"file path "+file["path"].(string))
-				}
-				if file["size"].(int) != 0 {
-					configSet = append(configSet, setPrefix+"file size "+strconv.Itoa(file["size"].(int)))
-				}
-			} else {
-				return configSet, fmt.Errorf("log file block is empty")
+	}
+	if logM["format"].(string) != "" {
+		configSet = append(configSet, setPrefix+"format "+logM["format"].(string))
+	}
+	if logM["max_database_record"].(int) != -1 {
+		configSet = append(configSet, setPrefix+"max-database-record "+strconv.Itoa(logM["max_database_record"].(int)))
+	}
+	if logM["mode"].(string) != "" {
+		configSet = append(configSet, setPrefix+"mode "+logM["mode"].(string))
+	}
+	if logM["rate_cap"].(int) != -1 {
+		configSet = append(configSet, setPrefix+"rate-cap "+strconv.Itoa(logM["rate_cap"].(int)))
+	}
+	if logM["report"].(bool) {
+		configSet = append(configSet, setPrefix+"report")
+	}
+	if logM["source_address"].(string) != "" {
+		configSet = append(configSet, setPrefix+"source-address "+logM["source_address"].(string))
+	}
+	if logM["source_interface"].(string) != "" {
+		configSet = append(configSet, setPrefix+"source-interface "+logM["source_interface"].(string))
+	}
+	for _, v := range logM["transport"].([]interface{}) {
+		configSet = append(configSet, setPrefix+"transport")
+		if v != nil {
+			trans := v.(map[string]interface{})
+			if trans["protocol"].(string) != "" {
+				configSet = append(configSet, setPrefix+"transport protocol "+trans["protocol"].(string))
+			}
+			if trans["tcp_connections"].(int) != 0 {
+				configSet = append(configSet, setPrefix+"transport tcp-connections "+strconv.Itoa(trans["tcp_connections"].(int)))
+			}
+			if trans["tls_profile"].(string) != "" {
+				configSet = append(configSet, setPrefix+"transport tls-profile "+trans["tls_profile"].(string))
 			}
 		}
-		if logM["format"].(string) != "" {
-			configSet = append(configSet, setPrefix+"format "+logM["format"].(string))
-		}
-		if logM["max_database_record"].(int) != -1 {
-			configSet = append(configSet, setPrefix+"max-database-record "+strconv.Itoa(logM["max_database_record"].(int)))
-		}
-		if logM["mode"].(string) != "" {
-			configSet = append(configSet, setPrefix+"mode "+logM["mode"].(string))
-		}
-		if logM["rate_cap"].(int) != -1 {
-			configSet = append(configSet, setPrefix+"rate-cap "+strconv.Itoa(logM["rate_cap"].(int)))
-		}
-		if logM["report"].(bool) {
-			configSet = append(configSet, setPrefix+"report")
-		}
-		if logM["source_address"].(string) != "" {
-			configSet = append(configSet, setPrefix+"source-address "+logM["source_address"].(string))
-		}
-		if logM["source_interface"].(string) != "" {
-			configSet = append(configSet, setPrefix+"source-interface "+logM["source_interface"].(string))
-		}
-		for _, v := range logM["transport"].([]interface{}) {
-			configSet = append(configSet, setPrefix+"transport")
-			if v != nil {
-				trans := v.(map[string]interface{})
-				if trans["protocol"].(string) != "" {
-					configSet = append(configSet, setPrefix+"transport protocol "+trans["protocol"].(string))
-				}
-				if trans["tcp_connections"].(int) != 0 {
-					configSet = append(configSet, setPrefix+"transport tcp-connections "+strconv.Itoa(trans["tcp_connections"].(int)))
-				}
-				if trans["tls_profile"].(string) != "" {
-					configSet = append(configSet, setPrefix+"transport tls-profile "+trans["tls_profile"].(string))
-				}
-			}
-		}
-		if logM["utc_timestamp"].(bool) {
-			configSet = append(configSet, setPrefix+"utc-timestamp")
-		}
-	} else {
+	}
+	if logM["utc_timestamp"].(bool) {
+		configSet = append(configSet, setPrefix+"utc-timestamp")
+	}
+	if len(configSet) == 0 {
 		return configSet, fmt.Errorf("log block is empty")
 	}
 
@@ -1315,6 +1345,12 @@ func listLinesSecurityLog() []string {
 	}
 }
 
+func listLinesSecurityPolicies() []string {
+	return []string{
+		"policies policy-rematch",
+	}
+}
+
 func listLinesSecurityUtm() []string {
 	return []string{
 		"utm feature-profile web-filtering type",
@@ -1331,6 +1367,7 @@ func delSecurity(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityForwardingOptions()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityForwardingProcess()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityLog()...)
+	listLinesToDelete = append(listLinesToDelete, listLinesSecurityPolicies()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityUtm()...)
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -1389,6 +1426,19 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 				err := readSecurityIkeTraceOptions(&confRead, itemTrim)
 				if err != nil {
 					return confRead, err
+				}
+			case checkStringHasPrefixInList(itemTrim, listLinesSecurityPolicies()):
+				if len(confRead.policies) == 0 {
+					confRead.policies = append(confRead.policies, map[string]interface{}{
+						"policy_rematch":           false,
+						"policy_rematch_extensive": false,
+					})
+				}
+				if itemTrim == "policies policy-rematch" {
+					confRead.policies[0]["policy_rematch"] = true
+				}
+				if itemTrim == "policies policy-rematch extensive" {
+					confRead.policies[0]["policy_rematch_extensive"] = true
 				}
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityUtm()):
 				err := readSecurityUtm(&confRead, itemTrim)
@@ -1556,23 +1606,23 @@ func readSecurityFlow(confRead *securityOptions, itemTrimFlow string) error {
 					"no_packet_flooding":    make([]map[string]interface{}, 0),
 				})
 		}
+		flowEthernetSwitching := confRead.flow[0]["ethernet_switching"].([]map[string]interface{})[0]
 		switch {
 		case itemTrim == "ethernet-switching block-non-ip-all":
-			confRead.flow[0]["ethernet_switching"].([]map[string]interface{})[0]["block_non_ip_all"] = true
+			flowEthernetSwitching["block_non_ip_all"] = true
 		case itemTrim == "ethernet-switching bypass-non-ip-unicast":
-			confRead.flow[0]["ethernet_switching"].([]map[string]interface{})[0]["bypass_non_ip_unicast"] = true
+			flowEthernetSwitching["bypass_non_ip_unicast"] = true
 		case itemTrim == "ethernet-switching bpdu-vlan-flooding":
-			confRead.flow[0]["ethernet_switching"].([]map[string]interface{})[0]["bpdu_vlan_flooding"] = true
+			flowEthernetSwitching["bpdu_vlan_flooding"] = true
 		case strings.HasPrefix(itemTrim, "ethernet-switching no-packet-flooding"):
-			if len(confRead.flow[0]["ethernet_switching"].([]map[string]interface{})[0]["no_packet_flooding"].([]map[string]interface{})) == 0 { // nolint: lll
-				confRead.flow[0]["ethernet_switching"].([]map[string]interface{})[0]["no_packet_flooding"] = append(
-					confRead.flow[0]["ethernet_switching"].([]map[string]interface{})[0]["no_packet_flooding"].([]map[string]interface{}), // nolint: lll
-					map[string]interface{}{
+			if len(flowEthernetSwitching["no_packet_flooding"].([]map[string]interface{})) == 0 {
+				flowEthernetSwitching["no_packet_flooding"] = append(
+					flowEthernetSwitching["no_packet_flooding"].([]map[string]interface{}), map[string]interface{}{
 						"no_trace_route": false,
 					})
 			}
 			if itemTrim == "ethernet-switching no-packet-flooding no-trace-route" {
-				confRead.flow[0]["ethernet_switching"].([]map[string]interface{})[0]["no_packet_flooding"].([]map[string]interface{})[0]["no_trace_route"] = true // nolint: lll
+				flowEthernetSwitching["no_packet_flooding"].([]map[string]interface{})[0]["no_trace_route"] = true
 			}
 		}
 	case itemTrim == "force-ip-reassembly":
@@ -1679,35 +1729,34 @@ func readSecurityFlow(confRead *securityOptions, itemTrimFlow string) error {
 					"time_wait_state":        make([]map[string]interface{}, 0),
 				})
 		}
+		flowTCPSession := confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]
 		switch {
 		case itemTrim == "tcp-session fin-invalidate-session":
-			confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["fin_invalidate_session"] = true
+			flowTCPSession["fin_invalidate_session"] = true
 		case strings.HasPrefix(itemTrim, "tcp-session maximum-window "):
-			confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["maximum_window"] =
-				strings.TrimPrefix(itemTrim, "tcp-session maximum-window ")
+			flowTCPSession["maximum_window"] = strings.TrimPrefix(itemTrim, "tcp-session maximum-window ")
 		case itemTrim == "tcp-session no-sequence-check":
-			confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["no_sequence_check"] = true
+			flowTCPSession["no_sequence_check"] = true
 		case itemTrim == "tcp-session no-syn-check":
-			confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["no_syn_check"] = true
+			flowTCPSession["no_syn_check"] = true
 		case itemTrim == "tcp-session no-syn-check-in-tunnel":
-			confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["no_syn_check_in_tunnel"] = true
+			flowTCPSession["no_syn_check_in_tunnel"] = true
 		case itemTrim == "tcp-session rst-invalidate-session":
-			confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["rst_invalidate_session"] = true
+			flowTCPSession["rst_invalidate_session"] = true
 		case itemTrim == "tcp-session rst-sequence-check":
-			confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["rst_sequence_check"] = true
+			flowTCPSession["rst_sequence_check"] = true
 		case itemTrim == "tcp-session strict-syn-check":
-			confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["strict_syn_check"] = true
+			flowTCPSession["strict_syn_check"] = true
 		case strings.HasPrefix(itemTrim, "tcp-session tcp-initial-timeout "):
 			var err error
-			confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["tcp_initial_timeout"], err =
+			flowTCPSession["tcp_initial_timeout"], err =
 				strconv.Atoi(strings.TrimPrefix(itemTrim, "tcp-session tcp-initial-timeout "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "tcp-session time-wait-state"):
-			if len(confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["time_wait_state"].([]map[string]interface{})) == 0 { // nolint: lll
-				confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["time_wait_state"] = append(
-					confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["time_wait_state"].([]map[string]interface{}),
+			if len(flowTCPSession["time_wait_state"].([]map[string]interface{})) == 0 {
+				flowTCPSession["time_wait_state"] = append(flowTCPSession["time_wait_state"].([]map[string]interface{}),
 					map[string]interface{}{
 						"apply_to_half_close_state": false,
 						"session_ageout":            false,
@@ -1716,12 +1765,12 @@ func readSecurityFlow(confRead *securityOptions, itemTrimFlow string) error {
 			}
 			switch {
 			case itemTrim == "tcp-session time-wait-state apply-to-half-close-state":
-				confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["time_wait_state"].([]map[string]interface{})[0]["apply_to_half_close_state"] = true // nolint: lll
+				flowTCPSession["time_wait_state"].([]map[string]interface{})[0]["apply_to_half_close_state"] = true
 			case itemTrim == "tcp-session time-wait-state session-ageout":
-				confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["time_wait_state"].([]map[string]interface{})[0]["session_ageout"] = true // nolint: lll
+				flowTCPSession["time_wait_state"].([]map[string]interface{})[0]["session_ageout"] = true
 			case strings.HasPrefix(itemTrim, "tcp-session time-wait-state session-timeout "):
 				var err error
-				confRead.flow[0]["tcp_session"].([]map[string]interface{})[0]["time_wait_state"].([]map[string]interface{})[0]["session_timeout"], err = // nolint: lll
+				flowTCPSession["time_wait_state"].([]map[string]interface{})[0]["session_timeout"], err =
 					strconv.Atoi(strings.TrimPrefix(itemTrim, "tcp-session time-wait-state session-timeout "))
 				if err != nil {
 					return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
@@ -1953,23 +2002,22 @@ func readSecurityUtm(confRead *securityOptions, itemTrimUtm string) error {
 				})
 		}
 		itemTrimServer := strings.TrimPrefix(itemTrimUtm, "utm feature-profile web-filtering juniper-enhanced server")
+		utmFeatProfWebFiltJunEnhServer :=
+			confRead.utm[0]["feature_profile_web_filtering_juniper_enhanced_server"].([]map[string]interface{})[0]
 		switch {
 		case strings.HasPrefix(itemTrimServer, " host "):
-			confRead.utm[0]["feature_profile_web_filtering_juniper_enhanced_server"].([]map[string]interface{})[0]["host"] =
-				strings.TrimPrefix(itemTrimServer, " host ")
+			utmFeatProfWebFiltJunEnhServer["host"] = strings.TrimPrefix(itemTrimServer, " host ")
 		case strings.HasPrefix(itemTrimServer, " port "):
 			var err error
-			confRead.utm[0]["feature_profile_web_filtering_juniper_enhanced_server"].([]map[string]interface{})[0]["port"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrimServer, " port "))
+			utmFeatProfWebFiltJunEnhServer["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrimServer, " port "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimUtm, err)
 			}
 		case strings.HasPrefix(itemTrimServer, " proxy-profile "):
-			confRead.utm[0]["feature_profile_web_filtering_juniper_enhanced_server"].([]map[string]interface{})[0]["proxy_profile"] = //nolint: lll
+			utmFeatProfWebFiltJunEnhServer["proxy_profile"] =
 				strings.Trim(strings.TrimPrefix(itemTrimServer, " proxy-profile "), "\"")
 		case strings.HasPrefix(itemTrimServer, " routing-instance "):
-			confRead.utm[0]["feature_profile_web_filtering_juniper_enhanced_server"].([]map[string]interface{})[0]["routing_instance"] = //nolint: lll
-				strings.TrimPrefix(itemTrimServer, " routing-instance ")
+			utmFeatProfWebFiltJunEnhServer["routing_instance"] = strings.TrimPrefix(itemTrimServer, " routing-instance ")
 		}
 	}
 
@@ -1993,6 +2041,9 @@ func fillSecurity(d *schema.ResourceData, securityOptions securityOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("log", securityOptions.log); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("policies", securityOptions.policies); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("utm", securityOptions.utm); tfErr != nil {

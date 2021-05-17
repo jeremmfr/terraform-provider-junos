@@ -14,9 +14,7 @@ and modify a part of configuration.
 The provider allows you to manage some elements on Junos device.
 
 ## Provider installation
-For manual installation see [README on github](https://github.com/jeremmfr/terraform-provider-junos#install-binary-on-disk)<br>
-For automatic installation (terraform >= 0.13.x) use [registry](https://registry.terraform.io/providers/jeremmfr/junos/) :
-
+For automatic installation (Terraform 0.13 and later) use [registry](https://registry.terraform.io/providers/jeremmfr/junos/):
 ```hcl
 terraform {
   required_providers {
@@ -26,6 +24,8 @@ terraform {
   }
 }
 ```
+
+For manual installation see [README on github](https://github.com/jeremmfr/terraform-provider-junos/#manual-install)
 
 ## Configure netconf
 

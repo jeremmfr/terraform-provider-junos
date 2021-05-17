@@ -29,7 +29,7 @@ func resourcePolicyoptionsAsPathGroup() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"as_path": {
 				Type:     schema.TypeList,
@@ -39,7 +39,7 @@ func resourcePolicyoptionsAsPathGroup() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 						},
 						"path": {
 							Type:     schema.TypeString,

@@ -55,11 +55,13 @@ The following arguments are supported:
   * `match_destination_address_excluded` - (Optional)(`Bool`) Exclude destination addresses.
   * `match_dynamic_application` - (Optional)(`ListOfString`) List of dynamic application or group match.
   * `match_source_address_excluded` - (Optional)(`Bool`) Exclude source addresses.
+  * `match_source_end_user_profile` - (Optional)(`String`) Match source end user profile (device identity profile).
   * `permit_application_services` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'permit application-services' configuration. See the [`permit_application_services` arguments] (#permit_application_services-arguments) block.
 
 ---
 #### permit_application_services arguments
-* `application_firewall_rule_set` - (Optional)(`String`) Servie rule-set Name for Application firewall.
+* `advanced_anti_malware_policy` - (Optional)(`String`) Specify advanced-anti-malware policy name.
+* `application_firewall_rule_set` - (Optional)(`String`) Service rule-set name for Application firewall.
 * `application_traffic_control_rule_set` - (Optional)(`String`) Service rule-set name Application traffic control.
 * `gprs_gtp_profile` - (Optional)(`String`) Specify GPRS Tunneling Protocol profile name.
 * `gprs_sctp_profile` - (Optional)(`String`) Specify GPRS stream control protocol profile name.

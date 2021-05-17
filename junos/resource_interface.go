@@ -322,22 +322,22 @@ func resourceInterface() *schema.Resource {
 			"inet_filter_input": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"inet_filter_output": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"inet6_filter_input": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"inet6_filter_output": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"inet_rpf_check": {
 				Type:     schema.TypeList,
@@ -418,12 +418,12 @@ func resourceInterface() *schema.Resource {
 			"security_zone": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"routing_instance": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 		},
 	}
@@ -513,7 +513,7 @@ func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 			return append(diagWarns,
-				diag.FromErr(fmt.Errorf("security zones %v doesn't exist", d.Get("security_zone").(string)))...)
+				diag.FromErr(fmt.Errorf("security zone %v doesn't exist", d.Get("security_zone").(string)))...)
 		}
 	}
 	if d.Get("routing_instance").(string) != "" {
@@ -719,7 +719,7 @@ func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m inte
 			if !zonesExists {
 				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-				return append(diagWarns, diag.FromErr(fmt.Errorf("security zones %v doesn't exist", nSecurityZone.(string)))...)
+				return append(diagWarns, diag.FromErr(fmt.Errorf("security zone %v doesn't exist", nSecurityZone.(string)))...)
 			}
 		}
 		if oSecurityZone.(string) != "" {
@@ -1557,7 +1557,7 @@ func fillFamilyInetAddressOld(item string, inetAddress []map[string]interface{},
 	}
 
 	mAddr := genFamilyInetAddressOld(addressConfig[0])
-	mAddr, inetAddress = copyAndRemoveItemMapList("address", false, mAddr, inetAddress)
+	inetAddress = copyAndRemoveItemMapList("address", mAddr, inetAddress)
 
 	if strings.HasPrefix(itemTrim, "vrrp-group ") || strings.HasPrefix(itemTrim, "vrrp-inet6-group ") {
 		vrrpGroup := genVRRPGroupOld(family)
@@ -1570,7 +1570,7 @@ func fillFamilyInetAddressOld(item string, inetAddress []map[string]interface{},
 			itemTrimVrrp = strings.TrimPrefix(itemTrim, "vrrp-inet6-group "+strconv.Itoa(vrrpID)+" ")
 		}
 		vrrpGroup["identifier"] = vrrpID
-		vrrpGroup, mAddr["vrrp_group"] = copyAndRemoveItemMapList("identifier", true, vrrpGroup,
+		mAddr["vrrp_group"] = copyAndRemoveItemMapList("identifier", vrrpGroup,
 			mAddr["vrrp_group"].([]map[string]interface{}))
 		switch {
 		case strings.HasPrefix(itemTrimVrrp, "virtual-address "):

@@ -29,7 +29,7 @@ func resourcePolicyoptionsAsPath() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"dynamic_db": {
 				Type:     schema.TypeBool,

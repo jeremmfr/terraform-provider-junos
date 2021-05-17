@@ -1,5 +1,10 @@
-terraform-provider-junos
-========================
+<div>
+<img src="https://www.juniper.net/assets/img/products/junos-os.png" alt="Junos logo" title="Junos" align="right" height="50" />
+<img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/og-image.png" alt="Terraform logo" title="Terraform" align="right" height="50" />
+</div>
+
+# terraform-provider-junos
+
 [![Release](https://img.shields.io/github/v/release/jeremmfr/terraform-provider-junos)](https://github.com/jeremmfr/terraform-provider-junos/releases)
 [![Installs](https://img.shields.io/badge/dynamic/json?logo=terraform&label=installs&query=$.data.attributes.downloads&url=https%3A%2F%2Fregistry.terraform.io%2Fv2%2Fproviders%2F713)](https://registry.terraform.io/providers/jeremmfr/junos)
 [![Registry](https://img.shields.io/badge/registry-doc%40latest-lightgrey?logo=terraform)](https://registry.terraform.io/providers/jeremmfr/junos/latest/docs)
@@ -11,23 +16,24 @@ terraform-provider-junos
 [![Buy Me A Coffee](https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg)](https://www.buymeacoffee.com/jeremmfr)
 ---
 
-This is an **unofficial** terraform provider for Junos devices with netconf protocol
+This is an **unofficial** Terraform provider for Junos devices with netconf protocol
 
 See [website](https://terraform-provider-junos.jeremm.fr/) or
-[terraform registry](https://registry.terraform.io/providers/jeremmfr/junos)
+[Terraform registry](https://registry.terraform.io/providers/jeremmfr/junos)
 for provider and resources documentation.
 
-Requirements
----
--	[Terraform](https://www.terraform.io/downloads.html) 0.12.x (manual install) or >= 0.13.x (manual or automatic install)
+## Requirements
 
-Optional
----
--	[Go](https://golang.org/doc/install) 1.15 (to build the provider plugin)
+- [Terraform](https://www.terraform.io/downloads.html)
 
-Automatic install
----
-With terraform >= 0.13, add source information inside the terraform configuration block for automatic provider installation :
+### In addition to develop
+
+- [Go](https://golang.org/doc/install) 1.15
+
+## Automatic install (Terraform 0.13 and later)
+
+Add source information inside the Terraform configuration block for automatic provider installation:
+
 ```hcl
 terraform {
   required_providers {
@@ -38,10 +44,14 @@ terraform {
 }
 ```
 
-Manual install (download and copy binary on disk in a plugin location for terraform)
----
+## Manual install
+
 Download latest version in [releases](https://github.com/jeremmfr/terraform-provider-junos/releases)
-##### terraform 0.13
+
+### Terraform 0.13 and later
+
+Extract provider binary in [local mirror directory](https://www.terraform.io/docs/cli/config/config-file.html#implied-local-mirror-directories) with a fake registry (`registry.local`):
+
 ```bash
 for archive in $(ls terraform-provider-junos*.zip) ; do
   OS_ARCH=$(echo $archive | cut -d'_' -f3-4 | cut -d'.' -f1)
@@ -51,7 +61,9 @@ for archive in $(ls terraform-provider-junos*.zip) ; do
   unzip ${archive} -d ${tfPath}
 done
 ```
-and add this inside the terraform configuration block :
+
+and add inside the terraform configuration block:
+
 ```hcl
 terraform {
   required_providers {
@@ -61,14 +73,54 @@ terraform {
   }
 }
 ```
-##### terraform 0.12
+
+---
+
+### Terraform 0.12 and earlier
+
+Extract provider binary beside terraform binary:
+
 ```bash
 tfPath=$(which terraform | rev | cut -d'/' -f2- | rev)
 unzip terraform-provider-junos*.zip -d ${tfPath}
 ```
 
-Building binary provider with latest tag (terraform 0.13)
+## Missing Junos parameters
+
+Some Junos parameters are not included in provider for various reasons (time, utility, understanding, ...) but you can create a issue to request the potential addition of missing features.
+
+## Contributing
+
+To contribute, please read the [contribution guideline](.github/CONTRIBUTING.md)
+
+## Compile a binary from source to use with Terraform
+
+### Build to override automatic install version (Terraform 0.14 and later)
+
+Since Terraform 0.14, [development overrides for provider developers](https://www.terraform.io/docs/cli/config/config-file.html#development-overrides-for-provider-developers) allow to use the provider built from source.  
+Use a Terraform [cli configuration file](https://www.terraform.io/docs/cli/config/config-file.html) (`~/.terraformrc` by default) with at least the following options:
+
+```hcl
+provider_installation {
+  dev_overrides {
+    "jeremmfr/junos" = "[replace with the GOPATH]/bin"
+  }
+  direct {}
+}
+```
+
+and build then install in $GOPATH/bin:
+
+```bash
+git clone https://github.com/jeremmfr/terraform-provider-junos.git
+cd terraform-provider-junos
+go install
+```
+
 ---
+
+### Build to use with a fake registry (Terraform 0.13 and later)
+
 ```bash
 git clone https://github.com/jeremmfr/terraform-provider-junos.git
 cd terraform-provider-junos && git fetch --tags
@@ -79,7 +131,9 @@ mkdir -p ${tfPath}
 go build -o ${tfPath}/terraform-provider-junos_${latestTag}
 unset latestTag tfPath
 ```
-and add this inside the terraform configuration block :
+
+and add inside the terraform configuration block:
+
 ```hcl
 terraform {
   required_providers {
@@ -90,8 +144,10 @@ terraform {
 }
 ```
 
-Building binary provider with latest tag (terraform 0.12)
 ---
+
+### Build with output beside terraform binary (Terraform 0.12 and earlier)
+
 ```bash
 git clone https://github.com/jeremmfr/terraform-provider-junos.git
 cd terraform-provider-junos && git fetch --tags
@@ -101,7 +157,3 @@ tfPath=$(which terraform | rev | cut -d'/' -f2- | rev)
 go build -o ${tfPath}/terraform-provider-junos_${latestTag}
 unset latestTag tfPath
 ```
-
-Details
----
-Some Junos parameters are not included in provider for various reasons (time, utility, understanding, ...)

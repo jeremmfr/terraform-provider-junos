@@ -825,9 +825,6 @@ func setForwardingoptionsSamplingInstance(d *schema.ResourceData, m interface{},
 		configSet = append(configSet, setPrefix+"disable")
 	}
 	for _, v := range d.Get("family_inet_input").([]interface{}) {
-		if v == nil {
-			return fmt.Errorf("family_inet_input block is empty")
-		}
 		if err := setForwardingoptionsSamplingInstanceInput(setPrefix,
 			v.(map[string]interface{}), inetWord, sess, jnprSess); err != nil {
 			return err
@@ -843,9 +840,6 @@ func setForwardingoptionsSamplingInstance(d *schema.ResourceData, m interface{},
 		}
 	}
 	for _, v := range d.Get("family_inet6_input").([]interface{}) {
-		if v == nil {
-			return fmt.Errorf("family_inet6_input block is empty")
-		}
 		if err := setForwardingoptionsSamplingInstanceInput(setPrefix,
 			v.(map[string]interface{}), inet6Word, sess, jnprSess); err != nil {
 			return err
@@ -861,11 +855,8 @@ func setForwardingoptionsSamplingInstance(d *schema.ResourceData, m interface{},
 		}
 	}
 	for _, v := range d.Get("family_mpls_input").([]interface{}) {
-		if v == nil {
-			return fmt.Errorf("family_mpls_input block is empty")
-		}
 		if err := setForwardingoptionsSamplingInstanceInput(setPrefix,
-			v.(map[string]interface{}), "mpls", sess, jnprSess); err != nil {
+			v.(map[string]interface{}), mplsWord, sess, jnprSess); err != nil {
 			return err
 		}
 	}
@@ -874,14 +865,11 @@ func setForwardingoptionsSamplingInstance(d *schema.ResourceData, m interface{},
 			return fmt.Errorf("family_mpls_output block is empty")
 		}
 		if err := setForwardingoptionsSamplingInstanceOutput(setPrefix,
-			v.(map[string]interface{}), "mpls", sess, jnprSess); err != nil {
+			v.(map[string]interface{}), mplsWord, sess, jnprSess); err != nil {
 			return err
 		}
 	}
 	for _, v := range d.Get("input").([]interface{}) {
-		if v == nil {
-			return fmt.Errorf("input block is empty")
-		}
 		if err := setForwardingoptionsSamplingInstanceInput(setPrefix,
 			v.(map[string]interface{}), "", sess, jnprSess); err != nil {
 			return err
@@ -899,7 +887,7 @@ func setForwardingoptionsSamplingInstanceInput(
 		setPrefix += "family inet input "
 	case inet6Word:
 		setPrefix += "family inet6 input "
-	case "mpls":
+	case mplsWord:
 		setPrefix += "family mpls input "
 	default:
 		setPrefix += "input "
@@ -916,6 +904,18 @@ func setForwardingoptionsSamplingInstanceInput(
 	if v := input["run_length"].(int); v != -1 {
 		configSet = append(configSet, setPrefix+"run-length "+strconv.Itoa(v))
 	}
+	if len(configSet) == 0 {
+		switch family {
+		case inetWord:
+			return fmt.Errorf("family_inet_input block is empty")
+		case inet6Word:
+			return fmt.Errorf("family_inet6_input block is empty")
+		case mplsWord:
+			return fmt.Errorf("family_mpls_input block is empty")
+		default:
+			return fmt.Errorf("input block is empty")
+		}
+	}
 
 	return sess.configSet(configSet, jnprSess)
 }
@@ -928,7 +928,7 @@ func setForwardingoptionsSamplingInstanceOutput(
 		setPrefix += "family inet output "
 	case inet6Word:
 		setPrefix += "family inet6 output "
-	case "mpls":
+	case mplsWord:
 		setPrefix += "family mpls output "
 	default:
 		return fmt.Errorf("internal error: setForwardingoptionsSamplingInstanceOutput call with bad family")
@@ -1151,7 +1151,7 @@ func readForwardingoptionsSamplingInstance(
 					})
 				}
 				if err := readForwardingoptionsSamplingInstanceOutput(confRead.familyMplsOutput[0],
-					strings.TrimPrefix(itemTrim, "family mpls output "), "mpls"); err != nil {
+					strings.TrimPrefix(itemTrim, "family mpls output "), mplsWord); err != nil {
 					return confRead, err
 				}
 			}
@@ -1241,8 +1241,8 @@ func readForwardingoptionsSamplingInstanceOutput(
 		if family == inetWord {
 			flowServer["version"] = 0
 		}
-		flowServer, outputRead["flow_server"] = copyAndRemoveItemMapList(
-			"hostname", false, flowServer, outputRead["flow_server"].([]map[string]interface{}))
+		outputRead["flow_server"] = copyAndRemoveItemMapList(
+			"hostname", flowServer, outputRead["flow_server"].([]map[string]interface{}))
 		itemTrimFlowServer := strings.TrimPrefix(itemTrim, "flow-server "+flowServerLineCut[1]+" ")
 		switch {
 		case strings.HasPrefix(itemTrimFlowServer, "port "):
@@ -1312,8 +1312,8 @@ func readForwardingoptionsSamplingInstanceOutput(
 			"engine_type":    -1,
 			"source_address": "",
 		}
-		iFace, outputRead["interface"] = copyAndRemoveItemMapList(
-			"name", false, iFace, outputRead["interface"].([]map[string]interface{}))
+		outputRead["interface"] = copyAndRemoveItemMapList(
+			"name", iFace, outputRead["interface"].([]map[string]interface{}))
 		itemTrimInterface := strings.TrimPrefix(itemTrim, "interface "+interfaceLineCut[1]+" ")
 		switch {
 		case strings.HasPrefix(itemTrimInterface, "engine-id "):

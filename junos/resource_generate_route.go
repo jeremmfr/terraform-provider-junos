@@ -52,7 +52,7 @@ func resourceGenerateRoute() *schema.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				Default:          defaultWord,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"active": {
 				Type:          schema.TypeBool,

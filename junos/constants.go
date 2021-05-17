@@ -5,6 +5,7 @@ const (
 	defaultWord           = "default"
 	inetWord              = "inet"
 	inet6Word             = "inet6"
+	mplsWord              = "mpls"
 	emptyWord             = "empty"
 	matchWord             = "match"
 	permitWord            = "permit"

@@ -492,27 +492,8 @@ func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{},
 	return nil
 }
 
-func readBgpOptsBfd(item string, bfdOpts []map[string]interface{}) ([]map[string]interface{}, error) {
+func readBgpOptsBfd(item string, bfdRead map[string]interface{}) error {
 	itemTrim := strings.TrimPrefix(item, "bfd-liveness-detection ")
-	bfdRead := map[string]interface{}{
-		"authentication_algorithm":           "",
-		"authentication_key_chain":           "",
-		"authentication_loose_check":         false,
-		"detection_time_threshold":           0,
-		"holddown_interval":                  0,
-		"minimum_interval":                   0,
-		"minimum_receive_interval":           0,
-		"multiplier":                         0,
-		"session_mode":                       "",
-		"transmit_interval_minimum_interval": 0,
-		"transmit_interval_threshold":        0,
-		"version":                            "",
-	}
-	if len(bfdOpts) > 0 {
-		for k, v := range bfdOpts[0] {
-			bfdRead[k] = v
-		}
-	}
 	switch {
 	case strings.HasPrefix(itemTrim, "authentication algorithm "):
 		bfdRead["authentication_algorithm"] = strings.TrimPrefix(itemTrim, "authentication algorithm ")
@@ -524,36 +505,31 @@ func readBgpOptsBfd(item string, bfdOpts []map[string]interface{}) ([]map[string
 		var err error
 		bfdRead["detection_time_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "detection-time threshold "))
 		if err != nil {
-			return []map[string]interface{}{bfdRead},
-				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "holddown-interval "):
 		var err error
 		bfdRead["holddown_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "holddown-interval "))
 		if err != nil {
-			return []map[string]interface{}{bfdRead},
-				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "minimum-interval "):
 		var err error
 		bfdRead["minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-interval "))
 		if err != nil {
-			return []map[string]interface{}{bfdRead},
-				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "minimum-receive-interval "):
 		var err error
 		bfdRead["minimum_receive_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-receive-interval "))
 		if err != nil {
-			return []map[string]interface{}{bfdRead},
-				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "multiplier "):
 		var err error
 		bfdRead["multiplier"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "multiplier "))
 		if err != nil {
-			return []map[string]interface{}{bfdRead},
-				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "session-mode "):
 		bfdRead["session_mode"] = strings.TrimPrefix(itemTrim, "session-mode ")
@@ -562,23 +538,20 @@ func readBgpOptsBfd(item string, bfdOpts []map[string]interface{}) ([]map[string
 		bfdRead["transmit_interval_threshold"], err = strconv.Atoi(
 			strings.TrimPrefix(itemTrim, "transmit-interval threshold "))
 		if err != nil {
-			return []map[string]interface{}{bfdRead},
-				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "transmit-interval minimum-interval "):
 		var err error
 		bfdRead["transmit_interval_minimum_interval"], err = strconv.Atoi(
 			strings.TrimPrefix(itemTrim, "transmit-interval minimum-interval "))
 		if err != nil {
-			return []map[string]interface{}{bfdRead},
-				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "version "):
 		bfdRead["version"] = strings.TrimPrefix(itemTrim, "version ")
 	}
 
-	// override (maxItem = 1)
-	return []map[string]interface{}{bfdRead}, nil
+	return nil
 }
 
 func setBgpOptsFamily(setPrefix, familyType string, familyOptsList []interface{},
@@ -598,18 +571,18 @@ func setBgpOptsFamily(setPrefix, familyType string, familyOptsList []interface{}
 		familyOptsM := familyOpts.(map[string]interface{})
 		configSet = append(configSet, setPrefixFamily+familyOptsM["nlri_type"].(string))
 		for _, v := range familyOptsM["accepted_prefix_limit"].([]interface{}) {
-			m := v.(map[string]interface{})
+			mAccPrefixLimit := v.(map[string]interface{})
 			setP := setPrefixFamily + familyOptsM["nlri_type"].(string) + " accepted-prefix-limit "
-			configSetBgpOptsFamilyPrefixLimit, err := setBgpOptsFamilyPrefixLimit(setP, m)
+			configSetBgpOptsFamilyPrefixLimit, err := setBgpOptsFamilyPrefixLimit(setP, mAccPrefixLimit)
 			if err != nil {
 				return err
 			}
 			configSet = append(configSet, configSetBgpOptsFamilyPrefixLimit...)
 		}
 		for _, v := range familyOptsM["prefix_limit"].([]interface{}) {
-			m := v.(map[string]interface{})
+			mPrefixLimit := v.(map[string]interface{})
 			setP := setPrefixFamily + familyOptsM["nlri_type"].(string) + " prefix-limit "
-			configSetBgpOptsFamilyPrefixLimit, err := setBgpOptsFamilyPrefixLimit(setP, m)
+			configSetBgpOptsFamilyPrefixLimit, err := setBgpOptsFamilyPrefixLimit(setP, mPrefixLimit)
 			if err != nil {
 				return err
 			}
@@ -651,8 +624,8 @@ func setBgpOptsFamilyPrefixLimit(setPrefix string, prefixLimit map[string]interf
 func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) ([]map[string]interface{}, error) {
 	readOpts := map[string]interface{}{
 		"nlri_type":             "",
-		"accepted_prefix_limit": make([]map[string]interface{}, 0, 1),
-		"prefix_limit":          make([]map[string]interface{}, 0, 1),
+		"accepted_prefix_limit": make([]map[string]interface{}, 0),
+		"prefix_limit":          make([]map[string]interface{}, 0),
 	}
 	setPrefix := "family "
 	switch familyType {
@@ -665,21 +638,20 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 	}
 	trimSplit := strings.Split(strings.TrimPrefix(item, setPrefix), " ")
 	readOpts["nlri_type"] = trimSplit[0]
-	readOpts, opts = copyAndRemoveItemMapList("nlri_type", false, readOpts, opts)
+	opts = copyAndRemoveItemMapList("nlri_type", readOpts, opts)
 	itemTrim := strings.TrimPrefix(item, setPrefix+readOpts["nlri_type"].(string)+" ")
 	switch {
 	case strings.HasPrefix(itemTrim, "accepted-prefix-limit "):
-		readOptsPL := map[string]interface{}{
-			"maximum":                       0,
-			"teardown":                      0,
-			"teardown_idle_timeout":         0,
-			"teardown_idle_timeout_forever": false,
+		if len(readOpts["accepted_prefix_limit"].([]map[string]interface{})) == 0 {
+			readOpts["accepted_prefix_limit"] = append(readOpts["accepted_prefix_limit"].([]map[string]interface{}),
+				map[string]interface{}{
+					"maximum":                       0,
+					"teardown":                      0,
+					"teardown_idle_timeout":         0,
+					"teardown_idle_timeout_forever": false,
+				})
 		}
-		if len(readOpts["accepted_prefix_limit"].([]map[string]interface{})) > 0 {
-			for k, v := range readOpts["accepted_prefix_limit"].([]map[string]interface{})[0] {
-				readOptsPL[k] = v
-			}
-		}
+		readOptsPL := readOpts["accepted_prefix_limit"].([]map[string]interface{})[0]
 		switch {
 		case strings.HasPrefix(itemTrim, "accepted-prefix-limit maximum"):
 			var err error
@@ -706,20 +678,17 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 				return append(opts, readOpts), fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		}
-		// override (maxItem = 1)
-		readOpts["accepted_prefix_limit"] = []map[string]interface{}{readOptsPL}
 	case strings.HasPrefix(itemTrim, "prefix-limit "):
-		readOptsPL := map[string]interface{}{
-			"maximum":                       0,
-			"teardown":                      0,
-			"teardown_idle_timeout":         0,
-			"teardown_idle_timeout_forever": false,
+		if len(readOpts["prefix_limit"].([]map[string]interface{})) == 0 {
+			readOpts["prefix_limit"] = append(readOpts["prefix_limit"].([]map[string]interface{}),
+				map[string]interface{}{
+					"maximum":                       0,
+					"teardown":                      0,
+					"teardown_idle_timeout":         0,
+					"teardown_idle_timeout_forever": false,
+				})
 		}
-		if len(readOpts["prefix_limit"].([]map[string]interface{})) > 0 {
-			for k, v := range readOpts["prefix_limit"].([]map[string]interface{})[0] {
-				readOptsPL[k] = v
-			}
-		}
+		readOptsPL := readOpts["prefix_limit"].([]map[string]interface{})[0]
 		switch {
 		case strings.HasPrefix(itemTrim, "prefix-limit maximum "):
 			var err error
@@ -745,8 +714,6 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 				return append(opts, readOpts), fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		}
-		// override (maxItem = 1)
-		readOpts["prefix_limit"] = []map[string]interface{}{readOptsPL}
 	}
 
 	return append(opts, readOpts), nil
@@ -783,18 +750,8 @@ func setBgpOptsGrafefulRestart(setPrefix string, gracefulRestarts []interface{},
 	return nil
 }
 
-func readBgpOptsGracefulRestart(item string, grOpts []map[string]interface{}) ([]map[string]interface{}, error) {
+func readBgpOptsGracefulRestart(item string, grRead map[string]interface{}) error {
 	itemTrim := strings.TrimPrefix(item, "graceful-restart ")
-	grRead := map[string]interface{}{
-		"disable":          false,
-		"restart_time":     0,
-		"stale_route_time": 0,
-	}
-	if len(grOpts) > 0 {
-		for k, v := range grOpts[0] {
-			grRead[k] = v
-		}
-	}
 	switch {
 	case itemTrim == disableW:
 		grRead["disable"] = true
@@ -802,17 +759,15 @@ func readBgpOptsGracefulRestart(item string, grOpts []map[string]interface{}) ([
 		var err error
 		grRead["restart_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "restart-time "))
 		if err != nil {
-			return []map[string]interface{}{grRead},
-				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "stale-routes-time "):
 		var err error
 		grRead["stale_route_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "stale-routes-time "))
 		if err != nil {
-			return []map[string]interface{}{grRead},
-				fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	}
-	// override (maxItem = 1)
-	return []map[string]interface{}{grRead}, nil
+
+	return nil
 }

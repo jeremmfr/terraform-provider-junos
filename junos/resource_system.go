@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	jdecode "github.com/jeremmfr/junosdecode"
 )
 
 type systemOptions struct {
@@ -29,6 +30,7 @@ type systemOptions struct {
 	nameServer                           []string
 	inet6BackupRouter                    []map[string]interface{}
 	internetOptions                      []map[string]interface{}
+	license                              []map[string]interface{}
 	login                                []map[string]interface{}
 	services                             []map[string]interface{}
 	syslog                               []map[string]interface{}
@@ -230,6 +232,43 @@ func resourceSystem() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(64, 65535),
+						},
+					},
+				},
+			},
+			"license": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"autoupdate": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"autoupdate_password": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							RequiredWith: []string{"license.0.autoupdate_url"},
+						},
+						"autoupdate_url": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							RequiredWith: []string{"license.0.autoupdate"},
+						},
+						"renew_before_expiration": {
+							Type:         schema.TypeInt,
+							Default:      -1,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 60),
+							RequiredWith: []string{"license.0.renew_interval"},
+						},
+						"renew_interval": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 336),
+							RequiredWith: []string{"license.0.renew_before_expiration"},
 						},
 					},
 				},
@@ -515,6 +554,71 @@ func resourceSystem() *schema.Resource {
 								},
 							},
 						},
+						"web_management_http": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"interface": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"port": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 65535),
+									},
+								},
+							},
+						},
+						"web_management_https": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"interface": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"local_certificate": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ExactlyOneOf: []string{
+											"services.0.web_management_https.0.local_certificate",
+											"services.0.web_management_https.0.pki_local_certificate",
+											"services.0.web_management_https.0.system_generated_certificate",
+										},
+									},
+									"pki_local_certificate": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ExactlyOneOf: []string{
+											"services.0.web_management_https.0.local_certificate",
+											"services.0.web_management_https.0.pki_local_certificate",
+											"services.0.web_management_https.0.system_generated_certificate",
+										},
+									},
+									"port": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 65535),
+									},
+									"system_generated_certificate": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										ExactlyOneOf: []string{
+											"services.0.web_management_https.0.local_certificate",
+											"services.0.web_management_https.0.pki_local_certificate",
+											"services.0.web_management_https.0.system_generated_certificate",
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -728,6 +832,35 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 	if err := setSystemInternetOptions(d, m, jnprSess); err != nil {
 		return err
 	}
+	for _, v := range d.Get("license").([]interface{}) {
+		setPrefixLicense := setPrefix + "license "
+		license := v.(map[string]interface{})
+		if license["autoupdate"].(bool) {
+			configSet = append(configSet, setPrefixLicense+"autoupdate")
+			if license["autoupdate_url"].(string) != "" {
+				setPrefixLicenseUpdate := setPrefixLicense + "autoupdate url \"" + license["autoupdate_url"].(string) + "\""
+				if license["autoupdate_password"].(string) != "" {
+					configSet = append(configSet, setPrefixLicenseUpdate+" password \""+
+						license["autoupdate_password"].(string)+"\"")
+				} else {
+					configSet = append(configSet, setPrefixLicenseUpdate)
+				}
+			}
+		} else if license["autoupdate_url"].(string) != "" {
+			return fmt.Errorf("license.0.autoupdate need to be true")
+		}
+		if license["renew_before_expiration"].(int) != -1 {
+			configSet = append(configSet, setPrefixLicense+"renew before-expiration "+
+				strconv.Itoa(license["renew_before_expiration"].(int)))
+		}
+		if license["renew_interval"].(int) > 0 {
+			configSet = append(configSet, setPrefixLicense+"renew interval "+
+				strconv.Itoa(license["renew_interval"].(int)))
+		}
+		if !strings.HasPrefix(configSet[len(configSet)-1], setPrefixLicense) {
+			return fmt.Errorf("license block is empty")
+		}
+	}
 	if err := setSystemLogin(d, m, jnprSess); err != nil {
 		return err
 	}
@@ -825,9 +958,6 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		}
 		servicesM := services.(map[string]interface{})
 		for _, servicesSSH := range servicesM["ssh"].([]interface{}) {
-			if servicesSSH == nil {
-				return fmt.Errorf("services.0.ssh block is empty")
-			}
 			servicesSSHM := servicesSSH.(map[string]interface{})
 			for _, auth := range servicesSSHM["authentication_order"].([]interface{}) {
 				configSet = append(configSet, setPrefix+"ssh authentication-order "+auth.(string))
@@ -900,6 +1030,43 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			if servicesSSHM["tcp_forwarding"].(bool) {
 				configSet = append(configSet, setPrefix+"ssh tcp-forwarding")
 			}
+			if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefix+"ssh") {
+				return fmt.Errorf("services.0.ssh block is empty")
+			}
+		}
+		for _, http := range servicesM["web_management_http"].([]interface{}) {
+			configSet = append(configSet, setPrefix+"web-management http")
+			if http != nil {
+				httpOptions := http.(map[string]interface{})
+				for _, interf := range httpOptions["interface"].([]interface{}) {
+					configSet = append(configSet, setPrefix+"web-management http interface "+interf.(string))
+				}
+				if httpOptions["port"].(int) > 0 {
+					configSet = append(configSet, setPrefix+"web-management http port "+
+						strconv.Itoa(httpOptions["port"].(int)))
+				}
+			}
+		}
+		for _, https := range servicesM["web_management_https"].([]interface{}) {
+			httpsOptions := https.(map[string]interface{})
+			for _, interf := range httpsOptions["interface"].([]interface{}) {
+				configSet = append(configSet, setPrefix+"web-management https interface "+interf.(string))
+			}
+			if httpsOptions["local_certificate"].(string) != "" {
+				configSet = append(configSet,
+					setPrefix+"web-management https local-certificate \""+httpsOptions["local_certificate"].(string)+"\"")
+			}
+			if httpsOptions["pki_local_certificate"].(string) != "" {
+				configSet = append(configSet,
+					setPrefix+"web-management https pki-local-certificate \""+httpsOptions["pki_local_certificate"].(string)+"\"")
+			}
+			if httpsOptions["port"].(int) > 0 {
+				configSet = append(configSet, setPrefix+"web-management https port "+
+					strconv.Itoa(httpsOptions["port"].(int)))
+			}
+			if httpsOptions["system_generated_certificate"].(bool) {
+				configSet = append(configSet, setPrefix+"web-management https system-generated-certificate")
+			}
 		}
 	}
 
@@ -911,17 +1078,11 @@ func setSystemInternetOptions(d *schema.ResourceData, m interface{}, jnprSess *N
 	setPrefix := "set system internet-options "
 	configSet := make([]string, 0)
 	for _, v := range d.Get("internet_options").([]interface{}) {
-		if v == nil {
-			return fmt.Errorf("internet_options block is empty")
-		}
 		internetOptions := v.(map[string]interface{})
 		if internetOptions["gre_path_mtu_discovery"].(bool) {
 			configSet = append(configSet, setPrefix+"gre-path-mtu-discovery")
 		}
 		for _, v2 := range internetOptions["icmpv4_rate_limit"].([]interface{}) {
-			if v2 == nil {
-				return fmt.Errorf("internet_options.0.icmpv4_rate_limit block is empty")
-			}
 			icmpv4RL := v2.(map[string]interface{})
 			if icmpv4RL["bucket_size"].(int) != -1 {
 				configSet = append(configSet,
@@ -931,11 +1092,11 @@ func setSystemInternetOptions(d *schema.ResourceData, m interface{}, jnprSess *N
 				configSet = append(configSet,
 					setPrefix+"icmpv4-rate-limit packet-rate "+strconv.Itoa(icmpv4RL["packet_rate"].(int)))
 			}
+			if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefix+"icmpv4-rate-limit") {
+				return fmt.Errorf("internet_options.0.icmpv4_rate_limit block is empty")
+			}
 		}
 		for _, v2 := range internetOptions["icmpv6_rate_limit"].([]interface{}) {
-			if v2 == nil {
-				return fmt.Errorf("internet_options.0.icmpv6_rate_limit block is empty")
-			}
 			icmpv6RL := v2.(map[string]interface{})
 			if icmpv6RL["bucket_size"].(int) != -1 {
 				configSet = append(configSet,
@@ -944,6 +1105,9 @@ func setSystemInternetOptions(d *schema.ResourceData, m interface{}, jnprSess *N
 			if icmpv6RL["packet_rate"].(int) != -1 {
 				configSet = append(configSet,
 					setPrefix+"icmpv6-rate-limit packet-rate "+strconv.Itoa(icmpv6RL["packet_rate"].(int)))
+			}
+			if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefix+"icmpv6-rate-limit") {
+				return fmt.Errorf("internet_options.0.icmpv6_rate_limit block is empty")
 			}
 		}
 		if internetOptions["ipip_path_mtu_discovery"].(bool) {
@@ -1007,6 +1171,9 @@ func setSystemInternetOptions(d *schema.ResourceData, m interface{}, jnprSess *N
 		if internetOptions["tcp_mss"].(int) != 0 {
 			configSet = append(configSet, setPrefix+"tcp-mss "+strconv.Itoa(internetOptions["tcp_mss"].(int)))
 		}
+	}
+	if len(configSet) == 0 && len(d.Get("internet_options").([]interface{})) != 0 {
+		return fmt.Errorf("internet_options block is empty")
 	}
 
 	return sess.configSet(configSet, jnprSess)
@@ -1129,9 +1296,17 @@ func listLinesLogin() []string {
 	}
 }
 
+func listLinesLicense() []string {
+	return []string{
+		"license autoupdate",
+		"license renew",
+	}
+}
+
 func listLinesServices() []string {
 	ls := make([]string, 0)
 	ls = append(ls, listLinesServicesSSH()...)
+	ls = append(ls, listLinesServicesWebManagement()...)
 
 	return ls
 }
@@ -1161,6 +1336,13 @@ func listLinesServicesSSH() []string {
 	}
 }
 
+func listLinesServicesWebManagement() []string {
+	return []string{
+		"services web-management http",
+		"services web-management https",
+	}
+}
+
 func listLinesSyslog() []string {
 	return []string{
 		"syslog archive",
@@ -1178,6 +1360,7 @@ func delSystem(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete = append(listLinesToDelete, "host-name")
 	listLinesToDelete = append(listLinesToDelete, "inet6-backup-router")
 	listLinesToDelete = append(listLinesToDelete, "internet-options")
+	listLinesToDelete = append(listLinesToDelete, listLinesLicense()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesLogin()...)
 	listLinesToDelete = append(listLinesToDelete, "max-configuration-rollbacks")
 	listLinesToDelete = append(listLinesToDelete, "max-configurations-on-flash")
@@ -1255,6 +1438,10 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 				if err := readSystemInternetOptions(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
+			case checkStringHasPrefixInList(itemTrim, listLinesLicense()):
+				if err := readSystemLicense(&confRead, itemTrim); err != nil {
+					return confRead, err
+				}
 			case checkStringHasPrefixInList(itemTrim, listLinesLogin()):
 				if err := readSystemLogin(&confRead, itemTrim); err != nil {
 					return confRead, err
@@ -1286,11 +1473,18 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 			case checkStringHasPrefixInList(itemTrim, listLinesServices()):
 				if len(confRead.services) == 0 {
 					confRead.services = append(confRead.services, map[string]interface{}{
-						"ssh": make([]map[string]interface{}, 0),
+						"ssh":                  make([]map[string]interface{}, 0),
+						"web_management_http":  make([]map[string]interface{}, 0),
+						"web_management_https": make([]map[string]interface{}, 0),
 					})
 				}
 				if checkStringHasPrefixInList(itemTrim, listLinesServicesSSH()) {
 					if err := readSystemServicesSSH(&confRead, itemTrim); err != nil {
+						return confRead, err
+					}
+				}
+				if checkStringHasPrefixInList(itemTrim, listLinesServicesWebManagement()) {
+					if err := readSystemServicesWebManagement(&confRead, itemTrim); err != nil {
 						return confRead, err
 					}
 				}
@@ -1625,6 +1819,52 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 	return nil
 }
 
+func readSystemLicense(confRead *systemOptions, itemTrim string) error {
+	if len(confRead.license) == 0 {
+		confRead.license = append(confRead.license, map[string]interface{}{
+			"autoupdate":              false,
+			"autoupdate_password":     "",
+			"autoupdate_url":          "",
+			"renew_before_expiration": -1,
+			"renew_interval":          0,
+		})
+	}
+	switch {
+	case itemTrim == "license autoupdate":
+		confRead.license[0]["autoupdate"] = true
+	case strings.HasPrefix(itemTrim, "license autoupdate url "):
+		confRead.license[0]["autoupdate"] = true
+		itemTrimAutoupdateSplit := strings.Split(strings.TrimPrefix(itemTrim, "license autoupdate url "), " ")
+		confRead.license[0]["autoupdate_url"] = strings.Trim(itemTrimAutoupdateSplit[0], "\"")
+
+		itemTrimPassword := strings.TrimPrefix(itemTrim, "license autoupdate url "+itemTrimAutoupdateSplit[0]+" ")
+		if strings.HasPrefix(itemTrimPassword, "password ") {
+			var err error
+			confRead.license[0]["autoupdate_password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
+				itemTrimPassword, "password "), "\""))
+			if err != nil {
+				return fmt.Errorf("failed to decode password : %w", err)
+			}
+		}
+	case strings.HasPrefix(itemTrim, "license renew before-expiration "):
+		var err error
+		confRead.license[0]["renew_before_expiration"], err =
+			strconv.Atoi(strings.TrimPrefix(itemTrim, "license renew before-expiration "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "license renew interval "):
+		var err error
+		confRead.license[0]["renew_interval"], err =
+			strconv.Atoi(strings.TrimPrefix(itemTrim, "license renew interval "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	}
+
+	return nil
+}
+
 func readSystemServicesSSH(confRead *systemOptions, itemTrim string) error {
 	if len(confRead.services[0]["ssh"].([]map[string]interface{})) == 0 {
 		confRead.services[0]["ssh"] = append(confRead.services[0]["ssh"].([]map[string]interface{}),
@@ -1746,6 +1986,71 @@ func readSystemServicesSSH(confRead *systemOptions, itemTrim string) error {
 	return nil
 }
 
+func readSystemServicesWebManagement(confRead *systemOptions, itemTrim string) error {
+	switch {
+	case strings.HasPrefix(itemTrim, "services web-management https "):
+		if len(confRead.services[0]["web_management_https"].([]map[string]interface{})) == 0 {
+			confRead.services[0]["web_management_https"] = append(
+				confRead.services[0]["web_management_https"].([]map[string]interface{}),
+				map[string]interface{}{
+					"interface":                    make([]string, 0),
+					"port":                         0,
+					"local_certificate":            "",
+					"pki_local_certificate":        "",
+					"system_generated_certificate": false,
+				})
+		}
+		webMHTTPS := confRead.services[0]["web_management_https"].([]map[string]interface{})[0]
+		if strings.HasPrefix(itemTrim, "services web-management https interface ") {
+			webMHTTPS["interface"] = append(webMHTTPS["interface"].([]string),
+				strings.TrimPrefix(itemTrim, "services web-management https interface "))
+		}
+		if strings.HasPrefix(itemTrim, "services web-management https port ") {
+			var err error
+			webMHTTPS["port"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "services web-management https port "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		}
+		if strings.HasPrefix(itemTrim, "services web-management https local-certificate ") {
+			webMHTTPS["local_certificate"] = strings.Trim(strings.TrimPrefix(itemTrim,
+				"services web-management https local-certificate "), "\"")
+		}
+		if strings.HasPrefix(itemTrim, "services web-management https pki-local-certificate ") {
+			webMHTTPS["pki_local_certificate"] = strings.Trim(strings.TrimPrefix(itemTrim,
+				"services web-management https pki-local-certificate "), "\"")
+		}
+		if itemTrim == "services web-management https system-generated-certificate" {
+			webMHTTPS["system_generated_certificate"] = true
+		}
+	case strings.HasPrefix(itemTrim, "services web-management http"):
+		if len(confRead.services[0]["web_management_http"].([]map[string]interface{})) == 0 {
+			confRead.services[0]["web_management_http"] = append(
+				confRead.services[0]["web_management_http"].([]map[string]interface{}),
+				map[string]interface{}{
+					"interface": make([]string, 0),
+					"port":      0,
+				})
+		}
+		webMHTTP := confRead.services[0]["web_management_http"].([]map[string]interface{})[0]
+		if strings.HasPrefix(itemTrim, "services web-management http interface ") {
+			webMHTTP["interface"] = append(webMHTTP["interface"].([]string),
+				strings.TrimPrefix(itemTrim, "services web-management http interface "))
+		}
+		if strings.HasPrefix(itemTrim, "services web-management http port ") {
+			var err error
+			webMHTTP["port"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "services web-management http port "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		}
+	}
+
+	return nil
+}
+
 func readSystemSyslog(confRead *systemOptions, itemTrim string) error {
 	if len(confRead.syslog) == 0 {
 		confRead.syslog = append(confRead.syslog, map[string]interface{}{
@@ -1826,6 +2131,9 @@ func fillSystem(d *schema.ResourceData, systemOptions systemOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("internet_options", systemOptions.internetOptions); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("license", systemOptions.license); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("login", systemOptions.login); tfErr != nil {

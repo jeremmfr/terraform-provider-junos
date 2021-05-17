@@ -31,13 +31,13 @@ func resourceBgpNeighbor() *schema.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				Default:          defaultWord,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"group": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"accept_remote_nexthop": {
 				Type:     schema.TypeBool,
@@ -898,13 +898,35 @@ func readBgpNeighbor(ip, instance, group string, m interface{}, jnprSess *Netcon
 					return confRead, err
 				}
 			case strings.HasPrefix(itemTrim, "bfd-liveness-detection "):
-				confRead.bfdLivenessDetection, err = readBgpOptsBfd(itemTrim, confRead.bfdLivenessDetection)
-				if err != nil {
+				if len(confRead.bfdLivenessDetection) == 0 {
+					confRead.bfdLivenessDetection = append(confRead.bfdLivenessDetection,
+						map[string]interface{}{
+							"authentication_algorithm":           "",
+							"authentication_key_chain":           "",
+							"authentication_loose_check":         false,
+							"detection_time_threshold":           0,
+							"holddown_interval":                  0,
+							"minimum_interval":                   0,
+							"minimum_receive_interval":           0,
+							"multiplier":                         0,
+							"session_mode":                       "",
+							"transmit_interval_minimum_interval": 0,
+							"transmit_interval_threshold":        0,
+							"version":                            "",
+						})
+				}
+				if err := readBgpOptsBfd(itemTrim, confRead.bfdLivenessDetection[0]); err != nil {
 					return confRead, err
 				}
 			case strings.HasPrefix(itemTrim, "graceful-restart "):
-				confRead.gracefulRestart, err = readBgpOptsGracefulRestart(itemTrim, confRead.gracefulRestart)
-				if err != nil {
+				if len(confRead.gracefulRestart) == 0 {
+					confRead.gracefulRestart = append(confRead.gracefulRestart, map[string]interface{}{
+						"disable":          false,
+						"restart_time":     0,
+						"stale_route_time": 0,
+					})
+				}
+				if err := readBgpOptsGracefulRestart(itemTrim, confRead.gracefulRestart[0]); err != nil {
 					return confRead, err
 				}
 			default:

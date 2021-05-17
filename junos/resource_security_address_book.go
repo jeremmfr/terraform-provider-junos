@@ -54,7 +54,7 @@ func resourceSecurityAddressBook() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
 						},
 						"description": {
 							Type:     schema.TypeString,
@@ -76,7 +76,7 @@ func resourceSecurityAddressBook() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
 						},
 						"description": {
 							Type:     schema.TypeString,
@@ -98,7 +98,7 @@ func resourceSecurityAddressBook() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
 						},
 						"description": {
 							Type:     schema.TypeString,
@@ -119,7 +119,7 @@ func resourceSecurityAddressBook() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
 						},
 						"description": {
 							Type:     schema.TypeString,
@@ -146,10 +146,10 @@ func resourceSecurityAddressBook() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatAddressName),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
 						},
 						"address": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Required: true,
 							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
@@ -404,7 +404,7 @@ func setAddressBook(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 		if addressSet["description"].(string) != "" {
 			configSet = append(configSet, setPrefixAddrSet+"description \""+addressSet["description"].(string)+"\"")
 		}
-		for _, addr := range addressSet["address"].([]interface{}) {
+		for _, addr := range addressSet["address"].(*schema.Set).List() {
 			configSet = append(configSet, setPrefixAddrSet+" address "+addr.(string))
 		}
 	}
@@ -476,7 +476,7 @@ func readSecurityAddressBook(addrBook string, m interface{}, jnprSess *NetconfOb
 					"address":     make([]string, 0),
 					"description": "",
 				}
-				adSet, confRead.addressSet = copyAndRemoveItemMapList("name", false, adSet, confRead.addressSet)
+				confRead.addressSet = copyAndRemoveItemMapList("name", adSet, confRead.addressSet)
 				if addressSetSplit[1] == "description" {
 					adSet["description"] = strings.Trim(strings.TrimPrefix(
 						itemTrim, "address-set "+addressSetSplit[0]+" description "), "\"")

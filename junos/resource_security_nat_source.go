@@ -31,7 +31,7 @@ func resourceSecurityNatSource() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, formatDefault),
 			},
 			"from": {
 				Type:     schema.TypeList,
@@ -81,7 +81,7 @@ func resourceSecurityNatSource() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, formatDefault),
 						},
 						"match": {
 							Type:     schema.TypeList,
@@ -121,7 +121,7 @@ func resourceSecurityNatSource() *schema.Resource {
 									"pool": {
 										Type:             schema.TypeString,
 										Optional:         true,
-										ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, FormatDefault),
+										ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, formatDefault),
 									},
 								},
 							},
@@ -400,55 +400,43 @@ func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObj
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
 			case strings.HasPrefix(itemTrim, "from "):
-				fromOptions := map[string]interface{}{
-					"type":  "",
-					"value": []string{},
-				}
-				if len(confRead.from) > 0 {
-					for k, v := range confRead.from[0] {
-						fromOptions[k] = v
-					}
-				}
 				fromWords := strings.Split(strings.TrimPrefix(itemTrim, "from "), " ")
-				fromOptions["type"] = fromWords[0]
-				fromOptions["value"] = append(fromOptions["value"].([]string), fromWords[1])
-				confRead.from = []map[string]interface{}{fromOptions}
+				if len(confRead.from) == 0 {
+					confRead.from = append(confRead.from, map[string]interface{}{
+						"type":  fromWords[0],
+						"value": make([]string, 0),
+					})
+				}
+				confRead.from[0]["value"] = append(confRead.from[0]["value"].([]string), fromWords[1])
 			case strings.HasPrefix(itemTrim, "to "):
-				toOptions := map[string]interface{}{
-					"type":  "",
-					"value": []string{},
-				}
-				if len(confRead.to) > 0 {
-					for k, v := range confRead.to[0] {
-						toOptions[k] = v
-					}
-				}
 				toWords := strings.Split(strings.TrimPrefix(itemTrim, "to "), " ")
-				toOptions["type"] = toWords[0]
-				toOptions["value"] = append(toOptions["value"].([]string), toWords[1])
-				confRead.to = []map[string]interface{}{toOptions}
+				if len(confRead.to) == 0 {
+					confRead.to = append(confRead.to, map[string]interface{}{
+						"type":  toWords[0],
+						"value": make([]string, 0),
+					})
+				}
+				confRead.to[0]["value"] = append(confRead.to[0]["value"].([]string), toWords[1])
 			case strings.HasPrefix(itemTrim, "rule "):
 				ruleConfig := strings.Split(strings.TrimPrefix(itemTrim, "rule "), " ")
-
 				ruleOptions := map[string]interface{}{
-					"name":    ruleConfig[0],
-					matchWord: make([]map[string]interface{}, 0),
-					thenWord:  make([]map[string]interface{}, 0),
+					"name":  ruleConfig[0],
+					"match": make([]map[string]interface{}, 0),
+					"then":  make([]map[string]interface{}, 0),
 				}
-				ruleOptions, confRead.rule = copyAndRemoveItemMapList("name", false, ruleOptions, confRead.rule)
+				confRead.rule = copyAndRemoveItemMapList("name", ruleOptions, confRead.rule)
 				switch {
 				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match "):
 					itemTrimMatch := strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match ")
-					ruleMatchOptions := map[string]interface{}{
-						"destination_address": []string{},
-						"protocol":            []string{},
-						"source_address":      []string{},
+					if len(ruleOptions["match"].([]map[string]interface{})) == 0 {
+						ruleOptions["match"] = append(ruleOptions["match"].([]map[string]interface{}),
+							map[string]interface{}{
+								"destination_address": make([]string, 0),
+								"protocol":            make([]string, 0),
+								"source_address":      make([]string, 0),
+							})
 					}
-					if len(ruleOptions[matchWord].([]map[string]interface{})) > 0 {
-						for k, v := range ruleOptions[matchWord].([]map[string]interface{})[0] {
-							ruleMatchOptions[k] = v
-						}
-					}
+					ruleMatchOptions := ruleOptions["match"].([]map[string]interface{})[0]
 					switch {
 					case strings.HasPrefix(itemTrimMatch, "destination-address "):
 						ruleMatchOptions["destination_address"] = append(ruleMatchOptions["destination_address"].([]string),
@@ -460,19 +448,16 @@ func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObj
 						ruleMatchOptions["source_address"] = append(ruleMatchOptions["source_address"].([]string),
 							strings.TrimPrefix(itemTrimMatch, "source-address "))
 					}
-					// override (maxItem = 1)
-					ruleOptions[matchWord] = []map[string]interface{}{ruleMatchOptions}
 				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" then source-nat "):
 					itemTrimThen := strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" then source-nat ")
-					ruleThenOptions := map[string]interface{}{
-						"type": "",
-						"pool": "",
+					if len(ruleOptions["then"].([]map[string]interface{})) == 0 {
+						ruleOptions["then"] = append(ruleOptions["then"].([]map[string]interface{}),
+							map[string]interface{}{
+								"type": "",
+								"pool": "",
+							})
 					}
-					if len(ruleOptions[thenWord].([]map[string]interface{})) > 0 {
-						for k, v := range ruleOptions[thenWord].([]map[string]interface{})[0] {
-							ruleThenOptions[k] = v
-						}
-					}
+					ruleThenOptions := ruleOptions["then"].([]map[string]interface{})[0]
 					if strings.HasPrefix(itemTrimThen, "pool ") {
 						thenSplit := strings.Split(itemTrimThen, " ")
 						ruleThenOptions["type"] = thenSplit[0]
@@ -480,8 +465,6 @@ func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObj
 					} else {
 						ruleThenOptions["type"] = itemTrimThen
 					}
-					// override (maxItem = 1)
-					ruleOptions[thenWord] = []map[string]interface{}{ruleThenOptions}
 				}
 				confRead.rule = append(confRead.rule, ruleOptions)
 			}

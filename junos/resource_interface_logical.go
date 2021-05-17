@@ -175,12 +175,12 @@ func resourceInterfaceLogical() *schema.Resource {
 						"filter_input": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 						},
 						"filter_output": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 						},
 						"mtu": {
 							Type:         schema.TypeInt,
@@ -330,12 +330,12 @@ func resourceInterfaceLogical() *schema.Resource {
 						"filter_input": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 						},
 						"filter_output": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 						},
 						"mtu": {
 							Type:         schema.TypeInt,
@@ -373,7 +373,7 @@ func resourceInterfaceLogical() *schema.Resource {
 			"routing_instance": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"security_inbound_protocols": {
 				Type:         schema.TypeList,
@@ -390,7 +390,7 @@ func resourceInterfaceLogical() *schema.Resource {
 			"security_zone": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, FormatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"vlan_id": {
 				Type:         schema.TypeInt,
@@ -457,7 +457,7 @@ func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData,
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 			return append(diagWarns,
-				diag.FromErr(fmt.Errorf("security zones %v doesn't exist", d.Get("security_zone").(string)))...)
+				diag.FromErr(fmt.Errorf("security zone %v doesn't exist", d.Get("security_zone").(string)))...)
 		}
 	}
 	if d.Get("routing_instance").(string) != "" {
@@ -592,7 +592,7 @@ func resourceInterfaceLogicalUpdate(ctx context.Context, d *schema.ResourceData,
 			if !zonesExists {
 				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-				return append(diagWarns, diag.FromErr(fmt.Errorf("security zones %v doesn't exist", nSecurityZone.(string)))...)
+				return append(diagWarns, diag.FromErr(fmt.Errorf("security zone %v doesn't exist", nSecurityZone.(string)))...)
 			}
 		}
 		if oSecurityZone.(string) != "" {
@@ -1197,7 +1197,7 @@ func fillFamilyInetAddress(item string, inetAddress []map[string]interface{},
 	}
 
 	mAddr := genFamilyInetAddress(addressConfig[0])
-	mAddr, inetAddress = copyAndRemoveItemMapList("cidr_ip", false, mAddr, inetAddress)
+	inetAddress = copyAndRemoveItemMapList("cidr_ip", mAddr, inetAddress)
 
 	if strings.HasPrefix(itemTrim, "vrrp-group ") || strings.HasPrefix(itemTrim, "vrrp-inet6-group ") {
 		vrrpGroup := genVRRPGroup(family)
@@ -1210,7 +1210,7 @@ func fillFamilyInetAddress(item string, inetAddress []map[string]interface{},
 			itemTrimVrrp = strings.TrimPrefix(itemTrim, "vrrp-inet6-group "+strconv.Itoa(vrrpID)+" ")
 		}
 		vrrpGroup["identifier"] = vrrpID
-		vrrpGroup, mAddr["vrrp_group"] = copyAndRemoveItemMapList("identifier", true, vrrpGroup,
+		mAddr["vrrp_group"] = copyAndRemoveItemMapList("identifier", vrrpGroup,
 			mAddr["vrrp_group"].([]map[string]interface{}))
 		switch {
 		case strings.HasPrefix(itemTrimVrrp, "virtual-address "):

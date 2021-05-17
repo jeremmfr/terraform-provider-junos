@@ -1,0 +1,110 @@
+package junos_test
+
+import (
+	"os"
+	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+)
+
+func TestAccJunosServicesUserIdentAdAccessDomain_basic(t *testing.T) {
+	if os.Getenv("TESTACC_SWITCH") == "" {
+		resource.Test(t, resource.TestCase{
+			PreCheck:  func() { testAccPreCheck(t) },
+			Providers: testAccProviders,
+			Steps: []resource.TestStep{
+				{
+					Config: testAccJunosServicesUserIdentAdAccessDomainCreate(),
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("junos_services_user_identification_ad_access_domain.testacc_userID_addomain",
+							"domain_controller.#", "1"),
+						resource.TestCheckResourceAttr("junos_services_user_identification_ad_access_domain.testacc_userID_addomain",
+							"ip_user_mapping_discovery_wmi.#", "1"),
+						resource.TestCheckResourceAttr("junos_services_user_identification_ad_access_domain.testacc_userID_addomain",
+							"user_group_mapping_ldap.#", "1"),
+					),
+				},
+				{
+					Config: testAccJunosServicesUserIdentAdAccessDomainUpdate(),
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("junos_services_user_identification_ad_access_domain.testacc_userID_addomain",
+							"domain_controller.#", "2"),
+					),
+				},
+				{
+					ResourceName:      "junos_services_user_identification_ad_access_domain.testacc_userID_addomain",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				{
+					Config: testAccJunosServicesUserIdentAdAccessDomainPostCheck(),
+				},
+			},
+		})
+	}
+}
+
+func testAccJunosServicesUserIdentAdAccessDomainCreate() string {
+	return `
+resource "junos_services" "testacc_userID_addomain" {
+  user_identification {
+    ad_access {}
+  }
+}
+resource "junos_services_user_identification_ad_access_domain" "testacc_userID_addomain" {
+  name          = "testacc_userID_addomain.local"
+  user_name     = "user_dom"
+  user_password = "user_pass"
+  domain_controller {
+    name    = "server1"
+    address = "192.0.2.3"
+  }
+  ip_user_mapping_discovery_wmi {}
+  user_group_mapping_ldap {
+    base = "CN=xxx"
+  }
+}
+`
+}
+
+func testAccJunosServicesUserIdentAdAccessDomainUpdate() string {
+	return `
+resource "junos_services" "testacc_userID_addomain" {
+  user_identification {
+    ad_access {}
+  }
+}
+resource "junos_services_user_identification_ad_access_domain" "testacc_userID_addomain" {
+  name          = "testacc_userID_addomain.local"
+  user_name     = "user_dom"
+  user_password = "user_pass"
+  domain_controller {
+    name    = "server1"
+    address = "192.0.2.3"
+  }
+  domain_controller {
+    name    = "server0"
+    address = "192.0.2.2"
+  }
+  ip_user_mapping_discovery_wmi {
+    event_log_scanning_interval = 30
+    initial_event_log_timespan  = 30
+  }
+  user_group_mapping_ldap {
+    base             = "CN=xxx"
+    address          = ["192.0.2.6", "192.0.2.5"]
+    auth_algo_simple = true
+    ssl              = true
+    user_name        = "user_ldap_map"
+    user_password    = "user_ldap_pass"
+  }
+}
+`
+}
+
+func testAccJunosServicesUserIdentAdAccessDomainPostCheck() string {
+	return `
+resource "junos_services" "testacc_userID_addomain" {
+}
+`
+}
