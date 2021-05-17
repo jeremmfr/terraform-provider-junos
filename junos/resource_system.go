@@ -242,6 +242,10 @@ func resourceSystem() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"autoupdate": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
 						"autoupdate_password": {
 							Type:         schema.TypeString,
 							Optional:     true,
@@ -249,8 +253,9 @@ func resourceSystem() *schema.Resource {
 							RequiredWith: []string{"license.0.autoupdate_url"},
 						},
 						"autoupdate_url": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							RequiredWith: []string{"license.0.autoupdate"},
 						},
 						"renew_before_expiration": {
 							Type:         schema.TypeInt,
@@ -828,26 +833,32 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 		return err
 	}
 	for _, v := range d.Get("license").([]interface{}) {
-		setPrefixLicense := setPrefix + " license"
-		if v != nil {
-			license := v.(map[string]interface{})
+		setPrefixLicense := setPrefix + "license "
+		license := v.(map[string]interface{})
+		if license["autoupdate"].(bool) {
+			configSet = append(configSet, setPrefixLicense+"autoupdate")
 			if license["autoupdate_url"].(string) != "" {
-				setPrefixLicenseUpdate := setPrefixLicense + " autoupdate url " + license["autoupdate_url"].(string)
+				setPrefixLicenseUpdate := setPrefixLicense + "autoupdate url \"" + license["autoupdate_url"].(string) + "\""
 				if license["autoupdate_password"].(string) != "" {
-					configSet = append(configSet, setPrefixLicenseUpdate+" password "+
-						license["autoupdate_password"].(string))
+					configSet = append(configSet, setPrefixLicenseUpdate+" password \""+
+						license["autoupdate_password"].(string)+"\"")
 				} else {
 					configSet = append(configSet, setPrefixLicenseUpdate)
 				}
 			}
-			if license["renew_before_expiration"].(int) != -1 {
-				configSet = append(configSet, setPrefixLicense+" renew before-expiration "+
-					strconv.Itoa(license["renew_before_expiration"].(int)))
-			}
-			if license["renew_interval"].(int) > 0 {
-				configSet = append(configSet, setPrefixLicense+" renew interval "+
-					strconv.Itoa(license["renew_interval"].(int)))
-			}
+		} else if license["autoupdate_url"].(string) != "" {
+			return fmt.Errorf("license.0.autoupdate need to be true")
+		}
+		if license["renew_before_expiration"].(int) != -1 {
+			configSet = append(configSet, setPrefixLicense+"renew before-expiration "+
+				strconv.Itoa(license["renew_before_expiration"].(int)))
+		}
+		if license["renew_interval"].(int) > 0 {
+			configSet = append(configSet, setPrefixLicense+"renew interval "+
+				strconv.Itoa(license["renew_interval"].(int)))
+		}
+		if !strings.HasPrefix(configSet[len(configSet)-1], setPrefixLicense) {
+			return fmt.Errorf("license block is empty")
 		}
 	}
 	if err := setSystemLogin(d, m, jnprSess); err != nil {
@@ -1289,7 +1300,6 @@ func listLinesLicense() []string {
 	return []string{
 		"license autoupdate",
 		"license renew",
-		"license",
 	}
 }
 
@@ -1428,7 +1438,7 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 				if err := readSystemInternetOptions(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "license "):
+			case checkStringHasPrefixInList(itemTrim, listLinesLicense()):
 				if err := readSystemLicense(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
@@ -1812,6 +1822,7 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 func readSystemLicense(confRead *systemOptions, itemTrim string) error {
 	if len(confRead.license) == 0 {
 		confRead.license = append(confRead.license, map[string]interface{}{
+			"autoupdate":              false,
 			"autoupdate_password":     "",
 			"autoupdate_url":          "",
 			"renew_before_expiration": -1,
@@ -1819,9 +1830,12 @@ func readSystemLicense(confRead *systemOptions, itemTrim string) error {
 		})
 	}
 	switch {
+	case itemTrim == "license autoupdate":
+		confRead.license[0]["autoupdate"] = true
 	case strings.HasPrefix(itemTrim, "license autoupdate url "):
+		confRead.license[0]["autoupdate"] = true
 		itemTrimAutoupdateSplit := strings.Split(strings.TrimPrefix(itemTrim, "license autoupdate url "), " ")
-		confRead.license[0]["autoupdate_url"] = itemTrimAutoupdateSplit[0]
+		confRead.license[0]["autoupdate_url"] = strings.Trim(itemTrimAutoupdateSplit[0], "\"")
 
 		itemTrimPassword := strings.TrimPrefix(itemTrim, "license autoupdate url "+itemTrimAutoupdateSplit[0]+" ")
 		if strings.HasPrefix(itemTrimPassword, "password ") {

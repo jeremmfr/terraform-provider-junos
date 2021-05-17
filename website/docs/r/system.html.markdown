@@ -48,8 +48,9 @@ The following arguments are supported:
   * `destination` - (Optional)(`ListOfString`) Destination networks reachable through the router.
 * `internet_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'internet-options' configuration. See the [`internet_options` arguments] (#internet_options-arguments) block.
 * `license` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified once to declare 'license' configuration.
+  * `autoupdate` - (Optional)(`Bool`) Enable autoupdate license keys.
   * `autoupdate_password` - (Optional)(`String`) Password for autoupdate license keys from license servers. `autoupdate_url` needs to be set.
-  * `autoupdate_url` - (Optional)(`String`) Url for autoupdate license keys from license servers.
+  * `autoupdate_url` - (Optional)(`String`) Url for autoupdate license keys from license servers. `autoupdate` needs to be set.
   * `renew_before_expiration` - (Optional)(`Int`) License renewal lead time before expiration, in days (0..60). `renew_interval` needs to be set.
   * `renew_interval` - (Optional)(`Int`) License checking interval, in hours (1..336). `renew_before_expiration` needs to be set.
 * `login` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'login' configuration. See the [`login` arguments] (#login-arguments) block.

@@ -282,6 +282,7 @@ resource junos_system "testacc_system" {
     tcp_mss                                 = 1400
   }
   license {
+    autoupdate              = true
     autoupdate_password     = "some_password"
     autoupdate_url          = "some_url"
     renew_interval          = 24
