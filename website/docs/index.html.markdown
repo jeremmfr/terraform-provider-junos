@@ -15,6 +15,7 @@ The provider allows you to manage some elements on Junos device.
 
 ## Provider installation
 For automatic installation (Terraform 0.13 and later) use [registry](https://registry.terraform.io/providers/jeremmfr/junos/):
+
 ```hcl
 terraform {
   required_providers {
