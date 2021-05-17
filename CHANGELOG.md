@@ -1,29 +1,36 @@
 ## upcoming release
 ENHANCEMENTS:
-* resource/`junos_security`: add `policies` argument with `policy_rematch` and `policy_rematch_extensive` arguments inside (Fixes #185) Thanks @Sha-San-P
+
+BUG FIXES:
+
+## 1.16.0 (May 17, 2021)
+FEATURES:
+* add `junos_security_zone_book_address` resource (Fixes parts of [#192](https://github.com/jeremmfr/terraform-provider-junos/issues/192))
+* add `junos_security_zone_book_address_set` resource (Fixes parts of [#192](https://github.com/jeremmfr/terraform-provider-junos/issues/192))
+* add `junos_services_advanced_anti_malware_policy` resource
+* add `junos_services_ssl_initiation_profile` resource
+* add `junos_services_user_identification_ad_access_domain` resource
+* add `junos_services_user_identification_device_identity_profile` resource (Fixes parts of [#189](https://github.com/jeremmfr/terraform-provider-junos/issues/189))
+
+ENHANCEMENTS:
+* resource/`junos_security`: add `policies` argument with `policy_rematch` and `policy_rematch_extensive` arguments inside (Fixes [#185](https://github.com/jeremmfr/terraform-provider-junos/issues/185)) Thanks  [@Sha-San-P](https://github.com/Sha-San-P)
 * resource/`junos_security_address_book`: list of string for `address` argument inside `address_set` argument is now unordered
-* resource/`junos_security_nat_source_pool`: add `address_pooling` argument (Fixes #193) Thanks @edpio19
-* resource/`junos_security_zone`: add `address_book_configure_singly` argument to disable management of address-book in this resource. (Fixes parts of #192)
+* resource/`junos_security_global_policy`: add `advanced_anti_malware_policy` argument inside `permit_application_services` argument
+* resource/`junos_security_global_policy`: add `match_source_end_user_profile` argument inside `policy` argument
+* resource/`junos_security_nat_source_pool`: add `address_pooling` argument (Fixes [#193](https://github.com/jeremmfr/terraform-provider-junos/issues/193)) Thanks [@edpio19](https://github.com/edpio19)
+* resource/`junos_security_policy`: add `match_source_end_user_profile` argument inside `policy` argument
+* resource/`junos_security_policy`: add `advanced_anti_malware_policy` argument inside `permit_application_services` argument
+* resource/`junos_security_zone`: add `address_book_configure_singly` argument to disable management of address-book in this resource. (Fixes parts of [#192](https://github.com/jeremmfr/terraform-provider-junos/issues/192))
 * resource/`junos_security_zone`: add `address_book_dns`, `address_book_range` and `address_book_wildcard` arguments and add `description` on existing `address_book_*` arguments
 * resource/`junos_security_zone`: list of string for `address` argument inside `address_book_set` argument is now unordered
-* add `junos_security_zone_book_address` resource (Fixes parts of #192)
-* add `junos_security_zone_book_address_set` resource (Fixes parts of #192)
+* resource/`junos_services`: add `advanced_anti_malware` argument (Fixes [#201](https://github.com/jeremmfr/terraform-provider-junos/issues/201))
+* resource/`junos_services`: add `user_identification` argument (Fixes parts of [#189](https://github.com/jeremmfr/terraform-provider-junos/issues/189))
+* resource/`junos_services`: `url_parameter` is now a sensitive argument
+* resource/`junos_services`: `authentication_token`, `authentication_tls_profile` and `url` are now attributes (information read from Junos config) when not set in Terraform config. (Fixes [#200](https://github.com/jeremmfr/terraform-provider-junos/issues/200))
+* resource/`junos_system`: add `web_management_http` and `web_management_https` arguments (Fixes [#173](https://github.com/jeremmfr/terraform-provider-junos/issues/173)) Thanks [@MerryPlant](https://github.com/MerryPlant)
+* resource/`junos_system`: add `license` argument (Fixes [#205](https://github.com/jeremmfr/terraform-provider-junos/issues/205)) Thanks [@MerryPlant](https://github.com/MerryPlant)
 * clean code: remove override of the lists of 1 map to handle directly the map
 * clean code: fix lll linter errors with a var to map
-* add `junos_services_user_identification_ad_access_domain` resource
-* add `junos_services_user_identification_device_identity_profile` resource (Fixes parts of #189)
-* resource/`junos_security_global_policy`: add `match_source_end_user_profile` argument inside `policy` argument
-* resource/`junos_security_policy`: add `match_source_end_user_profile` argument inside `policy` argument
-* resource/`junos_services`: add `user_identification` argument (Fixes parts of #189)
-* resource/`junos_services`: `url_parameter` is now a sensitive argument
-* resource/`junos_services`: `authentication_token`, `authentication_tls_profile` and `url` are now attributes (information read from Junos config) when not set in Terraform config. (Fixes #200)
-* resource/`junos_system`: add `web_management_http` and `web_management_https` arguments (Fixes #173) Thanks @MerryPlant
-* resource/`junos_system`: add `license` argument (Fixes #205) Thanks @MerryPlant
-* add `junos_services_ssl_initiation_profile` resource
-* resource/`junos_services`: add `advanced_anti_malware` argument (Fixes #201)
-* add `junos_services_advanced_anti_malware_policy` resource
-* resource/`junos_security_global_policy`: add `advanced_anti_malware_policy` argument inside `permit_application_services` argument
-* resource/`junos_security_policy`: add `advanced_anti_malware_policy` argument inside `permit_application_services` argument
 * clean code: remove a useless override of map with himself and a useless option to compare different type
 
 BUG FIXES:
