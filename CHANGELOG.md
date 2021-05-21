@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* resource/`junos_system`: add `radius_options_attributes_nas_ipaddress`, `radius_options_enhanced_accounting` and `radius_options_password_protocol_mschapv2` arguments (Fixes #210)
 
 BUG FIXES:
 
