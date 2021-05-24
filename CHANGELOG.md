@@ -1,5 +1,6 @@
 ## upcoming release
 ENHANCEMENTS:
+* resource/`junos_group_dual_system`: add `preferred` and `primary` arguments inside `family_inet_address` and `family_inet6_address` arguments inside `interface_fxp0` argument (Fixes #211)
 
 BUG FIXES:
 

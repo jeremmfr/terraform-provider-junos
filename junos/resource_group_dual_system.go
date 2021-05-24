@@ -64,6 +64,14 @@ func resourceGroupDualSystem() *schema.Resource {
 										Type:     schema.TypeBool,
 										Optional: true,
 									},
+									"preferred": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"primary": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
 								},
 							},
 						},
@@ -78,6 +86,14 @@ func resourceGroupDualSystem() *schema.Resource {
 										ValidateDiagFunc: validateIPMaskFunc(),
 									},
 									"master_only": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"preferred": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"primary": {
 										Type:     schema.TypeBool,
 										Optional: true,
 									},
@@ -386,6 +402,14 @@ func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 				configSet = append(configSet, setPrefix+"interfaces fxp0 unit 0 family inet address "+
 					familyInetAddress["cidr_ip"].(string)+" master-only")
 			}
+			if familyInetAddress["preferred"].(bool) {
+				configSet = append(configSet, setPrefix+"interfaces fxp0 unit 0 family inet address "+
+					familyInetAddress["cidr_ip"].(string)+" preferred")
+			}
+			if familyInetAddress["primary"].(bool) {
+				configSet = append(configSet, setPrefix+"interfaces fxp0 unit 0 family inet address "+
+					familyInetAddress["cidr_ip"].(string)+" primary")
+			}
 		}
 		for _, v2 := range interfaceFxp0["family_inet6_address"].([]interface{}) {
 			familyInet6Address := v2.(map[string]interface{})
@@ -394,6 +418,14 @@ func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 			if familyInet6Address["master_only"].(bool) {
 				configSet = append(configSet, setPrefix+"interfaces fxp0 unit 0 family inet6 address "+
 					familyInet6Address["cidr_ip"].(string)+" master-only")
+			}
+			if familyInet6Address["preferred"].(bool) {
+				configSet = append(configSet, setPrefix+"interfaces fxp0 unit 0 family inet6 address "+
+					familyInet6Address["cidr_ip"].(string)+" preferred")
+			}
+			if familyInet6Address["primary"].(bool) {
+				configSet = append(configSet, setPrefix+"interfaces fxp0 unit 0 family inet6 address "+
+					familyInet6Address["cidr_ip"].(string)+" primary")
 			}
 		}
 	}
@@ -463,35 +495,45 @@ func readGroupDualSystem(group string, m interface{}, jnprSess *NetconfObject) (
 				case strings.HasPrefix(itemTrim, "interfaces fxp0 description "):
 					confRead.interfaceFxp0[0]["description"] = strings.TrimPrefix(itemTrim, "interfaces fxp0 description ")
 				case strings.HasPrefix(itemTrim, "interfaces fxp0 unit 0 family inet address "):
-					if strings.HasSuffix(itemTrim, "master-only") {
-						confRead.interfaceFxp0[0]["family_inet_address"] = append(
-							confRead.interfaceFxp0[0]["family_inet_address"].([]map[string]interface{}), map[string]interface{}{
-								"cidr_ip": strings.TrimSuffix(strings.TrimPrefix(
-									itemTrim, "interfaces fxp0 unit 0 family inet address "), " master-only"),
-								"master_only": true,
-							})
-					} else {
-						confRead.interfaceFxp0[0]["family_inet_address"] = append(
-							confRead.interfaceFxp0[0]["family_inet_address"].([]map[string]interface{}), map[string]interface{}{
-								"cidr_ip":     strings.TrimPrefix(itemTrim, "interfaces fxp0 unit 0 family inet address "),
-								"master_only": false,
-							})
+					itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "interfaces fxp0 unit 0 family inet address "), " ")
+					familyInetAddress := map[string]interface{}{
+						"cidr_ip":     itemTrimSplit[0],
+						"master_only": false,
+						"preferred":   false,
+						"primary":     false,
 					}
+					confRead.interfaceFxp0[0]["family_inet_address"] = copyAndRemoveItemMapList(
+						"cidr_ip", familyInetAddress, confRead.interfaceFxp0[0]["family_inet_address"].([]map[string]interface{}))
+					switch {
+					case strings.HasSuffix(itemTrim, "master-only"):
+						familyInetAddress["master_only"] = true
+					case strings.HasSuffix(itemTrim, "preferred"):
+						familyInetAddress["preferred"] = true
+					case strings.HasSuffix(itemTrim, "primary"):
+						familyInetAddress["primary"] = true
+					}
+					confRead.interfaceFxp0[0]["family_inet_address"] = append(
+						confRead.interfaceFxp0[0]["family_inet_address"].([]map[string]interface{}), familyInetAddress)
 				case strings.HasPrefix(itemTrim, "interfaces fxp0 unit 0 family inet6 address "):
-					if strings.HasSuffix(itemTrim, "master-only") {
-						confRead.interfaceFxp0[0]["family_inet6_address"] = append(
-							confRead.interfaceFxp0[0]["family_inet6_address"].([]map[string]interface{}), map[string]interface{}{
-								"cidr_ip": strings.TrimSuffix(strings.TrimPrefix(
-									itemTrim, "interfaces fxp0 unit 0 family inet6 address "), " master-only"),
-								"master_only": true,
-							})
-					} else {
-						confRead.interfaceFxp0[0]["family_inet6_address"] = append(
-							confRead.interfaceFxp0[0]["family_inet6_address"].([]map[string]interface{}), map[string]interface{}{
-								"cidr_ip":     strings.TrimPrefix(itemTrim, "interfaces fxp0 unit 0 family inet6 address "),
-								"master_only": false,
-							})
+					itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "interfaces fxp0 unit 0 family inet6 address "), " ")
+					familyInet6Address := map[string]interface{}{
+						"cidr_ip":     itemTrimSplit[0],
+						"master_only": false,
+						"preferred":   false,
+						"primary":     false,
 					}
+					confRead.interfaceFxp0[0]["family_inet6_address"] = copyAndRemoveItemMapList(
+						"cidr_ip", familyInet6Address, confRead.interfaceFxp0[0]["family_inet6_address"].([]map[string]interface{}))
+					switch {
+					case strings.HasSuffix(itemTrim, "master-only"):
+						familyInet6Address["master_only"] = true
+					case strings.HasSuffix(itemTrim, "preferred"):
+						familyInet6Address["preferred"] = true
+					case strings.HasSuffix(itemTrim, "primary"):
+						familyInet6Address["primary"] = true
+					}
+					confRead.interfaceFxp0[0]["family_inet6_address"] = append(
+						confRead.interfaceFxp0[0]["family_inet6_address"].([]map[string]interface{}), familyInet6Address)
 				}
 			case strings.HasPrefix(itemTrim, "routing-options static route "):
 				if len(confRead.routingOptions) == 0 {
