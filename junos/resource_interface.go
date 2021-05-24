@@ -1148,7 +1148,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 				confRead.inet6 = true
 				switch {
 				case strings.HasPrefix(itemTrim, "family inet6 address "):
-					inet6Address, err = fillFamilyInetAddressOld(itemTrim, inet6Address, inet6Word)
+					inet6Address, err = readFamilyInetAddressOld(itemTrim, inet6Address, inet6Word)
 					if err != nil {
 						return confRead, err
 					}
@@ -1180,7 +1180,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 				confRead.inet = true
 				switch {
 				case strings.HasPrefix(itemTrim, "family inet address "):
-					inetAddress, err = fillFamilyInetAddressOld(itemTrim, inetAddress, inetWord)
+					inetAddress, err = readFamilyInetAddressOld(itemTrim, inetAddress, inetWord)
 					if err != nil {
 						return confRead, err
 					}
@@ -1543,7 +1543,7 @@ func fillInterfaceData(d *schema.ResourceData, interfaceOpt interfaceOptions) {
 	}
 }
 
-func fillFamilyInetAddressOld(item string, inetAddress []map[string]interface{},
+func readFamilyInetAddressOld(item string, inetAddress []map[string]interface{},
 	family string) ([]map[string]interface{}, error) {
 	var addressConfig []string
 	var itemTrim string

@@ -933,7 +933,7 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 				switch {
 				case strings.HasPrefix(itemTrim, "family inet6 address "):
 					var err error
-					confRead.familyInet6[0]["address"], err = fillFamilyInetAddress(
+					confRead.familyInet6[0]["address"], err = readFamilyInetAddress(
 						itemTrim, confRead.familyInet6[0]["address"].([]map[string]interface{}), inet6Word)
 					if err != nil {
 						return confRead, err
@@ -983,7 +983,7 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 				switch {
 				case strings.HasPrefix(itemTrim, "family inet address "):
 					var err error
-					confRead.familyInet[0]["address"], err = fillFamilyInetAddress(
+					confRead.familyInet[0]["address"], err = readFamilyInetAddress(
 						itemTrim, confRead.familyInet[0]["address"].([]map[string]interface{}), inetWord)
 					if err != nil {
 						return confRead, err
@@ -1183,7 +1183,7 @@ func fillInterfaceLogicalData(d *schema.ResourceData, interfaceLogicalOpt interf
 	}
 }
 
-func fillFamilyInetAddress(item string, inetAddress []map[string]interface{},
+func readFamilyInetAddress(item string, inetAddress []map[string]interface{},
 	family string) ([]map[string]interface{}, error) {
 	var addressConfig []string
 	var itemTrim string
