@@ -46,6 +46,7 @@ type commandXMLConfig struct {
 type netconfAuthMethod struct {
 	Password       string
 	Username       string
+	SSHAgent       string
 	PrivateKeyPEM  string
 	PrivateKeyFile string
 	Passphrase     string
@@ -102,6 +103,19 @@ func newSessionFromNetconf(s *netconf.Session) (*NetconfObject, error) {
 func genSSHClientConfig(auth *netconfAuthMethod) (*ssh.ClientConfig, error) {
 	var config *ssh.ClientConfig
 
+       if auth.SSHAgent == "true" {
+               config, err := netconf.SSHConfigPubKeyAgent(auth.Username)
+               if err != nil {
+                       return config, fmt.Errorf("failed to connect : %w", err)
+               }
+               config.Ciphers = append(config.Ciphers,
+                       "aes128-gcm@openssh.com", "chacha20-poly1305@openssh.com",
+                       "aes128-ctr", "aes192-ctr", "aes256-ctr",
+                       "aes128-cbc")
+               config.HostKeyCallback = ssh.InsecureIgnoreHostKey()
+
+               return config, nil
+	}
 	if len(auth.PrivateKeyPEM) > 0 {
 		config, err := netconf.SSHConfigPubKeyPem(auth.Username, []byte(auth.PrivateKeyPEM), auth.Passphrase)
 		if err != nil {

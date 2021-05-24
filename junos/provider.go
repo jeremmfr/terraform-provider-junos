@@ -34,6 +34,11 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JUNOS_PASSWORD", nil),
 			},
+			"sshagent": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("JUNOS_SSHAGENT", nil),
+			},
 			"sshkey_pem": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -180,6 +185,7 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		junosPort:                d.Get("port").(int),
 		junosUserName:            d.Get("username").(string),
 		junosPassword:            d.Get("password").(string),
+		junosSSHAgent:            d.Get("sshagent").(string),
 		junosSSHKeyPEM:           d.Get("sshkey_pem").(string),
 		junosSSHKeyFile:          d.Get("sshkeyfile").(string),
 		junosKeyPass:             d.Get("keypass").(string),

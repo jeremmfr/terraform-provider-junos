@@ -21,6 +21,7 @@ type Session struct {
 	junosIP                string
 	junosUserName          string
 	junosPassword          string
+	junosSSHAgent          string
 	junosSSHKeyPEM         string
 	junosSSHKeyFile        string
 	junosKeyPass           string
@@ -32,6 +33,9 @@ type Session struct {
 func (sess *Session) startNewSession() (*NetconfObject, error) {
 	var auth netconfAuthMethod
 	auth.Username = sess.junosUserName
+	if sess.junosSSHAgent == "true" {
+		auth.SSHAgent = "true"
+	}
 	if sess.junosSSHKeyPEM != "" {
 		auth.PrivateKeyPEM = sess.junosSSHKeyPEM
 		if sess.junosKeyPass != "" {
