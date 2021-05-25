@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/jeremmfr/go-netconf/netconf"
 	"golang.org/x/crypto/ssh"
 )
@@ -49,6 +50,7 @@ type netconfAuthMethod struct {
 	PrivateKeyPEM  string
 	PrivateKeyFile string
 	Passphrase     string
+	Ciphers        []string
 }
 
 type commitError struct {
@@ -100,46 +102,47 @@ func newSessionFromNetconf(s *netconf.Session) (*NetconfObject, error) {
 // (user/password or private key) which returns the SSH client configuration used to
 // connect.
 func genSSHClientConfig(auth *netconfAuthMethod) (*ssh.ClientConfig, error) {
-	var config *ssh.ClientConfig
+	configs := make([]*ssh.ClientConfig, 0)
+	configs = append(configs, &ssh.ClientConfig{})
 
 	if len(auth.PrivateKeyPEM) > 0 {
 		config, err := netconf.SSHConfigPubKeyPem(auth.Username, []byte(auth.PrivateKeyPEM), auth.Passphrase)
 		if err != nil {
 			return config, fmt.Errorf("failed to create new SSHConfig with PEM private key : %w", err)
 		}
-		config.Ciphers = append(config.Ciphers,
-			"aes128-gcm@openssh.com", "chacha20-poly1305@openssh.com",
-			"aes128-ctr", "aes192-ctr", "aes256-ctr",
-			"aes128-cbc")
-		config.HostKeyCallback = ssh.InsecureIgnoreHostKey()
-
-		return config, nil
-	}
-	if len(auth.PrivateKeyFile) > 0 {
+		configs = append(configs, config)
+	} else if len(auth.PrivateKeyFile) > 0 {
 		config, err := netconf.SSHConfigPubKeyFile(auth.Username, auth.PrivateKeyFile, auth.Passphrase)
 		if err != nil {
 			return config, fmt.Errorf("failed to create new SSHConfig with file private key : %w", err)
 		}
-		config.Ciphers = append(config.Ciphers,
-			"aes128-gcm@openssh.com", "chacha20-poly1305@openssh.com",
-			"aes128-ctr", "aes192-ctr", "aes256-ctr",
-			"aes128-cbc")
-		config.HostKeyCallback = ssh.InsecureIgnoreHostKey()
-
-		return config, nil
+		configs = append(configs, config)
 	}
 	if len(auth.Password) > 0 {
-		config = netconf.SSHConfigPassword(auth.Username, auth.Password)
-		config.Ciphers = append(config.Ciphers,
-			"aes128-gcm@openssh.com", "chacha20-poly1305@openssh.com",
-			"aes128-ctr", "aes192-ctr", "aes256-ctr",
-			"aes128-cbc")
-		config.HostKeyCallback = ssh.InsecureIgnoreHostKey()
-
-		return config, nil
+		config := netconf.SSHConfigPassword(auth.Username, auth.Password)
+		configs = append(configs, config)
+	}
+	if len(configs) == 1 {
+		return configs[0], errors.New("no credentials/keys available")
+	}
+	configs[0] = configs[1]
+	configs[0].Ciphers = auth.Ciphers
+	configs[0].HostKeyCallback = ssh.InsecureIgnoreHostKey()
+	for _, v := range configs[2:] {
+		configs[0].Auth = append(configs[0].Auth, v.Auth...)
 	}
 
-	return config, errors.New("no credentials/keys available")
+	return configs[0], nil
+}
+
+func defaultSSHCiphers() schema.SchemaDefaultFunc {
+	return func() (interface{}, error) {
+		return []interface{}{
+			"aes128-gcm@openssh.com", "chacha20-poly1305@openssh.com",
+			"aes128-ctr", "aes192-ctr", "aes256-ctr",
+			"aes128-cbc",
+		}, nil
+	}
 }
 
 // gatherFacts gathers basic information about the device.

@@ -1,5 +1,7 @@
 ## upcoming release
 ENHANCEMENTS:
+* provider: try multiple SSH authentication methods (key + password)
+* provider: add `ssh_ciphers` attribute to configure ciphers used in SSH connection
 
 BUG FIXES:
 
