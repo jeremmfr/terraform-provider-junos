@@ -53,6 +53,14 @@ func dataSourceInterfaceLogical() *schema.Resource {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
+									"preferred": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"primary": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
 									"vrrp_group": {
 										Type:     schema.TypeList,
 										Computed: true,
@@ -196,6 +204,14 @@ func dataSourceInterfaceLogical() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"cidr_ip": {
 										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"preferred": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"primary": {
+										Type:     schema.TypeBool,
 										Computed: true,
 									},
 									"vrrp_group": {
