@@ -72,6 +72,14 @@ func resourceInterfaceLogical() *schema.Resource {
 										Required:         true,
 										ValidateDiagFunc: validateIPMaskFunc(),
 									},
+									"preferred": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"primary": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
 									"vrrp_group": {
 										Type:     schema.TypeList,
 										Optional: true,
@@ -230,6 +238,14 @@ func resourceInterfaceLogical() *schema.Resource {
 										Type:             schema.TypeString,
 										Required:         true,
 										ValidateDiagFunc: validateIPMaskFunc(),
+									},
+									"preferred": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"primary": {
+										Type:     schema.TypeBool,
+										Optional: true,
 									},
 									"vrrp_group": {
 										Type:     schema.TypeList,
@@ -1199,7 +1215,12 @@ func readFamilyInetAddress(item string, inetAddress []map[string]interface{},
 	mAddr := genFamilyInetAddress(addressConfig[0])
 	inetAddress = copyAndRemoveItemMapList("cidr_ip", mAddr, inetAddress)
 
-	if strings.HasPrefix(itemTrim, "vrrp-group ") || strings.HasPrefix(itemTrim, "vrrp-inet6-group ") {
+	switch {
+	case itemTrim == "primary":
+		mAddr["primary"] = true
+	case itemTrim == "preferred":
+		mAddr["preferred"] = true
+	case strings.HasPrefix(itemTrim, "vrrp-group ") || strings.HasPrefix(itemTrim, "vrrp-inet6-group "):
 		vrrpGroup := genVRRPGroup(family)
 		vrrpID, err := strconv.Atoi(addressConfig[2])
 		if err != nil {
@@ -1300,6 +1321,12 @@ func setFamilyAddress(inetAddress interface{}, configSet []string, setPrefix str
 	inetAddressMap := inetAddress.(map[string]interface{})
 	setPrefixAddress := setPrefix + "family " + family + " address " + inetAddressMap["cidr_ip"].(string)
 	configSet = append(configSet, setPrefixAddress)
+	if inetAddressMap["preferred"].(bool) {
+		configSet = append(configSet, setPrefixAddress+" preferred")
+	}
+	if inetAddressMap["primary"].(bool) {
+		configSet = append(configSet, setPrefixAddress+" primary")
+	}
 	for _, vrrpGroup := range inetAddressMap["vrrp_group"].([]interface{}) {
 		if strings.Contains(setPrefix, "set interfaces st0 unit") {
 			return configSet, fmt.Errorf("vrrp not available on st0")
@@ -1388,6 +1415,8 @@ func setFamilyAddress(inetAddress interface{}, configSet []string, setPrefix str
 func genFamilyInetAddress(address string) map[string]interface{} {
 	return map[string]interface{}{
 		"cidr_ip":    address,
+		"primary":    false,
+		"preferred":  false,
 		"vrrp_group": make([]map[string]interface{}, 0),
 	}
 }

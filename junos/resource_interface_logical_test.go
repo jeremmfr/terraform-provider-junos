@@ -336,7 +336,9 @@ resource junos_interface_logical testacc_interface_logical {
       mode_loose = true
     }
     address {
-      cidr_ip = "192.0.2.1/25"
+      cidr_ip   = "192.0.2.1/25"
+      primary   = true
+      preferred = true
       vrrp_group {
         identifier               = 100
         virtual_address          = ["192.0.2.2"]
@@ -355,7 +357,9 @@ resource junos_interface_logical testacc_interface_logical {
     filter_input  = junos_firewall_filter.testacc_intlogicalInet6.name
     filter_output = junos_firewall_filter.testacc_intlogicalInet6.name
     address {
-      cidr_ip = "2001:db8::1/64"
+      cidr_ip   = "2001:db8::1/64"
+      primary   = true
+      preferred = true
       vrrp_group {
         identifier                 = 100
         virtual_address            = ["2001:db8::2"]
