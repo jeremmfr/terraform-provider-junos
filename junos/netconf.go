@@ -4,6 +4,8 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"log"
+	"os"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -105,18 +107,27 @@ func genSSHClientConfig(auth *netconfAuthMethod) (*ssh.ClientConfig, error) {
 	configs := make([]*ssh.ClientConfig, 0)
 	configs = append(configs, &ssh.ClientConfig{})
 
-	if len(auth.PrivateKeyPEM) > 0 {
+	// keys method
+	switch {
+	case len(auth.PrivateKeyPEM) > 0:
 		config, err := netconf.SSHConfigPubKeyPem(auth.Username, []byte(auth.PrivateKeyPEM), auth.Passphrase)
 		if err != nil {
 			return config, fmt.Errorf("failed to create new SSHConfig with PEM private key : %w", err)
 		}
 		configs = append(configs, config)
-	} else if len(auth.PrivateKeyFile) > 0 {
+	case len(auth.PrivateKeyFile) > 0:
 		config, err := netconf.SSHConfigPubKeyFile(auth.Username, auth.PrivateKeyFile, auth.Passphrase)
 		if err != nil {
 			return config, fmt.Errorf("failed to create new SSHConfig with file private key : %w", err)
 		}
 		configs = append(configs, config)
+	case os.Getenv("SSH_AUTH_SOCK") != "":
+		config, err := netconf.SSHConfigPubKeyAgent(auth.Username)
+		if err != nil {
+			log.Printf("failed to communicate with SSH agent: %s", err.Error())
+		} else {
+			configs = append(configs, config)
+		}
 	}
 	if len(auth.Password) > 0 {
 		config := netconf.SSHConfigPassword(auth.Username, auth.Password)

@@ -107,7 +107,8 @@ The following arguments are supported in the `provider` block:
   It can also be sourced from the `JUNOS_GROUP_INTERFACE_DELETE` environment variable.  
   Defaults to empty.
 
--> **Note:** Two SSH authentication methods (keys / password) is possible and tried with the `sshkey_pem` or `sshkeyfile` and `password` attributes.
+-> **Note:** Two SSH authentication methods (keys / password) are possible and tried with the `sshkey_pem`, `sshkeyfile` attributes or the keys provided by a SSH agent through the `SSH_AUTH_SOCK` environnement variable and `password` attribute.  
+  The keys provided by a SSH agent are only read if `sshkey_pem` and `sshkeyfile` attributes aren't set.
 
 ---
 #### Command options
