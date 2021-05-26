@@ -414,6 +414,10 @@ func resourceInterfaceLogical() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(1, 4094),
 			},
+			"vlan_no_compute": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -727,6 +731,16 @@ func resourceInterfaceLogicalImport(d *schema.ResourceData, m interface{}) ([]*s
 	if tfErr := d.Set("name", d.Id()); tfErr != nil {
 		panic(tfErr)
 	}
+	if interfaceLogicalOpt.vlanID == 0 {
+		intCut := strings.Split(d.Id(), ".")
+		if !stringInSlice(intCut[0], []string{st0Word, "irb"}) &&
+			intCut[1] != "0" {
+			if tfErr := d.Set("vlan_no_compute", true); tfErr != nil {
+				panic(tfErr)
+			}
+		}
+	}
+
 	fillInterfaceLogicalData(d, interfaceLogicalOpt)
 
 	result[0] = d
@@ -902,7 +916,7 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 	}
 	if d.Get("vlan_id").(int) != 0 {
 		configSet = append(configSet, setPrefix+"vlan-id "+strconv.Itoa(d.Get("vlan_id").(int)))
-	} else if !stringInSlice(intCut[0], []string{st0Word, "irb"}) && intCut[1] != "0" {
+	} else if !stringInSlice(intCut[0], []string{st0Word, "irb"}) && intCut[1] != "0" && !d.Get("vlan_no_compute").(bool) {
 		configSet = append(configSet, setPrefix+"vlan-id "+intCut[1])
 	}
 
