@@ -52,7 +52,8 @@ The following arguments are supported:
 * `security_inbound_protocols` - (Optional)(`ListOfString`) The inbound protocols allowed. Must be a list of Junos protocols. `security_zone` need to be set.
 * `security_inbound_services` - (Optional)(`ListOfString`) The inbound services allowed. Must be a list of Junos services. `security_zone` need to be set.
 * `security_zone` - (Optional)(`String`) Add this interface in security_zone. Need to be created before.
-* `vlan_id` - (Optional,Computed)(`Int`) 802.1q VLAN ID for unit interface. If not set, computed with `name` of interface (ge-0/0/0.100 = 100) except if name has '.0' suffix or 'st0.' prefix.
+* `vlan_id` - (Optional,Computed)(`Int`) 802.1q VLAN ID for unit interface.  
+  If not set, computed with `name` of interface (ge-0/0/0.100 = 100) except if name has '.0' suffix or 'st0.', 'irb.' prefix.
 
 ---
 #### address arguments for family_inet
