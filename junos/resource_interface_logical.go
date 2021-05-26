@@ -886,7 +886,7 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 	}
 	if d.Get("vlan_id").(int) != 0 {
 		configSet = append(configSet, setPrefix+"vlan-id "+strconv.Itoa(d.Get("vlan_id").(int)))
-	} else if intCut[0] != st0Word && intCut[1] != "0" {
+	} else if !stringInSlice(intCut[0], []string{st0Word, "irb"}) && intCut[1] != "0" {
 		configSet = append(configSet, setPrefix+"vlan-id "+intCut[1])
 	}
 
