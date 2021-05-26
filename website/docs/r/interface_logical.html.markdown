@@ -57,6 +57,8 @@ The following arguments are supported:
 ---
 #### address arguments for family_inet
 * `cidr_ip` - (Required)(`String`) Address IP/Mask v4.
+* `preferred` - (Optional)(`Bool`) Preferred address on interface.
+* `primary` - (Optional)(`Bool`) Candidate for primary address in system.
 * `vrrp_group` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each vrrp group to declare. See the [`vrrp_group` arguments for address in family_inet](#vrrp_group-arguments-for-address-in-family_inet) block.
 
 ---
@@ -83,6 +85,8 @@ The following arguments are supported:
 ---
 #### address arguments for family_inet6
 * `cidr_ip` - (Required)(`String`) Address IP/Mask v6.
+* `preferred` - (Optional)(`Bool`) Preferred address on interface.
+* `primary` - (Optional)(`Bool`) Candidate for primary address in system.
 * `vrrp_group` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each vrrp group to declare. See the [`vrrp_group` arguments for address in family_inet6](#vrrp_group-arguments-for-address-in-family_inet6) block.
 
 ---
