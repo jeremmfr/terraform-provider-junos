@@ -62,6 +62,9 @@ The following arguments are supported:
 * `no_ping_time_stamp` - (Optional)(`Bool`) Do not insert time stamp in ping replies.
 * `no_redirects` - (Optional)(`Bool`) Disable ICMP redirects.
 * `no_redirects_ipv6` - (Optional)(`Bool`) Disable IPV6 ICMP redirects.
+* `radius_options_attributes_nas_ipaddress` - (Optional)(`String`) Value of NAS-IP-Address in outgoing RADIUS packets.
+* `radius_options_enhanced_accounting` - (Optional)(`Bool`) Include authentication method, remote port and user-privileges in 'login' accounting.
+* `radius_options_password_protocol_mschapv2` - (Optional)(`Bool`) MSCHAP version 2 for password protocol used in RADIUS packets.
 * `services` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'services' configuration.
   * `ssh` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'ssh' configuration. See the [`ssh` arguments for services] (#ssh-arguments-for-services) block.
   * `web_management_http` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to enable 'web-management http'. See the [`web_management_http` arguments for services](#web_management_http-arguments-for-services) block.

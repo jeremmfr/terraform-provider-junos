@@ -323,6 +323,10 @@ resource junos_system "testacc_system" {
   no_ping_time_stamp          = true
   no_redirects                = true
   no_redirects_ipv6           = true
+
+  radius_options_attributes_nas_ipaddress   = "192.0.2.12"
+  radius_options_enhanced_accounting        = true
+  radius_options_password_protocol_mschapv2 = true
   services {
     ssh {
       authentication_order           = ["password"]

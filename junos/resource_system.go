@@ -20,10 +20,13 @@ type systemOptions struct {
 	noPingTimeStamp                      bool
 	noRedirects                          bool
 	noRedirectsIPv6                      bool
+	radiusOptionsEnhancedAccounting      bool
+	radiusOptionsPasswodProtoclMsChapV2  bool
 	maxConfigurationRollbacks            int
 	maxConfigurationsOnFlash             int
 	domainName                           string
 	hostName                             string
+	radiusOptionsAttributesNasIPAddress  string
 	timeZone                             string
 	tracingDestinationOverrideSyslogHost string
 	authenticationOrder                  []string
@@ -437,6 +440,19 @@ func resourceSystem() *schema.Resource {
 				Optional: true,
 			},
 			"no_redirects_ipv6": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"radius_options_attributes_nas_ipaddress": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsIPAddress,
+			},
+			"radius_options_enhanced_accounting": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"radius_options_password_protocol_mschapv2": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
@@ -889,6 +905,15 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 	}
 	if d.Get("no_redirects_ipv6").(bool) {
 		configSet = append(configSet, setPrefix+"no-redirects-ipv6")
+	}
+	if v := d.Get("radius_options_attributes_nas_ipaddress").(string); v != "" {
+		configSet = append(configSet, setPrefix+"radius-options attributes nas-ip-address "+v)
+	}
+	if d.Get("radius_options_enhanced_accounting").(bool) {
+		configSet = append(configSet, setPrefix+"radius-options enhanced-accounting")
+	}
+	if d.Get("radius_options_password_protocol_mschapv2").(bool) {
+		configSet = append(configSet, setPrefix+"radius-options password-protocol mschap-v2")
 	}
 	if err := setSystemServices(d, m, jnprSess); err != nil {
 		return err
@@ -1370,6 +1395,7 @@ func delSystem(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete = append(listLinesToDelete, "no-ping-time-stamp")
 	listLinesToDelete = append(listLinesToDelete, "no-redirects")
 	listLinesToDelete = append(listLinesToDelete, "no-redirects-ipv6")
+	listLinesToDelete = append(listLinesToDelete, "radius-options")
 	listLinesToDelete = append(listLinesToDelete, listLinesServices()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSyslog()...)
 	listLinesToDelete = append(listLinesToDelete, "time-zone")
@@ -1470,6 +1496,13 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 				confRead.noRedirects = true
 			case itemTrim == "no-redirects-ipv6":
 				confRead.noRedirectsIPv6 = true
+			case strings.HasPrefix(itemTrim, "radius-options attributes nas-ip-address "):
+				confRead.radiusOptionsAttributesNasIPAddress = strings.TrimPrefix(itemTrim,
+					"radius-options attributes nas-ip-address ")
+			case itemTrim == "radius-options enhanced-accounting":
+				confRead.radiusOptionsEnhancedAccounting = true
+			case itemTrim == "radius-options password-protocol mschap-v2":
+				confRead.radiusOptionsPasswodProtoclMsChapV2 = true
 			case checkStringHasPrefixInList(itemTrim, listLinesServices()):
 				if len(confRead.services) == 0 {
 					confRead.services = append(confRead.services, map[string]interface{}{
@@ -2161,6 +2194,18 @@ func fillSystem(d *schema.ResourceData, systemOptions systemOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("no_redirects_ipv6", systemOptions.noRedirectsIPv6); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("radius_options_attributes_nas_ipaddress",
+		systemOptions.radiusOptionsAttributesNasIPAddress); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("radius_options_enhanced_accounting",
+		systemOptions.radiusOptionsEnhancedAccounting); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("radius_options_password_protocol_mschapv2",
+		systemOptions.radiusOptionsPasswodProtoclMsChapV2); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("services", systemOptions.services); tfErr != nil {
