@@ -2,7 +2,10 @@
 ENHANCEMENTS:
 
 BUG FIXES:
-* resource/`junos_interface_logical`: disable set vlan-id on 'irb.*' interface (Fixes #217)
+
+## 1.16.1 (May 26, 2021)
+BUG FIXES:
+* resource/`junos_interface_logical`: disable set vlan-id on 'irb.*' interface (Fixes [#217](https://github.com/jeremmfr/terraform-provider-junos/issues/217))
 
 ## 1.16.0 (May 17, 2021)
 FEATURES:
