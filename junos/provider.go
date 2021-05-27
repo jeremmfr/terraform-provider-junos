@@ -69,6 +69,12 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JUNOS_SLEEP_SSH_CLOSED", 0),
 			},
+			"ssh_ciphers": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				DefaultFunc: defaultSSHCiphers(),
+			},
 			"file_permission": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -190,6 +196,9 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		junosFilePermission:      d.Get("file_permission").(string),
 		junosDebugNetconfLogPath: d.Get("debug_netconf_log_path").(string),
 		junosFakeCreateSetFile:   d.Get("fake_create_with_setfile").(string),
+	}
+	for _, v := range d.Get("ssh_ciphers").([]interface{}) {
+		c.junosSSHCiphers = append(c.junosSSHCiphers, v.(string))
 	}
 
 	return c.prepareSession()

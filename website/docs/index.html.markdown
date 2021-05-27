@@ -90,8 +90,7 @@ The following arguments are supported in the `provider` block:
   It can also be sourced from the `JUNOS_KEYFILE` environment variable.  
   Defaults is empty.
 
-* `password` - (Optional) This is a password for ssh connection.  
-  Used only if `sshkey_pem` and `sshkeyfile` is empty.  
+* `password` - (Optional) This is a password for ssh connection.   
   It can also be sourced from the `JUNOS_PASSWORD` environment variable.  
   Defaults is empty.
 
@@ -108,6 +107,9 @@ The following arguments are supported in the `provider` block:
   It can also be sourced from the `JUNOS_GROUP_INTERFACE_DELETE` environment variable.  
   Defaults to empty.
 
+-> **Note:** Two SSH authentication methods (keys / password) are possible and tried with the `sshkey_pem`, `sshkeyfile` attributes or the keys provided by a SSH agent through the `SSH_AUTH_SOCK` environnement variable and `password` attribute.  
+  The keys provided by a SSH agent are only read if `sshkey_pem` and `sshkeyfile` attributes aren't set.
+
 ---
 #### Command options
 * `cmd_sleep_short` - (Optional) Number of milliseconds to wait after Terraform provider executes an action on the Junos device.  
@@ -123,6 +125,9 @@ The following arguments are supported in the `provider` block:
 * `ssh_sleep_closed` - (Optional) Number of seconds to wait after Terraform provider closed a ssh connection.  
   It can also be sourced from the `JUNOS_SLEEP_SSH_CLOSED` environment variable.  
   Defaults to `0`.
+
+* `ssh_ciphers` - (Optional) List of ciphers used in SSH connection.  
+  Defaults to `["aes128-gcm@openssh.com", "chacha20-poly1305@openssh.com", "aes128-ctr", "aes192-ctr", "aes256-ctr", "aes128-cbc"]`
 
 ---
 #### Debug & workaround options

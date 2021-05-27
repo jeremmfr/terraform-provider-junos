@@ -5,6 +5,9 @@ ENHANCEMENTS:
 * resource/`junos_interface_logical`: add `preferred` and `primary` arguments inside `address` argument inside `family_inet` and `family_inet6` arguments
 * resource/`junos_interface_logical`: add `vlan_no_compute` argument to disable the automatic compute of `vlan_id`
 * data-source/`junos_interface_logical`: add `preferred` and `primary` attributes as for the resource
+* provider: try multiple SSH authentication methods (key + password)
+* provider: add `ssh_ciphers` attribute to configure ciphers used in SSH connection
+* provider: add support of SSH agent to SSH authentication (Fixes #212)
 
 BUG FIXES:
 

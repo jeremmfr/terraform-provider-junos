@@ -23,6 +23,7 @@ type configProvider struct {
 	junosFilePermission      string
 	junosDebugNetconfLogPath string
 	junosFakeCreateSetFile   string
+	junosSSHCiphers          []string
 }
 
 // prepareSession : prepare information to connect to Junos Device and more.
@@ -38,6 +39,7 @@ func (c *configProvider) prepareSession() (*Session, diag.Diagnostics) {
 		junosSleepLock:      c.junosCmdSleepLock,
 		junosSleepShort:     c.junosCmdSleepShort,
 		junosSleepSSHClosed: c.junosSSHSleepClosed,
+		junosSSHCiphers:     c.junosSSHCiphers,
 	}
 	// junosSSHKeyFile
 	sshKeyFile := c.junosSSHKeyFile
