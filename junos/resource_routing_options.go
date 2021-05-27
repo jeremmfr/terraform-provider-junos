@@ -13,6 +13,7 @@ import (
 
 type routingOptionsOptions struct {
 	autonomousSystem []map[string]interface{}
+	forwardingTable  []map[string]interface{}
 	gracefulRestart  []map[string]interface{}
 }
 
@@ -44,6 +45,85 @@ func resourceRoutingOptions() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(1, 10),
+						},
+					},
+				},
+			},
+			"forwarding_table": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"chain_composite_max_label_count": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 8),
+						},
+						"chained_composite_next_hop_ingress": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"chained_composite_next_hop_transit": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"dynamic_list_next_hop": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"ecmp_fast_reroute": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"forwarding_table.0.no_ecmp_fast_reroute"},
+						},
+						"no_ecmp_fast_reroute": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"forwarding_table.0.ecmp_fast_reroute"},
+						},
+						"export": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"indirect_next_hop": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"forwarding_table.0.no_indirect_next_hop"},
+						},
+						"no_indirect_next_hop": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"forwarding_table.0.indirect_next_hop"},
+						},
+						"indirect_next_hop_change_acknowledgements": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"forwarding_table.0.no_indirect_next_hop_change_acknowledgements"},
+						},
+						"no_indirect_next_hop_change_acknowledgements": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"forwarding_table.0.indirect_next_hop_change_acknowledgements"},
+						},
+						"krt_nexthop_ack_timeout": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 400),
+						},
+						"remnant_holdtime": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      -1,
+							ValidateFunc: validation.IntBetween(0, 10000),
+						},
+						"unicast_reverse_path": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"active-paths", "feasible-paths"}, false),
 						},
 					},
 				},
@@ -199,6 +279,55 @@ func setRoutingOptions(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			configSet = append(configSet, setPrefix+"autonomous-system loops "+strconv.Itoa(asM["loops"].(int)))
 		}
 	}
+	for _, vFwTable := range d.Get("forwarding_table").([]interface{}) {
+		fwTable := vFwTable.(map[string]interface{})
+		if v := fwTable["chain_composite_max_label_count"].(int); v != 0 {
+			configSet = append(configSet, setPrefix+"forwarding-table chain-composite-max-label-count "+strconv.Itoa(v))
+		}
+		for _, v := range fwTable["chained_composite_next_hop_ingress"].(*schema.Set).List() {
+			configSet = append(configSet, setPrefix+"forwarding-table chained-composite-next-hop ingress "+v.(string))
+		}
+		for _, v := range fwTable["chained_composite_next_hop_transit"].(*schema.Set).List() {
+			configSet = append(configSet, setPrefix+"forwarding-table chained-composite-next-hop transit "+v.(string))
+		}
+		if fwTable["dynamic_list_next_hop"].(bool) {
+			configSet = append(configSet, setPrefix+"forwarding-table dynamic-list-next-hop")
+		}
+		if fwTable["ecmp_fast_reroute"].(bool) {
+			configSet = append(configSet, setPrefix+"forwarding-table ecmp-fast-reroute")
+		}
+		if fwTable["no_ecmp_fast_reroute"].(bool) {
+			configSet = append(configSet, setPrefix+"forwarding-table no-ecmp-fast-reroute")
+		}
+		for _, v := range fwTable["export"].([]interface{}) {
+			configSet = append(configSet, setPrefix+"forwarding-table export \""+v.(string)+"\"")
+		}
+		if fwTable["indirect_next_hop"].(bool) {
+			configSet = append(configSet, setPrefix+"forwarding-table indirect-next-hop")
+		}
+		if fwTable["no_indirect_next_hop"].(bool) {
+			configSet = append(configSet, setPrefix+"forwarding-table no-indirect-next-hop")
+		}
+		if fwTable["indirect_next_hop_change_acknowledgements"].(bool) {
+			configSet = append(configSet, setPrefix+"forwarding-table indirect-next-hop-change-acknowledgements")
+		}
+		if fwTable["no_indirect_next_hop_change_acknowledgements"].(bool) {
+			configSet = append(configSet, setPrefix+"forwarding-table no-indirect-next-hop-change-acknowledgements")
+		}
+		if v := fwTable["krt_nexthop_ack_timeout"].(int); v != 0 {
+			configSet = append(configSet, setPrefix+"forwarding-table krt-nexthop-ack-timeout "+strconv.Itoa(v))
+		}
+		if v := fwTable["remnant_holdtime"].(int); v != -1 {
+			configSet = append(configSet, setPrefix+"forwarding-table remnant-holdtime "+strconv.Itoa(v))
+		}
+		if v := fwTable["unicast_reverse_path"].(string); v != "" {
+			configSet = append(configSet, setPrefix+"forwarding-table unicast-reverse-path "+v)
+		}
+
+		if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefix+"forwarding-table ") {
+			return fmt.Errorf("forwarding_table block is empty")
+		}
+	}
 	for _, grR := range d.Get("graceful_restart").([]interface{}) {
 		configSet = append(configSet, setPrefix+"graceful-restart")
 		if grR != nil {
@@ -219,6 +348,7 @@ func setRoutingOptions(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 func delRoutingOptions(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete := []string{
 		"autonomous-system",
+		"forwarding-table",
 		"graceful-restart",
 	}
 	sess := m.(*Session)
@@ -272,6 +402,76 @@ func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsO
 				default:
 					confRead.autonomousSystem[0]["number"] = strings.TrimPrefix(itemTrim, "autonomous-system ")
 				}
+			case strings.HasPrefix(itemTrim, "forwarding-table "):
+				if len(confRead.forwardingTable) == 0 {
+					confRead.forwardingTable = append(confRead.forwardingTable, map[string]interface{}{
+						"chain_composite_max_label_count":              0,
+						"chained_composite_next_hop_ingress":           make([]string, 0),
+						"chained_composite_next_hop_transit":           make([]string, 0),
+						"dynamic_list_next_hop":                        false,
+						"ecmp_fast_reroute":                            false,
+						"no_ecmp_fast_reroute":                         false,
+						"export":                                       make([]string, 0),
+						"indirect_next_hop":                            false,
+						"no_indirect_next_hop":                         false,
+						"indirect_next_hop_change_acknowledgements":    false,
+						"no_indirect_next_hop_change_acknowledgements": false,
+						"krt_nexthop_ack_timeout":                      0,
+						"remnant_holdtime":                             -1,
+						"unicast_reverse_path":                         "",
+					})
+				}
+				switch {
+				case strings.HasPrefix(itemTrim, "forwarding-table chain-composite-max-label-count "):
+					var err error
+					confRead.forwardingTable[0]["chain_composite_max_label_count"], err = strconv.Atoi(
+						strings.TrimPrefix(itemTrim, "forwarding-table chain-composite-max-label-count "))
+					if err != nil {
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					}
+				case strings.HasPrefix(itemTrim, "forwarding-table chained-composite-next-hop ingress "):
+					confRead.forwardingTable[0]["chained_composite_next_hop_ingress"] = append(
+						confRead.forwardingTable[0]["chained_composite_next_hop_ingress"].([]string),
+						strings.TrimPrefix(itemTrim, "forwarding-table chained-composite-next-hop ingress "))
+				case strings.HasPrefix(itemTrim, "forwarding-table chained-composite-next-hop transit "):
+					confRead.forwardingTable[0]["chained_composite_next_hop_transit"] = append(
+						confRead.forwardingTable[0]["chained_composite_next_hop_transit"].([]string),
+						strings.TrimPrefix(itemTrim, "forwarding-table chained-composite-next-hop transit "))
+				case itemTrim == "forwarding-table dynamic-list-next-hop":
+					confRead.forwardingTable[0]["dynamic_list_next_hop"] = true
+				case itemTrim == "forwarding-table ecmp-fast-reroute":
+					confRead.forwardingTable[0]["ecmp_fast_reroute"] = true
+				case itemTrim == "forwarding-table no-ecmp-fast-reroute":
+					confRead.forwardingTable[0]["no_ecmp_fast_reroute"] = true
+				case strings.HasPrefix(itemTrim, "forwarding-table export "):
+					confRead.forwardingTable[0]["export"] = append(confRead.forwardingTable[0]["export"].([]string),
+						strings.Trim(strings.TrimPrefix(itemTrim, "forwarding-table export "), "\""))
+				case itemTrim == "forwarding-table indirect-next-hop":
+					confRead.forwardingTable[0]["indirect_next_hop"] = true
+				case itemTrim == "forwarding-table no-indirect-next-hop":
+					confRead.forwardingTable[0]["no_indirect_next_hop"] = true
+				case itemTrim == "forwarding-table indirect-next-hop-change-acknowledgements":
+					confRead.forwardingTable[0]["indirect_next_hop_change_acknowledgements"] = true
+				case itemTrim == "forwarding-table no-indirect-next-hop-change-acknowledgements":
+					confRead.forwardingTable[0]["no_indirect_next_hop_change_acknowledgements"] = true
+				case strings.HasPrefix(itemTrim, "forwarding-table krt-nexthop-ack-timeout "):
+					var err error
+					confRead.forwardingTable[0]["krt_nexthop_ack_timeout"], err = strconv.Atoi(
+						strings.TrimPrefix(itemTrim, "forwarding-table krt-nexthop-ack-timeout "))
+					if err != nil {
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					}
+				case strings.HasPrefix(itemTrim, "forwarding-table remnant-holdtime "):
+					var err error
+					confRead.forwardingTable[0]["remnant_holdtime"], err = strconv.Atoi(
+						strings.TrimPrefix(itemTrim, "forwarding-table remnant-holdtime "))
+					if err != nil {
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					}
+				case strings.HasPrefix(itemTrim, "forwarding-table unicast-reverse-path "):
+					confRead.forwardingTable[0]["unicast_reverse_path"] =
+						strings.TrimPrefix(itemTrim, "forwarding-table unicast-reverse-path ")
+				}
 			case strings.HasPrefix(itemTrim, "graceful-restart"):
 				if len(confRead.gracefulRestart) == 0 {
 					confRead.gracefulRestart = append(confRead.gracefulRestart, map[string]interface{}{
@@ -299,6 +499,9 @@ func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsO
 
 func fillRoutingOptions(d *schema.ResourceData, routingOptionsOptions routingOptionsOptions) {
 	if tfErr := d.Set("autonomous_system", routingOptionsOptions.autonomousSystem); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("forwarding_table", routingOptionsOptions.forwardingTable); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("graceful_restart", routingOptionsOptions.gracefulRestart); tfErr != nil {
