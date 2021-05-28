@@ -2,9 +2,12 @@
 ENHANCEMENTS:
 
 BUG FIXES:
-* provider: fix XML error on commit with RPC reply without `<commit-results>` but different from `<ok/>` (Fixes #223)
-* resource/`junos_interface_logical`: disable set vlan-id on 'vlan.*' interface (Fixes parts of #222)
-* resource/`junos_vlan`: allow 'vlan.*' interface in `l3_interface` argument (Fixes parts of #222)
+
+## 1.16.2 (May 28, 2021)
+BUG FIXES:
+* provider: fix XML error on commit with RPC reply without `<commit-results>` but different from `<ok/>` (Fixes [#223](https://github.com/jeremmfr/terraform-provider-junos/issues/223))
+* resource/`junos_interface_logical`: disable set vlan-id on 'vlan.*' interface (Fixes parts of [#222](https://github.com/jeremmfr/terraform-provider-junos/issues/222))
+* resource/`junos_vlan`: allow 'vlan.*' interface in `l3_interface` argument (Fixes parts of [#222](https://github.com/jeremmfr/terraform-provider-junos/issues/222))
 
 ## 1.16.1 (May 26, 2021)
 BUG FIXES:
