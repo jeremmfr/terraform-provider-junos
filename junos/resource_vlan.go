@@ -77,9 +77,9 @@ func resourceVlan() *schema.Resource {
 				Optional: true,
 				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
 					value := v.(string)
-					if !strings.HasPrefix(value, "irb.") {
+					if !checkStringHasPrefixInList(value, []string{"irb.", "vlan."}) {
 						errors = append(errors, fmt.Errorf(
-							"%q for %q is not start with 'irb.'", value, k))
+							"%q for %q is not start with 'irb.' or 'vlan.'", value, k))
 					}
 
 					return
