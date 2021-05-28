@@ -53,6 +53,7 @@ The following arguments are supported:
 * `security_inbound_services` - (Optional)(`ListOfString`) The inbound services allowed. Must be a list of Junos services. `security_zone` need to be set.
 * `security_zone` - (Optional)(`String`) Add this interface in security_zone. Need to be created before.
 * `vlan_id` - (Optional,Computed)(`Int`) 802.1q VLAN ID for unit interface.  
+  If not set, computed with `name` of interface (ge-0/0/0.100 = 100) except if name has '.0' suffix or 'st0.', 'irb.', 'vlan.' prefix.
   If not set, computed with `name` of interface (ge-0/0/0.100 = 100) except if name has '.0' suffix or 'st0.', 'irb.' prefix.
 * `vlan_no_compute` - (Optional)(`Bool`) Disable the automatic compute of the `vlan_id` argument when not set.  
   (Unnecessary if name has '.0' suffix or 'st0.', 'irb.' prefix because it's already disabled.)

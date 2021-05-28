@@ -31,7 +31,7 @@ The following arguments are supported:
 * `forward_filter_input` - (Optional)(`String`) input filter to apply for forwarded packets (when Junos device supports it).
 * `forward_filter_output` - (Optional)(`String`) output filter to apply for forwarded packets (when Junos device supports it).
 * `forward_flood_input` - (Optional)(`String`) input filter to apply for ethernet switching flood packets (when Junos device supports it).
-* `l3_interface` - (Optional)(`String`) L3 interface name for this vlans. Must be start with irb.
+* `l3_interface` - (Optional)(`String`) L3 interface name for this vlans. Must be start with 'irb.' or 'vlan.'.
 * `isolated-vlan` - (Optional)(`Int`) declare ID isolated vlan for primary vlan (when Junos device supports it).
 * `private_vlan` - (Optional)(`String`) Type of secondary vlan for private vlan. Must be 'community' or 'isolated' (when Junos device supports it).
 * `service_id` - (Optional)(`Int`) Service id (when Junos device supports it).
