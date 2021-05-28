@@ -2,6 +2,7 @@
 ENHANCEMENTS:
 
 BUG FIXES:
+* resource/`junos_interface_logical`: disable set vlan-id on 'vlan.*' interface (Fixes parts of #222)
 * resource/`junos_vlan`: allow 'vlan.*' interface in `l3_interface` argument (Fixes parts of #222)
 
 ## 1.16.1 (May 26, 2021)
