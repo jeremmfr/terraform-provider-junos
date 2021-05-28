@@ -276,7 +276,6 @@ func (j *NetconfObject) netconfConfigClear() []error {
 
 // netconfCommit commits the configuration.
 func (j *NetconfObject) netconfCommit(logMessage string) (_warn []error, _err error) {
-	var errs commitResults
 	reply, err := j.Session.Exec(netconf.RawMethod(fmt.Sprintf(rpcCommit, logMessage)))
 	if err != nil {
 		return []error{}, fmt.Errorf("failed to netconf commit : %w", err)
@@ -294,7 +293,8 @@ func (j *NetconfObject) netconfCommit(logMessage string) (_warn []error, _err er
 		return warnings, nil
 	}
 
-	if reply.Data != "\n<ok/>\n" {
+	var errs commitResults
+	if strings.Contains(reply.Data, "<commit-results>") {
 		err = xml.Unmarshal([]byte(reply.Data), &errs)
 		if err != nil {
 			return []error{}, fmt.Errorf("failed to xml unmarshal reply %s : %w", reply.Data, err)
