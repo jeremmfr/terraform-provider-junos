@@ -2,6 +2,7 @@
 ENHANCEMENTS:
 
 BUG FIXES:
+* provider: fix XML error on commit with RPC reply without `<commit-results>` but different from `<ok/>` (Fixes #223)
 * resource/`junos_interface_logical`: disable set vlan-id on 'vlan.*' interface (Fixes parts of #222)
 * resource/`junos_vlan`: allow 'vlan.*' interface in `l3_interface` argument (Fixes parts of #222)
 
