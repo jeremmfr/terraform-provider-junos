@@ -8,6 +8,7 @@ ENHANCEMENTS:
 * provider: try multiple SSH authentication methods (key + password)
 * provider: add `ssh_ciphers` attribute to configure ciphers used in SSH connection
 * provider: add support of SSH agent to SSH authentication (Fixes #212)
+* resource/`junos_routing_options`: add `forwarding_table` argument (Fixes #221)
 
 BUG FIXES:
 
