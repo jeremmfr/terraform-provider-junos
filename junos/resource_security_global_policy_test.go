@@ -51,6 +51,9 @@ resource junos_security_zone "testacc_secglobpolicy1" {
   name = "testacc_secglobpolicy1"
 }
 resource junos_security_zone "testacc_secglobpolicy2" {
+  lifecycle {
+    create_before_destroy = true
+  }
   name = "testacc_secglobpolicy2"
 }
 resource "junos_security_address_book" "testacc_secglobpolicy" {
@@ -64,6 +67,9 @@ resource "junos_security_address_book" "testacc_secglobpolicy" {
   }
 }
 resource "junos_services_user_identification_device_identity_profile" "profile" {
+  lifecycle {
+    create_before_destroy = true
+  }
   name   = "testacc_secglobpolicy"
   domain = "testacc_secglobpolicy"
   attribute {
@@ -95,9 +101,6 @@ func testAccJunosSecurityGlobalPolicyConfigUpdate() string {
 resource junos_security_zone "testacc_secglobpolicy1" {
   name = "testacc_secglobpolicy1"
 }
-resource junos_security_zone "testacc_secglobpolicy2" {
-  name = "testacc_secglobpolicy2"
-}
 resource "junos_security_address_book" "testacc_secglobpolicy" {
   network_address {
     name  = "blue"
@@ -106,14 +109,6 @@ resource "junos_security_address_book" "testacc_secglobpolicy" {
   network_address {
     name  = "green"
     value = "192.0.2.2/32"
-  }
-}
-resource "junos_services_user_identification_device_identity_profile" "profile" {
-  name   = "testacc_secglobpolicy"
-  domain = "testacc_secglobpolicy"
-  attribute {
-    name  = "device-identity"
-    value = ["testacc_secglobpolicy"]
   }
 }
 resource junos_services_advanced_anti_malware_policy "testacc_secglobpolicy" {

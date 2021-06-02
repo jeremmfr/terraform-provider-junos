@@ -55,6 +55,9 @@ func TestAccJunosRoutingOptions_basic(t *testing.T) {
 func testAccJunosRoutingOptionsConfigCreate() string {
 	return `
 resource "junos_policyoptions_policy_statement" "testacc_routing_options" {
+  lifecycle {
+    create_before_destroy = true
+  }
   name = "testacc_routing_options"
   from {
     protocol = ["bgp"]
@@ -93,19 +96,6 @@ resource junos_routing_options "testacc_routing_options" {
 
 func testAccJunosRoutingOptionsConfigUpdate() string {
 	return `
-resource "junos_policyoptions_policy_statement" "testacc_routing_options" {
-  name = "testacc_routing_options"
-  from {
-    protocol = ["bgp"]
-    route_filter {
-      route  = "192.0.2.0/28"
-      option = "orlonger"
-    }
-  }
-  then {
-    load_balance = "per-packet"
-  }
-}
 resource junos_routing_options "testacc_routing_options" {
   forwarding_table {
     no_ecmp_fast_reroute                         = true

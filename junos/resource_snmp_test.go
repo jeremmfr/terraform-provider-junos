@@ -54,6 +54,9 @@ resource "junos_snmp" "testacc_snmp" {
   routing_instance_access_list    = [junos_routing_instance.testacc_snmp.name]
 }
 resource "junos_routing_instance" "testacc_snmp" {
+  lifecycle {
+    create_before_destroy = true
+  }
   name = "testacc_snmp"
 }
 `
@@ -61,16 +64,12 @@ resource "junos_routing_instance" "testacc_snmp" {
 
 func testAccJunosSnmpConfigUpdate() string {
 	return `
-resource "junos_routing_instance" "testacc_snmp" {
-  name = "testacc_snmp"
-}
 resource "junos_snmp" "testacc_snmp" {
   arp                      = true
   arp_host_name_resolution = true
   health_monitor {}
   routing_instance_access = true
 }
-
 `
 }
 

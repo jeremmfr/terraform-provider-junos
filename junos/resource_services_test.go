@@ -30,12 +30,12 @@ func TestAccJunosServices_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosServicesConfigUpdate2(),
-				},
-				{
 					ResourceName:      "junos_services_proxy_profile.testacc_services",
 					ImportState:       true,
 					ImportStateVerify: true,
+				},
+				{
+					Config: testAccJunosServicesConfigUpdate2(),
 				},
 				{
 					ResourceName:      "junos_services.testacc",
@@ -58,6 +58,9 @@ resource "junos_services_proxy_profile" "testacc_services" {
   protocol_http_port = 3128
 }
 resource "junos_security_address_book" "testacc_services" {
+  lifecycle {
+    create_before_destroy = true
+  }
   name = "testacc_services"
   network_address {
     name  = "testacc_services_add"
@@ -147,11 +150,17 @@ resource "junos_services" "testacc" {
 func testAccJunosServicesConfigUpdate() string {
 	return `
 resource "junos_services_proxy_profile" "testacc_services" {
+  lifecycle {
+    create_before_destroy = true
+  }
   name               = "testacc_services"
   protocol_http_host = "192.0.2.2"
   protocol_http_port = 3129
 }
 resource "junos_services_security_intelligence_profile" "testacc_services" {
+  lifecycle {
+    create_before_destroy = true
+  }
   name     = "testacc_services"
   category = "IPFilter"
   rule {
@@ -162,18 +171,10 @@ resource "junos_services_security_intelligence_profile" "testacc_services" {
     then_action = "permit"
   }
 }
-resource "junos_security_address_book" "testacc_services" {
-  name = "testacc_services"
-  network_address {
-    name  = "testacc_services_add"
-    value = "192.0.2.0/25"
-  }
-  address_set {
-    name    = "testacc_services_set"
-    address = ["testacc_services_add"]
-  }
-}
 resource "junos_services_ssl_initiation_profile" "testacc_services" {
+  lifecycle {
+    create_before_destroy = true
+  }
   name = "testacc_services"
 }
 resource "junos_services" "testacc" {
@@ -236,25 +237,6 @@ resource "junos_services" "testacc" {
 
 func testAccJunosServicesConfigUpdate2() string {
 	return `
-resource "junos_services_proxy_profile" "testacc_services" {
-  name               = "testacc_services"
-  protocol_http_host = "192.0.2.2"
-  protocol_http_port = 3129
-}
-resource "junos_services_security_intelligence_profile" "testacc_services" {
-  name     = "testacc_services"
-  category = "IPFilter"
-  rule {
-    name = "rule_1"
-    match {
-      threat_level = [1]
-    }
-    then_action = "permit"
-  }
-}
-resource "junos_services_ssl_initiation_profile" "testacc_services" {
-  name = "testacc_services"
-}
 resource "junos_services" "testacc" {
   application_identification {
     no_application_system_cache = true
@@ -276,11 +258,6 @@ resource "junos_services" "testacc" {
 
 func testAccJunosServicesConfigPostCheck() string {
 	return `
-resource "junos_services_proxy_profile" "testacc_services" {
-  name               = "testacc_services"
-  protocol_http_host = "192.0.2.2"
-  protocol_http_port = 3129
-}
 resource "junos_services" "testacc" {
 }
 `
