@@ -47,6 +47,9 @@ resource "junos_routing_instance" "testacc_snmpcom" {
   name = "testacc_snmpcom"
 }
 resource "junos_snmp_view" "testacc_snmpcom" {
+  lifecycle {
+    create_before_destroy = true
+  }
   name        = "testacc_snmpcom"
   oid_include = [".1"]
 }
@@ -65,10 +68,6 @@ resource "junos_snmp_community" "testacc_snmpcom" {
   routing_instance {
     name = junos_routing_instance.testacc2_snmpcom.name
   }
-}
-resource "junos_snmp_view" "testacc_snmpcom" {
-  name        = "testacc_snmpcom"
-  oid_include = [".1"]
 }
 
 resource "junos_routing_instance" "testacc_snmpcom" {

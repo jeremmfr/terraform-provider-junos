@@ -207,6 +207,9 @@ resource junos_routing_instance "testacc_bgpgroup" {
   as   = "65000"
 }
 resource junos_policyoptions_policy_statement "testacc_bgpgroup" {
+  lifecycle {
+    create_before_destroy = true
+  }
   name = "testacc_bgpgroup"
   then {
     action = "accept"
@@ -301,12 +304,6 @@ func testAccJunosBgpGroupConfigUpdate() string {
 resource junos_routing_instance "testacc_bgpgroup" {
   name = "testacc_bgpgroup"
   as   = "65000"
-}
-resource junos_policyoptions_policy_statement "testacc_bgpgroup" {
-  name = "testacc_bgpgroup"
-  then {
-    action = "accept"
-  }
 }
 resource junos_bgp_group "testacc_bgpgroup" {
   name                            = "testacc_bgpgroup"

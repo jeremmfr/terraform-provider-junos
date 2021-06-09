@@ -214,6 +214,9 @@ resource junos_routing_instance "testacc_bgpneighbor" {
   as   = "65000"
 }
 resource junos_policyoptions_policy_statement "testacc_bgpneighbor" {
+  lifecycle {
+    create_before_destroy = true
+  }
   name = "testacc_bgpneighbor"
   then {
     action = "accept"
@@ -313,12 +316,6 @@ func testAccJunosBgpNeighborConfigUpdate() string {
 resource junos_routing_instance "testacc_bgpneighbor" {
   name = "testacc_bgpneighbor"
   as   = "65000"
-}
-resource junos_policyoptions_policy_statement "testacc_bgpneighbor" {
-  name = "testacc_bgpneighbor"
-  then {
-    action = "accept"
-  }
 }
 resource junos_bgp_group "testacc_bgpneighbor" {
   name             = "testacc_bgpneighbor"

@@ -280,6 +280,9 @@ resource junos_system "system" {
 func testAccJunosSecurityConfigCreate(interFace string) string {
 	return `
 resource junos_interface_logical "testacc_security" {
+  lifecycle {
+    create_before_destroy = true
+  }
   name        = "` + interFace + `.0"
   description = "testacc_security"
 }
@@ -401,10 +404,6 @@ resource junos_security "testacc_security" {
 
 func testAccJunosSecurityConfigUpdate(interFace string) string {
 	return `
-resource junos_interface_logical "testacc_security" {
-  name        = "` + interFace + `.0"
-  description = "testacc_security"
-}
 resource junos_security "testacc_security" {
   flow {
     ethernet_switching {
@@ -464,6 +463,9 @@ resource junos_security "testacc_security" {
   }
 }
 resource junos_routing_instance testacc_security {
+  lifecycle {
+    create_before_destroy = true
+  }
   name = "testacc_security"
 }
 `
@@ -471,9 +473,6 @@ resource junos_routing_instance testacc_security {
 
 func testAccJunosSecurityConfigUpdate2() string {
 	return `
-resource junos_routing_instance testacc_security {
-  name = "testacc_security"
-}
 resource junos_security "testacc_security" {
   flow {
     tcp_session {

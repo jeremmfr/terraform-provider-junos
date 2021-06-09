@@ -72,6 +72,9 @@ resource junos_routing_instance testacc_aggregateRoute {
   name = "testacc_aggregateRoute"
 }
 resource junos_policyoptions_policy_statement "testacc_aggregateRoute" {
+  lifecycle {
+    create_before_destroy = true
+  }
   name = "testacc_aggregateRoute"
   then {
     action = "accept"
@@ -117,12 +120,6 @@ func testAccJunosAggregateRouteConfigUpdate() string {
 	return `
 resource junos_routing_instance testacc_aggregateRoute {
   name = "testacc_aggregateRoute"
-}
-resource junos_policyoptions_policy_statement "testacc_aggregateRoute" {
-  name = "testacc_aggregateRoute"
-  then {
-    action = "accept"
-  }
 }
 
 resource junos_aggregate_route testacc_aggregateRoute {
