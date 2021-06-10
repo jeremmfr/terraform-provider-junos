@@ -356,6 +356,25 @@ resource junos_security "testacc_security" {
   forwarding_process {
     enhanced_services_mode = true
   }
+  idp_sensor_configuration {
+    log_cache_size = 10
+    log_suppression {
+      disable                        = true
+      no_include_destination_address = true
+      max_logs_operate               = 1000
+      max_time_report                = 30
+      start_log                      = 35
+    }
+    packet_log {
+      source_address             = "192.0.2.4"
+      host_address               = "192.0.2.5"
+      host_port                  = 100
+      max_sessions               = 10
+      threshold_logging_interval = 20
+      total_memory               = 25
+    }
+    security_configuration_protection_mode = "datacenter"
+  }
   ike_traceoptions {
     file {
       name           = "ike.log"
@@ -433,6 +452,14 @@ resource junos_security "testacc_security" {
       }
     }
   }
+  idp_sensor_configuration {
+    log_suppression {
+      include_destination_address = true
+    }
+    packet_log {
+      source_address = "192.0.2.4"
+    }
+  }
   ike_traceoptions {
     file {
       name              = "ike.log"
@@ -480,6 +507,9 @@ resource junos_security "testacc_security" {
         session_timeout = 90
       }
     }
+  }
+  idp_sensor_configuration {
+    log_suppression {}
   }
 }
 `

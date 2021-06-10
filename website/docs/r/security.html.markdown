@@ -35,6 +35,7 @@ The following arguments are supported:
 * `forwarding_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'forwarding-options' configuration. See the [`forwarding_options` arguments] (#forwarding_options-arguments) block.
 * `forwarding_process` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'forwarding-process' configuration.
   * `enhanced_services_mode` - (Optional)(`Bool`) Enable enhanced application services mode.
+* `idp_sensor_configuration` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'idp sensor-configuration' configuration. See the [`idp_sensor_configuration` arguments] (#idp_sensor_configuration-arguments) block.
 * `ike_traceoptions` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'ike traceoptions' configuration.
   * `file` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'file' configuration. See the [`file` arguments for ike_traceoptions] (#file-arguments-for-ike_traceoptions) block.
   * `flag` - (Optional)(`ListOfString`) Tracing parameters for IKE.
@@ -126,6 +127,25 @@ The following arguments are supported:
 * `inet6_mode` - (Optional)(`String`) Forwarding mode for inet6 family. Need to be 'drop', 'flow-based' or 'packet-based'.
 * `mpls_mode` - (Optional)(`String`) Forwarding mode for mpls family. Need to be 'flow-based' or 'packet-based'.
 * `iso_mode_packet_based` - (Optional)(`Bool`) Forwarding mode packet-based for iso family.
+
+---
+#### idp_sensor_configuration arguments
+* `log_cache_size` - (Optional)(`Int`) Log cache size (1..65535).
+* `log_suppression` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to enable 'log suppression'.
+  * `disable` - (Optional)(`Bool`) Disable log suppression.
+  * `include_destination_address` - (Optional)(`Bool`) Include destination address while performing a log suppression.
+  * `no_include_destination_address` - (Optional)(`Bool`) Don't include destination address while performing a log suppression.
+  * `max_logs_operate` - (Optional)(`Int`) Maximum logs can be operate on (256..65536).
+  * `max_time_report` - (Optional)(`Int`) Time after suppressed logs will be reported (1..60).
+  * `start_log` - (Optional)(`Int`) Suppression start log (1..128).
+* `packet_log` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'packet-log' configuration.
+  * `source_address` - (Required)(`String`) Source IP address used to transport packetlog to a host.
+  * `host_address` - (Optional)(`String`) Destination host to send packetlog to.
+  * `host_port` - (Optional)(`Int`) Destination UDP port number (1..65536).
+  * `max_sessions` - (Optional)(`Int`) Max num of sessions in unit(%) (1..100).
+  * `threshold_logging_interval` - (Optional)(`Int`) Interval of logs for max limit session/memory reached in minutes (1..60).
+  * `total_memory` - (Optional)(`Int`) Total memory unit(%) (1..100).
+* `security_configuration_protection_mode` - (Optional)(`String`) Enable security protection mode.
 
 ---
 #### log arguments

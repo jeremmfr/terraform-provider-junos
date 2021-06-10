@@ -16,8 +16,9 @@ type securityOptions struct {
 	flow              []map[string]interface{}
 	forwardingOpts    []map[string]interface{}
 	forwardingProcess []map[string]interface{}
-	log               []map[string]interface{}
+	idpSensorConfig   []map[string]interface{}
 	ikeTraceoptions   []map[string]interface{}
+	log               []map[string]interface{}
 	policies          []map[string]interface{}
 	utm               []map[string]interface{}
 }
@@ -404,6 +405,104 @@ func resourceSecurity() *schema.Resource {
 						"enhanced_services_mode": {
 							Type:     schema.TypeBool,
 							Optional: true,
+						},
+					},
+				},
+			},
+			"idp_sensor_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"log_cache_size": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 65535),
+						},
+						"log_suppression": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"disable": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"include_destination_address": {
+										Type:          schema.TypeBool,
+										Optional:      true,
+										ConflictsWith: []string{"idp_sensor_configuration.0.log_suppression.0.no_include_destination_address"},
+									},
+									"no_include_destination_address": {
+										Type:          schema.TypeBool,
+										Optional:      true,
+										ConflictsWith: []string{"idp_sensor_configuration.0.log_suppression.0.include_destination_address"},
+									},
+									"max_logs_operate": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(256, 65536),
+									},
+									"max_time_report": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 60),
+									},
+									"start_log": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 128),
+									},
+								},
+							},
+						},
+						"packet_log": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"source_address": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.IsIPAddress,
+									},
+									"host_address": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.IsIPAddress,
+									},
+									"host_port": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 65535),
+										RequiredWith: []string{"idp_sensor_configuration.0.packet_log.0.host_address"},
+									},
+									"max_sessions": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 100),
+									},
+									"threshold_logging_interval": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 60),
+									},
+									"total_memory": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 100),
+									},
+								},
+							},
+						},
+						"security_configuration_protection_mode": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice(
+								[]string{"datacenter", "datacenter-full", "perimeter", "perimeter-full"}, false),
 						},
 					},
 				},
@@ -800,6 +899,13 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 			return fmt.Errorf("forwarding_process block is empty")
 		}
 	}
+	for _, v := range d.Get("idp_sensor_configuration").([]interface{}) {
+		configSetIdpSensorConfig, err := setSecurityIdpSensorConfig(v)
+		if err != nil {
+			return err
+		}
+		configSet = append(configSet, configSetIdpSensorConfig...)
+	}
 	for _, ikeTrace := range d.Get("ike_traceoptions").([]interface{}) {
 		configSetIkeTrace, err := setSecurityIkeTraceOpts(ikeTrace)
 		if err != nil {
@@ -1141,6 +1247,67 @@ func setSecurityForwOpts(forwOpts interface{}) ([]string, error) {
 	return configSet, nil
 }
 
+func setSecurityIdpSensorConfig(idpSensorConfig interface{}) ([]string, error) {
+	setPrefix := "set security idp sensor-configuration "
+	configSet := make([]string, 0)
+	if idpSensorConfig != nil {
+		idpSensorConfigM := idpSensorConfig.(map[string]interface{})
+		if v := idpSensorConfigM["log_cache_size"].(int); v != 0 {
+			configSet = append(configSet, setPrefix+"log cache-size "+strconv.Itoa(v))
+		}
+		for _, v := range idpSensorConfigM["log_suppression"].([]interface{}) {
+			configSet = append(configSet, setPrefix+"log suppression")
+			if v != nil {
+				logSupp := v.(map[string]interface{})
+				if logSupp["disable"].(bool) {
+					configSet = append(configSet, setPrefix+"log suppression disable")
+				}
+				if logSupp["include_destination_address"].(bool) {
+					configSet = append(configSet, setPrefix+"log suppression include-destination-address")
+				}
+				if logSupp["no_include_destination_address"].(bool) {
+					configSet = append(configSet, setPrefix+"log suppression no-include-destination-address")
+				}
+				if v2 := logSupp["max_logs_operate"].(int); v2 != 0 {
+					configSet = append(configSet, setPrefix+"log suppression max-logs-operate "+strconv.Itoa(v2))
+				}
+				if v2 := logSupp["max_time_report"].(int); v2 != 0 {
+					configSet = append(configSet, setPrefix+"log suppression max-time-report "+strconv.Itoa(v2))
+				}
+				if v2 := logSupp["start_log"].(int); v2 != 0 {
+					configSet = append(configSet, setPrefix+"log suppression start-log "+strconv.Itoa(v2))
+				}
+			}
+		}
+		for _, v := range idpSensorConfigM["packet_log"].([]interface{}) {
+			packetLog := v.(map[string]interface{})
+			configSet = append(configSet, setPrefix+"packet-log source-address "+packetLog["source_address"].(string))
+			if v2 := packetLog["host_address"].(string); v2 != "" {
+				configSet = append(configSet, setPrefix+"packet-log host "+v2)
+			}
+			if v2 := packetLog["host_port"].(int); v2 != 0 {
+				configSet = append(configSet, setPrefix+"packet-log host port "+strconv.Itoa(v2))
+			}
+			if v2 := packetLog["max_sessions"].(int); v2 != 0 {
+				configSet = append(configSet, setPrefix+"packet-log max-sessions "+strconv.Itoa(v2))
+			}
+			if v2 := packetLog["threshold_logging_interval"].(int); v2 != 0 {
+				configSet = append(configSet, setPrefix+"packet-log threshold-logging-interval "+strconv.Itoa(v2))
+			}
+			if v2 := packetLog["total_memory"].(int); v2 != 0 {
+				configSet = append(configSet, setPrefix+"packet-log total-memory "+strconv.Itoa(v2))
+			}
+		}
+		if v := idpSensorConfigM["security_configuration_protection_mode"].(string); v != "" {
+			configSet = append(configSet, setPrefix+"security-configuration protection-mode "+v)
+		}
+	} else {
+		return configSet, fmt.Errorf("idp_sensor_configuration block is empty")
+	}
+
+	return configSet, nil
+}
+
 func setSecurityIkeTraceOpts(ikeTrace interface{}) ([]string, error) {
 	setPrefix := "set security ike traceoptions "
 	configSet := make([]string, 0)
@@ -1327,6 +1494,14 @@ func listLinesSecurityForwardingProcess() []string {
 	}
 }
 
+func listLinesSecurityIdpSensorConfiguration() []string {
+	return []string{
+		"idp sensor-configuration log",
+		"idp sensor-configuration packet-log",
+		"idp sensor-configuration security-configuration",
+	}
+}
+
 func listLinesSecurityLog() []string {
 	return []string{
 		"log disable",
@@ -1366,6 +1541,7 @@ func delSecurity(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityFlow()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityForwardingOptions()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityForwardingProcess()...)
+	listLinesToDelete = append(listLinesToDelete, listLinesSecurityIdpSensorConfiguration()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityLog()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityPolicies()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityUtm()...)
@@ -1416,6 +1592,10 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 				}
 				if itemTrim == "forwarding-process enhanced-services-mode" {
 					confRead.forwardingProcess[0]["enhanced_services_mode"] = true
+				}
+			case checkStringHasPrefixInList(itemTrim, listLinesSecurityIdpSensorConfiguration()):
+				if err := readSecurityIdpSensorConfig(&confRead, itemTrim); err != nil {
+					return confRead, err
 				}
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityLog()):
 				err := readSecurityLog(&confRead, itemTrim)
@@ -1801,6 +1981,114 @@ func readSecurityForwardingOpts(confRead *securityOptions, itemTrimFwOpts string
 	}
 }
 
+func readSecurityIdpSensorConfig(confRead *securityOptions, itemTrimIdpSensorConfig string) error {
+	itemTrim := strings.TrimPrefix(itemTrimIdpSensorConfig, "idp sensor-configuration ")
+	if len(confRead.idpSensorConfig) == 0 {
+		confRead.idpSensorConfig = append(confRead.idpSensorConfig, map[string]interface{}{
+			"log_cache_size":                         0,
+			"log_suppression":                        make([]map[string]interface{}, 0),
+			"packet_log":                             make([]map[string]interface{}, 0),
+			"security_configuration_protection_mode": "",
+		})
+	}
+	switch {
+	case strings.HasPrefix(itemTrim, "log cache-size "):
+		var err error
+		confRead.idpSensorConfig[0]["log_cache_size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "log cache-size "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "log suppression"):
+		if len(confRead.idpSensorConfig[0]["log_suppression"].([]map[string]interface{})) == 0 {
+			confRead.idpSensorConfig[0]["log_suppression"] = append(
+				confRead.idpSensorConfig[0]["log_suppression"].([]map[string]interface{}), map[string]interface{}{
+					"disable":                        false,
+					"include_destination_address":    false,
+					"no_include_destination_address": false,
+					"max_logs_operate":               0,
+					"max_time_report":                0,
+					"start_log":                      0,
+				})
+		}
+		logSupp := confRead.idpSensorConfig[0]["log_suppression"].([]map[string]interface{})[0]
+		switch {
+		case itemTrim == "log suppression disable":
+			logSupp["disable"] = true
+		case itemTrim == "log suppression include-destination-address":
+			logSupp["include_destination_address"] = true
+		case itemTrim == "log suppression no-include-destination-address":
+			logSupp["no_include_destination_address"] = true
+		case strings.HasPrefix(itemTrim, "log suppression max-logs-operate "):
+			var err error
+			logSupp["max_logs_operate"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "log suppression max-logs-operate "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "log suppression max-time-report "):
+			var err error
+			logSupp["max_time_report"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "log suppression max-time-report "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "log suppression start-log "):
+			var err error
+			logSupp["start_log"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "log suppression start-log "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		}
+	case strings.HasPrefix(itemTrim, "packet-log "):
+		if len(confRead.idpSensorConfig[0]["packet_log"].([]map[string]interface{})) == 0 {
+			confRead.idpSensorConfig[0]["packet_log"] = append(
+				confRead.idpSensorConfig[0]["packet_log"].([]map[string]interface{}), map[string]interface{}{
+					"source_address":             "",
+					"host_address":               "",
+					"host_port":                  0,
+					"max_sessions":               0,
+					"threshold_logging_interval": 0,
+					"total_memory":               0,
+				})
+		}
+		packetLog := confRead.idpSensorConfig[0]["packet_log"].([]map[string]interface{})[0]
+		switch {
+		case strings.HasPrefix(itemTrim, "packet-log source-address "):
+			packetLog["source_address"] = strings.TrimPrefix(itemTrim, "packet-log source-address ")
+		case strings.HasPrefix(itemTrim, "packet-log host port "):
+			var err error
+			packetLog["host_port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "packet-log host port "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "packet-log host "):
+			packetLog["host_address"] = strings.TrimPrefix(itemTrim, "packet-log host ")
+		case strings.HasPrefix(itemTrim, "packet-log max-sessions "):
+			var err error
+			packetLog["max_sessions"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "packet-log max-sessions "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "packet-log threshold-logging-interval "):
+			var err error
+			packetLog["threshold_logging_interval"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "packet-log threshold-logging-interval "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "packet-log total-memory "):
+			var err error
+			packetLog["total_memory"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "packet-log total-memory "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		}
+	case strings.HasPrefix(itemTrim, "security-configuration protection-mode "):
+		confRead.idpSensorConfig[0]["security_configuration_protection_mode"] =
+			strings.TrimPrefix(itemTrim, "security-configuration protection-mode ")
+	}
+
+	return nil
+}
+
 func readSecurityIkeTraceOptions(confRead *securityOptions, itemTrimIkeTraceOpts string) error {
 	itemTrim := strings.TrimPrefix(itemTrimIkeTraceOpts, "ike traceoptions ")
 	if len(confRead.ikeTraceoptions) == 0 {
@@ -2035,6 +2323,9 @@ func fillSecurity(d *schema.ResourceData, securityOptions securityOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("forwarding_process", securityOptions.forwardingProcess); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("idp_sensor_configuration", securityOptions.idpSensorConfig); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("ike_traceoptions", securityOptions.ikeTraceoptions); tfErr != nil {
