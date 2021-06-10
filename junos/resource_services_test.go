@@ -35,15 +35,12 @@ func TestAccJunosServices_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosServicesConfigUpdate2(),
-				},
-				{
 					ResourceName:      "junos_services.testacc",
 					ImportState:       true,
 					ImportStateVerify: true,
 				},
 				{
-					Config: testAccJunosServicesConfigPostCheck(),
+					Config: testAccJunosServicesConfigUpdate2(),
 				},
 			},
 		})
@@ -238,6 +235,7 @@ resource "junos_services" "testacc" {
 func testAccJunosServicesConfigUpdate2() string {
 	return `
 resource "junos_services" "testacc" {
+  clean_on_destroy = true
   application_identification {
     no_application_system_cache = true
   }
@@ -254,11 +252,4 @@ resource "junos_services" "testacc" {
   }
 }
   `
-}
-
-func testAccJunosServicesConfigPostCheck() string {
-	return `
-resource "junos_services" "testacc" {
-}
-`
 }

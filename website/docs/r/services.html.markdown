@@ -8,7 +8,7 @@ description: |-
 
 # junos_services
 
--> **Note:** This resource should only be created **once**. It's used to configure static (not object) options in `services` block. Destroy this resource has no effect on the Junos configuration.
+-> **Note:** This resource should only be created **once**. It's used to configure static (not object) options in `services` block. By default (without `clean_on_destroy`= true), destroy this resource has no effect on the Junos configuration.
 
 Configure static configuration in `services` block
 
@@ -28,6 +28,7 @@ resource junos_services "services" {
 
 The following arguments are supported:
 
+* `clean_on_destroy` - (Optional)(`Bool`) Clean supported lines when destroy this resource.
 * `advanced_anti_malware` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'advanced-anti-malware' static configuration. See the [`advanced_anti_malware` arguments] (#advanced_anti_malware-arguments) block.
 * `application_identification` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to enable 'application-identification'. See the [`application_identification` arguments] (#application_identification-arguments) block.
 * `security_intelligence` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'security-intelligence' configuration. See the [`security_intelligence` arguments] (#security_intelligence-arguments) block.

@@ -8,7 +8,7 @@ description: |-
 
 # junos_snmp
 
--> **Note:** This resource should only be created **once**. It's used to configure static (not object) options in `snmp` block. Destroy this resource has no effect on the Junos configuration.  
+-> **Note:** This resource should only be created **once**. It's used to configure static (not object) options in `snmp` block. By default (without `clean_on_destroy`= true), destroy this resource has no effect on the Junos configuration.  
 
 Configure static configuration in `snmp` block
 
@@ -28,6 +28,7 @@ resource junos_snmp "snmp" {
 
 The following arguments are supported:
 
+* `clean_on_destroy` - (Optional)(`Bool`) Clean supported lines when destroy this resource.
 * `arp` - (Optional)(`Bool`) JVision ARP.
 * `arp_host_name_resolution` - (Optional)(`Bool`) Enable host name resolution for JVision ARP.
 * `contact` - (Optional)(`String`) Contact information for administrator.

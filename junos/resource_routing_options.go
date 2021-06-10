@@ -27,6 +27,10 @@ func resourceRoutingOptions() *schema.Resource {
 			State: resourceRoutingOptionsImport,
 		},
 		Schema: map[string]*schema.Schema{
+			"clean_on_destroy": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"autonomous_system": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -241,6 +245,29 @@ func resourceRoutingOptionsUpdate(ctx context.Context, d *schema.ResourceData, m
 }
 
 func resourceRoutingOptionsDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	if d.Get("clean_on_destroy").(bool) {
+		sess := m.(*Session)
+		jnprSess, err := sess.startNewSession()
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		defer sess.closeSession(jnprSess)
+		sess.configLock(jnprSess)
+		var diagWarns diag.Diagnostics
+		if err := delRoutingOptions(m, jnprSess); err != nil {
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+			return append(diagWarns, diag.FromErr(err)...)
+		}
+		warns, err := sess.commitConf("delete resource junos_routing_options", jnprSess)
+		appendDiagWarns(&diagWarns, warns)
+		if err != nil {
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+			return append(diagWarns, diag.FromErr(err)...)
+		}
+	}
+
 	return nil
 }
 

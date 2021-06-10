@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * provider: add `ssh_ciphers` attribute to configure ciphers used in SSH connection
 * provider: add support of SSH agent to SSH authentication (Fixes #212)
 * resource/`junos_routing_options`: add `forwarding_table` argument (Fixes #221)
+* resource/`junos_routing_options`, `junos_security`, `junos_services`, `junos_snmp`: add `clean_on_destroy` argument to clean static configuration when destroy the resource (Fixes #227)
 
 BUG FIXES:
 

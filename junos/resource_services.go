@@ -30,6 +30,10 @@ func resourceServices() *schema.Resource {
 			State: resourceServicesImport,
 		},
 		Schema: map[string]*schema.Schema{
+			"clean_on_destroy": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"advanced_anti_malware": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -699,6 +703,29 @@ func resourceServicesUpdate(ctx context.Context, d *schema.ResourceData, m inter
 }
 
 func resourceServicesDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	if d.Get("clean_on_destroy").(bool) {
+		sess := m.(*Session)
+		jnprSess, err := sess.startNewSession()
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		defer sess.closeSession(jnprSess)
+		sess.configLock(jnprSess)
+		var diagWarns diag.Diagnostics
+		if err := delServices(d, m, jnprSess); err != nil {
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+			return append(diagWarns, diag.FromErr(err)...)
+		}
+		warns, err := sess.commitConf("delete resource junos_services", jnprSess)
+		appendDiagWarns(&diagWarns, warns)
+		if err != nil {
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+			return append(diagWarns, diag.FromErr(err)...)
+		}
+	}
+
 	return nil
 }
 
