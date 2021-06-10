@@ -35,6 +35,7 @@ The following arguments are supported:
 * `forwarding_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'forwarding-options' configuration. See the [`forwarding_options` arguments] (#forwarding_options-arguments) block.
 * `forwarding_process` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'forwarding-process' configuration.
   * `enhanced_services_mode` - (Optional)(`Bool`) Enable enhanced application services mode.
+* `idp_security_package` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'idp security-package' configuration. See the [`idp_security_package` arguments] (#idp_security_package-arguments) block.
 * `idp_sensor_configuration` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'idp sensor-configuration' configuration. See the [`idp_sensor_configuration` arguments] (#idp_sensor_configuration-arguments) block.
 * `ike_traceoptions` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'ike traceoptions' configuration.
   * `file` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'file' configuration. See the [`file` arguments for ike_traceoptions] (#file-arguments-for-ike_traceoptions) block.
@@ -127,6 +128,16 @@ The following arguments are supported:
 * `inet6_mode` - (Optional)(`String`) Forwarding mode for inet6 family. Need to be 'drop', 'flow-based' or 'packet-based'.
 * `mpls_mode` - (Optional)(`String`) Forwarding mode for mpls family. Need to be 'flow-based' or 'packet-based'.
 * `iso_mode_packet_based` - (Optional)(`Bool`) Forwarding mode packet-based for iso family.
+
+---
+#### idp_security_package arguments
+* `automatic_enable` - (Optional)(`Bool`) Enable scheduled download and update.
+* `automatic_interval` - (Optional)(`Int`) Automatic interval (1..336 hours).
+* `automatic_start_time` - (Optional)(`String`) Automatic start time (YYYY-MM-DD.HH:MM:SS +ZZZZ).
+* `install_ignore_version_check` - (Optional)(`Bool`) Skip version check  when attack database gets installed.
+* `proxy_profile` - (Optional)(`String`) Proxy profile of security package download.
+* `source_address` - (Optional)(`String`) Source address to be used for sending download request.
+* `url` - (Optional)(`String`) URL of Security package download.
 
 ---
 #### idp_sensor_configuration arguments

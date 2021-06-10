@@ -12,15 +12,16 @@ import (
 )
 
 type securityOptions struct {
-	alg               []map[string]interface{}
-	flow              []map[string]interface{}
-	forwardingOpts    []map[string]interface{}
-	forwardingProcess []map[string]interface{}
-	idpSensorConfig   []map[string]interface{}
-	ikeTraceoptions   []map[string]interface{}
-	log               []map[string]interface{}
-	policies          []map[string]interface{}
-	utm               []map[string]interface{}
+	alg                []map[string]interface{}
+	flow               []map[string]interface{}
+	forwardingOpts     []map[string]interface{}
+	forwardingProcess  []map[string]interface{}
+	idpSecurityPackage []map[string]interface{}
+	idpSensorConfig    []map[string]interface{}
+	ikeTraceoptions    []map[string]interface{}
+	log                []map[string]interface{}
+	policies           []map[string]interface{}
+	utm                []map[string]interface{}
 }
 
 func resourceSecurity() *schema.Resource {
@@ -404,6 +405,45 @@ func resourceSecurity() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"enhanced_services_mode": {
 							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
+			"idp_security_package": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"automatic_enable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"automatic_interval": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 336),
+						},
+						"automatic_start_time": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"install_ignore_version_check": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"proxy_profile": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"source_address": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsIPAddress,
+						},
+						"url": {
+							Type:     schema.TypeString,
 							Optional: true,
 						},
 					},
@@ -899,6 +939,13 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 			return fmt.Errorf("forwarding_process block is empty")
 		}
 	}
+	for _, v := range d.Get("idp_security_package").([]interface{}) {
+		configSetIdpSecurityPackage, err := setSecurityIdpSecurityPackage(v)
+		if err != nil {
+			return err
+		}
+		configSet = append(configSet, configSetIdpSecurityPackage...)
+	}
 	for _, v := range d.Get("idp_sensor_configuration").([]interface{}) {
 		configSetIdpSensorConfig, err := setSecurityIdpSensorConfig(v)
 		if err != nil {
@@ -1247,6 +1294,39 @@ func setSecurityForwOpts(forwOpts interface{}) ([]string, error) {
 	return configSet, nil
 }
 
+func setSecurityIdpSecurityPackage(idpSecurityPackage interface{}) ([]string, error) {
+	setPrefix := "set security idp security-package "
+	configSet := make([]string, 0)
+	if idpSecurityPackage != nil {
+		idpSecurityPackageM := idpSecurityPackage.(map[string]interface{})
+		if idpSecurityPackageM["automatic_enable"].(bool) {
+			configSet = append(configSet, setPrefix+"automatic enable")
+		}
+		if v := idpSecurityPackageM["automatic_interval"].(int); v != 0 {
+			configSet = append(configSet, setPrefix+"automatic interval "+strconv.Itoa(v))
+		}
+		if v := idpSecurityPackageM["automatic_start_time"].(string); v != "" {
+			configSet = append(configSet, setPrefix+"automatic start-time \""+v+"\"")
+		}
+		if idpSecurityPackageM["install_ignore_version_check"].(bool) {
+			configSet = append(configSet, setPrefix+"install ignore-version-check")
+		}
+		if v := idpSecurityPackageM["proxy_profile"].(string); v != "" {
+			configSet = append(configSet, setPrefix+"proxy-profile \""+v+"\"")
+		}
+		if v := idpSecurityPackageM["source_address"].(string); v != "" {
+			configSet = append(configSet, setPrefix+"source-address "+v)
+		}
+		if v := idpSecurityPackageM["url"].(string); v != "" {
+			configSet = append(configSet, setPrefix+"url \""+v+"\"")
+		}
+	} else {
+		return configSet, fmt.Errorf("idp_security_package block is empty")
+	}
+
+	return configSet, nil
+}
+
 func setSecurityIdpSensorConfig(idpSensorConfig interface{}) ([]string, error) {
 	setPrefix := "set security idp sensor-configuration "
 	configSet := make([]string, 0)
@@ -1494,6 +1574,16 @@ func listLinesSecurityForwardingProcess() []string {
 	}
 }
 
+func listLinesSecurityIdpSecurityPackage() []string {
+	return []string{
+		"idp security-package automatic",
+		"idp security-package install",
+		"idp security-package proxy-profile",
+		"idp security-package source-address",
+		"idp security-package url",
+	}
+}
+
 func listLinesSecurityIdpSensorConfiguration() []string {
 	return []string{
 		"idp sensor-configuration log",
@@ -1541,6 +1631,7 @@ func delSecurity(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityFlow()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityForwardingOptions()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityForwardingProcess()...)
+	listLinesToDelete = append(listLinesToDelete, listLinesSecurityIdpSecurityPackage()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityIdpSensorConfiguration()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityLog()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityPolicies()...)
@@ -1592,6 +1683,10 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 				}
 				if itemTrim == "forwarding-process enhanced-services-mode" {
 					confRead.forwardingProcess[0]["enhanced_services_mode"] = true
+				}
+			case checkStringHasPrefixInList(itemTrim, listLinesSecurityIdpSecurityPackage()):
+				if err := readSecurityIdpSecurityPackage(&confRead, itemTrim); err != nil {
+					return confRead, err
 				}
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityIdpSensorConfiguration()):
 				if err := readSecurityIdpSensorConfig(&confRead, itemTrim); err != nil {
@@ -1981,6 +2076,45 @@ func readSecurityForwardingOpts(confRead *securityOptions, itemTrimFwOpts string
 	}
 }
 
+func readSecurityIdpSecurityPackage(confRead *securityOptions, itemTrimIdpSecurityPackage string) error {
+	itemTrim := strings.TrimPrefix(itemTrimIdpSecurityPackage, "idp security-package ")
+	if len(confRead.idpSecurityPackage) == 0 {
+		confRead.idpSecurityPackage = append(confRead.idpSecurityPackage, map[string]interface{}{
+			"automatic_enable":             false,
+			"automatic_interval":           0,
+			"automatic_start_time":         "",
+			"install_ignore_version_check": false,
+			"proxy_profile":                "",
+			"source_address":               "",
+			"url":                          "",
+		})
+	}
+	switch {
+	case itemTrim == "automatic enable":
+		confRead.idpSecurityPackage[0]["automatic_enable"] = true
+	case strings.HasPrefix(itemTrim, "automatic interval "):
+		var err error
+		confRead.idpSecurityPackage[0]["automatic_interval"], err =
+			strconv.Atoi(strings.TrimPrefix(itemTrim, "automatic interval "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "automatic start-time "):
+		confRead.idpSecurityPackage[0]["automatic_start_time"] =
+			strings.Trim(strings.TrimPrefix(itemTrim, "automatic start-time "), "\"")
+	case itemTrim == "install ignore-version-check":
+		confRead.idpSecurityPackage[0]["install_ignore_version_check"] = true
+	case strings.HasPrefix(itemTrim, "proxy-profile "):
+		confRead.idpSecurityPackage[0]["proxy_profile"] = strings.Trim(strings.TrimPrefix(itemTrim, "proxy-profile "), "\"")
+	case strings.HasPrefix(itemTrim, "source-address "):
+		confRead.idpSecurityPackage[0]["source_address"] = strings.TrimPrefix(itemTrim, "source-address ")
+	case strings.HasPrefix(itemTrim, "url "):
+		confRead.idpSecurityPackage[0]["url"] = strings.Trim(strings.TrimPrefix(itemTrim, "url "), "\"")
+	}
+
+	return nil
+}
+
 func readSecurityIdpSensorConfig(confRead *securityOptions, itemTrimIdpSensorConfig string) error {
 	itemTrim := strings.TrimPrefix(itemTrimIdpSensorConfig, "idp sensor-configuration ")
 	if len(confRead.idpSensorConfig) == 0 {
@@ -2323,6 +2457,9 @@ func fillSecurity(d *schema.ResourceData, securityOptions securityOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("forwarding_process", securityOptions.forwardingProcess); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("idp_security_package", securityOptions.idpSecurityPackage); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("idp_sensor_configuration", securityOptions.idpSensorConfig); tfErr != nil {
