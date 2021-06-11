@@ -131,6 +131,10 @@ func resourceSecurityPolicy() *schema.Resource {
 										Type:     schema.TypeBool,
 										Optional: true,
 									},
+									"idp_policy": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
 									"redirect_wx": {
 										Type:     schema.TypeBool,
 										Optional: true,
@@ -533,6 +537,7 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 									"gprs_gtp_profile":                     "",
 									"gprs_sctp_profile":                    "",
 									"idp":                                  false,
+									"idp_policy":                           "",
 									"redirect_wx":                          false,
 									"reverse_redirect_wx":                  false,
 									"security_intelligence_policy":         "",
@@ -613,6 +618,8 @@ func readPolicyPermitApplicationServices(itemTrimPolicy string, applicationServi
 			"gprs-sctp-profile "), "\"")
 	case itemTrimPolicyPermitAppSvc == "idp":
 		applicationServices["idp"] = true
+	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "idp-policy "):
+		applicationServices["idp_policy"] = strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc, "idp-policy "), "\"")
 	case itemTrimPolicyPermitAppSvc == "redirect-wx":
 		applicationServices["redirect_wx"] = true
 	case itemTrimPolicyPermitAppSvc == "reverse-redirect-wx":
@@ -675,8 +682,10 @@ func setPolicyPermitApplicationServices(setPrefixPolicy string,
 			" gprs-sctp-profile \""+policyPermitApplicationServices["gprs_sctp_profile"].(string)+"\"")
 	}
 	if policyPermitApplicationServices["idp"].(bool) {
-		configSet = append(configSet, setPrefixPolicyPermitAppSvc+
-			" idp")
+		configSet = append(configSet, setPrefixPolicyPermitAppSvc+" idp")
+	}
+	if v := policyPermitApplicationServices["idp_policy"].(string); v != "" {
+		configSet = append(configSet, setPrefixPolicyPermitAppSvc+" idp-policy \""+v+"\"")
 	}
 	if policyPermitApplicationServices["redirect_wx"].(bool) &&
 		policyPermitApplicationServices["reverse_redirect_wx"].(bool) {

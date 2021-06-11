@@ -105,6 +105,9 @@ resource junos_services_advanced_anti_malware_policy "testacc_securityPolicy" {
   verdict_threshold        = "recommended"
   default_notification_log = true
 }
+resource junos_security_idp_policy "testacc_securityPolicy" {
+  name = "testacc_securityPolicy"
+}
 resource junos_security_policy testacc_securityPolicy {
   from_zone = junos_security_zone.testacc_seczonePolicy1.name
   to_zone   = junos_security_zone.testacc_seczonePolicy1.name
@@ -119,6 +122,7 @@ resource junos_security_policy testacc_securityPolicy {
     count                         = true
     permit_application_services {
       advanced_anti_malware_policy = junos_services_advanced_anti_malware_policy.testacc_securityPolicy.name
+      idp_policy                   = junos_security_idp_policy.testacc_securityPolicy.name
     }
   }
   policy {
