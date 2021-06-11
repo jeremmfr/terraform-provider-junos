@@ -30,4 +30,6 @@ const (
 	noFlowControlWords    = "no-flow-control"
 	loopbackWord          = "loopback"
 	noLoopbackWord        = "no-loopback"
+	actionCos             = "class-of-service"
+	actionMarkDiffServ    = "mark-diffserv"
 )
