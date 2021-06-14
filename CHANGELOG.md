@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * provider: add `ssh_ciphers` attribute to configure ciphers used in SSH connection
 * provider: add support of SSH agent to SSH authentication (Fixes #212)
 * resource/`junos_routing_options`: add `forwarding_table` argument (Fixes #221)
+* resource/`junos_services_flowmonitoring_vipfix_template`: add `ip_template_export_extension` argument (Fixes #229)
 
 BUG FIXES:
 

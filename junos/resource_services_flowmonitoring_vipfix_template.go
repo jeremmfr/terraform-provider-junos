@@ -25,6 +25,7 @@ type flowMonitoringVIPFixTemplateOptions struct {
 	templateID             int
 	name                   string
 	typeTemplate           string
+	ipTemplateExportExt    []string
 	optionRefreshRate      []map[string]interface{}
 }
 
@@ -65,6 +66,11 @@ func resourceServicesFlowMonitoringVIPFixTemplate() *schema.Resource {
 			"flow_key_vlan_id": {
 				Type:     schema.TypeBool,
 				Optional: true,
+			},
+			"ip_template_export_extension": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"nexthop_learning_enable": {
 				Type:          schema.TypeBool,
@@ -321,6 +327,12 @@ func setServicesFlowMonitoringVIPFixTemplate(d *schema.ResourceData, m interface
 
 	setPrefix := "set services flow-monitoring version-ipfix template \"" + d.Get("name").(string) + "\" "
 	configSet = append(configSet, setPrefix+d.Get("type").(string))
+	for _, v := range d.Get("ip_template_export_extension").(*schema.Set).List() {
+		if v2 := d.Get("type").(string); v2 != "ipv4-template" && v2 != "ipv6-template" {
+			return fmt.Errorf("ip_template_export_extension not compatible with type %s", v2)
+		}
+		configSet = append(configSet, setPrefix+d.Get("type").(string)+" export-extension "+v.(string))
+	}
 	if v := d.Get("flow_active_timeout").(int); v != 0 {
 		configSet = append(configSet, setPrefix+"flow-active-timeout "+strconv.Itoa(v))
 	}
@@ -395,6 +407,12 @@ func readServicesFlowMonitoringVIPFixTemplate(template string, m interface{}, jn
 			switch {
 			case stringInSlice(itemTrim, []string{"ipv4-template", "ipv6-template", "mpls-template"}):
 				confRead.typeTemplate = itemTrim
+			case strings.HasPrefix(itemTrim, "ipv6-template export-extension ") ||
+				strings.HasPrefix(itemTrim, "ipv4-template export-extension "):
+				itemTrimSplit := strings.Split(itemTrim, " ")
+				confRead.typeTemplate = itemTrimSplit[0]
+				confRead.ipTemplateExportExt = append(confRead.ipTemplateExportExt,
+					strings.TrimPrefix(itemTrim, itemTrimSplit[0]+" export-extension "))
 			case strings.HasPrefix(itemTrim, "flow-active-timeout "):
 				var err error
 				confRead.flowActiveTimeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "flow-active-timeout "))
@@ -480,6 +498,10 @@ func fillServicesFlowMonitoringVIPFixTemplateData(
 		panic(tfErr)
 	}
 	if tfErr := d.Set("type", flowMonitoringVIPFixTemplateOptions.typeTemplate); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("ip_template_export_extension",
+		flowMonitoringVIPFixTemplateOptions.ipTemplateExportExt); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("flow_active_timeout", flowMonitoringVIPFixTemplateOptions.flowActiveTimeout); tfErr != nil {
