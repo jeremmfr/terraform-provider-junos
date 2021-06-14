@@ -38,6 +38,7 @@ resource junos_system "system" {
 
 The following arguments are supported:
 
+* `archival_configuration` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'archival configuration' configuration. See the [`archival_configuration` arguments] (#archival_configuration-arguments) block.
 * `authentication_order` - (Optional)(`ListOfString`) Order in which authentication methods are invoked.
 * `auto_snapshot` - (Optional)(`Bool`) Enable auto-snapshot when boots from alternate slice.
 * `default_address_selection` - (Optional)(`Bool`) Use loopback interface as source address for locally generated packets.
@@ -75,6 +76,14 @@ The following arguments are supported:
   * `source_address` - (Optional)(`String`) Use specified address as source address.
 * `time_zone` - (Optional)(`String`) Time zone name or POSIX-compliant time zone string (<continent>/<major-city> or <time-zone>).
 * `tracing_dest_override_syslog_host` - (Optional)(`String`) Send trace messages to remote syslog server.
+
+---
+#### archival_configuration arguments
+* `archive_site` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each archive-site destination.
+  * `url` - (Required)(`String`) URLs to receive configuration files.
+  * `password` - (Optional)(`String`) Password for login into the archive site.
+* `transfer_interval` - (Optional)(`Int`) Frequency at which file transfer happens (15..2880 minutes). One of `transfer_interval` and `transfer_on_commit` arguments need to be set.
+* `transfer_on_commit` - (Optional)(`Bool`) Transfer after each commit. One of `transfer_interval` and `transfer_on_commit` arguments need to be set.
 
 ---
 #### internet_options arguments
