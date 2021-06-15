@@ -73,13 +73,15 @@ func resourceSystem() *schema.Resource {
 							},
 						},
 						"transfer_interval": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(15, 2880),
+							Type:          schema.TypeInt,
+							Optional:      true,
+							ValidateFunc:  validation.IntBetween(15, 2880),
+							ConflictsWith: []string{"archival_configuration.0.transfer_on_commit"},
 						},
 						"transfer_on_commit": {
-							Type:     schema.TypeBool,
-							Optional: true,
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"archival_configuration.0.transfer_interval"},
 						},
 					},
 				},
@@ -869,8 +871,6 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 			}
 		}
 		switch {
-		case archivalConfig["transfer_interval"].(int) != 0 && archivalConfig["transfer_on_commit"].(bool):
-			return fmt.Errorf("transfer_interval and transfer_on_commit can't set at the same time for archival_configuration")
 		case archivalConfig["transfer_interval"].(int) != 0:
 			configSet = append(configSet, setPrefix+"archival configuration transfer-interval "+
 				strconv.Itoa(archivalConfig["transfer_interval"].(int)))
