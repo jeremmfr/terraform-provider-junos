@@ -68,97 +68,97 @@ The following arguments are supported:
 * `negate` - (Optional)(`Bool`) Trigger the attack if condition is not met.
 * `pattern` - (Optional)(`String`) Pattern is the signature of the attack you want to detect.
 * `pattern_pcre` - (Optional)(`String`) Attack signature pattern in PCRE format.
-* `protocol_icmp` - (Optional)[attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'protocol icmp' configuration.
-  * `checksum_validate_match` - (Optional)(`String`) Condition for validate checksum field against calculated checksum. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+* `protocol_icmp` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'protocol icmp' configuration. All arguments in block with `match` suffix need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `checksum_validate_match` - (Optional)(`String`) Condition for validate checksum field against calculated checksum.
   * `checksum_validate_value` - (Optional)(`Int`) Value for validate checksum field against calculated checksum.
-  * `code_match` - (Optional)(`String`) Condition for code field. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `code_match` - (Optional)(`String`) Condition for code field.
   * `code_value` - (Optional)(`Int`) Value for code field.
-  * `data_length_match` - (Optional)(`String`) Condition for size of IP datagram subtracted by ICMP header length. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `data_length_match` - (Optional)(`String`) Condition for size of IP datagram subtracted by ICMP header length.
   * `data_length_value` - (Optional)(`Int`) Value for size of IP datagram subtracted by ICMP header length.
-  * `identification_match` - (Optional)(`String`) Condition for identifier in echo request/reply. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `identification_match` - (Optional)(`String`) Condition for identifier in echo request/reply.
   * `identification_value` - (Optional)(`Int`) Value for identifier in echo request/reply.
-  * `sequence_number_match` - (Optional)(`String`) Condition for sequence number. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `sequence_number_match` - (Optional)(`String`) Condition for sequence number.
   * `sequence_number_value` - (Optional)(`Int`) Value for sequence number.
-  * `type_match` - (Optional)(`String`) Condition for type. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `type_match` - (Optional)(`String`) Condition for type.
   * `type_value` - (Optional)(`Int`) Value for type.
-* `protocol_icmpv6` - (Optional)[attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'protocol icmpv6' configuration. Same arguments as for 'protocol_icmp'.
-* `protocol_ipv4` - (Optional)[attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'protocol ipv4' configuration.
-  * `checksum_validate_match` - (Optional)(`String`) Condition for validate checksum field against calculated checksum. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+* `protocol_icmpv6` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'protocol icmpv6' configuration. Same arguments as for 'protocol_icmp'.
+* `protocol_ipv4` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'protocol ipv4' configuration. All arguments in block with `match` suffix need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `checksum_validate_match` - (Optional)(`String`) Condition for validate checksum field against calculated checksum.
   * `checksum_validate_value` - (Optional)(`Int`) Value for validate checksum field against calculated checksum.
-  * `destination_match` - (Optional)(`String`) Condition for destination IP-address. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `destination_match` - (Optional)(`String`) Condition for destination IP-address.
   * `destination_value` - (Optional)(`String`) Value for destination IP-address.
-  * `identification_match` - (Optional)(`String`) Condition for fragment identification. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `identification_match` - (Optional)(`String`) Condition for fragment identification.
   * `identification_value` - (Optional)(`Int`) Value for fragment identification.
-  * `ihl_match` - (Optional)(`String`) Condition for header length in words. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `ihl_match` - (Optional)(`String`) Condition for header length in words.
   * `ihl_value` - (Optional)(`Int`) Value for header length in words.
   * `ip_flags` - (Optional)(`ListOfString`) IP Flag bits.
-  * `protocol_match` - (Optional)(`String`) Condition for transport layer protocol. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `protocol_match` - (Optional)(`String`) Condition for transport layer protocol.
   * `protocol_value` - (Optional)(`Int`) Value for transport layer protocol.
-  * `source_match` - (Optional)(`String`) Condition for source IP-address. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `source_match` - (Optional)(`String`) Condition for source IP-address.
   * `source_value` - (Optional)(`String`) Value for source IP-address.
-  * `tos_match` - (Optional)(`String`) Condition for type of service. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `tos_match` - (Optional)(`String`) Condition for type of service.
   * `tos_value` - (Optional)(`String`) Value for type of service.
-  * `total_length_match` - (Optional)(`String`) Condition for total length of IP datagram. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `total_length_match` - (Optional)(`String`) Condition for total length of IP datagram.
   * `total_length_value` - (Optional)(`String`) Value for total length of IP datagram.
-  * `ttl_match` - (Optional)(`String`) Condition for time to live. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `ttl_match` - (Optional)(`String`) Condition for time to live.
   * `ttl_value` - (Optional)(`String`) Value for time to live.
-* `protocol_ipv6` - (Optional)[attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'protocol ipv6' configuration.
-  * `destination_match` - (Optional)(`String`) Condition for destination IP-address. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+* `protocol_ipv6` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'protocol ipv6' configuration. All arguments in block with `match` suffix need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `destination_match` - (Optional)(`String`) Condition for destination IP-address.
   * `destination_value` - (Optional)(`String`) Value for destination IP-address.
-  * `extension_header_destination_option_home_address_match` - (Optional)(`String`) Condition for home address of the mobile node in destination option extension header. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `extension_header_destination_option_home_address_match` - (Optional)(`String`) Condition for home address of the mobile node in destination option extension header.
   * `extension_header_destination_option_home_address_value` - (Optional)(`Int`) Value for home address of the mobile node in destination option extension header.
-  * `extension_header_destination_option_type_match` - (Optional)(`String`) Condition for header type in destination option extension header. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `extension_header_destination_option_type_match` - (Optional)(`String`) Condition for header type in destination option extension header.
   * `extension_header_destination_option_type_value` - (Optional)(`Int`) Value for header type in  destination option extension header.
-  * `extension_header_routing_header_type_match` - (Optional)(`String`) Condition for header type in routing extension header. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `extension_header_routing_header_type_match` - (Optional)(`String`) Condition for header type in routing extension header.
   * `extension_header_routing_header_type_value` - (Optional)(`Int`) Value for header type in routing extension header.
-  * `flow_label_match` - (Optional)(`String`) Condition for flow label identification. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `flow_label_match` - (Optional)(`String`) Condition for flow label identification.
   * `flow_label_value` - (Optional)(`String`) Value for flow label identification.
-  * `hop_limit_match` - (Optional)(`String`) Condition for hop limit. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `hop_limit_match` - (Optional)(`String`) Condition for hop limit.
   * `hop_limit_value` - (Optional)(`String`) Value for hop limit.
-  * `next_header_match` - (Optional)(`String`) Condition for the header following the basic IPv6 header. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `next_header_match` - (Optional)(`String`) Condition for the header following the basic IPv6 header.
   * `next_header_value` - (Optional)(`String`) Value for the header following the basic IPv6 header.
-  * `payload_length_match` - (Optional)(`String`) Condition for length of the payload in the IPv6 datagram. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `payload_length_match` - (Optional)(`String`) Condition for length of the payload in the IPv6 datagram.
   * `payload_length_value` - (Optional)(`String`) Value for length of the payload in the IPv6 datagram.
-  * `source_match` - (Optional)(`String`) Condition for source IP-address. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `source_match` - (Optional)(`String`) Condition for source IP-address.
   * `source_value` - (Optional)(`String`) Value for source IP-address.
-  * `traffic_class_match` - (Optional)(`String`) Condition for traffic class. Similar to TOS in IPv4. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `traffic_class_match` - (Optional)(`String`) Condition for traffic class. Similar to TOS in IPv4.
   * `traffic_class_value` - (Optional)(`String`) Value for traffic class. Similar to TOS in IPv4.
-* `protocol_tcp` - (Optional)[attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'protocol tcp' configuration.
-  * `ack_number_match` - (Optional)(`String`) Condition for acknowledgement number. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+* `protocol_tcp` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'protocol tcp' configuration. All arguments in block with `match` suffix need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `ack_number_match` - (Optional)(`String`) Condition for acknowledgement number.
   * `ack_number_value` - (Optional)(`String`) Value for acknowledgement number.
-  * `checksum_validate_match` - (Optional)(`String`) Condition for validate checksum field against calculated checksum. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `checksum_validate_match` - (Optional)(`String`) Condition for validate checksum field against calculated checksum.
   * `checksum_validate_value` - (Optional)(`Int`) Value for validate checksum field against calculated checksum.
-  * `data_length_match` - (Optional)(`String`) Condition for size of IP datagram subtracted by TCP header length. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `data_length_match` - (Optional)(`String`) Condition for size of IP datagram subtracted by TCP header length.
   * `data_length_value` - (Optional)(`Int`) Value for size of IP datagram subtracted by TCP header length.
-  * `destination_port_match` - (Optional)(`String`) Condition for destination port. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `destination_port_match` - (Optional)(`String`) Condition for destination port.
   * `destination_port_value` - (Optional)(`Int`) Value for destination port.
-  * `header_length_match` - (Optional)(`String`) Condition for header length in words. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `header_length_match` - (Optional)(`String`) Condition for header length in words.
   * `header_length_value` - (Optional)(`Int`) Value for header length in words.
-  * `mss_match` - (Optional)(`String`) Condition for maximum segment size. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `mss_match` - (Optional)(`String`) Condition for maximum segment size.
   * `mss_value` - (Optional)(`Int`) Value for maximum segment size.
-  * `option_match` - (Optional)(`String`) Condition for kind. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `option_match` - (Optional)(`String`) Condition for kind.
   * `option_value` - (Optional)(`Int`) Value for kind.
-  * `reserved_match` - (Optional)(`String`) Condition for three reserved bits. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `reserved_match` - (Optional)(`String`) Condition for three reserved bits.
   * `reserved_value` - (Optional)(`Int`) Value for three reserved bits.
-  * `sequence_number_match` - (Optional)(`String`) Condition for sequence number. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `sequence_number_match` - (Optional)(`String`) Condition for sequence number.
   * `sequence_number_value` - (Optional)(`Int`) Value for sequence number.
-  * `source_port_match` - (Optional)(`String`) Condition for source port. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `source_port_match` - (Optional)(`String`) Condition for source port.
   * `source_port_value` - (Optional)(`Int`) Value for source port.
   * `tcp_flags` - (Optional)(`ListOfString`) TCP header flags.
-  * `urgent_pointer_match` - (Optional)(`String`) Condition for urgent pointer. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `urgent_pointer_match` - (Optional)(`String`) Condition for urgent pointer.
   * `urgent_pointer_value` - (Optional)(`Int`) Value for urgent pointer.
-  * `window_scale_match` - (Optional)(`String`) Condition for window scale. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `window_scale_match` - (Optional)(`String`) Condition for window scale.
   * `window_scale_value` - (Optional)(`Int`) Value for sindow scale.
-  * `window_size_match` - (Optional)(`String`) Condition for window size. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `window_size_match` - (Optional)(`String`) Condition for window size.
   * `window_size_value` - (Optional)(`Int`) Value for sindow size.
-* `protocol_udp` - (Optional)[attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'protocol udp' configuration.
-  * `checksum_validate_match` - (Optional)(`String`) Condition for validate checksum field against calculated checksum. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+* `protocol_udp` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'protocol udp' configuration. All arguments in block with `match` suffix need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `checksum_validate_match` - (Optional)(`String`) Condition for validate checksum field against calculated checksum.
   * `checksum_validate_value` - (Optional)(`Int`) Value for validate checksum field against calculated checksum.
-  * `data_length_match` - (Optional)(`String`) Condition for size of IP datagram subtracted by UDP header length. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `data_length_match` - (Optional)(`String`) Condition for size of IP datagram subtracted by UDP header length.
   * `data_length_value` - (Optional)(`Int`) Value for size of IP datagram subtracted by UDP header length.
-  * `destination_port_match` - (Optional)(`String`) Condition for destination port. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `destination_port_match` - (Optional)(`String`) Condition for destination port.
   * `destination_port_value` - (Optional)(`Int`) Value for destination port.
-  * `source_port_match` - (Optional)(`String`) Condition for source port. Need to be 'equal', 'greater-than', 'less-than' or 'not-equal'.
+  * `source_port_match` - (Optional)(`String`) Condition for source port.
   * `source_port_value` - (Optional)(`Int`) Value for source port.
 * `protocol_binding` - (Optional)(`String`) Protocol binding over which attack will be detected. Need to start with 'application', 'icmp', 'ip', 'rpc', 'tcp' or 'udp' string.
 * `regexp` - (Optional)(`String`) Regular expression used for matching repetition of patterns.

@@ -44,7 +44,7 @@ The following arguments are supported:
 * `ips_rule` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each 'rulebase-ips rule' to declare.
   * `name` - (Required)(`String`) The name of the rulebase-ips rule.
   * `match` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'match' configuration. See the [`match` arguments for exempt_rule and ips_rule] (#match-arguments-for-exempt_rule-and-ips_rule) block.
-  * `then` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'then' configuration. See the [`then` arguments for ips_rule] (#match-arguments-for-rule) block.
+  * `then` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'then' configuration. See the [`then` arguments] (#then-arguments) block.
   * `description` - (Optional)(`String`) Rule description.
   * `terminal` - (Optional)(`Bool`) Set/Unset terminal flag.
 
@@ -64,7 +64,7 @@ The following arguments are supported:
 * `to_zone` - (Optional)(`String`) Match to zone.
 
 ---
-#### then arguments for ips_rule
+#### then arguments
 * `action` - (Required)(`String`) Action. Need to be 'class-of-service', 'close-client', 'close-client-and-server', 'close-server', 'drop-connection', 'drop-packet', 'ignore-connection', 'mark-diffserv', 'no-action' or 'recommended'.
 * `action_cos_forwarding_class` - (Optional)(`String`) Forwarding class for outgoing packets. `action` need to be 'class-of-service'.
 * `action_dscp_code_point` - (Optional)(`Int`) Codepoint value (0..63). `action` need to be 'class-of-service' or 'mark-diffserv'.
