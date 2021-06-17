@@ -27,6 +27,7 @@ The following arguments are supported:
 
 * `name` - (Required, Forces new resource)(`String`) Name of application.
 * `destination_port` - (Optional)(`String`) Port(s) destination used by application.
+* `inactivity_timeout` - (Optional)(`Int`) Application-specific inactivity timeout (4..86400 seconds).
 * `protocol` - (Optional)(`String`) Protocol used by application.
 * `source_port` - (Optional)(`String`) Port(s) source used by application.
 

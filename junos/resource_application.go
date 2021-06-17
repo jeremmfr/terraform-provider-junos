@@ -3,17 +3,20 @@ package junos
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type applicationOptions struct {
-	name            string
-	destinationPort string
-	protocol        string
-	sourcePort      string
+	inactivityTimeout int
+	name              string
+	destinationPort   string
+	protocol          string
+	sourcePort        string
 }
 
 func resourceApplication() *schema.Resource {
@@ -35,6 +38,11 @@ func resourceApplication() *schema.Resource {
 			"destination_port": {
 				Type:     schema.TypeString,
 				Optional: true,
+			},
+			"inactivity_timeout": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(4, 86400),
 			},
 			"protocol": {
 				Type:     schema.TypeString,
@@ -229,15 +237,18 @@ func setApplication(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 
-	setPrefix := "set applications application " + d.Get("name").(string)
-	if d.Get("destination_port").(string) != "" {
-		configSet = append(configSet, setPrefix+" destination-port "+d.Get("destination_port").(string))
+	setPrefix := "set applications application " + d.Get("name").(string) + " "
+	if v := d.Get("destination_port").(string); v != "" {
+		configSet = append(configSet, setPrefix+"destination-port "+v)
 	}
-	if d.Get("protocol").(string) != "" {
-		configSet = append(configSet, setPrefix+" protocol "+d.Get("protocol").(string))
+	if v := d.Get("inactivity_timeout").(int); v != 0 {
+		configSet = append(configSet, setPrefix+"inactivity-timeout "+strconv.Itoa(v))
 	}
-	if d.Get("source_port").(string) != "" {
-		configSet = append(configSet, setPrefix+" source-port "+d.Get("source_port").(string))
+	if v := d.Get("protocol").(string); v != "" {
+		configSet = append(configSet, setPrefix+"protocol "+v)
+	}
+	if v := d.Get("source_port").(string); v != "" {
+		configSet = append(configSet, setPrefix+"source-port "+v)
 	}
 
 	return sess.configSet(configSet, jnprSess)
@@ -265,6 +276,12 @@ func readApplication(application string, m interface{}, jnprSess *NetconfObject)
 			switch {
 			case strings.HasPrefix(itemTrim, "destination-port "):
 				confRead.destinationPort = strings.TrimPrefix(itemTrim, "destination-port ")
+			case strings.HasPrefix(itemTrim, "inactivity-timeout "):
+				var err error
+				confRead.inactivityTimeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "inactivity-timeout "))
+				if err != nil {
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				}
 			case strings.HasPrefix(itemTrim, "protocol "):
 				confRead.protocol = strings.TrimPrefix(itemTrim, "protocol ")
 			case strings.HasPrefix(itemTrim, "source-port "):
@@ -289,6 +306,9 @@ func fillApplicationData(d *schema.ResourceData, applicationOptions applicationO
 		panic(tfErr)
 	}
 	if tfErr := d.Set("destination_port", applicationOptions.destinationPort); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("inactivity_timeout", applicationOptions.inactivityTimeout); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("protocol", applicationOptions.protocol); tfErr != nil {
