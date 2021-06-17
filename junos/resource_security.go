@@ -1696,8 +1696,7 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityAlg()):
 				readSecurityAlg(&confRead, itemTrim)
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityFlow()):
-				err := readSecurityFlow(&confRead, itemTrim)
-				if err != nil {
+				if err := readSecurityFlow(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityForwardingOptions()):
@@ -1720,13 +1719,11 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 					return confRead, err
 				}
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityLog()):
-				err := readSecurityLog(&confRead, itemTrim)
-				if err != nil {
+				if err := readSecurityLog(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
 			case strings.HasPrefix(itemTrim, "ike traceoptions"):
-				err := readSecurityIkeTraceOptions(&confRead, itemTrim)
-				if err != nil {
+				if err := readSecurityIkeTraceOptions(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityPolicies()):
@@ -1743,8 +1740,7 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 					confRead.policies[0]["policy_rematch_extensive"] = true
 				}
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityUtm()):
-				err := readSecurityUtm(&confRead, itemTrim)
-				if err != nil {
+				if err := readSecurityUtm(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
 			}
