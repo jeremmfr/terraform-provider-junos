@@ -3,9 +3,10 @@ run:
 linters:
   enable-all: true
   disable:
-    - maligned # deprecated
-    - scopelint # deprecated
-    - interfacer # deprecated
+    - maligned # deprecated 1.38
+    - interfacer # deprecated 1.38
+    - scopelint # deprecated 1.39
+    - golint # deprecated 1.41
     - funlen
     - dupl
     - wsl
