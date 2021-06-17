@@ -8,7 +8,7 @@ description: |-
 
 # junos_security
 
--> **Note:** This resource should only be created **once**. It's used to configure static (not object) options in `security` block. Destroy this resource has no effect on the Junos configuration.
+-> **Note:** This resource should only be created **once**. It's used to configure static (not object) options in `security` block. By default (without `clean_on_destroy`= true), destroy this resource has no effect on the Junos configuration.
 
 Configure static configuration in `security` block
 
@@ -30,6 +30,7 @@ resource junos_security "security" {
 
 The following arguments are supported:
 
+* `clean_on_destroy` - (Optional)(`Bool`) Clean supported lines when destroy this resource.
 * `alg` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'alg' configuration. See the [`alg` arguments] (#alg-arguments) block.
 * `flow` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'flow' configuration. See the [`flow` arguments] (#flow-arguments) block.
 * `forwarding_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'forwarding-options' configuration. See the [`forwarding_options` arguments] (#forwarding_options-arguments) block.

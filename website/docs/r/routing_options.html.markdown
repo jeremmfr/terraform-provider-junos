@@ -8,7 +8,7 @@ description: |-
 
 # junos_routing_options
 
--> **Note:** This resource should only be created **once**. It's used to configure static (not object) options in `routing-options` block. Destroy this resource has no effect on the Junos configuration.
+-> **Note:** This resource should only be created **once**. It's used to configure static (not object) options in `routing-options` block. By default (without `clean_on_destroy`= true), destroy this resource has no effect on the Junos configuration.
 
 Configure static configuration in `routing-options` block
 
@@ -28,6 +28,7 @@ resource junos_routing_options "routing_options" {
 
 The following arguments are supported:
 
+* `clean_on_destroy` - (Optional)(`Bool`) Clean supported lines when destroy this resource.
 * `autonomous_system` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'autonomous-system' configuration.
   * `number` - (Required)(`String`) Autonomous system number in plain number or 'higher 16bits'.'Lower 16 bits' (asdot notation) format.
   * `asdot_notation` - (Optional)(`Bool`) Use AS-Dot notation to display true 4 byte AS numbers.

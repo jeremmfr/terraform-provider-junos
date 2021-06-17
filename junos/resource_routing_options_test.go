@@ -44,9 +44,6 @@ func TestAccJunosRoutingOptions_basic(t *testing.T) {
 							"graceful_restart.#", "1"),
 					),
 				},
-				{
-					Config: testAccJunosRoutingOptionsConfigPostCheck(),
-				},
 			},
 		})
 	}
@@ -97,20 +94,13 @@ resource junos_routing_options "testacc_routing_options" {
 func testAccJunosRoutingOptionsConfigUpdate() string {
 	return `
 resource junos_routing_options "testacc_routing_options" {
+  clean_on_destroy = true
   forwarding_table {
     no_ecmp_fast_reroute                         = true
     no_indirect_next_hop                         = true
     no_indirect_next_hop_change_acknowledgements = true
     unicast_reverse_path                         = "feasible-paths"
   }
-  graceful_restart {}
-}
-`
-}
-
-func testAccJunosRoutingOptionsConfigPostCheck() string {
-	return `
-resource junos_routing_options "testacc_routing_options" {
   graceful_restart {}
 }
 `

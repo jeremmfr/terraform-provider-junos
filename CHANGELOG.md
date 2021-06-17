@@ -18,6 +18,7 @@ ENHANCEMENTS:
 * resource/`junos_security`: add `idp_security_package` and `idp_sensor_configuration` arguments (Fixes parts of #225)
 * resource/`junos_security_global_policy`: add `idp_policy` argument
 * resource/`junos_security_policy`: add `idp_policy` argument
+* resource/`junos_routing_options`, `junos_security`, `junos_services`, `junos_snmp`: add `clean_on_destroy` argument to clean static configuration when destroy the resource (Fixes #227)
 
 BUG FIXES:
 
