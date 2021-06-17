@@ -30,6 +30,7 @@ The following arguments are supported:
 * `flow_inactive_timeout` - (Optional)(`Int`) Period of inactivity that marks a flow inactive (10..600).
 * `flow_key_flow_direction` - (Optional)(`Bool`) Include flow direction.
 * `flow_key_vlan_id` - (Optional)(`Bool`) Include vlan ID.
+* `ip_template_export_extension` - (Optional)(`ListOfString`) Export-extension for 'ipv4-template', 'ipv6-template' type.
 * `nexthop_learning_enable` - (Optional)(`Bool`) Enable nexthop learning.
 * `nexthop_learning_disable` - (Optional)(`Bool`) Disable nexthop learning.
 * `observation_domain_id` - (Optional)(`Int`) Observation Domain Id (0..255).
