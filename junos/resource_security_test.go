@@ -286,6 +286,15 @@ resource junos_interface_logical "testacc_security" {
   name        = "` + interFace + `.0"
   description = "testacc_security"
 }
+resource "junos_services_proxy_profile" "testacc_security" {
+  lifecycle {
+    create_before_destroy = true
+  }
+  name               = "testacc_security"
+  protocol_http_host = "192.0.2.11"
+  protocol_http_port = 3128
+}
+
 resource junos_security "testacc_security" {
   alg {
     dns_disable    = true
@@ -355,6 +364,34 @@ resource junos_security "testacc_security" {
   }
   forwarding_process {
     enhanced_services_mode = true
+  }
+  idp_security_package {
+    automatic_enable             = true
+    automatic_interval           = 24
+    automatic_start_time         = "2016-1-1.02:00:00 +0000"
+    install_ignore_version_check = true
+    proxy_profile                = junos_services_proxy_profile.testacc_security.name
+    source_address               = "192.0.2.6"
+    url                          = "https://signatures.juniper.net/cgi-bin/index.cgi"
+  }
+  idp_sensor_configuration {
+    log_cache_size = 10
+    log_suppression {
+      disable                        = true
+      no_include_destination_address = true
+      max_logs_operate               = 1000
+      max_time_report                = 30
+      start_log                      = 35
+    }
+    packet_log {
+      source_address             = "192.0.2.4"
+      host_address               = "192.0.2.5"
+      host_port                  = 100
+      max_sessions               = 10
+      threshold_logging_interval = 20
+      total_memory               = 25
+    }
+    security_configuration_protection_mode = "datacenter"
   }
   ike_traceoptions {
     file {
@@ -433,6 +470,14 @@ resource junos_security "testacc_security" {
       }
     }
   }
+  idp_sensor_configuration {
+    log_suppression {
+      include_destination_address = true
+    }
+    packet_log {
+      source_address = "192.0.2.4"
+    }
+  }
   ike_traceoptions {
     file {
       name              = "ike.log"
@@ -480,6 +525,9 @@ resource junos_security "testacc_security" {
         session_timeout = 90
       }
     }
+  }
+  idp_sensor_configuration {
+    log_suppression {}
   }
 }
 `

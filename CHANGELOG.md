@@ -10,6 +10,12 @@ ENHANCEMENTS:
 * provider: add `ssh_ciphers` attribute to configure ciphers used in SSH connection
 * provider: add support of SSH agent to SSH authentication (Fixes #212)
 * resource/`junos_routing_options`: add `forwarding_table` argument (Fixes #221)
+* add `junos_security_idp_custom_attack` resource (Fixes parts of #225)
+* add `junos_security_idp_custom_attack_group` resource
+* add `junos_security_idp_policy` resource (Fixes parts of #225)
+* resource/`junos_security`: add `idp_security_package` and `idp_sensor_configuration` arguments (Fixes parts of #225)
+* resource/`junos_security_global_policy`: add `idp_policy` argument
+* resource/`junos_security_policy`: add `idp_policy` argument
 
 BUG FIXES:
 
