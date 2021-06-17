@@ -8,7 +8,7 @@ import (
 )
 
 func TestAccJunosSystem_basic(t *testing.T) {
-	if os.Getenv("TESTACC_SWITCH") == "" {
+	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:  func() { testAccPreCheck(t) },
 			Providers: testAccProviders,
@@ -251,7 +251,14 @@ func TestAccJunosSystem_basic(t *testing.T) {
 func testAccJunosSystemConfigCreate() string {
 	return `
 resource junos_system "testacc_system" {
-  host_name                 = "testacc-terraform"
+  host_name = "testacc-terraform"
+  archival_configuration {
+    archive_site {
+      url      = "scp://juniper-configs@192.0.2.30:/destination/directory"
+      password = "password/&"
+    }
+    transfer_interval = 1440
+  }
   authentication_order      = ["password"]
   auto_snapshot             = true
   default_address_selection = true
@@ -375,7 +382,17 @@ resource junos_system "testacc_system" {
 func testAccJunosSystemConfigUpdate() string {
 	return `
 resource junos_system "testacc_system" {
-  host_name   = "testacc-terraform"
+  host_name = "testacc-terraform"
+  archival_configuration {
+    archive_site {
+      url      = "scp://juniper-configs@192.0.2.30:/destination/directory"
+      password = "password/&"
+    }
+    archive_site {
+      url = "http://juniper-configs@192.0.2.30:/destination/directory"
+    }
+    transfer_on_commit = true
+  }
   name_server = ["192.0.2.10"]
   internet_options {
     no_gre_path_mtu_discovery     = true
