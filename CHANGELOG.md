@@ -21,8 +21,8 @@ ENHANCEMENTS:
 * resource/`junos_routing_options`, `junos_security`, `junos_services`, `junos_snmp`: add `clean_on_destroy` argument to clean static configuration when destroy the resource (Fixes [#227](https://github.com/jeremmfr/terraform-provider-junos/issues/227))
 * resource/`junos_routing_options`: add `forwarding_table` argument (Fixes [#221](https://github.com/jeremmfr/terraform-provider-junos/issues/211))
 * resource/`junos_security`: add `idp_security_package` and `idp_sensor_configuration` arguments (Fixes parts of [#225](https://github.com/jeremmfr/terraform-provider-junos/issues/225)), add `user_identification_auth_source` argument (Fixes [#238](https://github.com/jeremmfr/terraform-provider-junos/issues/238))
-* resource/`junos_security_global_policy`: add `idp_policy` argument
-* resource/`junos_security_policy`: add `idp_policy` argument
+* resource/`junos_security_global_policy`: add `idp_policy` argument inside `permit_application_services` argument inside `policy` argument
+* resource/`junos_security_policy`: add `idp_policy` argument inside `permit_application_services` argument inside `policy` argument
 * resource/`junos_services_flowmonitoring_vipfix_template`: add `ip_template_export_extension` argument (Fixes [#229](https://github.com/jeremmfr/terraform-provider-junos/issues/229))
 * resource/`junos_system`: add `radius_options_attributes_nas_ipaddress`, `radius_options_enhanced_accounting` and `radius_options_password_protocol_mschapv2` arguments (Fixes [#210](https://github.com/jeremmfr/terraform-provider-junos/issues/210)), add `archival_configuration` argument (Fixes [#231](https://github.com/jeremmfr/terraform-provider-junos/issues/231))
 
