@@ -12,16 +12,17 @@ import (
 )
 
 type securityOptions struct {
-	alg                []map[string]interface{}
-	flow               []map[string]interface{}
-	forwardingOpts     []map[string]interface{}
-	forwardingProcess  []map[string]interface{}
-	idpSecurityPackage []map[string]interface{}
-	idpSensorConfig    []map[string]interface{}
-	ikeTraceoptions    []map[string]interface{}
-	log                []map[string]interface{}
-	policies           []map[string]interface{}
-	utm                []map[string]interface{}
+	alg                 []map[string]interface{}
+	flow                []map[string]interface{}
+	forwardingOpts      []map[string]interface{}
+	forwardingProcess   []map[string]interface{}
+	idpSecurityPackage  []map[string]interface{}
+	idpSensorConfig     []map[string]interface{}
+	ikeTraceoptions     []map[string]interface{}
+	log                 []map[string]interface{}
+	policies            []map[string]interface{}
+	userIdentAuthSource []map[string]interface{}
+	utm                 []map[string]interface{}
 }
 
 func resourceSecurity() *schema.Resource {
@@ -744,6 +745,45 @@ func resourceSecurity() *schema.Resource {
 					},
 				},
 			},
+			"user_identification_auth_source": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"ad_auth_priority": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      -1,
+							ValidateFunc: validation.IntBetween(0, 65535),
+						},
+						"aruba_clearpass_priority": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      -1,
+							ValidateFunc: validation.IntBetween(0, 65535),
+						},
+						"firewall_auth_priority": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      -1,
+							ValidateFunc: validation.IntBetween(0, 65535),
+						},
+						"local_auth_priority": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      -1,
+							ValidateFunc: validation.IntBetween(0, 65535),
+						},
+						"unified_access_control_priority": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      -1,
+							ValidateFunc: validation.IntBetween(0, 65535),
+						},
+					},
+				},
+			},
 			"utm": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -1005,6 +1045,33 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 			}
 		} else {
 			return fmt.Errorf("policies block is empty")
+		}
+	}
+	for _, v := range d.Get("user_identification_auth_source").([]interface{}) {
+		userIdentAuthSource := v.(map[string]interface{})
+		if p := userIdentAuthSource["ad_auth_priority"].(int); p != -1 {
+			configSet = append(configSet, setPrefix+"user-identification authentication-source "+
+				"active-directory-authentication-table priority "+strconv.Itoa(p))
+		}
+		if p := userIdentAuthSource["aruba_clearpass_priority"].(int); p != -1 {
+			configSet = append(configSet, setPrefix+"user-identification authentication-source "+
+				"aruba-clearpass priority "+strconv.Itoa(p))
+		}
+		if p := userIdentAuthSource["firewall_auth_priority"].(int); p != -1 {
+			configSet = append(configSet, setPrefix+"user-identification authentication-source "+
+				"firewall-authentication priority "+strconv.Itoa(p))
+		}
+		if p := userIdentAuthSource["local_auth_priority"].(int); p != -1 {
+			configSet = append(configSet, setPrefix+"user-identification authentication-source "+
+				"local-authentication-table priority "+strconv.Itoa(p))
+		}
+		if p := userIdentAuthSource["unified_access_control_priority"].(int); p != -1 {
+			configSet = append(configSet, setPrefix+"user-identification authentication-source "+
+				"unified-access-control priority "+strconv.Itoa(p))
+		}
+		if len(configSet) == 0 ||
+			!strings.HasPrefix(configSet[len(configSet)-1], setPrefix+"user-identification authentication-source ") {
+			return fmt.Errorf("user_identification_auth_source block is empty")
 		}
 	}
 	for _, v := range d.Get("utm").([]interface{}) {
@@ -1643,6 +1710,16 @@ func listLinesSecurityPolicies() []string {
 	}
 }
 
+func listLinesSecurityUserIdentificationAuthSource() []string {
+	return []string{
+		"user-identification authentication-source active-directory-authentication-table",
+		"user-identification authentication-source aruba-clearpass",
+		"user-identification authentication-source firewall-authentication",
+		"user-identification authentication-source local-authentication-table",
+		"user-identification authentication-source unified-access-control",
+	}
+}
+
 func listLinesSecurityUtm() []string {
 	return []string{
 		"utm feature-profile web-filtering type",
@@ -1662,6 +1739,7 @@ func delSecurity(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityIdpSensorConfiguration()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityLog()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityPolicies()...)
+	listLinesToDelete = append(listLinesToDelete, listLinesSecurityUserIdentificationAuthSource()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityUtm()...)
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -1696,8 +1774,7 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityAlg()):
 				readSecurityAlg(&confRead, itemTrim)
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityFlow()):
-				err := readSecurityFlow(&confRead, itemTrim)
-				if err != nil {
+				if err := readSecurityFlow(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityForwardingOptions()):
@@ -1720,13 +1797,11 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 					return confRead, err
 				}
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityLog()):
-				err := readSecurityLog(&confRead, itemTrim)
-				if err != nil {
+				if err := readSecurityLog(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
 			case strings.HasPrefix(itemTrim, "ike traceoptions"):
-				err := readSecurityIkeTraceOptions(&confRead, itemTrim)
-				if err != nil {
+				if err := readSecurityIkeTraceOptions(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityPolicies()):
@@ -1742,9 +1817,12 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 				if itemTrim == "policies policy-rematch extensive" {
 					confRead.policies[0]["policy_rematch_extensive"] = true
 				}
+			case checkStringHasPrefixInList(itemTrim, listLinesSecurityUserIdentificationAuthSource()):
+				if err := readSecurityUserIdentAuthSource(&confRead, itemTrim); err != nil {
+					return confRead, err
+				}
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityUtm()):
-				err := readSecurityUtm(&confRead, itemTrim)
-				if err != nil {
+				if err := readSecurityUtm(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
 			}
@@ -2428,6 +2506,42 @@ func readSecurityLog(confRead *securityOptions, itemTrimLog string) error {
 	return nil
 }
 
+func readSecurityUserIdentAuthSource(confRead *securityOptions, itemTrimUserIdentAuthSource string) error {
+	if len(confRead.userIdentAuthSource) == 0 {
+		confRead.userIdentAuthSource = append(confRead.userIdentAuthSource, map[string]interface{}{
+			"ad_auth_priority":                -1,
+			"aruba_clearpass_priority":        -1,
+			"firewall_auth_priority":          -1,
+			"local_auth_priority":             -1,
+			"unified_access_control_priority": -1,
+		})
+	}
+	var err error
+	itemTrim := strings.TrimPrefix(itemTrimUserIdentAuthSource, "user-identification authentication-source ")
+	switch {
+	case strings.HasPrefix(itemTrim, "active-directory-authentication-table priority "):
+		confRead.userIdentAuthSource[0]["ad_auth_priority"], err =
+			strconv.Atoi(strings.TrimPrefix(itemTrim, "active-directory-authentication-table priority "))
+	case strings.HasPrefix(itemTrim, "aruba-clearpass priority "):
+		confRead.userIdentAuthSource[0]["aruba_clearpass_priority"], err =
+			strconv.Atoi(strings.TrimPrefix(itemTrim, "aruba-clearpass priority "))
+	case strings.HasPrefix(itemTrim, "firewall-authentication priority "):
+		confRead.userIdentAuthSource[0]["firewall_auth_priority"], err =
+			strconv.Atoi(strings.TrimPrefix(itemTrim, "firewall-authentication priority "))
+	case strings.HasPrefix(itemTrim, "local-authentication-table priority "):
+		confRead.userIdentAuthSource[0]["local_auth_priority"], err =
+			strconv.Atoi(strings.TrimPrefix(itemTrim, "local-authentication-table priority "))
+	case strings.HasPrefix(itemTrim, "unified-access-control priority "):
+		confRead.userIdentAuthSource[0]["unified_access_control_priority"], err =
+			strconv.Atoi(strings.TrimPrefix(itemTrim, "unified-access-control priority "))
+	}
+	if err != nil {
+		return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+	}
+
+	return nil
+}
+
 func readSecurityUtm(confRead *securityOptions, itemTrimUtm string) error {
 	if len(confRead.utm) == 0 {
 		confRead.utm = append(confRead.utm, map[string]interface{}{
@@ -2499,6 +2613,9 @@ func fillSecurity(d *schema.ResourceData, securityOptions securityOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("policies", securityOptions.policies); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("user_identification_auth_source", securityOptions.userIdentAuthSource); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("utm", securityOptions.utm); tfErr != nil {

@@ -20,6 +20,7 @@ ENHANCEMENTS:
 * resource/`junos_security_policy`: add `idp_policy` argument
 * resource/`junos_routing_options`, `junos_security`, `junos_services`, `junos_snmp`: add `clean_on_destroy` argument to clean static configuration when destroy the resource (Fixes #227)
 * resource/`junos_services_flowmonitoring_vipfix_template`: add `ip_template_export_extension` argument (Fixes #229)
+* resource/`junos_security`: add `user_identification_auth_source` argument (Fixes #238)
 
 BUG FIXES:
 

@@ -428,6 +428,13 @@ resource junos_security "testacc_security" {
   policies {
     policy_rematch = true
   }
+  user_identification_auth_source {
+    ad_auth_priority                = 1
+    aruba_clearpass_priority        = 2
+    firewall_auth_priority          = 3
+    local_auth_priority             = 4
+    unified_access_control_priority = 0
+  }
   utm {
     feature_profile_web_filtering_type = "juniper-enhanced"
     feature_profile_web_filtering_juniper_enhanced_server {
