@@ -69,6 +69,12 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JUNOS_SLEEP_SSH_CLOSED", 0),
 			},
+			"ssh_ciphers": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				DefaultFunc: defaultSSHCiphers(),
+			},
 			"file_permission": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -103,6 +109,7 @@ func Provider() *schema.Provider {
 			"junos_interface_physical":                                   resourceInterfacePhysical(),
 			"junos_interface_st0_unit":                                   resourceInterfaceSt0Unit(),
 			"junos_null_commit_file":                                     resourceNullCommitFile(),
+			"junos_ospf":                                                 resourceOspf(),
 			"junos_ospf_area":                                            resourceOspfArea(),
 			"junos_policyoptions_as_path":                                resourcePolicyoptionsAsPath(),
 			"junos_policyoptions_as_path_group":                          resourcePolicyoptionsAsPathGroup(),
@@ -115,6 +122,9 @@ func Provider() *schema.Provider {
 			"junos_security":                                             resourceSecurity(),
 			"junos_security_address_book":                                resourceSecurityAddressBook(),
 			"junos_security_global_policy":                               resourceSecurityGlobalPolicy(),
+			"junos_security_idp_custom_attack":                           resourceSecurityIdpCustomAttack(),
+			"junos_security_idp_custom_attack_group":                     resourceSecurityIdpCustomAttackGroup(),
+			"junos_security_idp_policy":                                  resourceSecurityIdpPolicy(),
 			"junos_security_ike_gateway":                                 resourceIkeGateway(),
 			"junos_security_ike_policy":                                  resourceIkePolicy(),
 			"junos_security_ike_proposal":                                resourceIkeProposal(),
@@ -190,6 +200,9 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		junosFilePermission:      d.Get("file_permission").(string),
 		junosDebugNetconfLogPath: d.Get("debug_netconf_log_path").(string),
 		junosFakeCreateSetFile:   d.Get("fake_create_with_setfile").(string),
+	}
+	for _, v := range d.Get("ssh_ciphers").([]interface{}) {
+		c.junosSSHCiphers = append(c.junosSSHCiphers, v.(string))
 	}
 
 	return c.prepareSession()

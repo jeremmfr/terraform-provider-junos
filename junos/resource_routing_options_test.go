@@ -51,11 +51,37 @@ func TestAccJunosRoutingOptions_basic(t *testing.T) {
 
 func testAccJunosRoutingOptionsConfigCreate() string {
 	return `
+resource "junos_policyoptions_policy_statement" "testacc_routing_options" {
+  lifecycle {
+    create_before_destroy = true
+  }
+  name = "testacc_routing_options"
+  from {
+    protocol = ["bgp"]
+    route_filter {
+      route  = "192.0.2.0/28"
+      option = "orlonger"
+    }
+  }
+  then {
+    load_balance = "per-packet"
+  }
+}
 resource junos_routing_options "testacc_routing_options" {
   autonomous_system {
     number         = "65000"
     asdot_notation = true
     loops          = 5
+  }
+  forwarding_table {
+    dynamic_list_next_hop                     = true
+    ecmp_fast_reroute                         = true
+    export                                    = [junos_policyoptions_policy_statement.testacc_routing_options.name]
+    indirect_next_hop                         = true
+    indirect_next_hop_change_acknowledgements = true
+    krt_nexthop_ack_timeout                   = 200
+    remnant_holdtime                          = 0
+    unicast_reverse_path                      = "active-paths"
   }
   graceful_restart {
     restart_duration = 120
@@ -68,6 +94,13 @@ resource junos_routing_options "testacc_routing_options" {
 func testAccJunosRoutingOptionsConfigUpdate() string {
 	return `
 resource junos_routing_options "testacc_routing_options" {
+  clean_on_destroy = true
+  forwarding_table {
+    no_ecmp_fast_reroute                         = true
+    no_indirect_next_hop                         = true
+    no_indirect_next_hop_change_acknowledgements = true
+    unicast_reverse_path                         = "feasible-paths"
+  }
   graceful_restart {}
 }
 `

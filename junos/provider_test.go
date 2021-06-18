@@ -36,11 +36,12 @@ func TestProvider_impl(t *testing.T) {
 
 func testAccPreCheck(t *testing.T) {
 	t.Helper()
-	if os.Getenv("JUNOS_HOST") == "" && os.Getenv("JUNOS_KEYFILE") == "" {
+	if os.Getenv("JUNOS_HOST") == "" {
 		t.Fatal("JUNOS_HOST must be set for acceptance tests")
 	}
-	if os.Getenv("JUNOS_KEYFILE") == "" && os.Getenv("JUNOS_PASSWORD") == "" && os.Getenv("JUNOS_KEYPEM") == "" {
-		t.Fatal("JUNOS_KEYPEM, JUNOS_KEYFILE or JUNOS_PASSWORD must be set for acceptance tests")
+	if os.Getenv("JUNOS_KEYFILE") == "" && os.Getenv("JUNOS_PASSWORD") == "" && os.Getenv("SSH_AUTH_SOCK") == "" &&
+		os.Getenv("JUNOS_KEYPEM") == "" {
+		t.Fatal("JUNOS_KEYPEM, JUNOS_KEYFILE, SSH_AUTH_SOCK or JUNOS_PASSWORD must be set for acceptance tests")
 	}
 	if os.Getenv("JUNOS_FAKECREATE_SETFILE") != "" {
 		t.Fatal("can't run testacc with JUNOS_FAKECREATE_SETFILE")

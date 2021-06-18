@@ -62,6 +62,9 @@ func TestAccJunosSecurityPolicy_basic(t *testing.T) {
 func testAccJunosSecurityPolicyConfigCreate() string {
 	return `
 resource "junos_services_user_identification_device_identity_profile" "profile" {
+  lifecycle {
+    create_before_destroy = true
+  }
   name   = "testacc_securityPolicy"
   domain = "testacc_securityPolicy"
   attribute {
@@ -97,18 +100,13 @@ resource junos_security_zone testacc_seczonePolicy1 {
 
 func testAccJunosSecurityPolicyConfigUpdate() string {
 	return `
-resource "junos_services_user_identification_device_identity_profile" "profile" {
-  name   = "testacc_securityPolicy"
-  domain = "testacc_securityPolicy"
-  attribute {
-    name  = "device-identity"
-    value = ["testacc_securityPolicy"]
-  }
-}
 resource junos_services_advanced_anti_malware_policy "testacc_securityPolicy" {
   name                     = "testacc_securityPolicy"
   verdict_threshold        = "recommended"
   default_notification_log = true
+}
+resource junos_security_idp_policy "testacc_securityPolicy" {
+  name = "testacc_securityPolicy"
 }
 resource junos_security_policy testacc_securityPolicy {
   from_zone = junos_security_zone.testacc_seczonePolicy1.name
@@ -124,6 +122,7 @@ resource junos_security_policy testacc_securityPolicy {
     count                         = true
     permit_application_services {
       advanced_anti_malware_policy = junos_services_advanced_anti_malware_policy.testacc_securityPolicy.name
+      idp_policy                   = junos_security_idp_policy.testacc_securityPolicy.name
     }
   }
   policy {

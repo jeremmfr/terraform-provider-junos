@@ -51,10 +51,11 @@ resource "junos_application" "testacc_app" {
 func testAccJunosApplicationConfigUpdate() string {
 	return `
 resource "junos_application" "testacc_app" {
-  name             = "testacc_app"
-  protocol         = "tcp"
-  destination_port = "22"
-  source_port      = "1024-65535"
+  name               = "testacc_app"
+  protocol           = "tcp"
+  destination_port   = "22"
+  source_port        = "1024-65535"
+  inactivity_timeout = 900
 }
 `
 }

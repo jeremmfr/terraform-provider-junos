@@ -8,7 +8,7 @@ description: |-
 
 # junos_security
 
--> **Note:** This resource should only be created **once**. It's used to configure static (not object) options in `security` block. Destroy this resource has no effect on the Junos configuration.
+-> **Note:** This resource should only be created **once**. It's used to configure static (not object) options in `security` block. By default (without `clean_on_destroy`= true), destroy this resource has no effect on the Junos configuration.
 
 Configure static configuration in `security` block
 
@@ -30,11 +30,14 @@ resource junos_security "security" {
 
 The following arguments are supported:
 
+* `clean_on_destroy` - (Optional)(`Bool`) Clean supported lines when destroy this resource.
 * `alg` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'alg' configuration. See the [`alg` arguments] (#alg-arguments) block.
 * `flow` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'flow' configuration. See the [`flow` arguments] (#flow-arguments) block.
 * `forwarding_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'forwarding-options' configuration. See the [`forwarding_options` arguments] (#forwarding_options-arguments) block.
 * `forwarding_process` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'forwarding-process' configuration.
   * `enhanced_services_mode` - (Optional)(`Bool`) Enable enhanced application services mode.
+* `idp_security_package` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'idp security-package' configuration. See the [`idp_security_package` arguments] (#idp_security_package-arguments) block.
+* `idp_sensor_configuration` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'idp sensor-configuration' configuration. See the [`idp_sensor_configuration` arguments] (#idp_sensor_configuration-arguments) block.
 * `ike_traceoptions` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'ike traceoptions' configuration.
   * `file` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'file' configuration. See the [`file` arguments for ike_traceoptions] (#file-arguments-for-ike_traceoptions) block.
   * `flag` - (Optional)(`ListOfString`) Tracing parameters for IKE.
@@ -43,6 +46,12 @@ The following arguments are supported:
 * `policies` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'policies' configuration.
   * `policy_rematch` - (Optional)(`Bool`) Can be specified to allow session to remain open when an associated security policy is modified. Conflict with `policy_rematch_extensive`.
   * `policy_rematch_extensive` - (Optional)(`Bool`) Can be specified to allow session to remain open when an associated security policy is modified, renamed, deactivated, or deleted. Conflict with `policy_rematch`.
+* `user_identification_auth_source` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'user-identification authentication-source' configuration.
+  * `ad_auth_priority` - (Optional)(`Int`) Active-directory-authentication-table priority. Larger number means lower priority, 0 for disable (0..65535).
+  * `aruba_clearpass_priority` - (Optional)(`Int`) ClearPass-authentication-table priority. Larger number means lower priority, 0 for disable (0..65535).
+  * `firewall_auth_priority` - (Optional)(`Int`) Firewall-authentication priority. Larger number means lower priority, 0 for disable (0..65535).
+  * `local_auth_priority` - (Optional)(`Int`) Local-authentication-table priority. Larger number means lower priority, 0 for disable (0..65535).
+  * `unified_access_control_priority` - (Optional)(`Int`) Unified-access-control priority. Larger number means lower priority, 0 for disable (0..65535).
 * `utm` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'utm' configuration.
   * `feature_profile_web_filtering_type` - (Optional)(`String`) Configuring feature-profile web-filtering type. Need to be 'juniper-enhanced', 'juniper-local', 'web-filtering-none' or 'websense-redirect'.
   * `feature_profile_web_filtering_juniper_enhanced_server` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'server' configuration. See the [`feature_profile_web_filtering_juniper_enhanced_server` arguments for utm] (#feature_profile_web_filtering_juniper_enhanced_server-arguments-for-utm) block.
@@ -126,6 +135,35 @@ The following arguments are supported:
 * `inet6_mode` - (Optional)(`String`) Forwarding mode for inet6 family. Need to be 'drop', 'flow-based' or 'packet-based'.
 * `mpls_mode` - (Optional)(`String`) Forwarding mode for mpls family. Need to be 'flow-based' or 'packet-based'.
 * `iso_mode_packet_based` - (Optional)(`Bool`) Forwarding mode packet-based for iso family.
+
+---
+#### idp_security_package arguments
+* `automatic_enable` - (Optional)(`Bool`) Enable scheduled download and update.
+* `automatic_interval` - (Optional)(`Int`) Automatic interval (1..336 hours).
+* `automatic_start_time` - (Optional)(`String`) Automatic start time (YYYY-MM-DD.HH:MM:SS +ZZZZ).
+* `install_ignore_version_check` - (Optional)(`Bool`) Skip version check  when attack database gets installed.
+* `proxy_profile` - (Optional)(`String`) Proxy profile of security package download.
+* `source_address` - (Optional)(`String`) Source address to be used for sending download request.
+* `url` - (Optional)(`String`) URL of Security package download.
+
+---
+#### idp_sensor_configuration arguments
+* `log_cache_size` - (Optional)(`Int`) Log cache size (1..65535).
+* `log_suppression` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to enable 'log suppression'.
+  * `disable` - (Optional)(`Bool`) Disable log suppression.
+  * `include_destination_address` - (Optional)(`Bool`) Include destination address while performing a log suppression.
+  * `no_include_destination_address` - (Optional)(`Bool`) Don't include destination address while performing a log suppression.
+  * `max_logs_operate` - (Optional)(`Int`) Maximum logs can be operate on (256..65536).
+  * `max_time_report` - (Optional)(`Int`) Time after suppressed logs will be reported (1..60).
+  * `start_log` - (Optional)(`Int`) Suppression start log (1..128).
+* `packet_log` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'packet-log' configuration.
+  * `source_address` - (Required)(`String`) Source IP address used to transport packetlog to a host.
+  * `host_address` - (Optional)(`String`) Destination host to send packetlog to.
+  * `host_port` - (Optional)(`Int`) Destination UDP port number (1..65536).
+  * `max_sessions` - (Optional)(`Int`) Max num of sessions in unit(%) (1..100).
+  * `threshold_logging_interval` - (Optional)(`Int`) Interval of logs for max limit session/memory reached in minutes (1..60).
+  * `total_memory` - (Optional)(`Int`) Total memory unit(%) (1..100).
+* `security_configuration_protection_mode` - (Optional)(`String`) Enable security protection mode.
 
 ---
 #### log arguments

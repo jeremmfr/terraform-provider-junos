@@ -56,6 +56,7 @@ The following arguments are supported:
 * `gprs_gtp_profile` - (Optional)(`String`) Specify GPRS Tunneling Protocol profile name.
 * `gprs_sctp_profile` - (Optional)(`String`) Specify GPRS stream control protocol profile name.
 * `idp` - (Optional)(`Bool`) Enable Intrusion detection and prevention.
+* `idp_policy` - (Optional)(`String`) Specify idp policy name.
 * `redirect_wx` - (Optional)(`Bool`) Set WX redirection.
 * `reverse_redirect_wx` - (Optional)(`Bool`) Set WX reverse redirection.
 * `security_intelligence_policy` - (Optional)(`String`) Specify security-intelligence policy name.

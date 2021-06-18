@@ -87,6 +87,9 @@ func TestAccJunosSecurityZone_basic(t *testing.T) {
 func testAccJunosSecurityZoneConfigCreate() string {
 	return `
 resource junos_security_screen "testaccZone" {
+  lifecycle {
+    create_before_destroy = true
+  }
   name        = "testaccZone"
   description = "testaccZone"
 }
@@ -143,10 +146,6 @@ resource junos_security_zone "testacc_securityZone" {
 
 func testAccJunosSecurityZoneConfigUpdate(interFace string) string {
 	return `
-resource junos_security_screen "testaccZone" {
-  name        = "testaccZone"
-  description = "testaccZone"
-}
 resource junos_security_zone "testacc_securityZone" {
   name = "testacc_securityZone"
   address_book {

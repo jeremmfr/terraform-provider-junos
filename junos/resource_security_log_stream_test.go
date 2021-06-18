@@ -80,6 +80,9 @@ resource junos_security "security" {
 func testAccJunosSecurityLogStreamConfigCreate() string {
 	return `
 resource junos_routing_instance "testacc_logstream" {
+  lifecycle {
+    create_before_destroy = true
+  }
   name = "testacclogstream"
 }
 resource junos_security_log_stream "testacc_logstream" {
@@ -99,9 +102,6 @@ resource junos_security_log_stream "testacc_logstream" {
 
 func testAccJunosSecurityLogStreamConfigUpdate() string {
 	return `
-resource junos_routing_instance "testacc_logstream" {
-  name = "testacclogstream"
-}
 resource junos_security_log_stream "testacc_logstream" {
   name = "testacc_logstream"
   file {

@@ -54,10 +54,14 @@ The following arguments are supported:
 * `security_zone` - (Optional)(`String`) Add this interface in security_zone. Need to be created before.
 * `vlan_id` - (Optional,Computed)(`Int`) 802.1q VLAN ID for unit interface.  
   If not set, computed with `name` of interface (ge-0/0/0.100 = 100) except if name has '.0' suffix or 'st0.', 'irb.', 'vlan.' prefix.
+* `vlan_no_compute` - (Optional)(`Bool`) Disable the automatic compute of the `vlan_id` argument when not set.  
+  (Unnecessary if name has '.0' suffix or 'st0.', 'irb.', 'vlan.' prefix because it's already disabled.)
 
 ---
 #### address arguments for family_inet
 * `cidr_ip` - (Required)(`String`) Address IP/Mask v4.
+* `preferred` - (Optional)(`Bool`) Preferred address on interface.
+* `primary` - (Optional)(`Bool`) Candidate for primary address in system.
 * `vrrp_group` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each vrrp group to declare. See the [`vrrp_group` arguments for address in family_inet](#vrrp_group-arguments-for-address-in-family_inet) block.
 
 ---
@@ -84,6 +88,8 @@ The following arguments are supported:
 ---
 #### address arguments for family_inet6
 * `cidr_ip` - (Required)(`String`) Address IP/Mask v6.
+* `preferred` - (Optional)(`Bool`) Preferred address on interface.
+* `primary` - (Optional)(`Bool`) Candidate for primary address in system.
 * `vrrp_group` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each vrrp group to declare. See the [`vrrp_group` arguments for address in family_inet6](#vrrp_group-arguments-for-address-in-family_inet6) block.
 
 ---

@@ -30,6 +30,10 @@ func resourceServices() *schema.Resource {
 			State: resourceServicesImport,
 		},
 		Schema: map[string]*schema.Schema{
+			"clean_on_destroy": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"advanced_anti_malware": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -676,7 +680,7 @@ func resourceServicesUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if err := delServices(d, m, jnprSess); err != nil {
+	if err := delServices(d, m, jnprSess, false); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -699,6 +703,29 @@ func resourceServicesUpdate(ctx context.Context, d *schema.ResourceData, m inter
 }
 
 func resourceServicesDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	if d.Get("clean_on_destroy").(bool) {
+		sess := m.(*Session)
+		jnprSess, err := sess.startNewSession()
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		defer sess.closeSession(jnprSess)
+		sess.configLock(jnprSess)
+		var diagWarns diag.Diagnostics
+		if err := delServices(d, m, jnprSess, true); err != nil {
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+			return append(diagWarns, diag.FromErr(err)...)
+		}
+		warns, err := sess.commitConf("delete resource junos_services", jnprSess)
+		appendDiagWarns(&diagWarns, warns)
+		if err != nil {
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+			return append(diagWarns, diag.FromErr(err)...)
+		}
+	}
+
 	return nil
 }
 
@@ -1173,7 +1200,7 @@ func listLinesServicesUserIdentificationAdAccess() []string {
 	}
 }
 
-func delServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
+func delServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject, cleanAll bool) error {
 	listLinesToDelete := make([]string, 0)
 	listLinesToDelete = append(listLinesToDelete, listLinesServicesAdvancedAntiMalware()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesServicesApplicationIdentification()...)
@@ -1186,7 +1213,7 @@ func delServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		configSet = append(configSet,
 			delPrefix+line)
 	}
-	if len(d.Get("advanced_anti_malware").([]interface{})) == 0 {
+	if len(d.Get("advanced_anti_malware").([]interface{})) == 0 || cleanAll {
 		configSet = append(configSet, delPrefix+"advanced-anti-malware connection")
 	} else {
 		advAntiMalware := d.Get("advanced_anti_malware").([]interface{})[0].(map[string]interface{})
@@ -1194,14 +1221,14 @@ func delServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 			configSet = append(configSet, delPrefix+"advanced-anti-malware connection")
 		}
 	}
-	if len(d.Get("application_identification").([]interface{})) == 0 {
+	if len(d.Get("application_identification").([]interface{})) == 0 || cleanAll {
 		configSet = append(configSet, delPrefix+"application-identification")
 	}
-	if len(d.Get("security_intelligence").([]interface{})) == 0 {
+	if len(d.Get("security_intelligence").([]interface{})) == 0 || cleanAll {
 		configSet = append(configSet, delPrefix+"security-intelligence authentication")
 		configSet = append(configSet, delPrefix+"security-intelligence url")
 	}
-	if len(d.Get("user_identification").([]interface{})) == 0 {
+	if len(d.Get("user_identification").([]interface{})) == 0 || cleanAll {
 		configSet = append(configSet, delPrefix+"user-identification active-directory-access")
 	}
 

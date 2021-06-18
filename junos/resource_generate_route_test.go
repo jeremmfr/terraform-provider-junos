@@ -75,6 +75,9 @@ resource junos_routing_instance testacc_generateRoute {
   name = "testacc_generateRoute"
 }
 resource junos_policyoptions_policy_statement "testacc_generateRoute" {
+  lifecycle {
+    create_before_destroy = true
+  }
   name = "testacc_generateRoute"
   then {
     action = "accept"
@@ -120,12 +123,6 @@ func testAccJunosGenerateRouteConfigUpdate() string {
 	return `
 resource junos_routing_instance testacc_generateRoute {
   name = "testacc_generateRoute"
-}
-resource junos_policyoptions_policy_statement "testacc_generateRoute" {
-  name = "testacc_generateRoute"
-  then {
-    action = "accept"
-  }
 }
 
 resource junos_generate_route testacc_generateRoute {

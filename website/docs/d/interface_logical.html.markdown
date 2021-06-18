@@ -62,6 +62,8 @@ The following arguments are supported:
 ---
 #### address attributes for family_inet
 * `cidr_ip` - Address IP/Mask v4.
+* `preferred` - Preferred address on interface.
+* `primary` - Candidate for primary address in system.
 * `vrrp_group` - List of vrrp group configurations. See the [`vrrp_group` attributes for address in family_inet](#vrrp_group-attributes-for-address-in-family_inet) block.
 
 ---
@@ -88,6 +90,8 @@ The following arguments are supported:
 ---
 #### address attributes for family_inet6
 * `cidr_ip` - Address IP/Mask v6.
+* `preferred` - Preferred address on interface.
+* `primary` - Candidate for primary address in system.
 * `vrrp_group` - List of vrrp group configurations. See the [`vrrp_group` attributes for address in family_inet6](#vrrp_group-attributes-for-address-in-family_inet6) block.
 
 ---

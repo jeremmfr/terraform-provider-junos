@@ -27,11 +27,13 @@ type Session struct {
 	junosGroupIntDel       string
 	junosLogFile           string
 	junosFakeCreateSetFile string
+	junosSSHCiphers        []string
 }
 
 func (sess *Session) startNewSession() (*NetconfObject, error) {
 	var auth netconfAuthMethod
 	auth.Username = sess.junosUserName
+	auth.Ciphers = sess.junosSSHCiphers
 	if sess.junosSSHKeyPEM != "" {
 		auth.PrivateKeyPEM = sess.junosSSHKeyPEM
 		if sess.junosKeyPass != "" {

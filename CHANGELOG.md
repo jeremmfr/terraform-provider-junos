@@ -3,6 +3,29 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+## 1.17.0 (June 18, 2021)
+FEATURES:
+* add `junos_ospf` resource
+* add `junos_security_idp_custom_attack` resource (Fixes parts of [#225](https://github.com/jeremmfr/terraform-provider-junos/issues/225))
+* add `junos_security_idp_custom_attack_group` resource
+* add `junos_security_idp_policy` resource (Fixes parts of [#225](https://github.com/jeremmfr/terraform-provider-junos/issues/225))
+
+ENHANCEMENTS:
+* provider: try multiple SSH authentication methods (key + password)
+* provider: add `ssh_ciphers` argument to configure ciphers used in SSH connection
+* provider: add support of SSH agent to SSH authentication (Fixes [#212](https://github.com/jeremmfr/terraform-provider-junos/issues/212))
+* resource/`junos_application`: add `inactivity_timeout` argument (Fixes [#230](https://github.com/jeremmfr/terraform-provider-junos/issues/230))
+* resource/`junos_group_dual_system`: add `preferred` and `primary` arguments inside `family_inet_address` and `family_inet6_address` arguments inside `interface_fxp0` argument (Fixes [#211](https://github.com/jeremmfr/terraform-provider-junos/issues/211))
+* resource/`junos_interface_logical`: add `preferred` and `primary` arguments inside `address` argument inside `family_inet` and `family_inet6` arguments, add `vlan_no_compute` argument to disable the automatic compute of `vlan_id`
+* data-source/`junos_interface_logical`: add `preferred` and `primary` attributes as for the resource
+* resource/`junos_routing_options`, `junos_security`, `junos_services`, `junos_snmp`: add `clean_on_destroy` argument to clean static configuration when destroy the resource (Fixes [#227](https://github.com/jeremmfr/terraform-provider-junos/issues/227))
+* resource/`junos_routing_options`: add `forwarding_table` argument (Fixes [#221](https://github.com/jeremmfr/terraform-provider-junos/issues/211))
+* resource/`junos_security`: add `idp_security_package` and `idp_sensor_configuration` arguments (Fixes parts of [#225](https://github.com/jeremmfr/terraform-provider-junos/issues/225)), add `user_identification_auth_source` argument (Fixes [#238](https://github.com/jeremmfr/terraform-provider-junos/issues/238))
+* resource/`junos_security_global_policy`: add `idp_policy` argument
+* resource/`junos_security_policy`: add `idp_policy` argument
+* resource/`junos_services_flowmonitoring_vipfix_template`: add `ip_template_export_extension` argument (Fixes [#229](https://github.com/jeremmfr/terraform-provider-junos/issues/229))
+* resource/`junos_system`: add `radius_options_attributes_nas_ipaddress`, `radius_options_enhanced_accounting` and `radius_options_password_protocol_mschapv2` arguments (Fixes [#210](https://github.com/jeremmfr/terraform-provider-junos/issues/210)), add `archival_configuration` argument (Fixes [#231](https://github.com/jeremmfr/terraform-provider-junos/issues/231))
+
 ## 1.16.2 (May 28, 2021)
 BUG FIXES:
 * provider: fix XML error on commit with RPC reply without `<commit-results>` but different from `<ok/>` (Fixes [#223](https://github.com/jeremmfr/terraform-provider-junos/issues/223))

@@ -20,14 +20,18 @@ type systemOptions struct {
 	noPingTimeStamp                      bool
 	noRedirects                          bool
 	noRedirectsIPv6                      bool
+	radiusOptionsEnhancedAccounting      bool
+	radiusOptionsPasswodProtoclMsChapV2  bool
 	maxConfigurationRollbacks            int
 	maxConfigurationsOnFlash             int
 	domainName                           string
 	hostName                             string
+	radiusOptionsAttributesNasIPAddress  string
 	timeZone                             string
 	tracingDestinationOverrideSyslogHost string
 	authenticationOrder                  []string
 	nameServer                           []string
+	archivalConfiguration                []map[string]interface{}
 	inet6BackupRouter                    []map[string]interface{}
 	internetOptions                      []map[string]interface{}
 	license                              []map[string]interface{}
@@ -46,6 +50,42 @@ func resourceSystem() *schema.Resource {
 			State: resourceSystemImport,
 		},
 		Schema: map[string]*schema.Schema{
+			"archival_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"archive_site": {
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"url": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"password": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
+						},
+						"transfer_interval": {
+							Type:          schema.TypeInt,
+							Optional:      true,
+							ValidateFunc:  validation.IntBetween(15, 2880),
+							ConflictsWith: []string{"archival_configuration.0.transfer_on_commit"},
+						},
+						"transfer_on_commit": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"archival_configuration.0.transfer_interval"},
+						},
+					},
+				},
+			},
 			"authentication_order": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -440,6 +480,19 @@ func resourceSystem() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
+			"radius_options_attributes_nas_ipaddress": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsIPAddress,
+			},
+			"radius_options_enhanced_accounting": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"radius_options_password_protocol_mschapv2": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"services": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -807,6 +860,26 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 	setPrefix := "set system "
 	configSet := make([]string, 0)
 
+	for _, v := range d.Get("archival_configuration").([]interface{}) {
+		archivalConfig := v.(map[string]interface{})
+		for _, v2 := range archivalConfig["archive_site"].([]interface{}) {
+			archiveSite := v2.(map[string]interface{})
+			configSet = append(configSet, setPrefix+"archival configuration archive-sites \""+archiveSite["url"].(string)+"\"")
+			if pass := archiveSite["password"].(string); pass != "" {
+				configSet = append(configSet,
+					setPrefix+"archival configuration archive-sites \""+archiveSite["url"].(string)+"\" password \""+pass+"\"")
+			}
+		}
+		switch {
+		case archivalConfig["transfer_interval"].(int) != 0:
+			configSet = append(configSet, setPrefix+"archival configuration transfer-interval "+
+				strconv.Itoa(archivalConfig["transfer_interval"].(int)))
+		case archivalConfig["transfer_on_commit"].(bool):
+			configSet = append(configSet, setPrefix+"archival configuration transfer-on-commit")
+		default:
+			return fmt.Errorf("transfer_interval or transfer_on_commit missing for archival_configuration")
+		}
+	}
 	for _, v := range d.Get("authentication_order").([]interface{}) {
 		configSet = append(configSet, setPrefix+"authentication-order "+v.(string))
 	}
@@ -889,6 +962,15 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 	}
 	if d.Get("no_redirects_ipv6").(bool) {
 		configSet = append(configSet, setPrefix+"no-redirects-ipv6")
+	}
+	if v := d.Get("radius_options_attributes_nas_ipaddress").(string); v != "" {
+		configSet = append(configSet, setPrefix+"radius-options attributes nas-ip-address "+v)
+	}
+	if d.Get("radius_options_enhanced_accounting").(bool) {
+		configSet = append(configSet, setPrefix+"radius-options enhanced-accounting")
+	}
+	if d.Get("radius_options_password_protocol_mschapv2").(bool) {
+		configSet = append(configSet, setPrefix+"radius-options password-protocol mschap-v2")
 	}
 	if err := setSystemServices(d, m, jnprSess); err != nil {
 		return err
@@ -1353,6 +1435,7 @@ func listLinesSyslog() []string {
 
 func delSystem(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete := make([]string, 0)
+	listLinesToDelete = append(listLinesToDelete, "archival configuration")
 	listLinesToDelete = append(listLinesToDelete, "authentication-order")
 	listLinesToDelete = append(listLinesToDelete, "auto-snapshot")
 	listLinesToDelete = append(listLinesToDelete, "default-address-selection")
@@ -1370,6 +1453,7 @@ func delSystem(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete = append(listLinesToDelete, "no-ping-time-stamp")
 	listLinesToDelete = append(listLinesToDelete, "no-redirects")
 	listLinesToDelete = append(listLinesToDelete, "no-redirects-ipv6")
+	listLinesToDelete = append(listLinesToDelete, "radius-options")
 	listLinesToDelete = append(listLinesToDelete, listLinesServices()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSyslog()...)
 	listLinesToDelete = append(listLinesToDelete, "time-zone")
@@ -1409,6 +1493,44 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
+			case strings.HasPrefix(itemTrim, "archival configuration "):
+				if len(confRead.archivalConfiguration) == 0 {
+					confRead.archivalConfiguration = append(confRead.archivalConfiguration, map[string]interface{}{
+						"archive_site":       make([]map[string]interface{}, 0),
+						"transfer_interval":  0,
+						"transfer_on_commit": false,
+					})
+				}
+				switch {
+				case strings.HasPrefix(itemTrim, "archival configuration archive-sites "):
+					archiveSiteSplit := strings.Split(strings.TrimPrefix(itemTrim, "archival configuration archive-sites "), " ")
+					if len(archiveSiteSplit) == 1 {
+						confRead.archivalConfiguration[0]["archive_site"] = append(
+							confRead.archivalConfiguration[0]["archive_site"].([]map[string]interface{}), map[string]interface{}{
+								"url":      strings.Trim(archiveSiteSplit[0], "\""),
+								"password": "",
+							})
+					} else {
+						passWord, err := jdecode.Decode(strings.Trim(archiveSiteSplit[2], "\""))
+						if err != nil {
+							return confRead, fmt.Errorf("failed to decode archive-site password : %w", err)
+						}
+						confRead.archivalConfiguration[0]["archive_site"] = append(
+							confRead.archivalConfiguration[0]["archive_site"].([]map[string]interface{}), map[string]interface{}{
+								"url":      strings.Trim(archiveSiteSplit[0], "\""),
+								"password": passWord,
+							})
+					}
+				case strings.HasPrefix(itemTrim, "archival configuration transfer-interval "):
+					var err error
+					confRead.archivalConfiguration[0]["transfer_interval"], err =
+						strconv.Atoi(strings.TrimPrefix(itemTrim, "archival configuration transfer-interval "))
+					if err != nil {
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					}
+				case itemTrim == "archival configuration transfer-on-commit":
+					confRead.archivalConfiguration[0]["transfer_on_commit"] = true
+				}
 			case strings.HasPrefix(itemTrim, "authentication-order "):
 				confRead.authenticationOrder = append(confRead.authenticationOrder,
 					strings.TrimPrefix(itemTrim, "authentication-order "))
@@ -1470,6 +1592,13 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 				confRead.noRedirects = true
 			case itemTrim == "no-redirects-ipv6":
 				confRead.noRedirectsIPv6 = true
+			case strings.HasPrefix(itemTrim, "radius-options attributes nas-ip-address "):
+				confRead.radiusOptionsAttributesNasIPAddress = strings.TrimPrefix(itemTrim,
+					"radius-options attributes nas-ip-address ")
+			case itemTrim == "radius-options enhanced-accounting":
+				confRead.radiusOptionsEnhancedAccounting = true
+			case itemTrim == "radius-options password-protocol mschap-v2":
+				confRead.radiusOptionsPasswodProtoclMsChapV2 = true
 			case checkStringHasPrefixInList(itemTrim, listLinesServices()):
 				if len(confRead.services) == 0 {
 					confRead.services = append(confRead.services, map[string]interface{}{
@@ -2112,6 +2241,9 @@ func readSystemSyslog(confRead *systemOptions, itemTrim string) error {
 }
 
 func fillSystem(d *schema.ResourceData, systemOptions systemOptions) {
+	if tfErr := d.Set("archival_configuration", systemOptions.archivalConfiguration); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("authentication_order", systemOptions.authenticationOrder); tfErr != nil {
 		panic(tfErr)
 	}
@@ -2161,6 +2293,18 @@ func fillSystem(d *schema.ResourceData, systemOptions systemOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("no_redirects_ipv6", systemOptions.noRedirectsIPv6); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("radius_options_attributes_nas_ipaddress",
+		systemOptions.radiusOptionsAttributesNasIPAddress); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("radius_options_enhanced_accounting",
+		systemOptions.radiusOptionsEnhancedAccounting); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("radius_options_password_protocol_mschapv2",
+		systemOptions.radiusOptionsPasswodProtoclMsChapV2); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("services", systemOptions.services); tfErr != nil {

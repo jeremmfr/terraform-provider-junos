@@ -22,9 +22,6 @@ func TestAccJunosSnmp_basic(t *testing.T) {
 			{
 				Config: testAccJunosSnmpConfigUpdate(),
 			},
-			{
-				Config: testAccJunosSnmpConfigPostCheck(),
-			},
 		},
 	})
 }
@@ -54,6 +51,9 @@ resource "junos_snmp" "testacc_snmp" {
   routing_instance_access_list    = [junos_routing_instance.testacc_snmp.name]
 }
 resource "junos_routing_instance" "testacc_snmp" {
+  lifecycle {
+    create_before_destroy = true
+  }
   name = "testacc_snmp"
 }
 `
@@ -61,21 +61,12 @@ resource "junos_routing_instance" "testacc_snmp" {
 
 func testAccJunosSnmpConfigUpdate() string {
 	return `
-resource "junos_routing_instance" "testacc_snmp" {
-  name = "testacc_snmp"
-}
 resource "junos_snmp" "testacc_snmp" {
+  clean_on_destroy         = true
   arp                      = true
   arp_host_name_resolution = true
   health_monitor {}
   routing_instance_access = true
 }
-
-`
-}
-
-func testAccJunosSnmpConfigPostCheck() string {
-	return `
-resource "junos_snmp" "testacc_snmp" {}
 `
 }

@@ -12,14 +12,17 @@ import (
 )
 
 type securityOptions struct {
-	alg               []map[string]interface{}
-	flow              []map[string]interface{}
-	forwardingOpts    []map[string]interface{}
-	forwardingProcess []map[string]interface{}
-	log               []map[string]interface{}
-	ikeTraceoptions   []map[string]interface{}
-	policies          []map[string]interface{}
-	utm               []map[string]interface{}
+	alg                 []map[string]interface{}
+	flow                []map[string]interface{}
+	forwardingOpts      []map[string]interface{}
+	forwardingProcess   []map[string]interface{}
+	idpSecurityPackage  []map[string]interface{}
+	idpSensorConfig     []map[string]interface{}
+	ikeTraceoptions     []map[string]interface{}
+	log                 []map[string]interface{}
+	policies            []map[string]interface{}
+	userIdentAuthSource []map[string]interface{}
+	utm                 []map[string]interface{}
 }
 
 func resourceSecurity() *schema.Resource {
@@ -32,6 +35,10 @@ func resourceSecurity() *schema.Resource {
 			State: resourceSecurityImport,
 		},
 		Schema: map[string]*schema.Schema{
+			"clean_on_destroy": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"alg": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -408,6 +415,143 @@ func resourceSecurity() *schema.Resource {
 					},
 				},
 			},
+			"idp_security_package": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"automatic_enable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"automatic_interval": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 336),
+						},
+						"automatic_start_time": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"install_ignore_version_check": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"proxy_profile": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"source_address": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsIPAddress,
+						},
+						"url": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+			"idp_sensor_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"log_cache_size": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 65535),
+						},
+						"log_suppression": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"disable": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"include_destination_address": {
+										Type:          schema.TypeBool,
+										Optional:      true,
+										ConflictsWith: []string{"idp_sensor_configuration.0.log_suppression.0.no_include_destination_address"},
+									},
+									"no_include_destination_address": {
+										Type:          schema.TypeBool,
+										Optional:      true,
+										ConflictsWith: []string{"idp_sensor_configuration.0.log_suppression.0.include_destination_address"},
+									},
+									"max_logs_operate": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(256, 65536),
+									},
+									"max_time_report": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 60),
+									},
+									"start_log": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 128),
+									},
+								},
+							},
+						},
+						"packet_log": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"source_address": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.IsIPAddress,
+									},
+									"host_address": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.IsIPAddress,
+									},
+									"host_port": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 65535),
+										RequiredWith: []string{"idp_sensor_configuration.0.packet_log.0.host_address"},
+									},
+									"max_sessions": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 100),
+									},
+									"threshold_logging_interval": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 60),
+									},
+									"total_memory": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 100),
+									},
+								},
+							},
+						},
+						"security_configuration_protection_mode": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice(
+								[]string{"datacenter", "datacenter-full", "perimeter", "perimeter-full"}, false),
+						},
+					},
+				},
+			},
 			"ike_traceoptions": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -601,6 +745,45 @@ func resourceSecurity() *schema.Resource {
 					},
 				},
 			},
+			"user_identification_auth_source": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"ad_auth_priority": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      -1,
+							ValidateFunc: validation.IntBetween(0, 65535),
+						},
+						"aruba_clearpass_priority": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      -1,
+							ValidateFunc: validation.IntBetween(0, 65535),
+						},
+						"firewall_auth_priority": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      -1,
+							ValidateFunc: validation.IntBetween(0, 65535),
+						},
+						"local_auth_priority": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      -1,
+							ValidateFunc: validation.IntBetween(0, 65535),
+						},
+						"unified_access_control_priority": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      -1,
+							ValidateFunc: validation.IntBetween(0, 65535),
+						},
+					},
+				},
+			},
 			"utm": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -741,6 +924,29 @@ func resourceSecurityUpdate(ctx context.Context, d *schema.ResourceData, m inter
 }
 
 func resourceSecurityDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	if d.Get("clean_on_destroy").(bool) {
+		sess := m.(*Session)
+		jnprSess, err := sess.startNewSession()
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		defer sess.closeSession(jnprSess)
+		sess.configLock(jnprSess)
+		var diagWarns diag.Diagnostics
+		if err := delSecurity(m, jnprSess); err != nil {
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+			return append(diagWarns, diag.FromErr(err)...)
+		}
+		warns, err := sess.commitConf("delete resource junos_security", jnprSess)
+		appendDiagWarns(&diagWarns, warns)
+		if err != nil {
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+			return append(diagWarns, diag.FromErr(err)...)
+		}
+	}
+
 	return nil
 }
 
@@ -800,6 +1006,20 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 			return fmt.Errorf("forwarding_process block is empty")
 		}
 	}
+	for _, v := range d.Get("idp_security_package").([]interface{}) {
+		configSetIdpSecurityPackage, err := setSecurityIdpSecurityPackage(v)
+		if err != nil {
+			return err
+		}
+		configSet = append(configSet, configSetIdpSecurityPackage...)
+	}
+	for _, v := range d.Get("idp_sensor_configuration").([]interface{}) {
+		configSetIdpSensorConfig, err := setSecurityIdpSensorConfig(v)
+		if err != nil {
+			return err
+		}
+		configSet = append(configSet, configSetIdpSensorConfig...)
+	}
 	for _, ikeTrace := range d.Get("ike_traceoptions").([]interface{}) {
 		configSetIkeTrace, err := setSecurityIkeTraceOpts(ikeTrace)
 		if err != nil {
@@ -825,6 +1045,33 @@ func setSecurity(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 			}
 		} else {
 			return fmt.Errorf("policies block is empty")
+		}
+	}
+	for _, v := range d.Get("user_identification_auth_source").([]interface{}) {
+		userIdentAuthSource := v.(map[string]interface{})
+		if p := userIdentAuthSource["ad_auth_priority"].(int); p != -1 {
+			configSet = append(configSet, setPrefix+"user-identification authentication-source "+
+				"active-directory-authentication-table priority "+strconv.Itoa(p))
+		}
+		if p := userIdentAuthSource["aruba_clearpass_priority"].(int); p != -1 {
+			configSet = append(configSet, setPrefix+"user-identification authentication-source "+
+				"aruba-clearpass priority "+strconv.Itoa(p))
+		}
+		if p := userIdentAuthSource["firewall_auth_priority"].(int); p != -1 {
+			configSet = append(configSet, setPrefix+"user-identification authentication-source "+
+				"firewall-authentication priority "+strconv.Itoa(p))
+		}
+		if p := userIdentAuthSource["local_auth_priority"].(int); p != -1 {
+			configSet = append(configSet, setPrefix+"user-identification authentication-source "+
+				"local-authentication-table priority "+strconv.Itoa(p))
+		}
+		if p := userIdentAuthSource["unified_access_control_priority"].(int); p != -1 {
+			configSet = append(configSet, setPrefix+"user-identification authentication-source "+
+				"unified-access-control priority "+strconv.Itoa(p))
+		}
+		if len(configSet) == 0 ||
+			!strings.HasPrefix(configSet[len(configSet)-1], setPrefix+"user-identification authentication-source ") {
+			return fmt.Errorf("user_identification_auth_source block is empty")
 		}
 	}
 	for _, v := range d.Get("utm").([]interface{}) {
@@ -1141,6 +1388,100 @@ func setSecurityForwOpts(forwOpts interface{}) ([]string, error) {
 	return configSet, nil
 }
 
+func setSecurityIdpSecurityPackage(idpSecurityPackage interface{}) ([]string, error) {
+	setPrefix := "set security idp security-package "
+	configSet := make([]string, 0)
+	if idpSecurityPackage != nil {
+		idpSecurityPackageM := idpSecurityPackage.(map[string]interface{})
+		if idpSecurityPackageM["automatic_enable"].(bool) {
+			configSet = append(configSet, setPrefix+"automatic enable")
+		}
+		if v := idpSecurityPackageM["automatic_interval"].(int); v != 0 {
+			configSet = append(configSet, setPrefix+"automatic interval "+strconv.Itoa(v))
+		}
+		if v := idpSecurityPackageM["automatic_start_time"].(string); v != "" {
+			configSet = append(configSet, setPrefix+"automatic start-time \""+v+"\"")
+		}
+		if idpSecurityPackageM["install_ignore_version_check"].(bool) {
+			configSet = append(configSet, setPrefix+"install ignore-version-check")
+		}
+		if v := idpSecurityPackageM["proxy_profile"].(string); v != "" {
+			configSet = append(configSet, setPrefix+"proxy-profile \""+v+"\"")
+		}
+		if v := idpSecurityPackageM["source_address"].(string); v != "" {
+			configSet = append(configSet, setPrefix+"source-address "+v)
+		}
+		if v := idpSecurityPackageM["url"].(string); v != "" {
+			configSet = append(configSet, setPrefix+"url \""+v+"\"")
+		}
+	} else {
+		return configSet, fmt.Errorf("idp_security_package block is empty")
+	}
+
+	return configSet, nil
+}
+
+func setSecurityIdpSensorConfig(idpSensorConfig interface{}) ([]string, error) {
+	setPrefix := "set security idp sensor-configuration "
+	configSet := make([]string, 0)
+	if idpSensorConfig != nil {
+		idpSensorConfigM := idpSensorConfig.(map[string]interface{})
+		if v := idpSensorConfigM["log_cache_size"].(int); v != 0 {
+			configSet = append(configSet, setPrefix+"log cache-size "+strconv.Itoa(v))
+		}
+		for _, v := range idpSensorConfigM["log_suppression"].([]interface{}) {
+			configSet = append(configSet, setPrefix+"log suppression")
+			if v != nil {
+				logSupp := v.(map[string]interface{})
+				if logSupp["disable"].(bool) {
+					configSet = append(configSet, setPrefix+"log suppression disable")
+				}
+				if logSupp["include_destination_address"].(bool) {
+					configSet = append(configSet, setPrefix+"log suppression include-destination-address")
+				}
+				if logSupp["no_include_destination_address"].(bool) {
+					configSet = append(configSet, setPrefix+"log suppression no-include-destination-address")
+				}
+				if v2 := logSupp["max_logs_operate"].(int); v2 != 0 {
+					configSet = append(configSet, setPrefix+"log suppression max-logs-operate "+strconv.Itoa(v2))
+				}
+				if v2 := logSupp["max_time_report"].(int); v2 != 0 {
+					configSet = append(configSet, setPrefix+"log suppression max-time-report "+strconv.Itoa(v2))
+				}
+				if v2 := logSupp["start_log"].(int); v2 != 0 {
+					configSet = append(configSet, setPrefix+"log suppression start-log "+strconv.Itoa(v2))
+				}
+			}
+		}
+		for _, v := range idpSensorConfigM["packet_log"].([]interface{}) {
+			packetLog := v.(map[string]interface{})
+			configSet = append(configSet, setPrefix+"packet-log source-address "+packetLog["source_address"].(string))
+			if v2 := packetLog["host_address"].(string); v2 != "" {
+				configSet = append(configSet, setPrefix+"packet-log host "+v2)
+			}
+			if v2 := packetLog["host_port"].(int); v2 != 0 {
+				configSet = append(configSet, setPrefix+"packet-log host port "+strconv.Itoa(v2))
+			}
+			if v2 := packetLog["max_sessions"].(int); v2 != 0 {
+				configSet = append(configSet, setPrefix+"packet-log max-sessions "+strconv.Itoa(v2))
+			}
+			if v2 := packetLog["threshold_logging_interval"].(int); v2 != 0 {
+				configSet = append(configSet, setPrefix+"packet-log threshold-logging-interval "+strconv.Itoa(v2))
+			}
+			if v2 := packetLog["total_memory"].(int); v2 != 0 {
+				configSet = append(configSet, setPrefix+"packet-log total-memory "+strconv.Itoa(v2))
+			}
+		}
+		if v := idpSensorConfigM["security_configuration_protection_mode"].(string); v != "" {
+			configSet = append(configSet, setPrefix+"security-configuration protection-mode "+v)
+		}
+	} else {
+		return configSet, fmt.Errorf("idp_sensor_configuration block is empty")
+	}
+
+	return configSet, nil
+}
+
 func setSecurityIkeTraceOpts(ikeTrace interface{}) ([]string, error) {
 	setPrefix := "set security ike traceoptions "
 	configSet := make([]string, 0)
@@ -1327,6 +1668,24 @@ func listLinesSecurityForwardingProcess() []string {
 	}
 }
 
+func listLinesSecurityIdpSecurityPackage() []string {
+	return []string{
+		"idp security-package automatic",
+		"idp security-package install",
+		"idp security-package proxy-profile",
+		"idp security-package source-address",
+		"idp security-package url",
+	}
+}
+
+func listLinesSecurityIdpSensorConfiguration() []string {
+	return []string{
+		"idp sensor-configuration log",
+		"idp sensor-configuration packet-log",
+		"idp sensor-configuration security-configuration",
+	}
+}
+
 func listLinesSecurityLog() []string {
 	return []string{
 		"log disable",
@@ -1351,6 +1710,16 @@ func listLinesSecurityPolicies() []string {
 	}
 }
 
+func listLinesSecurityUserIdentificationAuthSource() []string {
+	return []string{
+		"user-identification authentication-source active-directory-authentication-table",
+		"user-identification authentication-source aruba-clearpass",
+		"user-identification authentication-source firewall-authentication",
+		"user-identification authentication-source local-authentication-table",
+		"user-identification authentication-source unified-access-control",
+	}
+}
+
 func listLinesSecurityUtm() []string {
 	return []string{
 		"utm feature-profile web-filtering type",
@@ -1366,8 +1735,11 @@ func delSecurity(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityFlow()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityForwardingOptions()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityForwardingProcess()...)
+	listLinesToDelete = append(listLinesToDelete, listLinesSecurityIdpSecurityPackage()...)
+	listLinesToDelete = append(listLinesToDelete, listLinesSecurityIdpSensorConfiguration()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityLog()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityPolicies()...)
+	listLinesToDelete = append(listLinesToDelete, listLinesSecurityUserIdentificationAuthSource()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSecurityUtm()...)
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -1402,8 +1774,7 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityAlg()):
 				readSecurityAlg(&confRead, itemTrim)
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityFlow()):
-				err := readSecurityFlow(&confRead, itemTrim)
-				if err != nil {
+				if err := readSecurityFlow(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityForwardingOptions()):
@@ -1417,14 +1788,20 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 				if itemTrim == "forwarding-process enhanced-services-mode" {
 					confRead.forwardingProcess[0]["enhanced_services_mode"] = true
 				}
+			case checkStringHasPrefixInList(itemTrim, listLinesSecurityIdpSecurityPackage()):
+				if err := readSecurityIdpSecurityPackage(&confRead, itemTrim); err != nil {
+					return confRead, err
+				}
+			case checkStringHasPrefixInList(itemTrim, listLinesSecurityIdpSensorConfiguration()):
+				if err := readSecurityIdpSensorConfig(&confRead, itemTrim); err != nil {
+					return confRead, err
+				}
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityLog()):
-				err := readSecurityLog(&confRead, itemTrim)
-				if err != nil {
+				if err := readSecurityLog(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
 			case strings.HasPrefix(itemTrim, "ike traceoptions"):
-				err := readSecurityIkeTraceOptions(&confRead, itemTrim)
-				if err != nil {
+				if err := readSecurityIkeTraceOptions(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityPolicies()):
@@ -1440,9 +1817,12 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 				if itemTrim == "policies policy-rematch extensive" {
 					confRead.policies[0]["policy_rematch_extensive"] = true
 				}
+			case checkStringHasPrefixInList(itemTrim, listLinesSecurityUserIdentificationAuthSource()):
+				if err := readSecurityUserIdentAuthSource(&confRead, itemTrim); err != nil {
+					return confRead, err
+				}
 			case checkStringHasPrefixInList(itemTrim, listLinesSecurityUtm()):
-				err := readSecurityUtm(&confRead, itemTrim)
-				if err != nil {
+				if err := readSecurityUtm(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
 			}
@@ -1801,6 +2181,153 @@ func readSecurityForwardingOpts(confRead *securityOptions, itemTrimFwOpts string
 	}
 }
 
+func readSecurityIdpSecurityPackage(confRead *securityOptions, itemTrimIdpSecurityPackage string) error {
+	itemTrim := strings.TrimPrefix(itemTrimIdpSecurityPackage, "idp security-package ")
+	if len(confRead.idpSecurityPackage) == 0 {
+		confRead.idpSecurityPackage = append(confRead.idpSecurityPackage, map[string]interface{}{
+			"automatic_enable":             false,
+			"automatic_interval":           0,
+			"automatic_start_time":         "",
+			"install_ignore_version_check": false,
+			"proxy_profile":                "",
+			"source_address":               "",
+			"url":                          "",
+		})
+	}
+	switch {
+	case itemTrim == "automatic enable":
+		confRead.idpSecurityPackage[0]["automatic_enable"] = true
+	case strings.HasPrefix(itemTrim, "automatic interval "):
+		var err error
+		confRead.idpSecurityPackage[0]["automatic_interval"], err =
+			strconv.Atoi(strings.TrimPrefix(itemTrim, "automatic interval "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "automatic start-time "):
+		confRead.idpSecurityPackage[0]["automatic_start_time"] =
+			strings.Trim(strings.TrimPrefix(itemTrim, "automatic start-time "), "\"")
+	case itemTrim == "install ignore-version-check":
+		confRead.idpSecurityPackage[0]["install_ignore_version_check"] = true
+	case strings.HasPrefix(itemTrim, "proxy-profile "):
+		confRead.idpSecurityPackage[0]["proxy_profile"] = strings.Trim(strings.TrimPrefix(itemTrim, "proxy-profile "), "\"")
+	case strings.HasPrefix(itemTrim, "source-address "):
+		confRead.idpSecurityPackage[0]["source_address"] = strings.TrimPrefix(itemTrim, "source-address ")
+	case strings.HasPrefix(itemTrim, "url "):
+		confRead.idpSecurityPackage[0]["url"] = strings.Trim(strings.TrimPrefix(itemTrim, "url "), "\"")
+	}
+
+	return nil
+}
+
+func readSecurityIdpSensorConfig(confRead *securityOptions, itemTrimIdpSensorConfig string) error {
+	itemTrim := strings.TrimPrefix(itemTrimIdpSensorConfig, "idp sensor-configuration ")
+	if len(confRead.idpSensorConfig) == 0 {
+		confRead.idpSensorConfig = append(confRead.idpSensorConfig, map[string]interface{}{
+			"log_cache_size":                         0,
+			"log_suppression":                        make([]map[string]interface{}, 0),
+			"packet_log":                             make([]map[string]interface{}, 0),
+			"security_configuration_protection_mode": "",
+		})
+	}
+	switch {
+	case strings.HasPrefix(itemTrim, "log cache-size "):
+		var err error
+		confRead.idpSensorConfig[0]["log_cache_size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "log cache-size "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "log suppression"):
+		if len(confRead.idpSensorConfig[0]["log_suppression"].([]map[string]interface{})) == 0 {
+			confRead.idpSensorConfig[0]["log_suppression"] = append(
+				confRead.idpSensorConfig[0]["log_suppression"].([]map[string]interface{}), map[string]interface{}{
+					"disable":                        false,
+					"include_destination_address":    false,
+					"no_include_destination_address": false,
+					"max_logs_operate":               0,
+					"max_time_report":                0,
+					"start_log":                      0,
+				})
+		}
+		logSupp := confRead.idpSensorConfig[0]["log_suppression"].([]map[string]interface{})[0]
+		switch {
+		case itemTrim == "log suppression disable":
+			logSupp["disable"] = true
+		case itemTrim == "log suppression include-destination-address":
+			logSupp["include_destination_address"] = true
+		case itemTrim == "log suppression no-include-destination-address":
+			logSupp["no_include_destination_address"] = true
+		case strings.HasPrefix(itemTrim, "log suppression max-logs-operate "):
+			var err error
+			logSupp["max_logs_operate"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "log suppression max-logs-operate "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "log suppression max-time-report "):
+			var err error
+			logSupp["max_time_report"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "log suppression max-time-report "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "log suppression start-log "):
+			var err error
+			logSupp["start_log"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "log suppression start-log "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		}
+	case strings.HasPrefix(itemTrim, "packet-log "):
+		if len(confRead.idpSensorConfig[0]["packet_log"].([]map[string]interface{})) == 0 {
+			confRead.idpSensorConfig[0]["packet_log"] = append(
+				confRead.idpSensorConfig[0]["packet_log"].([]map[string]interface{}), map[string]interface{}{
+					"source_address":             "",
+					"host_address":               "",
+					"host_port":                  0,
+					"max_sessions":               0,
+					"threshold_logging_interval": 0,
+					"total_memory":               0,
+				})
+		}
+		packetLog := confRead.idpSensorConfig[0]["packet_log"].([]map[string]interface{})[0]
+		switch {
+		case strings.HasPrefix(itemTrim, "packet-log source-address "):
+			packetLog["source_address"] = strings.TrimPrefix(itemTrim, "packet-log source-address ")
+		case strings.HasPrefix(itemTrim, "packet-log host port "):
+			var err error
+			packetLog["host_port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "packet-log host port "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "packet-log host "):
+			packetLog["host_address"] = strings.TrimPrefix(itemTrim, "packet-log host ")
+		case strings.HasPrefix(itemTrim, "packet-log max-sessions "):
+			var err error
+			packetLog["max_sessions"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "packet-log max-sessions "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "packet-log threshold-logging-interval "):
+			var err error
+			packetLog["threshold_logging_interval"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "packet-log threshold-logging-interval "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		case strings.HasPrefix(itemTrim, "packet-log total-memory "):
+			var err error
+			packetLog["total_memory"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "packet-log total-memory "))
+			if err != nil {
+				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			}
+		}
+	case strings.HasPrefix(itemTrim, "security-configuration protection-mode "):
+		confRead.idpSensorConfig[0]["security_configuration_protection_mode"] =
+			strings.TrimPrefix(itemTrim, "security-configuration protection-mode ")
+	}
+
+	return nil
+}
+
 func readSecurityIkeTraceOptions(confRead *securityOptions, itemTrimIkeTraceOpts string) error {
 	itemTrim := strings.TrimPrefix(itemTrimIkeTraceOpts, "ike traceoptions ")
 	if len(confRead.ikeTraceoptions) == 0 {
@@ -1979,6 +2506,42 @@ func readSecurityLog(confRead *securityOptions, itemTrimLog string) error {
 	return nil
 }
 
+func readSecurityUserIdentAuthSource(confRead *securityOptions, itemTrimUserIdentAuthSource string) error {
+	if len(confRead.userIdentAuthSource) == 0 {
+		confRead.userIdentAuthSource = append(confRead.userIdentAuthSource, map[string]interface{}{
+			"ad_auth_priority":                -1,
+			"aruba_clearpass_priority":        -1,
+			"firewall_auth_priority":          -1,
+			"local_auth_priority":             -1,
+			"unified_access_control_priority": -1,
+		})
+	}
+	var err error
+	itemTrim := strings.TrimPrefix(itemTrimUserIdentAuthSource, "user-identification authentication-source ")
+	switch {
+	case strings.HasPrefix(itemTrim, "active-directory-authentication-table priority "):
+		confRead.userIdentAuthSource[0]["ad_auth_priority"], err =
+			strconv.Atoi(strings.TrimPrefix(itemTrim, "active-directory-authentication-table priority "))
+	case strings.HasPrefix(itemTrim, "aruba-clearpass priority "):
+		confRead.userIdentAuthSource[0]["aruba_clearpass_priority"], err =
+			strconv.Atoi(strings.TrimPrefix(itemTrim, "aruba-clearpass priority "))
+	case strings.HasPrefix(itemTrim, "firewall-authentication priority "):
+		confRead.userIdentAuthSource[0]["firewall_auth_priority"], err =
+			strconv.Atoi(strings.TrimPrefix(itemTrim, "firewall-authentication priority "))
+	case strings.HasPrefix(itemTrim, "local-authentication-table priority "):
+		confRead.userIdentAuthSource[0]["local_auth_priority"], err =
+			strconv.Atoi(strings.TrimPrefix(itemTrim, "local-authentication-table priority "))
+	case strings.HasPrefix(itemTrim, "unified-access-control priority "):
+		confRead.userIdentAuthSource[0]["unified_access_control_priority"], err =
+			strconv.Atoi(strings.TrimPrefix(itemTrim, "unified-access-control priority "))
+	}
+	if err != nil {
+		return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+	}
+
+	return nil
+}
+
 func readSecurityUtm(confRead *securityOptions, itemTrimUtm string) error {
 	if len(confRead.utm) == 0 {
 		confRead.utm = append(confRead.utm, map[string]interface{}{
@@ -2037,6 +2600,12 @@ func fillSecurity(d *schema.ResourceData, securityOptions securityOptions) {
 	if tfErr := d.Set("forwarding_process", securityOptions.forwardingProcess); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("idp_security_package", securityOptions.idpSecurityPackage); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("idp_sensor_configuration", securityOptions.idpSensorConfig); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("ike_traceoptions", securityOptions.ikeTraceoptions); tfErr != nil {
 		panic(tfErr)
 	}
@@ -2044,6 +2613,9 @@ func fillSecurity(d *schema.ResourceData, securityOptions securityOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("policies", securityOptions.policies); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("user_identification_auth_source", securityOptions.userIdentAuthSource); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("utm", securityOptions.utm); tfErr != nil {
