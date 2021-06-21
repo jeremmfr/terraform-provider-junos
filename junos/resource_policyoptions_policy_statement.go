@@ -40,115 +40,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"aggregate_contributor": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-						"bgp_as_path": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"bgp_as_path_group": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"bgp_community": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"bgp_origin": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringInSlice([]string{"egp", "igp", "incomplete"}, false),
-						},
-						"family": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"evpn", "inet", "inet-mdt", "inet-mvpn", "inet-vpn",
-								"inet6", "inet6-mvpn", "inet6-vpn", "iso",
-							}, false),
-						},
-						"local_preference": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"routing_instance": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"interface": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"metric": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"neighbor": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"next_hop": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"ospf_area": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"policy": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"preference": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"prefix_list": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"protocol": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"route_filter": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"route": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validation.IsCIDRNetwork(0, 128),
-									},
-									"option": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"address-mask", "exact", "longer", "orlonger", "prefix-length-range", "through", "upto",
-										}, false),
-									},
-									"option_value": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-								},
-							},
-						},
-					},
+					Schema: schemaPolicyoptionsPolicyStatementFrom(),
 				},
 			},
 			"then": {
@@ -156,115 +48,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"action": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringInSlice([]string{"accept", "reject"}, false),
-						},
-						"as_path_expand": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"as_path_prepend": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"community": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"action": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringInSlice([]string{addWord, deleteWord, setWord}, false),
-									},
-									"value": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-								},
-							},
-						},
-						"default_action": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringInSlice([]string{"accept", "reject"}, false),
-						},
-						"load_balance": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringInSlice([]string{"per-packet", "consistent-hash"}, false),
-						},
-						"local_preference": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"action": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringInSlice([]string{addWord, "subtract", actionNoneWord}, false),
-									},
-									"value": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-								},
-							},
-						},
-						"next": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringInSlice([]string{"policy", "term"}, false),
-						},
-						"next_hop": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"metric": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"action": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringInSlice([]string{"add", "subtract", actionNoneWord}, false),
-									},
-									"value": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-								},
-							},
-						},
-						"origin": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"preference": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"action": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringInSlice([]string{"add", "subtract", actionNoneWord}, false),
-									},
-									"value": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-								},
-							},
-						},
-					},
+					Schema: schemaPolicyoptionsPolicyStatementThen(),
 				},
 			},
 			"to": {
@@ -272,81 +56,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"bgp_as_path": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"bgp_as_path_group": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"bgp_community": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"bgp_origin": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringInSlice([]string{"egp", "igp", "incomplete"}, false),
-						},
-						"family": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"evpn", "inet", "inet-mdt", "inet-mvpn", "inet-vpn",
-								"inet6", "inet6-mvpn", "inet6-vpn", "iso",
-							}, false),
-						},
-						"local_preference": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"routing_instance": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"interface": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"metric": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"neighbor": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"next_hop": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"ospf_area": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"policy": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"preference": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"protocol": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-					},
+					Schema: schemaPolicyoptionsPolicyStatementTo(),
 				},
 			},
 			"term": {
@@ -364,115 +74,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 							Optional: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"aggregate_contributor": {
-										Type:     schema.TypeBool,
-										Optional: true,
-									},
-									"bgp_as_path": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"bgp_as_path_group": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"bgp_community": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"bgp_origin": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringInSlice([]string{"egp", "igp", "incomplete"}, false),
-									},
-									"family": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"evpn", "inet", "inet-mdt", "inet-mvpn", "inet-vpn",
-											"inet6", "inet6-mvpn", "inet6-vpn", "iso",
-										}, false),
-									},
-									"local_preference": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"routing_instance": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"interface": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"metric": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"neighbor": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"next_hop": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"ospf_area": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"policy": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"preference": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"prefix_list": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"protocol": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"route_filter": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"route": {
-													Type:         schema.TypeString,
-													Required:     true,
-													ValidateFunc: validation.IsCIDRNetwork(0, 128),
-												},
-												"option": {
-													Type:     schema.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														"address-mask", "exact", "longer", "orlonger", "prefix-length-range", "through", "upto",
-													}, false),
-												},
-												"option_value": {
-													Type:     schema.TypeString,
-													Optional: true,
-													Elem:     &schema.Schema{Type: schema.TypeString},
-												},
-											},
-										},
-									},
-								},
+								Schema: schemaPolicyoptionsPolicyStatementFrom(),
 							},
 						},
 						"then": {
@@ -480,115 +82,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 							Optional: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"action": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringInSlice([]string{"accept", "reject"}, false),
-									},
-									"as_path_expand": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"as_path_prepend": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"community": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"action": {
-													Type:         schema.TypeString,
-													Required:     true,
-													ValidateFunc: validation.StringInSlice([]string{addWord, deleteWord, setWord}, false),
-												},
-												"value": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
-											},
-										},
-									},
-									"default_action": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringInSlice([]string{"accept", "reject"}, false),
-									},
-									"load_balance": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringInSlice([]string{"per-packet", "consistent-hash"}, false),
-									},
-									"local_preference": {
-										Type:     schema.TypeList,
-										Optional: true,
-										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"action": {
-													Type:         schema.TypeString,
-													Required:     true,
-													ValidateFunc: validation.StringInSlice([]string{"add", "subtract", actionNoneWord}, false),
-												},
-												"value": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-											},
-										},
-									},
-									"next": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringInSlice([]string{"policy", "term"}, false),
-									},
-									"next_hop": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"metric": {
-										Type:     schema.TypeList,
-										Optional: true,
-										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"action": {
-													Type:         schema.TypeString,
-													Required:     true,
-													ValidateFunc: validation.StringInSlice([]string{"add", "subtract", actionNoneWord}, false),
-												},
-												"value": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-											},
-										},
-									},
-									"origin": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"preference": {
-										Type:     schema.TypeList,
-										Optional: true,
-										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"action": {
-													Type:         schema.TypeString,
-													Required:     true,
-													ValidateFunc: validation.StringInSlice([]string{"add", "subtract", actionNoneWord}, false),
-												},
-												"value": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-											},
-										},
-									},
-								},
+								Schema: schemaPolicyoptionsPolicyStatementThen(),
 							},
 						},
 						"to": {
@@ -596,86 +90,314 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 							Optional: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"bgp_as_path": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"bgp_as_path_group": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"bgp_community": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"bgp_origin": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringInSlice([]string{"egp", "igp", "incomplete"}, false),
-									},
-									"family": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"evpn", "inet", "inet-mdt", "inet-mvpn", "inet-vpn",
-											"inet6", "inet6-mvpn", "inet6-vpn", "iso",
-										}, false),
-									},
-									"local_preference": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"routing_instance": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"interface": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"metric": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"neighbor": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"next_hop": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"ospf_area": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"policy": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"preference": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"protocol": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-								},
+								Schema: schemaPolicyoptionsPolicyStatementTo(),
 							},
 						},
 					},
 				},
 			},
+		},
+	}
+}
+
+func schemaPolicyoptionsPolicyStatementFrom() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"aggregate_contributor": {
+			Type:     schema.TypeBool,
+			Optional: true,
+		},
+		"bgp_as_path": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+		"bgp_as_path_group": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+		"bgp_community": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+		"bgp_origin": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice([]string{"egp", "igp", "incomplete"}, false),
+		},
+		"family": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"evpn", "inet", "inet-mdt", "inet-mvpn", "inet-vpn",
+				"inet6", "inet6-mvpn", "inet6-vpn", "iso",
+			}, false),
+		},
+		"local_preference": {
+			Type:     schema.TypeInt,
+			Optional: true,
+		},
+		"routing_instance": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"interface": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+		"metric": {
+			Type:     schema.TypeInt,
+			Optional: true,
+		},
+		"neighbor": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+		"next_hop": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+		"ospf_area": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"policy": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+		"preference": {
+			Type:     schema.TypeInt,
+			Optional: true,
+		},
+		"prefix_list": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+		"protocol": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+		"route_filter": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"route": {
+						Type:         schema.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsCIDRNetwork(0, 128),
+					},
+					"option": {
+						Type:     schema.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"address-mask", "exact", "longer", "orlonger", "prefix-length-range", "through", "upto",
+						}, false),
+					},
+					"option_value": {
+						Type:     schema.TypeString,
+						Optional: true,
+						Elem:     &schema.Schema{Type: schema.TypeString},
+					},
+				},
+			},
+		},
+	}
+}
+
+func schemaPolicyoptionsPolicyStatementThen() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"action": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice([]string{"accept", "reject"}, false),
+		},
+		"as_path_expand": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"as_path_prepend": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"community": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"action": {
+						Type:         schema.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice([]string{addWord, deleteWord, setWord}, false),
+					},
+					"value": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+				},
+			},
+		},
+		"default_action": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice([]string{"accept", "reject"}, false),
+		},
+		"load_balance": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice([]string{"per-packet", "consistent-hash"}, false),
+		},
+		"local_preference": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"action": {
+						Type:         schema.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice([]string{addWord, "subtract", actionNoneWord}, false),
+					},
+					"value": {
+						Type:     schema.TypeInt,
+						Required: true,
+					},
+				},
+			},
+		},
+		"next": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice([]string{"policy", "term"}, false),
+		},
+		"next_hop": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"metric": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"action": {
+						Type:         schema.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice([]string{"add", "subtract", actionNoneWord}, false),
+					},
+					"value": {
+						Type:     schema.TypeInt,
+						Required: true,
+					},
+				},
+			},
+		},
+		"origin": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"preference": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"action": {
+						Type:         schema.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice([]string{"add", "subtract", actionNoneWord}, false),
+					},
+					"value": {
+						Type:     schema.TypeInt,
+						Required: true,
+					},
+				},
+			},
+		},
+	}
+}
+
+func schemaPolicyoptionsPolicyStatementTo() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"bgp_as_path": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+		"bgp_as_path_group": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+		"bgp_community": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+		"bgp_origin": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice([]string{"egp", "igp", "incomplete"}, false),
+		},
+		"family": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"evpn", "inet", "inet-mdt", "inet-mvpn", "inet-vpn",
+				"inet6", "inet6-mvpn", "inet6-vpn", "iso",
+			}, false),
+		},
+		"local_preference": {
+			Type:     schema.TypeInt,
+			Optional: true,
+		},
+		"routing_instance": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"interface": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+		"metric": {
+			Type:     schema.TypeInt,
+			Optional: true,
+		},
+		"neighbor": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+		"next_hop": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+		"ospf_area": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"policy": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+		"preference": {
+			Type:     schema.TypeInt,
+			Optional: true,
+		},
+		"protocol": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
 	}
 }
@@ -915,18 +637,18 @@ func setPolicyStatement(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readPolicyStatement(policyStatement string,
+func readPolicyStatement(policyName string,
 	m interface{}, jnprSess *NetconfObject) (policyStatementOptions, error) {
 	sess := m.(*Session)
 	var confRead policyStatementOptions
 
 	policyStatementConfig, err := sess.command("show configuration "+
-		"policy-options policy-statement "+policyStatement+" | display set relative", jnprSess)
+		"policy-options policy-statement "+policyName+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if policyStatementConfig != emptyWord {
-		confRead.name = policyStatement
+		confRead.name = policyName
 		for _, item := range strings.Split(policyStatementConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
@@ -1004,10 +726,10 @@ func readPolicyStatement(policyStatement string,
 	return confRead, nil
 }
 
-func delPolicyStatement(policyStatement string, m interface{}, jnprSess *NetconfObject) error {
+func delPolicyStatement(policyName string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
-	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete policy-options policy-statement "+policyStatement)
+	configSet := []string{"delete policy-options policy-statement " + policyName}
+
 
 	return sess.configSet(configSet, jnprSess)
 }
