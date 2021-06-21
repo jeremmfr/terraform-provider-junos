@@ -701,6 +701,19 @@ resource junos_policyoptions_policy_statement "testacc_policyOptions2" {
     }
   }
 }
+resource junos_policyoptions_policy_statement "testacc_policyOptions3" {
+  name                              = "testacc_policyOptions3"
+  add_it_to_forwarding_table_export = true
+  from {
+    route_filter {
+      route  = "192.0.2.0/25"
+      option = "orlonger"
+    }
+  }
+  then {
+    load_balance = "per-packet"
+  }
+}
 `
 }
 

@@ -35,6 +35,10 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
+			"add_it_to_forwarding_table_export": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"from": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -409,6 +413,11 @@ func resourcePolicyoptionsPolicyStatementCreate(
 		if err := setPolicyStatement(d, m, nil); err != nil {
 			return diag.FromErr(err)
 		}
+		if d.Get("add_it_to_forwarding_table_export").(bool) {
+			if err := setPolicyStatementFwTableExport(d.Get("name").(string), m, nil); err != nil {
+				return diag.FromErr(err)
+			}
+		}
 		d.SetId(d.Get("name").(string))
 
 		return nil
@@ -437,6 +446,13 @@ func resourcePolicyoptionsPolicyStatementCreate(
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
+	}
+	if d.Get("add_it_to_forwarding_table_export").(bool) {
+		if err := setPolicyStatementFwTableExport(d.Get("name").(string), m, jnprSess); err != nil {
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+			return append(diagWarns, diag.FromErr(err)...)
+		}
 	}
 	warns, err := sess.commitConf("create resource junos_policyoptions_policy_statement", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
@@ -475,10 +491,26 @@ func resourcePolicyoptionsPolicyStatementReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
 	policyStatementOptions, err := readPolicyStatement(d.Get("name").(string), m, jnprSess)
-	mutex.Unlock()
 	if err != nil {
+		mutex.Unlock()
+
 		return diag.FromErr(err)
 	}
+	if d.Get("add_it_to_forwarding_table_export").(bool) {
+		export, err := readPolicyStatementFwTableExport(d.Get("name").(string), m, jnprSess)
+		if err != nil {
+			mutex.Unlock()
+
+			return diag.FromErr(err)
+		}
+		if !export {
+			if tfErr := d.Set("add_it_to_forwarding_table_export", false); tfErr != nil {
+				panic(tfErr)
+			}
+		}
+	}
+	mutex.Unlock()
+
 	if policyStatementOptions.name == "" {
 		d.SetId("")
 	} else {
@@ -503,6 +535,22 @@ func resourcePolicyoptionsPolicyStatementUpdate(
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
+	}
+	if d.HasChange("add_it_to_forwarding_table_export") {
+		if o, _ := d.GetChange("add_it_to_forwarding_table_export"); o.(bool) {
+			if err := delPolicyStatementFwTableExport(d.Get("name").(string), m, jnprSess); err != nil {
+				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+				return append(diagWarns, diag.FromErr(err)...)
+			}
+		}
+	}
+	if d.Get("add_it_to_forwarding_table_export").(bool) {
+		if err := setPolicyStatementFwTableExport(d.Get("name").(string), m, jnprSess); err != nil {
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+			return append(diagWarns, diag.FromErr(err)...)
+		}
 	}
 	if err := setPolicyStatement(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -535,6 +583,13 @@ func resourcePolicyoptionsPolicyStatementDelete(
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
+	}
+	if d.Get("add_it_to_forwarding_table_export").(bool) {
+		if err := delPolicyStatementFwTableExport(d.Get("name").(string), m, jnprSess); err != nil {
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+			return append(diagWarns, diag.FromErr(err)...)
+		}
 	}
 	warns, err := sess.commitConf("delete resource junos_policyoptions_policy_statement", jnprSess)
 	appendDiagWarns(&diagWarns, warns)
@@ -637,6 +692,13 @@ func setPolicyStatement(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	return sess.configSet(configSet, jnprSess)
 }
 
+func setPolicyStatementFwTableExport(policyName string, m interface{}, jnprSess *NetconfObject) error {
+	sess := m.(*Session)
+	configSet := []string{"set routing-options forwarding-table export " + policyName}
+
+	return sess.configSet(configSet, jnprSess)
+}
+
 func readPolicyStatement(policyName string,
 	m interface{}, jnprSess *NetconfObject) (policyStatementOptions, error) {
 	sess := m.(*Session)
@@ -726,10 +788,43 @@ func readPolicyStatement(policyName string,
 	return confRead, nil
 }
 
+func readPolicyStatementFwTableExport(policyName string,
+	m interface{}, jnprSess *NetconfObject) (bool, error) {
+	sess := m.(*Session)
+	policyStatementConfig, err := sess.command("show configuration routing-options forwarding-table export "+
+		"| display set relative", jnprSess)
+	if err != nil {
+		return false, err
+	}
+	if policyStatementConfig == emptyWord {
+		return false, nil
+	}
+	for _, item := range strings.Split(policyStatementConfig, "\n") {
+		if strings.Contains(item, "<configuration-output>") {
+			continue
+		}
+		if strings.Contains(item, "</configuration-output>") {
+			break
+		}
+		itemTrim := strings.TrimPrefix(item, setLineStart)
+		if itemTrim == policyName || itemTrim == policyName+" " {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
 func delPolicyStatement(policyName string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := []string{"delete policy-options policy-statement " + policyName}
 
+	return sess.configSet(configSet, jnprSess)
+}
+
+func delPolicyStatementFwTableExport(policyName string, m interface{}, jnprSess *NetconfObject) error {
+	sess := m.(*Session)
+	configSet := []string{"delete routing-options forwarding-table export " + policyName}
 
 	return sess.configSet(configSet, jnprSess)
 }

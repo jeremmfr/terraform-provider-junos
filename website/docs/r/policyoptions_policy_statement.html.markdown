@@ -45,6 +45,7 @@ resource junos_policyoptions_policy_statement "demo_policy" {
 The following arguments are supported:
 
 * `name` - (Required, Forces new resource)(`String`) The name of routing policy.
+* `add_it_to_forwarding_table_export` - (Optional)(`Bool`) Add this policy in `routing-options forwarding-table export` list.
 * `from` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Declare from filter. See the [`from` arguments](#from-arguments) block. Max of 1.
 * `to` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Declare to filter. See the [`to` arguments](#to-arguments) block. Max of 1.
 * `then` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Declare then actions. See the [`then` arguments](#then-arguments) block. Max of 1.
