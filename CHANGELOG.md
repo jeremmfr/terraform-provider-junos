@@ -19,7 +19,7 @@ ENHANCEMENTS:
 * resource/`junos_interface_logical`: add `preferred` and `primary` arguments inside `address` argument inside `family_inet` and `family_inet6` arguments, add `vlan_no_compute` argument to disable the automatic compute of `vlan_id`
 * data-source/`junos_interface_logical`: add `preferred` and `primary` attributes as for the resource
 * resource/`junos_routing_options`, `junos_security`, `junos_services`, `junos_snmp`: add `clean_on_destroy` argument to clean static configuration when destroy the resource (Fixes [#227](https://github.com/jeremmfr/terraform-provider-junos/issues/227))
-* resource/`junos_routing_options`: add `forwarding_table` argument (Fixes [#221](https://github.com/jeremmfr/terraform-provider-junos/issues/211))
+* resource/`junos_routing_options`: add `forwarding_table` argument (Fixes [#221](https://github.com/jeremmfr/terraform-provider-junos/issues/221))
 * resource/`junos_security`: add `idp_security_package` and `idp_sensor_configuration` arguments (Fixes parts of [#225](https://github.com/jeremmfr/terraform-provider-junos/issues/225)), add `user_identification_auth_source` argument (Fixes [#238](https://github.com/jeremmfr/terraform-provider-junos/issues/238))
 * resource/`junos_security_global_policy`: add `idp_policy` argument inside `permit_application_services` argument inside `policy` argument
 * resource/`junos_security_policy`: add `idp_policy` argument inside `permit_application_services` argument inside `policy` argument
