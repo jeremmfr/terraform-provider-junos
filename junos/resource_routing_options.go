@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -132,6 +133,11 @@ func resourceRoutingOptions() *schema.Resource {
 					},
 				},
 			},
+			"forwarding_table_export_configure_singly": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"forwarding_table.0.export"},
+			},
 			"graceful_restart": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -222,7 +228,29 @@ func resourceRoutingOptionsUpdate(ctx context.Context, d *schema.ResourceData, m
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if err := delRoutingOptions(m, jnprSess); err != nil {
+	fwTableExportConfigSingly := d.Get("forwarding_table_export_configure_singly").(bool)
+	if d.HasChange("forwarding_table_export_configure_singly") {
+		if o, _ := d.GetChange("forwarding_table_export_configure_singly"); o.(bool) {
+			fwTableExportConfigSingly = o.(bool)
+			diagWarns = append(diagWarns, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary: "Disable forwarding_table_export_configure_singly on resource already created doesn't " +
+					"delete export list already configured.",
+				Detail:        "So refresh resource after apply to detect export list entries that need to be deleted",
+				AttributePath: cty.Path{cty.GetAttrStep{Name: "forwarding_table_export_configure_singly"}},
+			})
+		} else {
+			diagWarns = append(diagWarns, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary: "Enable forwarding_table_export_configure_singly on resource already created doesn't " +
+					"delete export list already configured.",
+				Detail: "So add `add_it_to_forwarding_table_export` argument on each `junos_policyoptions_policy_statement` " +
+					"resource to be able to manage each element of the export list",
+				AttributePath: cty.Path{cty.GetAttrStep{Name: "forwarding_table_export_configure_singly"}},
+			})
+		}
+	}
+	if err := delRoutingOptions(fwTableExportConfigSingly, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -254,7 +282,7 @@ func resourceRoutingOptionsDelete(ctx context.Context, d *schema.ResourceData, m
 		defer sess.closeSession(jnprSess)
 		sess.configLock(jnprSess)
 		var diagWarns diag.Diagnostics
-		if err := delRoutingOptions(m, jnprSess); err != nil {
+		if err := delRoutingOptions(d.Get("forwarding_table_export_configure_singly").(bool), m, jnprSess); err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
@@ -372,11 +400,29 @@ func setRoutingOptions(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	return sess.configSet(configSet, jnprSess)
 }
 
-func delRoutingOptions(m interface{}, jnprSess *NetconfObject) error {
+func delRoutingOptions(fwTableExportConfigSingly bool, m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete := []string{
 		"autonomous-system",
-		"forwarding-table",
 		"graceful-restart",
+	}
+	if fwTableExportConfigSingly {
+		listLinesToDeleteFwTable := []string{
+			"forwarding-table chain-composite-max-label-count",
+			"forwarding-table chained-composite-next-hop",
+			"forwarding-table dynamic-list-next-hop",
+			"forwarding-table ecmp-fast-reroute",
+			"forwarding-table no-ecmp-fast-reroute",
+			"forwarding-table indirect-next-hop",
+			"forwarding-table no-indirect-next-hop",
+			"forwarding-table indirect-next-hop-change-acknowledgements",
+			"forwarding-table no-indirect-next-hop-change-acknowledgements",
+			"forwarding-table krt-nexthop-ack-timeout",
+			"forwarding-table remnant-holdtime",
+			"forwarding-table unicast-reverse-path",
+		}
+		listLinesToDelete = append(listLinesToDelete, listLinesToDeleteFwTable...)
+	} else {
+		listLinesToDelete = append(listLinesToDelete, "forwarding-table")
 	}
 	sess := m.(*Session)
 	configSet := make([]string, 0)
@@ -528,7 +574,13 @@ func fillRoutingOptions(d *schema.ResourceData, routingOptionsOptions routingOpt
 	if tfErr := d.Set("autonomous_system", routingOptionsOptions.autonomousSystem); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("forwarding_table", routingOptionsOptions.forwardingTable); tfErr != nil {
+	if d.Get("forwarding_table_export_configure_singly").(bool) && len(routingOptionsOptions.forwardingTable) > 0 {
+		forwardingTable := routingOptionsOptions.forwardingTable
+		forwardingTable[0]["export"] = make([]string, 0)
+		if tfErr := d.Set("forwarding_table", forwardingTable); tfErr != nil {
+			panic(tfErr)
+		}
+	} else if tfErr := d.Set("forwarding_table", routingOptionsOptions.forwardingTable); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("graceful_restart", routingOptionsOptions.gracefulRestart); tfErr != nil {

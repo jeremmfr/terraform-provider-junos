@@ -48,6 +48,7 @@ The following arguments are supported:
   * `krt_nexthop_ack_timeout` - (Optional)(`Int`) Kernel nexthop ack timeout interval (1..400).
   * `remnant_holdtime` - (Optional)(`Int`) Time to hold inherited routes from FIB (0..10000).
   * `unicast_reverse_path` - (Optional)(`String`)  Unicast reverse path (RP) verification. Need to be 'active-paths' or 'feasible-paths'.
+* `forwarding_table_export_configure_singly` - (Optional)(`Bool`) Disable management of `forwarding-table export` in this resource to be able to manage them directly from `junos_policyoptions_policy_statement` resources with `add_it_to_forwarding_table_export` argument. Conflict with `forwarding_table.0.export`.
 * `graceful_restart` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'graceful-restart' configuration.
   * `disable` - (Optional)(`Bool`) Disable graceful restart.
   * `restart_duration` - (Optional)(`Int`) Maximum time for which router is in graceful restart (120..10000).
