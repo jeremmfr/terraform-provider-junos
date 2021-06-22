@@ -45,7 +45,7 @@ func resourceSecurityNatSource() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{"interface", "routing-instance", "zone"}, false),
 						},
 						"value": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Required: true,
 							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
@@ -65,7 +65,7 @@ func resourceSecurityNatSource() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{"interface", "routing-instance", "zone"}, false),
 						},
 						"value": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Required: true,
 							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
@@ -325,13 +325,13 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	setPrefix := "set security nat source rule-set " + d.Get("name").(string)
 	for _, v := range d.Get("from").([]interface{}) {
 		from := v.(map[string]interface{})
-		for _, value := range from["value"].([]interface{}) {
+		for _, value := range from["value"].(*schema.Set).List() {
 			configSet = append(configSet, setPrefix+" from "+from["type"].(string)+" "+value.(string))
 		}
 	}
 	for _, v := range d.Get("to").([]interface{}) {
 		to := v.(map[string]interface{})
-		for _, value := range to["value"].([]interface{}) {
+		for _, value := range to["value"].(*schema.Set).List() {
 			configSet = append(configSet, setPrefix+" to "+to["type"].(string)+" "+value.(string))
 		}
 	}
