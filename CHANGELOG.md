@@ -1,5 +1,7 @@
 ## upcoming release
 ENHANCEMENTS:
+* resource/`junos_policyoptions_policy_statement`: add `add_it_to_forwarding_table_export` argument (Fixes #241)
+* resource/`junos_routing_options`: add `forwarding_table_export_configure_singly` argument
 
 BUG FIXES:
 
