@@ -4,6 +4,7 @@ ENHANCEMENTS:
 BUG FIXES:
 * resource/`junos_security_nat_destination`: fix order issue on `from.0.value` list
 * resource/`junos_security_nat_source`: fix order issue on `from.0.value` and `to.0.value` lists (Fixes #243)
+* resource/`junos_security_nat_static`: fix order issue on `from.0.value` list
 
 ## 1.17.0 (June 18, 2021)
 FEATURES:
