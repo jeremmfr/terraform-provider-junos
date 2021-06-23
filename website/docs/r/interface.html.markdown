@@ -84,7 +84,8 @@ The following arguments are supported:
 * `accept_data` - (Optional)(`Bool`) Accept packets destined for virtual IP address. Conflict with `no_accept_data` when apply.
 * `advertise_interval` - (Optional)(`Int`) Advertisement interval (seconds)
 * `advertisements_threshold` - (Optional)(`Int`)  Number of vrrp advertisements missed before declaring master down.
-* `authentication_key` - (Optional)(`String`) Authentication key
+* `authentication_key` - (Optional)(`String`) Authentication key.  
+**WARNING** Clear in tfstate.
 * `authentication_type` - (Optional)(`String`) Authentication type. Need to be 'md5' or 'simple'.
 * `no_accept_data` - (Optional)(`Bool`) Don't accept packets destined for virtual IP address. Conflict with `accept_data` when apply.
 * `no_preempt` - (Optional)(`Bool`) Don't allow preemption. Conflict with `preempt` when apply.
