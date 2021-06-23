@@ -34,7 +34,8 @@ The following arguments are supported:
 * `dynamic_remote` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare dynamic configuration. See the [`dynamic_remote` arguments] (#dynamic_remote-arguments) block. Need to set one of `address` or `dynamic_remote`.
 * `aaa` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'aaa' configuration.
   * `access_profile` - (Optional)(`String`) Access profile that contains authentication information. Conflict with `aaa.client_*`.
-  * `client_password` - (Optional)(`String`) AAA client password with 1 to 128 characters. Conflict with `aaa.access_profile`.
+  * `client_password` - (Optional)(`String`) AAA client password with 1 to 128 characters. Conflict with `aaa.access_profile`.  
+  **WARNING** Clear in tfstate.
   * `client_username` - (Optional)(`String`) AAA client username with 1 to 128 characters. Conflict with `aaa.access_profile`.
 * `dead_peer_detection` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare RFC-3706 DPD configuration. See the [`dead_peer_detection` arguments] (#dead_peer_detection-arguments) block.
 * `general_ike_id` - (Optional)(`Bool`) Accept peer IKE-ID in general.
