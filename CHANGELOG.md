@@ -3,6 +3,7 @@ ENHANCEMENTS:
 * resource/`junos_policyoptions_policy_statement`: add `add_it_to_forwarding_table_export` argument (Fixes #241)
 * resource/`junos_routing_options`: add `forwarding_table_export_configure_singly` argument
 * resource/`junos_bgp_group`: `authentication_key` is now a sensitive argument
+* resource/`junos_bgp_neighbor`: `authentication_key` is now a sensitive argument
 * resource/`junos_interface`, `junos_interface_logical`: `vrrp_group.*.authentication_key` is now a sensitive argument
 * resource/`junos_security_ike_gateway`: `aaa.0.client_password` is now a sensitive argument
 * resource/`junos_system`: `archival_configuration.0.archive_site.*.password` is now a sensitive argument
