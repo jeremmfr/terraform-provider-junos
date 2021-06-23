@@ -50,7 +50,8 @@ The following arguments are supported:
 * `internet_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'internet-options' configuration. See the [`internet_options` arguments] (#internet_options-arguments) block.
 * `license` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified once to declare 'license' configuration.
   * `autoupdate` - (Optional)(`Bool`) Enable autoupdate license keys.
-  * `autoupdate_password` - (Optional)(`String`) Password for autoupdate license keys from license servers. `autoupdate_url` needs to be set.
+  * `autoupdate_password` - (Optional)(`String`) Password for autoupdate license keys from license servers. `autoupdate_url` needs to be set.  
+  **WARNING** Clear in tfstate.
   * `autoupdate_url` - (Optional)(`String`) Url for autoupdate license keys from license servers. `autoupdate` needs to be set.
   * `renew_before_expiration` - (Optional)(`Int`) License renewal lead time before expiration, in days (0..60). `renew_interval` needs to be set.
   * `renew_interval` - (Optional)(`Int`) License checking interval, in hours (1..336). `renew_before_expiration` needs to be set.
@@ -81,7 +82,8 @@ The following arguments are supported:
 #### archival_configuration arguments
 * `archive_site` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each archive-site destination.
   * `url` - (Required)(`String`) URLs to receive configuration files.
-  * `password` - (Optional)(`String`) Password for login into the archive site.
+  * `password` - (Optional)(`String`) Password for login into the archive site.  
+  **WARNING** Clear in tfstate.
 * `transfer_interval` - (Optional)(`Int`) Frequency at which file transfer happens (15..2880 minutes). One of `transfer_interval` and `transfer_on_commit` arguments need to be set.
 * `transfer_on_commit` - (Optional)(`Bool`) Transfer after each commit. One of `transfer_interval` and `transfer_on_commit` arguments need to be set.
 
