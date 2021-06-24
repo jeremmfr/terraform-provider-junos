@@ -134,8 +134,9 @@ func resourceInterface() *schema.Resource {
 										ValidateFunc: validation.IntBetween(1, 15),
 									},
 									"authentication_key": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:      schema.TypeString,
+										Optional:  true,
+										Sensitive: true,
 									},
 									"authentication_type": {
 										Type:         schema.TypeString,

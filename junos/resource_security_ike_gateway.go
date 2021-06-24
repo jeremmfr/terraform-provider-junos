@@ -167,8 +167,9 @@ func resourceIkeGateway() *schema.Resource {
 							},
 						},
 						"client_password": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
 							ConflictsWith: []string{
 								"aaa.0.access_profile",
 							},

@@ -79,6 +79,7 @@ func resourceBgpNeighbor() *schema.Resource {
 			"authentication_key": {
 				Type:          schema.TypeString,
 				Optional:      true,
+				Sensitive:     true,
 				ConflictsWith: []string{"authentication_algorithm", "authentication_key_chain"},
 			},
 			"authentication_key_chain": {
