@@ -13,6 +13,7 @@ import (
 )
 
 type routingOptionsOptions struct {
+	routerID         string
 	autonomousSystem []map[string]interface{}
 	forwardingTable  []map[string]interface{}
 	gracefulRestart  []map[string]interface{}
@@ -155,6 +156,11 @@ func resourceRoutingOptions() *schema.Resource {
 						},
 					},
 				},
+			},
+			"router_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsIPv4Address,
 			},
 		},
 	}
@@ -396,6 +402,9 @@ func setRoutingOptions(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			}
 		}
 	}
+	if v := d.Get("router_id").(string); v != "" {
+		configSet = append(configSet, setPrefix+"router-id "+v)
+	}
 
 	return sess.configSet(configSet, jnprSess)
 }
@@ -404,6 +413,7 @@ func delRoutingOptions(fwTableExportConfigSingly bool, m interface{}, jnprSess *
 	listLinesToDelete := []string{
 		"autonomous-system",
 		"graceful-restart",
+		"router-id",
 	}
 	if fwTableExportConfigSingly {
 		listLinesToDeleteFwTable := []string{
@@ -563,6 +573,8 @@ func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsO
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				}
+			case strings.HasPrefix(itemTrim, "router-id "):
+				confRead.routerID = strings.TrimPrefix(itemTrim, "router-id ")
 			}
 		}
 	}
@@ -584,6 +596,9 @@ func fillRoutingOptions(d *schema.ResourceData, routingOptionsOptions routingOpt
 		panic(tfErr)
 	}
 	if tfErr := d.Set("graceful_restart", routingOptionsOptions.gracefulRestart); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("router_id", routingOptionsOptions.routerID); tfErr != nil {
 		panic(tfErr)
 	}
 }
