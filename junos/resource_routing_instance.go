@@ -3,16 +3,27 @@ package junos
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 type instanceOptions struct {
-	name         string
-	instanceType string
-	as           string
+	vrfTargetAuto      bool
+	as                 string
+	description        string
+	instanceType       string
+	name               string
+	routeDistinguisher string
+	vrfTarget          string
+	vrfTargetExport    string
+	vrfTargetImport    string
+	vtepSourceIf       string
+	vrfExport          []string
+	vrfImport          []string
 }
 
 func resourceRoutingInstance() *schema.Resource {
@@ -31,6 +42,25 @@ func resourceRoutingInstance() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
 			},
+			"configure_rd_vrfopts_singly": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				ConflictsWith: []string{
+					"route_distinguisher",
+					"vrf_export",
+					"vrf_import",
+					"vrf_target",
+					"vrf_target_auto",
+					"vrf_target_export",
+					"vrf_target_import",
+				},
+			},
+			"configure_type_singly": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
 			"type": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -39,6 +69,61 @@ func resourceRoutingInstance() *schema.Resource {
 			"as": {
 				Type:     schema.TypeString,
 				Optional: true,
+			},
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"route_distinguisher": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(
+					`^(\d|\.)+L?:\d+$`), "must have valid route distinguisher. Use format 'x:y'"),
+			},
+			"vrf_export": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"vrf_import": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"vrf_target": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(
+					`^target:(\d|\.)+L?:\d+$`), "must have valid target. Use format 'target:x:y'"),
+			},
+			"vrf_target_auto": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"vrf_target_export": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(
+					`^target:(\d|\.)+L?:\d+$`), "must have valid target. Use format 'target:x:y'"),
+			},
+			"vrf_target_import": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(
+					`^target:(\d|\.)+L?:\d+$`), "must have valid target. Use format 'target:x:y'"),
+			},
+			"vtep_source_interface": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
+					value := v.(string)
+					if strings.Count(value, ".") != 1 {
+						errors = append(errors, fmt.Errorf(
+							"%q in %q need to have 1 dot", value, k))
+					}
+
+					return
+				},
 			},
 		},
 	}
@@ -226,14 +311,46 @@ func setRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	configSet := make([]string, 0)
 
 	setPrefix := "set routing-instances " + d.Get("name").(string) + " "
-	if d.Get("type").(string) != "" {
-		configSet = append(configSet, setPrefix+"instance-type "+d.Get("type").(string))
+	if d.Get("configure_type_singly").(bool) {
+		if v := d.Get("type").(string); v != "" {
+			return fmt.Errorf("if `configure_type_singly` = true, `type` need to be set to empty value to avoid confusion")
+		}
 	} else {
-		configSet = append(configSet, setPrefix)
+		if v := d.Get("type").(string); v != "" {
+			configSet = append(configSet, setPrefix+"instance-type "+v)
+		}
 	}
-	if d.Get("as").(string) != "" {
-		configSet = append(configSet, setPrefix+
-			"routing-options autonomous-system "+d.Get("as").(string))
+	if !d.Get("configure_rd_vrfopts_singly").(bool) {
+		if v := d.Get("route_distinguisher").(string); v != "" {
+			configSet = append(configSet, setPrefix+"route-distinguisher "+v)
+		}
+		for _, v := range d.Get("vrf_export").([]interface{}) {
+			configSet = append(configSet, setPrefix+"vrf-export \""+v.(string)+"\"")
+		}
+		for _, v := range d.Get("vrf_import").([]interface{}) {
+			configSet = append(configSet, setPrefix+"vrf-import \""+v.(string)+"\"")
+		}
+		if v := d.Get("vrf_target").(string); v != "" {
+			configSet = append(configSet, setPrefix+"vrf-target "+v)
+		}
+		if d.Get("vrf_target_auto").(bool) {
+			configSet = append(configSet, setPrefix+"vrf-target auto")
+		}
+		if v := d.Get("vrf_target_export").(string); v != "" {
+			configSet = append(configSet, setPrefix+"vrf-target export "+v)
+		}
+		if v := d.Get("vrf_target_import").(string); v != "" {
+			configSet = append(configSet, setPrefix+"vrf-target import "+v)
+		}
+	}
+	if v := d.Get("as").(string); v != "" {
+		configSet = append(configSet, setPrefix+"routing-options autonomous-system "+v)
+	}
+	if v := d.Get("description").(string); v != "" {
+		configSet = append(configSet, setPrefix+"description \""+v+"\"")
+	}
+	if v := d.Get("vtep_source_interface").(string); v != "" {
+		configSet = append(configSet, setPrefix+"vtep-source-interface "+v)
 	}
 
 	return sess.configSet(configSet, jnprSess)
@@ -259,10 +376,28 @@ func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
+			case strings.HasPrefix(itemTrim, "description "):
+				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
 			case strings.HasPrefix(itemTrim, "instance-type "):
 				confRead.instanceType = strings.TrimPrefix(itemTrim, "instance-type ")
+			case strings.HasPrefix(itemTrim, "route-distinguisher "):
+				confRead.routeDistinguisher = strings.TrimPrefix(itemTrim, "route-distinguisher ")
 			case strings.HasPrefix(itemTrim, "routing-options autonomous-system "):
 				confRead.as = strings.TrimPrefix(itemTrim, "routing-options autonomous-system ")
+			case strings.HasPrefix(itemTrim, "vrf-export "):
+				confRead.vrfExport = append(confRead.vrfExport, strings.Trim(strings.TrimPrefix(itemTrim, "vrf-export "), "\""))
+			case strings.HasPrefix(itemTrim, "vrf-import "):
+				confRead.vrfImport = append(confRead.vrfImport, strings.Trim(strings.TrimPrefix(itemTrim, "vrf-import "), "\""))
+			case itemTrim == "vrf-target auto":
+				confRead.vrfTargetAuto = true
+			case strings.HasPrefix(itemTrim, "vrf-target export "):
+				confRead.vrfTargetExport = strings.TrimPrefix(itemTrim, "vrf-target export ")
+			case strings.HasPrefix(itemTrim, "vrf-target import "):
+				confRead.vrfTargetImport = strings.TrimPrefix(itemTrim, "vrf-target import ")
+			case strings.HasPrefix(itemTrim, "vrf-target "):
+				confRead.vrfTarget = strings.TrimPrefix(itemTrim, "vrf-target ")
+			case strings.HasPrefix(itemTrim, "vtep-source-interface "):
+				confRead.vtepSourceIf = strings.TrimPrefix(itemTrim, "vtep-source-interface ")
 			}
 		}
 	}
@@ -275,8 +410,21 @@ func delRoutingInstanceOpts(d *schema.ResourceData, m interface{}, jnprSess *Net
 	configSet := make([]string, 0)
 	setPrefix := "delete routing-instances " + d.Get("name").(string) + " "
 	configSet = append(configSet,
-		setPrefix+"instance-type",
-		setPrefix+"routing-options autonomous-system")
+		setPrefix+"description",
+		setPrefix+"routing-options autonomous-system",
+		setPrefix+"vtep-source-interface",
+	)
+	if !d.Get("configure_type_singly").(bool) {
+		configSet = append(configSet, setPrefix+"instance-type")
+	}
+	if !d.Get("configure_rd_vrfopts_singly").(bool) {
+		configSet = append(configSet,
+			setPrefix+"route-distinguisher",
+			setPrefix+"vrf-export",
+			setPrefix+"vrf-import",
+			setPrefix+"vrf_target",
+		)
+	}
 
 	return sess.configSet(configSet, jnprSess)
 }
@@ -293,10 +441,41 @@ func fillRoutingInstanceData(d *schema.ResourceData, instanceOptions instanceOpt
 	if tfErr := d.Set("name", instanceOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("type", instanceOptions.instanceType); tfErr != nil {
-		panic(tfErr)
-	}
 	if tfErr := d.Set("as", instanceOptions.as); tfErr != nil {
 		panic(tfErr)
+	}
+	if tfErr := d.Set("description", instanceOptions.description); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("vtep_source_interface", instanceOptions.vtepSourceIf); tfErr != nil {
+		panic(tfErr)
+	}
+	if !d.Get("configure_type_singly").(bool) {
+		if tfErr := d.Set("type", instanceOptions.instanceType); tfErr != nil {
+			panic(tfErr)
+		}
+	}
+	if !d.Get("configure_rd_vrfopts_singly").(bool) {
+		if tfErr := d.Set("route_distinguisher", instanceOptions.routeDistinguisher); tfErr != nil {
+			panic(tfErr)
+		}
+		if tfErr := d.Set("vrf_export", instanceOptions.vrfExport); tfErr != nil {
+			panic(tfErr)
+		}
+		if tfErr := d.Set("vrf_import", instanceOptions.vrfImport); tfErr != nil {
+			panic(tfErr)
+		}
+		if tfErr := d.Set("vrf_target", instanceOptions.vrfTarget); tfErr != nil {
+			panic(tfErr)
+		}
+		if tfErr := d.Set("vrf_target_auto", instanceOptions.vrfTargetAuto); tfErr != nil {
+			panic(tfErr)
+		}
+		if tfErr := d.Set("vrf_target_export", instanceOptions.vrfTargetExport); tfErr != nil {
+			panic(tfErr)
+		}
+		if tfErr := d.Set("vrf_target_import", instanceOptions.vrfTargetImport); tfErr != nil {
+			panic(tfErr)
+		}
 	}
 }

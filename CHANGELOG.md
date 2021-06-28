@@ -8,6 +8,7 @@ ENHANCEMENTS:
 * resource/`junos_interface`, `junos_interface_logical`: `vrrp_group.*.authentication_key` is now a sensitive argument
 * resource/`junos_security_ike_gateway`: `aaa.0.client_password` is now a sensitive argument
 * resource/`junos_system`: `archival_configuration.0.archive_site.*.password` is now a sensitive argument
+* resource/`junos_routing_instance`: add `description`, `route_distinguisher`, `vrf_export`, `vrf_import`, `vrf_target`, `vrf_target_auto`, `vrf_target_export`, `vrf_target_import`, `vtep_source_interface`, `configure_rd_vrfopts_singly` and `configure_type_singly` arguments
 
 BUG FIXES:
 * resource/`junos_ospf`: fix missing mutex unlocking when read resource and checking routing-instance existence
