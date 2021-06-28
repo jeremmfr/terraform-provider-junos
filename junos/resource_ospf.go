@@ -452,7 +452,7 @@ func setOspf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	setPrefix := setLineStart
-	ospfVersion := opsfV2
+	ospfVersion := ospfV2
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = ospfV3
 	}
@@ -610,7 +610,7 @@ func readOspf(version, routingInstance string,
 	confRead.prefixExportLimit = -1
 
 	var ospfConfig string
-	ospfVersion := opsfV2
+	ospfVersion := ospfV2
 	if version == "v3" {
 		ospfVersion = ospfV3
 	}
@@ -842,7 +842,7 @@ func delOspf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	delPrefix := "delete "
-	ospfVersion := opsfV2
+	ospfVersion := ospfV2
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = ospfV3
 	}

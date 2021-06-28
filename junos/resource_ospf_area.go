@@ -271,7 +271,7 @@ func checkOspfAreaExists(idArea, version, routingInstance string,
 	sess := m.(*Session)
 	var ospfAreaConfig string
 	var err error
-	ospfVersion := opsfV2
+	ospfVersion := ospfV2
 	if version == "v3" {
 		ospfVersion = ospfV3
 	}
@@ -299,7 +299,7 @@ func setOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	setPrefix := setLineStart
-	ospfVersion := opsfV2
+	ospfVersion := ospfV2
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = ospfV3
 	}
@@ -345,7 +345,7 @@ func readOspfArea(idArea, version, routingInstance string,
 	var confRead ospfAreaOptions
 	var ospfAreaConfig string
 	var err error
-	ospfVersion := opsfV2
+	ospfVersion := ospfV2
 	if version == "v3" {
 		ospfVersion = ospfV3
 	}
@@ -429,7 +429,7 @@ func readOspfArea(idArea, version, routingInstance string,
 func delOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	ospfVersion := opsfV2
+	ospfVersion := ospfV2
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = ospfV3
 	}
