@@ -31,6 +31,6 @@ The following arguments are supported:
 
 Junos security idp custom-attack-group can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_security_idp_custom_attack_group.demo_idp_custom_attack_group group_of_Attacks
 ```

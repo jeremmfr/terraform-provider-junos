@@ -33,6 +33,6 @@ The following arguments are supported:
 
 Junos security utm custom-object url-category can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_security_utm_custom_url_category.demo_url_category custom-category
 ```

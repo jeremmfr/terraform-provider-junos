@@ -60,14 +60,18 @@ The following arguments are supported:
 * `vlan_id` - 802.1q VLAN ID for unit interface.
 
 ---
-#### address attributes for family_inet
+
+### address attributes for family_inet
+
 * `cidr_ip` - Address IP/Mask v4.
 * `preferred` - Preferred address on interface.
 * `primary` - Candidate for primary address in system.
 * `vrrp_group` - List of vrrp group configurations. See the [`vrrp_group` attributes for address in family_inet](#vrrp_group-attributes-for-address-in-family_inet) block.
 
 ---
-#### vrrp_group attributes for address in family_inet
+
+### vrrp_group attributes for address in family_inet
+
 * `identifier` - ID for vrrp.
 * `virtual_address` - List of address IP v4.
 * `accept_data` - Accept packets destined for virtual IP address.
@@ -88,18 +92,25 @@ The following arguments are supported:
   * `priority_cost` - Value to subtract from priority when route is down.
 
 ---
-#### address attributes for family_inet6
+
+### address attributes for family_inet6
+
 * `cidr_ip` - Address IP/Mask v6.
 * `preferred` - Preferred address on interface.
 * `primary` - Candidate for primary address in system.
 * `vrrp_group` - List of vrrp group configurations. See the [`vrrp_group` attributes for address in family_inet6](#vrrp_group-attributes-for-address-in-family_inet6) block.
 
 ---
-#### vrrp_group attributes for address in family_inet6
+
+### vrrp_group attributes for address in family_inet6
+
 Same as [`vrrp_group` attributes for address in family_inet](#vrrp_group-attributes-for-address-in-family_inet) block but without `authentication_key`, `authentication_type` and with  
+
 * `virtual_link_local_address` - Address IPv6 for Virtual link-local addresses.
 
 ---
+
 ### rpf_check attributes
+
 * `fail_filter` - Name of filter applied to packets failing RPF check.
 * `mode_loose` - Reverse-path-forwarding use loose mode instead the strict mode.

@@ -14,6 +14,7 @@ and modify a part of configuration.
 The provider allows you to manage some elements on Junos device.
 
 ## Provider installation
+
 For automatic installation (Terraform 0.13 and later) use [registry](https://registry.terraform.io/providers/jeremmfr/junos/):
 
 ```hcl
@@ -41,11 +42,13 @@ and optionally a specific user for netconf:
 ```text
 set system login user netconf class xxxx
 ```
+
 with authentication method : ssh key or password
 
 ```text
 set system login user netconf authentication ssh-rsa "xxxx"
 ```
+
 or
 
 ```text
@@ -90,7 +93,7 @@ The following arguments are supported in the `provider` block:
   It can also be sourced from the `JUNOS_KEYFILE` environment variable.  
   Defaults is empty.
 
-* `password` - (Optional) This is a password for ssh connection.   
+* `password` - (Optional) This is a password for ssh connection.  
   It can also be sourced from the `JUNOS_PASSWORD` environment variable.  
   Defaults is empty.
 
@@ -111,7 +114,9 @@ The following arguments are supported in the `provider` block:
   The keys provided by a SSH agent are only read if `sshkey_pem` and `sshkeyfile` arguments aren't set.
 
 ---
-#### Command options
+
+### Command options
+
 * `cmd_sleep_short` - (Optional) Number of milliseconds to wait after Terraform provider executes an action on the Junos device.  
   It can also be sourced from the `JUNOS_SLEEP_SHORT` environment variable.  
   Defaults to `100`.
@@ -121,7 +126,9 @@ The following arguments are supported in the `provider` block:
   Defaults to `10`.
 
 ---
-#### SSH options
+
+### SSH options
+
 * `ssh_sleep_closed` - (Optional) Number of seconds to wait after Terraform provider closed a ssh connection.  
   It can also be sourced from the `JUNOS_SLEEP_SSH_CLOSED` environment variable.  
   Defaults to `0`.
@@ -130,7 +137,9 @@ The following arguments are supported in the `provider` block:
   Defaults to `["aes128-gcm@openssh.com", "chacha20-poly1305@openssh.com", "aes128-ctr", "aes192-ctr", "aes256-ctr", "aes128-cbc"]`
 
 ---
-#### Debug & workaround options
+
+### Debug & workaround options
+
 * `file_permission` - (Optional) The permission to set for the created file (debug, setfile).  
   It can also be sourced from the `JUNOS_FILE_PERMISSION` environment variable.  
   Defaults to `0644`.
@@ -141,7 +150,7 @@ The following arguments are supported in the `provider` block:
 
 * `fake_create_with_setfile` - (Optional, **don't use in normal terraform run**) When this option is set (with a path to a file), the normal process to create resources (netconf connection, precheck, generate/upload set lines in candidate configuration, commit, postcheck) skipped to generate set lines, append them to the specified file, and respond with a `fake` successful creation of resource to Terraform.  
 Then you can upload/commit the file with the `junos_null_commit_file` resource in the same config or another terraform config or with another way.  
-If you are using `junos_null_commit_file` in the same terraform config, you must create dependencies between resources so that the creation of the ` junos_null_commit_file` resource is alone and last.  
+If you are using `junos_null_commit_file` in the same terraform config, you must create dependencies between resources so that the creation of the `junos_null_commit_file` resource is alone and last.  
 This options is useful to create a workaround for a long terraform run if there are many ressources to be created and Junos device is slow to commit.  
 As many tests are skipped, this option may generate extra config (not managed by terraform) on Junos device or conficts/errors for resources in tfstate. A `terraform refresh` will be able to detect parts of errors but **be carefully with this option**.  
 There are exceptions for ressources :

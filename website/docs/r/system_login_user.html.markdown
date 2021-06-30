@@ -41,6 +41,6 @@ The following arguments are supported:
 
 Junos system login user can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_system_login_user.user1 user1
 ```

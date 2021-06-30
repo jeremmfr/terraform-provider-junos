@@ -32,6 +32,6 @@ The following arguments are supported:
 
 Junos switch_options can be imported using any id, e.g.
 
-```
+```shell
 $ terraform import junos_switch_options.switch_options random
 ```

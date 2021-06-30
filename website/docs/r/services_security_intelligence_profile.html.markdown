@@ -42,7 +42,9 @@ The following arguments are supported:
 * `description` - (Optional)(`String`) Text description of profile.
 
 ---
-#### rule arguments
+
+### rule arguments
+
 * `name` - (Required)(`String`) Profile rule name.
 * `match` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to configure profile matching feed name and threat levels.
   * `threat_level` - (Required)(`ListOfInt`) Profile matching threat levels, higher number is more severe (1..10).
@@ -54,6 +56,6 @@ The following arguments are supported:
 
 Junos services security-intelligence profile can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_services_security_intelligence_profile.demo demo
 ```

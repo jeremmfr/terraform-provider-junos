@@ -93,7 +93,7 @@ For upgrade to the new resource without destroy deprecated resource and recreate
 
 After rewrite resource with new type, import each resources :
 
-```
+```shell
 terraform import junos_interface_physical.interface_physical_demo ge-0/0/0
 terraform import junos_interface_logical.interface_logical_demo_100 ge-0/0/2.100
 terraform import junos_interface_logical.st0_100 st0.100
@@ -101,7 +101,7 @@ terraform import junos_interface_logical.st0_100 st0.100
 
 then now delete deprecated resource :
 
-```
+```shell
 terraform state rm junos_interface.interface_physical_demo
 terraform state rm junos_interface.interface_logical_demo_100
 terraform state rm junos_interface.st0_100

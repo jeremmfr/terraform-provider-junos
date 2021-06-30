@@ -49,7 +49,9 @@ The following arguments are supported:
   * `terminal` - (Optional)(`Bool`) Set/Unset terminal flag.
 
 ---
-#### match arguments for exempt_rule and ips_rule
+
+### match arguments for exempt_rule and ips_rule
+
 * `application` - (Optional)(`String`) Specify application or application-set name to match. Only with `ips_rule`.
 * `custom_attack_group` - (Optional)(`ListOfString`) Match custom attack groups.
 * `custom_attack` - (Optional)(`ListOfString`) Match custom attacks.
@@ -64,7 +66,9 @@ The following arguments are supported:
 * `to_zone` - (Optional)(`String`) Match to zone.
 
 ---
-#### then arguments
+
+### then arguments
+
 * `action` - (Required)(`String`) Action. Need to be 'class-of-service', 'close-client', 'close-client-and-server', 'close-server', 'drop-connection', 'drop-packet', 'ignore-connection', 'mark-diffserv', 'no-action' or 'recommended'.
 * `action_cos_forwarding_class` - (Optional)(`String`) Forwarding class for outgoing packets. `action` need to be 'class-of-service'.
 * `action_dscp_code_point` - (Optional)(`Int`) Codepoint value (0..63). `action` need to be 'class-of-service' or 'mark-diffserv'.
@@ -81,12 +85,12 @@ The following arguments are supported:
 * `notification_packet_log_post_attack` - (Optional)(`Int`) No of packets to capture after attack (0..255).
 * `notification_packet_log_post_attack_timeout` - (Optional)(`Int`) Timeout (seconds) after attack before stopping packet capture (0..1800).
 * `notification_packet_log_pre_attack` - (Optional)(`Int`) No of packets to capture before attack (1..255).
-* `severity` - (Optional)(`String`) Set rule severity level. Need to be 'critical', 'info', 'major', 'minor' or 'warning'. 
+* `severity` - (Optional)(`String`) Set rule severity level. Need to be 'critical', 'info', 'major', 'minor' or 'warning'.
 
 ## Import
 
 Junos security idp policy can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_security_idp_policy.demo_idp_policy Idp-Policy
 ```

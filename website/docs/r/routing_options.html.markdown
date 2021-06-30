@@ -58,6 +58,6 @@ The following arguments are supported:
 
 Junos routing_options can be imported using any id, e.g.
 
-```
+```shell
 $ terraform import junos_routing_options.routing_options random
 ```

@@ -55,6 +55,6 @@ The following arguments are supported:
 
 Junos security utm utm-policy can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_security_utm_policy.demo_policy "Demo Policy"
 ```

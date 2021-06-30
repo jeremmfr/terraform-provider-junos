@@ -42,6 +42,6 @@ The following arguments are supported:
 
 Junos ospf area can be imported using an id made up of `<aread_id>_-_<version>_-_<routing_instance>`, e.g.
 
-```
+```shell
 $ terraform import junos_ospf_area.demo_area 0.0.0.0_-_v2_-_default
 ```

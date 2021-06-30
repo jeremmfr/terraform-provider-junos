@@ -34,6 +34,6 @@ The following arguments are supported:
 
 Junos security nat destination pool can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_security_nat_destination_pool.demo_dnat_pool ip_internal
 ```

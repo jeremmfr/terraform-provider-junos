@@ -86,7 +86,9 @@ Deprecated argument, use the `bgp_multipath` argument instead.
 * `remove_private` - (Optional)(`Bool`) Remove well-known private AS numbers.
 
 ---
-#### bfd_liveness_detection arguments
+
+### bfd_liveness_detection arguments
+
 * `authentication_algorithm` - (Optional)(`String`) Authentication algorithm name.
 * `authentication_key_chain` - (Optional)(`String`) Authentication key chain name.
 * `authentication_loose_check`  - (Optional)(`Bool`) Verify authentication only if authentication is negotiated.
@@ -101,7 +103,9 @@ Deprecated argument, use the `bgp_multipath` argument instead.
 * `version` - (Optional)(`String`) BFD protocol version number.
 
 ---
-#### family_inet arguments
+
+### family_inet arguments
+
 Also for `family_inet6` and `family_evpn` (except `nlri_type`)
 
 * `nlri_type` - (Required)(`String`) NLRI type. Need to be 'any', 'flow', 'labeled-unicast', 'unicast' or 'multicast'.
@@ -113,7 +117,9 @@ Also for `family_inet6` and `family_evpn` (except `nlri_type`)
 * `prefix_limit` Same options as [`accepted_prefix_limit`](#accepted_prefix_limit) but for limit maximum number of prefixes from a peer
 
 ---
-#### graceful_restart arguments
+
+### graceful_restart arguments
+
 * `disable` - (Optional)(`Bool`)Disable graceful restart.
 * `restart_time` - (Optional)(`Int`) Restart time used when negotiating with a peer (1..600).
 * `stale_route_time` - (Optional)(`Int`) Maximum time for which stale routes are kept (1..600).
@@ -122,6 +128,6 @@ Also for `family_inet6` and `family_evpn` (except `nlri_type`)
 
 Junos bgp neighbor can be imported using an id made up of `<ip>_-_<routing_instance>_-_<group>`, e.g.
 
-```
+```shell
 $ terraform import junos_bgp_neighbor.bgpneighbordemo 192.0.2.4_-_default_-_GroupBgpDemo
 ```

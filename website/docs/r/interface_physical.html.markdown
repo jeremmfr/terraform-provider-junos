@@ -71,7 +71,9 @@ Deprecated argument, use the `ether_opts` or `gigether_opts` argument instead.
 * `vlan_tagging` - (Optional)(`Bool`) Add 802.1q VLAN tagging support.
 
 ---
-#### esi arguments
+
+### esi arguments
+
 * `mode` - (Required)(`String`) ESI Mode
 * `identifier` - (Optional)(`String`) The ESI value for the interface
 * `auto_derive_lacp` - (Optional)(`Bool`) Auto-derive ESI value for the interface
@@ -79,7 +81,9 @@ Deprecated argument, use the `ether_opts` or `gigether_opts` argument instead.
 * `source_bmac` - (Optional)(`String`) Unicast Source B-MAC address per ESI for PBB-EVPN
 
 ---
-#### parent_ether_opts arguments
+
+### parent_ether_opts arguments
+
 * `bfd_liveness_detection` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'bfd-liveness-detection' in 'aggregated-ether-options' configuration. See the [`bfd_liveness_detection` arguments in parent_ether_opts](#bfd_liveness_detection-arguments-in-parent_ether_opts) block.
 * `flow_control` - (Optional)(`Bool`) Enable flow control.
 * `no_flow_control` - (Optional)(`Bool`) Don't enable flow control.
@@ -100,7 +104,9 @@ Deprecated argument, use the `ether_opts` or `gigether_opts` argument instead.
 * `source_filtering` - (Optional)(`Bool`) Enable source address filtering.
 
 ---
-#### bfd_liveness_detection arguments in parent_ether_opts
+
+### bfd_liveness_detection arguments in parent_ether_opts
+
 * `local_address` - (Required)(`String`) BFD local address.
 * `authentication_algorithm` - (Optional)(`String`) Authentication algorithm name.
 * `authentication_key_chain` - (Optional)(`String`) Authentication Key chain name.
@@ -120,7 +126,7 @@ Deprecated argument, use the `ether_opts` or `gigether_opts` argument instead.
 
 Junos interface can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_interface_physical.interface_switch_demo ge-0/0/0
 $ terraform import junos_interface_physical.interface_fw_demo_100 ge-0/0/1
 ```

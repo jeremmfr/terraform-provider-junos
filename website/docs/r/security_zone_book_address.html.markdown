@@ -44,6 +44,6 @@ The following arguments are supported:
 
 Junos address in address-book of security zone can be imported using an id made up of `<zone>_-_<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_security_zone_book_address.demo theZone_-_address1
 ```

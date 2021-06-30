@@ -54,6 +54,6 @@ The following arguments are supported:
 
 Junos snmp can be imported using any id, e.g.
 
-```
+```shell
 $ terraform import junos_snmp.snmp random
 ```

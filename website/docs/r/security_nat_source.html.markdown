@@ -51,7 +51,9 @@ The following arguments are supported:
 * `rule` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each rule to declare. See the [`rule` arguments](#rule-arguments) block.
 
 ---
-#### rule arguments
+
+### rule arguments
+
 * `name` - (Required)(`String`) Name of rule.
 * `match` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'match' configuration.
   * `destination_address` - (Optional)(`ListOfString`) CIDR list to match destination address.
@@ -65,6 +67,6 @@ The following arguments are supported:
 
 Junos security nat source can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_security_nat_source.demo_snat nat_from_trust_to_untrust
 ```

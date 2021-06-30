@@ -45,7 +45,9 @@ The following arguments are supported:
   * `then` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Define action to take if the `from` condition is matched. See the [`then` arguments for term](#then-arguments-for-term) block. Max of 1.
 
 ---
-#### from arguments for term
+
+### from arguments for term
+
 * `address` - (Optional)(`ListOfString`) Match IP source or destination address.
 * `address_except` - (Optional)(`ListOfString`) Match address not in this list of prefix.
 * `destination_address` - (Optional)(`ListOfString`) Match IP destination address.
@@ -78,7 +80,9 @@ The following arguments are supported:
 * `tcp_initial` - (Optional)(`Bool`) Match initial packet of a TCP connection.
 
 ---
-#### then arguments for term
+
+### then arguments for term
+
 * `action` - (Optional)(`String`) Action for term if needed. Need to be 'accept', 'reject', 'discard' or 'next term'.
 * `count` - (Optional)(`String`) Count the packet in the named counter.
 * `log` - (Optional)(`Bool`) Log the packet.
@@ -93,6 +97,6 @@ The following arguments are supported:
 
 Junos firewall filter can be imported using an id made up of `<name>_-_<family>`, e.g.
 
-```
+```shell
 $ terraform import junos_firewall_filter.filterdemo filterDemo_-_inet
 ```

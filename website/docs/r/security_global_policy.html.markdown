@@ -59,7 +59,9 @@ The following arguments are supported:
   * `permit_application_services` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'permit application-services' configuration. See the [`permit_application_services` arguments] (#permit_application_services-arguments) block.
 
 ---
-#### permit_application_services arguments
+
+### permit_application_services arguments
+
 * `advanced_anti_malware_policy` - (Optional)(`String`) Specify advanced-anti-malware policy name.
 * `application_firewall_rule_set` - (Optional)(`String`) Service rule-set name for Application firewall.
 * `application_traffic_control_rule_set` - (Optional)(`String`) Service rule-set name Application traffic control.
@@ -80,6 +82,6 @@ The following arguments are supported:
 
 Junos security global policies can be imported using any id, e.g.
 
-```
+```shell
 $ terraform import junos_security_global_policy.global random
 ```
