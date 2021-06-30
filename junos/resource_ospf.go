@@ -339,9 +339,12 @@ func resourceOspfReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *
 	if d.Get("routing_instance").(string) != defaultWord {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
+			mutex.Unlock()
+
 			return diag.FromErr(err)
 		}
 		if !instanceExists {
+			mutex.Unlock()
 			d.SetId("")
 
 			return nil

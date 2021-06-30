@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * resource/`junos_system`: `archival_configuration.0.archive_site.*.password` is now a sensitive argument
 
 BUG FIXES:
+* resource/`junos_ospf`: fix missing mutex unlocking when read resource and checking routing-instance existence
 * resource/`junos_security_nat_destination`: fix order issue on `from.0.value` list
 * resource/`junos_security_nat_source`: fix order issue on `from.0.value` and `to.0.value` lists (Fixes #243)
 * resource/`junos_security_nat_static`: fix order issue on `from.0.value` list
