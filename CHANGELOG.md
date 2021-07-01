@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * resource/`junos_system`: `archival_configuration.0.archive_site.*.password` is now a sensitive argument
 * resource/`junos_routing_instance`: add `description`, `route_distinguisher`, `vrf_export`, `vrf_import`, `vrf_target`, `vrf_target_auto`, `vrf_target_export`, `vrf_target_import`, `vtep_source_interface`, `configure_rd_vrfopts_singly` and `configure_type_singly` arguments
 * add `junos_switch_options` resource (Fixes parts of #131)
+* add `junos_evpn` resource (Fixes parts of #131)
 
 BUG FIXES:
 * resource/`junos_ospf`: fix missing mutex unlocking when read resource and checking routing-instance existence

@@ -844,7 +844,7 @@ func readOspf(version, routingInstance string,
 func delOspf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	delPrefix := "delete "
+	delPrefix := deleteWord + " "
 	ospfVersion := ospfV2
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = ospfV3
