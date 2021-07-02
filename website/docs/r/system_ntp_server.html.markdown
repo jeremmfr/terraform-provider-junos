@@ -34,6 +34,6 @@ The following arguments are supported:
 
 Junos system ntp server can be imported using an id made up of `<address>`, e.g.
 
-```
+```shell
 $ terraform import junos_system_ntp_server.demo_ntp_server 192.0.2.1
 ```

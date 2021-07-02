@@ -70,7 +70,9 @@ The following arguments are supported:
 * `routing_instance` - Routing_instance where the interface is (if not default instance)
 
 ---
-#### vrrp_group attributes for inet_address
+
+### vrrp_group attributes for inet_address
+
 * `identifier` - ID for vrrp
 * `virtual_address` - List of address IP v4.
 * `accept_data` - Accept packets destined for virtual IP address.
@@ -91,7 +93,9 @@ The following arguments are supported:
   * `priority_cost` - Value to subtract from priority when route is down.
 
 ---
-#### vrrp_group attributes for inet6_address
+
+### vrrp_group attributes for inet6_address
+
 Same as [`vrrp_group` attributes for inet_address](#vrrp_group-attributes-for-inet_address) block but without `authentication_key`, `authentication_type` and with
 
- * `virtual_link_local_address` - Address IPv6 for Virtual link-local addresses.
+* `virtual_link_local_address` - Address IPv6 for Virtual link-local addresses.

@@ -34,6 +34,6 @@ The following arguments are supported:
 
 Junos security ipsec policy can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_security_ipsec_policy.demo_vpn_policy ipsec-policy
 ```

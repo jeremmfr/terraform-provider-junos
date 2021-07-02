@@ -62,16 +62,19 @@ The following arguments are supported:
 * `timeout` - (Optional)(`Int`) Set timeout. Need to be between 1 and 1800.
 
 ---
-#### category arguments
+
+### category arguments
+
 * `name` - (Required)(`String`) Name of category.
 * `action` - (Required)(`String`) Action when web traffic matches category. Need to be 'block', 'log-and-permit', 'permit' or 'quarantine'.
 * `reputation_action` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) List of configuration for site reputation action for the category. Can be specified multiple times for each `site_reputation`.
   * `site_reputation` - (Required)(`String`) Level of reputation. Need to be 'fairly-safe', 'harmful', 'moderately-safe', 'suspicious', 'very-safe'.
   * `action` - (Required)(`String`) Action for site-reputation. Need to be 'block', 'log-and-permit', 'permit' or 'quarantine'.
+
 ## Import
 
 Junos security utm feature-profile web-filtering juniper-enhanced profile can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_security_utm_profile_web_filtering_juniper_enhanced.demo_profile "Default Webfilter"
 ```

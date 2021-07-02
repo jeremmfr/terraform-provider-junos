@@ -33,6 +33,6 @@ The following arguments are supported:
 
 Junos prefix list can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_policyoptions_prefix_list.demo_plist DemoPList
 ```

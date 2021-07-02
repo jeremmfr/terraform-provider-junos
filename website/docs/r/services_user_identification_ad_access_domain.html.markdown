@@ -52,6 +52,6 @@ The following arguments are supported:
 
 Junos services user-identification active-directory-access domain can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_services_user_identification_ad_access_domain.demo example.com
 ```

@@ -78,7 +78,9 @@ The following arguments are supported:
 * `routing_instance` - (Optional)(`String`) Add this interface in routing_instance. Need to be created before.
 
 ---
-#### vrrp_group arguments for inet_address
+
+### vrrp_group arguments for inet_address
+
 * `identifier` - (Required)(`Int`) ID for vrrp
 * `virtual_address` - (Required)(`ListOfString`) List of address IP v4.
 * `accept_data` - (Optional)(`Bool`) Accept packets destined for virtual IP address. Conflict with `no_accept_data` when apply.
@@ -100,16 +102,18 @@ The following arguments are supported:
   * `priority_cost` - (Required)(`Int`) Value to subtract from priority when route is down.
 
 ---
-#### vrrp_group arguments for inet6_address
+
+### vrrp_group arguments for inet6_address
+
 Same as [`vrrp_group` arguments for inet_address](#vrrp_group-arguments-for-inet_address) block but without `authentication_key`, `authentication_type` and with
 
- * `virtual_link_local_address` - (Required)(`String`) Address IPv6 for Virtual link-local addresses.
+* `virtual_link_local_address` - (Required)(`String`) Address IPv6 for Virtual link-local addresses.
 
 ## Import
 
 Junos interface can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_interface.interface_switch_demo ge-0/0/0
 
 $ terraform import junos_interface.interface_fw_demo_100 ge-0/0/0.0

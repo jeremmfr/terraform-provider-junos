@@ -56,6 +56,6 @@ Deprecated argument, use the `junos_interface_st0_unit` resource to find st0 uni
 
 Junos security ipsec vpn can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_security_ipsec_vpn.demo_vpn first-vpn
 ```

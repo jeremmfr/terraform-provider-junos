@@ -27,6 +27,6 @@ resource junos_interface_st0_unit "demo" {}
 
 Junos st0 unit interface can be imported using an id made up of the name of interface, e.g.
 
-```
+```shell
 $ terraform import junos_interface_st0_unit.demo st0.0
 ```

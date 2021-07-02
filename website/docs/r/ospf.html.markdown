@@ -72,6 +72,6 @@ The following arguments are supported:
 
 Junos ospf can be imported using an id made up of `<version>_-_<routing_instance>`, e.g.
 
-```
+```shell
 $ terraform import junos_ospf.ospf v2_-_default
 ```

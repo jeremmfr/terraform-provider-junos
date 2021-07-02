@@ -49,7 +49,9 @@ The following arguments are supported:
 * `user_severity` - (Optional)(`String`) User processes severity.
 
 ---
-#### archive arguments
+
+### archive arguments
+
 * `binary_data` - (Optional)(`Bool`) Mark file as if it contains binary data. Conflict with `no_binary_data`.
 * `no_binary_data` - (Optional)(`Bool`) Don't mark file as if it contains binary data. Conflict with `binary_data`.
 * `world_readable` - (Optional)(`Bool`) Allow any user to read the log file. Conflict with `no_world_readable`.
@@ -58,7 +60,7 @@ The following arguments are supported:
 * `size` - (Optional)(`Int`) Size of files to be archived (65536..1073741824 bytes)
 * `start_time` - (Optional)(`String`) Start time for file transmission (yyyy-mm-dd.hh:mm)
 * `transfer_interval` - (Optional)(`Int`) Frequency at which to transfer files to archive sites (5..2880 minutes)
-* `sites` - (Optional)[attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Configure an archive site. Can be specified multiple times for each url (first declaration is primary URL, failover for others). 
+* `sites` - (Optional)[attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Configure an archive site. Can be specified multiple times for each url (first declaration is primary URL, failover for others).
   * `url` - (Required)(`String`) Primary or failover URLs to receive archive files.
   * `password` - (Optional)(`String`) Password for login into the archive site.
   **WARNING** Clear in tfstate.
@@ -70,6 +72,6 @@ The following arguments are supported:
 
 Junos system syslog file can be imported using an id made up of `<filename>`, e.g.
 
-```
+```shell
 $ terraform import junos_system_syslog_file.demo_syslog_file demo
 ```

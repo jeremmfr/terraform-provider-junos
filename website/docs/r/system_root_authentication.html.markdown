@@ -37,6 +37,6 @@ The following arguments are supported:
 
 Junos system root-authentication can be imported using any id, e.g.
 
-```
+```shell
 $ terraform import junos_system_root_authentication.root_auth random
 ```

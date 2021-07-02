@@ -45,14 +45,18 @@ The following arguments are supported:
 * `input` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'input' configuration. See the [`input` arguments] (#input-arguments) block.
 
 ---
-#### input arguments
+
+### input arguments
+
 * `max_packets_per_second` - (Optional)(`Int`) Threshold of samples per second before dropping.
 * `maximum_packet_length` - (Optional)(`Int`) Maximum length of the sampled packet (0..9192 bytes)
 * `rate` - (Optional)(`Int`) Ratio of packets to be sampled (1 out of N) (1..16000000)
 * `run_length` - (Optional)(`Int`) Number of samples after initial trigger (0..20)
 
 ---
-#### output arguments
+
+### output arguments
+
 * `aggregate_export_interval` - (Optional)(`Int`) Interval of exporting aggregate accounting information (90..1800 seconds).
 * `extension_service` - (Optional)(`ListOfString`) Define the customer specific sampling configuration. **Not available for `family mpls`**.
 * `flow_active_timeout` - (Optional)(`Int`) Interval after which an active flow is exported (60..1800 seconds).
@@ -73,7 +77,7 @@ The following arguments are supported:
   * `no_local_dump` - (Optional)(`Bool`) Don't dump cflowd records to log file before exporting.
   * `routing_instance` - (Optional)(`String`) Name of routing instance on which flow collector is reachable.
   * `source_address` - (Optional)(`String`) Source IPv4 address for cflowd packets.
-  * `version` - (Optional)(`Int`) Format of exported cflowd aggregates. Need to be '5' or '8'. **Only available for `family inet`**. 
+  * `version` - (Optional)(`Int`) Format of exported cflowd aggregates. Need to be '5' or '8'. **Only available for `family inet`**.
   * `version_ipfix_template` - (Optional)(`String`) Template to export data in version ipfix format.
   * `version9_template` - (Optional)(`String`) Template to export data in version 9 format.
 * `inline_jflow_export_rate` - (Optional)(`Int`) Inline processing of sampled packets with flow export rate of monitored packets in kpps (1..3200)
@@ -88,6 +92,6 @@ The following arguments are supported:
 
 Junos forwarding-options sampling instance can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_forwardingoptions_sampling_instance.demo demo
 ```

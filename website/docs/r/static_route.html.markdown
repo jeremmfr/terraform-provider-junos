@@ -60,6 +60,6 @@ The following arguments are supported:
 
 Junos static route can be imported using an id made up of `<destination>_-_<routing_instance>`, e.g.
 
-```
+```shell
 $ terraform import junos_static_route.demo_static_route 192.0.2.0/25_-_prod-vr
 ```

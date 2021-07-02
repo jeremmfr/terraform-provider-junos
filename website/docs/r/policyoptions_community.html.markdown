@@ -32,6 +32,6 @@ The following arguments are supported:
 
 Junos community can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_policyoptions_community.community_demo communityDemo
 ```

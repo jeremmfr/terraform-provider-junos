@@ -56,7 +56,9 @@ The following arguments are supported:
   * `then` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Declare then actions. See the [`then` arguments](#then-arguments) block. Max of 1.
 
 ---
-#### from arguments
+
+### from arguments
+
 * `aggregate_contributor` - (Optional)(`Bool`) Match more specifics of an aggregate.
 * `bgp_as_path` - (Optional)(`ListOfString`) Name of AS path regular expression. See resource `junos_policyoptions_as_path`.
 * `bgp_as_path_group` - (Optional)(`ListOfString`) Name of AS path group. See resource `junos_policyoptions_as_path_group`.
@@ -80,7 +82,9 @@ The following arguments are supported:
   * `option_value` - (Optional)(`String`) For options that need an argument
 
 ---
-#### to arguments
+
+### to arguments
+
 * `bgp_as_path` - (Optional)(`ListOfString`) Name of AS path regular expression. See resource `junos_policyoptions_as_path`.
 * `bgp_as_path_group` - (Optional)(`ListOfString`) Name of AS path group. See resource `junos_policyoptions_as_path_group`.
 * `bgp_community` - (Optional)(`ListOfString`) BGP community. See resource `junos_policyoptions_community`.
@@ -98,7 +102,9 @@ The following arguments are supported:
 * `protocol` - (Optional)(`ListOfString`) Protocol from which route was learned
 
 ---
-#### then arguments
+
+### then arguments
+
 * `action` - (Optional)(`String`) Action 'accept' or 'reject'.
 * `as_path_expand` - (Optional)(`String`) Prepend AS numbers prior to adding local-as.
 * `as_path_prepend` - (Optional)(`String`) Prepend AS numbers to an AS path.
@@ -124,6 +130,6 @@ The following arguments are supported:
 
 Junos policy can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_policyoptions_policy_statement.demo_policy DemoPolicy
 ```

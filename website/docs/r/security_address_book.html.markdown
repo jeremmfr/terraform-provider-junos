@@ -80,6 +80,6 @@ The following arguments are supported:
 
 Junos security address book can be imported using an id made up of `<name>`, e.g.
 
-```sh
+```shell
 $ terraform import junos_security_address_book.global global
 ```
