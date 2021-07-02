@@ -13,6 +13,7 @@ import (
 
 type evpnOptions struct {
 	routingInstanceEvpn bool
+	defaultGateway      string
 	encapsulation       string
 	multicastMode       string
 	routingInstance     string
@@ -46,6 +47,11 @@ func resourceEvpn() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInSlice([]string{"mpls", "vxlan"}, false),
+			},
+			"default_gateway": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"advertise", "do-not-advertise", "no-gateway-community"}, false),
 			},
 			"multicast_mode": {
 				Type:         schema.TypeString,
@@ -292,6 +298,9 @@ func setEvpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 		if d.Get("routing_instance_evpn").(bool) {
 			return fmt.Errorf("`routing_instance_evpn` incompatible if `routing_instance` = %s", defaultWord)
 		}
+		if v := d.Get("default_gateway").(string); v != "" {
+			return fmt.Errorf("`default_gateway` incompatible if `routing_instance` = %s", defaultWord)
+		}
 		setPrefix += "protocols evpn "
 		setPrefixSwitchRIVRF += "switch-options "
 	} else {
@@ -306,6 +315,9 @@ func setEvpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	}
 	if v := d.Get("encapsulation").(string); v != "" {
 		configSet = append(configSet, setPrefix+"encapsulation "+v)
+	}
+	if v := d.Get("default_gateway").(string); v != "" {
+		configSet = append(configSet, setPrefix+"default-gateway "+v)
 	}
 	if v := d.Get("multicast_mode").(string); v != "" {
 		configSet = append(configSet, setPrefix+"multicast-mode "+v)
@@ -378,6 +390,8 @@ func readEvpn(routingInstance string,
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
+			case strings.HasPrefix(itemTrim, "default-gateway "):
+				confRead.defaultGateway = strings.TrimPrefix(itemTrim, "default-gateway ")
 			case strings.HasPrefix(itemTrim, "encapsulation "):
 				confRead.encapsulation = strings.TrimPrefix(itemTrim, "encapsulation ")
 			case strings.HasPrefix(itemTrim, "multicast-mode "):
@@ -451,11 +465,12 @@ func delEvpn(destroy bool, d *schema.ResourceData, m interface{}, jnprSess *Netc
 		delPrefixSwitchRIVRF += "routing-instances " + d.Get("routing_instance").(string) + " "
 	}
 	listLinesToDelete := []string{
+		"default-gateway",
 		"encapsulation",
 		"multicast-mode",
 	}
 	// to remove line "set protocols evpn" without options when destroy resource
-	if destroy && d.Get("routing_instance").(string) != defaultWord {
+	if destroy {
 		listLinesToDelete = append(listLinesToDelete, "")
 	}
 	for _, line := range listLinesToDelete {
@@ -489,6 +504,9 @@ func fillEvpnData(d *schema.ResourceData, evpnOptions evpnOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("encapsulation", evpnOptions.encapsulation); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("default_gateway", evpnOptions.defaultGateway); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("multicast_mode", evpnOptions.multicastMode); tfErr != nil {

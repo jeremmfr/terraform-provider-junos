@@ -108,6 +108,7 @@ resource "junos_routing_instance" "testacc_evpn_ri2" {
 resource "junos_evpn" "testacc_evpn_ri2" {
   routing_instance = junos_routing_instance.testacc_evpn_ri2.name
   encapsulation    = "vxlan"
+  default_gateway  = "advertise"
   switch_or_ri_options {
     route_distinguisher = "10:1"
     vrf_import          = [junos_policyoptions_policy_statement.testacc_evpn.name]
