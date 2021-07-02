@@ -87,6 +87,7 @@ resource junos_routing_options "testacc_routing_options" {
     restart_duration = 120
     disable          = true
   }
+  router_id = "192.0.2.4"
 }
 `
 }
