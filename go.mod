@@ -1,4 +1,4 @@
-module terraform-provider-junos
+module github.com/jeremmfr/terraform-provider-junos
 
 go 1.15
 

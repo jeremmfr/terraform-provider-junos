@@ -1,7 +1,7 @@
 package main
 
 import (
-	"terraform-provider-junos/junos"
+	"github.com/jeremmfr/terraform-provider-junos/junos"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 )
