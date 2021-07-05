@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * add `junos_switch_options` resource (Fixes parts of #131)
 * add `junos_evpn` resource (Fixes parts of #131)
 * add `junos_services_rpm_probe` resource (Fixes #247)
+* add `junos_bridge_domain` resource
 
 BUG FIXES:
 
