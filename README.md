@@ -1,3 +1,4 @@
+<!-- markdownlint-disable-file MD033 MD041 -->
 <div>
 <img src="https://www.juniper.net/assets/img/products/junos-os.png" alt="Junos logo" title="Junos" align="right" height="50" />
 <img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/og-image.png" alt="Terraform logo" title="Terraform" align="right" height="50" />
@@ -5,6 +6,7 @@
 
 # terraform-provider-junos
 
+<!-- markdownlint-disable -->
 [![Release](https://img.shields.io/github/v/release/jeremmfr/terraform-provider-junos)](https://github.com/jeremmfr/terraform-provider-junos/releases)
 [![Installs](https://img.shields.io/badge/dynamic/json?logo=terraform&label=installs&query=$.data.attributes.downloads&url=https%3A%2F%2Fregistry.terraform.io%2Fv2%2Fproviders%2F713)](https://registry.terraform.io/providers/jeremmfr/junos)
 [![Registry](https://img.shields.io/badge/registry-doc%40latest-lightgrey?logo=terraform)](https://registry.terraform.io/providers/jeremmfr/junos/latest/docs)
@@ -14,6 +16,8 @@
 [![Lint Status](https://github.com/jeremmfr/terraform-provider-junos/workflows/GolangCI-Lint/badge.svg)](https://github.com/jeremmfr/terraform-provider-junos/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/jeremmfr/terraform-provider-junos)](https://goreportcard.com/report/github.com/jeremmfr/terraform-provider-junos)  
 [![Buy Me A Coffee](https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg)](https://www.buymeacoffee.com/jeremmfr)
+<!-- markdownlint-restore -->
+
 ---
 
 This is an **unofficial** Terraform provider for Junos devices with netconf protocol
