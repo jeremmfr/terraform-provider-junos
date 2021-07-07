@@ -3,6 +3,7 @@ package junos
 import (
 	"context"
 	"fmt"
+	"html"
 	"strconv"
 	"strings"
 
@@ -1647,7 +1648,8 @@ func readSystemLogin(confRead *systemOptions, itemTrim string) error {
 	}
 	switch {
 	case strings.HasPrefix(itemTrim, "login announcement "):
-		confRead.login[0]["announcement"] = strings.Trim(strings.TrimPrefix(itemTrim, "login announcement "), "\"")
+		confRead.login[0]["announcement"] =
+			html.UnescapeString(strings.Trim(strings.TrimPrefix(itemTrim, "login announcement "), "\""))
 	case strings.HasPrefix(itemTrim, "login deny-sources address "):
 		confRead.login[0]["deny_sources_address"] = append(confRead.login[0]["deny_sources_address"].([]string),
 			strings.TrimPrefix(itemTrim, "login deny-sources address "))
