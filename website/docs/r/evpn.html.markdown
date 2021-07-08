@@ -29,12 +29,12 @@ resource junos_evpn "default" {
 
 The following arguments are supported:
 
-* `routing_instance` - (Optional)(`String`) Routing instance. Need to be 'default' (for root level) or the name of routing instance. Defaults to `default`.
-* `routing_instance_evpn` - (Optional)(`Bool`) Configure routing-instance is an evpn instance-type.
+* `routing_instance` - (Optional, Forces new resource)(`String`) Routing instance. Need to be 'default' (for root level) or the name of routing instance. Defaults to `default`.
+* `routing_instance_evpn` - (Optional, Forces new resource)(`Bool`) Configure routing-instance is an evpn instance-type.
 * `encapsulation` - (Required)(`String`) Encapsulation type for EVPN. Need to be `mpls` or `vxlan`.
 * `default_gateway` - (Optional)(`String`) Default gateway mode. Need to be `advertise`, `do-not-advertise` or `no-gateway-community`.
 * `multicast_mode` - (Optional)(`String`) Multicast mode for EVPN.
-* `switch_or_ri_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare `switch-options` or `routing-instance` configuration. Need to be set if `routing_instance` = `default` or `routing_instance_evpn` = true. To avoid conflict with same options on `routing_instance` resource, add him `configure_rd_vrfopts_singly`.
+* `switch_or_ri_options` - (Optional, Forces new resource)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare `switch-options` or `routing-instance` configuration. Need to be set if `routing_instance` = `default` or `routing_instance_evpn` = true. To avoid conflict with same options on `routing_instance` resource, add him `configure_rd_vrfopts_singly`.
   * `route_distinguisher` - (Required)(`String`) Route distinguisher for this instance.
   * `vrf_export` - (Optional)(`ListOfString`) Export policy for VRF instance RIBs.
   * `vrf_import` - (Optional)(`ListOfString`) Import policy for VRF instance RIBs.
