@@ -60,7 +60,8 @@ resource "junos_interface_logical" "testacc_bridge_ri" {
   }
 }
 resource "junos_routing_options" "testacc_bridge_ri" {
-  router_id = "192.0.2.5"
+  clean_on_destroy = true
+  router_id        = "192.0.2.5"
 }
 
 resource "junos_routing_instance" "testacc_bridge_ri" {

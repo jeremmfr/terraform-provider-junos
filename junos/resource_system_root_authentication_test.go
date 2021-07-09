@@ -34,6 +34,9 @@ func TestAccJunosSystemRootAuthentication_basic(t *testing.T) {
 							"ssh_public_keys.#", "0"),
 					),
 				},
+				{
+					Config: testAccJunosSystemRootAuthenticationPostCheck(),
+				},
 			},
 		})
 	}
@@ -55,6 +58,14 @@ func testAccJunosSystemRootAuthenticationUpdate() string {
 resource junos_system_root_authentication "root_auth" {
   encrypted_password = "$6$XXX"
   no_public_keys     = true
+}
+`
+}
+
+func testAccJunosSystemRootAuthenticationPostCheck() string {
+	return `
+resource junos_system_root_authentication "root_auth" {
+  encrypted_password = "$6$XXX"
 }
 `
 }

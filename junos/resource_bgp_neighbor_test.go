@@ -14,9 +14,6 @@ func TestAccJunosBgpNeighbor_basic(t *testing.T) {
 			Providers: testAccProviders,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosBgpConfigPreCreate(),
-				},
-				{
 					Config: testAccJunosBgpNeighborConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_bgp_neighbor.testacc_bgpneighbor",
@@ -196,19 +193,15 @@ func TestAccJunosBgpNeighbor_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosBgpConfigPreCreate() string {
+func testAccJunosBgpNeighborConfigCreate() string {
 	return `
-resource junos_routing_options "testacc_routing_options" {
+resource junos_routing_options "testacc_bgpneighbor" {
+  clean_on_destroy = true
   autonomous_system {
     number = "65001"
   }
   graceful_restart {}
 }
-`
-}
-
-func testAccJunosBgpNeighborConfigCreate() string {
-	return `
 resource junos_routing_instance "testacc_bgpneighbor" {
   name = "testacc_bgpneighbor"
   as   = "65000"
@@ -227,6 +220,9 @@ resource junos_bgp_group "testacc_bgpneighbor" {
   routing_instance = junos_routing_instance.testacc_bgpneighbor.name
 }
 resource junos_bgp_neighbor "testacc_bgpneighbor" {
+  depends_on = [
+    junos_routing_options.testacc_bgpneighbor
+  ]
   ip                 = "192.0.2.4"
   routing_instance   = junos_routing_instance.testacc_bgpneighbor.name
   group              = junos_bgp_group.testacc_bgpneighbor.name
@@ -313,6 +309,13 @@ resource junos_bgp_neighbor "testacc_bgpneighbor" {
 
 func testAccJunosBgpNeighborConfigUpdate() string {
 	return `
+resource junos_routing_options "testacc_bgpneighbor" {
+  clean_on_destroy = true
+  autonomous_system {
+    number = "65001"
+  }
+  graceful_restart {}
+}
 resource junos_routing_instance "testacc_bgpneighbor" {
   name = "testacc_bgpneighbor"
   as   = "65000"
@@ -323,6 +326,9 @@ resource junos_bgp_group "testacc_bgpneighbor" {
   type             = "internal"
 }
 resource junos_bgp_neighbor "testacc_bgpneighbor" {
+  depends_on = [
+    junos_routing_options.testacc_bgpneighbor
+  ]
   ip                              = "192.0.2.4"
   routing_instance                = junos_routing_instance.testacc_bgpneighbor.name
   group                           = junos_bgp_group.testacc_bgpneighbor.name
@@ -346,6 +352,13 @@ resource junos_bgp_neighbor "testacc_bgpneighbor" {
 
 func testAccJunosBgpNeighborConfigUpdate2() string {
 	return `
+resource junos_routing_options "testacc_bgpneighbor" {
+  clean_on_destroy = true
+  autonomous_system {
+    number = "65001"
+  }
+  graceful_restart {}
+}
 resource junos_routing_instance "testacc_bgpneighbor2" {
   name = "testacc_bgpneighbor2"
   as   = "65000"
@@ -356,6 +369,9 @@ resource junos_bgp_group "testacc_bgpneighbor2" {
   type             = "internal"
 }
 resource junos_bgp_neighbor "testacc_bgpneighbor2" {
+  depends_on = [
+    junos_routing_options.testacc_bgpneighbor
+  ]
   ip                            = "192.0.2.4"
   routing_instance              = junos_routing_instance.testacc_bgpneighbor2.name
   group                         = junos_bgp_group.testacc_bgpneighbor2.name
@@ -391,6 +407,13 @@ resource junos_bgp_neighbor "testacc_bgpneighbor2b" {
 
 func testAccJunosBgpNeighborConfigUpdate3() string {
 	return `
+resource junos_routing_options "testacc_bgpneighbor" {
+  clean_on_destroy = true
+  autonomous_system {
+    number = "65001"
+  }
+  graceful_restart {}
+}
 resource junos_routing_instance "testacc_bgpneighbor2" {
   name = "testacc_bgpneighbor2"
   as   = "65000"
@@ -401,6 +424,9 @@ resource junos_bgp_group "testacc_bgpneighbor2" {
   type             = "internal"
 }
 resource junos_bgp_neighbor "testacc_bgpneighbor2" {
+  depends_on = [
+    junos_routing_options.testacc_bgpneighbor
+  ]
   ip                     = "192.0.2.4"
   routing_instance       = junos_routing_instance.testacc_bgpneighbor2.name
   group                  = junos_bgp_group.testacc_bgpneighbor2.name

@@ -14,7 +14,7 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 	} else {
 		testaccSecurity = defaultInterfaceTestAcc
 	}
-	if os.Getenv("TESTACC_SWITCH") == "" {
+	if os.Getenv("TESTACC_SWITCH") == "" && os.Getenv("TESTACC_ROUTER") == "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:  func() { testAccPreCheck(t) },
 			Providers: testAccProviders,

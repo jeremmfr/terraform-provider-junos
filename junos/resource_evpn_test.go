@@ -49,7 +49,8 @@ resource "junos_interface_logical" "testacc_evpn" {
   }
 }
 resource "junos_routing_options" "testacc_evpn" {
-  router_id = "192.0.2.18"
+  clean_on_destroy = true
+  router_id        = "192.0.2.18"
 }
 resource "junos_switch_options" "testacc_evpn" {
   clean_on_destroy      = true
