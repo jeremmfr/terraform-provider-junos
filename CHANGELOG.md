@@ -22,6 +22,8 @@ BUG FIXES:
 * resource/`junos_security_nat_destination`: fix order issue on `from.0.value` list
 * resource/`junos_security_nat_source`: fix order issue on `from.0.value` and `to.0.value` lists (Fixes #243)
 * resource/`junos_security_nat_static`: fix order issue on `from.0.value` list
+* resource/`junos_system`: unescape the html entities for `announcement` argument inside `login` argument (Fixes parts of #251)
+* resource/`junos_system`: remove the potential double quotes for `ciphers` argument inside `services.0.ssh` argumet (Fixes parts of #251)
 
 ## 1.17.0 (June 18, 2021)
 
