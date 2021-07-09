@@ -3,28 +3,37 @@
 
 ENHANCEMENTS:
 
-* resource/`junos_policyoptions_policy_statement`: add `add_it_to_forwarding_table_export` argument (Fixes #241)
-* resource/`junos_routing_options`: add `forwarding_table_export_configure_singly` argument
-* resource/`junos_routing_options`: add `router_id` argument
+BUG FIXES:
+
+## 1.18.0 (July 9, 2021)
+
+FEATURES:
+
+* add `junos_bridge_domain` resource
+* add `junos_evpn` resource (Fixes parts of [#131](https://github.com/jeremmfr/terraform-provider-junos/issues/131))
+* add `junos_services_rpm_probe` resource (Fixes [#247](https://github.com/jeremmfr/terraform-provider-junos/issues/247))
+* add `junos_switch_options` resource (Fixes parts of [#131](https://github.com/jeremmfr/terraform-provider-junos/issues/131))
+
+ENHANCEMENTS:
+
 * resource/`junos_bgp_group`: `authentication_key` is now a sensitive argument
 * resource/`junos_bgp_neighbor`: `authentication_key` is now a sensitive argument
 * resource/`junos_interface`, `junos_interface_logical`: `vrrp_group.*.authentication_key` is now a sensitive argument
+* resource/`junos_policyoptions_policy_statement`: add `add_it_to_forwarding_table_export` argument (Fixes [#241](https://github.com/jeremmfr/terraform-provider-junos/issues/241))
+* resource/`junos_routing_instance`: add `description`, `route_distinguisher`, `vrf_export`, `vrf_import`, `vrf_target`, `vrf_target_auto`, `vrf_target_export`, `vrf_target_import`, `vtep_source_interface`, `configure_rd_vrfopts_singly` and `configure_type_singly` arguments
+* resource/`junos_routing_options`: add `forwarding_table_export_configure_singly` argument
+* resource/`junos_routing_options`: add `router_id` argument
 * resource/`junos_security_ike_gateway`: `aaa.0.client_password` is now a sensitive argument
 * resource/`junos_system`: `archival_configuration.0.archive_site.*.password` is now a sensitive argument
-* resource/`junos_routing_instance`: add `description`, `route_distinguisher`, `vrf_export`, `vrf_import`, `vrf_target`, `vrf_target_auto`, `vrf_target_export`, `vrf_target_import`, `vtep_source_interface`, `configure_rd_vrfopts_singly` and `configure_type_singly` arguments
-* add `junos_switch_options` resource (Fixes parts of #131)
-* add `junos_evpn` resource (Fixes parts of #131)
-* add `junos_services_rpm_probe` resource (Fixes #247)
-* add `junos_bridge_domain` resource
 
 BUG FIXES:
 
 * resource/`junos_ospf`: fix missing mutex unlocking when read resource and checking routing-instance existence
 * resource/`junos_security_nat_destination`: fix order issue on `from.0.value` list
-* resource/`junos_security_nat_source`: fix order issue on `from.0.value` and `to.0.value` lists (Fixes #243)
+* resource/`junos_security_nat_source`: fix order issue on `from.0.value` and `to.0.value` lists (Fixes [#243](https://github.com/jeremmfr/terraform-provider-junos/issues/243))
 * resource/`junos_security_nat_static`: fix order issue on `from.0.value` list
-* resource/`junos_system`: unescape the html entities for `announcement` argument inside `login` argument (Fixes parts of #251)
-* resource/`junos_system`: remove the potential double quotes for `ciphers` argument inside `services.0.ssh` argumet (Fixes parts of #251)
+* resource/`junos_system`: unescape the html entities for `announcement` argument inside `login` argument (Fixes parts of [#251](https://github.com/jeremmfr/terraform-provider-junos/issues/251))
+* resource/`junos_system`: remove the potential double quotes for `ciphers` argument inside `services.0.ssh` argumet (Fixes parts of [#251](https://github.com/jeremmfr/terraform-provider-junos/issues/251))
 * resource/`junos_vlan`: fix order issue on `community_vlans` and `vlan_id_list` lists
 
 ## 1.17.0 (June 18, 2021)
