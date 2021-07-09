@@ -16,7 +16,11 @@ func TestAccJunosInterface_basic(t *testing.T) {
 	if os.Getenv("TESTACC_INTERFACE") != "" {
 		testaccInterface = os.Getenv("TESTACC_INTERFACE")
 	} else {
-		testaccInterface = defaultInterfaceTestAcc
+		if os.Getenv("TESTACC_SWITCH") != "" {
+			testaccInterface = "xe-0/0/3"
+		} else {
+			testaccInterface = defaultInterfaceTestAcc
+		}
 	}
 	if os.Getenv("TESTACC_INTERFACE_AE") != "" {
 		testaccInterfaceAE = os.Getenv("TESTACC_INTERFACE_AE")
@@ -65,7 +69,7 @@ func TestAccJunosInterface_basic(t *testing.T) {
 				},
 			},
 		})
-	} else {
+	} else if os.Getenv("TESTACC_ROUTER") == "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:  func() { testAccPreCheck(t) },
 			Providers: testAccProviders,

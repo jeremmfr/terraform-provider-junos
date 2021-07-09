@@ -45,6 +45,6 @@ The following arguments are supported:
 
 Junos system radius-server can be imported using an id made up of `<address>`, e.g.
 
-```
+```shell
 $ terraform import junos_system_radius_server.demo_radius_server 192.0.2.1
 ```

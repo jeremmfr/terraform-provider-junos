@@ -43,14 +43,18 @@ The following arguments are supported:
 * `time_binding_scope` - (Optional)(`String`) Scope within which the count occurs. Need to be 'destination', 'peer' or 'source'.
 
 ---
-#### attack_type_anomaly arguments
+
+### attack_type_anomaly arguments
+
 * `direction` - (Required)(`String`) Connection direction of the attack. Need to be 'any', 'client-to-server' or 'server-to-client'.
 * `service` - (Required)(`String`) Service name.
 * `test` - (Required)(`String`) Protocol anomaly condition to be checked.
 * `shellcode` - (Optional)(`String`) Specify shellcode flag for this attack. Need to be 'all', 'intel', 'no-shellcode' or 'sparc'.
 
 ---
-#### attack_type_chain arguments
+
+### attack_type_chain arguments
+
 * `member` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each member attack to declare.
   * `name` - (Required)(`String`) Custom attack name.
   * `attack_type_anomaly` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'attack-type anomaly' configuration. Need to set one of two: `attack_type_anomaly` or `attack_type_signature`. See the [`attack_type_anomaly` arguments] (#attack_type_anomaly-arguments) block but without `service` argument.
@@ -59,10 +63,12 @@ The following arguments are supported:
 * `order` - (Optional)(`Bool`) Attacks should match in the order in which they are defined.
 * `protocol_binding` - (Optional)(`String`) Protocol binding over which attack will be detected. Need to start with 'application', 'icmp', 'ip', 'rpc', 'tcp' or 'udp' string.
 * `reset` - (Optional)(`Bool`) Repeat match should generate a new alert.
-* `scope` - (Optional)(`String`) Scope of the attack. Need to be 'session' or 'transaction'. 
+* `scope` - (Optional)(`String`) Scope of the attack. Need to be 'session' or 'transaction'.
 
 ---
-#### attack_type_signature arguments
+
+### attack_type_signature arguments
+
 * `context` - (Required)(`String`) Context.
 * `direction` - (Required)(`String`) Connection direction of the attack. Need to be 'any', 'client-to-server' or 'server-to-client'.
 * `negate` - (Optional)(`Bool`) Trigger the attack if condition is not met.
@@ -168,6 +174,6 @@ The following arguments are supported:
 
 Junos security idp custom-attack can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_security_idp_custom_attack.demo_idp_custom_attack 'SSH:BRUTE-FORCE-CUSTOM'
 ```

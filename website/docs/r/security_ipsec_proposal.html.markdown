@@ -38,6 +38,6 @@ The following arguments are supported:
 
 Junos security ipsec proposal can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_security_ipsec_proposal.demo_vpn_proposal ipsec-proposal
 ```

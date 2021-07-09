@@ -14,9 +14,6 @@ func TestAccJunosBgpGroup_basic(t *testing.T) {
 			Providers: testAccProviders,
 			Steps: []resource.TestStep{
 				{
-					Config: testAccJunosBgpConfigPreCreate(),
-				},
-				{
 					Config: testAccJunosBgpGroupConfigCreate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_bgp_group.testacc_bgpgroup",
@@ -202,6 +199,13 @@ func TestAccJunosBgpGroup_basic(t *testing.T) {
 
 func testAccJunosBgpGroupConfigCreate() string {
 	return `
+resource junos_routing_options "testacc_bgpgroup" {
+  clean_on_destroy = true
+  autonomous_system {
+    number = "65001"
+  }
+  graceful_restart {}
+}
 resource junos_routing_instance "testacc_bgpgroup" {
   name = "testacc_bgpgroup"
   as   = "65000"
@@ -216,6 +220,9 @@ resource junos_policyoptions_policy_statement "testacc_bgpgroup" {
   }
 }
 resource junos_bgp_group "testacc_bgpgroup" {
+  depends_on = [
+    junos_routing_options.testacc_bgpgroup
+  ]
   name               = "testacc_bgpgroup"
   routing_instance   = junos_routing_instance.testacc_bgpgroup.name
   advertise_inactive = true
@@ -301,11 +308,21 @@ resource junos_bgp_group "testacc_bgpgroup" {
 
 func testAccJunosBgpGroupConfigUpdate() string {
 	return `
+resource junos_routing_options "testacc_bgpgroup" {
+  clean_on_destroy = true
+  autonomous_system {
+    number = "65001"
+  }
+  graceful_restart {}
+}
 resource junos_routing_instance "testacc_bgpgroup" {
   name = "testacc_bgpgroup"
   as   = "65000"
 }
 resource junos_bgp_group "testacc_bgpgroup" {
+  depends_on = [
+    junos_routing_options.testacc_bgpgroup
+  ]
   name                            = "testacc_bgpgroup"
   routing_instance                = junos_routing_instance.testacc_bgpgroup.name
   advertise_external_conditional  = true
@@ -327,7 +344,17 @@ resource junos_bgp_group "testacc_bgpgroup" {
 
 func testAccJunosBgpGroupConfigUpdate2() string {
 	return `
+resource junos_routing_options "testacc_bgpgroup" {
+  clean_on_destroy = true
+  autonomous_system {
+    number = "65001"
+  }
+  graceful_restart {}
+}
 resource junos_bgp_group "testacc_bgpgroup" {
+  depends_on = [
+    junos_routing_options.testacc_bgpgroup
+  ]
   name                          = "testacc_bgpgroup"
   advertise_external            = true
   accept_remote_nexthop         = true
@@ -354,7 +381,17 @@ resource junos_bgp_group "testacc_bgpgroup" {
 
 func testAccJunosBgpGroupConfigUpdate3() string {
 	return `
+resource junos_routing_options "testacc_bgpgroup" {
+  clean_on_destroy = true
+  autonomous_system {
+    number = "65001"
+  }
+  graceful_restart {}
+}
 resource junos_bgp_group "testacc_bgpgroup" {
+  depends_on = [
+    junos_routing_options.testacc_bgpgroup
+  ]
   name                   = "testacc_bgpgroup"
   local_as               = "65000"
   local_as_alias         = true

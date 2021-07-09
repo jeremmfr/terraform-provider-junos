@@ -339,9 +339,12 @@ func resourceOspfReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *
 	if d.Get("routing_instance").(string) != defaultWord {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
+			mutex.Unlock()
+
 			return diag.FromErr(err)
 		}
 		if !instanceExists {
+			mutex.Unlock()
 			d.SetId("")
 
 			return nil
@@ -452,7 +455,7 @@ func setOspf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	setPrefix := setLineStart
-	ospfVersion := opsfV2
+	ospfVersion := ospfV2
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = ospfV3
 	}
@@ -610,7 +613,7 @@ func readOspf(version, routingInstance string,
 	confRead.prefixExportLimit = -1
 
 	var ospfConfig string
-	ospfVersion := opsfV2
+	ospfVersion := ospfV2
 	if version == "v3" {
 		ospfVersion = ospfV3
 	}
@@ -841,8 +844,8 @@ func readOspf(version, routingInstance string,
 func delOspf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	delPrefix := "delete "
-	ospfVersion := opsfV2
+	delPrefix := deleteWord + " "
+	ospfVersion := ospfV2
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = ospfV3
 	}

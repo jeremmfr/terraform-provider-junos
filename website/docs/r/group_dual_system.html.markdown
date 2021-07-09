@@ -48,16 +48,17 @@ The following arguments are supported:
 * `apply_groups` - (Optional)(`Bool`) Apply the group. Defaults to `true`.
 * `interface_fxp0` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for configure `fxp0` interface. See the [`interface_fxp0` arguments] (#interface_fxp0-arguments) block.
 * `routing_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for configure `routing-options` block. See the [`routing_options` arguments] (#routing_options-arguments) block.
-* `security` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for configure `security` block. 
-  * `log_source_address` - (Required)(`String`) Source ip address used when exporting security logs. 
-* `system` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) 
-Can be specified only once for configure `system` block.
+* `security` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for configure `security` block.
+  * `log_source_address` - (Required)(`String`) Source ip address used when exporting security logs.
+* `system` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for configure `system` block.
   * `host_name` - (Optional)(`String`) Hostname.
   * `backup_router_address` - (Optional)(`String`) IPv4 address backup router.
   * `backup_router_destination` - (Optional)(`ListOfString`) Destinations network reachable through the router.
 
 ---
-#### interface_fxp0 arguments
+
+### interface_fxp0 arguments
+
 * `description` - (Optional)(`String`) Description for interface.
 * `family_inet_address` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each ip address to declare.
   * `cidr_ip` - (Required)(`String`) Address IP/Mask v4.
@@ -71,7 +72,9 @@ Can be specified only once for configure `system` block.
   * `primary` - (Optional)(`Bool`) Candidate for primary address in system.
 
 ---
-#### routing_options arguments
+
+### routing_options arguments
+
 * `static_route` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each destination to declare.
   * `destination` - (Required)(`String`) The destination for static route.
   * `next_hop` - (Required)(`ListOfString`) List of next-hop.
@@ -80,6 +83,6 @@ Can be specified only once for configure `system` block.
 
 Junos group can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_group_dual_system.node0 node0
 ```

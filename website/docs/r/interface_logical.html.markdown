@@ -45,7 +45,7 @@ The following arguments are supported:
   * `filter_input` - (Optional)(`String`) Filter to be applied to received packets.
   * `filter_output` - (Optional)(`String`) Filter to be applied to transmitted packets.
   * `mtu` - (Optional)(`Int`) Maximum transmission unit.
-  * `rpf_check` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for enable reverse-path-forwarding checks on this interface. See the [`rpf_check` arguments](#rpf_check-arguments) block for optional arguments. 
+  * `rpf_check` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for enable reverse-path-forwarding checks on this interface. See the [`rpf_check` arguments](#rpf_check-arguments) block for optional arguments.
   * `sampling_input` - (Optional)(`Bool`) Sample all packets input on this interface.
   * `sampling_output` - (Optional)(`Bool`) Sample all packets output on this interface.
 * `routing_instance` - (Optional)(`String`) Add this interface in routing_instance. Need to be created before.
@@ -58,20 +58,25 @@ The following arguments are supported:
   (Unnecessary if name has '.0' suffix or 'st0.', 'irb.', 'vlan.' prefix because it's already disabled.)
 
 ---
-#### address arguments for family_inet
+
+### address arguments for family_inet
+
 * `cidr_ip` - (Required)(`String`) Address IP/Mask v4.
 * `preferred` - (Optional)(`Bool`) Preferred address on interface.
 * `primary` - (Optional)(`Bool`) Candidate for primary address in system.
 * `vrrp_group` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each vrrp group to declare. See the [`vrrp_group` arguments for address in family_inet](#vrrp_group-arguments-for-address-in-family_inet) block.
 
 ---
-#### vrrp_group arguments for address in family_inet
+
+### vrrp_group arguments for address in family_inet
+
 * `identifier` - (Required)(`Int`) ID for vrrp
 * `virtual_address` - (Required)(`ListOfString`) List of address IP v4.
 * `accept_data` - (Optional)(`Bool`) Accept packets destined for virtual IP address. Conflict with `no_accept_data` when apply.
 * `advertise_interval` - (Optional)(`Int`) Advertisement interval (seconds)
 * `advertisements_threshold` - (Optional)(`Int`)  Number of vrrp advertisements missed before declaring master down.
-* `authentication_key` - (Optional)(`String`) Authentication key
+* `authentication_key` - (Optional)(`String`) Authentication key.  
+**WARNING** Clear in tfstate.
 * `authentication_type` - (Optional)(`String`) Authentication type. Need to be 'md5' or 'simple'.
 * `no_accept_data` - (Optional)(`Bool`) Don't accept packets destined for virtual IP address. Conflict with `accept_data` when apply.
 * `no_preempt` - (Optional)(`Bool`) Don't allow preemption. Conflict with `preempt` when apply.
@@ -86,19 +91,26 @@ The following arguments are supported:
   * `priority_cost` - (Required)(`Int`) Value to subtract from priority when route is down.
 
 ---
-#### address arguments for family_inet6
+
+### address arguments for family_inet6
+
 * `cidr_ip` - (Required)(`String`) Address IP/Mask v6.
 * `preferred` - (Optional)(`Bool`) Preferred address on interface.
 * `primary` - (Optional)(`Bool`) Candidate for primary address in system.
 * `vrrp_group` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each vrrp group to declare. See the [`vrrp_group` arguments for address in family_inet6](#vrrp_group-arguments-for-address-in-family_inet6) block.
 
 ---
-#### vrrp_group arguments for address in family_inet6
+
+### vrrp_group arguments for address in family_inet6
+
 Same as [`vrrp_group` arguments for address in family_inet](#vrrp_group-arguments-for-address-in-family_inet) block but without `authentication_key`, `authentication_type` and with
+
 * `virtual_link_local_address` - (Required)(`String`) Address IPv6 for Virtual link-local addresses.
 
 ---
-#### rpf_check arguments
+
+### rpf_check arguments
+
 * `fail_filter` - (Optional)(`String`) Name of filter applied to packets failing RPF check.
 * `mode_loose` - (Optional)(`Bool`) Use reverse-path-forwarding loose mode instead the strict mode.
 
@@ -106,6 +118,6 @@ Same as [`vrrp_group` arguments for address in family_inet](#vrrp_group-argument
 
 Junos interface can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_interface_logical.interface_fw_demo_100 ae.100
 ```

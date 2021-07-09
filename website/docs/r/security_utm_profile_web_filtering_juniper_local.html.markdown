@@ -40,6 +40,6 @@ The following arguments are supported:
 
 Junos security utm feature-profile web-filtering juniper-local profile can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_security_utm_profile_web_filtering_juniper_local.demo_profile "Default Webfilter2"
 ```

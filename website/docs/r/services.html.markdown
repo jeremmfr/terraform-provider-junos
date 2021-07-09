@@ -35,14 +35,16 @@ The following arguments are supported:
 * `user_identification` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'user-identification' configuration. See the [`user_identification` arguments] (#user_identification-arguments) block.
 
 ---
-#### advanced_anti_malware arguments
+
+### advanced_anti_malware arguments
+
 * `connection` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'connection' configuration.
   * `auth_tls_profile` - (Optional)(`String`) Authentication TLS profile.  
   **Note:** If not set, tls-profile is only read from the Junos configuration (so as not to be in conflict with enrollment process).
   * `proxy_profile` - (Optional)(`String`) Proxy profile.
   * `source_address` - (Optional)(`String`) The source ip for connecting to the cloud server. Conflict with `source_interface`.
   * `source_interface` - (Optional)(`String`) The source interface for connecting to the cloud server. Conflict with `source_address`.
-  * `url` - (Optional)(`String`) The url of the cloud server [https://<ip or hostname>:<port>].  
+  * `url` - (Optional)(`String`) The url of the cloud server [https://`<ip or hostname>`:`<port>`].  
   **Note:** If not set, url is only read from the Junos configuration (so as not to be in conflict with enrollment process).
 * `default_policy` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'default-policy' configuration.
   * `blacklist_notification_log` - (Optional)(`Bool`) Logging option for Advanced Anti-malware blacklist hit.
@@ -64,7 +66,9 @@ The following arguments are supported:
   * `whitelist_notification_log` - (Optional)(`Bool`) Logging option for Advanced Anti-malware whitelist hit.
 
 ---
-#### application_identification arguments
+
+### application_identification arguments
+
 * `application_system_cache` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to enable application system cache. Conflict with `no_application_system_cache`.
   * `no_miscellaneous_services` - (Optional)(`Bool`) Disable ASC for miscellaneous services APBR,...
   * `security-services` - (Optional)(`Bool`) Enable ASC for security services (appfw, appqos, idp, skyatp..).
@@ -93,23 +97,27 @@ The following arguments are supported:
 * `statistics_interval` - (Optional)(`Int`) Configure application statistics information with collection interval (1..1440 minutes).
 
 ---
-#### security_intelligence arguments
+
+### security_intelligence arguments
+
 * `authentication_token` - (Optional)(`String`) Token string for authentication to use feed update services. Conflict with `authentication_tls_profile`.  
   **Note:** If not set, token is only read from the Junos configuration (so as not to be in conflict with enrollment process).
 * `authentication_tls_profile` - (Optional)(`String`) TLS profile for authentication to use feed update services. Conflict with `authentication_token`.  
-  **Note:** If not set, tls-profile is only read from the Junos configuration (so as not to be in conflict with enrollment process). 
+  **Note:** If not set, tls-profile is only read from the Junos configuration (so as not to be in conflict with enrollment process).
 * `category_disable` - (Optional)(`ListOfString`) Categories to be disabled
 * `default_policy` - (Optional)[attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Configure default-policy for a category. Can be specified multiple times for each category.
   * `category_name` - (Optional)(`String`) Name of security intelligence category.
   * `profile_name` - (Optional)(`String`) Name of profile.
 * `proxy_profile` - (Optional)(`String`) The proxy profile name.
-* `url` - (Optional)(`String`) Configure the url of feed server [https://<ip or hostname>:<port>/<uri>].  
+* `url` - (Optional)(`String`) Configure the url of feed server [https://`<ip or hostname>`:`<port>`/`<uri>`].  
   **Note:** If not set, url is only read from the Junos configuration (so as not to be in conflict with enrollment process).
 * `url_parameter` - (Optional)(`String`) Configure the parameter of url.  
   **WARNING** Clear in tfstate.
 
 ---
-#### user_identification arguments
+
+### user_identification arguments
+
 * `ad_access` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to enable 'active-directory-access'. Conflict with `identity_management`.
   * `auth_entry_timeout` - (Optional)(`Int`) Authentication entry timeout number (0, 10-1440) (minutes).
   * `filter_exclude` - (Optional)(`ListOfString`) Exclude addresses.
@@ -122,7 +130,9 @@ The following arguments are supported:
 * `identity_management` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'identity-management' configuration. See the [`identity_management` arguments for user_identification] (#identity_management-arguments-for-user_identification) block. Conflict with `ad_access`.
 
 ---
-#### identity_management arguments for user_identification
+
+### identity_management arguments for user_identification
+
 * `connection` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'connection' configuration.
   * `primary_address` - (Required)(`String`) IP address of Primary server.
   * `primary_client_id` - (Required)(`String`) Client ID of Primary server for OAuth2 grant.
@@ -154,6 +164,6 @@ The following arguments are supported:
 
 Junos services can be imported using any id, e.g.
 
-```
+```shell
 $ terraform import junos_services.services random
 ```

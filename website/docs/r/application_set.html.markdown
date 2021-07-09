@@ -31,6 +31,6 @@ The following arguments are supported:
 
 Junos application set can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_application_set.ssh_telnet ssh_telnet
 ```

@@ -26,12 +26,12 @@ The following arguments are supported:
 
 * `name` - (Required, Forces new resource)(`String`) Proxy profile name.
 * `protocol_http_host` - (Required)(`String`) Proxy server name or IP address.
-* `protocol_http_port` - (Optional)(`Int`) Proxy server port (1..65535). 
+* `protocol_http_port` - (Optional)(`Int`) Proxy server port (1..65535).
 
 ## Import
 
 Junos services proxy profile can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_services_proxy_profile.demo demo
 ```

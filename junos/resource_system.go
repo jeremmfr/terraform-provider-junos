@@ -3,6 +3,7 @@ package junos
 import (
 	"context"
 	"fmt"
+	"html"
 	"strconv"
 	"strings"
 
@@ -66,8 +67,9 @@ func resourceSystem() *schema.Resource {
 										Required: true,
 									},
 									"password": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:      schema.TypeString,
+										Optional:  true,
+										Sensitive: true,
 									},
 								},
 							},
@@ -1045,7 +1047,7 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 				configSet = append(configSet, setPrefix+"ssh authentication-order "+auth.(string))
 			}
 			for _, ciphers := range servicesSSHM["ciphers"].([]interface{}) {
-				configSet = append(configSet, setPrefix+"ssh ciphers "+ciphers.(string))
+				configSet = append(configSet, setPrefix+"ssh ciphers \""+ciphers.(string)+"\"")
 			}
 			if servicesSSHM["client_alive_count_max"].(int) > -1 {
 				configSet = append(configSet, setPrefix+"ssh client-alive-count-max "+
@@ -1646,7 +1648,8 @@ func readSystemLogin(confRead *systemOptions, itemTrim string) error {
 	}
 	switch {
 	case strings.HasPrefix(itemTrim, "login announcement "):
-		confRead.login[0]["announcement"] = strings.Trim(strings.TrimPrefix(itemTrim, "login announcement "), "\"")
+		confRead.login[0]["announcement"] =
+			html.UnescapeString(strings.Trim(strings.TrimPrefix(itemTrim, "login announcement "), "\""))
 	case strings.HasPrefix(itemTrim, "login deny-sources address "):
 		confRead.login[0]["deny_sources_address"] = append(confRead.login[0]["deny_sources_address"].([]string),
 			strings.TrimPrefix(itemTrim, "login deny-sources address "))
@@ -2028,7 +2031,7 @@ func readSystemServicesSSH(confRead *systemOptions, itemTrim string) error {
 	case strings.HasPrefix(itemTrim, "services ssh ciphers "):
 		confRead.services[0]["ssh"].([]map[string]interface{})[0]["ciphers"] = append(
 			confRead.services[0]["ssh"].([]map[string]interface{})[0]["ciphers"].([]string),
-			strings.TrimPrefix(itemTrim, "services ssh ciphers "))
+			strings.Trim(strings.TrimPrefix(itemTrim, "services ssh ciphers "), "\""))
 	case strings.HasPrefix(itemTrim, "services ssh client-alive-count-max "):
 		var err error
 		confRead.services[0]["ssh"].([]map[string]interface{})[0]["client_alive_count_max"], err =

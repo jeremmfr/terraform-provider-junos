@@ -42,7 +42,9 @@ The following arguments are supported:
 * `rule` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each rule to declare. See the [`rule` arguments](#rule-arguments) block.
 
 ---
-#### rule arguments
+
+### rule arguments
+
 * `name` - (Required)(`String`) Name of rule.
 * `destination_address` - (Required)(`String`) CIDR of destination address for rule.
 * `then` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'then' configuration.
@@ -54,6 +56,6 @@ The following arguments are supported:
 
 Junos security nat static can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_security_nat_static.demo_nat nat_from_trust
 ```

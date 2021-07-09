@@ -289,6 +289,17 @@ func checkCompatibilitySecurity(jnprSess *NetconfObject) bool {
 	return false
 }
 
+func checkCompatibilityRouter(jnprSess *NetconfObject) bool {
+	if strings.HasPrefix(strings.ToLower(jnprSess.SystemInformation.HardwareModel), "mx") {
+		return true
+	}
+	if strings.HasPrefix(strings.ToLower(jnprSess.SystemInformation.HardwareModel), "vmx") {
+		return true
+	}
+
+	return false
+}
+
 func listOfSyslogSeverity() []string {
 	return []string{
 		"alert", "any", "critical",

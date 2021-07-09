@@ -87,6 +87,7 @@ resource junos_routing_options "testacc_routing_options" {
     restart_duration = 120
     disable          = true
   }
+  router_id = "192.0.2.4"
 }
 `
 }
@@ -94,7 +95,8 @@ resource junos_routing_options "testacc_routing_options" {
 func testAccJunosRoutingOptionsConfigUpdate() string {
 	return `
 resource junos_routing_options "testacc_routing_options" {
-  clean_on_destroy = true
+  clean_on_destroy                         = true
+  forwarding_table_export_configure_singly = true
   forwarding_table {
     no_ecmp_fast_reroute                         = true
     no_indirect_next_hop                         = true
@@ -102,6 +104,19 @@ resource junos_routing_options "testacc_routing_options" {
     unicast_reverse_path                         = "feasible-paths"
   }
   graceful_restart {}
+}
+resource junos_policyoptions_policy_statement "testacc_routing_options" {
+  name                              = "testacc_routing_options"
+  add_it_to_forwarding_table_export = true
+  from {
+    route_filter {
+      route  = "192.0.2.0/25"
+      option = "orlonger"
+    }
+  }
+  then {
+    load_balance = "per-packet"
+  }
 }
 `
 }

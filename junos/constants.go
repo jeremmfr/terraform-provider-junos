@@ -17,7 +17,7 @@ const (
 	setWord               = "set"
 	setLineStart          = setWord + " "
 	st0Word               = "st0"
-	opsfV2                = "ospf"
+	ospfV2                = "ospf"
 	ospfV3                = "ospf3"
 	activeW               = "active"
 	asPathAtomicAggregate = "as-path atomic-aggregate"

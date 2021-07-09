@@ -37,6 +37,6 @@ All arguments forces new resource
 
 Junos security policy can be imported using an id made up of `<zone_a>_-_<policy_a_to_b>_-_<zone_b>_-_<policy_b_to_a>`, e.g.
 
-```
+```shell
 $ terraform import junos_security_policy_tunnel_pair_policy.demo_pair trust_-_trust_to_untrust_-_untrust_-_untrust_to_trust
 ```

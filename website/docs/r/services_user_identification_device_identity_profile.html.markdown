@@ -38,6 +38,6 @@ The following arguments are supported:
 
 Junos services user-identification device-information end-user-profile can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_services_user_identification_device_identity_profile.demo demo
 ```

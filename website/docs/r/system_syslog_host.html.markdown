@@ -58,6 +58,6 @@ The following arguments are supported:
 
 Junos system syslog host can be imported using an id made up of `<host>`, e.g.
 
-```
+```shell
 $ terraform import junos_system_syslog_host.demo_syslog_host 192.0.2.1
 ```

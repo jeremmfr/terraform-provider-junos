@@ -43,6 +43,6 @@ The following arguments are supported:
 
 Junos services ssl initiation profile can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_services_ssl_initiation_profile.demo demo
 ```

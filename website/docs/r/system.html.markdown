@@ -50,7 +50,8 @@ The following arguments are supported:
 * `internet_options` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'internet-options' configuration. See the [`internet_options` arguments] (#internet_options-arguments) block.
 * `license` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified once to declare 'license' configuration.
   * `autoupdate` - (Optional)(`Bool`) Enable autoupdate license keys.
-  * `autoupdate_password` - (Optional)(`String`) Password for autoupdate license keys from license servers. `autoupdate_url` needs to be set.
+  * `autoupdate_password` - (Optional)(`String`) Password for autoupdate license keys from license servers. `autoupdate_url` needs to be set.  
+  **WARNING** Clear in tfstate.
   * `autoupdate_url` - (Optional)(`String`) Url for autoupdate license keys from license servers. `autoupdate` needs to be set.
   * `renew_before_expiration` - (Optional)(`Int`) License renewal lead time before expiration, in days (0..60). `renew_interval` needs to be set.
   * `renew_interval` - (Optional)(`Int`) License checking interval, in hours (1..336). `renew_before_expiration` needs to be set.
@@ -74,19 +75,24 @@ The following arguments are supported:
   * `archive` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'archive' configuration. See the [`archive` arguments for syslog] (#archive-arguments-for-syslog) block.
   * `log_rotate_frequency` - (Optional)(`Int`) Rotate log frequency (1..59 minutes).
   * `source_address` - (Optional)(`String`) Use specified address as source address.
-* `time_zone` - (Optional)(`String`) Time zone name or POSIX-compliant time zone string (<continent>/<major-city> or <time-zone>).
+* `time_zone` - (Optional)(`String`) Time zone name or POSIX-compliant time zone string (`<continent>`/`<major-city>` or `<time-zone>`).
 * `tracing_dest_override_syslog_host` - (Optional)(`String`) Send trace messages to remote syslog server.
 
 ---
-#### archival_configuration arguments
+
+### archival_configuration arguments
+
 * `archive_site` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each archive-site destination.
   * `url` - (Required)(`String`) URLs to receive configuration files.
-  * `password` - (Optional)(`String`) Password for login into the archive site.
+  * `password` - (Optional)(`String`) Password for login into the archive site.  
+  **WARNING** Clear in tfstate.
 * `transfer_interval` - (Optional)(`Int`) Frequency at which file transfer happens (15..2880 minutes). One of `transfer_interval` and `transfer_on_commit` arguments need to be set.
 * `transfer_on_commit` - (Optional)(`Bool`) Transfer after each commit. One of `transfer_interval` and `transfer_on_commit` arguments need to be set.
 
 ---
-#### internet_options arguments
+
+### internet_options arguments
+
 * `gre_path_mtu_discovery` - (Optional)(`Bool`) Enable path MTU discovery for GRE tunnels. Conflict with `no_gre_path_mtu_discovery`.
 * `icmpv4_rate_limit` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'icmpv4-rate-limit' configuration.
   * `bucket_size` - (Optional)(`Int`) ICMP rate-limiting maximum bucket size (seconds).
@@ -115,7 +121,9 @@ The following arguments are supported:
 * `tcp_mss` - (Optional)(`Int`) Maximum value of TCP MSS for IPV4 traffic (64..65535 bytes).
 
 ---
-#### login arguments
+
+### login arguments
+
 * `announcement` - (Optional)(`String`) System announcement message (displayed after login).
 * `deny_sources_address` - (Optional)(`ListOfString`) Sources from which logins are denied.
 * `idle_timeout` - (Optional)(`Int`) Maximum idle time before logout (1..60 minutes).
@@ -141,7 +149,9 @@ The following arguments are supported:
   * `tries_before_disconnect` - (Optional)(`Int`) Number of times user is allowed to try password (2..10).
 
 ---
-#### ssh arguments for services
+
+### ssh arguments for services
+
 * `authentication_order` - (Optional)(`ListOfString`) Order in which authentication methods are invoked.
 * `ciphers` - (Optional)(`ListOfString`) Specify the ciphers allowed for protocol version 2.
 * `client_alive_count_max` - (Optional)(`Int`) Threshold of missing client-alive responses that triggers a disconnect (0..255).
@@ -163,12 +173,16 @@ The following arguments are supported:
 * `tcp_forwarding` - (Optional)(`Bool`) Allow forwarding TCP connections via SSH.
 
 ---
-#### web_management_http arguments for services
+
+### web_management_http arguments for services
+
 * `interface` - (Optional)(`ListOfString`) Specify the name of one or more interfaces.
 * `port` - (Optional)(`Int`) Port number to connect to HTTP service (1..65535).
 
 ---
-#### web_management_https arguments for services
+
+### web_management_https arguments for services
+
 * `interface` - (Optional)(`ListOfString`) Specify the name of one or more interfaces.
 * `local_certificate` - (Optional)(`String`) Specify the name of the certificate. Need to set one of three: `local_certificate`, `pki_local_certificate` or `system_generated_certificate`.
 * `pki_local_certificate` - (Optional)(`String`) Specify the name of the certificate that is generated by the PKI and authenticated by a CA. Need to set one of three: `local_certificate`, `pki_local_certificate` or `system_generated_certificate`.
@@ -176,7 +190,9 @@ The following arguments are supported:
 * `system_generated_certificate` - (Optional)(`Bool`) Will automatically generate a self-signed certificate. Need to set one of three: `local_certificate`, `pki_local_certificate` or `system_generated_certificate`.
 
 ---
-#### archive arguments for syslog
+
+### archive arguments for syslog
+
 * `binary_data` - (Optional)(`Bool`) Mark file as if it contains binary data.
 * `no_binary_data` - (Optional)(`Bool`) Don't mark file as if it contains binary data.
 * `files` - (Optional)(`Int`) Number of files to be archived (1..1000).
@@ -188,6 +204,6 @@ The following arguments are supported:
 
 Junos system can be imported using any id, e.g.
 
-```
+```shell
 $ terraform import junos_system.system random
 ```

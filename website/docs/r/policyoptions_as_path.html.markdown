@@ -32,6 +32,6 @@ The following arguments are supported:
 
 Junos as-path can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_policyoptions_as_path.github github
 ```

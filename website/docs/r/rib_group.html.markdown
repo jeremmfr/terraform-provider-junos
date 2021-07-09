@@ -34,6 +34,6 @@ The following arguments are supported:
 
 Junos rib group can be imported using an id made up of `<name>`, e.g.
 
-```
+```shell
 $ terraform import junos_rib_group.demo_rib prod
 ```

@@ -64,7 +64,9 @@ The following arguments are supported:
 * `heartbeat_threshold` - (Optional)(`Int`) Number of consecutive missed heartbeats to indicate device failure (3..8).
 
 ---
-#### interface_monitor arguments for redundancy_group
+
+### interface_monitor arguments for redundancy_group
+
 * `name` - (Required)(`String`) Name of the interface to monitor.
 * `weight` - (Required)(`Int`) Weight assigned to this interface that influences failover (0..255).
 
@@ -72,6 +74,6 @@ The following arguments are supported:
 
 Junos chassis cluster can be imported using any id, e.g.
 
-```
+```shell
 $ terraform import junos_chassis_cluster.cluster random
 ```

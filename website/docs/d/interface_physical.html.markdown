@@ -63,7 +63,9 @@ The following arguments are supported:
 * `vlan_tagging` - 802.1q VLAN tagging support.
 
 ---
-#### esi attributes
+
+### esi attributes
+
 * `mode` - ESI Mode
 * `identifier` - The ESI value for the interface
 * `auto_derive_lacp` - Auto-derive ESI value for the interface
@@ -71,7 +73,9 @@ The following arguments are supported:
 * `source_bmac` - Unicast Source B-MAC address per ESI for PBB-EVPN
 
 ---
-#### parent_ether_opts attributes
+
+### parent_ether_opts attributes
+
 * `bfd_liveness_detection` - Declare 'bfd-liveness-detection' in 'aggregated-ether-options' configuration. See the [`bfd_liveness_detection` attributes in parent_ether_opts](#bfd_liveness_detection-attributes-in-parent_ether_opts) block.
 * `flow_control` - Enable flow control.
 * `no_flow_control` - Don't enable flow control.
@@ -92,7 +96,9 @@ The following arguments are supported:
 * `source_filtering` - Enable source address filtering.
 
 ---
-#### bfd_liveness_detection attributes in parent_ether_opts
+
+### bfd_liveness_detection attributes in parent_ether_opts
+
 * `local_address` - BFD local address.
 * `authentication_algorithm` - Authentication algorithm name.
 * `authentication_key_chain` - Authentication Key chain name.

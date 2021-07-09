@@ -44,7 +44,7 @@ func resourceSecurityNatDestination() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{"interface", "routing-instance", "zone"}, false),
 						},
 						"value": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Required: true,
 							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
@@ -286,7 +286,7 @@ func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *
 	setPrefix := "set security nat destination rule-set " + d.Get("name").(string)
 	for _, v := range d.Get("from").([]interface{}) {
 		from := v.(map[string]interface{})
-		for _, value := range from["value"].([]interface{}) {
+		for _, value := range from["value"].(*schema.Set).List() {
 			configSet = append(configSet, setPrefix+" from "+from["type"].(string)+" "+value.(string))
 		}
 	}
