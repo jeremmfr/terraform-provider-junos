@@ -44,7 +44,7 @@ func resourceVlan() *schema.Resource {
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"community_vlans": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeInt},
 			},
@@ -102,7 +102,7 @@ func resourceVlan() *schema.Resource {
 				ConflictsWith: []string{"vlan_id_list"},
 			},
 			"vlan_id_list": {
-				Type:          schema.TypeList,
+				Type:          schema.TypeSet,
 				Optional:      true,
 				Elem:          &schema.Schema{Type: schema.TypeString},
 				ConflictsWith: []string{"vlan_id"},
@@ -341,7 +341,7 @@ func setVlan(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	configSet := make([]string, 0)
 
 	setPrefix := "set vlans " + d.Get("name").(string) + " "
-	for _, v := range d.Get("community_vlans").([]interface{}) {
+	for _, v := range d.Get("community_vlans").(*schema.Set).List() {
 		configSet = append(configSet, setPrefix+"community-vlans "+strconv.Itoa(v.(int)))
 	}
 	if d.Get("description").(string) != "" {
@@ -374,7 +374,7 @@ func setVlan(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	if d.Get("vlan_id").(int) != 0 {
 		configSet = append(configSet, setPrefix+"vlan-id "+strconv.Itoa(d.Get("vlan_id").(int)))
 	}
-	for _, v := range d.Get("vlan_id_list").([]interface{}) {
+	for _, v := range d.Get("vlan_id_list").(*schema.Set).List() {
 		configSet = append(configSet, setPrefix+"vlan-id-list "+v.(string))
 	}
 	for _, v := range d.Get("vxlan").([]interface{}) {
