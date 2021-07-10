@@ -3,6 +3,7 @@ package junos
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -12,11 +13,16 @@ import (
 )
 
 type applicationOptions struct {
-	inactivityTimeout int
-	name              string
-	destinationPort   string
-	protocol          string
-	sourcePort        string
+	inactivityTimeout   int
+	name                string
+	applicationProtocol string
+	description         string
+	destinationPort     string
+	etherType           string
+	protocol            string
+	rpcProgramNumber    string
+	sourcePort          string
+	uuid                string
 }
 
 func resourceApplication() *schema.Resource {
@@ -35,9 +41,23 @@ func resourceApplication() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
+			"application_protocol": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"destination_port": {
 				Type:     schema.TypeString,
 				Optional: true,
+			},
+			"ether_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(
+					`^0[xX][0-9a-fA-F]{4}$`), "must be in hex (example: 0x8906)"),
 			},
 			"inactivity_timeout": {
 				Type:         schema.TypeInt,
@@ -48,9 +68,22 @@ func resourceApplication() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"rpc_program_number": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(
+					`^\d+(-\d+)?$`), "must be an integer or a range of integers"),
+			},
 			"source_port": {
 				Type:     schema.TypeString,
 				Optional: true,
+			},
+			"uuid": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(
+					`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
+					"must be of the form xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"),
 			},
 		},
 	}
@@ -238,8 +271,17 @@ func setApplication(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	configSet := make([]string, 0)
 
 	setPrefix := "set applications application " + d.Get("name").(string) + " "
+	if v := d.Get("application_protocol").(string); v != "" {
+		configSet = append(configSet, setPrefix+"application-protocol "+v)
+	}
+	if v := d.Get("description").(string); v != "" {
+		configSet = append(configSet, setPrefix+"description \""+v+"\"")
+	}
 	if v := d.Get("destination_port").(string); v != "" {
 		configSet = append(configSet, setPrefix+"destination-port "+v)
+	}
+	if v := d.Get("ether_type").(string); v != "" {
+		configSet = append(configSet, setPrefix+"ether-type "+v)
 	}
 	if v := d.Get("inactivity_timeout").(int); v != 0 {
 		configSet = append(configSet, setPrefix+"inactivity-timeout "+strconv.Itoa(v))
@@ -247,8 +289,14 @@ func setApplication(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	if v := d.Get("protocol").(string); v != "" {
 		configSet = append(configSet, setPrefix+"protocol "+v)
 	}
+	if v := d.Get("rpc_program_number").(string); v != "" {
+		configSet = append(configSet, setPrefix+"rpc-program-number "+v)
+	}
 	if v := d.Get("source_port").(string); v != "" {
 		configSet = append(configSet, setPrefix+"source-port "+v)
+	}
+	if v := d.Get("uuid").(string); v != "" {
+		configSet = append(configSet, setPrefix+"uuid "+v)
 	}
 
 	return sess.configSet(configSet, jnprSess)
@@ -274,8 +322,14 @@ func readApplication(application string, m interface{}, jnprSess *NetconfObject)
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
+			case strings.HasPrefix(itemTrim, "application-protocol "):
+				confRead.applicationProtocol = strings.TrimPrefix(itemTrim, "application-protocol ")
+			case strings.HasPrefix(itemTrim, "description "):
+				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
 			case strings.HasPrefix(itemTrim, "destination-port "):
 				confRead.destinationPort = strings.TrimPrefix(itemTrim, "destination-port ")
+			case strings.HasPrefix(itemTrim, "ether-type "):
+				confRead.etherType = strings.TrimPrefix(itemTrim, "ether-type ")
 			case strings.HasPrefix(itemTrim, "inactivity-timeout "):
 				var err error
 				confRead.inactivityTimeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "inactivity-timeout "))
@@ -284,8 +338,12 @@ func readApplication(application string, m interface{}, jnprSess *NetconfObject)
 				}
 			case strings.HasPrefix(itemTrim, "protocol "):
 				confRead.protocol = strings.TrimPrefix(itemTrim, "protocol ")
+			case strings.HasPrefix(itemTrim, "rpc-program-number "):
+				confRead.rpcProgramNumber = strings.TrimPrefix(itemTrim, "rpc-program-number ")
 			case strings.HasPrefix(itemTrim, "source-port "):
 				confRead.sourcePort = strings.TrimPrefix(itemTrim, "source-port ")
+			case strings.HasPrefix(itemTrim, "uuid "):
+				confRead.uuid = strings.TrimPrefix(itemTrim, "uuid ")
 			}
 		}
 	}
@@ -305,7 +363,16 @@ func fillApplicationData(d *schema.ResourceData, applicationOptions applicationO
 	if tfErr := d.Set("name", applicationOptions.name); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("application_protocol", applicationOptions.applicationProtocol); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("description", applicationOptions.description); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("destination_port", applicationOptions.destinationPort); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("ether_type", applicationOptions.etherType); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("inactivity_timeout", applicationOptions.inactivityTimeout); tfErr != nil {
@@ -314,7 +381,13 @@ func fillApplicationData(d *schema.ResourceData, applicationOptions applicationO
 	if tfErr := d.Set("protocol", applicationOptions.protocol); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("rpc_program_number", applicationOptions.rpcProgramNumber); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("source_port", applicationOptions.sourcePort); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("uuid", applicationOptions.uuid); tfErr != nil {
 		panic(tfErr)
 	}
 }
