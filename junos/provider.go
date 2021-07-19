@@ -101,6 +101,7 @@ func Provider() *schema.Provider {
 			"junos_bridge_domain":                                        resourceBridgeDomain(),
 			"junos_chassis_cluster":                                      resourceChassisCluster(),
 			"junos_eventoptions_destination":                             resourceEventoptionsDestination(),
+			"junos_eventoptions_policy":                                  resourceEventoptionsPolicy(),
 			"junos_evpn":                                                 resourceEvpn(),
 			"junos_firewall_filter":                                      resourceFirewallFilter(),
 			"junos_firewall_policer":                                     resourceFirewallPolicer(),
