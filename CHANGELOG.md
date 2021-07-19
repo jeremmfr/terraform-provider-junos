@@ -3,6 +3,8 @@
 
 ENHANCEMENTS:
 
+* resource/`junos_application`: add `application_protocol`, `description`, `ether_type`, `rpc_program_number` and `uuid` arguments (Fixes #255)
+
 BUG FIXES:
 
 ## 1.18.0 (July 09, 2021)

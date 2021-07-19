@@ -33,6 +33,11 @@ func TestAccJunosApplication_basic(t *testing.T) {
 					ImportState:       true,
 					ImportStateVerify: true,
 				},
+				{
+					ResourceName:      "junos_application.testacc_app2",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
 			},
 		})
 	}
@@ -51,11 +56,20 @@ resource "junos_application" "testacc_app" {
 func testAccJunosApplicationConfigUpdate() string {
 	return `
 resource "junos_application" "testacc_app" {
-  name               = "testacc_app"
+  name                 = "testacc_app"
+  protocol             = "tcp"
+  destination_port     = "22"
+  application_protocol = "ssh"
+  description          = "ssh protocol"
+  inactivity_timeout   = 900
+  source_port          = "1024-65535"
+}
+resource "junos_application" "testacc_app2" {
+  name               = "testacc_app2"
   protocol           = "tcp"
-  destination_port   = "22"
-  source_port        = "1024-65535"
-  inactivity_timeout = 900
+  ether_type         = "0x0800"
+  rpc_program_number = "0-0"
+  uuid               = "AAAAA0AA-B9B0-CCcc-DDDD-EEEffFFFAAAA"
 }
 `
 }
