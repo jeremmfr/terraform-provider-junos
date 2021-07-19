@@ -3,6 +3,7 @@
 
 ENHANCEMENTS:
 
+* add `junos_eventoptions_destination` resource
 * resource/`junos_application`: add `application_protocol`, `description`, `ether_type`, `rpc_program_number` and `uuid` arguments (Fixes #255)
 
 BUG FIXES:
