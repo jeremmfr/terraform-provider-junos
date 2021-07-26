@@ -7,5 +7,5 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.7.0
 	github.com/jeremmfr/go-netconf v0.3.1
 	github.com/jeremmfr/junosdecode v1.0.0
-	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
+	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97
 )
