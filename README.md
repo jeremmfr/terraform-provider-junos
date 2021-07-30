@@ -12,8 +12,8 @@
 [![Registry](https://img.shields.io/badge/registry-doc%40latest-lightgrey?logo=terraform)](https://registry.terraform.io/providers/jeremmfr/junos/latest/docs)
 [![Website](https://img.shields.io/badge/website-doc%40latest-lightgrey)](https://terraform-provider-junos.jeremm.fr/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/jeremmfr/terraform-provider-junos/blob/main/LICENSE)  
-[![Go Status](https://github.com/jeremmfr/terraform-provider-junos/workflows/Go%20Tests/badge.svg)](https://github.com/jeremmfr/terraform-provider-junos/actions)
-[![Lint Status](https://github.com/jeremmfr/terraform-provider-junos/workflows/GolangCI-Lint/badge.svg)](https://github.com/jeremmfr/terraform-provider-junos/actions)
+[![Go Status](https://github.com/jeremmfr/terraform-provider-junos/actions/workflows/go.yml/badge.svg)](https://github.com/jeremmfr/terraform-provider-junos/actions/workflows/go.yml)
+[![Linters Status](https://github.com/jeremmfr/terraform-provider-junos/actions/workflows/linters.yml/badge.svg)](https://github.com/jeremmfr/terraform-provider-junos/actions/workflows/linters.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/jeremmfr/terraform-provider-junos)](https://goreportcard.com/report/github.com/jeremmfr/terraform-provider-junos)  
 [![Buy Me A Coffee](https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg)](https://www.buymeacoffee.com/jeremmfr)
 <!-- markdownlint-restore -->

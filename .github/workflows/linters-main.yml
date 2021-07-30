@@ -1,8 +1,11 @@
-name: GolangCI-Lint
-on: [push, pull_request]
+name: Linters-Main
+on:
+  push:
+    branches:
+      - main
 jobs:
-  run:
-    name: Run
+  golangci-lint:
+    name: golangci-lint-latest
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -10,5 +13,5 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
         with:
-          version: v1.41
+          version: latest
           args: -c .golangci.yml -v

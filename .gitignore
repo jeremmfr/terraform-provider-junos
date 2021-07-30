@@ -4,10 +4,16 @@
 *.dll
 *.so
 *.dylib
+vendor/
 terraform-provider-junos_v*
+terraform-provider-junos
 
 # Test binary, build with `go test -c`
 *.test
+*.log
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+
+# Editor config
+.vscode/

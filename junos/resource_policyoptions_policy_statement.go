@@ -208,7 +208,6 @@ func schemaPolicyoptionsPolicyStatementFrom() map[string]*schema.Schema {
 					"option_value": {
 						Type:     schema.TypeString,
 						Optional: true,
-						Elem:     &schema.Schema{Type: schema.TypeString},
 					},
 				},
 			},

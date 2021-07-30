@@ -5,7 +5,18 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-## 1.18.0 (July 9, 2021)
+## 1.19.0 (July 30, 2021)
+
+FEATURES:
+
+* add `junos_eventoptions_destination` resource
+* add `junos_eventoptions_policy` resource (Fixes [#252](https://github.com/jeremmfr/terraform-provider-junos/issues/252))
+
+ENHANCEMENTS:
+
+* resource/`junos_application`: add `application_protocol`, `description`, `ether_type`, `rpc_program_number` and `uuid` arguments (Fixes [#255](https://github.com/jeremmfr/terraform-provider-junos/issues/255))
+
+## 1.18.0 (July 09, 2021)
 
 FEATURES:
 
@@ -33,7 +44,7 @@ BUG FIXES:
 * resource/`junos_security_nat_source`: fix order issue on `from.0.value` and `to.0.value` lists (Fixes [#243](https://github.com/jeremmfr/terraform-provider-junos/issues/243))
 * resource/`junos_security_nat_static`: fix order issue on `from.0.value` list
 * resource/`junos_system`: unescape the html entities for `announcement` argument inside `login` argument (Fixes parts of [#251](https://github.com/jeremmfr/terraform-provider-junos/issues/251))
-* resource/`junos_system`: remove the potential double quotes for `ciphers` argument inside `services.0.ssh` argumet (Fixes parts of [#251](https://github.com/jeremmfr/terraform-provider-junos/issues/251))
+* resource/`junos_system`: remove the potential double quotes for `ciphers` argument inside `services.0.ssh` argument (Fixes parts of [#251](https://github.com/jeremmfr/terraform-provider-junos/issues/251))
 * resource/`junos_vlan`: fix order issue on `community_vlans` and `vlan_id_list` lists
 
 ## 1.17.0 (June 18, 2021)
@@ -154,7 +165,7 @@ ENHANCEMENTS:
 * resource/`junos_security_policy`: add `match_dynamic_application` arguments (Fixes parts of [#158](https://github.com/jeremmfr/terraform-provider-junos/issues/158))
 * resource/`junos_static_route`: add `as_path_*` arguments and simplify delete lines when update
 * resource/`junos_vlan`: add `vni_extend_evpn` argument inside `vxlan` argument (Fixes [#132](https://github.com/jeremmfr/terraform-provider-junos/issues/132)) Thanks [@dejongm](https://github.com/dejongm)
-* clean code: remove useless type/func exporting, and fixes formating golang code
+* clean code: remove useless type/func exporting, and fixes formatting golang code
 
 BUG FIXES:
 
@@ -172,7 +183,7 @@ FEATURES:
 * add `junos_security_global_policy` resource (Fixes [#138](https://github.com/jeremmfr/terraform-provider-junos/issues/138))
 * add provider argument `file_permission`
 * add provider argument `fake_create_with_setfile` -  **Don't use in normal terraform run** and **be carefully with this option**
-See docs for more informations (Fixes parts of [#136](https://github.com/jeremmfr/terraform-provider-junos/issues/136))
+See docs for more information (Fixes parts of [#136](https://github.com/jeremmfr/terraform-provider-junos/issues/136))
 
 ENHANCEMENTS:
 
@@ -220,19 +231,19 @@ BUG FIXES:
 * fix IP/Mask validation for point to point IPs
 * clean code: remove useless else when read a empty config
 
-## 1.12.3 (February 5, 2021)
+## 1.12.3 (February 05, 2021)
 
 BUG FIXES:
 
 * fix crash when `bind_interface` change in `junos_security_ipsec_vpn` resource
 
-## 1.12.2 (February 3, 2021)
+## 1.12.2 (February 03, 2021)
 
 BUG FIXES:
 
 * allow the name length of some objects > 32 for part of the resources (Fixes [#101](https://github.com/jeremmfr/terraform-provider-junos/issues/101))
 
-## 1.12.1 (February 1, 2021)
+## 1.12.1 (February 01, 2021)
 
 BUG FIXES:
 
@@ -472,7 +483,7 @@ BUG FIXES:
 
 BUG FIXES:
 
-* fix `junos_interface` resource : crach on closeSession Netconf after error on startNewSession
+* fix `junos_interface` resource : crash on closeSession Netconf after error on startNewSession
 
 ## 1.0.4 (January 03, 2020)
 
