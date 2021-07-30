@@ -1,0 +1,24 @@
+name: Tfproviderlint
+on: [push, pull_request]
+jobs:
+  tfproviderlint:
+    name: tfproviderlint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.16
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+        id: go
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Check out tfproviderlint code
+        uses: actions/checkout@v2
+        with:
+          repository: bflad/tfproviderlint
+          ref: v0.27.1
+          path: tfproviderlint
+      - name: Build tfproviderlint bin
+        run: cd tfproviderlint && go install ./... && cd ${GITHUB_WORKSPACE}
+      - name: Run tfproviderlint
+        run: tfproviderlint -AT001=false -AT006=false -R007=false -R009=false -R014=false -R018=false ./...
