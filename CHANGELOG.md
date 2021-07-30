@@ -3,11 +3,18 @@
 
 ENHANCEMENTS:
 
-* add `junos_eventoptions_destination` resource
-* add `junos_eventoptions_policy` resource (Fixes #252)
-* resource/`junos_application`: add `application_protocol`, `description`, `ether_type`, `rpc_program_number` and `uuid` arguments (Fixes #255)
-
 BUG FIXES:
+
+## 1.19.0 (July 30, 2021)
+
+FEATURES:
+
+* add `junos_eventoptions_destination` resource
+* add `junos_eventoptions_policy` resource (Fixes [#252](https://github.com/jeremmfr/terraform-provider-junos/issues/252))
+
+ENHANCEMENTS:
+
+* resource/`junos_application`: add `application_protocol`, `description`, `ether_type`, `rpc_program_number` and `uuid` arguments (Fixes [#255](https://github.com/jeremmfr/terraform-provider-junos/issues/255))
 
 ## 1.18.0 (July 09, 2021)
 
