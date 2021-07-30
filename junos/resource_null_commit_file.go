@@ -33,6 +33,7 @@ func resourceNullCommitFile() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
+			// lintignore:S006
 			"triggers": {
 				Type:     schema.TypeMap,
 				Optional: true,
