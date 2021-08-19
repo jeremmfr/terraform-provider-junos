@@ -234,7 +234,7 @@ func validateFilePermission() schema.SchemaValidateDiagFunc {
 
 		fileMode, err := strconv.ParseInt(v, 8, 64)
 
-		if err != nil || fileMode > 0777 || fileMode < 0 {
+		if err != nil || fileMode > 0o777 || fileMode < 0 {
 			diags = append(diags, diag.Diagnostic{
 				Severity:      diag.Error,
 				Summary:       fmt.Sprintf("bad mode for file - must be three octal digits: %s", v),
