@@ -24,9 +24,12 @@ resource junos_policyoptions_as_path "github" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) The name of as-path.
-* `dynamic_db` - (Optional)(`Bool`) Add 'dynamic-db' parameter.
-* `path` - (Optional)(`String`) As-path.
+- **name** (Required, String, Forces new resource)  
+  The name of as-path.
+- **dynamic_db** (Optional, Boolean)  
+  Add `dynamic-db` parameter.
+- **path** (Optional, String)  
+  As-path.
 
 ## Import
 

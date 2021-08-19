@@ -24,9 +24,12 @@ resource junos_snmp_view "view1" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) The name of snmp view.
-* `oid_include` - (Optional)(`ListOfString`) OID include list.
-* `oid_exclude` - (Optional)(`ListOfString`) OID exclude list.
+- **name** (Required, String, Forces new resource)  
+  The name of snmp view.
+- **oid_include** (Optional, Set of String)  
+  OID include list.
+- **oid_exclude** (Optional, Set of String)  
+  OID exclude list.
 
 ## Import
 

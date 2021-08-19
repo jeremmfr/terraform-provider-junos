@@ -24,8 +24,10 @@ resource junos_security_idp_custom_attack_group "demo_idp_custom_attack_group" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) The name of idp custom-attack-group.
-* `member` - (Optional)(`ListOfString`) List of attacks/attack groups belonging to this group.
+- **name** (Required, String, Forces new resource)  
+  The name of idp custom-attack-group.
+- **member** (Optional, Set of String)  
+  List of attacks/attack groups belonging to this group.
 
 ## Import
 

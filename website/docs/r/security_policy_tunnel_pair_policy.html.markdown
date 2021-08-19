@@ -26,16 +26,20 @@ resource junos_security_policy_tunnel_pair_policy "demo_pair" {
 
 The following arguments are supported:
 
-* `zone_a` - (Required)(`String`) The name of first zone.
-* `zone_b` - (Required)(`String`) The name of second zone.
-* `policy_a_to_b` - (Required)(`String`) The name of policy when from zone zone_a to zone zone_b.
-* `policy_b_to_a` - (Required)(`String`) The name of policy when from zone zone_b to zone zone_a.
+- **zone_a** (Required, String, Forces new resource)  
+  The name of first zone.
+- **zone_b** (Required, String, Forces new resource)  
+  The name of second zone.
+- **policy_a_to_b** (Required, String, Forces new resource)  
+  The name of policy when from zone zone_a to zone zone_b.
+- **policy_b_to_a** (Required, String, Forces new resource)  
+  The name of policy when from zone zone_b to zone zone_a.
 
-All arguments forces new resource
 
 ## Import
 
-Junos security policy can be imported using an id made up of `<zone_a>_-_<policy_a_to_b>_-_<zone_b>_-_<policy_b_to_a>`, e.g.
+Junos security policy can be imported using an id made up of
+`<zone_a>_-_<policy_a_to_b>_-_<zone_b>_-_<policy_b_to_a>`, e.g.
 
 ```shell
 $ terraform import junos_security_policy_tunnel_pair_policy.demo_pair trust_-_trust_to_untrust_-_untrust_-_untrust_to_trust

@@ -8,7 +8,9 @@ description: |-
 
 # junos_switch_options
 
--> **Note:** This resource should only be created **once**. It's used to configure static (not object) options in `switch-options` block. By default (without `clean_on_destroy`= true), destroy this resource has no effect on the Junos configuration.
+-> **Note:** This resource should only be created **once**.
+It's used to configure static (not object) options in `switch-options` block.  
+By default (without `clean_on_destroy`= true), destroy this resource has no effect on the Junos configuration.
 
 Configure static configuration in `switch-options` block
 
@@ -25,8 +27,10 @@ resource junos_switch_options "switch_options" {
 
 The following arguments are supported:
 
-* `clean_on_destroy` - (Optional)(`Bool`) Clean supported lines when destroy this resource.
-* `vtep_source_interface` - (Optional)(`String`) Source layer-3 IFL for VXLAN.
+- **clean_on_destroy** (Optional, Boolean)  
+  Clean supported lines when destroy this resource.
+- **vtep_source_interface** (Optional, String)  
+  Source layer-3 IFL for VXLAN.
 
 ## Import
 

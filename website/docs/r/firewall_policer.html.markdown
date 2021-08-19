@@ -31,17 +31,28 @@ resource junos_firewall_policer "policer_demo" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) Name of policer.
-* `filter_specific` - (Optional)(`Bool`) Policer is filter-specific.
-* `if_exceeding` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for define rate limits options.
-  * `bandwidth_percent` - (Optional)(`Int`) Bandwidth limit in percentage.
-  * `bandwidth_limit` - (Optional)(`String`) Bandwidth limit in bits/second.
-  * `burst_size_limit` - (Required)(`String`) Burst size limit in bytes.
-* `then` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for define action to take if the rate limits are exceeded.
-  * `discard` - (Optional)(`Bool`) Discard the packet.
-  * `forwarding_class` - (Optional)(`String`) Classify packet to forwarding class.
-  * `loss_priority` - (Optional)(`String`) Packet's loss priority.
-  * `out_of_profile` - (Optional)(`Bool`)  Discard packets only if both congested and over threshold.
+- **name** (Required, String, Forces new resource)  
+  Name of policer.
+- **filter_specific** (Optional, Boolean)  
+  Policer is filter-specific.
+- **if_exceeding** (Required, Block)  
+  Define rate limits options.
+  - **bandwidth_percent** (Optional, Number)  
+    Bandwidth limit in percentage.
+  - **bandwidth_limit** (Optional, String)  
+    Bandwidth limit in bits/second.
+  - **burst_size_limit** (Required, String)  
+    Burst size limit in bytes.
+- **then** (Required, Block)  
+  Define action to take if the rate limits are exceeded.
+  - **discard** (Optional, Boolean)  
+    Discard the packet.
+  - **forwarding_class** (Optional, String)  
+    Classify packet to forwarding class.
+  - **loss_priority** (Optional, String)  
+    Packet's loss priority.
+  - **out_of_profile** (Optional, Boolean)  
+     Discard packets only if both congested and over threshold.
 
 ## Import
 

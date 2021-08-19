@@ -27,8 +27,11 @@ resource junos_security_screen_whitelist "demo_screen_whitelist" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) The name of screen.
-* `address` - (Required)(`ListOfString`) List of address. Need to be a valid CIDR network.
+- **name** (Required, String, Forces new resource)  
+  The name of screen.
+- **address** (Required, List of String)  
+  List of address.  
+  Need to be a valid CIDR network.
 
 ## Import
 

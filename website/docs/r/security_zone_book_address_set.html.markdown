@@ -10,7 +10,8 @@ description: |-
 
 Provides an address-set resource in address-book of security zone.
 
--> **Note:** The `security_zone` resource needs to have `address_book_configure_singly` set to true otherwise there will be a conflict between resources.
+-> **Note:** The `security_zone` resource needs to have `address_book_configure_singly` set to true
+otherwise there will be a conflict between resources.
 
 ## Example Usage
 
@@ -27,14 +28,19 @@ resource junos_security_zone_book_address_set "demo" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) The name of address-set.
-* `zone` - (Required, Forces new resource)(`String`) The name of security zone.
-* `address` - (Required)(`ListOfString`) Address to be included in this set.
-* `description` - (Optional)(`String`) Description of address-set.
+- **name** (Required, String, Forces new resource)  
+  The name of address-set.
+- **zone** (Required, String, Forces new resource)  
+  The name of security zone.
+- **address** (Required, Set of String)  
+  Address to be included in this set.
+- **description** (Optional, String)  
+  Description of address-set.
 
 ## Import
 
-Junos address-set in address-book of security zone can be imported using an id made up of `<zone>_-_<name>`, e.g.
+Junos address-set in address-book of security zone can be imported using an id made up of
+`<zone>_-_<name>`, e.g.
 
 ```shell
 $ terraform import junos_security_zone_book_address_set.demo theZone_-_addressSet1

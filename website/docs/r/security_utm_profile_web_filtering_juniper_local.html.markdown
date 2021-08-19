@@ -26,19 +26,35 @@ resource junos_security_utm_profile_web_filtering_juniper_local "demo_profile" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) The name of security utm feature-profile web-filtering juniper-local profile.
-* `custom_block_message` - (Optional)(`String`) Custom block message sent to HTTP client.
-* `default_action` - (Optional)(`String`) Default action. Need to be 'block', 'log-and-permit' or 'permit'.
-* `fallback_settings` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Configure fallback settings. Max of 1.
-  * `default` - (Optional)(`String`) Default action. Need to be 'block' or 'log-and-permit'.
-  * `server_connectivity` - (Optional)(`String`) Action when device cannot connect to server. Need to be 'block' or 'log-and-permit'.
-  * `timeout` - (Optional)(`String`) Action when connection to server timeout. Need to be 'block' or 'log-and-permit'.
-  * `too_many_requests` - (Optional)(`String`) Action when requests exceed the limit of engine. Need to be 'block' or 'log-and-permit'.
-* `timeout` - (Optional)(`Int`) Set timeout. Need to be between 1 and 1800.
+- **name** (Required, String, Forces new resource)  
+  The name of security utm feature-profile web-filtering juniper-local profile.
+- **custom_block_message** (Optional, String)  
+  Custom block message sent to HTTP client.
+- **default_action** (Optional, String)  
+  Default action.  
+  Need to be `block`, `log-and-permit` or `permit`.
+- **fallback_settings** (Optional, Block)  
+  Configure fallback settings.
+  - **default** (Optional, String)  
+    Default action.  
+    Need to be `block` or `log-and-permit`.
+  - **server_connectivity** (Optional, String)  
+    Action when device cannot connect to server.  
+    Need to be `block` or `log-and-permit`.
+  - **timeout** (Optional, String)  
+    Action when connection to server timeout.  
+    Need to be `block` or `log-and-permit`.
+  - **too_many_requests** (Optional, String)  
+    Action when requests exceed the limit of engine.  
+    Need to be `block` or `log-and-permit`.
+- **timeout** (Optional, Number)  
+  Set timeout.  
+  Need to be between 1 and 1800.
 
 ## Import
 
-Junos security utm feature-profile web-filtering juniper-local profile can be imported using an id made up of `<name>`, e.g.
+Junos security utm feature-profile web-filtering juniper-local profile can be imported using an
+id made up of `<name>`, e.g.
 
 ```shell
 $ terraform import junos_security_utm_profile_web_filtering_juniper_local.demo_profile "Default Webfilter2"

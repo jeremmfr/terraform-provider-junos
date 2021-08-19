@@ -8,7 +8,8 @@ description: |-
 
 # junos_services_user_identification_device_identity_profile
 
-Provides a services user-identification device-information end-user-profile (also named device identity profile) resource.
+Provides a services user-identification device-information end-user-profile
+(also named device identity profile) resource.
 
 ## Example Usage
 
@@ -28,15 +29,21 @@ resource "junos_services_user_identification_device_identity_profile" "demo" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) End-user-profile profile-name.
-* `domain` - (Required)(`String`) Domain name.
-* `attribute` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Configure a attribute. Can be specified multiple times for each attribute.
-  * `name` - (Required)(`String`) Attribute name.
-  * `value` - (Required)(`ListOfString`) A list of values.
+- **name** (Required, String, Forces new resource)  
+  End-user-profile profile-name.
+- **domain** (Required, String)  
+  Domain name.
+- **attribute** (Required, Block List)  
+  For each name of attribute, configure list of values.
+  - **name** (Required, String)  
+    Attribute name.
+  - **value** (Required, Set of String)  
+    A list of values.
 
 ## Import
 
-Junos services user-identification device-information end-user-profile can be imported using an id made up of `<name>`, e.g.
+Junos services user-identification device-information end-user-profile can be imported using an
+id made up of `<name>`, e.g.
 
 ```shell
 $ terraform import junos_services_user_identification_device_identity_profile.demo demo

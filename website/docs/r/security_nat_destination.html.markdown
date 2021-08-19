@@ -35,21 +35,34 @@ resource junos_security_nat_destination "demo_dnat" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) The name of destination nat.
-* `from` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'from' configuration.
-  * `type` - (Required)(`String`) Type of from options. Need to be 'interface', 'routing-instance' or 'zone'
-  * `value`  - (Required)(`String`) Name of interface, routing-instance or zone for from options
-* `rule` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each rule to declare. See the [`rule` arguments](#rule-arguments) block.
+- **name** (Required, String, Forces new resource)  
+  The name of destination nat.
+- **from** (Required, Block)  
+  Declare `from` configuration.
+  - **type** (Required, String)  
+    Type of from options.  
+    Need to be `interface`, `routing-instance` or `zone`
+  - **value** (Required, Set of String)  
+    Name of interface, routing-instance or zone for from options
+- **rule** (Required, Block List)  
+  For each name of rule to declare.  
+  See [below for nested schema](#rule-arguments).
 
 ---
 
 ### rule arguments
 
-* `name` - (Required)(`String`) Name of rule
-* `destination_address` - (Required)(`String`) CIDR for match destination address
-* `then` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'then' action.
-  * `type` - (Required)(`String`) Type of destination nat. Need to be 'pool' or 'off'
-  * `pool` - (Optional)(`String`) Name of nat destination pool when type pool
+- **name** (Required, String)  
+  Name of rule
+- **destination_address** (Required, String)  
+  CIDR for match destination address
+- **then** (Required, Block)  
+  Declare `then` action.
+  - **type** (Required, String)  
+    Type of destination nat.  
+    Need to be `pool` or `off`
+  - **pool** (Optional, String)  
+    Name of nat destination pool when type pool
 
 ## Import
 

@@ -28,91 +28,166 @@ resource junos_interface_logical "interface_fw_demo_100" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) Name of unit interface (with dot).
-* `st0_also_on_destroy` - (Optional)(`Bool`) When destroy this resource, if the name has prefix 'st0.', delete all configurations (not keep empty st0 interface).  
-* `description` - (Optional)(`String`) Description for interface.
-(Usually, `st0.x` interfaces are completely deleted with `bind_interface_auto` argument in `junos_security_ipsec_vpn` resource or by `junos_interface_st0_unit` resource because of the dependency, but only if st0.x interface is empty or disable.)
-* `family_inet` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Enable family inet and add configurations if specified.
-  * `address` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each ip address to declare. See the [`address` arguments for family_inet](#address-arguments-for-family_inet) block.
-  * `filter_input` - (Optional)(`String`) Filter to be applied to received packets.
-  * `filter_output` - (Optional)(`String`) Filter to be applied to transmitted packets.
-  * `mtu` - (Optional)(`Int`) Maximum transmission unit.
-  * `rpf_check` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for enable reverse-path-forwarding checks on this interface. See the [`rpf_check` arguments](#rpf_check-arguments) block for optional arguments.
-  * `sampling_input` - (Optional)(`Bool`) Sample all packets input on this interface.
-  * `sampling_output` - (Optional)(`Bool`) Sample all packets output on this interface.
-* `family_inet6` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Enable family inet6 and add configurations if specified.
-  * `address` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each ipv6 address to declare. See the [`address` arguments for family_inet6](#address-arguments-for-family_inet6) block.
-  * `filter_input` - (Optional)(`String`) Filter to be applied to received packets.
-  * `filter_output` - (Optional)(`String`) Filter to be applied to transmitted packets.
-  * `mtu` - (Optional)(`Int`) Maximum transmission unit.
-  * `rpf_check` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once for enable reverse-path-forwarding checks on this interface. See the [`rpf_check` arguments](#rpf_check-arguments) block for optional arguments.
-  * `sampling_input` - (Optional)(`Bool`) Sample all packets input on this interface.
-  * `sampling_output` - (Optional)(`Bool`) Sample all packets output on this interface.
-* `routing_instance` - (Optional)(`String`) Add this interface in routing_instance. Need to be created before.
-* `security_inbound_protocols` - (Optional)(`ListOfString`) The inbound protocols allowed. Must be a list of Junos protocols. `security_zone` need to be set.
-* `security_inbound_services` - (Optional)(`ListOfString`) The inbound services allowed. Must be a list of Junos services. `security_zone` need to be set.
-* `security_zone` - (Optional)(`String`) Add this interface in security_zone. Need to be created before.
-* `vlan_id` - (Optional,Computed)(`Int`) 802.1q VLAN ID for unit interface.  
-  If not set, computed with `name` of interface (ge-0/0/0.100 = 100) except if name has '.0' suffix or 'st0.', 'irb.', 'vlan.' prefix.
-* `vlan_no_compute` - (Optional)(`Bool`) Disable the automatic compute of the `vlan_id` argument when not set.  
-  (Unnecessary if name has '.0' suffix or 'st0.', 'irb.', 'vlan.' prefix because it's already disabled.)
+- **name** (Required, String, Forces new resource)  
+  Name of unit interface (with dot).
+- **st0_also_on_destroy** (Optional, Boolean)  
+  When destroy this resource, if the name has prefix `st0.`,
+  delete all configurations (not keep empty st0 interface).  
+  Usually, `st0.x` interfaces are completely deleted with `bind_interface_auto` argument in
+  `junos_security_ipsec_vpn` resource or by `junos_interface_st0_unit` resource because of
+  the dependency, but only if st0.x interface is empty or disable.
+- **description** (Optional, String)  
+  Description for interface.
+- **family_inet** (Optional, Block)  
+  Enable family inet and add configurations if specified.
+  - **address** (Optional, Block List)  
+    For each ip address to declare.  
+    See [below for nested schema](#address-arguments-for-family_inet).
+  - **filter_input** (Optional, String)  
+    Filter to be applied to received packets.
+  - **filter_output** (Optional, String)  
+    Filter to be applied to transmitted packets.
+  - **mtu** (Optional, Number)  
+    Maximum transmission unit.
+  - **rpf_check** (Optional, Block)  
+    Enable reverse-path-forwarding checks on this interface.  
+    See [below for nested schema](#rpf_check-arguments).
+  - **sampling_input** (Optional, Boolean)  
+    Sample all packets input on this interface.
+  - **sampling_output** (Optional, Boolean)  
+    Sample all packets output on this interface.
+- **family_inet6** (Optional, Block)  
+  Enable family inet6 and add configurations if specified.
+  - **address** (Optional, Block List)  
+    For each ipv6 address to declare.  
+    See [below for nested schema](#address-arguments-for-family_inet6).
+  - **filter_input** (Optional, String)  
+    Filter to be applied to received packets.
+  - **filter_output** (Optional, String)  
+    Filter to be applied to transmitted packets.
+  - **mtu** (Optional, Number)  
+    Maximum transmission unit.
+  - **rpf_check** (Optional, Block)  
+    Enable reverse-path-forwarding checks on this interface.  
+    See [below for nested schema](#rpf_check-arguments).
+  - **sampling_input** (Optional, Boolean)  
+    Sample all packets input on this interface.
+  - **sampling_output** (Optional, Boolean)  
+    Sample all packets output on this interface.
+- **routing_instance** (Optional, String)  
+  Add this interface in routing_instance.  
+  Need to be created before.
+- **security_inbound_protocols** (Optional, List of String)  
+  The inbound protocols allowed.  
+  Must be a list of Junos protocols.  
+  `security_zone` need to be set.
+- **security_inbound_services** (Optional, List of String)  
+  The inbound services allowed.  
+  Must be a list of Junos services.  
+  `security_zone` need to be set.
+- **security_zone** (Optional, String)  
+  Add this interface in security_zone.  
+  Need to be created before.
+- **vlan_id** (Optional, Computed, Number)  
+  802.1q VLAN ID for unit interface.  
+  If not set, computed with `name` of interface (ge-0/0/0.100 = 100)
+  except if name has `.0` suffix or `st0.`, `irb.`, `vlan.` prefix.
+- **vlan_no_compute** (Optional, Boolean)  
+  Disable the automatic compute of the `vlan_id` argument when not set.  
+  Unnecessary if name has `.0` suffix or `st0.`, `irb.`, `vlan.` prefix because it's already disabled.
 
 ---
 
 ### address arguments for family_inet
 
-* `cidr_ip` - (Required)(`String`) Address IP/Mask v4.
-* `preferred` - (Optional)(`Bool`) Preferred address on interface.
-* `primary` - (Optional)(`Bool`) Candidate for primary address in system.
-* `vrrp_group` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each vrrp group to declare. See the [`vrrp_group` arguments for address in family_inet](#vrrp_group-arguments-for-address-in-family_inet) block.
+- **cidr_ip** (Required, String)  
+  Address IP/Mask v4.
+- **preferred** (Optional, Boolean)  
+  Preferred address on interface.
+- **primary** (Optional, Boolean)  
+  Candidate for primary address in system.
+- **vrrp_group** (Optional, Block List)  
+  For each vrrp group to declare.  
+  See [below for nested schema](#vrrp_group-arguments-for-address-in-family_inet).
 
 ---
 
 ### vrrp_group arguments for address in family_inet
 
-* `identifier` - (Required)(`Int`) ID for vrrp
-* `virtual_address` - (Required)(`ListOfString`) List of address IP v4.
-* `accept_data` - (Optional)(`Bool`) Accept packets destined for virtual IP address. Conflict with `no_accept_data` when apply.
-* `advertise_interval` - (Optional)(`Int`) Advertisement interval (seconds)
-* `advertisements_threshold` - (Optional)(`Int`)  Number of vrrp advertisements missed before declaring master down.
-* `authentication_key` - (Optional)(`String`) Authentication key.  
-**WARNING** Clear in tfstate.
-* `authentication_type` - (Optional)(`String`) Authentication type. Need to be 'md5' or 'simple'.
-* `no_accept_data` - (Optional)(`Bool`) Don't accept packets destined for virtual IP address. Conflict with `accept_data` when apply.
-* `no_preempt` - (Optional)(`Bool`) Don't allow preemption. Conflict with `preempt` when apply.
-* `preempt` - (Optional)(`Bool`) Allow preemption. Conflict with `no_preempt` when apply.
-* `priority` - (Optional)(`Int`) Virtual router election priority.
-* `track_interface` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each track_interface to declare.
-  * `interface` - (Required)(`String`) Name of interface.
-  * `priority_cost` - (Required)(`Int`) Value to subtract from priority when interface is down
-* `track_route` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each track_route to declare.
-  * `route` - (Required)(`String`) Route address.
-  * `routing_instance` - (Required)(`String`) Routing instance to which route belongs, or 'default'.
-  * `priority_cost` - (Required)(`Int`) Value to subtract from priority when route is down.
+- **identifier** (Required, Number)  
+  ID for vrrp
+- **virtual_address** (Required, List of String)  
+  List of address IP v4.
+- **accept_data** (Optional, Boolean)  
+  Accept packets destined for virtual IP address.  
+  Conflict with `no_accept_data` when apply.
+- **advertise_interval** (Optional, Number)  
+  Advertisement interval (seconds)
+- **advertisements_threshold** (Optional, Number)  
+   Number of vrrp advertisements missed before declaring master down.
+- **authentication_key** (Optional, String, Sensitive)  
+  Authentication key.
+- **authentication_type** (Optional, String)  
+  Authentication type.  
+  Need to be `md5` or `simple`.
+- **no_accept_data** (Optional, Boolean)  
+  Don't accept packets destined for virtual IP address.  
+  Conflict with `accept_data` when apply.
+- **no_preempt** (Optional, Boolean)  
+  Don't allow preemption.  
+  Conflict with `preempt` when apply.
+- **preempt** (Optional, Boolean)  
+  Allow preemption.  
+  Conflict with `no_preempt` when apply.
+- **priority** (Optional, Number)  
+  Virtual router election priority.
+- **track_interface** (Optional, Block List)  
+  For each interface to declare.
+  - **interface** (Required, String)  
+    Name of interface.
+  - **priority_cost** (Required, Number)  
+    Value to subtract from priority when interface is down
+- **track_route** (Optional, Block List)  
+  For each route to declare.
+  - **route** (Required, String)  
+    Route address.
+  - **routing_instance** (Required, String)  
+    Routing instance to which route belongs, or `default`.
+  - **priority_cost** (Required, Number)  
+    Value to subtract from priority when route is down.
 
 ---
 
 ### address arguments for family_inet6
 
-* `cidr_ip` - (Required)(`String`) Address IP/Mask v6.
-* `preferred` - (Optional)(`Bool`) Preferred address on interface.
-* `primary` - (Optional)(`Bool`) Candidate for primary address in system.
-* `vrrp_group` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each vrrp group to declare. See the [`vrrp_group` arguments for address in family_inet6](#vrrp_group-arguments-for-address-in-family_inet6) block.
+- **cidr_ip** (Required, String)  
+  Address IP/Mask v6.
+- **preferred** (Optional, Boolean)  
+  Preferred address on interface.
+- **primary** (Optional, Boolean)  
+  Candidate for primary address in system.
+- **vrrp_group** (Optional, Block List)  
+  For each vrrp group to declare.  
+  See [below for nested schema](#vrrp_group-arguments-for-address-in-family_inet6).
 
 ---
 
 ### vrrp_group arguments for address in family_inet6
 
-Same as [`vrrp_group` arguments for address in family_inet](#vrrp_group-arguments-for-address-in-family_inet) block but without `authentication_key`, `authentication_type` and with
+Same as [`vrrp_group` arguments for address in family_inet](#vrrp_group-arguments-for-address-in-family_inet)
+block but without `authentication_key`, `authentication_type` and with
 
-* `virtual_link_local_address` - (Required)(`String`) Address IPv6 for Virtual link-local addresses.
+- **virtual_link_local_address** (Required, String)  
+  Address IPv6 for Virtual link-local addresses.
 
 ---
 
 ### rpf_check arguments
 
-* `fail_filter` - (Optional)(`String`) Name of filter applied to packets failing RPF check.
-* `mode_loose` - (Optional)(`Bool`) Use reverse-path-forwarding loose mode instead the strict mode.
+- **fail_filter** (Optional, String)  
+  Name of filter applied to packets failing RPF check.
+- **mode_loose** (Optional, Boolean)  
+  Use reverse-path-forwarding loose mode instead the strict mode.
 
 ## Import
 

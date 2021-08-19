@@ -26,8 +26,10 @@ resource junos_security_utm_custom_url_pattern "demo_url_pattern" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) The name of security utm custom-object url-pattern.
-* `value` - (Required)(`ListofString`) List of url for security utm custom-object url-pattern.
+- **name** (Required, String, Forces new resource)  
+  The name of security utm custom-object url-pattern.
+- **value** (Required, List of String)  
+  List of url for security utm custom-object url-pattern.
 
 ## Import
 

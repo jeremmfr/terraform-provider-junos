@@ -1,4 +1,4 @@
-<!-- markdownlint-disable-file MD041 -->
+<!-- markdownlint-disable-file MD013 MD041 -->
 ## upcoming release
 
 ENHANCEMENTS:

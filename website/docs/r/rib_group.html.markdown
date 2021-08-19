@@ -25,10 +25,14 @@ resource junos_rib_group "demo_rib" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) The name of rib group.
-* `import_policy` - (Optional)(`ListOfString`) List of policy for import route.
-* `import_rib` - (Optional)(`ListOfString`) List of import routing table
-* `export_rib` - (Optional)(`String`) Export routing table
+- **name** (Required, String, Forces new resource)  
+  The name of rib group.
+- **import_policy** (Optional, List of String)  
+  List of policy for import route.
+- **import_rib** (Optional, List of String)  
+  List of import routing table
+- **export_rib** (Optional, String)  
+  Export routing table
 
 ## Import
 

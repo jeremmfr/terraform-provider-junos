@@ -24,15 +24,27 @@ resource junos_security_nat_source_pool "demo_snat_pool" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) The name of source nat pool.
-* `address` - (Required)(`ListofString`) List of CIDR for source nat pool.
-* `address_pooling` - (Optional)(`String`) Type of address pooling. Need to be 'paired' or 'no-paired'.
-* `pool_utilization_alarm_raise_threshold` - (Optional)(`Int`) Upper threshold at which an SNMP trap is triggered. Range 50 through 100.
-* `pool_utilization_alarm_clear_threshold` - (Optional)(`Int`) Lower threshold at which an SNMP trap is triggered. Range 40 through 100.
-* `port_no_translation` - (Optional)(`Bool`) Do not perform port translation.
-* `port_overloading_factor` - (Optional)(`Int`) Port overloading factor for each IP.
-* `port_range` - (Optional)(`String`) Range of port for source nat.
-* `routing_instance` - (Optional)(`String`) Name of routing instance for switch with nat.
+- **name** (Required, String, Forces new resource)  
+  The name of source nat pool.
+- **address** (Required, List of String)  
+  List of CIDR for source nat pool.
+- **address_pooling** (Optional, String)  
+  Type of address pooling.  
+  Need to be `paired` or `no-paired`.
+- **pool_utilization_alarm_raise_threshold** (Optional, Number)  
+  Upper threshold at which an SNMP trap is triggered.  
+  Range 50 through 100.
+- **pool_utilization_alarm_clear_threshold** (Optional, Number)  
+  Lower threshold at which an SNMP trap is triggered.  
+  Range 40 through 100.
+- **port_no_translation** (Optional, Boolean)  
+  Do not perform port translation.
+- **port_overloading_factor** (Optional, Number)  
+  Port overloading factor for each IP.
+- **port_range** (Optional, String)  
+  Range of port for source nat.
+- **routing_instance** (Optional, String)  
+  Name of routing instance for switch with nat.
 
 ## Import
 

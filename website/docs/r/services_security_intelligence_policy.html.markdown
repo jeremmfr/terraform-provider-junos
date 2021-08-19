@@ -27,11 +27,16 @@ resource "junos_services_security_intelligence_policy" "demo" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) Security intelligence policy name.
-* `category` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Configure a profile for a category. Can be specified multiple times for each category name.
-  * `name` - (Required)(`String`) Name of security intelligence category.
-  * `profile_name` - (Required)(`String`) Name of profile.
-* `description` - (Optional)(`String`) Text description of policy.
+- **name** (Required, String, Forces new resource)  
+  Security intelligence policy name.
+- **category** (Required, Block List)  
+  For each name of security intelligence category, configure a profile.
+  - **name** (Required, String)  
+    Name of security intelligence category.
+  - **profile_name** (Required, String)  
+    Name of profile.
+- **description** (Optional, String)  
+  Text description of policy.
 
 ## Import
 

@@ -26,8 +26,10 @@ resource junos_security_utm_custom_url_category "demo_url_category" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) The name of security utm custom-object custom-url-category.
-* `value` - (Required)(`ListofString`) List of url patterns for security utm custom-object custom-url-category.
+- **name** (Required, String, Forces new resource)  
+  The name of security utm custom-object custom-url-category.
+- **value** (Required, List of String)  
+  List of url patterns for security utm custom-object custom-url-category.
 
 ## Import
 

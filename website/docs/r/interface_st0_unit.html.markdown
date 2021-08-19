@@ -21,7 +21,8 @@ resource junos_interface_st0_unit "demo" {}
 
 ## Attributes Reference
 
-* `id` - Name of interface found and created.
+- **id** (String)  
+  Name of interface found and created.
 
 ## Import
 

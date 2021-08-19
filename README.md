@@ -1,4 +1,4 @@
-<!-- markdownlint-disable-file MD033 MD041 -->
+<!-- markdownlint-disable-file MD013 MD033 MD041 -->
 <div>
 <img src="https://www.juniper.net/assets/img/products/junos-os.png" alt="Junos logo" title="Junos" align="right" height="50" />
 <img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/og-image.png" alt="Terraform logo" title="Terraform" align="right" height="50" />
