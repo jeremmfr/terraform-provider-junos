@@ -71,6 +71,13 @@ The following arguments are supported:
 - **then_log** (Optional, Boolean)  
   Log security intelligence block action.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos services security-intelligence profile can be imported using an id made up of `<name>`, e.g.

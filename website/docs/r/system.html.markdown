@@ -355,6 +355,13 @@ The following arguments are supported:
 - **no_world_readable** (Optional, Boolean)  
   Don't allow any user to read the log file.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with value `system`.
+
 ## Import
 
 Junos system can be imported using any id, e.g.

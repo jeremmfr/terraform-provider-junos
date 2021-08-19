@@ -142,6 +142,13 @@ The following arguments are supported:
   - **source_address** (Optional, String)  
     Address to use for generating monitored packets.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos forwarding-options sampling instance can be imported using an id made up of `<name>`, e.g.

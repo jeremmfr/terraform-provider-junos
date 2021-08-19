@@ -69,6 +69,13 @@ The following arguments are supported:
   - **unreachable_vtep_aging_timer** (Optional, Number)  
     Unreachable VXLAN tunnel endpoint removal timer (300..1800 seconds).
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>_-_<routing_instance>`.
+
 ## Import
 
 Junos bridge domain can be imported using an id made up of `<name>_-_<routing_instance>`, e.g.

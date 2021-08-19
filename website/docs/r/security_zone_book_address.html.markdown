@@ -51,6 +51,13 @@ The following arguments are supported:
 
 -> **Note:** One of `cidr`, `dns_name`, `range_from` or `wildcard` arguments need to be set.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<zone>_-_<name>`.
+
 ## Import
 
 Junos address in address-book of security zone can be imported using an id made up of

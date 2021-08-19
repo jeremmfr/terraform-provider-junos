@@ -119,6 +119,13 @@ The following arguments are supported:
   - **rapid_runs** (Optional, Number)  
     Number of maximum rapid SPF runs before holddown (1..10).
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<version>_-_<routing_instance>`.
+
 ## Import
 
 Junos ospf can be imported using an id made up of `<version>_-_<routing_instance>`, e.g.

@@ -46,6 +46,13 @@ The following arguments are supported:
 - **routing_instance** (Optional, String)  
   Name of routing instance for switch with nat.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos security nat source pool can be imported using an id made up of `<name>`, e.g.

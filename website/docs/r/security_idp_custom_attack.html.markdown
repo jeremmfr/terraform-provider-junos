@@ -317,6 +317,13 @@ The following arguments are supported:
   Specify shellcode flag for this attack.  
   Need to be `all`, `intel`, `no-shellcode` or `sparc`.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos security idp custom-attack can be imported using an id made up of `<name>`, e.g.

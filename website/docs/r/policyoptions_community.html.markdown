@@ -31,6 +31,13 @@ The following arguments are supported:
 - **invert_match** (Optional, Boolean)  
   Add `invert-match` parameter.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos community can be imported using an id made up of `<name>`, e.g.

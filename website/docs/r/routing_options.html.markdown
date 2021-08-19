@@ -85,6 +85,13 @@ The following arguments are supported:
 - **router_id** (Optional, String)  
   Router identifier.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with value `routing_options`.
+
 ## Import
 
 Junos routing_options can be imported using any id, e.g.

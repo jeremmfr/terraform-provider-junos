@@ -101,6 +101,13 @@ The following arguments are supported:
 - **tcp_rst** (Optional, Boolean)  
   Send RST for NON-SYN packet not matching TCP session.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos security zone can be imported using an id made up of `<name>`, e.g.

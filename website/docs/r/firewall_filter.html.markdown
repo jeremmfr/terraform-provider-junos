@@ -146,6 +146,13 @@ The following arguments are supported:
 - **syslog** (Optional, Boolean)  
   System log (syslog) information about the packet.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>_-_<family>`.
+
 ## Import
 
 Junos firewall filter can be imported using an id made up of `<name>_-_<family>`, e.g.

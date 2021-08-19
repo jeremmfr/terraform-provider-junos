@@ -53,6 +53,13 @@ The following arguments are supported:
 - **timeout** (Optional, Number)  
   Request timeout period (1..1000 seconds).
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<address>`.
+
 ## Import
 
 Junos system radius-server can be imported using an id made up of `<address>`, e.g.

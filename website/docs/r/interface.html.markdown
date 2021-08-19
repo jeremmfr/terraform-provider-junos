@@ -178,6 +178,13 @@ without `authentication_key`, `authentication_type` and with
 - **virtual_link_local_address** (Required, String)  
   Address IPv6 for Virtual link-local addresses.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos interface can be imported using an id made up of `<name>`, e.g.

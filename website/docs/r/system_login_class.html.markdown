@@ -86,6 +86,13 @@ The following arguments are supported:
 - **tenant** (Optional, String)  
   Tenant associated with this login.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos system login class can be imported using an id made up of `<name>`, e.g.

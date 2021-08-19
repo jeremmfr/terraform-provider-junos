@@ -35,6 +35,13 @@ The following arguments are supported:
 - **version** (Optional, Number)  
   NTP version to use (1..4).
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<address>`.
+
 ## Import
 
 Junos system ntp server can be imported using an id made up of `<address>`, e.g.

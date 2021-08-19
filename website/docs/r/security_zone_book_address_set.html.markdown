@@ -37,6 +37,13 @@ The following arguments are supported:
 - **description** (Optional, String)  
   Description of address-set.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<zone>_-_<name>`.
+
 ## Import
 
 Junos address-set in address-book of security zone can be imported using an id made up of

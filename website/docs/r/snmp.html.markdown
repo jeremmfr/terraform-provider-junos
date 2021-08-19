@@ -73,6 +73,13 @@ The following arguments are supported:
 - **routing_instance_access_list** (Optional, Set of String)  
   Allow/Deny SNMP access to routing-instances.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with value `snmp`.
+
 ## Import
 
 Junos snmp can be imported using any id, e.g.

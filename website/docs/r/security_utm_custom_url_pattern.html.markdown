@@ -31,6 +31,13 @@ The following arguments are supported:
 - **value** (Required, List of String)  
   List of url for security utm custom-object url-pattern.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos security utm custom-object url-pattern can be imported using an id made up of `<name>`, e.g.

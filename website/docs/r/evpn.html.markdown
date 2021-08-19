@@ -65,6 +65,13 @@ The following arguments are supported:
   - **vrf_target_import** (Optional, String)  
     Target community to use when filtering on import.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<routing_instance>`.
+
 ## Import
 
 Junos evpn can be imported using an id made up of `<routing_instance>`, e.g.

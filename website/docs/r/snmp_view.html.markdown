@@ -31,6 +31,13 @@ The following arguments are supported:
 - **oid_exclude** (Optional, Set of String)  
   OID exclude list.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos snmp view can be imported using an id made up of `<name>`, e.g.

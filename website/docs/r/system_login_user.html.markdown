@@ -46,6 +46,13 @@ The following arguments are supported:
 - **full_name** (Optional, String)  
   Full name.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos system login user can be imported using an id made up of `<name>`, e.g.

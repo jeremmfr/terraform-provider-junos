@@ -189,6 +189,13 @@ block but without `authentication_key`, `authentication_type` and with
 - **mode_loose** (Optional, Boolean)  
   Use reverse-path-forwarding loose mode instead the strict mode.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos interface can be imported using an id made up of `<name>`, e.g.

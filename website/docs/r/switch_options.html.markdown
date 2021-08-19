@@ -32,6 +32,13 @@ The following arguments are supported:
 - **vtep_source_interface** (Optional, String)  
   Source layer-3 IFL for VXLAN.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with value `switch_options`.
+
 ## Import
 
 Junos switch_options can be imported using any id, e.g.

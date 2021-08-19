@@ -105,6 +105,13 @@ The following arguments are supported:
   Don't always keep route in forwarding table.  
   Conflict with `resolve` and `retain`.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<destination>_-_<routing_instance>`.
+
 ## Import
 
 Junos static route can be imported using an id made up of `<destination>_-_<routing_instance>`, e.g.

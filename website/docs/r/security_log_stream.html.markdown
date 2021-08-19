@@ -66,6 +66,13 @@ The following arguments are supported:
 - **severity** (Optional, String)  
   Severity threshold for security logs.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos security log stream can be imported using an id made up of `<name>`, e.g.

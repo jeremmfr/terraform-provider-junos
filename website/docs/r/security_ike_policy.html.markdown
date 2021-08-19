@@ -41,6 +41,13 @@ The following arguments are supported:
 - **pre_shared_key_hexa** (Optional, String, Sensitive)  
   Preshared key wit format as hexa.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos security ike policy can be imported using an id made up of `<name>`, e.g.

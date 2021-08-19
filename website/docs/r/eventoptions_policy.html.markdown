@@ -164,6 +164,13 @@ The following arguments are supported:
 - **user_name** (Optional, String)  
   User under whose privileges command will execute.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos event-options policy can be imported using an id made up of `<name>`, e.g.

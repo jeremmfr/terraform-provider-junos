@@ -38,6 +38,13 @@ The following arguments are supported:
 - **description** (Optional, String)  
   Text description of policy.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos services security-intelligence policy can be imported using an id made up of `<name>`, e.g.

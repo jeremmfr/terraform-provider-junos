@@ -39,3 +39,10 @@ The following arguments are supported:
   Truncate file after successful commit.
 - **triggers** (Optional, Map, Forces new resource)  
   A map of arbitrary strings that, when changed, will force the resource to be replaced.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<filename>`.

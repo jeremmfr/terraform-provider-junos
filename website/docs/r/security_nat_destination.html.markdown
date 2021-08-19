@@ -64,6 +64,13 @@ The following arguments are supported:
   - **pool** (Optional, String)  
     Name of nat destination pool when type pool
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos security nat destination can be imported using an id made up of `<name>`, e.g.

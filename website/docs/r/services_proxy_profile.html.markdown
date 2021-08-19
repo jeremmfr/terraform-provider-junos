@@ -31,6 +31,13 @@ The following arguments are supported:
 - **protocol_http_port** (Optional, Number)  
   Proxy server port (1..65535).
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos services proxy profile can be imported using an id made up of `<name>`, e.g.

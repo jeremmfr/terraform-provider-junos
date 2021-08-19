@@ -71,6 +71,13 @@ The following arguments are supported:
 - **web_filtering_profile** (Optional, String)  
   Web-filtering HTTP profile (local, enhanced, websense)
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos security utm utm-policy can be imported using an id made up of `<name>`, e.g.

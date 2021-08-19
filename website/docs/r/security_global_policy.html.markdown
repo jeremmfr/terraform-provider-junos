@@ -112,6 +112,13 @@ The following arguments are supported:
 - **utm_policy** (Optional, String)  
   Specify utm policy name.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with value `security_global_policy`.
+
 ## Import
 
 Junos security global policies can be imported using any id, e.g.

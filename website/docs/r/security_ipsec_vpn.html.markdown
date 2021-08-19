@@ -76,6 +76,13 @@ The following arguments are supported:
   - **source_interface_auto** (Optional, Boolean)  
     Compute the source_interface to `bind_interface`.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos security ipsec vpn can be imported using an id made up of `<name>`, e.g.

@@ -92,6 +92,13 @@ The following arguments are supported:
 - **weight** (Required, Number)  
   Weight assigned to this interface that influences failover (0..255).
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with value `cluster`.
+
 ## Import
 
 Junos chassis cluster can be imported using any id, e.g.

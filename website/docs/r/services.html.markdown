@@ -292,6 +292,13 @@ The following arguments are supported:
 - **ip_query_delay_time** (Optional, Number)  
   Delay time to send IP query (0~60sec) (0..60 seconds).
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with value `services`.
+
 ## Import
 
 Junos services can be imported using any id, e.g.

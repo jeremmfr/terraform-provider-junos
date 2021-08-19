@@ -54,6 +54,13 @@ The following arguments are supported:
 - **trusted_ca** (Optional, Set of String)  
   List of trusted certificate authority profiles.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos services ssl initiation profile can be imported using an id made up of `<name>`, e.g.

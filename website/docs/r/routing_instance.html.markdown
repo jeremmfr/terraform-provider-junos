@@ -54,6 +54,13 @@ The following arguments are supported:
 - **vtep_source_interface** (Optional, String)  
   Source layer-3 IFL for VXLAN.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos routing instance can be imported using an id made up of `<name>`, e.g.

@@ -392,6 +392,13 @@ The following arguments are supported:
 - **routing_instance** (Optional, String)  
   Routing instance name.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with value `security`.
+
 ## Import
 
 Junos security can be imported using any id, e.g.

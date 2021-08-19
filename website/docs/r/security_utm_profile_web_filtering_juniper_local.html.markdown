@@ -51,6 +51,13 @@ The following arguments are supported:
   Set timeout.  
   Need to be between 1 and 1800.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos security utm feature-profile web-filtering juniper-local profile can be imported using an

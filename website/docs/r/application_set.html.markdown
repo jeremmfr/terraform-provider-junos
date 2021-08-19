@@ -29,6 +29,13 @@ The following arguments are supported:
 - **applications** (Optional, List of String)  
   List of application names.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos application set can be imported using an id made up of `<name>`, e.g.

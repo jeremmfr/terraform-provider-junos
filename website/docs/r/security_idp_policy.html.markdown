@@ -140,6 +140,13 @@ The following arguments are supported:
   Set rule severity level.  
   Need to be `critical`, `info`, `major`, `minor` or `warning`.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos security idp policy can be imported using an id made up of `<name>`, e.g.

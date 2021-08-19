@@ -53,6 +53,13 @@ The following arguments are supported:
   - **retransmit_interval** (Optional, Number)  
     Retransmission interval (seconds).
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<aread_id>_-_<version>_-_<routing_instance>`.
+
 ## Import
 
 Junos ospf area can be imported using an id made up of

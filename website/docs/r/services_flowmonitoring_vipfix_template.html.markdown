@@ -60,6 +60,13 @@ The following arguments are supported:
 - **tunnel_observation_ipv6** (Optional, Boolean)  
   Tunnel observation IPv6.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos services flow-monitoring version-ipfix template can be imported using an id made up of

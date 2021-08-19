@@ -66,6 +66,13 @@ The following arguments are supported:
   - **routing_instance** (Optional, String)  
     Change routing_instance with nat.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos security nat static can be imported using an id made up of `<name>`, e.g.

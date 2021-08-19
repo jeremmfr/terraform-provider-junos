@@ -41,6 +41,13 @@ The following arguments are supported:
   IPSec protocol.  
   Need to be `esp` or `ah`.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos security ipsec proposal can be imported using an id made up of `<name>`, e.g.

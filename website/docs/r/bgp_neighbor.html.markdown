@@ -229,6 +229,13 @@ Also for `family_inet6` and `family_evpn` (except `nlri_type`)
 - **stale_route_time** (Optional, Number)  
   Maximum time for which stale routes are kept (1..600).
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<ip>_-_<routing_instance>_-_<group>`.
+
 ## Import
 
 Junos bgp neighbor can be imported using an id made up of `<ip>_-_<routing_instance>_-_<group>`, e.g.

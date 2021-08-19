@@ -34,6 +34,13 @@ The following arguments are supported:
 - **export_rib** (Optional, String)  
   Export routing table
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos rib group can be imported using an id made up of `<name>`, e.g.

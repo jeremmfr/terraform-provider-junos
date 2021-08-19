@@ -141,6 +141,13 @@ The following arguments are supported:
 - **ttl** (Optional, Number)  
   Time to Live (hop-limit) value for an RPM IPv4(IPv6) packet (1..254).
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos services rpm probe can be imported using an id made up of `<name>`, e.g.

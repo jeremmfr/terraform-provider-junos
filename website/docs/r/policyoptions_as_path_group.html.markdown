@@ -50,6 +50,13 @@ The following arguments are supported:
 - **dynamic_db** (Optional, Boolean)  
   Add `dynamic-db` parameter.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos as-path group can be imported using an id made up of `<name>`, e.g.

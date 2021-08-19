@@ -54,6 +54,13 @@ The following arguments are supported:
   - **out_of_profile** (Optional, Boolean)  
      Discard packets only if both congested and over threshold.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos firewall policer can be imported using an id made up of `<name>`, e.g.

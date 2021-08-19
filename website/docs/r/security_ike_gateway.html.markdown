@@ -122,6 +122,13 @@ The following arguments are supported:
 - **threshold** (Optional, Number)  
   Maximum number of DPD retransmissions.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos security ike gateway can be imported using an id made up of `<name>`, e.g.

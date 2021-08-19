@@ -48,6 +48,13 @@ The following arguments are supported:
 - **uuid** (Optional, String)  
   Match universal unique identifier for DCE RPC objects.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos application can be imported using an id made up of `<name>`, e.g.

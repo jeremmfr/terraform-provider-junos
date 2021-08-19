@@ -40,6 +40,13 @@ The following arguments are supported:
   - **value** (Required, Set of String)  
     A list of values.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos services user-identification device-information end-user-profile can be imported using an

@@ -108,6 +108,13 @@ The following arguments are supported:
 **WARNING** All severities need to be
 `alert`, `any`, `critical`, `emergency`, `error`, `info`, `none`, `notice` or `warning`.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<filename>`.
+
 ## Import
 
 Junos system syslog file can be imported using an id made up of `<filename>`, e.g.

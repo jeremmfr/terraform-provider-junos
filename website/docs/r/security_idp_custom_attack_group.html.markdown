@@ -29,6 +29,13 @@ The following arguments are supported:
 - **member** (Optional, Set of String)  
   List of attacks/attack groups belonging to this group.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos security idp custom-attack-group can be imported using an id made up of `<name>`, e.g.

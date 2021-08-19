@@ -108,6 +108,13 @@ The following arguments are supported:
     Action for site-reputation.  
     Need to be `block`, `log-and-permit`, `permit` or `quarantine`.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos security utm feature-profile web-filtering juniper-enhanced profile can be imported using an

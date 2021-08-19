@@ -31,6 +31,13 @@ The following arguments are supported:
 - **path** (Optional, String)  
   As-path.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos as-path can be imported using an id made up of `<name>`, e.g.

@@ -61,6 +61,13 @@ The following arguments are supported:
 - **preference** (Optional, Number)  
   Preference for aggregate route.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<destination>_-_<routing_instance>`.
+
 ## Import
 
 Junos aggregate route can be imported using an id made up of `<destination>_-_<routing_instance>`, e.g.

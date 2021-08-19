@@ -35,6 +35,13 @@ The following arguments are supported:
   Types of default IPSEC proposal-set.  
   Need to be `basic`, `compatible`, `prime-128`, `prime-256`, `standard`, `suiteb-gcm-128` or `suiteb-gcm-256`.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos security ipsec policy can be imported using an id made up of `<name>`, e.g.

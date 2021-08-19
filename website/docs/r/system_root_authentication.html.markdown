@@ -38,6 +38,13 @@ The following arguments are supported:
 - **ssh_public_keys** (Optional, Set of String)  
   Secure shell (ssh) public key string.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with value `system_root_authentication`.
+
 ## Import
 
 Junos system root-authentication can be imported using any id, e.g.

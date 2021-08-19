@@ -102,6 +102,13 @@ The following arguments are supported:
   - **address** (Required, Set of String)  
     List of address names.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos security address book can be imported using an id made up of `<name>`, e.g.

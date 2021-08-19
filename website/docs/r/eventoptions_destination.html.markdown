@@ -37,6 +37,13 @@ The following arguments are supported:
 - **transfer_delay** (Optional, Number)  
   Delay before transferring files (seconds).
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos event-options destination can be imported using an id made up of `<name>`, e.g.

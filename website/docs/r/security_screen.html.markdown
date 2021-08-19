@@ -294,6 +294,13 @@ The following arguments are supported:
     Source address.  
     Need to be a valid CIDR network.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+
 ## Import
 
 Junos security screen can be imported using an id made up of `<name>`, e.g.
