@@ -3,6 +3,10 @@
 
 ENHANCEMENTS:
 
+* data-source/`junos_interface`, `junos_interface_logical`: `vrrp_group.*.authentication_key` is now a sensitive argument (like resource)
+* docs: rewrite style for argument name and type
+* docs: add attributes reference on resource
+
 BUG FIXES:
 
 ## 1.19.0 (July 30, 2021)
