@@ -37,12 +37,12 @@ The following arguments are supported:
   Policer is filter-specific.
 - **if_exceeding** (Required, Block)  
   Define rate limits options.
+  - **burst_size_limit** (Required, String)  
+    Burst size limit in bytes.
   - **bandwidth_percent** (Optional, Number)  
     Bandwidth limit in percentage.
   - **bandwidth_limit** (Optional, String)  
     Bandwidth limit in bits/second.
-  - **burst_size_limit** (Required, String)  
-    Burst size limit in bytes.
 - **then** (Required, Block)  
   Define action to take if the rate limits are exceeded.
   - **discard** (Optional, Boolean)  
