@@ -196,9 +196,9 @@ The following arguments are supported:
   Categories to be disabled
 - **default_policy** (Optional, Block List)  
   For each name of category, configure default-policy for a category.
-  - **category_name** (Optional, String)  
+  - **category_name** (Required, String)  
     Name of security intelligence category.
-  - **profile_name** (Optional, String)  
+  - **profile_name** (Required, String)  
     Name of profile.
 - **proxy_profile** (Optional, String)  
   The proxy profile name.
