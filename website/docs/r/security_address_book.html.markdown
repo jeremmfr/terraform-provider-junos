@@ -63,44 +63,44 @@ The following arguments are supported:
   For each name of network address.
   - **name** (Required, String)  
     Name of network address.
+  - **value** (Required, String)  
+    CIDR value of network address (`192.0.0.0/24`).
   - **description** (Optional, String)  
     Description of network address.
-  - **value** (Required, String)  
-    CIDR value of network address. `192.0.0.0/24`
 - **wildcard_address** (Optional, Block List)  
   For each name of wildcard address.
   - **name** (Required, String)  
     Name of wildcard address.
+  - **value** (Required, String)  
+    Network and mask of wildcard address (`192.0.0.0/255.255.0.255`).
   - **description** (Optional, String)  
     Description of network address.
-  - **value** (Required, String)  
-    Network and mask of wildcard address. `192.0.0.0/255.255.0.255`
 - **dns_name** (Optional, Block List)  
   For each name of dns name address.
   - **name** (Required, String)  
     Name of dns name address.
+  - **value** (Required, String)  
+    DNS name string value (`juniper.net`).
   - **description** (Optional, String)  
     Description of dns name address.
-  - **value** (Required, String)  
-    DNS name string value. `juniper.net`
 - **range_address** (Optional, Block List)  
    For each name of range address.
   - **name** (Required, String)  
     Name of range address.
-  - **description** (Optional, String)  
-    Description of range address.
   - **from** (Required, String)  
     IP address of start of range.
   - **to** (Required, String)  
     IP address of end of range.
+  - **description** (Optional, String)  
+    Description of range address.
 - **address_book_set** (Optional, Block List)  
   For each name of address-set to declare.
   - **name** (Required, String)  
     Name of address-set.
-  - **description** (Optional, String)  
-    Description of address-set.
   - **address** (Required, Set of String)  
     List of address names.
+  - **description** (Optional, String)  
+    Description of address-set.
 
 ## Attributes Reference
 
