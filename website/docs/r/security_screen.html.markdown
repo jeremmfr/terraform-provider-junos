@@ -56,9 +56,9 @@ The following arguments are supported:
   See [below for nested schema](#ip-arguments).
 - **limit_session** (Optional, Block)  
   Declare `limit-session` configuration.
-  - **destination_ip_based** (Optional, List of String)  
+  - **destination_ip_based** (Optional, Number)  
     Limit sessions to the same destination IP (1..2000000).
-  - **source_ip_based** (Optional, List of String)  
+  - **source_ip_based** (Optional, Number)  
     Limit sessions from the same source IP (1..2000000).
 - **tcp** (Optional, Block)  
   Declare `tcp` configuration.  
@@ -167,7 +167,7 @@ The following arguments are supported:
   UDP flood ids option.
   - **threshold** (Optional, Number)  
     Threshold (1..1000000 UDP packets per second).
-  - **whitelist** (Optional, Set of String)  
+  - **whitelist** (Optional, List of String)  
     List of UDP flood white list group name.
 - **port_scan** (Optional, Block)  
   UDP port scan ids option.
@@ -283,7 +283,7 @@ The following arguments are supported:
   Source threshold (4..500000 SYN pps).
 - **timeout** (Optional, Number)  
   SYN flood ager timeout (1..50 seconds).
-- **whitelist** (Optional, Block List)  
+- **whitelist** (Optional, Block Set)  
   For each name of white-list to declare.
   - **name** (Required, String)  
     White-list name.
