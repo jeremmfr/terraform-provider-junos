@@ -6,7 +6,7 @@ description: |-
   The Junos provider communicate with Junos device via netconf protocol and modify a part of configuration
 ---
 
-# Junos Provider (unofficial)
+# Junos Provider
 
 The Junos provider communicate with Junos device via netconf protocol and modify a part of configuration.
 
