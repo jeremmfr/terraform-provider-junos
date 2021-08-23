@@ -247,12 +247,12 @@ func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess 
 	if d.Get("dynamic_db").(bool) {
 		configSet = append(configSet, setPrefix+" dynamic-db")
 	}
-	for _, v := range d.Get("prefix").(*schema.Set).List() {
-		err := validateCIDRNetwork(v.(string))
+	for _, v := range sortSetOfString(d.Get("prefix").(*schema.Set).List()) {
+		err := validateCIDRNetwork(v)
 		if err != nil {
 			return err
 		}
-		configSet = append(configSet, setPrefix+" "+v.(string))
+		configSet = append(configSet, setPrefix+" "+v)
 	}
 
 	return sess.configSet(configSet, jnprSess)

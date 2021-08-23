@@ -995,11 +995,11 @@ func setServicesSecurityIntell(d *schema.ResourceData, secuIntel interface{}) []
 			configSet = append(configSet,
 				setPrefix+"authentication tls-profile \""+secuIntelM["authentication_tls_profile"].(string)+"\"")
 		}
-		for _, v := range secuIntelM["category_disable"].(*schema.Set).List() {
-			if v.(string) == "all" {
+		for _, v := range sortSetOfString(secuIntelM["category_disable"].(*schema.Set).List()) {
+			if v == "all" {
 				configSet = append(configSet, setPrefix+"category all disable")
 			} else {
-				configSet = append(configSet, setPrefix+"category category-name "+v.(string)+" disable")
+				configSet = append(configSet, setPrefix+"category category-name "+v+" disable")
 			}
 		}
 		for _, v := range secuIntelM["default_policy"].([]interface{}) {
@@ -1037,11 +1037,11 @@ func setServicesUserIdentification(userIdentification interface{}) ([]string, er
 				configSet = append(configSet, setPrefix+"active-directory-access authentication-entry-timeout "+
 					strconv.Itoa(v2))
 			}
-			for _, v2 := range adAccess["filter_exclude"].(*schema.Set).List() {
-				configSet = append(configSet, setPrefix+"active-directory-access filter exclude "+v2.(string))
+			for _, v2 := range sortSetOfString(adAccess["filter_exclude"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefix+"active-directory-access filter exclude "+v2)
 			}
-			for _, v2 := range adAccess["filter_include"].(*schema.Set).List() {
-				configSet = append(configSet, setPrefix+"active-directory-access filter include "+v2.(string))
+			for _, v2 := range sortSetOfString(adAccess["filter_include"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefix+"active-directory-access filter include "+v2)
 			}
 			if v2 := adAccess["firewall_auth_forced_timeout"].(int); v2 != 0 {
 				configSet = append(configSet, setPrefix+"active-directory-access firewall-authentication-forced-timeout "+
@@ -1110,8 +1110,8 @@ func setServicesUserIdentification(userIdentification interface{}) ([]string, er
 			if v2 := identMgmt["batch_query_interval"].(int); v2 != 0 {
 				configSet = append(configSet, setPrefixIdentMgmt+"batch-query query-interval "+strconv.Itoa(v2))
 			}
-			for _, v2 := range identMgmt["filter_domain"].(*schema.Set).List() {
-				configSet = append(configSet, setPrefixIdentMgmt+"filter domain "+v2.(string))
+			for _, v2 := range sortSetOfString(identMgmt["filter_domain"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefixIdentMgmt+"filter domain "+v2)
 			}
 			if v2 := identMgmt["filter_exclude_ip_address_book"].(string); v2 != "" {
 				configSet = append(configSet, setPrefixIdentMgmt+"filter exclude-ip address-book \""+v2+"\"")

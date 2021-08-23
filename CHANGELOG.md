@@ -6,6 +6,7 @@ ENHANCEMENTS:
 * resource/`junos_system`: add `ntp` block argument (Fixes #261)
 * resource/`junos_interface_logical`: add `dad_disable` argument  inside `family_inet6` block argument (Fixes #263)
 * data-source/`junos_interface_logical`: add `dad_disable` attributes as for the resource
+* resource/`*`: sets of string are now ordered before adding to Junos config to avoid unnecessary diff in commits
 * resource/`junos_system`: add `netconf_traceoptions` block argument inside `services` block argument (Fixes #262)
 * data-source/`junos_interface`, `junos_interface_logical`: `vrrp_group.*.authentication_key` is now a sensitive argument (like resource)
 * docs: rewrite style for argument name and type

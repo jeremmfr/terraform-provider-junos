@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -254,6 +255,16 @@ func stringInSlice(str string, list []string) bool {
 	}
 
 	return false
+}
+
+func sortSetOfString(list []interface{}) []string {
+	s := make([]string, 0)
+	for _, e := range list {
+		s = append(s, e.(string))
+	}
+	sort.Strings(s)
+
+	return s
 }
 
 func copyAndRemoveItemMapList(identifier string,

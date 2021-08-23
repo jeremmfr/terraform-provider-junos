@@ -233,11 +233,11 @@ func setSnmpView(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	setPrefix := "set snmp view \"" + d.Get("name").(string) + "\" "
 	configSet := make([]string, 0)
 
-	for _, v := range d.Get("oid_include").(*schema.Set).List() {
-		configSet = append(configSet, setPrefix+"oid "+v.(string)+" include")
+	for _, v := range sortSetOfString(d.Get("oid_include").(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"oid "+v+" include")
 	}
-	for _, v := range d.Get("oid_exclude").(*schema.Set).List() {
-		configSet = append(configSet, setPrefix+"oid "+v.(string)+" exclude")
+	for _, v := range sortSetOfString(d.Get("oid_exclude").(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"oid "+v+" exclude")
 	}
 
 	return sess.configSet(configSet, jnprSess)

@@ -1264,8 +1264,8 @@ func setSecurityIdpCustomAttackTypeSignatureProtoIPv4(
 	if value := protoIPv4["ihl_value"].(int); value != -1 {
 		configSet = append(configSet, setPrefix+"ihl value "+strconv.Itoa(value))
 	}
-	for _, flags := range protoIPv4["ip_flags"].(*schema.Set).List() {
-		configSet = append(configSet, setPrefix+"ip-flags "+flags.(string))
+	for _, flags := range sortSetOfString(protoIPv4["ip_flags"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"ip-flags "+flags)
 	}
 	if match := protoIPv4["protocol_match"].(string); match != "" {
 		configSet = append(configSet, setPrefix+"protocol match "+match)
@@ -1437,8 +1437,8 @@ func setSecurityIdpCustomAttackTypeSignatureProtoTCP(
 	if value := protoTCP["source_port_value"].(int); value != -1 {
 		configSet = append(configSet, setPrefix+"source-port value "+strconv.Itoa(value))
 	}
-	for _, flags := range protoTCP["tcp_flags"].(*schema.Set).List() {
-		configSet = append(configSet, setPrefix+"tcp-flags "+flags.(string))
+	for _, flags := range sortSetOfString(protoTCP["tcp_flags"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"tcp-flags "+flags)
 	}
 	if match := protoTCP["urgent_pointer_match"].(string); match != "" {
 		configSet = append(configSet, setPrefix+"urgent-pointer match "+match)

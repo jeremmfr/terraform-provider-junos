@@ -663,8 +663,8 @@ func setServicesRpmProbe(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 				configSet = append(configSet, setPrefixTest+"thresholds total-loss "+strconv.Itoa(v2))
 			}
 		}
-		for _, v := range test["traps"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixTest+"traps "+v.(string))
+		for _, v := range sortSetOfString(test["traps"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixTest+"traps "+v)
 		}
 		if v := test["ttl"].(int); v != 0 {
 			configSet = append(configSet, setPrefixTest+"ttl "+strconv.Itoa(v))

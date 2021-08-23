@@ -374,8 +374,8 @@ func setVlan(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	if d.Get("vlan_id").(int) != 0 {
 		configSet = append(configSet, setPrefix+"vlan-id "+strconv.Itoa(d.Get("vlan_id").(int)))
 	}
-	for _, v := range d.Get("vlan_id_list").(*schema.Set).List() {
-		configSet = append(configSet, setPrefix+"vlan-id-list "+v.(string))
+	for _, v := range sortSetOfString(d.Get("vlan_id_list").(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"vlan-id-list "+v)
 	}
 	for _, v := range d.Get("vxlan").([]interface{}) {
 		vxlan := v.(map[string]interface{})

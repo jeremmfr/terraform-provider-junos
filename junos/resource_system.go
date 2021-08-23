@@ -1186,8 +1186,8 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			if netconfTraceOpts["file_world_readable"].(bool) {
 				configSet = append(configSet, setPrefix+"netconf traceoptions file world-readable")
 			}
-			for _, v := range netconfTraceOpts["flag"].(*schema.Set).List() {
-				configSet = append(configSet, setPrefix+"netconf traceoptions flag "+v.(string))
+			for _, v := range sortSetOfString(netconfTraceOpts["flag"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefix+"netconf traceoptions flag "+v)
 			}
 			if netconfTraceOpts["no_remote_trace"].(bool) {
 				configSet = append(configSet, setPrefix+"netconf traceoptions no-remote-trace")

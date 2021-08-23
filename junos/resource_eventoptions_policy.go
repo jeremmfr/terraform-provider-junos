@@ -643,8 +643,8 @@ func setEventoptionsPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netc
 	configSet := make([]string, 0)
 	setPrefix := "set event-options policy \"" + d.Get("name").(string) + "\" "
 
-	for _, v := range d.Get("events").(*schema.Set).List() {
-		configSet = append(configSet, setPrefix+"events \""+v.(string)+"\"")
+	for _, v := range sortSetOfString(d.Get("events").(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"events \""+v+"\"")
 	}
 	for _, v := range d.Get("then").([]interface{}) {
 		then := v.(map[string]interface{})
@@ -791,11 +791,11 @@ func setEventoptionsPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netc
 	for _, v := range d.Get("within").([]interface{}) {
 		within := v.(map[string]interface{})
 		setPrefixWithin := setPrefix + "within " + strconv.Itoa(within["time_interval"].(int)) + " "
-		for _, v2 := range within["events"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixWithin+"events \""+v2.(string)+"\"")
+		for _, v2 := range sortSetOfString(within["events"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixWithin+"events \""+v2+"\"")
 		}
-		for _, v2 := range within["not_events"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixWithin+"not events \""+v2.(string)+"\"")
+		for _, v2 := range sortSetOfString(within["not_events"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixWithin+"not events \""+v2+"\"")
 		}
 		if v2 := within["trigger_when"].(string); v2 != "" {
 			if c := within["trigger_count"].(int); c != -1 {
