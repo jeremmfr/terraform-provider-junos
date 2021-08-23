@@ -3,6 +3,7 @@
 
 ENHANCEMENTS:
 
+* resource/`junos_system`: add `netconf_traceoptions` block argument inside `services` block argument (Fixes #262)
 * data-source/`junos_interface`, `junos_interface_logical`: `vrrp_group.*.authentication_key` is now a sensitive argument (like resource)
 * docs: rewrite style for argument name and type
 * docs: add attributes reference on resource
