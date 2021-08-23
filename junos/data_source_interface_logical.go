@@ -299,6 +299,10 @@ func dataSourceInterfaceLogical() *schema.Resource {
 								},
 							},
 						},
+						"dad_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
 						"filter_input": {
 							Type:     schema.TypeString,
 							Computed: true,

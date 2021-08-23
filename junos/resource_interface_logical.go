@@ -344,6 +344,10 @@ func resourceInterfaceLogical() *schema.Resource {
 								},
 							},
 						},
+						"dad_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
 						"filter_input": {
 							Type:             schema.TypeString,
 							Optional:         true,
@@ -864,6 +868,9 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 					return err
 				}
 			}
+			if familyInet6["dad_disable"].(bool) {
+				configSet = append(configSet, setPrefix+"family inet6 dad-disable")
+			}
 			if familyInet6["filter_input"].(string) != "" {
 				configSet = append(configSet, setPrefix+"family inet6 filter input "+
 					familyInet6["filter_input"].(string))
@@ -954,6 +961,7 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 				if len(confRead.familyInet6) == 0 {
 					confRead.familyInet6 = append(confRead.familyInet6, map[string]interface{}{
 						"address":         make([]map[string]interface{}, 0),
+						"dad_disable":     false,
 						"filter_input":    "",
 						"filter_output":   "",
 						"mtu":             0,
@@ -970,6 +978,8 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 					if err != nil {
 						return confRead, err
 					}
+				case itemTrim == "family inet6 dad-disable":
+					confRead.familyInet6[0]["dad_disable"] = true
 				case strings.HasPrefix(itemTrim, "family inet6 filter input "):
 					confRead.familyInet6[0]["filter_input"] = strings.TrimPrefix(itemTrim, "family inet6 filter input ")
 				case strings.HasPrefix(itemTrim, "family inet6 filter output "):

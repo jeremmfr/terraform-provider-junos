@@ -61,6 +61,8 @@ The following arguments are supported:
   - **address** (Optional, Block List)  
     For each ipv6 address to declare.  
     See [below for nested schema](#address-arguments-for-family_inet6).
+  - **dad_disable** (Optional, Boolean)  
+    Disable duplicate-address-detection.
   - **filter_input** (Optional, String)  
     Filter to be applied to received packets.
   - **filter_output** (Optional, String)  

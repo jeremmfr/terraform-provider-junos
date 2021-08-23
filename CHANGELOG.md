@@ -3,6 +3,8 @@
 
 ENHANCEMENTS:
 
+* resource/`junos_interface_logical`: add `dad_disable` argument  inside `family_inet6` block argument (Fixes #263)
+* data-source/`junos_interface_logical`: add `dad_disable` attributes as for the resource
 * data-source/`junos_interface`, `junos_interface_logical`: `vrrp_group.*.authentication_key` is now a sensitive argument (like resource)
 * docs: rewrite style for argument name and type
 * docs: add attributes reference on resource
