@@ -98,6 +98,26 @@ The following arguments are supported:
   Disable ICMP redirects.
 - **no_redirects_ipv6** (Optional, Boolean)  
   Disable IPV6 ICMP redirects.
+- **ntp** (Optional, Block)  
+  Declare `ntp` configuration.
+  - **boot_server** (Optional, String)  
+    Server to query during boot sequence.
+  - **broadcast_client** (Optional, Boolean)  
+    Listen to broadcast NTP.
+  - **interval_range** (Optional, Number)  
+    Set the minpoll and maxpoll interval range (0..3).
+  - **multicast_client** (Optional, Boolean)  
+    Listen to multicast NTP.
+  - **multicast_client_address** (Optional, String)  
+    Multicast address to listen to.  
+    `multicast_client` need to be set to true.
+  - **threshold_action** (Optional, String)  
+    Select actions for NTP abnormal adjustment.  
+    Need to be `accept` or `reject`.  
+    `threshold_value` needs to be set.
+  - **threshold_value** (Optional, Number)  
+    Set the maximum threshold(sec) allowed for NTP adjustment (1..600).
+    `threshold_action` needs to be set.
 - **radius_options_attributes_nas_ipaddress** (Optional, String)  
   Value of NAS-IP-Address in outgoing RADIUS packets.
 - **radius_options_enhanced_accounting** (Optional, Boolean)  
