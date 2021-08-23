@@ -88,8 +88,9 @@ func dataSourceInterfaceLogical() *schema.Resource {
 													Computed: true,
 												},
 												"authentication_key": {
-													Type:     schema.TypeString,
-													Computed: true,
+													Type:      schema.TypeString,
+													Computed:  true,
+													Sensitive: true,
 												},
 												"authentication_type": {
 													Type:     schema.TypeString,

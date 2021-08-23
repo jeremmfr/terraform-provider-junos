@@ -24,8 +24,17 @@ resource junos_snmp_clientlist "list1" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) The name of snmp client-list.
-* `prefix` - (Optional)(`ListOfString`) Address or prefix.
+- **name** (Required, String, Forces new resource)  
+  The name of snmp client-list.
+- **prefix** (Optional, Set of String)  
+  Address or prefix.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
 
 ## Import
 

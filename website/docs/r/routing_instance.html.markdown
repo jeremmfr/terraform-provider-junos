@@ -23,20 +23,43 @@ resource junos_routing_instance "demo_ri" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) The name of routing instance.
-* `configure_rd_vrfopts_singly` - (Optional, Forces new resource)(`Bool`) Configure `route-distinguisher` and `vrf-*` options in other resource (like `junos_evpn`).
-* `configure_type_singly` - (Optional, Forces new resource)(`Bool`) Configure `instance-type` option in other resource (like `junos_evpn`). `type` argument need to be set to "" when true (to avoid confusion).
-* `type` - (Optional)(`String`) Type of routing instance. Defaults to `virtual-router`.
-* `as` - (Optional)(`String`) Autonomous system number in plain number or 'higher 16bits'.'Lower 16 bits' (asdot notation) format.
-* `description` - (Optional)(`String`) Text description of routing instance.
-* `route_distinguisher` - (Optional)(`String`) Route distinguisher for this instance.
-* `vrf_export` - (Optional)(`ListOfString`) Export policy for VRF instance RIBs;
-* `vrf_import` - (Optional)(`ListOfString`) Import policy for VRF instance RIBs.
-* `vrf_target` - (Optional)(`String`) Target community to use in import and export.
-* `vrf_target_auto` - (Optional)(`Bool`) Auto derive import and export target community from BGP AS & L2.
-* `vrf_target_export` - (Optional)(`String`) Target community to use when marking routes on export.
-* `vrf_target_import` - (Optional)(`String`) Target community to use when filtering on import.
-* `vtep_source_interface` - (Optional)(`String`) Source layer-3 IFL for VXLAN.
+- **name** (Required, String, Forces new resource)  
+  The name of routing instance.
+- **configure_rd_vrfopts_singly** (Optional, Boolean, Forces new resource)  
+  Configure `route-distinguisher` and `vrf-*` options in other resource (like `junos_evpn`).
+- **configure_type_singly** (Optional, Boolean, Forces new resource)  
+  Configure `instance-type` option in other resource (like `junos_evpn`).  
+  `type` argument need to be set to "" when true (to avoid confusion).
+- **type** (Optional, String)  
+  Type of routing instance.  
+  Defaults to `virtual-router`.
+- **as** (Optional, String)  
+  Autonomous system number in plain number or `higher 16bits`.`lower 16 bits` (asdot notation) format.
+- **description** (Optional, String)  
+  Text description of routing instance.
+- **route_distinguisher** (Optional, String)  
+  Route distinguisher for this instance.
+- **vrf_export** (Optional, List of String)  
+  Export policy for VRF instance RIBs.
+- **vrf_import** (Optional, List of String)  
+  Import policy for VRF instance RIBs.
+- **vrf_target** (Optional, String)  
+  Target community to use in import and export.
+- **vrf_target_auto** (Optional, Boolean)  
+  Auto derive import and export target community from BGP AS & L2.
+- **vrf_target_export** (Optional, String)  
+  Target community to use when marking routes on export.
+- **vrf_target_import** (Optional, String)  
+  Target community to use when filtering on import.
+- **vtep_source_interface** (Optional, String)  
+  Source layer-3 IFL for VXLAN.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
 
 ## Import
 

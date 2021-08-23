@@ -31,7 +31,7 @@ jobs:
           fi
       - name: Check if too many level in list of arguments for resource or data_source
         run: |
-          if [[ $(grep -r "^ \{3,\}\(\*\|-\)" website/docs/* | wc -l) -gt 0 ]] ; then \
+          if [[ $(grep -r "^ \{3,\}\(\*\|-\) " website/docs/* | wc -l) -gt 0 ]] ; then \
           echo "Too many level of arugments in docs" ; grep -nr "^ \{3,\}\(\*\|-\)" website/docs/* ; exit 1 ; \
           fi
       - name: Check link for pages in sidebar

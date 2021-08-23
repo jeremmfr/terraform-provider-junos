@@ -27,12 +27,26 @@ resource junos_security_ipsec_proposal "demo_vpn_proposal" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) The name of ipsec proposal.
-* `authentication_algorithm` - (Optional)(`String`) Authentication algorithm.
-* `encryption_algorithm` - (Optional)(`String`) Encryption algorithm.
-* `lifetime_seconds` - (Optional)(`Int`) Lifetime, in seconds.
-* `lifetime_kilobytes` - (Optional)(`Int`) Lifetime, in kilobytes.
-* `protocol` - (Optional)(`String`) IPSec protocol. Need to be 'esp' or 'ah'.
+- **name** (Required, String, Forces new resource)  
+  The name of ipsec proposal.
+- **authentication_algorithm** (Optional, String)  
+  Authentication algorithm.
+- **encryption_algorithm** (Optional, String)  
+  Encryption algorithm.
+- **lifetime_seconds** (Optional, Number)  
+  Lifetime, in seconds.
+- **lifetime_kilobytes** (Optional, Number)  
+  Lifetime, in kilobytes.
+- **protocol** (Optional, String)  
+  IPSec protocol.  
+  Need to be `esp` or `ah`.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
 
 ## Import
 

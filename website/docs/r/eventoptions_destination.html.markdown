@@ -26,12 +26,23 @@ resource "junos_eventoptions_destination" "demo" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) Destination name.
-* `archive_site` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each archive destination.
-  * `url` - (Required)(`String`) URL of destination for file.
-  * `password` - (Optional)(`String`) Password for login into the archive site.  
-  **WARNING** Clear in tfstate.
-* `transfer_delay` - (Optional)(`Int`) Delay before transferring files (seconds).
+- **name** (Required, String, Forces new resource)  
+  Destination name.
+- **archive_site** (Required, Block List)  
+  For each archive destination.
+  - **url** (Required, String)  
+    URL of destination for file.
+  - **password** (Optional, String, Sensitive)  
+    Password for login into the archive site.  
+- **transfer_delay** (Optional, Number)  
+  Delay before transferring files (seconds).
+
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
 
 ## Import
 

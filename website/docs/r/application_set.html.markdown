@@ -24,8 +24,17 @@ resource junos_application_set "ssh_telnet" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) Name of application set.
-* `applications` - (Optional)(`ListOfString`) List of application names.
+- **name** (Required, String, Forces new resource)  
+  Name of application set.
+- **applications** (Optional, List of String)  
+  List of application names.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
 
 ## Import
 

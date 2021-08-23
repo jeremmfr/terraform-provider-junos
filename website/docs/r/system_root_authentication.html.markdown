@@ -8,7 +8,9 @@ description: |-
 
 # junos_system_root_authentication
 
--> **Note:** This resource should only be created **once**. It's used to configure static (not object) options in `system root-authentication` block. Destroy this resource has no effect on the Junos configuration.
+-> **Note:** This resource should only be created **once**.
+It's used to configure static (not object) options in `system root-authentication` block.  
+Destroy this resource has no effect on the Junos configuration.
 
 Configure `system root-authentication` block
 
@@ -29,9 +31,19 @@ resource junos_system_root_authentication "root_auth" {
 
 The following arguments are supported:
 
-* `encrypted_password` - (Required)(`String`) Encrypted password string.
-* `no_public_keys` - (Optional)(`Bool`) Disables ssh public key based authentication.
-* `ssh_public_keys` - (Optional)(`ListOfString`) Secure shell (ssh) public key string.
+- **encrypted_password** (Required, String)  
+  Encrypted password string.
+- **no_public_keys** (Optional, Boolean)  
+  Disables ssh public key based authentication.
+- **ssh_public_keys** (Optional, Set of String)  
+  Secure shell (ssh) public key string.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with value `system_root_authentication`.
 
 ## Import
 

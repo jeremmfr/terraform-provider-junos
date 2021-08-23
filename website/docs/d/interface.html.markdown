@@ -10,7 +10,9 @@ description: |-
 
 Get information on an Interface
 
-!> **NOTE:** Since v1.11.0, this data soure is **deprecated**. For more consistency, functionalities of this data source have been splitted in two new data source `junos_interface_physical` and `junos_interface_logical`.
+!> **NOTE:** Since v1.11.0, this data soure is **deprecated**.  
+For more consistency, functionalities of this data source have been splitted in two new data source
+`junos_interface_physical` and `junos_interface_logical`.
 
 ## Example Usage
 
@@ -29,73 +31,131 @@ data junos_interface "interface_fw_demo" {
 
 The following arguments are supported:
 
-* `config_interface` - (Optional)(`String`) Specifies the interface part for search. Command is 'show configuration interfaces <config_interface>'
-* `match` - (Optional)(`String`) Regex string to filter lines and find only one interface.
+- **config_interface** (Optional, String)  
+  Specifies the interface part for search.  
+  Command is `show configuration interfaces <config_interface>`
+- **match** (Optional, String)  
+  Regex string to filter lines and find only one interface.
 
 ~> **NOTE:** If more or less than a single match is returned by the search, Terraform will fail.
 
 ## Attributes Reference
 
-* `id` - Like resource it's the `name` of interface
-* `name` - Name of interface or unit interface (with dot).
-* `description` - Description for interface.
-* `vlan_tagging` - 802.1q VLAN tagging support.
-* `vlan_taggind_id` - 802.1q VLAN ID for unit interface.
-* `inet` - Family inet enabled.
-* `inet6` - Family inet6 enabled.
-* `inet_address` - List of `family inet` `address` and with each vrrp-group set.
-  * `inet_address.#.address` - IPv4 address with mask.
-  * `inet_address.#.vrrp_group` - See [`vrrp_group` attributes for inet_address](#vrrp_group-attributes-for-inet_address)
-* `inet6_address` - List of `family inet6` `address` and with each vrrp-group set.
-  * `inet6_address.#.address` - IPv6 address with mask.
-  * `inet6_address.#.vrrp_group` -  See [`vrrp_group` attributes for inet6_address](#vrrp_group-attributes-for-inet6_address)
-* `inet_mtu` - MTU for family inet
-* `inet6_mtu` - MTU for family inet6
-* `inet_filter_input` - Filter applied to received packets for family inet.
-* `inet_filter_output` - Filter applied to transmitted packets for family inet.
-* `inet6_filter_input` - Filter applied to received packets for family inet6.
-* `inet6_filter_output` - Filter applied to transmitted packets for family inet6.
-* `inet_rpf_check` - Reverse-path-forwarding checks enabled and possible configuration for family inet.
-  * `fail_filter` - Name of filter applied to packets failing RPF check.
-  * `mode_loose` - Reverse-path-forwarding use loose mode instead the strict mode.
-* `inet6_rpf_check` - Reverse-path-forwarding checks enabled and possible configuration for family inet6. Attributes is same as `inet_rpf_check`.
-* `ether802_3ad` - Link of 802.3ad interface.
-* `trunk` - Interface mode is trunk.
-* `vlan_members` - List of vlan membership for this interface.
-* `vlan_native` - Vlan for untagged frames.
-* `ae_lacp` - LACP option in aggregated-ether-options.
-* `ae_link_speed` - Link speed of individual interface that joins the AE.
-* `ae_minimum_links` - Minimum number of aggregated links (1..8).
-* `security_zone` - Security zone where the interface is
-* `routing_instance` - Routing_instance where the interface is (if not default instance)
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
+- **name** (String)  
+  Name of interface or unit interface (with dot).
+- **description** (String)  
+  Description for interface.
+- **vlan_tagging** (Boolean)  
+  802.1q VLAN tagging support.
+- **vlan_taggind_id** (Number)  
+  802.1q VLAN ID for unit interface.
+- **inet** (Boolean)  
+  Family inet enabled.
+- **inet6** (Boolean)  
+  Family inet6 enabled.
+- **inet_address** (Block List)  
+  List of `family inet` `address` and with each vrrp-group set.
+  - **address** (String)  
+    IPv4 address with mask.
+  - **vrrp_group** (Block List)  
+    See [below for nested schema](#vrrp_group-attributes-for-inet_address)
+- **inet6_address** (Block List)  
+  List of `family inet6` `address` and with each vrrp-group set.
+  - **address** (String)  
+    IPv6 address with mask.
+  - **vrrp_group** (Block List)  
+    See [below for nested schema](#vrrp_group-attributes-for-inet6_address)
+- **inet_mtu** (Number)  
+  MTU for family inet
+- **inet6_mtu** (Number)  
+  MTU for family inet6
+- **inet_filter_input** (String)  
+  Filter applied to received packets for family inet.
+- **inet_filter_output** (String)  
+  Filter applied to transmitted packets for family inet.
+- **inet6_filter_input** (String)  
+  Filter applied to received packets for family inet6.
+- **inet6_filter_output** (String)  
+  Filter applied to transmitted packets for family inet6.
+- **inet_rpf_check** (Block)  
+  Reverse-path-forwarding checks enabled and possible configuration for family inet.
+  - **fail_filter** (String)  
+    Name of filter applied to packets failing RPF check.
+  - **mode_loose** (Boolean)  
+    Reverse-path-forwarding use loose mode instead the strict mode.
+- **inet6_rpf_check** (Block)  
+  Reverse-path-forwarding checks enabled and possible configuration for family inet6.  
+  Attributes is same as `inet_rpf_check`.
+- **ether802_3ad** (String)  
+  Link of 802.3ad interface.
+- **trunk** (Boolean)  
+  Interface mode is trunk.
+- **vlan_members** (List of String)  
+  List of vlan membership for this interface.
+- **vlan_native** (Number)  
+  Vlan for untagged frames.
+- **ae_lacp** (String)  
+  LACP option in aggregated-ether-options.
+- **ae_link_speed** (String)  
+  Link speed of individual interface that joins the AE.
+- **ae_minimum_links** (Number)  
+  Minimum number of aggregated links (1..8).
+- **security_zone** (String)  
+  Security zone where the interface is
+- **routing_instance** (String)  
+  Routing_instance where the interface is (if not default instance)
 
 ---
 
 ### vrrp_group attributes for inet_address
 
-* `identifier` - ID for vrrp
-* `virtual_address` - List of address IP v4.
-* `accept_data` - Accept packets destined for virtual IP address.
-* `advertise_interval` - Advertisement interval (seconds)
-* `advertisements_threshold` - Number of vrrp advertisements missed before declaring master down.
-* `authentication_key` - Authentication key
-* `authentication_type` - Authentication type.
-* `no_accept_data` - Don't accept packets destined for virtual IP address.
-* `no_preempt` - Preemption not allowed.
-* `preempt` - Preemption allowed.
-* `priority` - Virtual router election priority.
-* `track_interface` - List of track_interface.
-  * `interface` - Interface tracked.
-  * `priority_cost` - Value to subtract from priority when interface is down
-* `track_route` - List of track_route.
-  * `route` - Route address tracked.
-  * `routing_instance` - Routing instance to which route belongs.
-  * `priority_cost` - Value to subtract from priority when route is down.
+- **identifier** (Number)  
+  ID for vrrp
+- **virtual_address** (List of String)  
+  List of address IP v4.
+- **accept_data** (Boolean)  
+  Accept packets destined for virtual IP address.
+- **advertise_interval** (Number)  
+  Advertisement interval (seconds)
+- **advertisements_threshold** (Number)  
+  Number of vrrp advertisements missed before declaring master down.
+- **authentication_key** (String, Sensitive)  
+  Authentication key
+- **authentication_type** (String)  
+  Authentication type.
+- **no_accept_data** (Boolean)  
+  Don't accept packets destined for virtual IP address.
+- **no_preempt** (Boolean)  
+  Preemption not allowed.
+- **preempt** (Boolean)  
+  Preemption allowed.
+- **priority** (Number)  
+  Virtual router election priority.
+- **track_interface** (Block List)  
+  List of track_interface.
+  - **interface** (String)  
+    Interface tracked.
+  - **priority_cost** (Number)  
+    Value to subtract from priority when interface is down
+- **track_route** (Block List)  
+  List of track_route.
+  - **route** (String)  
+    Route address tracked.
+  - **routing_instance** (String)  
+    Routing instance to which route belongs.
+  - **priority_cost** (Number)  
+    Value to subtract from priority when route is down.
 
 ---
 
 ### vrrp_group attributes for inet6_address
 
-Same as [`vrrp_group` attributes for inet_address](#vrrp_group-attributes-for-inet_address) block but without `authentication_key`, `authentication_type` and with
+Same as [`vrrp_group` attributes for inet_address](#vrrp_group-attributes-for-inet_address) block
+but without `authentication_key`, `authentication_type` and with
 
-* `virtual_link_local_address` - Address IPv6 for Virtual link-local addresses.
+- **virtual_link_local_address** (String)  
+  Address IPv6 for Virtual link-local addresses.

@@ -8,16 +8,16 @@ description: |-
 
 # junos_interface deprecated
 
-For more consistency, functionalities of `junos_interface` resource have been splitted in two new resource :
-`junos_interface_physical` and `junos_interface_logical`.  
+For more consistency, functionalities of `junos_interface` resource have been splitted in two new
+resource : `junos_interface_physical` and `junos_interface_logical`.  
 The `junos_interface` resource is **deprecated** since v1.11.0.
 
 ## Rewrite resource for physical interface
 
 For physical interface (without dot in name) :
 
-* rename the type of resource `junos_interface` to `junos_interface_physical`
-* rename `complete_destroy` argument to `no_disable_on_destroy`
+- rename the type of resource `junos_interface` to `junos_interface_physical`
+- rename `complete_destroy` argument to `no_disable_on_destroy`
 
 For example :
 
@@ -43,13 +43,13 @@ resource junos_interface_physical "interface_physical_demo" {
 
 For logical interface (with dot in name) :
 
-* rename type of resource `junos_interface`to `junos_interface_logical`
-* rename `vlan_tagging_id` argument to `vlan_id`
-* rename `complete_destroy` argument to `st0_also_on_destroy`
-* move `inet_*` arguments in new `family_inet` block without prefix `inet_`
-* move `inet6_*` arguments in new `family_inet6` block without prefix `inet6_`
-* rename `address` in old `inet_address` argument to `cidr_ip`
-* rename `address` in old `inet6_address` argument to `cidr_ip`
+- rename type of resource `junos_interface`to `junos_interface_logical`
+- rename `vlan_tagging_id` argument to `vlan_id`
+- rename `complete_destroy` argument to `st0_also_on_destroy`
+- move `inet_*` arguments in new `family_inet` block without prefix `inet_`
+- move `inet6_*` arguments in new `family_inet6` block without prefix `inet6_`
+- rename `address` in old `inet_address` argument to `cidr_ip`
+- rename `address` in old `inet6_address` argument to `cidr_ip`
 
 For example :
 
@@ -89,7 +89,8 @@ resource junos_interface_logical "st0_100" {
 
 ## Upgrade without destroy and create new
 
-For upgrade to the new resource without destroy deprecated resource and recreate resource, you need to import the new resource and delete the old resource in Terraform state.
+For upgrade to the new resource without destroy deprecated resource and recreate resource, you need
+to import the new resource and delete the old resource in Terraform state.
 
 After rewrite resource with new type, import each resources :
 

@@ -24,11 +24,23 @@ resource junos_system_ntp_server "demo_ntp_server" {
 
 The following arguments are supported:
 
-* `address` - (Required, Forces new resource)(`String`) Address of server.
-* `key` - (Optional)(`Int`) Authentication key (1..65534).
-* `prefer` - (Optional)(`Bool`) Prefer this peer_serv.
-* `routing_instance` - (Optional)(`String`) Routing instance through which server is reachable.
-* `version` - (Optional)(`Int`) NTP version to use (1..4).
+- **address** (Required, String, Forces new resource)  
+  Address of server.
+- **key** (Optional, Number)  
+  Authentication key (1..65534).
+- **prefer** (Optional, Boolean)  
+  Prefer this peer_serv.
+- **routing_instance** (Optional, String)  
+  Routing instance through which server is reachable.
+- **version** (Optional, Number)  
+  NTP version to use (1..4).
+
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<address>`.
 
 ## Import
 
