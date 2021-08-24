@@ -85,9 +85,9 @@ The following attributes are exported:
     Sample all packets output on this interface.
 - **routing_instance** (String)  
   Routing_instance where the interface is (if not default instance).
-- **security_inbound_protocols** (List of String)  
+- **security_inbound_protocols** (Set of String)  
   The inbound protocols allowed.
-- **security_inbound_services** (List of String)  
+- **security_inbound_services** (Set of String)  
   The inbound services allowed.
 - **security_zone** (String)  
   Security zone where the interface is.

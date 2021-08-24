@@ -79,11 +79,11 @@ The following arguments are supported:
 - **routing_instance** (Optional, String)  
   Add this interface in routing_instance.  
   Need to be created before.
-- **security_inbound_protocols** (Optional, List of String)  
+- **security_inbound_protocols** (Optional, Set of String)  
   The inbound protocols allowed.  
   Must be a list of Junos protocols.  
   `security_zone` need to be set.
-- **security_inbound_services** (Optional, List of String)  
+- **security_inbound_services** (Optional, Set of String)  
   The inbound services allowed.  
   Must be a list of Junos services.  
   `security_zone` need to be set.

@@ -347,12 +347,12 @@ func dataSourceInterfaceLogical() *schema.Resource {
 				Computed: true,
 			},
 			"security_inbound_protocols": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"security_inbound_services": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
