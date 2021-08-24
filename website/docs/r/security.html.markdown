@@ -58,7 +58,7 @@ The following arguments are supported:
   - **file** (Optional, Block)  
     Declare `file` configuration.  
     See [below for nested schema](#file-arguments-for-ike_traceoptions).
-  - **flag** (Optional, List of String)  
+  - **flag** (Optional, Set of String)  
     Tracing parameters for IKE.
   - **rate_limit** (Optional, Number)  
     Limit the incoming rate of trace messages (0..4294967295)

@@ -598,7 +598,7 @@ func resourceSecurity() *schema.Resource {
 							},
 						},
 						"flag": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
@@ -1522,8 +1522,8 @@ func setSecurityIkeTraceOpts(ikeTrace interface{}) ([]string, error) {
 			return configSet, fmt.Errorf("ike_traceoptions file block is empty")
 		}
 	}
-	for _, ikeTraceFlag := range ikeTraceM["flag"].([]interface{}) {
-		configSet = append(configSet, setPrefix+"flag "+ikeTraceFlag.(string))
+	for _, ikeTraceFlag := range sortSetOfString(ikeTraceM["flag"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"flag "+ikeTraceFlag)
 	}
 	if ikeTraceM["no_remote_trace"].(bool) {
 		configSet = append(configSet, setPrefix+"no-remote-trace")
