@@ -125,7 +125,7 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"ike_traceoptions.0.file.0.match", "test"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"ike_traceoptions.0.file.0.size", "100000"),
+							"ike_traceoptions.0.file.0.size", "102400"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"ike_traceoptions.0.file.0.world_readable", "true"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
@@ -398,7 +398,7 @@ resource junos_security "testacc_security" {
       name           = "ike.log"
       files          = 5
       match          = "test"
-      size           = 100000
+      size           = 102400
       world_readable = true
     }
     flag            = ["all"]

@@ -10,6 +10,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* resource/`junos_security`: fix reading `size` argument inside `file` block inside `ike_traceoptions` block when number match a multiple of 1024 (example 1k, 1m, 1g)
+
 ## 1.19.0 (July 30, 2021)
 
 FEATURES:
