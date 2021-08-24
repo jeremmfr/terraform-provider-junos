@@ -86,10 +86,10 @@ The following arguments are supported:
   Enable Application tracking support for this zone.
 - **description** (Optional, String)  
   Text description of zone.
-- **inbound_protocols** (Optional, List of String)  
+- **inbound_protocols** (Optional, Set of String)  
   The inbound protocols allowed.  
   Must be a list of Junos protocols.
-- **inbound_services** (Optional, List of String)  
+- **inbound_services** (Optional, Set of String)  
   The inbound services allowed.  
   Must be a list of Junos services.
 - **reverse_reroute** (Optional, Boolean)  
