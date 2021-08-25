@@ -330,7 +330,15 @@ resource junos_system "testacc_system" {
   no_ping_time_stamp          = true
   no_redirects                = true
   no_redirects_ipv6           = true
-
+  ntp {
+    boot_server              = "192.0.2.13"
+    broadcast_client         = true
+    interval_range           = 2
+    multicast_client         = true
+    multicast_client_address = "224.0.0.3"
+    threshold_action         = "accept"
+    threshold_value          = 30
+  }
   radius_options_attributes_nas_ipaddress   = "192.0.2.12"
   radius_options_enhanced_accounting        = true
   radius_options_password_protocol_mschapv2 = true

@@ -37,6 +37,7 @@ type systemOptions struct {
 	internetOptions                      []map[string]interface{}
 	license                              []map[string]interface{}
 	login                                []map[string]interface{}
+	ntp                                  []map[string]interface{}
 	services                             []map[string]interface{}
 	syslog                               []map[string]interface{}
 }
@@ -481,6 +482,50 @@ func resourceSystem() *schema.Resource {
 			"no_redirects_ipv6": {
 				Type:     schema.TypeBool,
 				Optional: true,
+			},
+			"ntp": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"boot_server": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"broadcast_client": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"interval_range": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      -1,
+							ValidateFunc: validation.IntBetween(0, 3),
+						},
+						"multicast_client": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"multicast_client_address": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsIPAddress,
+						},
+						"threshold_action": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							RequiredWith: []string{"ntp.0.threshold_value"},
+							ValidateFunc: validation.StringInSlice([]string{"accept", "reject"}, false),
+						},
+						"threshold_value": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							RequiredWith: []string{"ntp.0.threshold_action"},
+							ValidateFunc: validation.IntBetween(1, 600),
+						},
+					},
+				},
 			},
 			"radius_options_attributes_nas_ipaddress": {
 				Type:         schema.TypeString,
@@ -965,6 +1010,33 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 	if d.Get("no_redirects_ipv6").(bool) {
 		configSet = append(configSet, setPrefix+"no-redirects-ipv6")
 	}
+	for _, vi := range d.Get("ntp").([]interface{}) {
+		setPrefixNtp := setPrefix + "ntp "
+		ntp := vi.(map[string]interface{})
+		if v := ntp["boot_server"].(string); v != "" {
+			configSet = append(configSet, setPrefixNtp+"boot-server "+v)
+		}
+		if ntp["broadcast_client"].(bool) {
+			configSet = append(configSet, setPrefixNtp+"broadcast-client")
+		}
+		if v := ntp["interval_range"].(int); v != -1 {
+			configSet = append(configSet, setPrefixNtp+"interval-range "+strconv.Itoa(v))
+		}
+		if ntp["multicast_client"].(bool) {
+			configSet = append(configSet, setPrefixNtp+"multicast-client")
+			if v := ntp["multicast_client_address"].(string); v != "" {
+				configSet = append(configSet, setPrefixNtp+"multicast-client "+v)
+			}
+		} else if ntp["multicast_client_address"].(string) != "" {
+			return fmt.Errorf("ntp.0.multicast_client need to be true with multicast_client_address")
+		}
+		if v := ntp["threshold_value"].(int); v != 0 {
+			configSet = append(configSet, setPrefixNtp+"threshold "+strconv.Itoa(v)+" action "+ntp["threshold_action"].(string))
+		}
+		if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefixNtp) {
+			return fmt.Errorf("ntp block is empty")
+		}
+	}
 	if v := d.Get("radius_options_attributes_nas_ipaddress").(string); v != "" {
 		configSet = append(configSet, setPrefix+"radius-options attributes nas-ip-address "+v)
 	}
@@ -1387,6 +1459,17 @@ func listLinesLicense() []string {
 	}
 }
 
+func listLinesNtp() []string {
+	return []string{
+		"ntp boot-server",
+		"ntp broadcast-client",
+		"ntp interval-range",
+		"ntp multicast-client",
+		"ntp source-address",
+		"ntp threshold",
+	}
+}
+
 func listLinesServices() []string {
 	ls := make([]string, 0)
 	ls = append(ls, listLinesServicesSSH()...)
@@ -1449,6 +1532,7 @@ func delSystem(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete = append(listLinesToDelete, listLinesLogin()...)
 	listLinesToDelete = append(listLinesToDelete, "max-configuration-rollbacks")
 	listLinesToDelete = append(listLinesToDelete, "max-configurations-on-flash")
+	listLinesToDelete = append(listLinesToDelete, listLinesNtp()...)
 	listLinesToDelete = append(listLinesToDelete, "name-server")
 	listLinesToDelete = append(listLinesToDelete, "no-multicast-echo")
 	listLinesToDelete = append(listLinesToDelete, "no-ping-record-route")
@@ -1581,6 +1665,43 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 				confRead.maxConfigurationsOnFlash, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-configurations-on-flash "))
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				}
+			case checkStringHasPrefixInList(itemTrim, listLinesNtp()):
+				if len(confRead.ntp) == 0 {
+					confRead.ntp = append(confRead.ntp, map[string]interface{}{
+						"boot_server":              "",
+						"broadcast_client":         false,
+						"interval_range":           -1,
+						"multicast_client":         false,
+						"multicast_client_address": "",
+						"threshold_action":         "",
+						"threshold_value":          0,
+					})
+				}
+				switch {
+				case strings.HasPrefix(itemTrim, "ntp boot-server "):
+					confRead.ntp[0]["boot_server"] = strings.TrimPrefix(itemTrim, "ntp boot-server ")
+				case itemTrim == "ntp broadcast-client":
+					confRead.ntp[0]["broadcast_client"] = true
+				case strings.HasPrefix(itemTrim, "ntp interval-range "):
+					var err error
+					confRead.ntp[0]["interval_range"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "ntp interval-range "))
+					if err != nil {
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					}
+				case strings.HasPrefix(itemTrim, "ntp multicast-client"):
+					confRead.ntp[0]["multicast_client"] = true
+					if strings.HasPrefix(itemTrim, "ntp multicast-client ") {
+						confRead.ntp[0]["multicast_client_address"] = strings.TrimPrefix(itemTrim, "ntp multicast-client ")
+					}
+				case strings.HasPrefix(itemTrim, "ntp threshold action "):
+					confRead.ntp[0]["threshold_action"] = strings.TrimPrefix(itemTrim, "ntp threshold action ")
+				case strings.HasPrefix(itemTrim, "ntp threshold "):
+					var err error
+					confRead.ntp[0]["threshold_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "ntp threshold "))
+					if err != nil {
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					}
 				}
 			case strings.HasPrefix(itemTrim, "name-server "):
 				confRead.nameServer = append(confRead.nameServer, strings.TrimPrefix(itemTrim, "name-server "))
@@ -2296,6 +2417,9 @@ func fillSystem(d *schema.ResourceData, systemOptions systemOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("no_redirects_ipv6", systemOptions.noRedirectsIPv6); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("ntp", systemOptions.ntp); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("radius_options_attributes_nas_ipaddress",
