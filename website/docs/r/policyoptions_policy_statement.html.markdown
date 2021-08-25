@@ -77,13 +77,13 @@ The following arguments are supported:
 
 - **aggregate_contributor** (Optional, Boolean)  
   Match more specifics of an aggregate.
-- **bgp_as_path** (Optional, List of String)  
+- **bgp_as_path** (Optional, Set of String)  
   Name of AS path regular expression.  
   See resource `junos_policyoptions_as_path`.
-- **bgp_as_path_group** (Optional, List of String)  
+- **bgp_as_path_group** (Optional, Set of String)  
   Name of AS path group.  
   See resource `junos_policyoptions_as_path_group`.
-- **bgp_community** (Optional, List of String)  
+- **bgp_community** (Optional, Set of String)  
   BGP community.  
   See resource `junos_policyoptions_community`.
 - **bgp_origin** (Optional, String)  
@@ -95,13 +95,13 @@ The following arguments are supported:
   Local preference associated with a route.
 - **routing_instance** (Optional, String)  
   Routing protocol instance.
-- **interface** (Optional, List of String)  
+- **interface** (Optional, Set of String)  
   List of interface name
 - **metric** (Optional, Number)  
   Metric value
-- **neighbor** (Optional, List of String)  
+- **neighbor** (Optional, Set of String)  
   Neighboring router
-- **next_hop** (Optional, List of String)  
+- **next_hop** (Optional, Set of String)  
   Next-hop router
 - **ospf_area** (Optional, String)  
   OSPF area identifier
@@ -109,10 +109,10 @@ The following arguments are supported:
   Name of policy to evaluate
 - **preference** (Optional, Number)  
   Preference value
-- **prefix_list** (Optional, List of String)  
+- **prefix_list** (Optional, Set of String)  
   List of prefix-lists of routes to match.  
   See resource `junos_policyoptions_prefix_list`.
-- **protocol** (Optional, List of String)  
+- **protocol** (Optional, Set of String)  
   Protocol from which route was learned
 - **route_filter** (Optional, Block List)  
   For each filter to declare.
@@ -128,13 +128,13 @@ The following arguments are supported:
 
 ### to arguments
 
-- **bgp_as_path** (Optional, List of String)  
+- **bgp_as_path** (Optional, Set of String)  
   Name of AS path regular expression.  
   See resource `junos_policyoptions_as_path`.
-- **bgp_as_path_group** (Optional, List of String)  
+- **bgp_as_path_group** (Optional, Set of String)  
   Name of AS path group.  
   See resource `junos_policyoptions_as_path_group`.
-- **bgp_community** (Optional, List of String)  
+- **bgp_community** (Optional, Set of String)  
   BGP community.  
   See resource `junos_policyoptions_community`.
 - **bgp_origin** (Optional, String)  
@@ -146,13 +146,13 @@ The following arguments are supported:
   Local preference associated with a route.
 - **routing_instance** (Optional, String)  
   Routing protocol instance.
-- **interface** (Optional, List of String)  
+- **interface** (Optional, Set of String)  
   List of interface name
 - **metric** (Optional, Number)  
   Metric value
-- **neighbor** (Optional, List of String)  
+- **neighbor** (Optional, Set of String)  
   Neighboring router
-- **next_hop** (Optional, List of String)  
+- **next_hop** (Optional, Set of String)  
   Next-hop router
 - **ospf_area** (Optional, String)  
   OSPF area identifier
@@ -160,7 +160,7 @@ The following arguments are supported:
   Name of policy to evaluate
 - **preference** (Optional, Number)  
   Preference value
-- **protocol** (Optional, List of String)  
+- **protocol** (Optional, Set of String)  
   Protocol from which route was learned
 
 ---
