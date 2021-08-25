@@ -68,6 +68,8 @@ The following attributes are exported:
   - **address** (Block List)  
     List of address.  
     See [below for nested schema](#address-attributes-for-family_inet6).
+  - **dad_disable** (Boolean)  
+    Disable duplicate-address-detection.
   - **filter_input** (String)  
     Filter applied to received packets.
   - **filter_output** (String)  
