@@ -271,7 +271,7 @@ The following arguments are supported:
 - **automatic_interval** (Optional, Number)  
   Automatic interval (1..336 hours).
 - **automatic_start_time** (Optional, String)  
-  Automatic start time (YYYY-MM-DD.HH:MM:SS +ZZZZ).
+  Automatic start time `YYYY-MM-DD.HH:MM:SS`.
 - **install_ignore_version_check** (Optional, Boolean)  
   Skip version check  when attack database gets installed.
 - **proxy_profile** (Optional, String)  

@@ -368,7 +368,7 @@ resource junos_security "testacc_security" {
   idp_security_package {
     automatic_enable             = true
     automatic_interval           = 24
-    automatic_start_time         = "2016-1-1.02:00:00 +0000"
+    automatic_start_time         = "2016-1-1.02:00:00"
     install_ignore_version_check = true
     proxy_profile                = junos_services_proxy_profile.testacc_security.name
     source_address               = "192.0.2.6"

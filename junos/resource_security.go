@@ -3,6 +3,7 @@ package junos
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -433,6 +434,9 @@ func resourceSecurity() *schema.Resource {
 						"automatic_start_time": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ValidateFunc: validation.StringMatch(
+								regexp.MustCompile(`^\d{4}\-\d\d?\-\d\d?\.\d{2}:\d{2}:\d{2}$`),
+								"must be in the format 'YYYY-MM-DD.HH:MM:SS'"),
 						},
 						"install_ignore_version_check": {
 							Type:     schema.TypeBool,
@@ -1400,7 +1404,7 @@ func setSecurityIdpSecurityPackage(idpSecurityPackage interface{}) ([]string, er
 			configSet = append(configSet, setPrefix+"automatic interval "+strconv.Itoa(v))
 		}
 		if v := idpSecurityPackageM["automatic_start_time"].(string); v != "" {
-			configSet = append(configSet, setPrefix+"automatic start-time \""+v+"\"")
+			configSet = append(configSet, setPrefix+"automatic start-time "+v)
 		}
 		if idpSecurityPackageM["install_ignore_version_check"].(bool) {
 			configSet = append(configSet, setPrefix+"install ignore-version-check")
@@ -2206,7 +2210,7 @@ func readSecurityIdpSecurityPackage(confRead *securityOptions, itemTrimIdpSecuri
 		}
 	case strings.HasPrefix(itemTrim, "automatic start-time "):
 		confRead.idpSecurityPackage[0]["automatic_start_time"] =
-			strings.Trim(strings.TrimPrefix(itemTrim, "automatic start-time "), "\"")
+			strings.Split(strings.Trim(strings.TrimPrefix(itemTrim, "automatic start-time "), "\""), " ")[0]
 	case itemTrim == "install ignore-version-check":
 		confRead.idpSecurityPackage[0]["install_ignore_version_check"] = true
 	case strings.HasPrefix(itemTrim, "proxy-profile "):
