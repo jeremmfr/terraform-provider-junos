@@ -69,11 +69,11 @@ The following arguments are supported:
   Name of rule.
 - **match** (Required, Block)  
   Declare `match` configuration.
-  - **destination_address** (Optional, List of String)  
+  - **destination_address** (Optional, Set of String)  
     CIDR list to match destination address.
-  - **protocol** (Optional, List of String)  
+  - **protocol** (Optional, Set of String)  
     Protocol list to match.
-  - **source_address** (Optional, List of String)  
+  - **source_address** (Optional, Set of String)  
     CIDR list to match source address.
 - **then** (Required, Block)  
   Declare `then` configuration.

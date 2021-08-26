@@ -90,17 +90,17 @@ func resourceSecurityNatSource() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"destination_address": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"protocol": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"source_address": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
@@ -340,22 +340,22 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 		setPrefixRule := setPrefix + " rule " + rule["name"].(string)
 		for _, matchV := range rule[matchWord].([]interface{}) {
 			match := matchV.(map[string]interface{})
-			for _, address := range match["destination_address"].([]interface{}) {
-				err := validateCIDRNetwork(address.(string))
+			for _, address := range sortSetOfString(match["destination_address"].(*schema.Set).List()) {
+				err := validateCIDRNetwork(address)
 				if err != nil {
 					return err
 				}
-				configSet = append(configSet, setPrefixRule+" match destination-address "+address.(string))
+				configSet = append(configSet, setPrefixRule+" match destination-address "+address)
 			}
-			for _, proto := range match["protocol"].([]interface{}) {
-				configSet = append(configSet, setPrefixRule+" match protocol "+proto.(string))
+			for _, proto := range sortSetOfString(match["protocol"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefixRule+" match protocol "+proto)
 			}
-			for _, address := range match["source_address"].([]interface{}) {
-				err := validateCIDRNetwork(address.(string))
+			for _, address := range sortSetOfString(match["source_address"].(*schema.Set).List()) {
+				err := validateCIDRNetwork(address)
 				if err != nil {
 					return err
 				}
-				configSet = append(configSet, setPrefixRule+" match source-address "+address.(string))
+				configSet = append(configSet, setPrefixRule+" match source-address "+address)
 			}
 		}
 		for _, thenV := range rule[thenWord].([]interface{}) {
