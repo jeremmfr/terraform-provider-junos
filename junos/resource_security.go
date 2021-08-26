@@ -2364,8 +2364,26 @@ func readSecurityIkeTraceOptions(confRead *securityOptions, itemTrimIkeTraceOpts
 				strings.TrimPrefix(itemTrim, "file match "), "\"")
 		case strings.HasPrefix(itemTrim, "file size"):
 			var err error
-			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"], err = strconv.Atoi(
-				strings.TrimPrefix(itemTrim, "file size "))
+			switch {
+			case strings.HasSuffix(itemTrim, "k"):
+				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"], err =
+					strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "k"))
+				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"] =
+					confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"].(int) * 1024
+			case strings.HasSuffix(itemTrim, "m"):
+				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"], err =
+					strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "m"))
+				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"] =
+					confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"].(int) * 1024 * 1024
+			case strings.HasSuffix(itemTrim, "g"):
+				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"], err =
+					strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "g"))
+				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"] =
+					confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"].(int) * 1024 * 1024 * 1024
+			default:
+				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"], err =
+					strconv.Atoi(strings.TrimPrefix(itemTrim, "file size "))
+			}
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}

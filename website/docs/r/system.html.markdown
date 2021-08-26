@@ -126,6 +126,9 @@ The following arguments are supported:
   MSCHAP version 2 for password protocol used in RADIUS packets.
 - **services** (Optional, Block)  
   Declare `services` configuration.
+  - **netconf_traceoptions** (Optional, Block)  
+    Declare `netconf traceoptions` configuration.  
+    See [below for nested schema](#netconf_traceoptions-arguments-for-services).
   - **ssh** (Optional, Block)  
     Declare `ssh` configuration.  
     See [below for nested schema](#ssh-arguments-for-services).
@@ -286,6 +289,29 @@ The following arguments are supported:
     Minimum total connection time if all attempts fail (20..60).
   - **tries_before_disconnect** (Optional, Number)  
     Number of times user is allowed to try password (2..10).
+
+---
+
+### netconf_traceoptions arguments for services
+
+- **file_name** (Optional, String)  
+  Name of file in which to write trace information.
+- **file_files** (Optional, Number)  
+  Maximum number of trace files (2..1000).
+- **file_match** (Optional, String)  
+  Regular expression for lines to be logged.
+- **file_no_world_readable** (Optional, Boolean)  
+  Don't allow any user to read the log file.
+- **file_size** (Optional, Number)  
+  Maximum trace file size (10240..1073741824).
+- **file_world_readable** (Optional, Boolean)  
+  Allow any user to read the log file.
+- **flag** (Optional, Set of String)  
+  Tracing parameters.
+- **no_remote_trace** (Optional, Boolean)  
+  Disable remote tracing.
+- **on_demand** (Optional, Boolean)  
+  Enable on-demand tracing.
 
 ---
 

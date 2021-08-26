@@ -6,11 +6,14 @@ ENHANCEMENTS:
 * resource/`junos_system`: add `ntp` block argument (Fixes #261)
 * resource/`junos_interface_logical`: add `dad_disable` argument  inside `family_inet6` block argument (Fixes #263)
 * data-source/`junos_interface_logical`: add `dad_disable` attributes as for the resource
+* resource/`junos_system`: add `netconf_traceoptions` block argument inside `services` block argument (Fixes #262)
 * data-source/`junos_interface`, `junos_interface_logical`: `vrrp_group.*.authentication_key` is now a sensitive argument (like resource)
 * docs: rewrite style for argument name and type
 * docs: add attributes reference on resource
 
 BUG FIXES:
+
+* resource/`junos_security`: fix reading `size` argument inside `file` block inside `ike_traceoptions` block when number match a multiple of 1024 (example 1k, 1m, 1g)
 
 ## 1.19.0 (July 30, 2021)
 

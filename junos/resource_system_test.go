@@ -343,6 +343,15 @@ resource junos_system "testacc_system" {
   radius_options_enhanced_accounting        = true
   radius_options_password_protocol_mschapv2 = true
   services {
+    netconf_traceoptions {
+      file_name           = "testacc_netconf"
+      file_match          = "test"
+      file_world_readable = true
+      file_size           = 20480
+      flag                = ["all"]
+      no_remote_trace     = true
+      on_demand           = true
+    }
     ssh {
       authentication_order           = ["password"]
       ciphers                        = ["aes256-ctr", "aes256-cbc"]
@@ -414,6 +423,12 @@ resource junos_system "testacc_system" {
     no_tcp_rfc1323_paws           = true
   }
   services {
+    netconf_traceoptions {
+      file_name              = "testacc_netconf"
+      file_no_world_readable = true
+      file_size              = 40960
+      flag                   = ["incoming", "outgoing"]
+    }
     ssh {
       ciphers           = ["aes256-ctr"]
       no_tcp_forwarding = true

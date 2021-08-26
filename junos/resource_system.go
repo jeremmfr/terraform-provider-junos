@@ -546,6 +546,56 @@ func resourceSystem() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"netconf_traceoptions": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"file_name": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"file_files": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(2, 1000),
+									},
+									"file_match": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"file_no_world_readable": {
+										Type:          schema.TypeBool,
+										Optional:      true,
+										ConflictsWith: []string{"services.0.netconf_traceoptions.0.file_world_readable"},
+									},
+									"file_size": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(10240, 1073741824),
+									},
+									"file_world_readable": {
+										Type:          schema.TypeBool,
+										Optional:      true,
+										ConflictsWith: []string{"services.0.netconf_traceoptions.0.file_no_world_readable"},
+									},
+									"flag": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"no_remote_trace": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"on_demand": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+								},
+							},
+						},
 						"ssh": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -1113,6 +1163,39 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			return fmt.Errorf("services block is empty")
 		}
 		servicesM := services.(map[string]interface{})
+		for _, servicesNetconfTraceOpts := range servicesM["netconf_traceoptions"].([]interface{}) {
+			if servicesNetconfTraceOpts == nil {
+				return fmt.Errorf("services.0.netconf_traceoptions block is empty")
+			}
+			netconfTraceOpts := servicesNetconfTraceOpts.(map[string]interface{})
+			if v := netconfTraceOpts["file_name"].(string); v != "" {
+				configSet = append(configSet, setPrefix+"netconf traceoptions file \""+v+"\"")
+			}
+			if v := netconfTraceOpts["file_files"].(int); v != 0 {
+				configSet = append(configSet, setPrefix+"netconf traceoptions file files "+strconv.Itoa(v))
+			}
+			if v := netconfTraceOpts["file_match"].(string); v != "" {
+				configSet = append(configSet, setPrefix+"netconf traceoptions file match \""+v+"\"")
+			}
+			if v := netconfTraceOpts["file_size"].(int); v != 0 {
+				configSet = append(configSet, setPrefix+"netconf traceoptions file size "+strconv.Itoa(v))
+			}
+			if netconfTraceOpts["file_no_world_readable"].(bool) {
+				configSet = append(configSet, setPrefix+"netconf traceoptions file no-world-readable")
+			}
+			if netconfTraceOpts["file_world_readable"].(bool) {
+				configSet = append(configSet, setPrefix+"netconf traceoptions file world-readable")
+			}
+			for _, v := range netconfTraceOpts["flag"].(*schema.Set).List() {
+				configSet = append(configSet, setPrefix+"netconf traceoptions flag "+v.(string))
+			}
+			if netconfTraceOpts["no_remote_trace"].(bool) {
+				configSet = append(configSet, setPrefix+"netconf traceoptions no-remote-trace")
+			}
+			if netconfTraceOpts["on_demand"].(bool) {
+				configSet = append(configSet, setPrefix+"netconf traceoptions on-demand")
+			}
+		}
 		for _, servicesSSH := range servicesM["ssh"].([]interface{}) {
 			servicesSSHM := servicesSSH.(map[string]interface{})
 			for _, auth := range servicesSSHM["authentication_order"].([]interface{}) {
@@ -1472,6 +1555,7 @@ func listLinesNtp() []string {
 
 func listLinesServices() []string {
 	ls := make([]string, 0)
+	ls = append(ls, "services netconf traceoptions")
 	ls = append(ls, listLinesServicesSSH()...)
 	ls = append(ls, listLinesServicesWebManagement()...)
 
@@ -1725,10 +1809,16 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 			case checkStringHasPrefixInList(itemTrim, listLinesServices()):
 				if len(confRead.services) == 0 {
 					confRead.services = append(confRead.services, map[string]interface{}{
+						"netconf_traceoptions": make([]map[string]interface{}, 0),
 						"ssh":                  make([]map[string]interface{}, 0),
 						"web_management_http":  make([]map[string]interface{}, 0),
 						"web_management_https": make([]map[string]interface{}, 0),
 					})
+				}
+				if strings.HasPrefix(itemTrim, "services netconf traceoptions ") {
+					if err := readSystemServicesNetconfTraceOpts(&confRead, itemTrim); err != nil {
+						return confRead, err
+					}
 				}
 				if checkStringHasPrefixInList(itemTrim, listLinesServicesSSH()) {
 					if err := readSystemServicesSSH(&confRead, itemTrim); err != nil {
@@ -2113,6 +2203,72 @@ func readSystemLicense(confRead *systemOptions, itemTrim string) error {
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
+	}
+
+	return nil
+}
+
+func readSystemServicesNetconfTraceOpts(confRead *systemOptions, itemTrimNetconfTraceOpts string) error {
+	if len(confRead.services[0]["netconf_traceoptions"].([]map[string]interface{})) == 0 {
+		confRead.services[0]["netconf_traceoptions"] = append(
+			confRead.services[0]["netconf_traceoptions"].([]map[string]interface{}),
+			map[string]interface{}{
+				"file_name":              "",
+				"file_files":             0,
+				"file_match":             "",
+				"file_no_world_readable": false,
+				"file_size":              0,
+				"file_world_readable":    false,
+				"flag":                   make([]string, 0),
+				"no_remote_trace":        false,
+				"on_demand":              false,
+			})
+	}
+	netconfTraceOpts := confRead.services[0]["netconf_traceoptions"].([]map[string]interface{})[0]
+	itemTrim := strings.TrimPrefix(itemTrimNetconfTraceOpts, "services netconf traceoptions ")
+	switch {
+	case strings.HasPrefix(itemTrim, "file files "):
+		var err error
+		netconfTraceOpts["file_files"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file files "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "file match "):
+		netconfTraceOpts["file_match"] = strings.Trim(strings.TrimPrefix(itemTrim, "file match "), "\"")
+	case itemTrim == "file no-world-readable":
+		netconfTraceOpts["file_no_world_readable"] = true
+	case strings.HasPrefix(itemTrim, "file size "):
+		var err error
+		switch {
+		case strings.HasSuffix(itemTrim, "k"):
+			netconfTraceOpts["file_size"], err =
+				strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "k"))
+			netconfTraceOpts["file_size"] = netconfTraceOpts["file_size"].(int) * 1024
+		case strings.HasSuffix(itemTrim, "m"):
+			netconfTraceOpts["file_size"], err =
+				strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "m"))
+			netconfTraceOpts["file_size"] = netconfTraceOpts["file_size"].(int) * 1024 * 1024
+		case strings.HasSuffix(itemTrim, "g"):
+			netconfTraceOpts["file_size"], err =
+				strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "g"))
+			netconfTraceOpts["file_size"] = netconfTraceOpts["file_size"].(int) * 1024 * 1024 * 1024
+		default:
+			netconfTraceOpts["file_size"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "file size "))
+		}
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case itemTrim == "file world-readable":
+		netconfTraceOpts["file_world_readable"] = true
+	case strings.HasPrefix(itemTrim, "file "):
+		netconfTraceOpts["file_name"] = strings.Trim(strings.TrimPrefix(itemTrim, "file "), "\"")
+	case strings.HasPrefix(itemTrim, "flag "):
+		netconfTraceOpts["flag"] = append(netconfTraceOpts["flag"].([]string), strings.TrimPrefix(itemTrim, "flag "))
+	case itemTrim == "no-remote-trace":
+		netconfTraceOpts["no_remote_trace"] = true
+	case itemTrim == "on-demand":
+		netconfTraceOpts["on_demand"] = true
 	}
 
 	return nil
