@@ -29,7 +29,7 @@ The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
   The name of screen.
-- **address** (Required, List of String)  
+- **address** (Required, Set of String)  
   List of address.  
   Need to be a valid CIDR network.
 

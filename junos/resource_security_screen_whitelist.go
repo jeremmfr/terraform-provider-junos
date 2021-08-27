@@ -31,7 +31,7 @@ func resourceSecurityScreenWhiteList() *schema.Resource {
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, formatDefault),
 			},
 			"address": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				MinItems: 1,
 				Elem:     &schema.Schema{Type: schema.TypeString},
@@ -236,11 +236,11 @@ func setSecurityScreenWhiteList(d *schema.ResourceData, m interface{}, jnprSess 
 
 	setPrefix := "set security screen white-list " + d.Get("name").(string) + " "
 
-	for _, v := range d.Get("address").([]interface{}) {
-		if err := validateCIDRNetwork(v.(string)); err != nil {
+	for _, v := range sortSetOfString(d.Get("address").(*schema.Set).List()) {
+		if err := validateCIDRNetwork(v); err != nil {
 			return err
 		}
-		configSet = append(configSet, setPrefix+"address "+v.(string))
+		configSet = append(configSet, setPrefix+"address "+v)
 	}
 
 	return sess.configSet(configSet, jnprSess)
