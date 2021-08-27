@@ -479,12 +479,12 @@ func resourceSecurityScreen() *schema.Resource {
 													ValidateDiagFunc: validateNameObjectJunos([]string{}, 32, formatDefault),
 												},
 												"destination_address": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
 													Elem:     &schema.Schema{Type: schema.TypeString},
 												},
 												"source_address": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
 													Elem:     &schema.Schema{Type: schema.TypeString},
 												},
@@ -537,7 +537,7 @@ func resourceSecurityScreen() *schema.Resource {
 										ValidateFunc: validation.IntBetween(1, 1000000),
 									},
 									"whitelist": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
@@ -1145,24 +1145,24 @@ func setSecurityScreenTCP(tcp map[string]interface{}, setPrefix string) ([]strin
 			}
 			for _, v2 := range tcpSynFlood["whitelist"].(*schema.Set).List() {
 				whitelist := v2.(map[string]interface{})
-				if len(whitelist["source_address"].([]interface{})) == 0 &&
-					len(whitelist["destination_address"].([]interface{})) == 0 {
+				if len(whitelist["source_address"].(*schema.Set).List()) == 0 &&
+					len(whitelist["destination_address"].(*schema.Set).List()) == 0 {
 					return configSet, fmt.Errorf("white-list %s need to have a source or destination address set",
 						whitelist["name"].(string))
 				}
-				for _, destination := range whitelist["destination_address"].([]interface{}) {
-					if err := validateCIDRNetwork(destination.(string)); err != nil {
+				for _, destination := range sortSetOfString(whitelist["destination_address"].(*schema.Set).List()) {
+					if err := validateCIDRNetwork(destination); err != nil {
 						return configSet, err
 					}
 					configSet = append(configSet, setPrefix+"syn-flood white-list "+whitelist["name"].(string)+
-						" destination-address "+destination.(string))
+						" destination-address "+destination)
 				}
-				for _, source := range whitelist["source_address"].([]interface{}) {
-					if err := validateCIDRNetwork(source.(string)); err != nil {
+				for _, source := range sortSetOfString(whitelist["source_address"].(*schema.Set).List()) {
+					if err := validateCIDRNetwork(source); err != nil {
 						return configSet, err
 					}
 					configSet = append(configSet, setPrefix+"syn-flood white-list "+whitelist["name"].(string)+
-						" source-address "+source.(string))
+						" source-address "+source)
 				}
 			}
 		}
@@ -1188,8 +1188,8 @@ func setSecurityScreenUDP(udp map[string]interface{}, setPrefix string) []string
 				configSet = append(configSet, setPrefix+"flood threshold "+
 					strconv.Itoa(udpFlood["threshold"].(int)))
 			}
-			for _, whitelist := range udpFlood["whitelist"].([]interface{}) {
-				configSet = append(configSet, setPrefix+"flood white-list "+whitelist.(string))
+			for _, whitelist := range sortSetOfString(udpFlood["whitelist"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefix+"flood white-list "+whitelist)
 			}
 		}
 	}
