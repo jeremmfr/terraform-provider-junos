@@ -3,6 +3,7 @@
 
 ENHANCEMENTS:
 
+* add `junos_eventoptions_generate_event` resource (Fixes #267)
 * resource/`junos_system`: add `ntp` block argument (Fixes #261)
 * resource/`junos_interface_logical`: add `dad_disable` argument  inside `family_inet6` block argument (Fixes #263)
 * data-source/`junos_interface_logical`: add `dad_disable` attributes as for the resource
