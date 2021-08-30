@@ -118,6 +118,21 @@ func resourceChassisCluster() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+						"preempt_delay": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 21600),
+						},
+						"preempt_limit": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 50),
+						},
+						"preempt_period": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 1400),
+						},
 					},
 				},
 			},
@@ -354,6 +369,22 @@ func setChassisCluster(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		if redundancyGroup["preempt"].(bool) {
 			configSet = append(configSet, setChassisluster+"redundancy-group "+strconv.Itoa(i)+
 				" preempt")
+			if v2 := redundancyGroup["preempt_delay"].(int); v2 != 0 {
+				configSet = append(configSet, setChassisluster+"redundancy-group "+strconv.Itoa(i)+
+					" preempt delay "+strconv.Itoa(v2))
+			}
+			if v2 := redundancyGroup["preempt_limit"].(int); v2 != 0 {
+				configSet = append(configSet, setChassisluster+"redundancy-group "+strconv.Itoa(i)+
+					" preempt limit "+strconv.Itoa(v2))
+			}
+			if v2 := redundancyGroup["preempt_period"].(int); v2 != 0 {
+				configSet = append(configSet, setChassisluster+"redundancy-group "+strconv.Itoa(i)+
+					" preempt period "+strconv.Itoa(v2))
+			}
+		} else if redundancyGroup["preempt_delay"].(int) != 0 ||
+			redundancyGroup["preempt_limit"].(int) != 0 ||
+			redundancyGroup["preempt_period"].(int) != 0 {
+			return fmt.Errorf("preempt need to be true with preempt_(delay|limit|period) arguments")
 		}
 	}
 	configSet = append(configSet, setChassisluster+"reth-count "+
@@ -426,6 +457,9 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 							"hold_down_interval":   -1,
 							"interface_monitor":    make([]map[string]interface{}, 0),
 							"preempt":              false,
+							"preempt_delay":        0,
+							"preempt_limit":        0,
+							"preempt_period":       0,
 						})
 					}
 				}
@@ -471,8 +505,31 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 							"name":   name,
 							"weight": weight,
 						})
-				case itemRGNbTrim == preemptWord:
+				case strings.HasPrefix(itemRGNbTrim, preemptWord):
 					confRead.redundancyGroup[number][preemptWord] = true
+					switch {
+					case strings.HasPrefix(itemRGNbTrim, preemptWord+" delay "):
+						var err error
+						confRead.redundancyGroup[number]["preempt_delay"], err =
+							strconv.Atoi(strings.TrimPrefix(itemRGNbTrim, preemptWord+" delay "))
+						if err != nil {
+							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGNbTrim, err)
+						}
+					case strings.HasPrefix(itemRGNbTrim, preemptWord+" limit "):
+						var err error
+						confRead.redundancyGroup[number]["preempt_limit"], err =
+							strconv.Atoi(strings.TrimPrefix(itemRGNbTrim, preemptWord+" limit "))
+						if err != nil {
+							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGNbTrim, err)
+						}
+					case strings.HasPrefix(itemRGNbTrim, preemptWord+" period "):
+						var err error
+						confRead.redundancyGroup[number]["preempt_period"], err =
+							strconv.Atoi(strings.TrimPrefix(itemRGNbTrim, preemptWord+" period "))
+						if err != nil {
+							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGNbTrim, err)
+						}
+					}
 				}
 			case strings.HasPrefix(itemTrim, "reth-count "):
 				var err error

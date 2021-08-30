@@ -72,6 +72,15 @@ The following arguments are supported:
     See [below for nested schema](#interface_monitor-arguments-for-redundancy_group).
   - **preempt** (Optional, Boolean)  
     Allow preemption of primaryship based on priority.
+  - **preempt_delay** (Optional, Number)  
+    Time to wait before taking over mastership (1..21600 seconds).  
+    `preempt` need to be true.
+  - **preempt_limit** (Optional, Number)  
+    Max number of preemptive failovers allowed (1..50).  
+    `preempt` need to be true.
+  - **preempt_period** (Optional, Number)  
+    Time period during which the limit is applied (1..1400 seconds).  
+    `preempt` need to be true.
 - **reth_count** (Required, Number)  
   Number of redundant ethernet interfaces (1..128)
 - **config_sync_no_secondary_bootup_auto** (Optional, Boolean)  
