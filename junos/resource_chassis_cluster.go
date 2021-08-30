@@ -418,14 +418,16 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGTrimSplit[0], err)
 				}
 				if len(confRead.redundancyGroup) < number+1 {
-					confRead.redundancyGroup = append(confRead.redundancyGroup, map[string]interface{}{
-						"node0_priority":       0,
-						"node1_priority":       0,
-						"gratuitous_arp_count": 0,
-						"hold_down_interval":   -1,
-						"interface_monitor":    make([]map[string]interface{}, 0),
-						"preempt":              false,
-					})
+					for i := len(confRead.redundancyGroup); i < number+1; i++ {
+						confRead.redundancyGroup = append(confRead.redundancyGroup, map[string]interface{}{
+							"node0_priority":       0,
+							"node1_priority":       0,
+							"gratuitous_arp_count": 0,
+							"hold_down_interval":   -1,
+							"interface_monitor":    make([]map[string]interface{}, 0),
+							"preempt":              false,
+						})
+					}
 				}
 				itemRGNbTrim := strings.TrimPrefix(itemRGTrim, strconv.Itoa(number)+" ")
 				switch {
