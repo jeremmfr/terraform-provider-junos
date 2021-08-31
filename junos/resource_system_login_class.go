@@ -432,8 +432,8 @@ func setSystemLoginClass(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 	for _, v := range d.Get("no_hidden_commands_except").([]interface{}) {
 		configSet = append(configSet, setPrefix+"no-hidden-commands except \""+v.(string)+"\"")
 	}
-	for _, v := range d.Get("permissions").(*schema.Set).List() {
-		configSet = append(configSet, setPrefix+"permissions "+v.(string))
+	for _, v := range sortSetOfString(d.Get("permissions").(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"permissions "+v)
 	}
 	if d.Get("security_role").(string) != "" {
 		configSet = append(configSet, setPrefix+"security-role "+d.Get("security_role").(string))

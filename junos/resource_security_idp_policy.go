@@ -491,45 +491,45 @@ func setSecurityIdpPolicyExemptRule(setPrefix string, rule map[string]interface{
 			return configSet, fmt.Errorf("match block in exempt rule '%s' is empty", rule["name"].(string))
 		}
 		match := em.(map[string]interface{})
-		for _, v := range match["custom_attack_group"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixExeRule+"match attacks custom-attack-groups \""+v.(string)+"\"")
+		for _, v := range sortSetOfString(match["custom_attack_group"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixExeRule+"match attacks custom-attack-groups \""+v+"\"")
 		}
-		for _, v := range match["custom_attack"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixExeRule+"match attacks custom-attacks \""+v.(string)+"\"")
+		for _, v := range sortSetOfString(match["custom_attack"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixExeRule+"match attacks custom-attacks \""+v+"\"")
 		}
 		if len(match["destination_address"].(*schema.Set).List()) != 0 &&
 			len(match["destination_address_except"].(*schema.Set).List()) != 0 {
 			return configSet, fmt.Errorf("destination_address and destination_address_except can't set in same time "+
 				"in exempt rule '%s'", rule["name"].(string))
 		}
-		for _, v := range match["destination_address"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixExeRule+"match destination-address \""+v.(string)+"\"")
+		for _, v := range sortSetOfString(match["destination_address"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixExeRule+"match destination-address \""+v+"\"")
 		}
-		for _, v := range match["destination_address_except"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixExeRule+"match destination-except \""+v.(string)+"\"")
+		for _, v := range sortSetOfString(match["destination_address_except"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixExeRule+"match destination-except \""+v+"\"")
 		}
-		for _, v := range match["dynamic_attack_group"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixExeRule+"match attacks dynamic-attack-groups \""+v.(string)+"\"")
+		for _, v := range sortSetOfString(match["dynamic_attack_group"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixExeRule+"match attacks dynamic-attack-groups \""+v+"\"")
 		}
 		if v := match["from_zone"].(string); v != "" {
 			configSet = append(configSet, setPrefixExeRule+"match from-zone \""+v+"\"")
 		}
-		for _, v := range match["predefined_attack_group"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixExeRule+"match attacks predefined-attack-groups \""+v.(string)+"\"")
+		for _, v := range sortSetOfString(match["predefined_attack_group"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixExeRule+"match attacks predefined-attack-groups \""+v+"\"")
 		}
-		for _, v := range match["predefined_attack"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixExeRule+"match attacks predefined-attacks \""+v.(string)+"\"")
+		for _, v := range sortSetOfString(match["predefined_attack"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixExeRule+"match attacks predefined-attacks \""+v+"\"")
 		}
 		if len(match["source_address"].(*schema.Set).List()) != 0 &&
 			len(match["source_address_except"].(*schema.Set).List()) != 0 {
 			return configSet, fmt.Errorf("source_address and source_address_except can't set in same time "+
 				"in exempt rule '%s'", rule["name"].(string))
 		}
-		for _, v := range match["source_address"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixExeRule+"match source-address \""+v.(string)+"\"")
+		for _, v := range sortSetOfString(match["source_address"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixExeRule+"match source-address \""+v+"\"")
 		}
-		for _, v := range match["source_address_except"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixExeRule+"match source-except \""+v.(string)+"\"")
+		for _, v := range sortSetOfString(match["source_address_except"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixExeRule+"match source-except \""+v+"\"")
 		}
 		if v := match["to_zone"].(string); v != "" {
 			configSet = append(configSet, setPrefixExeRule+"match to-zone \""+v+"\"")
@@ -553,45 +553,45 @@ func setSecurityIdpPolicyIpsRule(setPrefix string, rule map[string]interface{}) 
 		if v := match["application"].(string); v != "" {
 			configSet = append(configSet, setPrefixIpsRule+"match application \""+v+"\"")
 		}
-		for _, v := range match["custom_attack_group"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixIpsRule+"match attacks custom-attack-groups \""+v.(string)+"\"")
+		for _, v := range sortSetOfString(match["custom_attack_group"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixIpsRule+"match attacks custom-attack-groups \""+v+"\"")
 		}
-		for _, v := range match["custom_attack"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixIpsRule+"match attacks custom-attacks \""+v.(string)+"\"")
+		for _, v := range sortSetOfString(match["custom_attack"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixIpsRule+"match attacks custom-attacks \""+v+"\"")
 		}
 		if len(match["destination_address"].(*schema.Set).List()) != 0 &&
 			len(match["destination_address_except"].(*schema.Set).List()) != 0 {
 			return configSet, fmt.Errorf("destination_address and destination_address_except can't set in same time "+
 				"in ips rule '%s'", rule["name"].(string))
 		}
-		for _, v := range match["destination_address"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixIpsRule+"match destination-address \""+v.(string)+"\"")
+		for _, v := range sortSetOfString(match["destination_address"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixIpsRule+"match destination-address \""+v+"\"")
 		}
-		for _, v := range match["destination_address_except"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixIpsRule+"match destination-except \""+v.(string)+"\"")
+		for _, v := range sortSetOfString(match["destination_address_except"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixIpsRule+"match destination-except \""+v+"\"")
 		}
-		for _, v := range match["dynamic_attack_group"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixIpsRule+"match attacks dynamic-attack-groups \""+v.(string)+"\"")
+		for _, v := range sortSetOfString(match["dynamic_attack_group"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixIpsRule+"match attacks dynamic-attack-groups \""+v+"\"")
 		}
 		if v := match["from_zone"].(string); v != "" {
 			configSet = append(configSet, setPrefixIpsRule+"match from-zone \""+v+"\"")
 		}
-		for _, v := range match["predefined_attack_group"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixIpsRule+"match attacks predefined-attack-groups \""+v.(string)+"\"")
+		for _, v := range sortSetOfString(match["predefined_attack_group"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixIpsRule+"match attacks predefined-attack-groups \""+v+"\"")
 		}
-		for _, v := range match["predefined_attack"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixIpsRule+"match attacks predefined-attacks \""+v.(string)+"\"")
+		for _, v := range sortSetOfString(match["predefined_attack"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixIpsRule+"match attacks predefined-attacks \""+v+"\"")
 		}
 		if len(match["source_address"].(*schema.Set).List()) != 0 &&
 			len(match["source_address_except"].(*schema.Set).List()) != 0 {
 			return configSet, fmt.Errorf("source_address and source_address_except can't set in same time "+
 				"in ips rule '%s'", rule["name"].(string))
 		}
-		for _, v := range match["source_address"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixIpsRule+"match source-address \""+v.(string)+"\"")
+		for _, v := range sortSetOfString(match["source_address"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixIpsRule+"match source-address \""+v+"\"")
 		}
-		for _, v := range match["source_address_except"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixIpsRule+"match source-except \""+v.(string)+"\"")
+		for _, v := range sortSetOfString(match["source_address_except"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixIpsRule+"match source-except \""+v+"\"")
 		}
 		if v := match["to_zone"].(string); v != "" {
 			configSet = append(configSet, setPrefixIpsRule+"match to-zone \""+v+"\"")

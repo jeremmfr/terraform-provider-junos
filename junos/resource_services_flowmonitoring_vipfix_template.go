@@ -327,11 +327,11 @@ func setServicesFlowMonitoringVIPFixTemplate(d *schema.ResourceData, m interface
 
 	setPrefix := "set services flow-monitoring version-ipfix template \"" + d.Get("name").(string) + "\" "
 	configSet = append(configSet, setPrefix+d.Get("type").(string))
-	for _, v := range d.Get("ip_template_export_extension").(*schema.Set).List() {
+	for _, v := range sortSetOfString(d.Get("ip_template_export_extension").(*schema.Set).List()) {
 		if v2 := d.Get("type").(string); v2 != "ipv4-template" && v2 != "ipv6-template" {
 			return fmt.Errorf("ip_template_export_extension not compatible with type %s", v2)
 		}
-		configSet = append(configSet, setPrefix+d.Get("type").(string)+" export-extension "+v.(string))
+		configSet = append(configSet, setPrefix+d.Get("type").(string)+" export-extension "+v)
 	}
 	if v := d.Get("flow_active_timeout").(int); v != 0 {
 		configSet = append(configSet, setPrefix+"flow-active-timeout "+strconv.Itoa(v))

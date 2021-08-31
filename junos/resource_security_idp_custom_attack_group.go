@@ -234,8 +234,8 @@ func setSecurityIdpCustomAttackGroup(d *schema.ResourceData, m interface{}, jnpr
 
 	setPrefix := "set security idp custom-attack-group \"" + d.Get("name").(string) + "\" "
 	configSet = append(configSet, setPrefix)
-	for _, v := range d.Get("member").(*schema.Set).List() {
-		configSet = append(configSet, setPrefix+"group-members \""+v.(string)+"\"")
+	for _, v := range sortSetOfString(d.Get("member").(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"group-members \""+v+"\"")
 	}
 
 	return sess.configSet(configSet, jnprSess)

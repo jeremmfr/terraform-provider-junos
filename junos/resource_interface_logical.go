@@ -397,13 +397,13 @@ func resourceInterfaceLogical() *schema.Resource {
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"security_inbound_protocols": {
-				Type:         schema.TypeList,
+				Type:         schema.TypeSet,
 				Optional:     true,
 				RequiredWith: []string{"security_zone"},
 				Elem:         &schema.Schema{Type: schema.TypeString},
 			},
 			"security_inbound_services": {
-				Type:         schema.TypeList,
+				Type:         schema.TypeSet,
 				Optional:     true,
 				RequiredWith: []string{"security_zone"},
 				Elem:         &schema.Schema{Type: schema.TypeString},
@@ -911,15 +911,15 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 	if d.Get("security_zone").(string) != "" {
 		configSet = append(configSet, "set security zones security-zone "+
 			d.Get("security_zone").(string)+" interfaces "+d.Get("name").(string))
-		for _, v := range d.Get("security_inbound_protocols").([]interface{}) {
+		for _, v := range sortSetOfString(d.Get("security_inbound_protocols").(*schema.Set).List()) {
 			configSet = append(configSet, "set security zones security-zone "+
 				d.Get("security_zone").(string)+" interfaces "+d.Get("name").(string)+
-				" host-inbound-traffic protocols "+v.(string))
+				" host-inbound-traffic protocols "+v)
 		}
-		for _, v := range d.Get("security_inbound_services").([]interface{}) {
+		for _, v := range sortSetOfString(d.Get("security_inbound_services").(*schema.Set).List()) {
 			configSet = append(configSet, "set security zones security-zone "+
 				d.Get("security_zone").(string)+" interfaces "+d.Get("name").(string)+
-				" host-inbound-traffic system-services "+v.(string))
+				" host-inbound-traffic system-services "+v)
 		}
 	}
 	if d.Get("vlan_id").(int) != 0 {

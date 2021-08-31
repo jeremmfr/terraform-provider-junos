@@ -270,8 +270,8 @@ func setSecurityZoneBookAddressSet(d *schema.ResourceData, m interface{}, jnprSe
 
 	setPrefix := "set security zones security-zone " +
 		d.Get("zone").(string) + " address-book address-set " + d.Get("name").(string) + " "
-	for _, v := range d.Get("address").(*schema.Set).List() {
-		configSet = append(configSet, setPrefix+"address "+v.(string))
+	for _, v := range sortSetOfString(d.Get("address").(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"address "+v)
 	}
 	if v := d.Get("description").(string); v != "" {
 		configSet = append(configSet, setPrefix+"description \""+v+"\"")

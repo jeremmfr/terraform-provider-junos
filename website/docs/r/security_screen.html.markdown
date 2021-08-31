@@ -167,7 +167,7 @@ The following arguments are supported:
   UDP flood ids option.
   - **threshold** (Optional, Number)  
     Threshold (1..1000000 UDP packets per second).
-  - **whitelist** (Optional, List of String)  
+  - **whitelist** (Optional, Set of String)  
     List of UDP flood white list group name.
 - **port_scan** (Optional, Block)  
   UDP port scan ids option.
@@ -287,10 +287,10 @@ The following arguments are supported:
   For each name of white-list to declare.
   - **name** (Required, String)  
     White-list name.
-  - **destination_address** (Optional, List of String)  
+  - **destination_address** (Optional, Set of String)  
     Destination address.  
     Need to be a valid CIDR network.
-  - **source_address** (Optional, List of String)  
+  - **source_address** (Optional, Set of String)  
     Source address.  
     Need to be a valid CIDR network.
 

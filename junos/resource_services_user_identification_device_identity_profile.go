@@ -262,9 +262,9 @@ func setServicesUserIdentDeviceIdentityProfile(d *schema.ResourceData, m interfa
 	configSet = append(configSet, setPrefix+"domain-name "+d.Get("domain").(string))
 	for _, v := range d.Get("attribute").([]interface{}) {
 		attribute := v.(map[string]interface{})
-		for _, v2 := range attribute["value"].(*schema.Set).List() {
+		for _, v2 := range sortSetOfString(attribute["value"].(*schema.Set).List()) {
 			configSet = append(configSet, setPrefix+"attribute "+attribute["name"].(string)+
-				" string \""+v2.(string)+"\"")
+				" string \""+v2+"\"")
 		}
 	}
 

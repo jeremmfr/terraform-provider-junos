@@ -38,9 +38,9 @@ The following arguments are supported:
   For each name of policy.
   - **name** (Required, String)  
     The name of policy.
-  - **match_source_address** (Required, List of String)  
+  - **match_source_address** (Required, Set of String)  
     List of source address match.
-  - **match_destination_address** (Required, List of String)  
+  - **match_destination_address** (Required, Set of String)  
     List of destination address match.
   - **then** (Optional, String)  
     Action of policy.  
@@ -51,11 +51,11 @@ The following arguments are supported:
     Log at session init time.
   - **log_close** (Optional, Boolean)  
     Log at session close time.
-  - **match_application** (Optional, List of String)  
+  - **match_application** (Optional, Set of String)  
     List of applications match.
   - **match_destination_address_excluded** (Optional, Boolean)  
     Exclude destination addresses.
-  - **match_dynamic_application** (Optional, List of String)  
+  - **match_dynamic_application** (Optional, Set of String)  
     List of dynamic application or group match.
   - **match_source_address_excluded** (Optional, Boolean)  
     Exclude source addresses.

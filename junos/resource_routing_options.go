@@ -345,11 +345,11 @@ func setRoutingOptions(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		if v := fwTable["chain_composite_max_label_count"].(int); v != 0 {
 			configSet = append(configSet, setPrefix+"forwarding-table chain-composite-max-label-count "+strconv.Itoa(v))
 		}
-		for _, v := range fwTable["chained_composite_next_hop_ingress"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefix+"forwarding-table chained-composite-next-hop ingress "+v.(string))
+		for _, v := range sortSetOfString(fwTable["chained_composite_next_hop_ingress"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefix+"forwarding-table chained-composite-next-hop ingress "+v)
 		}
-		for _, v := range fwTable["chained_composite_next_hop_transit"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefix+"forwarding-table chained-composite-next-hop transit "+v.(string))
+		for _, v := range sortSetOfString(fwTable["chained_composite_next_hop_transit"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefix+"forwarding-table chained-composite-next-hop transit "+v)
 		}
 		if fwTable["dynamic_list_next_hop"].(bool) {
 			configSet = append(configSet, setPrefix+"forwarding-table dynamic-list-next-hop")

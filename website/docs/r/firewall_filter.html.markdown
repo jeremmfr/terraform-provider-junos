@@ -59,68 +59,83 @@ The following arguments are supported:
 
 ### from arguments for term
 
-- **address** (Optional, List of String)  
+- **address** (Optional, Set of String)  
   Match IP source or destination address.
-- **address_except** (Optional, List of String)  
+- **address_except** (Optional, Set of String)  
   Match address not in this list of prefix.
-- **destination_address** (Optional, List of String)  
+- **destination_address** (Optional, Set of String)  
   Match IP destination address.
-- **destination_address_except** (Optional, List of String)  
+- **destination_address_except** (Optional, Set of String)  
   Match address not in this prefix.
-- **destination_port** (Optional, List of String)  
-  Match TCP/UDP destination port.
-- **destination_port_except** (Optional, List of String)  
-  Do not match TCP/UDP destination port.
-- **destination_prefix_list** (Optional, List of String)  
+- **destination_port** (Optional, Set of String)  
+  Match TCP/UDP destination port.  
+  Conflict with `destination_port_except`.
+- **destination_port_except** (Optional, Set of String)  
+  Do not match TCP/UDP destination port.  
+  Conflict with `destination_port`.
+- **destination_prefix_list** (Optional, Set of String)  
   Match IP destination prefixes in named list.
-- **destination_prefix_list_except** (Optional, List of String)  
+- **destination_prefix_list_except** (Optional, Set of String)  
   Match addresses not in this prefix list.
-- **icmp_code** (Optional, List of String)  
-  Match ICMP message code.
-- **icmp_code_except** (Optional, List of String)  
-  Do not match ICMP message code.
-- **icmp_type** (Optional, List of String)  
-  Match ICMP message type.
-- **icmp_type_except** (Optional, List of String)  
-  Do not match ICMP message type.
+- **icmp_code** (Optional, Set of String)  
+  Match ICMP message code.  
+  Conflict with `icmp_code_except`.
+- **icmp_code_except** (Optional, Set of String)  
+  Do not match ICMP message code.  
+  Conflict with `icmp_code`.
+- **icmp_type** (Optional, Set of String)  
+  Match ICMP message type.  
+  Conflict with `icmp_type_except`.
+- **icmp_type_except** (Optional, Set of String)  
+  Do not match ICMP message type.  
+  Conflict with `icmp_type`.
 - **is_fragment** (Optional, Boolean)  
   Match if packet is a fragment.
-- **next_header** (Optional, List of String)  
+- **next_header** (Optional, Set of String)  
   Match next header protocol type.  
   Conflict with `next_header_except`.
-- **next_header_except** (Optional, List of String)  
+- **next_header_except** (Optional, Set of String)  
   Do not match next header protocol type.  
   Conflict with `next_header`.
-- **port** (Optional, List of String)  
-  Match TCP/UDP source or destination port.
-- **port_except** (Optional, List of String)  
-  Do not match TCP/UDP source or destination port.
-- **prefix_list** (Optional, List of String)  
+- **port** (Optional, Set of String)  
+  Match TCP/UDP source or destination port.  
+  Conflict with `port_except`.
+- **port_except** (Optional, Set of String)  
+  Do not match TCP/UDP source or destination port.  
+  Conflict with `port`.
+- **prefix_list** (Optional, Set of String)  
   Match IP source or destination prefixes in named list.
-- **prefix_list_except** (Optional, List of String)  
+- **prefix_list_except** (Optional, Set of String)  
   Match addresses not in this prefix list.
-- **protocol** (Optional, List of String)  
-  Match IP protocol type.
-- **protocol_except** (Optional, List of String)  
-  Do not match IP protocol type.
-- **source_address** (Optional, List of String)  
+- **protocol** (Optional, Set of String)  
+  Match IP protocol type.  
+  Conflict with `protocol_except`.
+- **protocol_except** (Optional, Set of String)  
+  Do not match IP protocol type.  
+  Conflict with `protocol`.
+- **source_address** (Optional, Set of String)  
   Match IP source address.
-- **source_address_except** (Optional, List of String)  
+- **source_address_except** (Optional, Set of String)  
   Match address not in this prefix.
-- **source_port** (Optional, List of String)  
-  Match TCP/UDP source port.
-- **source_port_except** (Optional, List of String)  
-  Do not match TCP/UDP source port.
-- **source_prefix_list** (Optional, List of String)  
+- **source_port** (Optional, Set of String)  
+  Match TCP/UDP source port.  
+  Conflict with `source_port_except`.
+- **source_port_except** (Optional, Set of String)  
+  Do not match TCP/UDP source port.  
+  Conflict with `source_port`.
+- **source_prefix_list** (Optional, Set of String)  
   Match IP source prefixes in named list.
-- **source_prefix_list_except** (Optional, List of String)  
+- **source_prefix_list_except** (Optional, Set of String)  
   Match addresses not in this prefix list.
 - **tcp_established** (Optional, Boolean)  
-  Match packet of an established TCP connection.
+  Match packet of an established TCP connection.  
+  Conflict with `tcp_flags`.
 - **tcp_flags** (Optional, String)  
-  Match TCP flags (in symbolic or hex formats).
+  Match TCP flags (in symbolic or hex formats).  
+  Conflict with `tcp_established` and `tcp_initial`.  
 - **tcp_initial** (Optional, Boolean)  
-  Match initial packet of a TCP connection.
+  Match initial packet of a TCP connection.  
+  Conflict with `tcp_flags`.
 
 ---
 

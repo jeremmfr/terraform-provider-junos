@@ -122,7 +122,7 @@ func resourceSystem() *schema.Resource {
 							ValidateFunc: validation.IsIPAddress,
 						},
 						"destination": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Required: true,
 							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
@@ -327,7 +327,7 @@ func resourceSystem() *schema.Resource {
 							Optional: true,
 						},
 						"deny_sources_address": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
@@ -608,7 +608,7 @@ func resourceSystem() *schema.Resource {
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"ciphers": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
@@ -635,12 +635,12 @@ func resourceSystem() *schema.Resource {
 										ValidateFunc: validation.StringInSlice([]string{"md5", "sha2-256"}, false),
 									},
 									"hostkey_algorithm": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"key_exchange": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
@@ -649,7 +649,7 @@ func resourceSystem() *schema.Resource {
 										Optional: true,
 									},
 									"macs": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
@@ -679,7 +679,7 @@ func resourceSystem() *schema.Resource {
 										ValidateFunc: validation.IntBetween(1, 65535),
 									},
 									"protocol_version": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
@@ -711,7 +711,7 @@ func resourceSystem() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"interface": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
@@ -730,7 +730,7 @@ func resourceSystem() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"interface": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
@@ -995,8 +995,8 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 	for _, v := range d.Get("inet6_backup_router").([]interface{}) {
 		inet6BackupRouter := v.(map[string]interface{})
 		configSet = append(configSet, setPrefix+"inet6-backup-router "+inet6BackupRouter["address"].(string))
-		for _, dest := range inet6BackupRouter["destination"].([]interface{}) {
-			configSet = append(configSet, setPrefix+"inet6-backup-router destination "+dest.(string))
+		for _, dest := range sortSetOfString(inet6BackupRouter["destination"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefix+"inet6-backup-router destination "+dest)
 		}
 	}
 	if err := setSystemInternetOptions(d, m, jnprSess); err != nil {
@@ -1186,8 +1186,8 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			if netconfTraceOpts["file_world_readable"].(bool) {
 				configSet = append(configSet, setPrefix+"netconf traceoptions file world-readable")
 			}
-			for _, v := range netconfTraceOpts["flag"].(*schema.Set).List() {
-				configSet = append(configSet, setPrefix+"netconf traceoptions flag "+v.(string))
+			for _, v := range sortSetOfString(netconfTraceOpts["flag"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefix+"netconf traceoptions flag "+v)
 			}
 			if netconfTraceOpts["no_remote_trace"].(bool) {
 				configSet = append(configSet, setPrefix+"netconf traceoptions no-remote-trace")
@@ -1201,8 +1201,8 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			for _, auth := range servicesSSHM["authentication_order"].([]interface{}) {
 				configSet = append(configSet, setPrefix+"ssh authentication-order "+auth.(string))
 			}
-			for _, ciphers := range servicesSSHM["ciphers"].([]interface{}) {
-				configSet = append(configSet, setPrefix+"ssh ciphers \""+ciphers.(string)+"\"")
+			for _, ciphers := range sortSetOfString(servicesSSHM["ciphers"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefix+"ssh ciphers \""+ciphers+"\"")
 			}
 			if servicesSSHM["client_alive_count_max"].(int) > -1 {
 				configSet = append(configSet, setPrefix+"ssh client-alive-count-max "+
@@ -1220,17 +1220,17 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 				configSet = append(configSet, setPrefix+"ssh fingerprint-hash "+
 					servicesSSHM["fingerprint_hash"].(string))
 			}
-			for _, hostkeyAlgo := range servicesSSHM["hostkey_algorithm"].([]interface{}) {
-				configSet = append(configSet, setPrefix+"ssh hostkey-algorithm "+hostkeyAlgo.(string))
+			for _, hostkeyAlgo := range sortSetOfString(servicesSSHM["hostkey_algorithm"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefix+"ssh hostkey-algorithm "+hostkeyAlgo)
 			}
-			for _, keyExchange := range servicesSSHM["key_exchange"].([]interface{}) {
-				configSet = append(configSet, setPrefix+"ssh key-exchange "+keyExchange.(string))
+			for _, keyExchange := range sortSetOfString(servicesSSHM["key_exchange"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefix+"ssh key-exchange "+keyExchange)
 			}
 			if servicesSSHM["log_key_changes"].(bool) {
 				configSet = append(configSet, setPrefix+"ssh log-key-changes")
 			}
-			for _, macs := range servicesSSHM["macs"].([]interface{}) {
-				configSet = append(configSet, setPrefix+"ssh macs "+macs.(string))
+			for _, macs := range sortSetOfString(servicesSSHM["macs"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefix+"ssh macs "+macs)
 			}
 			if servicesSSHM["max_pre_authentication_packets"].(int) > 0 {
 				configSet = append(configSet, setPrefix+"ssh max-pre-authentication-packets "+
@@ -1250,8 +1250,8 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 				configSet = append(configSet, setPrefix+"ssh port "+
 					strconv.Itoa(servicesSSHM["port"].(int)))
 			}
-			for _, version := range servicesSSHM["protocol_version"].([]interface{}) {
-				configSet = append(configSet, setPrefix+"ssh protocol-version "+version.(string))
+			for _, version := range sortSetOfString(servicesSSHM["protocol_version"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefix+"ssh protocol-version "+version)
 			}
 			if servicesSSHM["rate_limit"].(int) > 0 {
 				configSet = append(configSet, setPrefix+"ssh rate-limit "+
@@ -1277,8 +1277,8 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			configSet = append(configSet, setPrefix+"web-management http")
 			if http != nil {
 				httpOptions := http.(map[string]interface{})
-				for _, interf := range httpOptions["interface"].([]interface{}) {
-					configSet = append(configSet, setPrefix+"web-management http interface "+interf.(string))
+				for _, interf := range sortSetOfString(httpOptions["interface"].(*schema.Set).List()) {
+					configSet = append(configSet, setPrefix+"web-management http interface "+interf)
 				}
 				if httpOptions["port"].(int) > 0 {
 					configSet = append(configSet, setPrefix+"web-management http port "+
@@ -1288,8 +1288,8 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		}
 		for _, https := range servicesM["web_management_https"].([]interface{}) {
 			httpsOptions := https.(map[string]interface{})
-			for _, interf := range httpsOptions["interface"].([]interface{}) {
-				configSet = append(configSet, setPrefix+"web-management https interface "+interf.(string))
+			for _, interf := range sortSetOfString(httpsOptions["interface"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefix+"web-management https interface "+interf)
 			}
 			if httpsOptions["local_certificate"].(string) != "" {
 				configSet = append(configSet,
@@ -1430,8 +1430,8 @@ func setSystemLogin(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 		if login["announcement"].(string) != "" {
 			configSet = append(configSet, setPrefix+"announcement \""+login["announcement"].(string)+"\"")
 		}
-		for _, denySrcAddress := range login["deny_sources_address"].([]interface{}) {
-			configSet = append(configSet, setPrefix+"deny-sources address "+denySrcAddress.(string))
+		for _, denySrcAddress := range sortSetOfString(login["deny_sources_address"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefix+"deny-sources address "+denySrcAddress)
 		}
 		if login["idle_timeout"].(int) != 0 {
 			configSet = append(configSet, setPrefix+"idle-timeout "+strconv.Itoa(login["idle_timeout"].(int)))

@@ -401,8 +401,8 @@ func setAddressBook(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	for _, v := range d.Get("address_set").([]interface{}) {
 		addressSet := v.(map[string]interface{})
 		setPrefixAddrSet := setPrefix + " address-set " + addressSet["name"].(string)
-		for _, addr := range addressSet["address"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixAddrSet+" address "+addr.(string))
+		for _, addr := range sortSetOfString(addressSet["address"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixAddrSet+" address "+addr)
 		}
 		if addressSet["description"].(string) != "" {
 			configSet = append(configSet, setPrefixAddrSet+"description \""+addressSet["description"].(string)+"\"")

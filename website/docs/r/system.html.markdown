@@ -58,7 +58,7 @@ The following arguments are supported:
   Declare `inet6-backup-router` configuration.
   - **address** (Optional, String)  
     Address of router to use while booting.
-  - **destination** (Optional, List of String)  
+  - **destination** (Optional, Set of String)  
     Destination networks reachable through the router.
 - **internet_options** (Optional, Block)  
   Declare `internet-options` configuration.  
@@ -245,7 +245,7 @@ The following arguments are supported:
 
 - **announcement** (Optional, String)  
   System announcement message (displayed after login).
-- **deny_sources_address** (Optional, List of String)  
+- **deny_sources_address** (Optional, Set of String)  
   Sources from which logins are denied.
 - **idle_timeout** (Optional, Number)  
   Maximum idle time before logout (1..60 minutes).
@@ -319,7 +319,7 @@ The following arguments are supported:
 
 - **authentication_order** (Optional, List of String)  
   Order in which authentication methods are invoked.
-- **ciphers** (Optional, List of String)  
+- **ciphers** (Optional, Set of String)  
   Specify the ciphers allowed for protocol version 2.
 - **client_alive_count_max** (Optional, Number)  
   Threshold of missing client-alive responses that triggers a disconnect (0..255).
@@ -329,11 +329,11 @@ The following arguments are supported:
   Maximum number of allowed connections (1..250).
 - **fingerprint_hash** (Optional, String)  
   Configure hash algorithm used when displaying key fingerprints.
-- **hostkey_algorithm** (Optional, List of String)  
+- **hostkey_algorithm** (Optional, Set of String)  
   Specify permissible SSH host-key algorithms.
-- **key_exchange** (Optional, List of String)  
+- **key_exchange** (Optional, Set of String)  
   Specify ssh key-exchange for Diffie-Hellman keys.
-- **macs** (Optional, List of String)  
+- **macs** (Optional, Set of String)  
   Message Authentication Code algorithms allowed (SSHv2).
 - **max_pre_authentication_packets** (Optional, Number)  
   Maximum number of pre-authentication SSH packets per single SSH connection (20..2147483647).
@@ -345,7 +345,7 @@ The following arguments are supported:
   Disables ssh public key based authentication.
 - **port** (Optional, Number)  
   Port number to accept incoming connections (1..65535).
-- **protocol_version** (Optional, List of String)  
+- **protocol_version** (Optional, Set of String)  
   Specify ssh protocol versions supported.
 - **rate_limit** (Optional, Number)  
   Maximum number of connections per minute (1..250).
@@ -361,7 +361,7 @@ The following arguments are supported:
 
 ### web_management_http arguments for services
 
-- **interface** (Optional, List of String)  
+- **interface** (Optional, Set of String)  
   Specify the name of one or more interfaces.
 - **port** (Optional, Number)  
   Port number to connect to HTTP service (1..65535).
@@ -370,7 +370,7 @@ The following arguments are supported:
 
 ### web_management_https arguments for services
 
-- **interface** (Optional, List of String)  
+- **interface** (Optional, Set of String)  
   Specify the name of one or more interfaces.
 - **local_certificate** (Optional, String)  
   Specify the name of the certificate.  

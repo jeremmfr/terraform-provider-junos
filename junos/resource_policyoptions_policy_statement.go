@@ -111,17 +111,17 @@ func schemaPolicyoptionsPolicyStatementFrom() map[string]*schema.Schema {
 			Optional: true,
 		},
 		"bgp_as_path": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
 		"bgp_as_path_group": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
 		"bgp_community": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
@@ -147,7 +147,7 @@ func schemaPolicyoptionsPolicyStatementFrom() map[string]*schema.Schema {
 			Optional: true,
 		},
 		"interface": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
@@ -156,12 +156,12 @@ func schemaPolicyoptionsPolicyStatementFrom() map[string]*schema.Schema {
 			Optional: true,
 		},
 		"neighbor": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
 		"next_hop": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
@@ -179,12 +179,12 @@ func schemaPolicyoptionsPolicyStatementFrom() map[string]*schema.Schema {
 			Optional: true,
 		},
 		"prefix_list": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
 		"protocol": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
@@ -330,17 +330,17 @@ func schemaPolicyoptionsPolicyStatementThen() map[string]*schema.Schema {
 func schemaPolicyoptionsPolicyStatementTo() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"bgp_as_path": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
 		"bgp_as_path_group": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
 		"bgp_community": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
@@ -366,7 +366,7 @@ func schemaPolicyoptionsPolicyStatementTo() map[string]*schema.Schema {
 			Optional: true,
 		},
 		"interface": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
@@ -375,12 +375,12 @@ func schemaPolicyoptionsPolicyStatementTo() map[string]*schema.Schema {
 			Optional: true,
 		},
 		"neighbor": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
 		"next_hop": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
@@ -398,7 +398,7 @@ func schemaPolicyoptionsPolicyStatementTo() map[string]*schema.Schema {
 			Optional: true,
 		},
 		"protocol": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
@@ -853,14 +853,14 @@ func setPolicyStatementOptsFrom(setPrefix string, opts map[string]interface{}) [
 	if opts["aggregate_contributor"].(bool) {
 		configSet = append(configSet, setPrefixFrom+"aggregate-contributor")
 	}
-	for _, v := range opts["bgp_as_path"].([]interface{}) {
-		configSet = append(configSet, setPrefixFrom+"as-path "+v.(string))
+	for _, v := range sortSetOfString(opts["bgp_as_path"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefixFrom+"as-path "+v)
 	}
-	for _, v := range opts["bgp_as_path_group"].([]interface{}) {
-		configSet = append(configSet, setPrefixFrom+"as-path-group "+v.(string))
+	for _, v := range sortSetOfString(opts["bgp_as_path_group"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefixFrom+"as-path-group "+v)
 	}
-	for _, v := range opts["bgp_community"].([]interface{}) {
-		configSet = append(configSet, setPrefixFrom+"community "+v.(string))
+	for _, v := range sortSetOfString(opts["bgp_community"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefixFrom+"community "+v)
 	}
 	if opts["bgp_origin"].(string) != "" {
 		configSet = append(configSet, setPrefixFrom+"origin "+opts["bgp_origin"].(string))
@@ -874,17 +874,17 @@ func setPolicyStatementOptsFrom(setPrefix string, opts map[string]interface{}) [
 	if opts["routing_instance"].(string) != "" {
 		configSet = append(configSet, setPrefixFrom+"instance "+opts["routing_instance"].(string))
 	}
-	for _, v := range opts["interface"].([]interface{}) {
-		configSet = append(configSet, setPrefixFrom+"interface "+v.(string))
+	for _, v := range sortSetOfString(opts["interface"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefixFrom+"interface "+v)
 	}
 	if opts["metric"].(int) != 0 {
 		configSet = append(configSet, setPrefixFrom+"metric "+strconv.Itoa(opts["metric"].(int)))
 	}
-	for _, v := range opts["neighbor"].([]interface{}) {
-		configSet = append(configSet, setPrefixFrom+"neighbor "+v.(string))
+	for _, v := range sortSetOfString(opts["neighbor"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefixFrom+"neighbor "+v)
 	}
-	for _, v := range opts["next_hop"].([]interface{}) {
-		configSet = append(configSet, setPrefixFrom+"next-hop "+v.(string))
+	for _, v := range sortSetOfString(opts["next_hop"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefixFrom+"next-hop "+v)
 	}
 	if opts["ospf_area"].(string) != "" {
 		configSet = append(configSet, setPrefixFrom+"area "+opts["ospf_area"].(string))
@@ -895,11 +895,11 @@ func setPolicyStatementOptsFrom(setPrefix string, opts map[string]interface{}) [
 	if opts["preference"].(int) != 0 {
 		configSet = append(configSet, setPrefixFrom+"preference "+strconv.Itoa(opts["preference"].(int)))
 	}
-	for _, v := range opts["prefix_list"].([]interface{}) {
-		configSet = append(configSet, setPrefixFrom+"prefix-list "+v.(string))
+	for _, v := range sortSetOfString(opts["prefix_list"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefixFrom+"prefix-list "+v)
 	}
-	for _, v := range opts["protocol"].([]interface{}) {
-		configSet = append(configSet, setPrefixFrom+"protocol "+v.(string))
+	for _, v := range sortSetOfString(opts["protocol"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefixFrom+"protocol "+v)
 	}
 	for _, v := range opts["route_filter"].([]interface{}) {
 		routeFilter := v.(map[string]interface{})
@@ -993,14 +993,14 @@ func setPolicyStatementOptsTo(setPrefix string, opts map[string]interface{}) []s
 	configSet := make([]string, 0)
 	setPrefixTo := setPrefix + " to "
 
-	for _, v := range opts["bgp_as_path"].([]interface{}) {
-		configSet = append(configSet, setPrefixTo+"as-path "+v.(string))
+	for _, v := range sortSetOfString(opts["bgp_as_path"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefixTo+"as-path "+v)
 	}
-	for _, v := range opts["bgp_as_path_group"].([]interface{}) {
-		configSet = append(configSet, setPrefixTo+"as-path-group "+v.(string))
+	for _, v := range sortSetOfString(opts["bgp_as_path_group"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefixTo+"as-path-group "+v)
 	}
-	for _, v := range opts["bgp_community"].([]interface{}) {
-		configSet = append(configSet, setPrefixTo+"community "+v.(string))
+	for _, v := range sortSetOfString(opts["bgp_community"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefixTo+"community "+v)
 	}
 	if opts["bgp_origin"].(string) != "" {
 		configSet = append(configSet, setPrefixTo+"origin "+opts["bgp_origin"].(string))
@@ -1014,17 +1014,17 @@ func setPolicyStatementOptsTo(setPrefix string, opts map[string]interface{}) []s
 	if opts["routing_instance"].(string) != "" {
 		configSet = append(configSet, setPrefixTo+"instance "+opts["routing_instance"].(string))
 	}
-	for _, v := range opts["interface"].([]interface{}) {
-		configSet = append(configSet, setPrefixTo+"interface "+v.(string))
+	for _, v := range sortSetOfString(opts["interface"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefixTo+"interface "+v)
 	}
 	if opts["metric"].(int) != 0 {
 		configSet = append(configSet, setPrefixTo+"metric "+strconv.Itoa(opts["metric"].(int)))
 	}
-	for _, v := range opts["neighbor"].([]interface{}) {
-		configSet = append(configSet, setPrefixTo+"neighbor "+v.(string))
+	for _, v := range sortSetOfString(opts["neighbor"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefixTo+"neighbor "+v)
 	}
-	for _, v := range opts["next_hop"].([]interface{}) {
-		configSet = append(configSet, setPrefixTo+"next-hop "+v.(string))
+	for _, v := range sortSetOfString(opts["next_hop"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefixTo+"next-hop "+v)
 	}
 	if opts["ospf_area"].(string) != "" {
 		configSet = append(configSet, setPrefixTo+"area "+opts["ospf_area"].(string))
@@ -1035,8 +1035,8 @@ func setPolicyStatementOptsTo(setPrefix string, opts map[string]interface{}) []s
 	if opts["preference"].(int) != 0 {
 		configSet = append(configSet, setPrefixTo+"preference "+strconv.Itoa(opts["preference"].(int)))
 	}
-	for _, v := range opts["protocol"].([]interface{}) {
-		configSet = append(configSet, setPrefixTo+"protocol "+v.(string))
+	for _, v := range sortSetOfString(opts["protocol"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefixTo+"protocol "+v)
 	}
 
 	return configSet

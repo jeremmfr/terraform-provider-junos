@@ -192,12 +192,12 @@ func resourceSecurityZone() *schema.Resource {
 				Optional: true,
 			},
 			"inbound_protocols": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"inbound_services": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
@@ -470,9 +470,9 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 		}
 		for _, v := range d.Get("address_book_set").([]interface{}) {
 			addressBookSet := v.(map[string]interface{})
-			for _, addressBookSetAddress := range addressBookSet["address"].(*schema.Set).List() {
+			for _, addressBookSetAddress := range sortSetOfString(addressBookSet["address"].(*schema.Set).List()) {
 				configSet = append(configSet, setPrefix+" address-book address-set "+addressBookSet["name"].(string)+
-					" address "+addressBookSetAddress.(string))
+					" address "+addressBookSetAddress)
 			}
 			if v2 := addressBookSet["description"].(string); v2 != "" {
 				configSet = append(configSet, setPrefix+" address-book address-set "+
@@ -499,11 +499,11 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 	if d.Get("description").(string) != "" {
 		configSet = append(configSet, setPrefix+" description \""+d.Get("description").(string)+"\"")
 	}
-	for _, v := range d.Get("inbound_protocols").([]interface{}) {
-		configSet = append(configSet, setPrefix+" host-inbound-traffic protocols "+v.(string))
+	for _, v := range sortSetOfString(d.Get("inbound_protocols").(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+" host-inbound-traffic protocols "+v)
 	}
-	for _, v := range d.Get("inbound_services").([]interface{}) {
-		configSet = append(configSet, setPrefix+" host-inbound-traffic system-services "+v.(string))
+	for _, v := range sortSetOfString(d.Get("inbound_services").(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+" host-inbound-traffic system-services "+v)
 	}
 	if d.Get("reverse_reroute").(bool) {
 		configSet = append(configSet, setPrefix+" enable-reverse-reroute")
