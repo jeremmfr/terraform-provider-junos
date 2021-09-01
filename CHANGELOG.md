@@ -4,6 +4,7 @@
 ENHANCEMENTS:
 
 * add `junos_eventoptions_generate_event` resource (Fixes #267)
+* resource/`junos_chassis_cluster`: add `preempt_delay`, `preempt_limit` and `preempt_period` arguments inside `redundancy_group` block list argument (Fixes #270)
 * resource/`junos_system`: add `ntp` block argument (Fixes #261)
 * resource/`junos_interface_logical`: add `dad_disable` argument  inside `family_inet6` block argument (Fixes #263)
 * data-source/`junos_interface_logical`: add `dad_disable` attributes as for the resource
@@ -28,6 +29,7 @@ BUG FIXES:
 
 * resource/`junos_security`: fix reading `size` argument inside `file` block inside `ike_traceoptions` block when number match a multiple of 1024 (example 1k, 1m, 1g)
 * resource/`junos_security`: fix string format for `idp_security_package.0.automatic_start_time` to `YYYY-MM-DD.HH:MM:SS` to avoid unnecessary diff for Terraform when timezone of Junos device change
+* resource/`junos_chassis_cluster`: fix possible crash in certain conditions when import this resource
 
 ## 1.19.0 (July 30, 2021)
 

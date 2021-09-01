@@ -53,7 +53,7 @@ func TestAccJunosCluster_basic(t *testing.T) {
 					Config: testAccJunosClusterConfigUpdate(testaccInterface, testaccInterface2),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_chassis_cluster.testacc_cluster",
-							"redundancy_group.#", "2"),
+							"redundancy_group.#", "3"),
 						resource.TestCheckResourceAttr("junos_chassis_cluster.testacc_cluster",
 							"redundancy_group.1.node0_priority", "100"),
 						resource.TestCheckResourceAttr("junos_chassis_cluster.testacc_cluster",
@@ -94,6 +94,7 @@ resource "junos_chassis_cluster" "testacc_cluster" {
       name   = junos_interface_physical.testacc_cluster_int2.name
       weight = 255
     }
+    preempt = true
   }
   reth_count = 2
 }
@@ -124,6 +125,14 @@ resource "junos_chassis_cluster" "testacc_cluster" {
       name   = junos_interface_physical.testacc_cluster_int2.name
       weight = 255
     }
+  }
+  redundancy_group {
+    node0_priority = 100
+    node1_priority = 99
+    preempt        = true
+    preempt_delay  = 2
+    preempt_limit  = 3
+    preempt_period = 4
   }
   reth_count = 3
 }
