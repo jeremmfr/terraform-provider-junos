@@ -4,6 +4,7 @@
 ENHANCEMENTS:
 
 * add `junos_eventoptions_generate_event` resource (Fixes #267)
+* add `junos_security_dynamic_address_feed_server` resource (Fixes parts of #273)
 * resource/`junos_chassis_cluster`: add `preempt_delay`, `preempt_limit` and `preempt_period` arguments inside `redundancy_group` block list argument (Fixes #270)
 * resource/`junos_system`: add `ntp` block argument (Fixes #261)
 * resource/`junos_interface_logical`: add `dad_disable` argument  inside `family_inet6` block argument (Fixes #263)
