@@ -79,8 +79,9 @@ func resourceSecurityIdpCustomAttack() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringDoesNotContainAny(" "),
 									},
 									"attack_type_anomaly": {
 										Type:     schema.TypeList,
