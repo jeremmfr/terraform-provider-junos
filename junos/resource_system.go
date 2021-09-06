@@ -553,8 +553,9 @@ func resourceSystem() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"file_name": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringDoesNotContainAny("/% "),
 									},
 									"file_files": {
 										Type:         schema.TypeInt,
