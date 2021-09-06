@@ -129,8 +129,9 @@ func resourceEventoptionsPolicy() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"filename": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringDoesNotContainAny(" "),
 									},
 									"arguments": {
 										Type:     schema.TypeList,
@@ -138,12 +139,14 @@ func resourceEventoptionsPolicy() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"name": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringDoesNotContainAny(" "),
 												},
 												"value": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringDoesNotContainAny(" "),
 												},
 											},
 										},
@@ -155,8 +158,9 @@ func resourceEventoptionsPolicy() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"name": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringDoesNotContainAny(" "),
 												},
 												"retry_count": {
 													Type:         schema.TypeInt,
@@ -225,8 +229,9 @@ func resourceEventoptionsPolicy() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"name": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringDoesNotContainAny(" "),
 												},
 												"retry_count": {
 													Type:         schema.TypeInt,
@@ -362,12 +367,14 @@ func resourceEventoptionsPolicy() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"filename": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringDoesNotContainAny(" "),
 									},
 									"destination": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringDoesNotContainAny(" "),
 									},
 									"retry_count": {
 										Type:         schema.TypeInt,
@@ -403,8 +410,9 @@ func resourceEventoptionsPolicy() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"from": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringDoesNotContainAny(" "),
 						},
 						"compare": {
 							Type:         schema.TypeString,
@@ -412,8 +420,9 @@ func resourceEventoptionsPolicy() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{"equals", "matches", "starts-with"}, false),
 						},
 						"to": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringDoesNotContainAny(" "),
 						},
 					},
 				},

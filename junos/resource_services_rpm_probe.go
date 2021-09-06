@@ -43,8 +43,9 @@ func resourceServicesRpmProbe() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringDoesNotContainAny(" "),
 						},
 						"data_fill": {
 							Type:     schema.TypeString,

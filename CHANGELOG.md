@@ -31,6 +31,7 @@ BUG FIXES:
 * resource/`junos_security`: fix reading `size` argument inside `file` block inside `ike_traceoptions` block when number match a multiple of 1024 (example 1k, 1m, 1g)
 * resource/`junos_security`: fix string format for `idp_security_package.0.automatic_start_time` to `YYYY-MM-DD.HH:MM:SS` to avoid unnecessary diff for Terraform when timezone of Junos device change
 * resource/`junos_chassis_cluster`: fix possible crash in certain conditions when import this resource
+* resource/`*`: add validation to some arguments which cannot contain a space character and thus avoid bugs when reading these arguments
 
 ## 1.19.0 (July 30, 2021)
 
