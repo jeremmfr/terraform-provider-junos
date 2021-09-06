@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * resource/`junos_interface_logical`: lists of string for `security_inbound_protocols` and `security_inbound_services` are now unordered
 * resource/`junos_policyoptions_policy_statement`: arguments with type list of string (except `policy`) in block `term.*.from` and `term.*.to` are now unordered
 * resource/`junos_security`: list of string for `ike_traceoptions.0.flag` is now unordered
+* resource/`junos_security`: add validation on `name` argument inside `file` block inside `ike_traceoptions` block
 * resource/`junos_security_global_policy`: arguments with type list of string in block `policy` are now unordered
 * resource/`junos_security_nat_source`: arguments with type list of string in block `rule.*.match` are now unordered
 * resource/`junos_security_policy`: arguments with type list of string in block `policy` are now unordered

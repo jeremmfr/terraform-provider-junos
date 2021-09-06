@@ -569,8 +569,9 @@ func resourceSecurity() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringDoesNotContainAny("/% "),
 									},
 									"files": {
 										Type:         schema.TypeInt,
