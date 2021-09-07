@@ -164,10 +164,10 @@ The following arguments are supported:
     Password for login into the archive site.  
 - **transfer_interval** (Optional, Number)  
   Frequency at which file transfer happens (15..2880 minutes).  
-  One of `transfer_interval` and `transfer_on_commit` arguments need to be set.
+  Need to set one of `transfer_interval` or `transfer_on_commit`.
 - **transfer_on_commit** (Optional, Boolean)  
   Transfer after each commit.  
-  One of `transfer_interval` and `transfer_on_commit` arguments need to be set.
+  Need to set one of `transfer_interval` or `transfer_on_commit`.
 
 ---
 
