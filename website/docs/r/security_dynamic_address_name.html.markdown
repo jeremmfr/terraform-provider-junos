@@ -37,10 +37,10 @@ The following arguments are supported:
   Text description of dynamic address.
 - **profile_feed_name** (Optional, String)  
   Name of feed in feed-server for this dynamic address.  
-  One of `profile_feed_name` and `profile_category` arguments need to be set.
+  Need to set one of `profile_feed_name` or `profile_category`.
 - **profile_category** (Optional, Block)  
   Declare `profile category` configuration to categorize feed data into this dynamic address.  
-  One of `profile_feed_name` and `profile_category` arguments need to be set.  
+  Need to set one of `profile_feed_name` or `profile_category`.  
   See [below for nested schema](#profile_category-arguments).
 
 ### profile_category arguments
