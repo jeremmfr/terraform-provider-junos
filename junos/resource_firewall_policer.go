@@ -44,6 +44,10 @@ func resourceFirewallPolicer() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"burst_size_limit": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
 						"bandwidth_percent": {
 							Type:          schema.TypeInt,
 							Optional:      true,
@@ -54,10 +58,6 @@ func resourceFirewallPolicer() *schema.Resource {
 							Type:          schema.TypeString,
 							Optional:      true,
 							ConflictsWith: []string{"if_exceeding.0.bandwidth_percent"},
-						},
-						"burst_size_limit": {
-							Type:     schema.TypeString,
-							Required: true,
 						},
 					},
 				},
@@ -285,6 +285,8 @@ func setFirewallPolicer(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	}
 	for _, ifExceeding := range d.Get("if_exceeding").([]interface{}) {
 		ifExceedingMap := ifExceeding.(map[string]interface{})
+		configSet = append(configSet, setPrefix+
+			" if-exceeding burst-size-limit "+ifExceedingMap["burst_size_limit"].(string))
 		if ifExceedingMap["bandwidth_percent"].(int) != 0 {
 			configSet = append(configSet, setPrefix+
 				" if-exceeding bandwidth-percent "+strconv.Itoa(ifExceedingMap["bandwidth_percent"].(int)))
@@ -293,8 +295,6 @@ func setFirewallPolicer(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 			configSet = append(configSet, setPrefix+
 				" if-exceeding bandwidth-limit "+ifExceedingMap["bandwidth_limit"].(string))
 		}
-		configSet = append(configSet, setPrefix+
-			" if-exceeding burst-size-limit "+ifExceedingMap["burst_size_limit"].(string))
 	}
 	for _, then := range d.Get("then").([]interface{}) {
 		if then != nil {
@@ -345,12 +345,14 @@ func readFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject)
 			case strings.HasPrefix(itemTrim, "if-exceeding "):
 				if len(confRead.ifExceeding) == 0 {
 					confRead.ifExceeding = append(confRead.ifExceeding, map[string]interface{}{
+						"burst_size_limit":  "",
 						"bandwidth_percent": 0,
 						"bandwidth_limit":   "",
-						"burst_size_limit":  "",
 					})
 				}
 				switch {
+				case strings.HasPrefix(itemTrim, "if-exceeding burst-size-limit "):
+					confRead.ifExceeding[0]["burst_size_limit"] = strings.TrimPrefix(itemTrim, "if-exceeding burst-size-limit ")
 				case strings.HasPrefix(itemTrim, "if-exceeding bandwidth-percent "):
 					confRead.ifExceeding[0]["bandwidth_percent"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrim, "if-exceeding bandwidth-percent "))
@@ -359,8 +361,6 @@ func readFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject)
 					}
 				case strings.HasPrefix(itemTrim, "if-exceeding bandwidth-limit "):
 					confRead.ifExceeding[0]["bandwidth_limit"] = strings.TrimPrefix(itemTrim, "if-exceeding bandwidth-limit ")
-				case strings.HasPrefix(itemTrim, "if-exceeding burst-size-limit "):
-					confRead.ifExceeding[0]["burst_size_limit"] = strings.TrimPrefix(itemTrim, "if-exceeding burst-size-limit ")
 				}
 			case strings.HasPrefix(itemTrim, "then "):
 				if len(confRead.then) == 0 {

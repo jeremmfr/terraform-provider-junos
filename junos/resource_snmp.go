@@ -303,8 +303,8 @@ func setSnmp(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	if d.Get("filter_duplicates").(bool) {
 		configSet = append(configSet, setPrefix+"filter-duplicates")
 	}
-	for _, v := range d.Get("filter_interfaces").(*schema.Set).List() {
-		configSet = append(configSet, setPrefix+"filter-interfaces interfaces \""+v.(string)+"\"")
+	for _, v := range sortSetOfString(d.Get("filter_interfaces").(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"filter-interfaces interfaces \""+v+"\"")
 	}
 	if d.Get("filter_internal_interfaces").(bool) {
 		configSet = append(configSet, setPrefix+"filter-interfaces all-internal-interfaces")
@@ -339,8 +339,8 @@ func setSnmp(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	if d.Get("if_count_with_filter_interfaces").(bool) {
 		configSet = append(configSet, setPrefix+"if-count-with-filter-interfaces")
 	}
-	for _, v := range d.Get("interface").(*schema.Set).List() {
-		configSet = append(configSet, setPrefix+"interface "+v.(string))
+	for _, v := range sortSetOfString(d.Get("interface").(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"interface "+v)
 	}
 	if v := d.Get("location").(string); v != "" {
 		configSet = append(configSet, setPrefix+"location \""+v+"\"")
@@ -348,8 +348,8 @@ func setSnmp(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	if d.Get("routing_instance_access").(bool) {
 		configSet = append(configSet, setPrefix+"routing-instance-access")
 	}
-	for _, v := range d.Get("routing_instance_access_list").(*schema.Set).List() {
-		configSet = append(configSet, setPrefix+"routing-instance-access access-list \""+v.(string)+"\"")
+	for _, v := range sortSetOfString(d.Get("routing_instance_access_list").(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"routing-instance-access access-list \""+v+"\"")
 	}
 
 	return sess.configSet(configSet, jnprSess)

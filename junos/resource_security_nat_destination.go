@@ -286,8 +286,8 @@ func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *
 	setPrefix := "set security nat destination rule-set " + d.Get("name").(string)
 	for _, v := range d.Get("from").([]interface{}) {
 		from := v.(map[string]interface{})
-		for _, value := range from["value"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefix+" from "+from["type"].(string)+" "+value.(string))
+		for _, value := range sortSetOfString(from["value"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefix+" from "+from["type"].(string)+" "+value)
 		}
 	}
 	for _, v := range d.Get("rule").([]interface{}) {

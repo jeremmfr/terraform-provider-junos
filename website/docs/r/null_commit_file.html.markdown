@@ -10,7 +10,8 @@ description: |-
 
 Load a file with set/delete lines on device and commit
 
-~> **NOTE:** Not provide a real resource, just load content of file with set/delete lines to candidate configuration on device, and commit  
+~> **NOTE:** Not provide a real resource, just load content of file with set/delete lines to
+candidate configuration on device, and commit  
 
 ## Example Usage
 
@@ -30,7 +31,18 @@ resource junos_null_commit_file "setfile" {
 
 The following arguments are supported:
 
-* `filename` - (Required, Forces new resource)(`String`) The path of the file to load
-* `append_lines` - (Optional, Forces new resource)(`ListOfString`) List of lines append to lines in the loaded file.
-* `clear_file_after_commit` - (Optional, Forces new resource)(`Bool`) Truncate file after successful commit.
-* `triggers` - (Optional, Forces new resource)(`Map`) A map of arbitrary strings that, when changed, will force the resource to be replaced.
+- **filename** (Required, String, Forces new resource)  
+  The path of the file to load
+- **append_lines** (Optional, List of String, Forces new resource)  
+  List of lines append to lines in the loaded file.
+- **clear_file_after_commit** (Optional, Boolean, Forces new resource)  
+  Truncate file after successful commit.
+- **triggers** (Optional, Map, Forces new resource)  
+  A map of arbitrary strings that, when changed, will force the resource to be replaced.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<filename>`.

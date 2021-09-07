@@ -3,6 +3,7 @@ package junos
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -433,6 +434,9 @@ func resourceSecurity() *schema.Resource {
 						"automatic_start_time": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ValidateFunc: validation.StringMatch(
+								regexp.MustCompile(`^\d{4}\-\d\d?\-\d\d?\.\d{2}:\d{2}:\d{2}$`),
+								"must be in the format 'YYYY-MM-DD.HH:MM:SS'"),
 						},
 						"install_ignore_version_check": {
 							Type:     schema.TypeBool,
@@ -565,8 +569,9 @@ func resourceSecurity() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringDoesNotContainAny("/% "),
 									},
 									"files": {
 										Type:         schema.TypeInt,
@@ -594,7 +599,7 @@ func resourceSecurity() *schema.Resource {
 							},
 						},
 						"flag": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
@@ -1400,7 +1405,7 @@ func setSecurityIdpSecurityPackage(idpSecurityPackage interface{}) ([]string, er
 			configSet = append(configSet, setPrefix+"automatic interval "+strconv.Itoa(v))
 		}
 		if v := idpSecurityPackageM["automatic_start_time"].(string); v != "" {
-			configSet = append(configSet, setPrefix+"automatic start-time \""+v+"\"")
+			configSet = append(configSet, setPrefix+"automatic start-time "+v)
 		}
 		if idpSecurityPackageM["install_ignore_version_check"].(bool) {
 			configSet = append(configSet, setPrefix+"install ignore-version-check")
@@ -1518,8 +1523,8 @@ func setSecurityIkeTraceOpts(ikeTrace interface{}) ([]string, error) {
 			return configSet, fmt.Errorf("ike_traceoptions file block is empty")
 		}
 	}
-	for _, ikeTraceFlag := range ikeTraceM["flag"].([]interface{}) {
-		configSet = append(configSet, setPrefix+"flag "+ikeTraceFlag.(string))
+	for _, ikeTraceFlag := range sortSetOfString(ikeTraceM["flag"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"flag "+ikeTraceFlag)
 	}
 	if ikeTraceM["no_remote_trace"].(bool) {
 		configSet = append(configSet, setPrefix+"no-remote-trace")
@@ -2206,7 +2211,7 @@ func readSecurityIdpSecurityPackage(confRead *securityOptions, itemTrimIdpSecuri
 		}
 	case strings.HasPrefix(itemTrim, "automatic start-time "):
 		confRead.idpSecurityPackage[0]["automatic_start_time"] =
-			strings.Trim(strings.TrimPrefix(itemTrim, "automatic start-time "), "\"")
+			strings.Split(strings.Trim(strings.TrimPrefix(itemTrim, "automatic start-time "), "\""), " ")[0]
 	case itemTrim == "install ignore-version-check":
 		confRead.idpSecurityPackage[0]["install_ignore_version_check"] = true
 	case strings.HasPrefix(itemTrim, "proxy-profile "):
@@ -2364,8 +2369,26 @@ func readSecurityIkeTraceOptions(confRead *securityOptions, itemTrimIkeTraceOpts
 				strings.TrimPrefix(itemTrim, "file match "), "\"")
 		case strings.HasPrefix(itemTrim, "file size"):
 			var err error
-			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"], err = strconv.Atoi(
-				strings.TrimPrefix(itemTrim, "file size "))
+			switch {
+			case strings.HasSuffix(itemTrim, "k"):
+				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"], err =
+					strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "k"))
+				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"] =
+					confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"].(int) * 1024
+			case strings.HasSuffix(itemTrim, "m"):
+				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"], err =
+					strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "m"))
+				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"] =
+					confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"].(int) * 1024 * 1024
+			case strings.HasSuffix(itemTrim, "g"):
+				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"], err =
+					strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "g"))
+				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"] =
+					confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"].(int) * 1024 * 1024 * 1024
+			default:
+				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"], err =
+					strconv.Atoi(strings.TrimPrefix(itemTrim, "file size "))
+			}
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}

@@ -30,8 +30,8 @@ func TestAccJunosSystem_basic(t *testing.T) {
 							"inet6_backup_router.#", "1"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"inet6_backup_router.0.destination.#", "1"),
-						resource.TestCheckResourceAttr("junos_system.testacc_system",
-							"inet6_backup_router.0.destination.0", "::/0"),
+						resource.TestCheckTypeSetElemAttr("junos_system.testacc_system",
+							"inet6_backup_router.0.destination.*", "::/0"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"inet6_backup_router.0.address", "fe80::1"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
@@ -114,10 +114,10 @@ func TestAccJunosSystem_basic(t *testing.T) {
 							"services.0.ssh.0.authentication_order.0", "password"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"services.0.ssh.0.ciphers.#", "2"),
-						resource.TestCheckResourceAttr("junos_system.testacc_system",
-							"services.0.ssh.0.ciphers.0", "aes256-ctr"),
-						resource.TestCheckResourceAttr("junos_system.testacc_system",
-							"services.0.ssh.0.ciphers.1", "aes256-cbc"),
+						resource.TestCheckTypeSetElemAttr("junos_system.testacc_system",
+							"services.0.ssh.0.ciphers.*", "aes256-ctr"),
+						resource.TestCheckTypeSetElemAttr("junos_system.testacc_system",
+							"services.0.ssh.0.ciphers.*", "aes256-cbc"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"services.0.ssh.0.client_alive_count_max", "10"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
@@ -128,16 +128,16 @@ func TestAccJunosSystem_basic(t *testing.T) {
 							"services.0.ssh.0.fingerprint_hash", "md5"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"services.0.ssh.0.hostkey_algorithm.#", "1"),
-						resource.TestCheckResourceAttr("junos_system.testacc_system",
-							"services.0.ssh.0.hostkey_algorithm.0", "no-ssh-dss"),
+						resource.TestCheckTypeSetElemAttr("junos_system.testacc_system",
+							"services.0.ssh.0.hostkey_algorithm.*", "no-ssh-dss"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"services.0.ssh.0.key_exchange.#", "1"),
-						resource.TestCheckResourceAttr("junos_system.testacc_system",
-							"services.0.ssh.0.key_exchange.0", "ecdh-sha2-nistp256"),
+						resource.TestCheckTypeSetElemAttr("junos_system.testacc_system",
+							"services.0.ssh.0.key_exchange.*", "ecdh-sha2-nistp256"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"services.0.ssh.0.macs.#", "1"),
-						resource.TestCheckResourceAttr("junos_system.testacc_system",
-							"services.0.ssh.0.macs.0", "hmac-sha2-256"),
+						resource.TestCheckTypeSetElemAttr("junos_system.testacc_system",
+							"services.0.ssh.0.macs.*", "hmac-sha2-256"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"services.0.ssh.0.max_pre_authentication_packets", "10000"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
@@ -146,8 +146,8 @@ func TestAccJunosSystem_basic(t *testing.T) {
 							"services.0.ssh.0.port", "22"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"services.0.ssh.0.protocol_version.#", "1"),
-						resource.TestCheckResourceAttr("junos_system.testacc_system",
-							"services.0.ssh.0.protocol_version.0", "v2"),
+						resource.TestCheckTypeSetElemAttr("junos_system.testacc_system",
+							"services.0.ssh.0.protocol_version.*", "v2"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"services.0.ssh.0.rate_limit", "200"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
@@ -158,8 +158,8 @@ func TestAccJunosSystem_basic(t *testing.T) {
 							"services.0.web_management_http.#", "1"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"services.0.web_management_http.0.interface.#", "1"),
-						resource.TestCheckResourceAttr("junos_system.testacc_system",
-							"services.0.web_management_http.0.interface.0", "fxp0.0"),
+						resource.TestCheckTypeSetElemAttr("junos_system.testacc_system",
+							"services.0.web_management_http.0.interface.*", "fxp0.0"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"services.0.web_management_http.0.port", "80"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
@@ -170,8 +170,8 @@ func TestAccJunosSystem_basic(t *testing.T) {
 							"services.0.web_management_https.0.system_generated_certificate", "true"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"services.0.web_management_https.0.interface.#", "1"),
-						resource.TestCheckResourceAttr("junos_system.testacc_system",
-							"services.0.web_management_https.0.interface.0", "fxp0.0"),
+						resource.TestCheckTypeSetElemAttr("junos_system.testacc_system",
+							"services.0.web_management_https.0.interface.*", "fxp0.0"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
 							"syslog.#", "1"),
 						resource.TestCheckResourceAttr("junos_system.testacc_system",
@@ -330,11 +330,28 @@ resource junos_system "testacc_system" {
   no_ping_time_stamp          = true
   no_redirects                = true
   no_redirects_ipv6           = true
-
+  ntp {
+    boot_server              = "192.0.2.13"
+    broadcast_client         = true
+    interval_range           = 2
+    multicast_client         = true
+    multicast_client_address = "224.0.0.3"
+    threshold_action         = "accept"
+    threshold_value          = 30
+  }
   radius_options_attributes_nas_ipaddress   = "192.0.2.12"
   radius_options_enhanced_accounting        = true
   radius_options_password_protocol_mschapv2 = true
   services {
+    netconf_traceoptions {
+      file_name           = "testacc_netconf"
+      file_match          = "test"
+      file_world_readable = true
+      file_size           = 20480
+      flag                = ["all"]
+      no_remote_trace     = true
+      on_demand           = true
+    }
     ssh {
       authentication_order           = ["password"]
       ciphers                        = ["aes256-ctr", "aes256-cbc"]
@@ -406,6 +423,12 @@ resource junos_system "testacc_system" {
     no_tcp_rfc1323_paws           = true
   }
   services {
+    netconf_traceoptions {
+      file_name              = "testacc_netconf"
+      file_no_world_readable = true
+      file_size              = 40960
+      flag                   = ["incoming", "outgoing"]
+    }
     ssh {
       ciphers           = ["aes256-ctr"]
       no_tcp_forwarding = true

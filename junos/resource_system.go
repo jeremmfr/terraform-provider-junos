@@ -37,6 +37,7 @@ type systemOptions struct {
 	internetOptions                      []map[string]interface{}
 	license                              []map[string]interface{}
 	login                                []map[string]interface{}
+	ntp                                  []map[string]interface{}
 	services                             []map[string]interface{}
 	syslog                               []map[string]interface{}
 }
@@ -63,8 +64,9 @@ func resourceSystem() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"url": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringDoesNotContainAny(" "),
 									},
 									"password": {
 										Type:      schema.TypeString,
@@ -121,7 +123,7 @@ func resourceSystem() *schema.Resource {
 							ValidateFunc: validation.IsIPAddress,
 						},
 						"destination": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Required: true,
 							MinItems: 1,
 							Elem:     &schema.Schema{Type: schema.TypeString},
@@ -326,7 +328,7 @@ func resourceSystem() *schema.Resource {
 							Optional: true,
 						},
 						"deny_sources_address": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
@@ -482,6 +484,50 @@ func resourceSystem() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
+			"ntp": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"boot_server": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"broadcast_client": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"interval_range": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      -1,
+							ValidateFunc: validation.IntBetween(0, 3),
+						},
+						"multicast_client": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"multicast_client_address": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsIPAddress,
+						},
+						"threshold_action": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							RequiredWith: []string{"ntp.0.threshold_value"},
+							ValidateFunc: validation.StringInSlice([]string{"accept", "reject"}, false),
+						},
+						"threshold_value": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							RequiredWith: []string{"ntp.0.threshold_action"},
+							ValidateFunc: validation.IntBetween(1, 600),
+						},
+					},
+				},
+			},
 			"radius_options_attributes_nas_ipaddress": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -501,6 +547,57 @@ func resourceSystem() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"netconf_traceoptions": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"file_name": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringDoesNotContainAny("/% "),
+									},
+									"file_files": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(2, 1000),
+									},
+									"file_match": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"file_no_world_readable": {
+										Type:          schema.TypeBool,
+										Optional:      true,
+										ConflictsWith: []string{"services.0.netconf_traceoptions.0.file_world_readable"},
+									},
+									"file_size": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(10240, 1073741824),
+									},
+									"file_world_readable": {
+										Type:          schema.TypeBool,
+										Optional:      true,
+										ConflictsWith: []string{"services.0.netconf_traceoptions.0.file_no_world_readable"},
+									},
+									"flag": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"no_remote_trace": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"on_demand": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+								},
+							},
+						},
 						"ssh": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -513,7 +610,7 @@ func resourceSystem() *schema.Resource {
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"ciphers": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
@@ -540,12 +637,12 @@ func resourceSystem() *schema.Resource {
 										ValidateFunc: validation.StringInSlice([]string{"md5", "sha2-256"}, false),
 									},
 									"hostkey_algorithm": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"key_exchange": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
@@ -554,7 +651,7 @@ func resourceSystem() *schema.Resource {
 										Optional: true,
 									},
 									"macs": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
@@ -584,7 +681,7 @@ func resourceSystem() *schema.Resource {
 										ValidateFunc: validation.IntBetween(1, 65535),
 									},
 									"protocol_version": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
@@ -616,7 +713,7 @@ func resourceSystem() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"interface": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
@@ -635,7 +732,7 @@ func resourceSystem() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"interface": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
@@ -900,8 +997,8 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 	for _, v := range d.Get("inet6_backup_router").([]interface{}) {
 		inet6BackupRouter := v.(map[string]interface{})
 		configSet = append(configSet, setPrefix+"inet6-backup-router "+inet6BackupRouter["address"].(string))
-		for _, dest := range inet6BackupRouter["destination"].([]interface{}) {
-			configSet = append(configSet, setPrefix+"inet6-backup-router destination "+dest.(string))
+		for _, dest := range sortSetOfString(inet6BackupRouter["destination"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefix+"inet6-backup-router destination "+dest)
 		}
 	}
 	if err := setSystemInternetOptions(d, m, jnprSess); err != nil {
@@ -964,6 +1061,33 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 	}
 	if d.Get("no_redirects_ipv6").(bool) {
 		configSet = append(configSet, setPrefix+"no-redirects-ipv6")
+	}
+	for _, vi := range d.Get("ntp").([]interface{}) {
+		setPrefixNtp := setPrefix + "ntp "
+		ntp := vi.(map[string]interface{})
+		if v := ntp["boot_server"].(string); v != "" {
+			configSet = append(configSet, setPrefixNtp+"boot-server "+v)
+		}
+		if ntp["broadcast_client"].(bool) {
+			configSet = append(configSet, setPrefixNtp+"broadcast-client")
+		}
+		if v := ntp["interval_range"].(int); v != -1 {
+			configSet = append(configSet, setPrefixNtp+"interval-range "+strconv.Itoa(v))
+		}
+		if ntp["multicast_client"].(bool) {
+			configSet = append(configSet, setPrefixNtp+"multicast-client")
+			if v := ntp["multicast_client_address"].(string); v != "" {
+				configSet = append(configSet, setPrefixNtp+"multicast-client "+v)
+			}
+		} else if ntp["multicast_client_address"].(string) != "" {
+			return fmt.Errorf("ntp.0.multicast_client need to be true with multicast_client_address")
+		}
+		if v := ntp["threshold_value"].(int); v != 0 {
+			configSet = append(configSet, setPrefixNtp+"threshold "+strconv.Itoa(v)+" action "+ntp["threshold_action"].(string))
+		}
+		if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefixNtp) {
+			return fmt.Errorf("ntp block is empty")
+		}
 	}
 	if v := d.Get("radius_options_attributes_nas_ipaddress").(string); v != "" {
 		configSet = append(configSet, setPrefix+"radius-options attributes nas-ip-address "+v)
@@ -1041,13 +1165,46 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			return fmt.Errorf("services block is empty")
 		}
 		servicesM := services.(map[string]interface{})
+		for _, servicesNetconfTraceOpts := range servicesM["netconf_traceoptions"].([]interface{}) {
+			if servicesNetconfTraceOpts == nil {
+				return fmt.Errorf("services.0.netconf_traceoptions block is empty")
+			}
+			netconfTraceOpts := servicesNetconfTraceOpts.(map[string]interface{})
+			if v := netconfTraceOpts["file_name"].(string); v != "" {
+				configSet = append(configSet, setPrefix+"netconf traceoptions file \""+v+"\"")
+			}
+			if v := netconfTraceOpts["file_files"].(int); v != 0 {
+				configSet = append(configSet, setPrefix+"netconf traceoptions file files "+strconv.Itoa(v))
+			}
+			if v := netconfTraceOpts["file_match"].(string); v != "" {
+				configSet = append(configSet, setPrefix+"netconf traceoptions file match \""+v+"\"")
+			}
+			if v := netconfTraceOpts["file_size"].(int); v != 0 {
+				configSet = append(configSet, setPrefix+"netconf traceoptions file size "+strconv.Itoa(v))
+			}
+			if netconfTraceOpts["file_no_world_readable"].(bool) {
+				configSet = append(configSet, setPrefix+"netconf traceoptions file no-world-readable")
+			}
+			if netconfTraceOpts["file_world_readable"].(bool) {
+				configSet = append(configSet, setPrefix+"netconf traceoptions file world-readable")
+			}
+			for _, v := range sortSetOfString(netconfTraceOpts["flag"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefix+"netconf traceoptions flag "+v)
+			}
+			if netconfTraceOpts["no_remote_trace"].(bool) {
+				configSet = append(configSet, setPrefix+"netconf traceoptions no-remote-trace")
+			}
+			if netconfTraceOpts["on_demand"].(bool) {
+				configSet = append(configSet, setPrefix+"netconf traceoptions on-demand")
+			}
+		}
 		for _, servicesSSH := range servicesM["ssh"].([]interface{}) {
 			servicesSSHM := servicesSSH.(map[string]interface{})
 			for _, auth := range servicesSSHM["authentication_order"].([]interface{}) {
 				configSet = append(configSet, setPrefix+"ssh authentication-order "+auth.(string))
 			}
-			for _, ciphers := range servicesSSHM["ciphers"].([]interface{}) {
-				configSet = append(configSet, setPrefix+"ssh ciphers \""+ciphers.(string)+"\"")
+			for _, ciphers := range sortSetOfString(servicesSSHM["ciphers"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefix+"ssh ciphers \""+ciphers+"\"")
 			}
 			if servicesSSHM["client_alive_count_max"].(int) > -1 {
 				configSet = append(configSet, setPrefix+"ssh client-alive-count-max "+
@@ -1065,17 +1222,17 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 				configSet = append(configSet, setPrefix+"ssh fingerprint-hash "+
 					servicesSSHM["fingerprint_hash"].(string))
 			}
-			for _, hostkeyAlgo := range servicesSSHM["hostkey_algorithm"].([]interface{}) {
-				configSet = append(configSet, setPrefix+"ssh hostkey-algorithm "+hostkeyAlgo.(string))
+			for _, hostkeyAlgo := range sortSetOfString(servicesSSHM["hostkey_algorithm"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefix+"ssh hostkey-algorithm "+hostkeyAlgo)
 			}
-			for _, keyExchange := range servicesSSHM["key_exchange"].([]interface{}) {
-				configSet = append(configSet, setPrefix+"ssh key-exchange "+keyExchange.(string))
+			for _, keyExchange := range sortSetOfString(servicesSSHM["key_exchange"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefix+"ssh key-exchange "+keyExchange)
 			}
 			if servicesSSHM["log_key_changes"].(bool) {
 				configSet = append(configSet, setPrefix+"ssh log-key-changes")
 			}
-			for _, macs := range servicesSSHM["macs"].([]interface{}) {
-				configSet = append(configSet, setPrefix+"ssh macs "+macs.(string))
+			for _, macs := range sortSetOfString(servicesSSHM["macs"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefix+"ssh macs "+macs)
 			}
 			if servicesSSHM["max_pre_authentication_packets"].(int) > 0 {
 				configSet = append(configSet, setPrefix+"ssh max-pre-authentication-packets "+
@@ -1095,8 +1252,8 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 				configSet = append(configSet, setPrefix+"ssh port "+
 					strconv.Itoa(servicesSSHM["port"].(int)))
 			}
-			for _, version := range servicesSSHM["protocol_version"].([]interface{}) {
-				configSet = append(configSet, setPrefix+"ssh protocol-version "+version.(string))
+			for _, version := range sortSetOfString(servicesSSHM["protocol_version"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefix+"ssh protocol-version "+version)
 			}
 			if servicesSSHM["rate_limit"].(int) > 0 {
 				configSet = append(configSet, setPrefix+"ssh rate-limit "+
@@ -1122,8 +1279,8 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			configSet = append(configSet, setPrefix+"web-management http")
 			if http != nil {
 				httpOptions := http.(map[string]interface{})
-				for _, interf := range httpOptions["interface"].([]interface{}) {
-					configSet = append(configSet, setPrefix+"web-management http interface "+interf.(string))
+				for _, interf := range sortSetOfString(httpOptions["interface"].(*schema.Set).List()) {
+					configSet = append(configSet, setPrefix+"web-management http interface "+interf)
 				}
 				if httpOptions["port"].(int) > 0 {
 					configSet = append(configSet, setPrefix+"web-management http port "+
@@ -1133,8 +1290,8 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		}
 		for _, https := range servicesM["web_management_https"].([]interface{}) {
 			httpsOptions := https.(map[string]interface{})
-			for _, interf := range httpsOptions["interface"].([]interface{}) {
-				configSet = append(configSet, setPrefix+"web-management https interface "+interf.(string))
+			for _, interf := range sortSetOfString(httpsOptions["interface"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefix+"web-management https interface "+interf)
 			}
 			if httpsOptions["local_certificate"].(string) != "" {
 				configSet = append(configSet,
@@ -1275,8 +1432,8 @@ func setSystemLogin(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 		if login["announcement"].(string) != "" {
 			configSet = append(configSet, setPrefix+"announcement \""+login["announcement"].(string)+"\"")
 		}
-		for _, denySrcAddress := range login["deny_sources_address"].([]interface{}) {
-			configSet = append(configSet, setPrefix+"deny-sources address "+denySrcAddress.(string))
+		for _, denySrcAddress := range sortSetOfString(login["deny_sources_address"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefix+"deny-sources address "+denySrcAddress)
 		}
 		if login["idle_timeout"].(int) != 0 {
 			configSet = append(configSet, setPrefix+"idle-timeout "+strconv.Itoa(login["idle_timeout"].(int)))
@@ -1387,8 +1544,20 @@ func listLinesLicense() []string {
 	}
 }
 
+func listLinesNtp() []string {
+	return []string{
+		"ntp boot-server",
+		"ntp broadcast-client",
+		"ntp interval-range",
+		"ntp multicast-client",
+		"ntp source-address",
+		"ntp threshold",
+	}
+}
+
 func listLinesServices() []string {
 	ls := make([]string, 0)
+	ls = append(ls, "services netconf traceoptions")
 	ls = append(ls, listLinesServicesSSH()...)
 	ls = append(ls, listLinesServicesWebManagement()...)
 
@@ -1449,6 +1618,7 @@ func delSystem(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete = append(listLinesToDelete, listLinesLogin()...)
 	listLinesToDelete = append(listLinesToDelete, "max-configuration-rollbacks")
 	listLinesToDelete = append(listLinesToDelete, "max-configurations-on-flash")
+	listLinesToDelete = append(listLinesToDelete, listLinesNtp()...)
 	listLinesToDelete = append(listLinesToDelete, "name-server")
 	listLinesToDelete = append(listLinesToDelete, "no-multicast-echo")
 	listLinesToDelete = append(listLinesToDelete, "no-ping-record-route")
@@ -1582,6 +1752,43 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
+			case checkStringHasPrefixInList(itemTrim, listLinesNtp()):
+				if len(confRead.ntp) == 0 {
+					confRead.ntp = append(confRead.ntp, map[string]interface{}{
+						"boot_server":              "",
+						"broadcast_client":         false,
+						"interval_range":           -1,
+						"multicast_client":         false,
+						"multicast_client_address": "",
+						"threshold_action":         "",
+						"threshold_value":          0,
+					})
+				}
+				switch {
+				case strings.HasPrefix(itemTrim, "ntp boot-server "):
+					confRead.ntp[0]["boot_server"] = strings.TrimPrefix(itemTrim, "ntp boot-server ")
+				case itemTrim == "ntp broadcast-client":
+					confRead.ntp[0]["broadcast_client"] = true
+				case strings.HasPrefix(itemTrim, "ntp interval-range "):
+					var err error
+					confRead.ntp[0]["interval_range"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "ntp interval-range "))
+					if err != nil {
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					}
+				case strings.HasPrefix(itemTrim, "ntp multicast-client"):
+					confRead.ntp[0]["multicast_client"] = true
+					if strings.HasPrefix(itemTrim, "ntp multicast-client ") {
+						confRead.ntp[0]["multicast_client_address"] = strings.TrimPrefix(itemTrim, "ntp multicast-client ")
+					}
+				case strings.HasPrefix(itemTrim, "ntp threshold action "):
+					confRead.ntp[0]["threshold_action"] = strings.TrimPrefix(itemTrim, "ntp threshold action ")
+				case strings.HasPrefix(itemTrim, "ntp threshold "):
+					var err error
+					confRead.ntp[0]["threshold_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "ntp threshold "))
+					if err != nil {
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					}
+				}
 			case strings.HasPrefix(itemTrim, "name-server "):
 				confRead.nameServer = append(confRead.nameServer, strings.TrimPrefix(itemTrim, "name-server "))
 			case itemTrim == "no-multicast-echo":
@@ -1604,10 +1811,16 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 			case checkStringHasPrefixInList(itemTrim, listLinesServices()):
 				if len(confRead.services) == 0 {
 					confRead.services = append(confRead.services, map[string]interface{}{
+						"netconf_traceoptions": make([]map[string]interface{}, 0),
 						"ssh":                  make([]map[string]interface{}, 0),
 						"web_management_http":  make([]map[string]interface{}, 0),
 						"web_management_https": make([]map[string]interface{}, 0),
 					})
+				}
+				if strings.HasPrefix(itemTrim, "services netconf traceoptions ") {
+					if err := readSystemServicesNetconfTraceOpts(&confRead, itemTrim); err != nil {
+						return confRead, err
+					}
 				}
 				if checkStringHasPrefixInList(itemTrim, listLinesServicesSSH()) {
 					if err := readSystemServicesSSH(&confRead, itemTrim); err != nil {
@@ -1997,6 +2210,72 @@ func readSystemLicense(confRead *systemOptions, itemTrim string) error {
 	return nil
 }
 
+func readSystemServicesNetconfTraceOpts(confRead *systemOptions, itemTrimNetconfTraceOpts string) error {
+	if len(confRead.services[0]["netconf_traceoptions"].([]map[string]interface{})) == 0 {
+		confRead.services[0]["netconf_traceoptions"] = append(
+			confRead.services[0]["netconf_traceoptions"].([]map[string]interface{}),
+			map[string]interface{}{
+				"file_name":              "",
+				"file_files":             0,
+				"file_match":             "",
+				"file_no_world_readable": false,
+				"file_size":              0,
+				"file_world_readable":    false,
+				"flag":                   make([]string, 0),
+				"no_remote_trace":        false,
+				"on_demand":              false,
+			})
+	}
+	netconfTraceOpts := confRead.services[0]["netconf_traceoptions"].([]map[string]interface{})[0]
+	itemTrim := strings.TrimPrefix(itemTrimNetconfTraceOpts, "services netconf traceoptions ")
+	switch {
+	case strings.HasPrefix(itemTrim, "file files "):
+		var err error
+		netconfTraceOpts["file_files"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file files "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "file match "):
+		netconfTraceOpts["file_match"] = strings.Trim(strings.TrimPrefix(itemTrim, "file match "), "\"")
+	case itemTrim == "file no-world-readable":
+		netconfTraceOpts["file_no_world_readable"] = true
+	case strings.HasPrefix(itemTrim, "file size "):
+		var err error
+		switch {
+		case strings.HasSuffix(itemTrim, "k"):
+			netconfTraceOpts["file_size"], err =
+				strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "k"))
+			netconfTraceOpts["file_size"] = netconfTraceOpts["file_size"].(int) * 1024
+		case strings.HasSuffix(itemTrim, "m"):
+			netconfTraceOpts["file_size"], err =
+				strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "m"))
+			netconfTraceOpts["file_size"] = netconfTraceOpts["file_size"].(int) * 1024 * 1024
+		case strings.HasSuffix(itemTrim, "g"):
+			netconfTraceOpts["file_size"], err =
+				strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "g"))
+			netconfTraceOpts["file_size"] = netconfTraceOpts["file_size"].(int) * 1024 * 1024 * 1024
+		default:
+			netconfTraceOpts["file_size"], err =
+				strconv.Atoi(strings.TrimPrefix(itemTrim, "file size "))
+		}
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case itemTrim == "file world-readable":
+		netconfTraceOpts["file_world_readable"] = true
+	case strings.HasPrefix(itemTrim, "file "):
+		netconfTraceOpts["file_name"] = strings.Trim(strings.TrimPrefix(itemTrim, "file "), "\"")
+	case strings.HasPrefix(itemTrim, "flag "):
+		netconfTraceOpts["flag"] = append(netconfTraceOpts["flag"].([]string), strings.TrimPrefix(itemTrim, "flag "))
+	case itemTrim == "no-remote-trace":
+		netconfTraceOpts["no_remote_trace"] = true
+	case itemTrim == "on-demand":
+		netconfTraceOpts["on_demand"] = true
+	}
+
+	return nil
+}
+
 func readSystemServicesSSH(confRead *systemOptions, itemTrim string) error {
 	if len(confRead.services[0]["ssh"].([]map[string]interface{})) == 0 {
 		confRead.services[0]["ssh"] = append(confRead.services[0]["ssh"].([]map[string]interface{}),
@@ -2296,6 +2575,9 @@ func fillSystem(d *schema.ResourceData, systemOptions systemOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("no_redirects_ipv6", systemOptions.noRedirectsIPv6); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("ntp", systemOptions.ntp); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("radius_options_attributes_nas_ipaddress",

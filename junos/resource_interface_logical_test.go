@@ -256,6 +256,7 @@ resource junos_interface_logical testacc_interface_logical {
     }
   }
   family_inet6 {
+    dad_disable   = true
     mtu           = 1400
     filter_input  = junos_firewall_filter.testacc_intlogicalInet6.name
     filter_output = junos_firewall_filter.testacc_intlogicalInet6.name

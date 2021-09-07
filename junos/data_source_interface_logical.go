@@ -88,8 +88,9 @@ func dataSourceInterfaceLogical() *schema.Resource {
 													Computed: true,
 												},
 												"authentication_key": {
-													Type:     schema.TypeString,
-													Computed: true,
+													Type:      schema.TypeString,
+													Computed:  true,
+													Sensitive: true,
 												},
 												"authentication_type": {
 													Type:     schema.TypeString,
@@ -298,6 +299,10 @@ func dataSourceInterfaceLogical() *schema.Resource {
 								},
 							},
 						},
+						"dad_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
 						"filter_input": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -342,12 +347,12 @@ func dataSourceInterfaceLogical() *schema.Resource {
 				Computed: true,
 			},
 			"security_inbound_protocols": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"security_inbound_services": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},

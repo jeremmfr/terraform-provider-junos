@@ -320,8 +320,8 @@ func setServicesSSLInitiationProfile(d *schema.ResourceData, m interface{}, jnpr
 	if v := d.Get("client_certificate").(string); v != "" {
 		configSet = append(configSet, setPrefix+"client-certificate \""+v+"\"")
 	}
-	for _, v := range d.Get("custom_ciphers").(*schema.Set).List() {
-		configSet = append(configSet, setPrefix+"custom-ciphers "+v.(string))
+	for _, v := range sortSetOfString(d.Get("custom_ciphers").(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"custom-ciphers "+v)
 	}
 	if d.Get("enable_flow_tracing").(bool) {
 		configSet = append(configSet, setPrefix+"enable-flow-tracing")
@@ -335,8 +335,8 @@ func setServicesSSLInitiationProfile(d *schema.ResourceData, m interface{}, jnpr
 	if v := d.Get("protocol_version").(string); v != "" {
 		configSet = append(configSet, setPrefix+"protocol-version "+v)
 	}
-	for _, v := range d.Get("trusted_ca").(*schema.Set).List() {
-		configSet = append(configSet, setPrefix+"trusted-ca \""+v.(string)+"\"")
+	for _, v := range sortSetOfString(d.Get("trusted_ca").(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"trusted-ca \""+v+"\"")
 	}
 
 	return sess.configSet(configSet, jnprSess)

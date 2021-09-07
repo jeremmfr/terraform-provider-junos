@@ -26,12 +26,26 @@ resource junos_security_ike_proposal "demo_vpn_proposal" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) The name of ike proposal.
-* `authentication_algorithm` - (Optional)(`String`) Authentication algorithm.
-* `authentication_method` - (Optional)(`String`) Authentication method. Defaults to `pre-shared-keys`.
-* `dh_group` - (Optional)(`String`) Diffie-Hellman Group.
-* `encryption_algorithm` - (Optional)(`String`) Encryption algorithm.
-* `lifetime_seconds` - (Optional)(`Int`) Lifetime, in seconds.
+- **name** (Required, String, Forces new resource)  
+  The name of ike proposal.
+- **authentication_algorithm** (Optional, String)  
+  Authentication algorithm.
+- **authentication_method** (Optional, String)  
+  Authentication method.  
+  Defaults to `pre-shared-keys`.
+- **dh_group** (Optional, String)  
+  Diffie-Hellman Group.
+- **encryption_algorithm** (Optional, String)  
+  Encryption algorithm.
+- **lifetime_seconds** (Optional, Number)  
+  Lifetime, in seconds.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
 
 ## Import
 

@@ -173,20 +173,20 @@ func setSystemRootAuthentication(d *schema.ResourceData, m interface{}, jnprSess
 	if d.Get("no_public_keys").(bool) {
 		configSet = append(configSet, setPrefix+"no-public-keys")
 	}
-	for _, v := range d.Get("ssh_public_keys").(*schema.Set).List() {
+	for _, v := range sortSetOfString(d.Get("ssh_public_keys").(*schema.Set).List()) {
 		switch {
-		case strings.HasPrefix(v.(string), ssh.KeyAlgoDSA):
-			configSet = append(configSet, setPrefix+"ssh-dsa \""+v.(string)+"\"")
-		case strings.HasPrefix(v.(string), ssh.KeyAlgoRSA):
-			configSet = append(configSet, setPrefix+"ssh-rsa \""+v.(string)+"\"")
-		case strings.HasPrefix(v.(string), ssh.KeyAlgoECDSA256),
-			strings.HasPrefix(v.(string), ssh.KeyAlgoECDSA384),
-			strings.HasPrefix(v.(string), ssh.KeyAlgoECDSA521):
-			configSet = append(configSet, setPrefix+"ssh-ecdsa \""+v.(string)+"\"")
-		case strings.HasPrefix(v.(string), ssh.KeyAlgoED25519):
-			configSet = append(configSet, setPrefix+"ssh-ed25519 \""+v.(string)+"\"")
+		case strings.HasPrefix(v, ssh.KeyAlgoDSA):
+			configSet = append(configSet, setPrefix+"ssh-dsa \""+v+"\"")
+		case strings.HasPrefix(v, ssh.KeyAlgoRSA):
+			configSet = append(configSet, setPrefix+"ssh-rsa \""+v+"\"")
+		case strings.HasPrefix(v, ssh.KeyAlgoECDSA256),
+			strings.HasPrefix(v, ssh.KeyAlgoECDSA384),
+			strings.HasPrefix(v, ssh.KeyAlgoECDSA521):
+			configSet = append(configSet, setPrefix+"ssh-ecdsa \""+v+"\"")
+		case strings.HasPrefix(v, ssh.KeyAlgoED25519):
+			configSet = append(configSet, setPrefix+"ssh-ed25519 \""+v+"\"")
 		default:
-			return fmt.Errorf("format in public key '%v' not supported", v.(string))
+			return fmt.Errorf("format in public key '%v' not supported", v)
 		}
 	}
 

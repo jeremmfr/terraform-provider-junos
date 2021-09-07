@@ -226,8 +226,8 @@ func setSnmpClientlist(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	configSet := make([]string, 0)
 
 	configSet = append(configSet, setPrefix)
-	for _, v := range d.Get("prefix").(*schema.Set).List() {
-		configSet = append(configSet, setPrefix+v.(string))
+	for _, v := range sortSetOfString(d.Get("prefix").(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+v)
 	}
 
 	return sess.configSet(configSet, jnprSess)

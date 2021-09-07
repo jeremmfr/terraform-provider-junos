@@ -25,26 +25,58 @@ resource junos_vlan "blue" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) The name of vlan.
-* `community_vlans` - (Optional)(`ListOfInt`) List of ID community vlan for primary vlan (when Junos device supports it).
-* `description` - (Optional)(`String`) A description for vlan.
-* `forward_filter_input` - (Optional)(`String`) input filter to apply for forwarded packets (when Junos device supports it).
-* `forward_filter_output` - (Optional)(`String`) output filter to apply for forwarded packets (when Junos device supports it).
-* `forward_flood_input` - (Optional)(`String`) input filter to apply for ethernet switching flood packets (when Junos device supports it).
-* `l3_interface` - (Optional)(`String`) L3 interface name for this vlans. Must be start with 'irb.' or 'vlan.'.
-* `isolated-vlan` - (Optional)(`Int`) declare ID isolated vlan for primary vlan (when Junos device supports it).
-* `private_vlan` - (Optional)(`String`) Type of secondary vlan for private vlan. Must be 'community' or 'isolated' (when Junos device supports it).
-* `service_id` - (Optional)(`Int`) Service id (when Junos device supports it).
-* `vlan_id` - (Optional)(`Int`) 802.1q VLAN identifier. Conflict with `vlan_id_list`.
-* `vlan_id_list` - (Optional)(`ListOfString`) List of vlan ID. Can be a ID or range (exemple: 10-20). Conflict with `vlan_id`.
-* `vxlan` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare vxlan configuration (when Junos device supports it).
-  * `vni` - (Required)(`Int`) VXLAN identifier (0..16777214).
-  * `encapsulate_inner_vlan` - (Optional)(`Bool`) Retain inner VLAN in the packet.
-  * `ingress_node_replication` - (Optional)(`Bool`) Enable ingress node replication.
-  * `multicast_group` - (Optional)(`String`) CIDR for Multicast group registered for VXLAN segment.
-  * `ovsdb_managed` - (Optional)(`Bool`) Bridge-domain is managed remotely via VXLAN OVSDB Controller.
-  * `vni_extend_evpn` - (Optional)(`Bool`) Extend VNI to EVPN.
-  * `unreachable_vtep_aging_timer` - (Optional)(`Int`) Unreachable VXLAN tunnel endpoint removal timer (300..1800 seconds).
+- **name** (Required, String, Forces new resource)  
+  The name of vlan.
+- **community_vlans** (Optional, Set of Number)  
+  List of ID community vlan for primary vlan (when Junos device supports it).
+- **description** (Optional, String)  
+  A description for vlan.
+- **forward_filter_input** (Optional, String)  
+  Input filter to apply for forwarded packets (when Junos device supports it).
+- **forward_filter_output** (Optional, String)  
+  Output filter to apply for forwarded packets (when Junos device supports it).
+- **forward_flood_input** (Optional, String)  
+  Input filter to apply for ethernet switching flood packets (when Junos device supports it).
+- **l3_interface** (Optional, String)  
+  L3 interface name for this vlans.  
+  Must be start with `irb.` or `vlan.`.
+- **isolated-vlan** (Optional, Number)  
+  Declare ID isolated vlan for primary vlan (when Junos device supports it).
+- **private_vlan** (Optional, String)  
+  Type of secondary vlan for private vlan (when Junos device supports it).  
+  Must be `community` or `isolated`.
+- **service_id** (Optional, Number)  
+  Service id (when Junos device supports it).
+- **vlan_id** (Optional, Number)  
+  802.1q VLAN identifier.  
+  Conflict with `vlan_id_list`.
+- **vlan_id_list** (Optional, Set of String)  
+  List of vlan ID.  
+  Can be a ID or range (exemple: 10-20).  
+  Conflict with `vlan_id`.
+- **vxlan** (Optional, Block)  
+  Declare vxlan configuration (when Junos device supports it).
+  - **vni** (Required, Number)  
+    VXLAN identifier (0..16777214).
+  - **encapsulate_inner_vlan** (Optional, Boolean)  
+    Retain inner VLAN in the packet.
+  - **ingress_node_replication** (Optional, Boolean)  
+    Enable ingress node replication.
+  - **multicast_group** (Optional, String)  
+    CIDR for Multicast group registered for VXLAN segment.
+  - **ovsdb_managed** (Optional, Boolean)  
+    Bridge-domain is managed remotely via VXLAN OVSDB Controller.
+  - **vni_extend_evpn** (Optional, Boolean)  
+    Extend VNI to EVPN.
+  - **unreachable_vtep_aging_timer** (Optional, Number)  
+    Unreachable VXLAN tunnel endpoint removal timer (300..1800 seconds).
+
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
 
 ## Import
 

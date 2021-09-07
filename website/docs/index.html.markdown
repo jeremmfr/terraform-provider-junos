@@ -6,10 +6,9 @@ description: |-
   The Junos provider communicate with Junos device via netconf protocol and modify a part of configuration
 ---
 
-# Junos Provider (unofficial)
+# Junos Provider
 
-The Junos provider communicate with Junos device via netconf protocol
-and modify a part of configuration.
+The Junos provider communicate with Junos device via netconf protocol and modify a part of configuration.
 
 The provider allows you to manage some elements on Junos device.
 
@@ -77,51 +76,65 @@ resource junos_interface_physical "server1" {
 
 The following arguments are supported in the `provider` block:
 
-* `ip` - (Required) This is the target for Netconf session (ip or dns name).  
+- **ip** (Required, String)  
+  This is the target for Netconf session (ip or dns name).  
   It can also be sourced from the `JUNOS_HOST` environment variable.
 
-* `username` - (Optional) This is the username for ssh connection.  
+- **username** (Optional, String)  
+  This is the username for ssh connection.  
   It can also be sourced from the `JUNOS_USERNAME` environment variable.  
   Defaults to `netconf`.
 
-* `sshkey_pem` - (Optional) This is the ssh key in PEM format for establish ssh connection.  
+- **sshkey_pem** (Optional, String)  
+  This is the ssh key in PEM format for establish ssh connection.  
   It can also be sourced from the `JUNOS_KEYPEM` environment variable.  
   Defaults is empty.
 
-* `sshkeyfile` - (Optional) This is the path to ssh key for establish ssh connection.  
+- **sshkeyfile** (Optional, String)  
+  This is the path to ssh key for establish ssh connection.  
   Used only if `sshkey_pem` is empty.  
   It can also be sourced from the `JUNOS_KEYFILE` environment variable.  
   Defaults is empty.
 
-* `password` - (Optional) This is a password for ssh connection.  
+- **password** (Optional, String)  
+  This is a password for ssh connection.  
   It can also be sourced from the `JUNOS_PASSWORD` environment variable.  
   Defaults is empty.
 
-* `port` - (Optional) This is the tcp port for ssh connection.  
+- **port** (Optional, Number)  
+  This is the tcp port for ssh connection.  
   It can also be sourced from the `JUNOS_PORT` environment variable.  
   Defaults to `830`.
 
-* `keypass` - (Optional) This is the passphrase for open `sshkeyfile` or `sshkey_pem`.  
+- **keypass** (Optional, String)  
+  This is the passphrase for open `sshkeyfile` or `sshkey_pem`.  
   It can also be sourced from the `JUNOS_KEYPASS` environment variable.  
   Defaults is empty.
 
-* `group_interface_delete` - (Optional) This is the Junos group used for remove configuration on a physical interface.  
+- **group_interface_delete** (Optional, String)  
+  This is the Junos group used to remove configuration on a physical interface.  
   See interface specifications [interface specifications](#interface-specifications).  
   It can also be sourced from the `JUNOS_GROUP_INTERFACE_DELETE` environment variable.  
   Defaults to empty.
 
--> **Note:** Two SSH authentication methods (keys / password) are possible and tried with the `sshkey_pem`, `sshkeyfile` arguments or the keys provided by a SSH agent through the `SSH_AUTH_SOCK` environnement variable and `password` argument.  
+-> **Note:**
+  Two SSH authentication methods (keys / password) are possible and tried with the `sshkey_pem`,
+  `sshkeyfile` arguments or the keys provided by a SSH agent through the `SSH_AUTH_SOCK`
+  environnement variable and `password` argument.  
   The keys provided by a SSH agent are only read if `sshkey_pem` and `sshkeyfile` arguments aren't set.
 
 ---
 
 ### Command options
 
-* `cmd_sleep_short` - (Optional) Number of milliseconds to wait after Terraform provider executes an action on the Junos device.  
+- **cmd_sleep_short** (Optional, Number)  
+  Milliseconds to wait after Terraform  provider executes an action on the Junos device.  
   It can also be sourced from the `JUNOS_SLEEP_SHORT` environment variable.  
   Defaults to `100`.
 
-* `cmd_sleep_lock` - (Optional) Number of seconds of standby while waiting for Terraform provider to lock candidate configuration on a Junos device.  
+- **cmd_sleep_lock** (Optional, Number)  
+  Seconds of standby while waiting for Terraform provider to lock candidate configuration on a
+  Junos device.  
   It can also be sourced from the `JUNOS_SLEEP_LOCK` environment variable.  
   Defaults to `10`.
 
@@ -129,43 +142,69 @@ The following arguments are supported in the `provider` block:
 
 ### SSH options
 
-* `ssh_sleep_closed` - (Optional) Number of seconds to wait after Terraform provider closed a ssh connection.  
+- **ssh_sleep_closed** (Optional, Number)  
+  Seconds to wait after Terraform provider closed a ssh connection.  
   It can also be sourced from the `JUNOS_SLEEP_SSH_CLOSED` environment variable.  
   Defaults to `0`.
 
-* `ssh_ciphers` - (Optional) List of ciphers used in SSH connection.  
-  Defaults to `["aes128-gcm@openssh.com", "chacha20-poly1305@openssh.com", "aes128-ctr", "aes192-ctr", "aes256-ctr", "aes128-cbc"]`
+- **ssh_ciphers** (Optional, List of String)  
+  Ciphers used in SSH connection.  
+  Defaults to [
+  `aes128-gcm@openssh.com`,
+  `chacha20-poly1305@openssh.com`,
+  `aes128-ctr`,
+  `aes192-ctr`,
+  `aes256-ctr`,
+  `aes128-cbc`
+  ]
 
 ---
 
 ### Debug & workaround options
 
-* `file_permission` - (Optional) The permission to set for the created file (debug, setfile).  
+- **file_permission** (Optional, String)  
+  The permission to set for the created file (debug, setfile).  
   It can also be sourced from the `JUNOS_FILE_PERMISSION` environment variable.  
   Defaults to `0644`.
 
-* `debug_netconf_log_path` - (Optional) more detailed log (netconf) in the specified file.  
+- **debug_netconf_log_path** (Optional, String)  
+  More detailed log (netconf) in the specified file.  
   It can also be sourced from the `JUNOS_LOG_PATH` environment variable.  
   Defaults is empty.
 
-* `fake_create_with_setfile` - (Optional, **don't use in normal terraform run**) When this option is set (with a path to a file), the normal process to create resources (netconf connection, precheck, generate/upload set lines in candidate configuration, commit, postcheck) skipped to generate set lines, append them to the specified file, and respond with a `fake` successful creation of resource to Terraform.  
-Then you can upload/commit the file with the `junos_null_commit_file` resource in the same config or another terraform config or with another way.  
-If you are using `junos_null_commit_file` in the same terraform config, you must create dependencies between resources so that the creation of the `junos_null_commit_file` resource is alone and last.  
-This options is useful to create a workaround for a long terraform run if there are many ressources to be created and Junos device is slow to commit.  
-As many tests are skipped, this option may generate extra config (not managed by terraform) on Junos device or conficts/errors for resources in tfstate. A `terraform refresh` will be able to detect parts of errors but **be carefully with this option**.  
-There are exceptions for ressources :
-  * `junos_null_commit_file`, the skip doesn’t of course concern this resource.
-  * `junos_interface_st0_unit` cannot take into account the option and run still normal process.
-  * `junos_interface_physical` don’t generate `chassis aggregated-devices ethernet device-count` line when it should be necessary.
+- **fake_create_with_setfile** (Optional, String, **don't use in normal terraform run**)
+  When this option is set (with a path to a file), the normal process to create resources (netconf
+  connection, pre-check, generate/upload set lines in candidate configuration, commit, post-check)
+  skipped to generate set lines, append them to the specified file, and respond with a `fake`
+  successful creation of resources to Terraform.  
+  Then you can upload/commit the file with the `junos_null_commit_file` resource in the same config
+  or another terraform config or with another way.  
+  If you are using `junos_null_commit_file` in the same terraform config, you must create dependencies
+  between resources so that the creation of the `junos_null_commit_file` resource is alone and
+  last.  
+  This options is useful to create a workaround for a long terraform run if there are many resources
+  to be created and Junos device is slow to commit.  
+  As many tests are skipped, this option may generate extra config (not managed by terraform) on
+  Junos device or conflicts/errors for resources in tfstate.
+  A `terraform refresh` will be able to detect parts of errors but **be carefully with**
+  **this option**.  
+  There are exceptions for resources :
+  - **junos_null_commit_file**, the skip doesn’t of course concern this resource.
+  - **junos_interface_st0_unit** cannot take into account the option and run still
+    normal process.
+  - **junos_interface_physical** don’t generate `chassis aggregated-devices ethernet device-count`
+    line when it should be necessary.
 
-   It can also be sourced from the `JUNOS_FAKECREATE_SETFILE` environment variable.  
-   Defaults is empty.
+  It can also be sourced from the `JUNOS_FAKECREATE_SETFILE` environment
+  variable.  
+  Defaults is empty.
 
 ## Interface specifications
 
-When create a resource for a physical interface, the provider considers the interface available if there is 'apply-groups [`group_interface_delete`](#group_interface_delete)' and only this line on interface configuration.
+When create a resource for a physical interface, the provider considers the interface available if
+there is ```apply-groups <group_interface_delete>``` and only this line on interface configuration.
 
-Example if group_interface_delete => "interface-NC":
+Example if `group_interface_delete` = `interface-NC`:
 
 ```text
 ge-0/0/3 {
@@ -175,7 +214,8 @@ ge-0/0/3 {
 
 When provider destroy resource for physical interface, he add this line.
 
-If [`group_interface_delete`](#group_interface_delete) is empty the provider add this configuration on physical interface when delete resource :
+If `group_interface_delete` is empty the provider add this configuration on physical interface when
+delete resource :
 
 ```text
 ge-0/0/3 {
@@ -188,20 +228,25 @@ and considers the interface available if the is this lines and only this lines o
 
 ## Number of ssh connections and netconf commands
 
-By default, terraform run with 10 parrallel actions, cf [walks the graph](https://www.terraform.io/docs/internals/graph.html#walking-the-graph).
+By default, terraform run with 10 parallel actions, cf [walks the graph](https://www.terraform.io/docs/internals/graph.html#walking-the-graph).
 
-With N for terraform's [`-parallelism`](https://www.terraform.io/docs/commands/plan.html#parallelism-n) argument, this provider :
+With N for Terraform's [`-parallelism`](https://www.terraform.io/docs/commands/plan.html#parallelism-n)
+argument, this provider :
 
-* open N ssh connections.
-* reduce the parrallelism of netconf `show` commands parrallelism under N with a mutex lock.
-* lock the Junos configuration before adding `set` lines and execute `commit` so one `commit` at a time (other threads wait for locking).
+- open N ssh connections.
+- reduce the parallelism of netconf `show` commands parallelism under N with a mutex lock.
+- lock the Junos configuration before adding `set` lines and execute `commit` so one `commit` at a
+time (other threads wait for locking).
 
 To reduce :
 
-* the rate of parallel ssh connections, reduce parallelism with terraform's [`-parallelism`](https://www.terraform.io/docs/commands/plan.html#parallelism-n) argument.
-* the rate of new ssh connections by second, increase the provider's [`ssh_sleep_closed`](#ssh_sleep_closed) argument.
-* the rate of netconf commands by second on ssh connections, increase the provider's [`cmd_sleep_short`](#cmd_sleep_short) argument.
+- the rate of parallel ssh connections, reduce parallelism with Terraform's
+[`-parallelism`](https://www.terraform.io/docs/commands/plan.html#parallelism-n) argument.
+- the rate of new ssh connections by second, increase the provider's `ssh_sleep_closed` argument.
+- the rate of netconf commands by second on ssh connections, increase the provider's
+`cmd_sleep_short` argument.
 
 To increase :
 
-* the speed of `commit` (if your Junos device is quick to commit), decrease the provider's [`cmd_sleep_lock`](#cmd_sleep_lock) argument (be safe, too small is counterproductive).
+- the speed of `commit` (if your Junos device is quick to commit), decrease the provider's
+`cmd_sleep_lock` argument (be safe, too small is counterproductive).

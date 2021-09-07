@@ -95,7 +95,7 @@ resource "junos_eventoptions_policy" "testacc_evtopts_policy" {
   }
   within {
     time_interval = 7
-    events        = ["aaa_infra_fail"]
+    events        = ["aaa_infra_fail", "acct_fork_err"]
     not_events    = ["aaa_usage_err"]
     trigger_count = 8
     trigger_when  = "after"

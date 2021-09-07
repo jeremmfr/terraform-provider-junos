@@ -383,6 +383,9 @@ resource junos_bgp_neighbor "testacc_bgpneighbor2" {
   metric_out_minimum_igp_offset = -10
 }
 resource junos_bgp_group "testacc_bgpneighbor2b" {
+  depends_on = [
+    junos_routing_options.testacc_bgpneighbor
+  ]
   name = "testacc_bgpneighbor2b"
   type = "internal"
 }
@@ -435,6 +438,9 @@ resource junos_bgp_neighbor "testacc_bgpneighbor2" {
   metric_out_minimum_igp = true
 }
 resource junos_bgp_group "testacc_bgpneighbor2b" {
+  depends_on = [
+    junos_routing_options.testacc_bgpneighbor
+  ]
   name = "testacc_bgpneighbor2b"
   type = "internal"
 }

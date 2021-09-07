@@ -388,8 +388,8 @@ func setBridgeDomain(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 		setPrefix = "set routing-instances " + d.Get("routing_instance").(string) +
 			" bridge-domains \"" + d.Get("name").(string) + "\" "
 	}
-	for _, v := range d.Get("community_vlans").(*schema.Set).List() {
-		configSet = append(configSet, setPrefix+"community-vlans "+v.(string))
+	for _, v := range sortSetOfString(d.Get("community_vlans").(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"community-vlans "+v)
 	}
 	if v := d.Get("description").(string); v != "" {
 		configSet = append(configSet, setPrefix+"description \""+v+"\"")
@@ -412,8 +412,8 @@ func setBridgeDomain(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 	if v := d.Get("vlan_id").(int); v != 0 {
 		configSet = append(configSet, setPrefix+"vlan-id "+strconv.Itoa(v))
 	}
-	for _, v := range d.Get("vlan_id_list").(*schema.Set).List() {
-		configSet = append(configSet, setPrefix+"vlan-id-list "+v.(string))
+	for _, v := range sortSetOfString(d.Get("vlan_id_list").(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"vlan-id-list "+v)
 	}
 	for _, v := range d.Get("vxlan").([]interface{}) {
 		vxlan := v.(map[string]interface{})

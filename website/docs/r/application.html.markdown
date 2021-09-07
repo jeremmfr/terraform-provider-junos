@@ -25,16 +25,35 @@ resource junos_application "mysql" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) Name of application.
-* `application_protocol` - (Optional)(`String`) Application protocol type.
-* `description` - (Optional)(`String`) Text description of application.
-* `destination_port` - (Optional)(`String`) Port(s) destination used by application.
-* `ether_type` - (Optional)(`String`) Match ether type. Must be in hex (example: 0x8906).
-* `inactivity_timeout` - (Optional)(`Int`) Application-specific inactivity timeout (4..86400 seconds).
-* `protocol` - (Optional)(`String`) Protocol used by application.
-* `rpc_program_number` - (Optional)(`String`) Match range of RPC program numbers. Must be an integer or a range of integers.
-* `source_port` - (Optional)(`String`) Port(s) source used by application.
-* `uuid` - (Optional)(`String`) Match universal unique identifier for DCE RPC objects.
+- **name** (Required, String, Forces new resource)  
+  Name of application.
+- **application_protocol** (Optional, String)  
+  Application protocol type.
+- **description** (Optional, String)  
+  Text description of application.
+- **destination_port** (Optional, String)  
+  Port(s) destination used by application.
+- **ether_type** (Optional, String)  
+  Match ether type.  
+  Must be in hex (example: 0x8906).
+- **inactivity_timeout** (Optional, Number)  
+  Application-specific inactivity timeout (4..86400 seconds).
+- **protocol** (Optional, String)  
+  Protocol used by application.
+- **rpc_program_number** (Optional, String)  
+  Match range of RPC program numbers.  
+  Must be an integer or a range of integers.
+- **source_port** (Optional, String)  
+  Port(s) source used by application.
+- **uuid** (Optional, String)  
+  Match universal unique identifier for DCE RPC objects.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
 
 ## Import
 

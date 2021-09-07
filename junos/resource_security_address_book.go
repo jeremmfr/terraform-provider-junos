@@ -56,14 +56,14 @@ func resourceSecurityAddressBook() *schema.Resource {
 							Required:         true,
 							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
 						},
-						"description": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
 						"value": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsCIDRNetwork(0, 128),
+						},
+						"description": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 					},
 				},
@@ -78,14 +78,14 @@ func resourceSecurityAddressBook() *schema.Resource {
 							Required:         true,
 							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
 						},
-						"description": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
 						"value": {
 							Type:             schema.TypeString,
 							Required:         true,
 							ValidateDiagFunc: validateWildcardFunc(),
+						},
+						"description": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 					},
 				},
@@ -100,13 +100,13 @@ func resourceSecurityAddressBook() *schema.Resource {
 							Required:         true,
 							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
 						},
-						"description": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
 						"value": {
 							Type:     schema.TypeString,
 							Required: true,
+						},
+						"description": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 					},
 				},
@@ -121,10 +121,6 @@ func resourceSecurityAddressBook() *schema.Resource {
 							Required:         true,
 							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
 						},
-						"description": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
 						"from": {
 							Type:         schema.TypeString,
 							Required:     true,
@@ -134,6 +130,10 @@ func resourceSecurityAddressBook() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsIPAddress,
+						},
+						"description": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 					},
 				},
@@ -369,43 +369,43 @@ func setAddressBook(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	for _, v := range d.Get("network_address").([]interface{}) {
 		address := v.(map[string]interface{})
 		setPrefixAddr := setPrefix + " address " + address["name"].(string) + " "
+		configSet = append(configSet, setPrefixAddr+address["value"].(string))
 		if address["description"].(string) != "" {
 			configSet = append(configSet, setPrefixAddr+"description \""+address["description"].(string)+"\"")
 		}
-		configSet = append(configSet, setPrefixAddr+address["value"].(string))
 	}
 	for _, v := range d.Get("wildcard_address").([]interface{}) {
 		address := v.(map[string]interface{})
 		setPrefixAddr := setPrefix + " address " + address["name"].(string)
+		configSet = append(configSet, setPrefixAddr+" wildcard-address "+address["value"].(string))
 		if address["description"].(string) != "" {
 			configSet = append(configSet, setPrefixAddr+"description \""+address["description"].(string)+"\"")
 		}
-		configSet = append(configSet, setPrefixAddr+" wildcard-address "+address["value"].(string))
 	}
 	for _, v := range d.Get("dns_name").([]interface{}) {
 		address := v.(map[string]interface{})
 		setPrefixAddr := setPrefix + " address " + address["name"].(string)
+		configSet = append(configSet, setPrefixAddr+" dns-name "+address["value"].(string))
 		if address["description"].(string) != "" {
 			configSet = append(configSet, setPrefixAddr+"description \""+address["description"].(string)+"\"")
 		}
-		configSet = append(configSet, setPrefixAddr+" dns-name "+address["value"].(string))
 	}
 	for _, v := range d.Get("range_address").([]interface{}) {
 		address := v.(map[string]interface{})
 		setPrefixAddr := setPrefix + " address " + address["name"].(string)
+		configSet = append(configSet, setPrefixAddr+" range-address "+address["from"].(string)+" to "+address["to"].(string))
 		if address["description"].(string) != "" {
 			configSet = append(configSet, setPrefixAddr+"description \""+address["description"].(string)+"\"")
 		}
-		configSet = append(configSet, setPrefixAddr+" range-address "+address["from"].(string)+" to "+address["to"].(string))
 	}
 	for _, v := range d.Get("address_set").([]interface{}) {
 		addressSet := v.(map[string]interface{})
 		setPrefixAddrSet := setPrefix + " address-set " + addressSet["name"].(string)
+		for _, addr := range sortSetOfString(addressSet["address"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixAddrSet+" address "+addr)
+		}
 		if addressSet["description"].(string) != "" {
 			configSet = append(configSet, setPrefixAddrSet+"description \""+addressSet["description"].(string)+"\"")
-		}
-		for _, addr := range addressSet["address"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixAddrSet+" address "+addr.(string))
 		}
 	}
 
@@ -444,29 +444,29 @@ func readSecurityAddressBook(addrBook string, m interface{}, jnprSess *NetconfOb
 				case strings.HasPrefix(itemTrimAddress, "wildcard-address "):
 					confRead.wildcardAddress = append(confRead.wildcardAddress, map[string]interface{}{
 						"name":        addressSplit[1],
-						"description": descMap[addressSplit[1]],
 						"value":       strings.TrimPrefix(itemTrimAddress, "wildcard-address "),
+						"description": descMap[addressSplit[1]],
 					})
 				case strings.HasPrefix(itemTrimAddress, "range-address "):
 					rangeAddr := strings.TrimPrefix(itemTrimAddress, "range-address ")
 					addresses := strings.Split(rangeAddr, " ")
 					confRead.rangeAddress = append(confRead.rangeAddress, map[string]interface{}{
 						"name":        addressSplit[1],
-						"description": descMap[addressSplit[1]],
 						"from":        addresses[0],
 						"to":          addresses[2],
+						"description": descMap[addressSplit[1]],
 					})
 				case strings.HasPrefix(itemTrimAddress, "dns-name "):
 					confRead.dnsName = append(confRead.dnsName, map[string]interface{}{
 						"name":        addressSplit[1],
-						"description": descMap[addressSplit[1]],
 						"value":       strings.TrimPrefix(itemTrimAddress, "dns-name "),
+						"description": descMap[addressSplit[1]],
 					})
 				default:
 					confRead.networkAddress = append(confRead.networkAddress, map[string]interface{}{
 						"name":        addressSplit[1],
-						"description": descMap[addressSplit[1]],
 						"value":       itemTrimAddress,
+						"description": descMap[addressSplit[1]],
 					})
 				}
 			case strings.HasPrefix(itemTrim, "address-set "):

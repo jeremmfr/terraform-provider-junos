@@ -41,27 +41,54 @@ resource junos_security_nat_source "demo_snat" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) The name of source nat.
-* `from` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'from' configuration.
-  * `type` - (Required)(`String`) Type of from options. Need to be 'interface', 'routing-instance' or 'zone'.
-  * `value`  - (Required)(`String`) Name of interface, routing-instance or zone for from options.
-* `to` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'to' configuration.
-  * `type` - (Required)(`String`) Type of to options. Need to be 'interface', 'routing-instance' or 'zone'.
-  * `value`  - (Required)(`String`) Name of interface, routing-instance or zone for to options.
-* `rule` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified multiple times for each rule to declare. See the [`rule` arguments](#rule-arguments) block.
+- **name** (Required, String, Forces new resource)  
+  The name of source nat.
+- **from** (Required, Block)  
+  Declare `from` configuration.
+  - **type** (Required, String)  
+    Type of from options.  
+    Need to be `interface`, `routing-instance` or `zone`.
+  - **value** (Required, Set of String)  
+    Name of interface, routing-instance or zone for from options.
+- **to** (Required, Block)  
+  Declare `to` configuration.
+  - **type** (Required, String)  
+    Type of to options.  
+    Need to be `interface`, `routing-instance` or `zone`.
+  - **value** (Required, Set of String)  
+    Name of interface, routing-instance or zone for to options.
+- **rule** (Required, Block List)  
+  For each name of rule to declare.  
+  See [below for nested schema](#rule-arguments).
 
 ---
 
 ### rule arguments
 
-* `name` - (Required)(`String`) Name of rule.
-* `match` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'match' configuration.
-  * `destination_address` - (Optional)(`ListOfString`) CIDR list to match destination address.
-  * `protocol` - (Optional)(`ListOfString`) Protocol list to match.
-  * `source_address` - (Optional)(`ListOfString`) CIDR list to match source address.
-* `then` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare 'then' configuration.
-  * `type` - (Required)(`String`) Type of source nat. Need to be 'interface', 'pool' or 'off'.
-  * `pool` - (Optional)(`String`) Name of nat source pool when type pool.
+- **name** (Required, String)  
+  Name of rule.
+- **match** (Required, Block)  
+  Declare `match` configuration.
+  - **destination_address** (Optional, Set of String)  
+    CIDR list to match destination address.
+  - **protocol** (Optional, Set of String)  
+    Protocol list to match.
+  - **source_address** (Optional, Set of String)  
+    CIDR list to match source address.
+- **then** (Required, Block)  
+  Declare `then` configuration.
+  - **type** (Required, String)  
+    Type of source nat.  
+    Need to be `interface`, `pool` or `off`.
+  - **pool** (Optional, String)  
+    Name of nat source pool when type pool.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
 
 ## Import
 

@@ -24,9 +24,19 @@ resource "junos_services_proxy_profile" "demo" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) Proxy profile name.
-* `protocol_http_host` - (Required)(`String`) Proxy server name or IP address.
-* `protocol_http_port` - (Optional)(`Int`) Proxy server port (1..65535).
+- **name** (Required, String, Forces new resource)  
+  Proxy profile name.
+- **protocol_http_host** (Required, String)  
+  Proxy server name or IP address.
+- **protocol_http_port** (Optional, Number)  
+  Proxy server port (1..65535).
+
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
 
 ## Import
 

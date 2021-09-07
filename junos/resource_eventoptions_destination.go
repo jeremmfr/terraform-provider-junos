@@ -39,8 +39,9 @@ func resourceEventoptionsDestination() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"url": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringDoesNotContainAny(" "),
 						},
 						"password": {
 							Type:      schema.TypeString,

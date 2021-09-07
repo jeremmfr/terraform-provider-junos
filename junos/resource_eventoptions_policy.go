@@ -129,8 +129,9 @@ func resourceEventoptionsPolicy() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"filename": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringDoesNotContainAny(" "),
 									},
 									"arguments": {
 										Type:     schema.TypeList,
@@ -138,12 +139,14 @@ func resourceEventoptionsPolicy() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"name": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringDoesNotContainAny(" "),
 												},
 												"value": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringDoesNotContainAny(" "),
 												},
 											},
 										},
@@ -155,8 +158,9 @@ func resourceEventoptionsPolicy() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"name": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringDoesNotContainAny(" "),
 												},
 												"retry_count": {
 													Type:         schema.TypeInt,
@@ -225,8 +229,9 @@ func resourceEventoptionsPolicy() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"name": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringDoesNotContainAny(" "),
 												},
 												"retry_count": {
 													Type:         schema.TypeInt,
@@ -362,12 +367,14 @@ func resourceEventoptionsPolicy() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"filename": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringDoesNotContainAny(" "),
 									},
 									"destination": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringDoesNotContainAny(" "),
 									},
 									"retry_count": {
 										Type:         schema.TypeInt,
@@ -403,8 +410,9 @@ func resourceEventoptionsPolicy() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"from": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringDoesNotContainAny(" "),
 						},
 						"compare": {
 							Type:         schema.TypeString,
@@ -412,8 +420,9 @@ func resourceEventoptionsPolicy() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{"equals", "matches", "starts-with"}, false),
 						},
 						"to": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringDoesNotContainAny(" "),
 						},
 					},
 				},
@@ -643,8 +652,8 @@ func setEventoptionsPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netc
 	configSet := make([]string, 0)
 	setPrefix := "set event-options policy \"" + d.Get("name").(string) + "\" "
 
-	for _, v := range d.Get("events").(*schema.Set).List() {
-		configSet = append(configSet, setPrefix+"events \""+v.(string)+"\"")
+	for _, v := range sortSetOfString(d.Get("events").(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"events \""+v+"\"")
 	}
 	for _, v := range d.Get("then").([]interface{}) {
 		then := v.(map[string]interface{})
@@ -791,11 +800,11 @@ func setEventoptionsPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netc
 	for _, v := range d.Get("within").([]interface{}) {
 		within := v.(map[string]interface{})
 		setPrefixWithin := setPrefix + "within " + strconv.Itoa(within["time_interval"].(int)) + " "
-		for _, v2 := range within["events"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixWithin+"events \""+v2.(string)+"\"")
+		for _, v2 := range sortSetOfString(within["events"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixWithin+"events \""+v2+"\"")
 		}
-		for _, v2 := range within["not_events"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixWithin+"not events \""+v2.(string)+"\"")
+		for _, v2 := range sortSetOfString(within["not_events"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixWithin+"not events \""+v2+"\"")
 		}
 		if v2 := within["trigger_when"].(string); v2 != "" {
 			if c := within["trigger_count"].(int); c != -1 {

@@ -32,25 +32,51 @@ resource "junos_services_security_intelligence_profile" "demo" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) Security intelligence profile name.
-* `category` - (Required)(`String`) Profile category name.
-* `rule` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Configure a rule. Can be specified multiple times for each rule name. See the [`rule` arguments] (#rule-arguments) block.
-* `default_rule_then` - (Optional)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to declare profile default rule.
-  * `action` - (Required)(`String`) Security intelligence profile action. Need to be 'permit', 'recommended', 'block drop', 'block close' or 'block close http (file|message|redirect-url) ...'.
-  * `log` - (Optional)(`Bool`) Log security intelligence block action.
-  * `no_log` - (Optional)(`Bool`) Don't log security intelligence block action.
-* `description` - (Optional)(`String`) Text description of profile.
+- **name** (Required, String, Forces new resource)  
+  Security intelligence profile name.
+- **category** (Required, String)  
+  Profile category name.
+- **rule** (Required, Block List)  
+  For each rule name.
+  See [below for nested schema](#rule-arguments).
+- **default_rule_then** (Optional, Block)  
+  Declare profile default rule.
+  - **action** (Required, String)  
+    Security intelligence profile action.  
+    Need to be `permit`, `recommended`, `block drop`, `block close` or
+    `block close http (file|message|redirect-url) ...`.
+  - **log** (Optional, Boolean)  
+    Log security intelligence block action.
+  - **no_log** (Optional, Boolean)  
+    Don't log security intelligence block action.
+- **description** (Optional, String)  
+  Text description of profile.
 
 ---
 
 ### rule arguments
 
-* `name` - (Required)(`String`) Profile rule name.
-* `match` - (Required)([attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html)) Can be specified only once to configure profile matching feed name and threat levels.
-  * `threat_level` - (Required)(`ListOfInt`) Profile matching threat levels, higher number is more severe (1..10).
-  * `feed_name` - (Optional)(`ListOfString`) Profile matching feed name.
-* `then_action` - (Required)(`String`) Security intelligence profile action. Need to be 'permit', 'recommended', 'block drop', 'block close' or 'block close http (file|message|redirect-url) ...'.
-* `then_log` - (Optional)(`Bool`) Log security intelligence block action.
+- **name** (Required, String)  
+  Profile rule name.
+- **match** (Required, Block)  
+  Configure profile matching feed name and threat levels.
+  - **threat_level** (Required, List of Number)  
+    Profile matching threat levels, higher number is more severe (1..10).
+  - **feed_name** (Optional, List of String)  
+    Profile matching feed name.
+- **then_action** (Required, String)  
+  Security intelligence profile action.  
+  Need to be `permit`, `recommended`, `block drop`, `block close` or
+  `block close http (file|message|redirect-url) ...`.
+- **then_log** (Optional, Boolean)  
+  Log security intelligence block action.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
 
 ## Import
 

@@ -1,9 +1,48 @@
-<!-- markdownlint-disable-file MD041 -->
+<!-- markdownlint-disable-file MD013 MD041 -->
 ## upcoming release
 
 ENHANCEMENTS:
 
 BUG FIXES:
+
+## 1.20.0 (September 07, 2021)
+
+FEATURES:
+
+* add `junos_eventoptions_generate_event` resource (Fixes [#267](https://github.com/jeremmfr/terraform-provider-junos/issues/267))
+* add `junos_security_dynamic_address_feed_server` resource (Fixes parts of [#273](https://github.com/jeremmfr/terraform-provider-junos/issues/273))
+* add `junos_security_dynamic_address_name` resource (Fixes parts of [#273](https://github.com/jeremmfr/terraform-provider-junos/issues/273))
+
+ENHANCEMENTS:
+
+* resource/`junos_chassis_cluster`: add `preempt_delay`, `preempt_limit` and `preempt_period` arguments inside `redundancy_group` block list argument (Fixes [#270](https://github.com/jeremmfr/terraform-provider-junos/issues/270))
+* resource/`junos_firewall_filter`: arguments with type list of string in block `term.*.from` are now unordered
+* resource/`junos_interface_logical`: add `dad_disable` argument  inside `family_inet6` block argument (Fixes [#263](https://github.com/jeremmfr/terraform-provider-junos/issues/263))
+* data-source/`junos_interface`, `junos_interface_logical`: `vrrp_group.*.authentication_key` is now a sensitive argument (like resource)
+* data-source/`junos_interface_logical`: add `dad_disable` attributes as for the resource
+* resource/`junos_interface_logical`: lists of string for `security_inbound_protocols` and `security_inbound_services` are now unordered
+* resource/`junos_policyoptions_policy_statement`: arguments with type list of string (except `policy`) in block `term.*.from` and `term.*.to` are now unordered
+* resource/`junos_security`: list of string for `ike_traceoptions.0.flag` is now unordered
+* resource/`junos_security`: add validation on `name` argument inside `file` block inside `ike_traceoptions` block
+* resource/`junos_security_global_policy`: arguments with type list of string in block `policy` are now unordered
+* resource/`junos_security_nat_source`: arguments with type list of string in block `rule.*.match` are now unordered
+* resource/`junos_security_policy`: arguments with type list of string in block `policy` are now unordered
+* resource/`junos_security_screen`: lists of string for `tcp.0.syn_flood.0.whitelist.*.destination_address`, `tcp.0.syn_flood.0.whitelist.*.source_address` and `udp.0.flood.0.whitelist` are now unordered
+* resource/`junos_security_screen_whitelist`: list of string for `address` is now unordered
+* resource/`junos_security_zone`: lists of string for `inbound_protocols` and `inbound_services` are now unordered
+* resource/`junos_system`: arguments with type list of string are now unordered (except `authentication_order`, `name_server` and `ssh.0.authentication_order`)
+* resource/`junos_system`: add `ntp` block argument (Fixes [#261](https://github.com/jeremmfr/terraform-provider-junos/issues/261))
+* resource/`junos_system`: add `netconf_traceoptions` block argument inside `services` block argument (Fixes [#262](https://github.com/jeremmfr/terraform-provider-junos/issues/262))
+* resource/`*`: sets of string are now ordered before adding to Junos config to avoid unnecessary diff in commits
+* docs: rewrite style for argument name and type
+* docs: add attributes reference on resource
+
+BUG FIXES:
+
+* resource/`junos_security`: fix reading `size` argument inside `file` block inside `ike_traceoptions` block when number match a multiple of 1024 (example 1k, 1m, 1g)
+* resource/`junos_security`: fix string format for `idp_security_package.0.automatic_start_time` to `YYYY-MM-DD.HH:MM:SS` to avoid unnecessary diff for Terraform when timezone of Junos device change
+* resource/`junos_chassis_cluster`: fix possible crash in certain conditions when import this resource
+* resource/`*`: add validation to some arguments which cannot contain a space character and thus avoid bugs when reading these arguments
 
 ## 1.19.0 (July 30, 2021)
 

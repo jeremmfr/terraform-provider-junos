@@ -281,8 +281,8 @@ func setSnmpCommunity(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 	if v := d.Get("client_list_name").(string); v != "" {
 		configSet = append(configSet, setPrefix+"client-list-name \""+v+"\"")
 	}
-	for _, v := range d.Get("clients").(*schema.Set).List() {
-		configSet = append(configSet, setPrefix+"clients "+v.(string))
+	for _, v := range sortSetOfString(d.Get("clients").(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"clients "+v)
 	}
 	for _, v := range d.Get("routing_instance").([]interface{}) {
 		routingInstance := v.(map[string]interface{})
@@ -295,9 +295,9 @@ func setSnmpCommunity(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 			configSet = append(configSet,
 				setPrefix+"routing-instance "+routingInstance["name"].(string)+" client-list-name \""+cLNname+"\"")
 		}
-		for _, clt := range routingInstance["clients"].(*schema.Set).List() {
+		for _, clt := range sortSetOfString(routingInstance["clients"].(*schema.Set).List()) {
 			configSet = append(configSet,
-				setPrefix+"routing-instance "+routingInstance["name"].(string)+" clients "+clt.(string))
+				setPrefix+"routing-instance "+routingInstance["name"].(string)+" clients "+clt)
 		}
 	}
 	if v := d.Get("view").(string); v != "" {

@@ -24,9 +24,19 @@ resource junos_policyoptions_community "community_demo" {
 
 The following arguments are supported:
 
-* `name` - (Required, Forces new resource)(`String`) The name of community.
-* `members` - (Required)(`ListOfString`) List of community.
-* `invert_match` - (Optional)(`Bool`) Add 'invert-match' parameter.
+- **name** (Required, String, Forces new resource)  
+  The name of community.
+- **members** (Required, List of String)  
+  List of community.
+- **invert_match** (Optional, Boolean)  
+  Add `invert-match` parameter.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+- **id** (String)  
+  An identifier for the resource with format `<name>`.
 
 ## Import
 

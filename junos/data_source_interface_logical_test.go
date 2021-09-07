@@ -61,6 +61,11 @@ resource junos_interface_logical testacc_datainterfaceL {
       cidr_ip = "192.0.2.1/25"
     }
   }
+  family_inet6 {
+    address {
+      cidr_ip = "2001:db8::1/64"
+    }
+  }
 }
 `
 }
