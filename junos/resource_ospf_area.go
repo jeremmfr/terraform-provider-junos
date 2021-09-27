@@ -309,8 +309,13 @@ func setOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		setPrefix += "routing-instances " + d.Get("routing_instance").(string) +
 			" protocols " + ospfVersion + " area " + d.Get("area_id").(string) + " "
 	}
+	interfaceNameList := make([]string, 0)
 	for _, v := range d.Get("interface").([]interface{}) {
 		ospfInterface := v.(map[string]interface{})
+		if stringInSlice(ospfInterface["name"].(string), interfaceNameList) {
+			return fmt.Errorf("multiple interface blocks with the same name")
+		}
+		interfaceNameList = append(interfaceNameList, ospfInterface["name"].(string))
 		setPrefixInterface := setPrefix + "interface " + ospfInterface["name"].(string) + " "
 		if ospfInterface["dead_interval"].(int) != 0 {
 			configSet = append(configSet, setPrefixInterface+"dead-interval "+

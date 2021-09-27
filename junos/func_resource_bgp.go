@@ -560,15 +560,27 @@ func setBgpOptsFamily(setPrefix, familyType string, familyOptsList []interface{}
 	configSet := make([]string, 0)
 	setPrefixFamily := setPrefix + "family "
 	switch familyType {
-	case "evpn":
+	case evpnWord:
 		setPrefixFamily += "evpn "
 	case inetWord:
 		setPrefixFamily += "inet "
 	case inet6Word:
 		setPrefixFamily += "inet6 "
 	}
+	familyNlriTypeList := make([]string, 0)
 	for _, familyOpts := range familyOptsList {
 		familyOptsM := familyOpts.(map[string]interface{})
+		if stringInSlice(familyOptsM["nlri_type"].(string), familyNlriTypeList) {
+			switch familyType {
+			case evpnWord:
+				return fmt.Errorf("multiple family_evpn blocks with the same nlri_type")
+			case inetWord:
+				return fmt.Errorf("multiple family_inet blocks with the same nlri_type")
+			case inet6Word:
+				return fmt.Errorf("multiple family_inet6 blocks with the same nlri_type")
+			}
+		}
+		familyNlriTypeList = append(familyNlriTypeList, familyOptsM["nlri_type"].(string))
 		configSet = append(configSet, setPrefixFamily+familyOptsM["nlri_type"].(string))
 		for _, v := range familyOptsM["accepted_prefix_limit"].([]interface{}) {
 			mAccPrefixLimit := v.(map[string]interface{})
@@ -629,7 +641,7 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 	}
 	setPrefix := "family "
 	switch familyType {
-	case "evpn":
+	case evpnWord:
 		setPrefix += "evpn "
 	case inetWord:
 		setPrefix += "inet "

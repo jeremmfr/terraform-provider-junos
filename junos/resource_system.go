@@ -961,8 +961,13 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 
 	for _, v := range d.Get("archival_configuration").([]interface{}) {
 		archivalConfig := v.(map[string]interface{})
+		archiveSiteURLList := make([]string, 0)
 		for _, v2 := range archivalConfig["archive_site"].([]interface{}) {
 			archiveSite := v2.(map[string]interface{})
+			if stringInSlice(archiveSite["url"].(string), archiveSiteURLList) {
+				return fmt.Errorf("multiple archive_site blocks with the same url")
+			}
+			archiveSiteURLList = append(archiveSiteURLList, archiveSite["url"].(string))
 			configSet = append(configSet, setPrefix+"archival configuration archive-sites \""+archiveSite["url"].(string)+"\"")
 			if pass := archiveSite["password"].(string); pass != "" {
 				configSet = append(configSet,

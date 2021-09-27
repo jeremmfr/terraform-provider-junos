@@ -284,12 +284,17 @@ func setSnmpCommunity(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 	for _, v := range sortSetOfString(d.Get("clients").(*schema.Set).List()) {
 		configSet = append(configSet, setPrefix+"clients "+v)
 	}
+	routingInstanceNameList := make([]string, 0)
 	for _, v := range d.Get("routing_instance").([]interface{}) {
 		routingInstance := v.(map[string]interface{})
 		if len(routingInstance["clients"].(*schema.Set).List()) > 0 && routingInstance["client_list_name"].(string) != "" {
 			return fmt.Errorf("conflict between clients and client_list_name in routing-instance %s",
 				routingInstance["name"].(string))
 		}
+		if stringInSlice(routingInstance["name"].(string), routingInstanceNameList) {
+			return fmt.Errorf("multiple routing_instance blocks with the same name")
+		}
+		routingInstanceNameList = append(routingInstanceNameList, routingInstance["name"].(string))
 		configSet = append(configSet, setPrefix+"routing-instance "+routingInstance["name"].(string))
 		if cLNname := routingInstance["client_list_name"].(string); cLNname != "" {
 			configSet = append(configSet,

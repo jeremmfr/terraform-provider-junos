@@ -3,6 +3,7 @@ package junos
 const (
 	idSeparator           = "_-_"
 	defaultWord           = "default"
+	evpnWord              = "evpn"
 	inetWord              = "inet"
 	inet6Word             = "inet6"
 	mplsWord              = "mpls"

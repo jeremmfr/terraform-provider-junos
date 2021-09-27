@@ -309,8 +309,13 @@ func setServicesSecurityIntellProfile(d *schema.ResourceData, m interface{}, jnp
 
 	setPrefix := "set services security-intelligence profile \"" + d.Get("name").(string) + "\" "
 	configSet = append(configSet, setPrefix+"category "+d.Get("category").(string))
+	ruleNameList := make([]string, 0)
 	for _, v := range d.Get("rule").([]interface{}) {
 		rule := v.(map[string]interface{})
+		if stringInSlice(rule["name"].(string), ruleNameList) {
+			return fmt.Errorf("multiple rule blocks with the same name")
+		}
+		ruleNameList = append(ruleNameList, rule["name"].(string))
 		setPrefixRule := setPrefix + "rule \"" + rule["name"].(string) + "\" "
 		for _, v2 := range rule["match"].([]interface{}) {
 			match := v2.(map[string]interface{})

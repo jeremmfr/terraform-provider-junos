@@ -655,7 +655,10 @@ func setPolicyStatement(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	}
 	for _, then := range d.Get("then").([]interface{}) {
 		if then != nil {
-			configSetThen := setPolicyStatementOptsThen(setPrefix, then.(map[string]interface{}))
+			configSetThen, err := setPolicyStatementOptsThen(setPrefix, then.(map[string]interface{}))
+			if err != nil {
+				return err
+			}
 			configSet = append(configSet, configSetThen...)
 		}
 	}
@@ -665,8 +668,13 @@ func setPolicyStatement(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 			configSet = append(configSet, configSetTo...)
 		}
 	}
+	termNameList := make([]string, 0)
 	for _, term := range d.Get("term").([]interface{}) {
 		termMap := term.(map[string]interface{})
+		if stringInSlice(termMap["name"].(string), termNameList) {
+			return fmt.Errorf("multiple term blocks with the same name")
+		}
+		termNameList = append(termNameList, termMap["name"].(string))
 		setPrefixTerm := setPrefix + " term " + termMap["name"].(string)
 		for _, from := range termMap["from"].([]interface{}) {
 			if from != nil {
@@ -676,7 +684,10 @@ func setPolicyStatement(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		}
 		for _, then := range termMap["then"].([]interface{}) {
 			if then != nil {
-				configSetThen := setPolicyStatementOptsThen(setPrefixTerm, then.(map[string]interface{}))
+				configSetThen, err := setPolicyStatementOptsThen(setPrefixTerm, then.(map[string]interface{}))
+				if err != nil {
+					return err
+				}
 				configSet = append(configSet, configSetThen...)
 			}
 		}
@@ -914,7 +925,7 @@ func setPolicyStatementOptsFrom(setPrefix string, opts map[string]interface{}) [
 	return configSet
 }
 
-func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) []string {
+func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) ([]string, error) {
 	configSet := make([]string, 0)
 	setPrefixThen := setPrefix + " then "
 
@@ -931,11 +942,15 @@ func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) [
 	if opts["as_path_prepend"].(string) != "" {
 		configSet = append(configSet, setPrefixThen+"as-path-prepend \""+opts["as_path_prepend"].(string)+"\"")
 	}
+	communityList := make([]string, 0)
 	for _, v := range opts["community"].([]interface{}) {
 		community := v.(map[string]interface{})
-		configSet = append(configSet, setPrefixThen+
-			"community "+community["action"].(string)+
-			" "+community["value"].(string))
+		setCommunityActVal := "community " + community["action"].(string) + " " + community["value"].(string)
+		if stringInSlice(setCommunityActVal, communityList) {
+			return configSet, fmt.Errorf("multiple community blocks with the same action and value")
+		}
+		communityList = append(communityList, setCommunityActVal)
+		configSet = append(configSet, setPrefixThen+setCommunityActVal)
 	}
 	if opts["default_action"].(string) != "" {
 		configSet = append(configSet, setPrefixThen+"default-action "+opts["default_action"].(string))
@@ -986,7 +1001,7 @@ func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) [
 		}
 	}
 
-	return configSet
+	return configSet, nil
 }
 
 func setPolicyStatementOptsTo(setPrefix string, opts map[string]interface{}) []string {

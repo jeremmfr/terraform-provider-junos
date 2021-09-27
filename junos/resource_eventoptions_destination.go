@@ -251,8 +251,13 @@ func setEventoptionsDestination(d *schema.ResourceData, m interface{}, jnprSess 
 	configSet := make([]string, 0)
 	setPrefix := "set event-options destinations \"" + d.Get("name").(string) + "\" "
 
+	archiveSiteURLList := make([]string, 0)
 	for _, v := range d.Get("archive_site").([]interface{}) {
 		archiveSite := v.(map[string]interface{})
+		if stringInSlice(archiveSite["url"].(string), archiveSiteURLList) {
+			return fmt.Errorf("multiple archive_site blocks with the same url")
+		}
+		archiveSiteURLList = append(archiveSiteURLList, archiveSite["url"].(string))
 		configSet = append(configSet, setPrefix+"archive-sites \""+archiveSite["url"].(string)+"\"")
 		if v2 := archiveSite["password"].(string); v2 != "" {
 			configSet = append(configSet, setPrefix+"archive-sites \""+archiveSite["url"].(string)+"\" password \""+v2+"\"")

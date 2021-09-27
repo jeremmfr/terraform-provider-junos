@@ -401,8 +401,13 @@ func setIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 			configSet = append(configSet, setPrefix+" ike proxy-identity service "+ike["identity_service"].(string))
 		}
 	}
+	trafficSelectorName := make([]string, 0)
 	for _, v := range d.Get("traffic_selector").([]interface{}) {
 		tS := v.(map[string]interface{})
+		if stringInSlice(tS["name"].(string), trafficSelectorName) {
+			return fmt.Errorf("multiple traffic_selector blocks with the same name")
+		}
+		trafficSelectorName = append(trafficSelectorName, tS["name"].(string))
 		configSet = append(configSet, "set security ipsec vpn "+d.Get("name").(string)+" traffic-selector "+
 			tS["name"].(string)+" local-ip "+tS["local_ip"].(string))
 		configSet = append(configSet, "set security ipsec vpn "+d.Get("name").(string)+" traffic-selector "+

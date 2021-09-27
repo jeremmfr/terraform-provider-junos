@@ -511,8 +511,13 @@ func setServicesRpmProbe(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 	if d.Get("delegate_probes").(bool) {
 		configSet = append(configSet, setPrefix+"delegate-probes")
 	}
+	testNameList := make([]string, 0)
 	for _, t := range d.Get("test").([]interface{}) {
 		test := t.(map[string]interface{})
+		if stringInSlice(test["name"].(string), testNameList) {
+			return fmt.Errorf("multiple test blocks with the same name")
+		}
+		testNameList = append(testNameList, test["name"].(string))
 		setPrefixTest := setPrefix + "test \"" + test["name"].(string) + "\" "
 		configSet = append(configSet, setPrefixTest)
 		if v := test["data_fill"].(string); v != "" {

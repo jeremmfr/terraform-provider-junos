@@ -433,8 +433,13 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 	setPrefix := "set security zones security-zone " + d.Get("name").(string)
 	configSet = append(configSet, setPrefix)
 	if !d.Get("address_book_configure_singly").(bool) {
+		addressNameList := make([]string, 0)
 		for _, v := range d.Get("address_book").([]interface{}) {
 			addressBook := v.(map[string]interface{})
+			if stringInSlice(addressBook["name"].(string), addressNameList) {
+				return fmt.Errorf("multiple address with the same name")
+			}
+			addressNameList = append(addressNameList, addressBook["name"].(string))
 			configSet = append(configSet, setPrefix+" address-book address "+
 				addressBook["name"].(string)+" "+addressBook["network"].(string))
 			if v2 := addressBook["description"].(string); v2 != "" {
@@ -444,6 +449,10 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 		}
 		for _, v := range d.Get("address_book_dns").([]interface{}) {
 			addressBook := v.(map[string]interface{})
+			if stringInSlice(addressBook["name"].(string), addressNameList) {
+				return fmt.Errorf("multiple address with the same name")
+			}
+			addressNameList = append(addressNameList, addressBook["name"].(string))
 			setLine := setPrefix + " address-book address " + addressBook["name"].(string) +
 				" dns-name " + addressBook["fqdn"].(string)
 			configSet = append(configSet, setLine)
@@ -460,6 +469,10 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 		}
 		for _, v := range d.Get("address_book_range").([]interface{}) {
 			addressBook := v.(map[string]interface{})
+			if stringInSlice(addressBook["name"].(string), addressNameList) {
+				return fmt.Errorf("multiple address with the same name")
+			}
+			addressNameList = append(addressNameList, addressBook["name"].(string))
 			configSet = append(configSet, setPrefix+" address-book address "+
 				addressBook["name"].(string)+" range-address "+addressBook["from"].(string)+
 				" to "+addressBook["to"].(string))
@@ -468,8 +481,25 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 					addressBook["name"].(string)+" description \""+v2+"\"")
 			}
 		}
+		for _, v := range d.Get("address_book_wildcard").([]interface{}) {
+			addressBook := v.(map[string]interface{})
+			if stringInSlice(addressBook["name"].(string), addressNameList) {
+				return fmt.Errorf("multiple address with the same name")
+			}
+			addressNameList = append(addressNameList, addressBook["name"].(string))
+			configSet = append(configSet, setPrefix+" address-book address "+
+				addressBook["name"].(string)+" wildcard-address "+addressBook["network"].(string))
+			if v2 := addressBook["description"].(string); v2 != "" {
+				configSet = append(configSet, setPrefix+" address-book address "+
+					addressBook["name"].(string)+" description \""+v2+"\"")
+			}
+		}
 		for _, v := range d.Get("address_book_set").([]interface{}) {
 			addressBookSet := v.(map[string]interface{})
+			if stringInSlice(addressBookSet["name"].(string), addressNameList) {
+				return fmt.Errorf("multiple address or address-set with the same name")
+			}
+			addressNameList = append(addressNameList, addressBookSet["name"].(string))
 			for _, addressBookSetAddress := range sortSetOfString(addressBookSet["address"].(*schema.Set).List()) {
 				configSet = append(configSet, setPrefix+" address-book address-set "+addressBookSet["name"].(string)+
 					" address "+addressBookSetAddress)
@@ -477,15 +507,6 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 			if v2 := addressBookSet["description"].(string); v2 != "" {
 				configSet = append(configSet, setPrefix+" address-book address-set "+
 					addressBookSet["name"].(string)+" description \""+v2+"\"")
-			}
-		}
-		for _, v := range d.Get("address_book_wildcard").([]interface{}) {
-			addressBook := v.(map[string]interface{})
-			configSet = append(configSet, setPrefix+" address-book address "+
-				addressBook["name"].(string)+" wildcard-address "+addressBook["network"].(string))
-			if v2 := addressBook["description"].(string); v2 != "" {
-				configSet = append(configSet, setPrefix+" address-book address "+
-					addressBook["name"].(string)+" description \""+v2+"\"")
 			}
 		}
 	}

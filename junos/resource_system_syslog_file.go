@@ -490,8 +490,13 @@ func setSystemSyslogFile(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 		configSet = append(configSet, setPrefixArchive)
 		if v != nil {
 			archive := v.(map[string]interface{})
+			sitesURLList := make([]string, 0)
 			for _, v2 := range archive["sites"].([]interface{}) {
 				sites := v2.(map[string]interface{})
+				if stringInSlice(sites["url"].(string), sitesURLList) {
+					return fmt.Errorf("multiple sites blocks with the same url")
+				}
+				sitesURLList = append(sitesURLList, sites["url"].(string))
 				setPrefixArchiveSite := setPrefixArchive + " archive-sites " + sites["url"].(string)
 				configSet = append(configSet, setPrefixArchiveSite)
 				if sites["password"].(string) != "" {

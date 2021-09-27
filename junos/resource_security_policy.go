@@ -392,8 +392,13 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		" from-zone " + d.Get("from_zone").(string) +
 		" to-zone " + d.Get("to_zone").(string) +
 		" policy "
+	policyNameList := make([]string, 0)
 	for _, v := range d.Get("policy").([]interface{}) {
 		policy := v.(map[string]interface{})
+		if stringInSlice(policy["name"].(string), policyNameList) {
+			return fmt.Errorf("multiple policy blocks with the same name")
+		}
+		policyNameList = append(policyNameList, policy["name"].(string))
 		setPrefixPolicy := setPrefix + policy["name"].(string)
 		for _, address := range sortSetOfString(policy["match_source_address"].(*schema.Set).List()) {
 			configSet = append(configSet, setPrefixPolicy+" match source-address "+address)

@@ -247,8 +247,13 @@ func setServicesSecurityIntellPolicy(d *schema.ResourceData, m interface{}, jnpr
 	configSet := make([]string, 0)
 
 	setPrefix := "set services security-intelligence policy \"" + d.Get("name").(string) + "\" "
+	categoryNameList := make([]string, 0)
 	for _, v := range d.Get("category").([]interface{}) {
 		category := v.(map[string]interface{})
+		if stringInSlice(category["name"].(string), categoryNameList) {
+			return fmt.Errorf("multiple category blocks with the same name")
+		}
+		categoryNameList = append(categoryNameList, category["name"].(string))
 		configSet = append(configSet,
 			setPrefix+category["name"].(string)+" \""+category["profile_name"].(string)+"\"")
 	}

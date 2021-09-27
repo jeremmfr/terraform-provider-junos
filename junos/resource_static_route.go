@@ -500,8 +500,13 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	if d.Get("preference").(int) > 0 {
 		configSet = append(configSet, setPrefix+" preference "+strconv.Itoa(d.Get("preference").(int)))
 	}
+	qualifiedNextHopList := make([]string, 0)
 	for _, qualifiedNextHop := range d.Get("qualified_next_hop").([]interface{}) {
 		qualifiedNextHopMap := qualifiedNextHop.(map[string]interface{})
+		if stringInSlice(qualifiedNextHopMap["next_hop"].(string), qualifiedNextHopList) {
+			return fmt.Errorf("multiple qualified_next_hop blocks with the same next_hop")
+		}
+		qualifiedNextHopList = append(qualifiedNextHopList, qualifiedNextHopMap["next_hop"].(string))
 		configSet = append(configSet, setPrefix+" qualified-next-hop "+qualifiedNextHopMap["next_hop"].(string))
 		if qualifiedNextHopMap["interface"] != "" {
 			configSet = append(configSet, setPrefix+

@@ -394,8 +394,13 @@ func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		if v2 := interfaceFxp0["description"].(string); v2 != "" {
 			configSet = append(configSet, setPrefix+"interfaces fxp0 description \""+v2+"\"")
 		}
+		familyInetAddressCIDRIPList := make([]string, 0)
 		for _, v2 := range interfaceFxp0["family_inet_address"].([]interface{}) {
 			familyInetAddress := v2.(map[string]interface{})
+			if stringInSlice(familyInetAddress["cidr_ip"].(string), familyInetAddressCIDRIPList) {
+				return fmt.Errorf("multiple family_inet_address blocks with the same cidr_ip")
+			}
+			familyInetAddressCIDRIPList = append(familyInetAddressCIDRIPList, familyInetAddress["cidr_ip"].(string))
 			configSet = append(configSet, setPrefix+"interfaces fxp0 unit 0 family inet address "+
 				familyInetAddress["cidr_ip"].(string))
 			if familyInetAddress["master_only"].(bool) {
@@ -411,8 +416,13 @@ func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 					familyInetAddress["cidr_ip"].(string)+" primary")
 			}
 		}
+		familyInet6AddressCIDRIPList := make([]string, 0)
 		for _, v2 := range interfaceFxp0["family_inet6_address"].([]interface{}) {
 			familyInet6Address := v2.(map[string]interface{})
+			if stringInSlice(familyInet6Address["cidr_ip"].(string), familyInet6AddressCIDRIPList) {
+				return fmt.Errorf("multiple family_inet6_address blocks with the same cidr_ip")
+			}
+			familyInet6AddressCIDRIPList = append(familyInet6AddressCIDRIPList, familyInet6Address["cidr_ip"].(string))
 			configSet = append(configSet, setPrefix+"interfaces fxp0 unit 0 family inet6 address "+
 				familyInet6Address["cidr_ip"].(string))
 			if familyInet6Address["master_only"].(bool) {
@@ -431,8 +441,13 @@ func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	}
 	for _, v := range d.Get("routing_options").([]interface{}) {
 		routingOptions := v.(map[string]interface{})
+		staticRouteDestList := make([]string, 0)
 		for _, v2 := range routingOptions["static_route"].([]interface{}) {
 			staticRoute := v2.(map[string]interface{})
+			if stringInSlice(staticRoute["destination"].(string), staticRouteDestList) {
+				return fmt.Errorf("multiple static_route blocks with the same destination")
+			}
+			staticRouteDestList = append(staticRouteDestList, staticRoute["destination"].(string))
 			for _, v3 := range staticRoute["next_hop"].([]interface{}) {
 				configSet = append(configSet, setPrefix+"routing-options static route "+
 					staticRoute["destination"].(string)+" next-hop "+v3.(string))

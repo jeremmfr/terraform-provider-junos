@@ -3,6 +3,8 @@
 
 ENHANCEMENTS:
 
+* resource/`*`: to avoid any confusion, the provider now detects and generates an error during `apply` when there are duplicate elements (with the same identifier, for example the same `name`) in the block lists of certain resources
+
 BUG FIXES:
 
 ## 1.20.0 (September 07, 2021)

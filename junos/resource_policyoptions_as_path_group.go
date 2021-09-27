@@ -246,8 +246,13 @@ func setPolicyoptionsAsPathGroup(d *schema.ResourceData, m interface{}, jnprSess
 	configSet := make([]string, 0)
 
 	setPrefix := "set policy-options as-path-group " + d.Get("name").(string)
+	asPathNameList := make([]string, 0)
 	for _, v := range d.Get("as_path").([]interface{}) {
 		asPath := v.(map[string]interface{})
+		if stringInSlice(asPath["name"].(string), asPathNameList) {
+			return fmt.Errorf("multiple as_path blocks with the same name")
+		}
+		asPathNameList = append(asPathNameList, asPath["name"].(string))
 		configSet = append(configSet, setPrefix+
 			" as-path "+asPath["name"].(string)+
 			" \""+asPath["path"].(string)+"\"")

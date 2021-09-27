@@ -366,8 +366,13 @@ func setAddressBook(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 		attachZone := v.(string)
 		configSet = append(configSet, setPrefix+" attach zone "+attachZone)
 	}
+	addressNameList := make([]string, 0)
 	for _, v := range d.Get("network_address").([]interface{}) {
 		address := v.(map[string]interface{})
+		if stringInSlice(address["name"].(string), addressNameList) {
+			return fmt.Errorf("multiple address with the same name")
+		}
+		addressNameList = append(addressNameList, address["name"].(string))
 		setPrefixAddr := setPrefix + " address " + address["name"].(string) + " "
 		configSet = append(configSet, setPrefixAddr+address["value"].(string))
 		if address["description"].(string) != "" {
@@ -376,6 +381,10 @@ func setAddressBook(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	}
 	for _, v := range d.Get("wildcard_address").([]interface{}) {
 		address := v.(map[string]interface{})
+		if stringInSlice(address["name"].(string), addressNameList) {
+			return fmt.Errorf("multiple address with the same name")
+		}
+		addressNameList = append(addressNameList, address["name"].(string))
 		setPrefixAddr := setPrefix + " address " + address["name"].(string)
 		configSet = append(configSet, setPrefixAddr+" wildcard-address "+address["value"].(string))
 		if address["description"].(string) != "" {
@@ -384,6 +393,10 @@ func setAddressBook(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	}
 	for _, v := range d.Get("dns_name").([]interface{}) {
 		address := v.(map[string]interface{})
+		if stringInSlice(address["name"].(string), addressNameList) {
+			return fmt.Errorf("multiple address with the same name")
+		}
+		addressNameList = append(addressNameList, address["name"].(string))
 		setPrefixAddr := setPrefix + " address " + address["name"].(string)
 		configSet = append(configSet, setPrefixAddr+" dns-name "+address["value"].(string))
 		if address["description"].(string) != "" {
@@ -392,6 +405,10 @@ func setAddressBook(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	}
 	for _, v := range d.Get("range_address").([]interface{}) {
 		address := v.(map[string]interface{})
+		if stringInSlice(address["name"].(string), addressNameList) {
+			return fmt.Errorf("multiple address with the same name")
+		}
+		addressNameList = append(addressNameList, address["name"].(string))
 		setPrefixAddr := setPrefix + " address " + address["name"].(string)
 		configSet = append(configSet, setPrefixAddr+" range-address "+address["from"].(string)+" to "+address["to"].(string))
 		if address["description"].(string) != "" {
@@ -400,6 +417,10 @@ func setAddressBook(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	}
 	for _, v := range d.Get("address_set").([]interface{}) {
 		addressSet := v.(map[string]interface{})
+		if stringInSlice(addressSet["name"].(string), addressNameList) {
+			return fmt.Errorf("multiple address or address_set with the same name")
+		}
+		addressNameList = append(addressNameList, addressSet["name"].(string))
 		setPrefixAddrSet := setPrefix + " address-set " + addressSet["name"].(string)
 		for _, addr := range sortSetOfString(addressSet["address"].(*schema.Set).List()) {
 			configSet = append(configSet, setPrefixAddrSet+" address "+addr)

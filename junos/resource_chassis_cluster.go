@@ -360,8 +360,13 @@ func setChassisCluster(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			configSet = append(configSet, setChassisluster+"redundancy-group "+strconv.Itoa(i)+
 				" hold-down-interval "+strconv.Itoa(redundancyGroup["hold_down_interval"].(int)))
 		}
+		interfaceMonitorNameList := make([]string, 0)
 		for _, v2 := range redundancyGroup["interface_monitor"].([]interface{}) {
 			interfaceMonitor := v2.(map[string]interface{})
+			if stringInSlice(interfaceMonitor["name"].(string), interfaceMonitorNameList) {
+				return fmt.Errorf("multiple interface_monitor blocks with the same name")
+			}
+			interfaceMonitorNameList = append(interfaceMonitorNameList, interfaceMonitor["name"].(string))
 			configSet = append(configSet, setChassisluster+"redundancy-group "+strconv.Itoa(i)+
 				" interface-monitor "+interfaceMonitor["name"].(string)+
 				" weight "+strconv.Itoa(interfaceMonitor["weight"].(int)))
