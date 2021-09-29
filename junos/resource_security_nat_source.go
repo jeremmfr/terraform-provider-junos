@@ -361,6 +361,9 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 		rule := v.(map[string]interface{})
 		setPrefixRule := setPrefix + " rule " + rule["name"].(string)
 		for _, matchV := range rule[matchWord].([]interface{}) {
+			if matchV == nil {
+				return fmt.Errorf("match block in rule %s need to have an argument", rule["name"].(string))
+			}
 			match := matchV.(map[string]interface{})
 			for _, address := range sortSetOfString(match["destination_address"].(*schema.Set).List()) {
 				err := validateCIDRNetwork(address)
