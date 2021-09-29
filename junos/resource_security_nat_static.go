@@ -3,6 +3,8 @@ package junos
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -64,8 +66,37 @@ func resourceSecurityNatStatic() *schema.Resource {
 						},
 						"destination_address": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.IsCIDRNetwork(0, 128),
+						},
+						"destination_address_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"destination_port": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 65535),
+						},
+						"destination_port_to": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 65535),
+						},
+						"source_address": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"source_address_name": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"source_port": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"then": {
 							Type:     schema.TypeList,
@@ -76,12 +107,21 @@ func resourceSecurityNatStatic() *schema.Resource {
 									"type": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validation.StringInSlice([]string{inetWord, prefixWord}, false),
+										ValidateFunc: validation.StringInSlice([]string{inetWord, prefixWord, prefixNameWord}, false),
+									},
+									"mapped_port": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 65535),
+									},
+									"mapped_port_to": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 65535),
 									},
 									"prefix": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.IsCIDRNetwork(0, 128),
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 									"routing_instance": {
 										Type:             schema.TypeString,
@@ -286,6 +326,7 @@ func checkSecurityNatStaticExists(name string, m interface{}, jnprSess *NetconfO
 func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
+	regexpSourcePort := regexp.MustCompile(`^\d+( to \d+)?$`)
 
 	setPrefix := "set security nat static rule-set " + d.Get("name").(string)
 	for _, v := range d.Get("from").([]interface{}) {
@@ -297,27 +338,84 @@ func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	for _, v := range d.Get("rule").([]interface{}) {
 		rule := v.(map[string]interface{})
 		setPrefixRule := setPrefix + " rule " + rule["name"].(string)
-		configSet = append(configSet, setPrefixRule+" match destination-address "+
-			rule["destination_address"].(string))
+		if rule["destination_address"].(string) == "" && rule["destination_address_name"].(string) == "" {
+			return fmt.Errorf("missing destination_address or destination_address_name in rule %s", rule["name"].(string))
+		}
+		if rule["destination_address"].(string) != "" && rule["destination_address_name"].(string) != "" {
+			return fmt.Errorf("destination_address and destination_address_name must not be set at the same time "+
+				"in rule %s", rule["name"].(string))
+		}
+		if vv := rule["destination_address"].(string); vv != "" {
+			configSet = append(configSet, setPrefixRule+" match destination-address "+vv)
+		}
+		if vv := rule["destination_address_name"].(string); vv != "" {
+			configSet = append(configSet, setPrefixRule+" match destination-address-name \""+vv+"\"")
+		}
+		if vv := rule["destination_port"].(int); vv != 0 {
+			configSet = append(configSet, setPrefixRule+" match destination-port "+strconv.Itoa(vv))
+			if vvTo := rule["destination_port_to"].(int); vvTo != 0 {
+				configSet = append(configSet, setPrefixRule+" match destination-port to "+strconv.Itoa(vvTo))
+			}
+		} else if rule["destination_port_to"].(int) != 0 {
+			return fmt.Errorf("destination_port need to be set with destination_port_to in rule %s", rule["name"].(string))
+		}
+		for _, vv := range rule["source_address"].(*schema.Set).List() {
+			if err := validateCIDRNetwork(vv.(string)); err != nil {
+				return err
+			}
+			configSet = append(configSet, setPrefixRule+" match source-address "+vv.(string))
+		}
+		for _, vv := range rule["source_address_name"].(*schema.Set).List() {
+			configSet = append(configSet, setPrefixRule+" match source-address-name \""+vv.(string)+"\"")
+		}
+		for _, vv := range rule["source_port"].(*schema.Set).List() {
+			if !regexpSourcePort.MatchString(vv.(string)) {
+				return fmt.Errorf("source_port need to have format `x` or `x to y` in rule %s", rule["name"].(string))
+			}
+			configSet = append(configSet, setPrefixRule+" match source-port "+vv.(string))
+		}
 		for _, thenV := range rule[thenWord].([]interface{}) {
 			then := thenV.(map[string]interface{})
 			if then["type"].(string) == inetWord {
 				if then["routing_instance"].(string) == "" {
-					return fmt.Errorf("missing routing_instance for static-nat inet for rule %v in %v ",
-						rule["name"].(string), d.Get("name").(string))
+					return fmt.Errorf("missing routing_instance in rule %s with type = inet", rule["name"].(string))
+				}
+				if then["prefix"].(string) != "" ||
+					then["mapped_port"].(int) != 0 ||
+					then["mapped_port_to"].(int) != 0 {
+					return fmt.Errorf("only routing_instance need to be set in rule %s with type = inet", rule["name"].(string))
 				}
 				configSet = append(configSet, setPrefixRule+" then static-nat inet routing-instance "+
 					then["routing_instance"].(string))
 			}
-			if then["type"].(string) == prefixWord {
-				if then[prefixWord].(string) == "" {
-					return fmt.Errorf("missing prefix for static-nat prefix for rule %v in %v",
-						rule["name"].(string), d.Get("name").(string))
+			if then["type"].(string) == prefixWord || then["type"].(string) == prefixNameWord {
+				setPrefixRuleThenStaticNat := setPrefixRule + " then static-nat "
+				if then["type"].(string) == prefixWord {
+					setPrefixRuleThenStaticNat += "prefix "
+					if then["prefix"].(string) == "" {
+						return fmt.Errorf("missing prefix in rule %s with type = prefix", rule["name"].(string))
+					}
+					if err := validateCIDRNetwork(then["prefix"].(string)); err != nil {
+						return err
+					}
 				}
-				configSet = append(configSet, setPrefixRule+" then static-nat prefix "+then[prefixWord].(string))
-				if then["routing_instance"].(string) != "" {
-					configSet = append(configSet, setPrefixRule+" then static-nat prefix routing-instance "+
-						then["routing_instance"].(string))
+				if then["type"].(string) == prefixNameWord {
+					setPrefixRuleThenStaticNat += "prefix-name "
+					if then["prefix"].(string) == "" {
+						return fmt.Errorf("missing prefix in rule %s with type = prefix-name", rule["name"].(string))
+					}
+				}
+				configSet = append(configSet, setPrefixRuleThenStaticNat+"\""+then["prefix"].(string)+"\"")
+				if vv := then["mapped_port"].(int); vv != 0 {
+					configSet = append(configSet, setPrefixRuleThenStaticNat+"mapped-port "+strconv.Itoa(vv))
+					if vvTo := then["mapped_port_to"].(int); vvTo != 0 {
+						configSet = append(configSet, setPrefixRuleThenStaticNat+"mapped-port to "+strconv.Itoa(vvTo))
+					}
+				} else if then["mapped_port_to"].(int) != 0 {
+					return fmt.Errorf("mapped_port need to set with mapped_port_to in rule %s", rule["name"].(string))
+				}
+				if vv := then["routing_instance"].(string); vv != "" {
+					configSet = append(configSet, setPrefixRuleThenStaticNat+"routing-instance "+vv)
 				}
 			}
 		}
@@ -358,33 +456,87 @@ func readSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObj
 			case strings.HasPrefix(itemTrim, "rule "):
 				ruleConfig := strings.Split(strings.TrimPrefix(itemTrim, "rule "), " ")
 				ruleOptions := map[string]interface{}{
-					"name":                ruleConfig[0],
-					"destination_address": "",
-					"then":                make([]map[string]interface{}, 0),
+					"name":                     ruleConfig[0],
+					"destination_address":      "",
+					"destination_address_name": "",
+					"destination_port":         0,
+					"destination_port_to":      0,
+					"source_address":           make([]string, 0),
+					"source_address_name":      make([]string, 0),
+					"source_port":              make([]string, 0),
+					"then":                     make([]map[string]interface{}, 0),
 				}
 				confRead.rule = copyAndRemoveItemMapList("name", ruleOptions, confRead.rule)
 				switch {
 				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-address "):
 					ruleOptions["destination_address"] = strings.TrimPrefix(itemTrim,
 						"rule "+ruleConfig[0]+" match destination-address ")
+				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-address-name "):
+					ruleOptions["destination_address_name"] = strings.Trim(strings.TrimPrefix(itemTrim,
+						"rule "+ruleConfig[0]+" match destination-address-name "), "\"")
+				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-port to "):
+					var err error
+					ruleOptions["destination_port_to"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
+						"rule "+ruleConfig[0]+" match destination-port to "))
+					if err != nil {
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					}
+				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-port "):
+					var err error
+					ruleOptions["destination_port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
+						"rule "+ruleConfig[0]+" match destination-port "))
+					if err != nil {
+						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					}
+				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-address "):
+					ruleOptions["source_address"] = append(ruleOptions["source_address"].([]string),
+						strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-address "))
+				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-address-name "):
+					ruleOptions["source_address_name"] = append(ruleOptions["source_address_name"].([]string),
+						strings.Trim(strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-address-name "), "\""))
+				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-port "):
+					ruleOptions["source_port"] = append(ruleOptions["source_port"].([]string),
+						strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-port "))
 				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" then static-nat "):
 					itemThen := strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" then static-nat ")
 					if len(ruleOptions["then"].([]map[string]interface{})) == 0 {
 						ruleOptions["then"] = append(ruleOptions["then"].([]map[string]interface{}),
 							map[string]interface{}{
 								"type":             "",
+								"mapped_port":      0,
+								"mapped_port_to":   0,
 								"prefix":           "",
 								"routing_instance": "",
 							})
 					}
 					ruleThenOptions := ruleOptions["then"].([]map[string]interface{})[0]
 					switch {
-					case strings.HasPrefix(itemThen, "prefix "):
-						ruleThenOptions["type"] = prefixWord
-						if strings.HasPrefix(itemThen, "prefix routing-instance ") {
-							ruleThenOptions["routing_instance"] = strings.TrimPrefix(itemThen, "prefix routing-instance ")
-						} else {
-							ruleThenOptions[prefixWord] = strings.TrimPrefix(itemThen, "prefix ")
+					case strings.HasPrefix(itemThen, "prefix ") || strings.HasPrefix(itemThen, "prefix-name "):
+						if strings.HasPrefix(itemThen, "prefix ") {
+							ruleThenOptions["type"] = prefixWord
+							itemThen = strings.TrimPrefix(itemThen, "prefix ")
+						}
+						if strings.HasPrefix(itemThen, "prefix-name ") {
+							ruleThenOptions["type"] = prefixNameWord
+							itemThen = strings.TrimPrefix(itemThen, "prefix-name ")
+						}
+						switch {
+						case strings.HasPrefix(itemThen, "routing-instance "):
+							ruleThenOptions["routing_instance"] = strings.TrimPrefix(itemThen, "routing-instance ")
+						case strings.HasPrefix(itemThen, "mapped-port to "):
+							var err error
+							ruleThenOptions["mapped_port_to"], err = strconv.Atoi(strings.TrimPrefix(itemThen, "mapped-port to "))
+							if err != nil {
+								return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+							}
+						case strings.HasPrefix(itemThen, "mapped-port "):
+							var err error
+							ruleThenOptions["mapped_port"], err = strconv.Atoi(strings.TrimPrefix(itemThen, "mapped-port "))
+							if err != nil {
+								return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+							}
+						default:
+							ruleThenOptions["prefix"] = strings.Trim(itemThen, "\"")
 						}
 					case strings.HasPrefix(itemThen, "inet "):
 						ruleThenOptions["type"] = inetWord

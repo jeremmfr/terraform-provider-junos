@@ -11,6 +11,7 @@ const (
 	permitWord            = "permit"
 	thenWord              = "then"
 	prefixWord            = "prefix"
+	prefixNameWord        = "prefix-name"
 	actionNoneWord        = "none"
 	addWord               = "add"
 	deleteWord            = "delete"
