@@ -3,6 +3,7 @@ package junos
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -64,8 +65,37 @@ func resourceSecurityNatDestination() *schema.Resource {
 						},
 						"destination_address": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.IsCIDRNetwork(0, 128),
+						},
+						"destination_address_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"application": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"destination_port": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"protocol": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"source_address": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"source_address_name": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"then": {
 							Type:     schema.TypeList,
@@ -282,6 +312,7 @@ func checkSecurityNatDestinationExists(name string, m interface{}, jnprSess *Net
 func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
+	regexpDestPort := regexp.MustCompile(`^\d+( to \d+)?$`)
 
 	setPrefix := "set security nat destination rule-set " + d.Get("name").(string)
 	for _, v := range d.Get("from").([]interface{}) {
@@ -293,8 +324,40 @@ func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *
 	for _, v := range d.Get("rule").([]interface{}) {
 		rule := v.(map[string]interface{})
 		setPrefixRule := setPrefix + " rule " + rule["name"].(string)
-		configSet = append(configSet, setPrefixRule+
-			" match destination-address "+rule["destination_address"].(string))
+		if rule["destination_address"].(string) == "" && rule["destination_address_name"].(string) == "" {
+			return fmt.Errorf("missing destination_address or destination_address_name in rule %s", rule["name"].(string))
+		}
+		if rule["destination_address"].(string) != "" && rule["destination_address_name"].(string) != "" {
+			return fmt.Errorf("destination_address and destination_address_name must not be set at the same time "+
+				"in rule %s", rule["name"].(string))
+		}
+		if vv := rule["destination_address"].(string); vv != "" {
+			configSet = append(configSet, setPrefixRule+" match destination-address "+vv)
+		}
+		if vv := rule["destination_address_name"].(string); vv != "" {
+			configSet = append(configSet, setPrefixRule+" match destination-address-name \""+vv+"\"")
+		}
+		for _, vv := range rule["application"].(*schema.Set).List() {
+			configSet = append(configSet, setPrefixRule+" match application \""+vv.(string)+"\"")
+		}
+		for _, vv := range rule["destination_port"].(*schema.Set).List() {
+			if !regexpDestPort.MatchString(vv.(string)) {
+				return fmt.Errorf("destination_port need to have format `x` or `x to y` in rule %s", rule["name"].(string))
+			}
+			configSet = append(configSet, setPrefixRule+" match destination-port "+vv.(string))
+		}
+		for _, vv := range rule["protocol"].(*schema.Set).List() {
+			configSet = append(configSet, setPrefixRule+" match protocol "+vv.(string))
+		}
+		for _, vv := range rule["source_address"].(*schema.Set).List() {
+			if err := validateCIDRNetwork(vv.(string)); err != nil {
+				return err
+			}
+			configSet = append(configSet, setPrefixRule+" match source-address "+vv.(string))
+		}
+		for _, vv := range rule["source_address_name"].(*schema.Set).List() {
+			configSet = append(configSet, setPrefixRule+" match source-address-name \""+vv.(string)+"\"")
+		}
 		for _, thenV := range rule[thenWord].([]interface{}) {
 			then := thenV.(map[string]interface{})
 			if then["type"].(string) == "off" {
@@ -346,15 +409,39 @@ func readSecurityNatDestination(natDestination string,
 			case strings.HasPrefix(itemTrim, "rule "):
 				ruleConfig := strings.Split(strings.TrimPrefix(itemTrim, "rule "), " ")
 				ruleOptions := map[string]interface{}{
-					"name":                ruleConfig[0],
-					"destination_address": "",
-					"then":                make([]map[string]interface{}, 0),
+					"name":                     ruleConfig[0],
+					"destination_address":      "",
+					"destination_address_name": "",
+					"application":              make([]string, 0),
+					"destination_port":         make([]string, 0),
+					"protocol":                 make([]string, 0),
+					"source_address":           make([]string, 0),
+					"source_address_name":      make([]string, 0),
+					"then":                     make([]map[string]interface{}, 0),
 				}
 				confRead.rule = copyAndRemoveItemMapList("name", ruleOptions, confRead.rule)
 				switch {
 				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-address "):
 					ruleOptions["destination_address"] = strings.TrimPrefix(itemTrim,
 						"rule "+ruleConfig[0]+" match destination-address ")
+				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-address-name "):
+					ruleOptions["destination_address_name"] = strings.Trim(strings.TrimPrefix(itemTrim,
+						"rule "+ruleConfig[0]+" match destination-address-name "), "\"")
+				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match application "):
+					ruleOptions["application"] = append(ruleOptions["application"].([]string),
+						strings.Trim(strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match application "), "\""))
+				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-port "):
+					ruleOptions["destination_port"] = append(ruleOptions["destination_port"].([]string),
+						strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-port "))
+				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match protocol "):
+					ruleOptions["protocol"] = append(ruleOptions["protocol"].([]string), strings.TrimPrefix(itemTrim,
+						"rule "+ruleConfig[0]+" match protocol "))
+				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-address "):
+					ruleOptions["source_address"] = append(ruleOptions["source_address"].([]string),
+						strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-address "))
+				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-address-name "):
+					ruleOptions["source_address_name"] = append(ruleOptions["source_address_name"].([]string),
+						strings.Trim(strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-address-name "), "\""))
 				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" then destination-nat "):
 					itemTrimThen := strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" then destination-nat ")
 					if len(ruleOptions["then"].([]map[string]interface{})) == 0 {
