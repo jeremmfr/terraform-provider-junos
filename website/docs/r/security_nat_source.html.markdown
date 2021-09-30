@@ -69,6 +69,8 @@ The following arguments are supported:
   Name of rule.
 - **match** (Required, Block)  
   Declare `match` configuration.
+  - **application** (Optional, Set of String)  
+    Specify application or application-set name to match.
   - **destination_address** (Optional, Set of String)  
     List of CIDR destination address to match.
   - **destination_address_name** (Optional, Set of String)  

@@ -74,7 +74,7 @@ func TestAccJunosSecurityNatSource_basic(t *testing.T) {
 					Config: testAccJunosSecurityNatSourceConfigUpdate(),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
-							"rule.#", "2"),
+							"rule.#", "3"),
 						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
 							"rule.1.match.#", "1"),
 						resource.TestCheckResourceAttr("junos_security_nat_source.testacc_securitySNAT",
@@ -180,6 +180,17 @@ resource junos_security_nat_source testacc_securitySNAT {
       source_address      = ["192.0.2.0/25"]
       destination_address = ["192.0.2.128/25"]
       protocol            = ["udp"]
+    }
+    then {
+      type = "off"
+    }
+  }
+  rule {
+    name = "testacc_securitySNATRule3"
+    match {
+      source_address      = ["192.0.2.0/25"]
+      destination_address = ["192.0.2.128/25"]
+      application         = ["junos-ssh", "junos-http"]
     }
     then {
       type = "off"

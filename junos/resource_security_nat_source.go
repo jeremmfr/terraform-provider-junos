@@ -90,6 +90,11 @@ func resourceSecurityNatSource() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"application": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
 									"destination_address": {
 										Type:     schema.TypeSet,
 										Optional: true,
@@ -372,6 +377,9 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				return fmt.Errorf("one of destination_address, destination_address_name, " +
 					"source_address or source_address_name arguments must be set")
 			}
+			for _, vv := range match["application"].(*schema.Set).List() {
+				configSet = append(configSet, setPrefixRule+" match application \""+vv.(string)+"\"")
+			}
 			for _, address := range sortSetOfString(match["destination_address"].(*schema.Set).List()) {
 				err := validateCIDRNetwork(address)
 				if err != nil {
@@ -481,6 +489,7 @@ func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObj
 					if len(ruleOptions["match"].([]map[string]interface{})) == 0 {
 						ruleOptions["match"] = append(ruleOptions["match"].([]map[string]interface{}),
 							map[string]interface{}{
+								"application":              make([]string, 0),
 								"destination_address":      make([]string, 0),
 								"destination_address_name": make([]string, 0),
 								"destination_port":         make([]string, 0),
@@ -492,6 +501,9 @@ func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObj
 					}
 					ruleMatchOptions := ruleOptions["match"].([]map[string]interface{})[0]
 					switch {
+					case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match application "):
+						ruleMatchOptions["application"] = append(ruleMatchOptions["application"].([]string),
+							strings.Trim(strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match application "), "\""))
 					case strings.HasPrefix(itemTrimMatch, "destination-address "):
 						ruleMatchOptions["destination_address"] = append(ruleMatchOptions["destination_address"].([]string),
 							strings.TrimPrefix(itemTrimMatch, "destination-address "))
