@@ -365,6 +365,13 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				return fmt.Errorf("match block in rule %s need to have an argument", rule["name"].(string))
 			}
 			match := matchV.(map[string]interface{})
+			if len(match["destination_address"].(*schema.Set).List()) == 0 &&
+				len(match["destination_address_name"].(*schema.Set).List()) == 0 &&
+				len(match["source_address"].(*schema.Set).List()) == 0 &&
+				len(match["source_address_name"].(*schema.Set).List()) == 0 {
+				return fmt.Errorf("one of destination_address, destination_address_name, " +
+					"source_address or source_address_name arguments must be set")
+			}
 			for _, address := range sortSetOfString(match["destination_address"].(*schema.Set).List()) {
 				err := validateCIDRNetwork(address)
 				if err != nil {
