@@ -10,6 +10,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* resource/`junos_ospf_area`: fix missing set interface when `interface` block have only `name` set
 * resource/`junos_security_nat_source`: fix panic when `match` block inside `rule` block is empty
 
 ## 1.20.0 (September 07, 2021)
