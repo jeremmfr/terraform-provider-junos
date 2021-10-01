@@ -8,11 +8,16 @@ import (
 )
 
 func TestAccJunosOspfArea_basic(t *testing.T) {
-	var testaccOspfArea string
+	var testaccOspfArea, testaccOspfArea2 string
 	if os.Getenv("TESTACC_INTERFACE") != "" {
 		testaccOspfArea = os.Getenv("TESTACC_INTERFACE")
 	} else {
 		testaccOspfArea = defaultInterfaceTestAcc
+	}
+	if os.Getenv("TESTACC_INTERFACE2") != "" {
+		testaccOspfArea2 = os.Getenv("TESTACC_INTERFACE2")
+	} else {
+		testaccOspfArea2 = defaultInterfaceTestAcc2
 	}
 	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.Test(t, resource.TestCase{
@@ -47,17 +52,19 @@ func TestAccJunosOspfArea_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosOspfAreaConfigUpdate(testaccOspfArea),
+					Config: testAccJunosOspfAreaConfigUpdate(testaccOspfArea, testaccOspfArea2),
 					Check: resource.ComposeTestCheckFunc(
 						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea",
+							"interface.#", "1"),
+						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea2",
 							"routing_instance", "testacc_ospfarea"),
-						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea",
+						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea2",
 							"version", "v3"),
-						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea",
-							"interface.#", "2"),
-						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea",
+						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea2",
+							"interface.#", "3"),
+						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea2",
 							"interface.1.name", testaccOspfArea+".0"),
-						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea",
+						resource.TestCheckResourceAttr("junos_ospf_area.testacc_ospfarea2",
 							"interface.1.disable", "true"),
 					),
 				},
@@ -88,17 +95,29 @@ resource junos_ospf_area "testacc_ospfarea" {
 `
 }
 
-func testAccJunosOspfAreaConfigUpdate(interFace string) string {
+func testAccJunosOspfAreaConfigUpdate(interFace, interFace2 string) string {
 	return `
+resource junos_ospf_area "testacc_ospfarea" {
+  area_id = "0.0.0.0"
+  interface {
+    name    = "all"
+    passive = true
+  }
+}
 resource junos_interface_logical "testacc_ospfarea" {
   name             = "` + interFace + `.0"
   description      = "testacc_ospfarea"
   routing_instance = junos_routing_instance.testacc_ospfarea.name
 }
+resource junos_interface_logical "testacc_ospfarea2" {
+  name             = "` + interFace2 + `.0"
+  description      = "testacc_ospfarea2"
+  routing_instance = junos_routing_instance.testacc_ospfarea.name
+}
 resource junos_routing_instance "testacc_ospfarea" {
   name = "testacc_ospfarea"
 }
-resource junos_ospf_area "testacc_ospfarea" {
+resource junos_ospf_area "testacc_ospfarea2" {
   area_id          = "0.0.0.0"
   version          = "v3"
   routing_instance = junos_routing_instance.testacc_ospfarea.name
@@ -113,6 +132,9 @@ resource junos_ospf_area "testacc_ospfarea" {
   interface {
     name    = junos_interface_logical.testacc_ospfarea.name
     disable = true
+  }
+  interface {
+    name = junos_interface_logical.testacc_ospfarea2.name
   }
 }
 `

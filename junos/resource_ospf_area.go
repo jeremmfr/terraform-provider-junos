@@ -317,6 +317,7 @@ func setOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		}
 		interfaceNameList = append(interfaceNameList, ospfInterface["name"].(string))
 		setPrefixInterface := setPrefix + "interface " + ospfInterface["name"].(string) + " "
+		configSet = append(configSet, setPrefixInterface)
 		if ospfInterface["dead_interval"].(int) != 0 {
 			configSet = append(configSet, setPrefixInterface+"dead-interval "+
 				strconv.Itoa(ospfInterface["dead_interval"].(int)))
