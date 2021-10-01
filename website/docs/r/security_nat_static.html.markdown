@@ -52,17 +52,40 @@ The following arguments are supported:
 
 ### rule arguments
 
+-> **Note:** One of `destination_address` or `destination_address_name` arguments is required.
+
 - **name** (Required, String)  
   Name of rule.
-- **destination_address** (Required, String)  
-  CIDR of destination address for rule.
+- **destination_address** (Optional, String)  
+  CIDR of destination address for rule match.
+- **destination_address_name** (Optional, String)  
+  Destination address from address book for rule match.
+- **destination_port** (Optional, Number)  
+  Destination port or lower limit of port range for rule match.
+- **destination_port_to** (Optional, Number)  
+  Port range upper limit for rule match.
+- **source_address** (Optional, Set of String)  
+  List of CIDR source address for rule match.
+- **source_address_name** (Optional, Set of String)  
+  List of source address from address book for rule match.
+- **source_port** (Optional, Set of String)  
+  List of source port for rule match.  
+  Format need to be `x` or `x to y`.
 - **then** (Required, Block)  
   Declare `then` configuration.
   - **type** (Required, String)  
     Type of static nat.  
-    Need to be `inet` or `prefix`.
+    Need to be `inet`, `prefix` or `prefix-name`.
+  - **mapped_port** (Optional, Number)  
+    Port or lower limit of port range to mapped port.  
+    `type` need to be `prefix` or `prefix-name`.
+  - **mapped_port_to** (Optional, Number)  
+    Port range upper limit to mapped port.  
+    `type` need to be `prefix` or `prefix-name`.
   - **prefix** (Optional, String)  
-    CIDR for prefix static nat.
+    CIDR or address from address book to prefix static nat.  
+    `type` need to be `prefix` or `prefix-name`.  
+    CIDR is required if `type` = `prefix`.
   - **routing_instance** (Optional, String)  
     Change routing_instance with nat.
 
