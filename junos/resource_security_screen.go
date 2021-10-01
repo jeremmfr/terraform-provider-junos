@@ -1143,6 +1143,7 @@ func setSecurityScreenTCP(tcp map[string]interface{}, setPrefix string) ([]strin
 				configSet = append(configSet, setPrefix+"syn-flood timeout "+
 					strconv.Itoa(tcpSynFlood["timeout"].(int)))
 			}
+			whitelistNameList := make([]string, 0)
 			for _, v2 := range tcpSynFlood["whitelist"].(*schema.Set).List() {
 				whitelist := v2.(map[string]interface{})
 				if len(whitelist["source_address"].(*schema.Set).List()) == 0 &&
@@ -1150,6 +1151,10 @@ func setSecurityScreenTCP(tcp map[string]interface{}, setPrefix string) ([]strin
 					return configSet, fmt.Errorf("white-list %s need to have a source or destination address set",
 						whitelist["name"].(string))
 				}
+				if stringInSlice(whitelist["name"].(string), whitelistNameList) {
+					return configSet, fmt.Errorf("multiple whitelist blocks with the same name")
+				}
+				whitelistNameList = append(whitelistNameList, whitelist["name"].(string))
 				for _, destination := range sortSetOfString(whitelist["destination_address"].(*schema.Set).List()) {
 					if err := validateCIDRNetwork(destination); err != nil {
 						return configSet, err

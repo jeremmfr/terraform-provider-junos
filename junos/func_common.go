@@ -257,6 +257,16 @@ func stringInSlice(str string, list []string) bool {
 	return false
 }
 
+func intInSlice(num int, list []int) bool {
+	for _, v := range list {
+		if v == num {
+			return true
+		}
+	}
+
+	return false
+}
+
 func sortSetOfString(list []interface{}) []string {
 	s := make([]string, 0)
 	for _, e := range list {

@@ -290,8 +290,13 @@ func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *
 			configSet = append(configSet, setPrefix+" from "+from["type"].(string)+" "+value)
 		}
 	}
+	ruleNameList := make([]string, 0)
 	for _, v := range d.Get("rule").([]interface{}) {
 		rule := v.(map[string]interface{})
+		if stringInSlice(rule["name"].(string), ruleNameList) {
+			return fmt.Errorf("multiple rule blocks with the same name")
+		}
+		ruleNameList = append(ruleNameList, rule["name"].(string))
 		setPrefixRule := setPrefix + " rule " + rule["name"].(string)
 		configSet = append(configSet, setPrefixRule+
 			" match destination-address "+rule["destination_address"].(string))

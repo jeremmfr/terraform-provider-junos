@@ -817,13 +817,11 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 		configSet = append(configSet, setPrefix+"family inet")
 		if v != nil {
 			familyInet := v.(map[string]interface{})
-			for _, address := range familyInet["address"].([]interface{}) {
-				var err error
-				configSet, err = setFamilyAddress(address, configSet, setPrefix, inetWord)
-				if err != nil {
-					return err
-				}
+			configSetFamilyInet, err := setFamilyAddress(familyInet, setPrefix, inetWord)
+			if err != nil {
+				return err
 			}
+			configSet = append(configSet, configSetFamilyInet...)
 			if familyInet["filter_input"].(string) != "" {
 				configSet = append(configSet, setPrefix+"family inet filter input "+
 					familyInet["filter_input"].(string))
@@ -861,13 +859,11 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 		configSet = append(configSet, setPrefix+"family inet6")
 		if v != nil {
 			familyInet6 := v.(map[string]interface{})
-			for _, address := range familyInet6["address"].([]interface{}) {
-				var err error
-				configSet, err = setFamilyAddress(address, configSet, setPrefix, inet6Word)
-				if err != nil {
-					return err
-				}
+			configSetFamilyInet6, err := setFamilyAddress(familyInet6, setPrefix, inet6Word)
+			if err != nil {
+				return err
 			}
+			configSet = append(configSet, configSetFamilyInet6...)
 			if familyInet6["dad_disable"].(bool) {
 				configSet = append(configSet, setPrefix+"family inet6 dad-disable")
 			}
@@ -1339,99 +1335,126 @@ func readFamilyInetAddress(item string, inetAddress []map[string]interface{},
 	return inetAddress, nil
 }
 
-func setFamilyAddress(inetAddress interface{}, configSet []string, setPrefix string,
-	family string) ([]string, error) {
+func setFamilyAddress(inetAddress map[string]interface{}, setPrefix string, family string) ([]string, error) {
+	configSet := make([]string, 0)
 	if family != inetWord && family != inet6Word {
-		return configSet, fmt.Errorf("setFamilyAddress() unknown family %v", family)
+		panic(fmt.Sprintf("setFamilyAddress() unknown family %v", family))
 	}
-	inetAddressMap := inetAddress.(map[string]interface{})
-	setPrefixAddress := setPrefix + "family " + family + " address " + inetAddressMap["cidr_ip"].(string)
-	configSet = append(configSet, setPrefixAddress)
-	if inetAddressMap["preferred"].(bool) {
-		configSet = append(configSet, setPrefixAddress+" preferred")
-	}
-	if inetAddressMap["primary"].(bool) {
-		configSet = append(configSet, setPrefixAddress+" primary")
-	}
-	for _, vrrpGroup := range inetAddressMap["vrrp_group"].([]interface{}) {
-		if strings.Contains(setPrefix, "set interfaces st0 unit") {
-			return configSet, fmt.Errorf("vrrp not available on st0")
+	addressCIDRIPList := make([]string, 0)
+	for _, address := range inetAddress["address"].([]interface{}) {
+		addressMap := address.(map[string]interface{})
+		if stringInSlice(addressMap["cidr_ip"].(string), addressCIDRIPList) {
+			if family == inetWord {
+				return configSet, fmt.Errorf("multiple family_inet blocks with the same cidr_ip")
+			}
+			if family == inet6Word {
+				return configSet, fmt.Errorf("multiple family_inet6 blocks with the same cidr_ip")
+			}
 		}
-		vrrpGroupMap := vrrpGroup.(map[string]interface{})
-		if vrrpGroupMap["no_preempt"].(bool) && vrrpGroupMap["preempt"].(bool) {
-			return configSet, fmt.Errorf("ConflictsWith no_preempt and preempt")
+		addressCIDRIPList = append(addressCIDRIPList, addressMap["cidr_ip"].(string))
+		setPrefixAddress := setPrefix + "family " + family + " address " + addressMap["cidr_ip"].(string)
+		configSet = append(configSet, setPrefixAddress)
+		if addressMap["preferred"].(bool) {
+			configSet = append(configSet, setPrefixAddress+" preferred")
 		}
-		if vrrpGroupMap["no_accept_data"].(bool) && vrrpGroupMap["accept_data"].(bool) {
-			return configSet, fmt.Errorf("ConflictsWith no_accept_data and accept_data")
+		if addressMap["primary"].(bool) {
+			configSet = append(configSet, setPrefixAddress+" primary")
 		}
-		var setNameAddVrrp string
-		switch family {
-		case inetWord:
-			setNameAddVrrp = setPrefixAddress + " vrrp-group " + strconv.Itoa(vrrpGroupMap["identifier"].(int))
-			for _, ip := range vrrpGroupMap["virtual_address"].([]interface{}) {
-				_, errs := validation.IsIPAddress(ip, "virtual_address")
-				if len(errs) > 0 {
-					return configSet, errs[0]
+		vrrpGroupIDList := make([]int, 0)
+		for _, vrrpGroup := range addressMap["vrrp_group"].([]interface{}) {
+			if strings.Contains(setPrefix, "set interfaces st0 unit") {
+				return configSet, fmt.Errorf("vrrp not available on st0")
+			}
+			vrrpGroupMap := vrrpGroup.(map[string]interface{})
+			if vrrpGroupMap["no_preempt"].(bool) && vrrpGroupMap["preempt"].(bool) {
+				return configSet, fmt.Errorf("ConflictsWith no_preempt and preempt")
+			}
+			if vrrpGroupMap["no_accept_data"].(bool) && vrrpGroupMap["accept_data"].(bool) {
+				return configSet, fmt.Errorf("ConflictsWith no_accept_data and accept_data")
+			}
+			if intInSlice(vrrpGroupMap["identifier"].(int), vrrpGroupIDList) {
+				return configSet, fmt.Errorf("multiple vrrp_group blocks with the same identifier")
+			}
+			vrrpGroupIDList = append(vrrpGroupIDList, vrrpGroupMap["identifier"].(int))
+			var setNameAddVrrp string
+			switch family {
+			case inetWord:
+				setNameAddVrrp = setPrefixAddress + " vrrp-group " + strconv.Itoa(vrrpGroupMap["identifier"].(int))
+				for _, ip := range vrrpGroupMap["virtual_address"].([]interface{}) {
+					_, errs := validation.IsIPAddress(ip, "virtual_address")
+					if len(errs) > 0 {
+						return configSet, errs[0]
+					}
+					configSet = append(configSet, setNameAddVrrp+" virtual-address "+ip.(string))
 				}
-				configSet = append(configSet, setNameAddVrrp+" virtual-address "+ip.(string))
-			}
-			if vrrpGroupMap["advertise_interval"].(int) != 0 {
-				configSet = append(configSet, setNameAddVrrp+" advertise-interval "+
-					strconv.Itoa(vrrpGroupMap["advertise_interval"].(int)))
-			}
-			if vrrpGroupMap["authentication_key"].(string) != "" {
-				configSet = append(configSet, setNameAddVrrp+" authentication-key \""+
-					vrrpGroupMap["authentication_key"].(string)+"\"")
-			}
-			if vrrpGroupMap["authentication_type"].(string) != "" {
-				configSet = append(configSet, setNameAddVrrp+" authentication-type "+
-					vrrpGroupMap["authentication_type"].(string))
-			}
-		case inet6Word:
-			setNameAddVrrp = setPrefixAddress + " vrrp-inet6-group " + strconv.Itoa(vrrpGroupMap["identifier"].(int))
-			for _, ip := range vrrpGroupMap["virtual_address"].([]interface{}) {
-				_, errs := validation.IsIPAddress(ip, "virtual_address")
-				if len(errs) > 0 {
-					return configSet, errs[0]
+				if vrrpGroupMap["advertise_interval"].(int) != 0 {
+					configSet = append(configSet, setNameAddVrrp+" advertise-interval "+
+						strconv.Itoa(vrrpGroupMap["advertise_interval"].(int)))
 				}
-				configSet = append(configSet, setNameAddVrrp+" virtual-inet6-address "+ip.(string))
+				if vrrpGroupMap["authentication_key"].(string) != "" {
+					configSet = append(configSet, setNameAddVrrp+" authentication-key \""+
+						vrrpGroupMap["authentication_key"].(string)+"\"")
+				}
+				if vrrpGroupMap["authentication_type"].(string) != "" {
+					configSet = append(configSet, setNameAddVrrp+" authentication-type "+
+						vrrpGroupMap["authentication_type"].(string))
+				}
+			case inet6Word:
+				setNameAddVrrp = setPrefixAddress + " vrrp-inet6-group " + strconv.Itoa(vrrpGroupMap["identifier"].(int))
+				for _, ip := range vrrpGroupMap["virtual_address"].([]interface{}) {
+					_, errs := validation.IsIPAddress(ip, "virtual_address")
+					if len(errs) > 0 {
+						return configSet, errs[0]
+					}
+					configSet = append(configSet, setNameAddVrrp+" virtual-inet6-address "+ip.(string))
+				}
+				configSet = append(configSet, setNameAddVrrp+" virtual-link-local-address "+
+					vrrpGroupMap["virtual_link_local_address"].(string))
+				if vrrpGroupMap["advertise_interval"].(int) != 0 {
+					configSet = append(configSet, setNameAddVrrp+" inet6-advertise-interval "+
+						strconv.Itoa(vrrpGroupMap["advertise_interval"].(int)))
+				}
 			}
-			configSet = append(configSet, setNameAddVrrp+" virtual-link-local-address "+
-				vrrpGroupMap["virtual_link_local_address"].(string))
-			if vrrpGroupMap["advertise_interval"].(int) != 0 {
-				configSet = append(configSet, setNameAddVrrp+" inet6-advertise-interval "+
-					strconv.Itoa(vrrpGroupMap["advertise_interval"].(int)))
+			if vrrpGroupMap["accept_data"].(bool) {
+				configSet = append(configSet, setNameAddVrrp+" accept-data")
 			}
-		}
-		if vrrpGroupMap["accept_data"].(bool) {
-			configSet = append(configSet, setNameAddVrrp+" accept-data")
-		}
-		if vrrpGroupMap["advertisements_threshold"].(int) != 0 {
-			configSet = append(configSet, setNameAddVrrp+" advertisements-threshold "+
-				strconv.Itoa(vrrpGroupMap["advertisements_threshold"].(int)))
-		}
-		if vrrpGroupMap["no_accept_data"].(bool) {
-			configSet = append(configSet, setNameAddVrrp+" no-accept-data")
-		}
-		if vrrpGroupMap["no_preempt"].(bool) {
-			configSet = append(configSet, setNameAddVrrp+" no-preempt")
-		}
-		if vrrpGroupMap["preempt"].(bool) {
-			configSet = append(configSet, setNameAddVrrp+" preempt")
-		}
-		if vrrpGroupMap["priority"].(int) != 0 {
-			configSet = append(configSet, setNameAddVrrp+" priority "+strconv.Itoa(vrrpGroupMap["priority"].(int)))
-		}
-		for _, trackInterface := range vrrpGroupMap["track_interface"].([]interface{}) {
-			trackInterfaceMap := trackInterface.(map[string]interface{})
-			configSet = append(configSet, setNameAddVrrp+" track interface "+trackInterfaceMap["interface"].(string)+
-				" priority-cost "+strconv.Itoa(trackInterfaceMap["priority_cost"].(int)))
-		}
-		for _, trackRoute := range vrrpGroupMap["track_route"].([]interface{}) {
-			trackRouteMap := trackRoute.(map[string]interface{})
-			configSet = append(configSet, setNameAddVrrp+" track route "+trackRouteMap["route"].(string)+
-				" routing-instance "+trackRouteMap["routing_instance"].(string)+
-				" priority-cost "+strconv.Itoa(trackRouteMap["priority_cost"].(int)))
+			if vrrpGroupMap["advertisements_threshold"].(int) != 0 {
+				configSet = append(configSet, setNameAddVrrp+" advertisements-threshold "+
+					strconv.Itoa(vrrpGroupMap["advertisements_threshold"].(int)))
+			}
+			if vrrpGroupMap["no_accept_data"].(bool) {
+				configSet = append(configSet, setNameAddVrrp+" no-accept-data")
+			}
+			if vrrpGroupMap["no_preempt"].(bool) {
+				configSet = append(configSet, setNameAddVrrp+" no-preempt")
+			}
+			if vrrpGroupMap["preempt"].(bool) {
+				configSet = append(configSet, setNameAddVrrp+" preempt")
+			}
+			if vrrpGroupMap["priority"].(int) != 0 {
+				configSet = append(configSet, setNameAddVrrp+" priority "+strconv.Itoa(vrrpGroupMap["priority"].(int)))
+			}
+			trackInterfaceList := make([]string, 0)
+			for _, trackInterface := range vrrpGroupMap["track_interface"].([]interface{}) {
+				trackInterfaceMap := trackInterface.(map[string]interface{})
+				if stringInSlice(trackInterfaceMap["interface"].(string), trackInterfaceList) {
+					return configSet, fmt.Errorf("multiple track_interface blocks with the same interface")
+				}
+				trackInterfaceList = append(trackInterfaceList, trackInterfaceMap["interface"].(string))
+				configSet = append(configSet, setNameAddVrrp+" track interface "+trackInterfaceMap["interface"].(string)+
+					" priority-cost "+strconv.Itoa(trackInterfaceMap["priority_cost"].(int)))
+			}
+			trackRouteList := make([]string, 0)
+			for _, trackRoute := range vrrpGroupMap["track_route"].([]interface{}) {
+				trackRouteMap := trackRoute.(map[string]interface{})
+				if stringInSlice(trackRouteMap["route"].(string), trackRouteList) {
+					return configSet, fmt.Errorf("multiple track_route blocks with the same interface")
+				}
+				trackRouteList = append(trackRouteList, trackRouteMap["route"].(string))
+				configSet = append(configSet, setNameAddVrrp+" track route "+trackRouteMap["route"].(string)+
+					" routing-instance "+trackRouteMap["routing_instance"].(string)+
+					" priority-cost "+strconv.Itoa(trackRouteMap["priority_cost"].(int)))
+			}
 		}
 	}
 

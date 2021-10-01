@@ -767,7 +767,11 @@ func setServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		configSet = append(configSet, configSetApplicationIdentification...)
 	}
 	for _, v := range d.Get("security_intelligence").([]interface{}) {
-		configSet = append(configSet, setServicesSecurityIntell(d, v)...)
+		configSetSecurityIntelligence, err := setServicesSecurityIntell(d, v)
+		if err != nil {
+			return err
+		}
+		configSet = append(configSet, configSetSecurityIntelligence...)
 	}
 	for _, v := range d.Get("user_identification").([]interface{}) {
 		configSetUserIdent, err := setServicesUserIdentification(v)
@@ -978,7 +982,7 @@ func setServicesApplicationIdentification(appID interface{}) ([]string, error) {
 	return configSet, nil
 }
 
-func setServicesSecurityIntell(d *schema.ResourceData, secuIntel interface{}) []string {
+func setServicesSecurityIntell(d *schema.ResourceData, secuIntel interface{}) ([]string, error) {
 	setPrefix := "set services security-intelligence "
 	configSet := make([]string, 0)
 	if secuIntel != nil {
@@ -1002,8 +1006,13 @@ func setServicesSecurityIntell(d *schema.ResourceData, secuIntel interface{}) []
 				configSet = append(configSet, setPrefix+"category category-name "+v+" disable")
 			}
 		}
+		defaultPolicyCatNameList := make([]string, 0)
 		for _, v := range secuIntelM["default_policy"].([]interface{}) {
 			defPolicy := v.(map[string]interface{})
+			if stringInSlice(defPolicy["category_name"].(string), defaultPolicyCatNameList) {
+				return configSet, fmt.Errorf("multiple default_policy blocks with the same category_name")
+			}
+			defaultPolicyCatNameList = append(defaultPolicyCatNameList, defPolicy["category_name"].(string))
 			configSet = append(configSet, setPrefix+"default-policy "+
 				defPolicy["category_name"].(string)+" "+defPolicy["profile_name"].(string))
 		}
@@ -1019,7 +1028,7 @@ func setServicesSecurityIntell(d *schema.ResourceData, secuIntel interface{}) []
 		}
 	}
 
-	return configSet
+	return configSet, nil
 }
 
 func setServicesUserIdentification(userIdentification interface{}) ([]string, error) {

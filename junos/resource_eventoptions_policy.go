@@ -687,12 +687,22 @@ func setEventoptionsPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netc
 				configSet = append(configSet, setPrefix+"then change-configuration user-name "+v3)
 			}
 		}
+		eventScriptFilenameList := make([]string, 0)
 		for _, v2 := range then["event_script"].([]interface{}) {
 			eventScript := v2.(map[string]interface{})
+			if stringInSlice(eventScript["filename"].(string), eventScriptFilenameList) {
+				return fmt.Errorf("multiple event_script blocks with the same filename")
+			}
+			eventScriptFilenameList = append(eventScriptFilenameList, eventScript["filename"].(string))
 			setPrefixThenEventScript := setPrefix + "then event-script \"" + eventScript["filename"].(string) + "\" "
 			configSet = append(configSet, setPrefixThenEventScript)
+			argumentsNameList := make([]string, 0)
 			for _, v3 := range eventScript["arguments"].([]interface{}) {
 				arguments := v3.(map[string]interface{})
+				if stringInSlice(arguments["name"].(string), argumentsNameList) {
+					return fmt.Errorf("multiple arguments blocks with the same name")
+				}
+				argumentsNameList = append(argumentsNameList, arguments["name"].(string))
 				configSet = append(configSet, setPrefixThenEventScript+
 					"arguments \""+arguments["name"].(string)+"\" \""+arguments["value"].(string)+"\"")
 			}
@@ -769,10 +779,15 @@ func setEventoptionsPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netc
 		if then["raise_trap"].(bool) {
 			configSet = append(configSet, setPrefix+"then raise-trap")
 		}
+		uploadFileDestList := make([]string, 0)
 		for _, v2 := range then["upload"].([]interface{}) {
 			upload := v2.(map[string]interface{})
 			setPrefixThenUpload := setPrefix + "then upload filename \"" + upload["filename"].(string) + "\" " +
 				"destination \"" + upload["destination"].(string) + "\" "
+			if stringInSlice(setPrefixThenUpload, uploadFileDestList) {
+				return fmt.Errorf("multiple upload blocks with the same filename and destination")
+			}
+			uploadFileDestList = append(uploadFileDestList, setPrefixThenUpload)
 			configSet = append(configSet, setPrefixThenUpload)
 			if retryCount := upload["retry_count"].(int); retryCount != -1 {
 				if retryInterval := upload["retry_interval"].(int); retryInterval != -1 {
@@ -792,13 +807,24 @@ func setEventoptionsPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netc
 			}
 		}
 	}
+	attriMatchList := make([]string, 0)
 	for _, v := range d.Get("attributes_match").([]interface{}) {
 		attriMatch := v.(map[string]interface{})
-		configSet = append(configSet, setPrefix+"attributes-match \""+attriMatch["from"].(string)+"\" "+
-			attriMatch["compare"].(string)+" \""+attriMatch["to"].(string)+"\"")
+		setAttriMatch := setPrefix + "attributes-match \"" + attriMatch["from"].(string) + "\" " +
+			attriMatch["compare"].(string) + " \"" + attriMatch["to"].(string) + "\""
+		if stringInSlice(setAttriMatch, attriMatchList) {
+			return fmt.Errorf("multiple attributes_match blocks with the same from, compare and to")
+		}
+		attriMatchList = append(attriMatchList, setAttriMatch)
+		configSet = append(configSet, setAttriMatch)
 	}
+	withinTimeInterval := make([]int, 0)
 	for _, v := range d.Get("within").([]interface{}) {
 		within := v.(map[string]interface{})
+		if intInSlice(within["time_interval"].(int), withinTimeInterval) {
+			return fmt.Errorf("multiple within blocks with the same time_interval")
+		}
+		withinTimeInterval = append(withinTimeInterval, within["time_interval"].(int))
 		setPrefixWithin := setPrefix + "within " + strconv.Itoa(within["time_interval"].(int)) + " "
 		for _, v2 := range sortSetOfString(within["events"].(*schema.Set).List()) {
 			configSet = append(configSet, setPrefixWithin+"events \""+v2+"\"")

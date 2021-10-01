@@ -947,8 +947,13 @@ func setForwardingoptionsSamplingInstanceOutput(
 	if v := output["flow_inactive_timeout"].(int); v != 0 {
 		configSet = append(configSet, setPrefix+"flow-inactive-timeout "+strconv.Itoa(v))
 	}
+	flowServerHostnameList := make([]string, 0)
 	for _, vFS := range output["flow_server"].([]interface{}) {
 		flowServer := vFS.(map[string]interface{})
+		if stringInSlice(flowServer["hostname"].(string), flowServerHostnameList) {
+			return fmt.Errorf("multiple flow_server blocks with the same hostname")
+		}
+		flowServerHostnameList = append(flowServerHostnameList, flowServer["hostname"].(string))
 		setPrefixFlowServer := setPrefix + "flow-server " + flowServer["hostname"].(string) + " "
 		configSet = append(configSet, setPrefixFlowServer+"port "+strconv.Itoa(flowServer["port"].(int)))
 		if flowServer["aggregation_autonomous_system"].(bool) {
@@ -1011,8 +1016,13 @@ func setForwardingoptionsSamplingInstanceOutput(
 	if v := output["inline_jflow_source_address"].(string); v != "" {
 		configSet = append(configSet, setPrefix+"inline-jflow source-address "+v)
 	}
+	interfaceNameList := make([]string, 0)
 	for _, vIF := range output["interface"].([]interface{}) {
 		interFace := vIF.(map[string]interface{})
+		if stringInSlice(interFace["name"].(string), interfaceNameList) {
+			return fmt.Errorf("multiple interface blocks with the same name")
+		}
+		interfaceNameList = append(interfaceNameList, interFace["name"].(string))
 		setPrefixInterface := setPrefix + "interface " + interFace["name"].(string) + " "
 		configSet = append(configSet, setPrefixInterface)
 		if v := interFace["engine_id"].(int); v != -1 {

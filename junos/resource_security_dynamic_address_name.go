@@ -298,8 +298,13 @@ func setSecurityDynamicAddressName(d *schema.ResourceData, m interface{}, jnprSe
 		if v := profileCategory["feed"].(string); v != "" {
 			configSet = append(configSet, setPrefixProfileCategory+"feed "+v)
 		}
+		propertyNameList := make([]string, 0)
 		for _, pro := range profileCategory["property"].([]interface{}) {
 			property := pro.(map[string]interface{})
+			if stringInSlice(property["name"].(string), propertyNameList) {
+				return fmt.Errorf("multiple property blocks with the same name")
+			}
+			propertyNameList = append(propertyNameList, property["name"].(string))
 			for _, str := range property["string"].([]interface{}) {
 				configSet = append(configSet, setPrefixProfileCategory+"property "+
 					"\""+property["name"].(string)+"\" string \""+str.(string)+"\"")

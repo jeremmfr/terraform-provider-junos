@@ -1014,6 +1014,7 @@ func setSecurityIdpCustomAttack(d *schema.ResourceData, m interface{}, jnprSess 
 	}
 	for _, v := range d.Get("attack_type_chain").([]interface{}) {
 		attackChain := v.(map[string]interface{})
+		memberNameList := make([]string, 0)
 		for _, v2 := range attackChain["member"].([]interface{}) {
 			attackChainMember := v2.(map[string]interface{})
 			if len(attackChainMember["attack_type_anomaly"].([]interface{})) != 0 &&
@@ -1024,6 +1025,10 @@ func setSecurityIdpCustomAttack(d *schema.ResourceData, m interface{}, jnprSess 
 				len(attackChainMember["attack_type_signature"].([]interface{})) == 0 {
 				return fmt.Errorf("missing one attack type in member %s for attack_type_chain", attackChainMember["name"].(string))
 			}
+			if stringInSlice(attackChainMember["name"].(string), memberNameList) {
+				return fmt.Errorf("multiple member blocks with the same name")
+			}
+			memberNameList = append(memberNameList, attackChainMember["name"].(string))
 			for _, v3 := range attackChainMember["attack_type_anomaly"].([]interface{}) {
 				attackAnomaly := v3.(map[string]interface{})
 				configSet = append(configSet, setSecurityIdpCustomAttackTypeAnomaly(

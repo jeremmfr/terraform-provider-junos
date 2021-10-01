@@ -293,8 +293,13 @@ func setSecurityDynamicAddressFeedServer(d *schema.ResourceData, m interface{}, 
 	if v := d.Get("description").(string); v != "" {
 		configSet = append(configSet, setPrefix+"description \""+v+"\"")
 	}
+	feedNameList := make([]string, 0)
 	for _, fn := range d.Get("feed_name").([]interface{}) {
 		feedName := fn.(map[string]interface{})
+		if stringInSlice(feedName["name"].(string), feedNameList) {
+			return fmt.Errorf("multiple feed_name blocks with the same name")
+		}
+		feedNameList = append(feedNameList, feedName["name"].(string))
 		setPrefixFeedName := setPrefix + "feed-name " + feedName["name"].(string) + " "
 		configSet = append(configSet, setPrefixFeedName)
 		configSet = append(configSet, setPrefixFeedName+"path \""+feedName["path"].(string)+"\"")

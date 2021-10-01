@@ -461,20 +461,25 @@ func setFirewallFilter(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	if d.Get("interface_specific").(bool) {
 		configSet = append(configSet, setPrefix+" interface-specific")
 	}
-	for _, term := range d.Get("term").([]interface{}) {
-		termMap := term.(map[string]interface{})
-		setPrefixTerm := setPrefix + " term " + termMap["name"].(string)
-		if termMap["filter"].(string) != "" {
-			configSet = append(configSet, setPrefixTerm+" filter "+termMap["filter"].(string))
+	termNameList := make([]string, 0)
+	for _, v := range d.Get("term").([]interface{}) {
+		term := v.(map[string]interface{})
+		if stringInSlice(term["name"].(string), termNameList) {
+			return fmt.Errorf("multiple term blocks with the same name")
+		}
+		termNameList = append(termNameList, term["name"].(string))
+		setPrefixTerm := setPrefix + " term " + term["name"].(string)
+		if term["filter"].(string) != "" {
+			configSet = append(configSet, setPrefixTerm+" filter "+term["filter"].(string))
 		}
 
-		for _, from := range termMap["from"].([]interface{}) {
+		for _, from := range term["from"].([]interface{}) {
 			configSet, err = setFirewallFilterOptsFrom(setPrefixTerm+" from ", configSet, from.(map[string]interface{}))
 			if err != nil {
 				return err
 			}
 		}
-		for _, then := range termMap["then"].([]interface{}) {
+		for _, then := range term["then"].([]interface{}) {
 			configSet = setFirewallFilterOptsThen(setPrefixTerm+" then ", configSet, then.(map[string]interface{}))
 		}
 	}

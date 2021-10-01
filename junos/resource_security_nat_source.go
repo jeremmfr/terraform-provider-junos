@@ -335,8 +335,13 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 			configSet = append(configSet, setPrefix+" to "+to["type"].(string)+" "+value)
 		}
 	}
+	ruleNameList := make([]string, 0)
 	for _, v := range d.Get("rule").([]interface{}) {
 		rule := v.(map[string]interface{})
+		if stringInSlice(rule["name"].(string), ruleNameList) {
+			return fmt.Errorf("multiple rule blocks with the same name")
+		}
+		ruleNameList = append(ruleNameList, rule["name"].(string))
 		setPrefixRule := setPrefix + " rule " + rule["name"].(string)
 		for _, matchV := range rule[matchWord].([]interface{}) {
 			match := matchV.(map[string]interface{})

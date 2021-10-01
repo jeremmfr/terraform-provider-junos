@@ -397,12 +397,22 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, m interface{}, jnprSess *
 			configSet = append(configSet, setPrefix+"block-message")
 		}
 	}
+	categoryNameList := make([]string, 0)
 	for _, v := range d.Get("category").([]interface{}) {
 		category := v.(map[string]interface{})
+		if stringInSlice(category["name"].(string), categoryNameList) {
+			return fmt.Errorf("multiple category blocks with the same name")
+		}
+		categoryNameList = append(categoryNameList, category["name"].(string))
 		setPrefixCategory := setPrefix + "category \"" + category["name"].(string) + "\" "
 		configSet = append(configSet, setPrefixCategory+"action "+category["action"].(string))
+		reputationActionSiteList := make([]string, 0)
 		for _, r := range category["reputation_action"].([]interface{}) {
 			reputation := r.(map[string]interface{})
+			if stringInSlice(reputation["site_reputation"].(string), reputationActionSiteList) {
+				return fmt.Errorf("multiple reputation_action blocks with the same site_reputation")
+			}
+			reputationActionSiteList = append(reputationActionSiteList, reputation["site_reputation"].(string))
 			configSet = append(configSet, setPrefixCategory+"reputation-action "+
 				reputation["site_reputation"].(string)+" "+reputation["action"].(string))
 		}
@@ -456,8 +466,13 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, m interface{}, jnprSess *
 			configSet = append(configSet, setPrefix+"quarantine-message")
 		}
 	}
+	siteReputationNameList := make([]string, 0)
 	for _, v := range d.Get("site_reputation_action").([]interface{}) {
 		siteReputation := v.(map[string]interface{})
+		if stringInSlice(siteReputation["site_reputation"].(string), siteReputationNameList) {
+			return fmt.Errorf("multiple site_reputation_action blocks with the same site_reputation")
+		}
+		siteReputationNameList = append(siteReputationNameList, siteReputation["site_reputation"].(string))
 		configSet = append(configSet, setPrefix+"site-reputation-action "+
 			siteReputation["site_reputation"].(string)+" "+siteReputation["action"].(string))
 	}

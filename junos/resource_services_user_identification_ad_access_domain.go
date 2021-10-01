@@ -324,8 +324,13 @@ func setServicesUserIdentAdAccessDomain(d *schema.ResourceData, m interface{}, j
 	setPrefix := "set services user-identification active-directory-access domain " + d.Get("name").(string) + " "
 	configSet = append(configSet, setPrefix+"user "+d.Get("user_name").(string))
 	configSet = append(configSet, setPrefix+"user password \""+d.Get("user_password").(string)+"\"")
+	domainControllerNameList := make([]string, 0)
 	for _, v := range d.Get("domain_controller").([]interface{}) {
 		domainController := v.(map[string]interface{})
+		if stringInSlice(domainController["name"].(string), domainControllerNameList) {
+			return fmt.Errorf("multiple domain_controller blocks with the same name")
+		}
+		domainControllerNameList = append(domainControllerNameList, domainController["name"].(string))
 		configSet = append(configSet, setPrefix+"domain-controller "+domainController["name"].(string)+
 			" address "+domainController["address"].(string))
 	}
