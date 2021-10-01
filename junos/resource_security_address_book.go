@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type addressBookOptions struct {
@@ -369,7 +370,7 @@ func setAddressBook(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	addressNameList := make([]string, 0)
 	for _, v := range d.Get("network_address").([]interface{}) {
 		address := v.(map[string]interface{})
-		if stringInSlice(address["name"].(string), addressNameList) {
+		if bchk.StringInSlice(address["name"].(string), addressNameList) {
 			return fmt.Errorf("multiple address with the same name")
 		}
 		addressNameList = append(addressNameList, address["name"].(string))
@@ -381,7 +382,7 @@ func setAddressBook(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	}
 	for _, v := range d.Get("wildcard_address").([]interface{}) {
 		address := v.(map[string]interface{})
-		if stringInSlice(address["name"].(string), addressNameList) {
+		if bchk.StringInSlice(address["name"].(string), addressNameList) {
 			return fmt.Errorf("multiple address with the same name")
 		}
 		addressNameList = append(addressNameList, address["name"].(string))
@@ -393,7 +394,7 @@ func setAddressBook(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	}
 	for _, v := range d.Get("dns_name").([]interface{}) {
 		address := v.(map[string]interface{})
-		if stringInSlice(address["name"].(string), addressNameList) {
+		if bchk.StringInSlice(address["name"].(string), addressNameList) {
 			return fmt.Errorf("multiple address with the same name")
 		}
 		addressNameList = append(addressNameList, address["name"].(string))
@@ -405,7 +406,7 @@ func setAddressBook(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	}
 	for _, v := range d.Get("range_address").([]interface{}) {
 		address := v.(map[string]interface{})
-		if stringInSlice(address["name"].(string), addressNameList) {
+		if bchk.StringInSlice(address["name"].(string), addressNameList) {
 			return fmt.Errorf("multiple address with the same name")
 		}
 		addressNameList = append(addressNameList, address["name"].(string))
@@ -417,7 +418,7 @@ func setAddressBook(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	}
 	for _, v := range d.Get("address_set").([]interface{}) {
 		addressSet := v.(map[string]interface{})
-		if stringInSlice(addressSet["name"].(string), addressNameList) {
+		if bchk.StringInSlice(addressSet["name"].(string), addressNameList) {
 			return fmt.Errorf("multiple address or address_set with the same name")
 		}
 		addressNameList = append(addressNameList, addressSet["name"].(string))

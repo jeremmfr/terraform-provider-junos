@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type securityOptions struct {
@@ -1776,15 +1777,15 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case checkStringHasPrefixInList(itemTrim, listLinesSecurityAlg()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesSecurityAlg()):
 				readSecurityAlg(&confRead, itemTrim)
-			case checkStringHasPrefixInList(itemTrim, listLinesSecurityFlow()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesSecurityFlow()):
 				if err := readSecurityFlow(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
-			case checkStringHasPrefixInList(itemTrim, listLinesSecurityForwardingOptions()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesSecurityForwardingOptions()):
 				readSecurityForwardingOpts(&confRead, itemTrim)
-			case checkStringHasPrefixInList(itemTrim, listLinesSecurityForwardingProcess()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesSecurityForwardingProcess()):
 				if len(confRead.forwardingProcess) == 0 {
 					confRead.forwardingProcess = append(confRead.forwardingProcess, map[string]interface{}{
 						"enhanced_services_mode": false,
@@ -1793,15 +1794,15 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 				if itemTrim == "forwarding-process enhanced-services-mode" {
 					confRead.forwardingProcess[0]["enhanced_services_mode"] = true
 				}
-			case checkStringHasPrefixInList(itemTrim, listLinesSecurityIdpSecurityPackage()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesSecurityIdpSecurityPackage()):
 				if err := readSecurityIdpSecurityPackage(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
-			case checkStringHasPrefixInList(itemTrim, listLinesSecurityIdpSensorConfiguration()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesSecurityIdpSensorConfiguration()):
 				if err := readSecurityIdpSensorConfig(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
-			case checkStringHasPrefixInList(itemTrim, listLinesSecurityLog()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesSecurityLog()):
 				if err := readSecurityLog(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
@@ -1809,7 +1810,7 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 				if err := readSecurityIkeTraceOptions(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
-			case checkStringHasPrefixInList(itemTrim, listLinesSecurityPolicies()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesSecurityPolicies()):
 				if len(confRead.policies) == 0 {
 					confRead.policies = append(confRead.policies, map[string]interface{}{
 						"policy_rematch":           false,
@@ -1822,11 +1823,11 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 				if itemTrim == "policies policy-rematch extensive" {
 					confRead.policies[0]["policy_rematch_extensive"] = true
 				}
-			case checkStringHasPrefixInList(itemTrim, listLinesSecurityUserIdentificationAuthSource()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesSecurityUserIdentificationAuthSource()):
 				if err := readSecurityUserIdentAuthSource(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
-			case checkStringHasPrefixInList(itemTrim, listLinesSecurityUtm()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesSecurityUtm()):
 				if err := readSecurityUtm(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type idpPolicyOptions struct {
@@ -470,7 +471,7 @@ func setSecurityIdpPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	exemptRuleNameList := make([]string, 0)
 	for _, e := range d.Get("exempt_rule").([]interface{}) {
 		eM := e.(map[string]interface{})
-		if stringInSlice(eM["name"].(string), exemptRuleNameList) {
+		if bchk.StringInSlice(eM["name"].(string), exemptRuleNameList) {
 			return fmt.Errorf("multiple exempt_rule blocks with the same name")
 		}
 		exemptRuleNameList = append(exemptRuleNameList, eM["name"].(string))
@@ -483,7 +484,7 @@ func setSecurityIdpPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	ipsRuleNameList := make([]string, 0)
 	for _, e := range d.Get("ips_rule").([]interface{}) {
 		eM := e.(map[string]interface{})
-		if stringInSlice(eM["name"].(string), ipsRuleNameList) {
+		if bchk.StringInSlice(eM["name"].(string), ipsRuleNameList) {
 			return fmt.Errorf("multiple ips_rule blocks with the same name")
 		}
 		ipsRuleNameList = append(ipsRuleNameList, eM["name"].(string))

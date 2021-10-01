@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type filterOptions struct {
@@ -464,7 +465,7 @@ func setFirewallFilter(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	termNameList := make([]string, 0)
 	for _, v := range d.Get("term").([]interface{}) {
 		term := v.(map[string]interface{})
-		if stringInSlice(term["name"].(string), termNameList) {
+		if bchk.StringInSlice(term["name"].(string), termNameList) {
 			return fmt.Errorf("multiple term blocks with the same name")
 		}
 		termNameList = append(termNameList, term["name"].(string))

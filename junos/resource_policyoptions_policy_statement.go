@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type policyStatementOptions struct {
@@ -671,7 +672,7 @@ func setPolicyStatement(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	termNameList := make([]string, 0)
 	for _, term := range d.Get("term").([]interface{}) {
 		termMap := term.(map[string]interface{})
-		if stringInSlice(termMap["name"].(string), termNameList) {
+		if bchk.StringInSlice(termMap["name"].(string), termNameList) {
 			return fmt.Errorf("multiple term blocks with the same name")
 		}
 		termNameList = append(termNameList, termMap["name"].(string))
@@ -946,7 +947,7 @@ func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) (
 	for _, v := range opts["community"].([]interface{}) {
 		community := v.(map[string]interface{})
 		setCommunityActVal := "community " + community["action"].(string) + " " + community["value"].(string)
-		if stringInSlice(setCommunityActVal, communityList) {
+		if bchk.StringInSlice(setCommunityActVal, communityList) {
 			return configSet, fmt.Errorf("multiple community blocks with the same action and value")
 		}
 		communityList = append(communityList, setCommunityActVal)

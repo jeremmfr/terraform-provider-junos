@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type eventoptionsPolicyOptions struct {
@@ -690,7 +691,7 @@ func setEventoptionsPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netc
 		eventScriptFilenameList := make([]string, 0)
 		for _, v2 := range then["event_script"].([]interface{}) {
 			eventScript := v2.(map[string]interface{})
-			if stringInSlice(eventScript["filename"].(string), eventScriptFilenameList) {
+			if bchk.StringInSlice(eventScript["filename"].(string), eventScriptFilenameList) {
 				return fmt.Errorf("multiple event_script blocks with the same filename")
 			}
 			eventScriptFilenameList = append(eventScriptFilenameList, eventScript["filename"].(string))
@@ -699,7 +700,7 @@ func setEventoptionsPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netc
 			argumentsNameList := make([]string, 0)
 			for _, v3 := range eventScript["arguments"].([]interface{}) {
 				arguments := v3.(map[string]interface{})
-				if stringInSlice(arguments["name"].(string), argumentsNameList) {
+				if bchk.StringInSlice(arguments["name"].(string), argumentsNameList) {
 					return fmt.Errorf("multiple arguments blocks with the same name")
 				}
 				argumentsNameList = append(argumentsNameList, arguments["name"].(string))
@@ -784,7 +785,7 @@ func setEventoptionsPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netc
 			upload := v2.(map[string]interface{})
 			setPrefixThenUpload := setPrefix + "then upload filename \"" + upload["filename"].(string) + "\" " +
 				"destination \"" + upload["destination"].(string) + "\" "
-			if stringInSlice(setPrefixThenUpload, uploadFileDestList) {
+			if bchk.StringInSlice(setPrefixThenUpload, uploadFileDestList) {
 				return fmt.Errorf("multiple upload blocks with the same filename and destination")
 			}
 			uploadFileDestList = append(uploadFileDestList, setPrefixThenUpload)
@@ -812,7 +813,7 @@ func setEventoptionsPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netc
 		attriMatch := v.(map[string]interface{})
 		setAttriMatch := setPrefix + "attributes-match \"" + attriMatch["from"].(string) + "\" " +
 			attriMatch["compare"].(string) + " \"" + attriMatch["to"].(string) + "\""
-		if stringInSlice(setAttriMatch, attriMatchList) {
+		if bchk.StringInSlice(setAttriMatch, attriMatchList) {
 			return fmt.Errorf("multiple attributes_match blocks with the same from, compare and to")
 		}
 		attriMatchList = append(attriMatchList, setAttriMatch)
@@ -821,7 +822,7 @@ func setEventoptionsPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netc
 	withinTimeInterval := make([]int, 0)
 	for _, v := range d.Get("within").([]interface{}) {
 		within := v.(map[string]interface{})
-		if intInSlice(within["time_interval"].(int), withinTimeInterval) {
+		if bchk.IntInSlice(within["time_interval"].(int), withinTimeInterval) {
 			return fmt.Errorf("multiple within blocks with the same time_interval")
 		}
 		withinTimeInterval = append(withinTimeInterval, within["time_interval"].(int))

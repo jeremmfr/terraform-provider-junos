@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type flowMonitoringVIPFixTemplateOptions struct {
@@ -405,7 +406,7 @@ func readServicesFlowMonitoringVIPFixTemplate(template string, m interface{}, jn
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case stringInSlice(itemTrim, []string{"ipv4-template", "ipv6-template", "mpls-template"}):
+			case bchk.StringInSlice(itemTrim, []string{"ipv4-template", "ipv6-template", "mpls-template"}):
 				confRead.typeTemplate = itemTrim
 			case strings.HasPrefix(itemTrim, "ipv6-template export-extension ") ||
 				strings.HasPrefix(itemTrim, "ipv4-template export-extension "):

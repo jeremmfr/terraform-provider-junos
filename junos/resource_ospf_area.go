@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type ospfAreaOptions struct {
@@ -312,7 +313,7 @@ func setOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	interfaceNameList := make([]string, 0)
 	for _, v := range d.Get("interface").([]interface{}) {
 		ospfInterface := v.(map[string]interface{})
-		if stringInSlice(ospfInterface["name"].(string), interfaceNameList) {
+		if bchk.StringInSlice(ospfInterface["name"].(string), interfaceNameList) {
 			return fmt.Errorf("multiple interface blocks with the same name")
 		}
 		interfaceNameList = append(interfaceNameList, ospfInterface["name"].(string))

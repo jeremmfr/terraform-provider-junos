@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -493,7 +494,7 @@ func setSystemSyslogFile(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 			sitesURLList := make([]string, 0)
 			for _, v2 := range archive["sites"].([]interface{}) {
 				sites := v2.(map[string]interface{})
-				if stringInSlice(sites["url"].(string), sitesURLList) {
+				if bchk.StringInSlice(sites["url"].(string), sitesURLList) {
 					return fmt.Errorf("multiple sites blocks with the same url")
 				}
 				sitesURLList = append(sitesURLList, sites["url"].(string))

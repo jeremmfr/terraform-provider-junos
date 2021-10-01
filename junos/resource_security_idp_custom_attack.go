@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type idpCustomAttackOptions struct {
@@ -1025,7 +1026,7 @@ func setSecurityIdpCustomAttack(d *schema.ResourceData, m interface{}, jnprSess 
 				len(attackChainMember["attack_type_signature"].([]interface{})) == 0 {
 				return fmt.Errorf("missing one attack type in member %s for attack_type_chain", attackChainMember["name"].(string))
 			}
-			if stringInSlice(attackChainMember["name"].(string), memberNameList) {
+			if bchk.StringInSlice(attackChainMember["name"].(string), memberNameList) {
 				return fmt.Errorf("multiple member blocks with the same name")
 			}
 			memberNameList = append(memberNameList, attackChainMember["name"].(string))

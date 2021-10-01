@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type policyOptions struct {
@@ -395,7 +396,7 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	policyNameList := make([]string, 0)
 	for _, v := range d.Get("policy").([]interface{}) {
 		policy := v.(map[string]interface{})
-		if stringInSlice(policy["name"].(string), policyNameList) {
+		if bchk.StringInSlice(policy["name"].(string), policyNameList) {
 			return fmt.Errorf("multiple policy blocks with the same name")
 		}
 		policyNameList = append(policyNameList, policy["name"].(string))

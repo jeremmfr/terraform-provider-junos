@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type interfacePhysicalOptions struct {
@@ -1785,7 +1785,7 @@ func interfaceAggregatedCountSearchMax(
 		listAEFound = append(listAEFound, oldAE)
 	}
 	if len(listAEFound) > 0 {
-		sort.Sort(sortStringsLength(listAEFound))
+		balt.SortStringsByLengthInc(listAEFound)
 		lastAeInt, err := strconv.Atoi(strings.TrimPrefix(listAEFound[len(listAEFound)-1], "ae"))
 		if err != nil {
 			return "", fmt.Errorf("failed to convert internal variable lastAeInt to integer : %w", err)

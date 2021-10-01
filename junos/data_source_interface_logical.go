@@ -8,6 +8,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	balt "github.com/jeremmfr/go-utils/basicalter"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 func dataSourceInterfaceLogical() *schema.Resource {
@@ -436,12 +438,12 @@ func searchInterfaceLogicalID(configInterface string, match string,
 		case 0, 1, 2:
 			continue
 		default:
-			if itemTrimSplit[1] == "unit" && !stringInSlice("ethernet-switching", itemTrimSplit) {
+			if itemTrimSplit[1] == "unit" && !bchk.StringInSlice("ethernet-switching", itemTrimSplit) {
 				intConfigList = append(intConfigList, itemTrimSplit[0]+"."+itemTrimSplit[2])
 			}
 		}
 	}
-	intConfigList = uniqueListString(intConfigList)
+	intConfigList = balt.UniqueStrings(intConfigList)
 	if len(intConfigList) == 0 {
 		return "", nil
 	}

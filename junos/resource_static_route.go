@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type staticRouteOptions struct {
@@ -503,7 +504,7 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	qualifiedNextHopList := make([]string, 0)
 	for _, qualifiedNextHop := range d.Get("qualified_next_hop").([]interface{}) {
 		qualifiedNextHopMap := qualifiedNextHop.(map[string]interface{})
-		if stringInSlice(qualifiedNextHopMap["next_hop"].(string), qualifiedNextHopList) {
+		if bchk.StringInSlice(qualifiedNextHopMap["next_hop"].(string), qualifiedNextHopList) {
 			return fmt.Errorf("multiple qualified_next_hop blocks with the same next_hop")
 		}
 		qualifiedNextHopList = append(qualifiedNextHopList, qualifiedNextHopMap["next_hop"].(string))

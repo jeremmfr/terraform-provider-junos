@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -570,7 +571,7 @@ func setBgpOptsFamily(setPrefix, familyType string, familyOptsList []interface{}
 	familyNlriTypeList := make([]string, 0)
 	for _, familyOpts := range familyOptsList {
 		familyOptsM := familyOpts.(map[string]interface{})
-		if stringInSlice(familyOptsM["nlri_type"].(string), familyNlriTypeList) {
+		if bchk.StringInSlice(familyOptsM["nlri_type"].(string), familyNlriTypeList) {
 			switch familyType {
 			case evpnWord:
 				return fmt.Errorf("multiple family_evpn blocks with the same nlri_type")

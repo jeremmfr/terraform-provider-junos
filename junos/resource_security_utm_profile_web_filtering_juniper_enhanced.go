@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type utmProfileWebFilteringEnhancedOptions struct {
@@ -400,7 +401,7 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, m interface{}, jnprSess *
 	categoryNameList := make([]string, 0)
 	for _, v := range d.Get("category").([]interface{}) {
 		category := v.(map[string]interface{})
-		if stringInSlice(category["name"].(string), categoryNameList) {
+		if bchk.StringInSlice(category["name"].(string), categoryNameList) {
 			return fmt.Errorf("multiple category blocks with the same name")
 		}
 		categoryNameList = append(categoryNameList, category["name"].(string))
@@ -409,7 +410,7 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, m interface{}, jnprSess *
 		reputationActionSiteList := make([]string, 0)
 		for _, r := range category["reputation_action"].([]interface{}) {
 			reputation := r.(map[string]interface{})
-			if stringInSlice(reputation["site_reputation"].(string), reputationActionSiteList) {
+			if bchk.StringInSlice(reputation["site_reputation"].(string), reputationActionSiteList) {
 				return fmt.Errorf("multiple reputation_action blocks with the same site_reputation")
 			}
 			reputationActionSiteList = append(reputationActionSiteList, reputation["site_reputation"].(string))
@@ -469,7 +470,7 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, m interface{}, jnprSess *
 	siteReputationNameList := make([]string, 0)
 	for _, v := range d.Get("site_reputation_action").([]interface{}) {
 		siteReputation := v.(map[string]interface{})
-		if stringInSlice(siteReputation["site_reputation"].(string), siteReputationNameList) {
+		if bchk.StringInSlice(siteReputation["site_reputation"].(string), siteReputationNameList) {
 			return fmt.Errorf("multiple site_reputation_action blocks with the same site_reputation")
 		}
 		siteReputationNameList = append(siteReputationNameList, siteReputation["site_reputation"].(string))

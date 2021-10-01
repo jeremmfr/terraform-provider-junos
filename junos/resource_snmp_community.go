@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type snmpCommunityOptions struct {
@@ -291,7 +292,7 @@ func setSnmpCommunity(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 			return fmt.Errorf("conflict between clients and client_list_name in routing-instance %s",
 				routingInstance["name"].(string))
 		}
-		if stringInSlice(routingInstance["name"].(string), routingInstanceNameList) {
+		if bchk.StringInSlice(routingInstance["name"].(string), routingInstanceNameList) {
 			return fmt.Errorf("multiple routing_instance blocks with the same name")
 		}
 		routingInstanceNameList = append(routingInstanceNameList, routingInstance["name"].(string))

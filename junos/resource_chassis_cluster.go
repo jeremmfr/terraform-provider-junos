@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type chassisClusterOptions struct {
@@ -363,7 +364,7 @@ func setChassisCluster(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		interfaceMonitorNameList := make([]string, 0)
 		for _, v2 := range redundancyGroup["interface_monitor"].([]interface{}) {
 			interfaceMonitor := v2.(map[string]interface{})
-			if stringInSlice(interfaceMonitor["name"].(string), interfaceMonitorNameList) {
+			if bchk.StringInSlice(interfaceMonitor["name"].(string), interfaceMonitorNameList) {
 				return fmt.Errorf("multiple interface_monitor blocks with the same name")
 			}
 			interfaceMonitorNameList = append(interfaceMonitorNameList, interfaceMonitor["name"].(string))

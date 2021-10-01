@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -254,7 +255,7 @@ func setEventoptionsDestination(d *schema.ResourceData, m interface{}, jnprSess 
 	archiveSiteURLList := make([]string, 0)
 	for _, v := range d.Get("archive_site").([]interface{}) {
 		archiveSite := v.(map[string]interface{})
-		if stringInSlice(archiveSite["url"].(string), archiveSiteURLList) {
+		if bchk.StringInSlice(archiveSite["url"].(string), archiveSiteURLList) {
 			return fmt.Errorf("multiple archive_site blocks with the same url")
 		}
 		archiveSiteURLList = append(archiveSiteURLList, archiveSite["url"].(string))

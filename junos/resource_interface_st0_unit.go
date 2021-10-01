@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 func resourceInterfaceSt0Unit() *schema.Resource {
@@ -163,7 +164,7 @@ func searchInterfaceSt0UnitToCreate(m interface{}, jnprSess *NetconfObject) (str
 		}
 	}
 	for i := 0; i <= 1073741823; i++ {
-		if !stringInSlice("st0."+strconv.Itoa(i), st0int) {
+		if !bchk.StringInSlice("st0."+strconv.Itoa(i), st0int) {
 			return "st0." + strconv.Itoa(i), nil
 		}
 	}
