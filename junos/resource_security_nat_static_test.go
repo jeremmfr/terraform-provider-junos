@@ -70,7 +70,8 @@ func TestAccJunosSecurityNatStatic_basic(t *testing.T) {
 func testAccJunosSecurityNatStaticConfigCreate() string {
 	return `
 resource junos_security_nat_static testacc_securityNATStt {
-  name = "testacc_securityNATStt"
+  name        = "testacc_securityNATStt"
+  description = "testacc securityNATStt"
   from {
     type  = "zone"
     value = [junos_security_zone.testacc_securityNATStt.name]

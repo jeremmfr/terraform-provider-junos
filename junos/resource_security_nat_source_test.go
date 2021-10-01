@@ -102,7 +102,8 @@ func TestAccJunosSecurityNatSource_basic(t *testing.T) {
 func testAccJunosSecurityNatSourceConfigCreate() string {
 	return `
 resource junos_security_nat_source testacc_securitySNAT {
-  name = "testacc_securitySNAT"
+  name        = "testacc_securitySNAT"
+  description = "testacc securitySNAT"
   from {
     type  = "zone"
     value = [junos_security_zone.testacc_securitySNAT.name]
@@ -126,6 +127,7 @@ resource junos_security_nat_source testacc_securitySNAT {
 }
 resource junos_security_nat_source_pool testacc_securitySNATPool {
   name                                   = "testacc_securitySNATPool"
+  description                            = "testacc securitySNATPool"
   address                                = ["192.0.2.1/32", "192.0.2.64/27"]
   routing_instance                       = junos_routing_instance.testacc_securitySNAT.name
   address_pooling                        = "paired"

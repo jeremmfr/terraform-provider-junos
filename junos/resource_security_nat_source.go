@@ -12,10 +12,11 @@ import (
 )
 
 type natSourceOptions struct {
-	name string
-	from []map[string]interface{}
-	to   []map[string]interface{}
-	rule []map[string]interface{}
+	name        string
+	description string
+	from        []map[string]interface{}
+	to          []map[string]interface{}
+	rule        []map[string]interface{}
 }
 
 func resourceSecurityNatSource() *schema.Resource {
@@ -154,6 +155,10 @@ func resourceSecurityNatSource() *schema.Resource {
 						},
 					},
 				},
+			},
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 		},
 	}
@@ -438,6 +443,9 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 			}
 		}
 	}
+	if v := d.Get("description").(string); v != "" {
+		configSet = append(configSet, setPrefix+" description \""+v+"\"")
+	}
 
 	return sess.configSet(configSet, jnprSess)
 }
@@ -550,6 +558,8 @@ func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObj
 					}
 				}
 				confRead.rule = append(confRead.rule, ruleOptions)
+			case strings.HasPrefix(itemTrim, "description "):
+				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
 			}
 		}
 	}
@@ -576,6 +586,9 @@ func fillSecurityNatSourceData(d *schema.ResourceData, natSourceOptions natSourc
 		panic(tfErr)
 	}
 	if tfErr := d.Set("rule", natSourceOptions.rule); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("description", natSourceOptions.description); tfErr != nil {
 		panic(tfErr)
 	}
 }

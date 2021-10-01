@@ -12,9 +12,10 @@ import (
 )
 
 type natDestinationOptions struct {
-	name string
-	from []map[string]interface{}
-	rule []map[string]interface{}
+	name        string
+	description string
+	from        []map[string]interface{}
+	rule        []map[string]interface{}
 }
 
 func resourceSecurityNatDestination() *schema.Resource {
@@ -118,6 +119,10 @@ func resourceSecurityNatDestination() *schema.Resource {
 						},
 					},
 				},
+			},
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 		},
 	}
@@ -377,6 +382,9 @@ func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *
 			}
 		}
 	}
+	if v := d.Get("description").(string); v != "" {
+		configSet = append(configSet, setPrefix+" description \""+v+"\"")
+	}
 
 	return sess.configSet(configSet, jnprSess)
 }
@@ -465,6 +473,8 @@ func readSecurityNatDestination(natDestination string,
 					}
 				}
 				confRead.rule = append(confRead.rule, ruleOptions)
+			case strings.HasPrefix(itemTrim, "description "):
+				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
 			}
 		}
 	}
@@ -488,6 +498,9 @@ func fillSecurityNatDestinationData(d *schema.ResourceData, natDestinationOption
 		panic(tfErr)
 	}
 	if tfErr := d.Set("rule", natDestinationOptions.rule); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("description", natDestinationOptions.description); tfErr != nil {
 		panic(tfErr)
 	}
 }

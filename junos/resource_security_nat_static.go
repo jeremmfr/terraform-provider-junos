@@ -13,9 +13,10 @@ import (
 )
 
 type natStaticOptions struct {
-	name string
-	from []map[string]interface{}
-	rule []map[string]interface{}
+	name        string
+	description string
+	from        []map[string]interface{}
+	rule        []map[string]interface{}
 }
 
 func resourceSecurityNatStatic() *schema.Resource {
@@ -133,6 +134,10 @@ func resourceSecurityNatStatic() *schema.Resource {
 						},
 					},
 				},
+			},
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 		},
 	}
@@ -425,6 +430,9 @@ func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *Netco
 			}
 		}
 	}
+	if v := d.Get("description").(string); v != "" {
+		configSet = append(configSet, setPrefix+" description \""+v+"\"")
+	}
 
 	return sess.configSet(configSet, jnprSess)
 }
@@ -549,6 +557,8 @@ func readSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObj
 					}
 				}
 				confRead.rule = append(confRead.rule, ruleOptions)
+			case strings.HasPrefix(itemTrim, "description "):
+				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
 			}
 		}
 	}
@@ -572,6 +582,9 @@ func fillSecurityNatStaticData(d *schema.ResourceData, natStaticOptions natStati
 		panic(tfErr)
 	}
 	if tfErr := d.Set("rule", natStaticOptions.rule); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("description", natStaticOptions.description); tfErr != nil {
 		panic(tfErr)
 	}
 }
