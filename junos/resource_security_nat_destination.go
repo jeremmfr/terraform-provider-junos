@@ -347,26 +347,26 @@ func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *
 		if vv := rule["destination_address_name"].(string); vv != "" {
 			configSet = append(configSet, setPrefixRule+" match destination-address-name \""+vv+"\"")
 		}
-		for _, vv := range rule["application"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixRule+" match application \""+vv.(string)+"\"")
+		for _, vv := range sortSetOfString(rule["application"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixRule+" match application \""+vv+"\"")
 		}
-		for _, vv := range rule["destination_port"].(*schema.Set).List() {
-			if !regexpDestPort.MatchString(vv.(string)) {
+		for _, vv := range sortSetOfString(rule["destination_port"].(*schema.Set).List()) {
+			if !regexpDestPort.MatchString(vv) {
 				return fmt.Errorf("destination_port need to have format `x` or `x to y` in rule %s", rule["name"].(string))
 			}
-			configSet = append(configSet, setPrefixRule+" match destination-port "+vv.(string))
+			configSet = append(configSet, setPrefixRule+" match destination-port "+vv)
 		}
-		for _, vv := range rule["protocol"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixRule+" match protocol "+vv.(string))
+		for _, vv := range sortSetOfString(rule["protocol"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixRule+" match protocol "+vv)
 		}
-		for _, vv := range rule["source_address"].(*schema.Set).List() {
-			if err := validateCIDRNetwork(vv.(string)); err != nil {
+		for _, vv := range sortSetOfString(rule["source_address"].(*schema.Set).List()) {
+			if err := validateCIDRNetwork(vv); err != nil {
 				return err
 			}
-			configSet = append(configSet, setPrefixRule+" match source-address "+vv.(string))
+			configSet = append(configSet, setPrefixRule+" match source-address "+vv)
 		}
-		for _, vv := range rule["source_address_name"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixRule+" match source-address-name \""+vv.(string)+"\"")
+		for _, vv := range sortSetOfString(rule["source_address_name"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixRule+" match source-address-name \""+vv+"\"")
 		}
 		for _, thenV := range rule[thenWord].([]interface{}) {
 			then := thenV.(map[string]interface{})

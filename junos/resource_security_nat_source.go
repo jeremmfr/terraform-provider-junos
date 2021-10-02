@@ -387,8 +387,8 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				return fmt.Errorf("one of destination_address, destination_address_name, " +
 					"source_address or source_address_name arguments must be set")
 			}
-			for _, vv := range match["application"].(*schema.Set).List() {
-				configSet = append(configSet, setPrefixRule+" match application \""+vv.(string)+"\"")
+			for _, vv := range sortSetOfString(match["application"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefixRule+" match application \""+vv+"\"")
 			}
 			for _, address := range sortSetOfString(match["destination_address"].(*schema.Set).List()) {
 				err := validateCIDRNetwork(address)
@@ -397,14 +397,14 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				}
 				configSet = append(configSet, setPrefixRule+" match destination-address "+address)
 			}
-			for _, vv := range match["destination_address_name"].(*schema.Set).List() {
-				configSet = append(configSet, setPrefixRule+" match destination-address-name \""+vv.(string)+"\"")
+			for _, vv := range sortSetOfString(match["destination_address_name"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefixRule+" match destination-address-name \""+vv+"\"")
 			}
-			for _, vv := range match["destination_port"].(*schema.Set).List() {
-				if !regexpPort.MatchString(vv.(string)) {
+			for _, vv := range sortSetOfString(match["destination_port"].(*schema.Set).List()) {
+				if !regexpPort.MatchString(vv) {
 					return fmt.Errorf("destination_port need to have format `x` or `x to y` in rule %s", rule["name"].(string))
 				}
-				configSet = append(configSet, setPrefixRule+" match destination-port "+vv.(string))
+				configSet = append(configSet, setPrefixRule+" match destination-port "+vv)
 			}
 			for _, proto := range sortSetOfString(match["protocol"].(*schema.Set).List()) {
 				configSet = append(configSet, setPrefixRule+" match protocol "+proto)
@@ -416,14 +416,14 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				}
 				configSet = append(configSet, setPrefixRule+" match source-address "+address)
 			}
-			for _, vv := range match["source_address_name"].(*schema.Set).List() {
-				configSet = append(configSet, setPrefixRule+" match source-address-name \""+vv.(string)+"\"")
+			for _, vv := range sortSetOfString(match["source_address_name"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefixRule+" match source-address-name \""+vv+"\"")
 			}
-			for _, vv := range match["source_port"].(*schema.Set).List() {
-				if !regexpPort.MatchString(vv.(string)) {
+			for _, vv := range sortSetOfString(match["source_port"].(*schema.Set).List()) {
+				if !regexpPort.MatchString(vv) {
 					return fmt.Errorf("source_port need to have format `x` or `x to y` in rule %s", rule["name"].(string))
 				}
-				configSet = append(configSet, setPrefixRule+" match source-port "+vv.(string))
+				configSet = append(configSet, setPrefixRule+" match source-port "+vv)
 			}
 		}
 		for _, thenV := range rule[thenWord].([]interface{}) {

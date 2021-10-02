@@ -369,20 +369,20 @@ func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *Netco
 		} else if rule["destination_port_to"].(int) != 0 {
 			return fmt.Errorf("destination_port need to be set with destination_port_to in rule %s", rule["name"].(string))
 		}
-		for _, vv := range rule["source_address"].(*schema.Set).List() {
-			if err := validateCIDRNetwork(vv.(string)); err != nil {
+		for _, vv := range sortSetOfString(rule["source_address"].(*schema.Set).List()) {
+			if err := validateCIDRNetwork(vv); err != nil {
 				return err
 			}
-			configSet = append(configSet, setPrefixRule+" match source-address "+vv.(string))
+			configSet = append(configSet, setPrefixRule+" match source-address "+vv)
 		}
-		for _, vv := range rule["source_address_name"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixRule+" match source-address-name \""+vv.(string)+"\"")
+		for _, vv := range sortSetOfString(rule["source_address_name"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixRule+" match source-address-name \""+vv+"\"")
 		}
-		for _, vv := range rule["source_port"].(*schema.Set).List() {
-			if !regexpSourcePort.MatchString(vv.(string)) {
+		for _, vv := range sortSetOfString(rule["source_port"].(*schema.Set).List()) {
+			if !regexpSourcePort.MatchString(vv) {
 				return fmt.Errorf("source_port need to have format `x` or `x to y` in rule %s", rule["name"].(string))
 			}
-			configSet = append(configSet, setPrefixRule+" match source-port "+vv.(string))
+			configSet = append(configSet, setPrefixRule+" match source-port "+vv)
 		}
 		for _, thenV := range rule[thenWord].([]interface{}) {
 			then := thenV.(map[string]interface{})
