@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type samplingInstanceOptions struct {
@@ -950,7 +951,7 @@ func setForwardingoptionsSamplingInstanceOutput(
 	flowServerHostnameList := make([]string, 0)
 	for _, vFS := range output["flow_server"].([]interface{}) {
 		flowServer := vFS.(map[string]interface{})
-		if stringInSlice(flowServer["hostname"].(string), flowServerHostnameList) {
+		if bchk.StringInSlice(flowServer["hostname"].(string), flowServerHostnameList) {
 			return fmt.Errorf("multiple flow_server blocks with the same hostname")
 		}
 		flowServerHostnameList = append(flowServerHostnameList, flowServer["hostname"].(string))
@@ -1019,7 +1020,7 @@ func setForwardingoptionsSamplingInstanceOutput(
 	interfaceNameList := make([]string, 0)
 	for _, vIF := range output["interface"].([]interface{}) {
 		interFace := vIF.(map[string]interface{})
-		if stringInSlice(interFace["name"].(string), interfaceNameList) {
+		if bchk.StringInSlice(interFace["name"].(string), interfaceNameList) {
 			return fmt.Errorf("multiple interface blocks with the same name")
 		}
 		interfaceNameList = append(interfaceNameList, interFace["name"].(string))

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type dynamicAddressNameOptions struct {
@@ -301,7 +302,7 @@ func setSecurityDynamicAddressName(d *schema.ResourceData, m interface{}, jnprSe
 		propertyNameList := make([]string, 0)
 		for _, pro := range profileCategory["property"].([]interface{}) {
 			property := pro.(map[string]interface{})
-			if stringInSlice(property["name"].(string), propertyNameList) {
+			if bchk.StringInSlice(property["name"].(string), propertyNameList) {
 				return fmt.Errorf("multiple property blocks with the same name")
 			}
 			propertyNameList = append(propertyNameList, property["name"].(string))

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type groupDualSystemOptions struct {
@@ -340,7 +341,7 @@ func resourceGroupDualSystemImport(d *schema.ResourceData, m interface{}) ([]*sc
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
 
-	if !stringInSlice(d.Id(), []string{"node0", "node1", "re0", "re1"}) {
+	if !bchk.StringInSlice(d.Id(), []string{"node0", "node1", "re0", "re1"}) {
 		return nil, fmt.Errorf("invalid group id '%v' (id must be <name>)", d.Id())
 	}
 	groupDualSystemExists, err := checkGroupDualSystemExists(d.Id(), m, jnprSess)
@@ -397,7 +398,7 @@ func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		familyInetAddressCIDRIPList := make([]string, 0)
 		for _, v2 := range interfaceFxp0["family_inet_address"].([]interface{}) {
 			familyInetAddress := v2.(map[string]interface{})
-			if stringInSlice(familyInetAddress["cidr_ip"].(string), familyInetAddressCIDRIPList) {
+			if bchk.StringInSlice(familyInetAddress["cidr_ip"].(string), familyInetAddressCIDRIPList) {
 				return fmt.Errorf("multiple family_inet_address blocks with the same cidr_ip")
 			}
 			familyInetAddressCIDRIPList = append(familyInetAddressCIDRIPList, familyInetAddress["cidr_ip"].(string))
@@ -419,7 +420,7 @@ func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		familyInet6AddressCIDRIPList := make([]string, 0)
 		for _, v2 := range interfaceFxp0["family_inet6_address"].([]interface{}) {
 			familyInet6Address := v2.(map[string]interface{})
-			if stringInSlice(familyInet6Address["cidr_ip"].(string), familyInet6AddressCIDRIPList) {
+			if bchk.StringInSlice(familyInet6Address["cidr_ip"].(string), familyInet6AddressCIDRIPList) {
 				return fmt.Errorf("multiple family_inet6_address blocks with the same cidr_ip")
 			}
 			familyInet6AddressCIDRIPList = append(familyInet6AddressCIDRIPList, familyInet6Address["cidr_ip"].(string))
@@ -444,7 +445,7 @@ func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		staticRouteDestList := make([]string, 0)
 		for _, v2 := range routingOptions["static_route"].([]interface{}) {
 			staticRoute := v2.(map[string]interface{})
-			if stringInSlice(staticRoute["destination"].(string), staticRouteDestList) {
+			if bchk.StringInSlice(staticRoute["destination"].(string), staticRouteDestList) {
 				return fmt.Errorf("multiple static_route blocks with the same destination")
 			}
 			staticRouteDestList = append(staticRouteDestList, staticRoute["destination"].(string))

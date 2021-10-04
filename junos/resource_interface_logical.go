@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -738,7 +739,7 @@ func resourceInterfaceLogicalImport(d *schema.ResourceData, m interface{}) ([]*s
 	}
 	if interfaceLogicalOpt.vlanID == 0 {
 		intCut := strings.Split(d.Id(), ".")
-		if !stringInSlice(intCut[0], []string{st0Word, "irb", "vlan"}) &&
+		if !bchk.StringInSlice(intCut[0], []string{st0Word, "irb", "vlan"}) &&
 			intCut[1] != "0" {
 			if tfErr := d.Set("vlan_no_compute", true); tfErr != nil {
 				panic(tfErr)
@@ -920,7 +921,7 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 	}
 	if d.Get("vlan_id").(int) != 0 {
 		configSet = append(configSet, setPrefix+"vlan-id "+strconv.Itoa(d.Get("vlan_id").(int)))
-	} else if !stringInSlice(intCut[0], []string{st0Word, "irb", "vlan"}) &&
+	} else if !bchk.StringInSlice(intCut[0], []string{st0Word, "irb", "vlan"}) &&
 		intCut[1] != "0" && !d.Get("vlan_no_compute").(bool) {
 		configSet = append(configSet, setPrefix+"vlan-id "+intCut[1])
 	}
@@ -1343,7 +1344,7 @@ func setFamilyAddress(inetAddress map[string]interface{}, setPrefix string, fami
 	addressCIDRIPList := make([]string, 0)
 	for _, address := range inetAddress["address"].([]interface{}) {
 		addressMap := address.(map[string]interface{})
-		if stringInSlice(addressMap["cidr_ip"].(string), addressCIDRIPList) {
+		if bchk.StringInSlice(addressMap["cidr_ip"].(string), addressCIDRIPList) {
 			if family == inetWord {
 				return configSet, fmt.Errorf("multiple family_inet blocks with the same cidr_ip")
 			}
@@ -1372,7 +1373,7 @@ func setFamilyAddress(inetAddress map[string]interface{}, setPrefix string, fami
 			if vrrpGroupMap["no_accept_data"].(bool) && vrrpGroupMap["accept_data"].(bool) {
 				return configSet, fmt.Errorf("ConflictsWith no_accept_data and accept_data")
 			}
-			if intInSlice(vrrpGroupMap["identifier"].(int), vrrpGroupIDList) {
+			if bchk.IntInSlice(vrrpGroupMap["identifier"].(int), vrrpGroupIDList) {
 				return configSet, fmt.Errorf("multiple vrrp_group blocks with the same identifier")
 			}
 			vrrpGroupIDList = append(vrrpGroupIDList, vrrpGroupMap["identifier"].(int))
@@ -1437,7 +1438,7 @@ func setFamilyAddress(inetAddress map[string]interface{}, setPrefix string, fami
 			trackInterfaceList := make([]string, 0)
 			for _, trackInterface := range vrrpGroupMap["track_interface"].([]interface{}) {
 				trackInterfaceMap := trackInterface.(map[string]interface{})
-				if stringInSlice(trackInterfaceMap["interface"].(string), trackInterfaceList) {
+				if bchk.StringInSlice(trackInterfaceMap["interface"].(string), trackInterfaceList) {
 					return configSet, fmt.Errorf("multiple track_interface blocks with the same interface")
 				}
 				trackInterfaceList = append(trackInterfaceList, trackInterfaceMap["interface"].(string))
@@ -1447,7 +1448,7 @@ func setFamilyAddress(inetAddress map[string]interface{}, setPrefix string, fami
 			trackRouteList := make([]string, 0)
 			for _, trackRoute := range vrrpGroupMap["track_route"].([]interface{}) {
 				trackRouteMap := trackRoute.(map[string]interface{})
-				if stringInSlice(trackRouteMap["route"].(string), trackRouteList) {
+				if bchk.StringInSlice(trackRouteMap["route"].(string), trackRouteList) {
 					return configSet, fmt.Errorf("multiple track_route blocks with the same interface")
 				}
 				trackRouteList = append(trackRouteList, trackRouteMap["route"].(string))

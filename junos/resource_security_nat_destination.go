@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type natDestinationOptions struct {
@@ -329,7 +330,7 @@ func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *
 	ruleNameList := make([]string, 0)
 	for _, v := range d.Get("rule").([]interface{}) {
 		rule := v.(map[string]interface{})
-		if stringInSlice(rule["name"].(string), ruleNameList) {
+		if bchk.StringInSlice(rule["name"].(string), ruleNameList) {
 			return fmt.Errorf("multiple rule blocks with the same name")
 		}
 		ruleNameList = append(ruleNameList, rule["name"].(string))

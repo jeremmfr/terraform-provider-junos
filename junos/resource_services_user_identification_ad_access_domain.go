@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -327,7 +328,7 @@ func setServicesUserIdentAdAccessDomain(d *schema.ResourceData, m interface{}, j
 	domainControllerNameList := make([]string, 0)
 	for _, v := range d.Get("domain_controller").([]interface{}) {
 		domainController := v.(map[string]interface{})
-		if stringInSlice(domainController["name"].(string), domainControllerNameList) {
+		if bchk.StringInSlice(domainController["name"].(string), domainControllerNameList) {
 			return fmt.Errorf("multiple domain_controller blocks with the same name")
 		}
 		domainControllerNameList = append(domainControllerNameList, domainController["name"].(string))

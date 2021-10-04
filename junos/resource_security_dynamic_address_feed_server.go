@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type dynamicAddressFeedServerOptions struct {
@@ -296,7 +297,7 @@ func setSecurityDynamicAddressFeedServer(d *schema.ResourceData, m interface{}, 
 	feedNameList := make([]string, 0)
 	for _, fn := range d.Get("feed_name").([]interface{}) {
 		feedName := fn.(map[string]interface{})
-		if stringInSlice(feedName["name"].(string), feedNameList) {
+		if bchk.StringInSlice(feedName["name"].(string), feedNameList) {
 			return fmt.Errorf("multiple feed_name blocks with the same name")
 		}
 		feedNameList = append(feedNameList, feedName["name"].(string))

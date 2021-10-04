@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type vlanOptions struct {
@@ -77,7 +78,7 @@ func resourceVlan() *schema.Resource {
 				Optional: true,
 				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
 					value := v.(string)
-					if !checkStringHasPrefixInList(value, []string{"irb.", "vlan."}) {
+					if !bchk.StringHasOneOfPrefixes(value, []string{"irb.", "vlan."}) {
 						errors = append(errors, fmt.Errorf(
 							"%q for %q is not start with 'irb.' or 'vlan.'", value, k))
 					}

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type securityIntellPolicyOptions struct {
@@ -250,7 +251,7 @@ func setServicesSecurityIntellPolicy(d *schema.ResourceData, m interface{}, jnpr
 	categoryNameList := make([]string, 0)
 	for _, v := range d.Get("category").([]interface{}) {
 		category := v.(map[string]interface{})
-		if stringInSlice(category["name"].(string), categoryNameList) {
+		if bchk.StringInSlice(category["name"].(string), categoryNameList) {
 			return fmt.Errorf("multiple category blocks with the same name")
 		}
 		categoryNameList = append(categoryNameList, category["name"].(string))

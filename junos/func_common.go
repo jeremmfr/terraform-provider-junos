@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type formatName int
@@ -126,7 +127,7 @@ func validateWildcardWithMask(wildcard string) error {
 		return fmt.Errorf("mask %v is improperly formatted, must be in x.x.x.x notation", wildcardSplit[1])
 	}
 	for _, octet := range strings.Split(mask.String(), ".") {
-		if !stringInSlice(octet, []string{"255", "254", "252", "248", "240", "224", "192", "128", "0"}) {
+		if !bchk.StringInSlice(octet, []string{"255", "254", "252", "248", "240", "224", "192", "128", "0"}) {
 			return fmt.Errorf("mask %v must be in subnet mask format, octet [%v] is not", mask, octet)
 		}
 	}
@@ -178,7 +179,7 @@ func validateNameObjectJunos(exclude []string, length int, format formatName) sc
 				AttributePath: path,
 			})
 		}
-		if stringInSlice(v, exclude) {
+		if bchk.StringInSlice(v, exclude) {
 			diags = append(diags, diag.Diagnostic{
 				Severity:      diag.Error,
 				Summary:       fmt.Sprintf("expected value to not be one of %q, got %v", exclude, i),
@@ -247,26 +248,6 @@ func validateFilePermission() schema.SchemaValidateDiagFunc {
 	}
 }
 
-func stringInSlice(str string, list []string) bool {
-	for _, v := range list {
-		if v == str {
-			return true
-		}
-	}
-
-	return false
-}
-
-func intInSlice(num int, list []int) bool {
-	for _, v := range list {
-		if v == num {
-			return true
-		}
-	}
-
-	return false
-}
-
 func sortSetOfString(list []interface{}) []string {
 	s := make([]string, 0)
 	for _, e := range list {
@@ -333,50 +314,6 @@ func listOfSyslogFacility() []string {
 		"authorization", "daemon", "ftp", "kernel", "user",
 		"local0", "local1", "local2", "local3", "local4", "local5", "local6", "local7",
 	}
-}
-
-func uniqueListString(s []string) []string {
-	k := make(map[string]bool)
-	r := []string{}
-	for _, v := range s {
-		if _, value := k[v]; !value {
-			k[v] = true
-			r = append(r, v)
-		}
-	}
-
-	return r
-}
-
-type sortStringsLength []string
-
-func (s sortStringsLength) Len() int {
-	return len(s)
-}
-
-func (s sortStringsLength) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-}
-
-func (s sortStringsLength) Less(i, j int) bool {
-	if len(s[i]) < len(s[j]) {
-		return true
-	}
-	if len(s[j]) < len(s[i]) {
-		return false
-	}
-
-	return s[i] < s[j]
-}
-
-func checkStringHasPrefixInList(s string, list []string) bool {
-	for _, item := range list {
-		if strings.HasPrefix(s, item) {
-			return true
-		}
-	}
-
-	return false
 }
 
 func replaceTildeToHomeDir(path *string) error {

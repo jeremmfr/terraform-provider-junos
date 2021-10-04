@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type rpmProbeOptions struct {
@@ -514,7 +515,7 @@ func setServicesRpmProbe(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 	testNameList := make([]string, 0)
 	for _, t := range d.Get("test").([]interface{}) {
 		test := t.(map[string]interface{})
-		if stringInSlice(test["name"].(string), testNameList) {
+		if bchk.StringInSlice(test["name"].(string), testNameList) {
 			return fmt.Errorf("multiple test blocks with the same name")
 		}
 		testNameList = append(testNameList, test["name"].(string))

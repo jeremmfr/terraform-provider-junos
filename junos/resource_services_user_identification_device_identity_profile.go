@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type svcUserIdentDevIdentProfileOptions struct {
@@ -263,7 +264,7 @@ func setServicesUserIdentDeviceIdentityProfile(d *schema.ResourceData, m interfa
 	attributeNameList := make([]string, 0)
 	for _, v := range d.Get("attribute").([]interface{}) {
 		attribute := v.(map[string]interface{})
-		if stringInSlice(attribute["name"].(string), attributeNameList) {
+		if bchk.StringInSlice(attribute["name"].(string), attributeNameList) {
 			return fmt.Errorf("multiple attribute blocks with the same name")
 		}
 		attributeNameList = append(attributeNameList, attribute["name"].(string))

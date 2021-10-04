@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type ipsecVpnOptions struct {
@@ -404,7 +405,7 @@ func setIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	trafficSelectorName := make([]string, 0)
 	for _, v := range d.Get("traffic_selector").([]interface{}) {
 		tS := v.(map[string]interface{})
-		if stringInSlice(tS["name"].(string), trafficSelectorName) {
+		if bchk.StringInSlice(tS["name"].(string), trafficSelectorName) {
 			return fmt.Errorf("multiple traffic_selector blocks with the same name")
 		}
 		trafficSelectorName = append(trafficSelectorName, tS["name"].(string))

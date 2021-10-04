@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type zoneOptions struct {
@@ -436,7 +437,7 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 		addressNameList := make([]string, 0)
 		for _, v := range d.Get("address_book").([]interface{}) {
 			addressBook := v.(map[string]interface{})
-			if stringInSlice(addressBook["name"].(string), addressNameList) {
+			if bchk.StringInSlice(addressBook["name"].(string), addressNameList) {
 				return fmt.Errorf("multiple address with the same name")
 			}
 			addressNameList = append(addressNameList, addressBook["name"].(string))
@@ -449,7 +450,7 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 		}
 		for _, v := range d.Get("address_book_dns").([]interface{}) {
 			addressBook := v.(map[string]interface{})
-			if stringInSlice(addressBook["name"].(string), addressNameList) {
+			if bchk.StringInSlice(addressBook["name"].(string), addressNameList) {
 				return fmt.Errorf("multiple address with the same name")
 			}
 			addressNameList = append(addressNameList, addressBook["name"].(string))
@@ -469,7 +470,7 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 		}
 		for _, v := range d.Get("address_book_range").([]interface{}) {
 			addressBook := v.(map[string]interface{})
-			if stringInSlice(addressBook["name"].(string), addressNameList) {
+			if bchk.StringInSlice(addressBook["name"].(string), addressNameList) {
 				return fmt.Errorf("multiple address with the same name")
 			}
 			addressNameList = append(addressNameList, addressBook["name"].(string))
@@ -483,7 +484,7 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 		}
 		for _, v := range d.Get("address_book_wildcard").([]interface{}) {
 			addressBook := v.(map[string]interface{})
-			if stringInSlice(addressBook["name"].(string), addressNameList) {
+			if bchk.StringInSlice(addressBook["name"].(string), addressNameList) {
 				return fmt.Errorf("multiple address with the same name")
 			}
 			addressNameList = append(addressNameList, addressBook["name"].(string))
@@ -496,7 +497,7 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 		}
 		for _, v := range d.Get("address_book_set").([]interface{}) {
 			addressBookSet := v.(map[string]interface{})
-			if stringInSlice(addressBookSet["name"].(string), addressNameList) {
+			if bchk.StringInSlice(addressBookSet["name"].(string), addressNameList) {
 				return fmt.Errorf("multiple address or address-set with the same name")
 			}
 			addressNameList = append(addressNameList, addressBookSet["name"].(string))

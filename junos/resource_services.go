@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -1009,7 +1010,7 @@ func setServicesSecurityIntell(d *schema.ResourceData, secuIntel interface{}) ([
 		defaultPolicyCatNameList := make([]string, 0)
 		for _, v := range secuIntelM["default_policy"].([]interface{}) {
 			defPolicy := v.(map[string]interface{})
-			if stringInSlice(defPolicy["category_name"].(string), defaultPolicyCatNameList) {
+			if bchk.StringInSlice(defPolicy["category_name"].(string), defaultPolicyCatNameList) {
 				return configSet, fmt.Errorf("multiple default_policy blocks with the same category_name")
 			}
 			defaultPolicyCatNameList = append(defaultPolicyCatNameList, defPolicy["category_name"].(string))
@@ -1263,20 +1264,20 @@ func readServices(m interface{}, jnprSess *NetconfObject) (servicesOptions, erro
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case checkStringHasPrefixInList(itemTrim, listLinesServicesAdvancedAntiMalware()) ||
+			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesServicesAdvancedAntiMalware()) ||
 				strings.HasPrefix(itemTrim, "advanced-anti-malware connection"):
 				readServicesAdvancedAntiMalware(&confRead, itemTrim)
 			case strings.HasPrefix(itemTrim, "application-identification"):
 				if err := readServicesApplicationIdentification(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
-			case checkStringHasPrefixInList(itemTrim, listLinesServicesSecurityIntel()) ||
+			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesServicesSecurityIntel()) ||
 				strings.HasPrefix(itemTrim, "security-intelligence authentication ") ||
 				strings.HasPrefix(itemTrim, "security-intelligence url "):
 				if err := readServicesSecurityIntel(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
-			case checkStringHasPrefixInList(itemTrim, listLinesServicesUserIdentification()) ||
+			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesServicesUserIdentification()) ||
 				strings.HasPrefix(itemTrim, "user-identification active-directory-access"):
 				if err := readServicesUserIdentification(&confRead, itemTrim); err != nil {
 					return confRead, err

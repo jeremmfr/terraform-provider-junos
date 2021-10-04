@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type asPathGroupOptions struct {
@@ -249,7 +250,7 @@ func setPolicyoptionsAsPathGroup(d *schema.ResourceData, m interface{}, jnprSess
 	asPathNameList := make([]string, 0)
 	for _, v := range d.Get("as_path").([]interface{}) {
 		asPath := v.(map[string]interface{})
-		if stringInSlice(asPath["name"].(string), asPathNameList) {
+		if bchk.StringInSlice(asPath["name"].(string), asPathNameList) {
 			return fmt.Errorf("multiple as_path blocks with the same name")
 		}
 		asPathNameList = append(asPathNameList, asPath["name"].(string))
