@@ -13,9 +13,10 @@ import (
 )
 
 type natStaticOptions struct {
-	name string
-	from []map[string]interface{}
-	rule []map[string]interface{}
+	name        string
+	description string
+	from        []map[string]interface{}
+	rule        []map[string]interface{}
 }
 
 func resourceSecurityNatStatic() *schema.Resource {
@@ -133,6 +134,10 @@ func resourceSecurityNatStatic() *schema.Resource {
 						},
 					},
 				},
+			},
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 		},
 	}
@@ -364,20 +369,20 @@ func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *Netco
 		} else if rule["destination_port_to"].(int) != 0 {
 			return fmt.Errorf("destination_port need to be set with destination_port_to in rule %s", rule["name"].(string))
 		}
-		for _, vv := range rule["source_address"].(*schema.Set).List() {
-			if err := validateCIDRNetwork(vv.(string)); err != nil {
+		for _, vv := range sortSetOfString(rule["source_address"].(*schema.Set).List()) {
+			if err := validateCIDRNetwork(vv); err != nil {
 				return err
 			}
-			configSet = append(configSet, setPrefixRule+" match source-address "+vv.(string))
+			configSet = append(configSet, setPrefixRule+" match source-address "+vv)
 		}
-		for _, vv := range rule["source_address_name"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixRule+" match source-address-name \""+vv.(string)+"\"")
+		for _, vv := range sortSetOfString(rule["source_address_name"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixRule+" match source-address-name \""+vv+"\"")
 		}
-		for _, vv := range rule["source_port"].(*schema.Set).List() {
-			if !regexpSourcePort.MatchString(vv.(string)) {
+		for _, vv := range sortSetOfString(rule["source_port"].(*schema.Set).List()) {
+			if !regexpSourcePort.MatchString(vv) {
 				return fmt.Errorf("source_port need to have format `x` or `x to y` in rule %s", rule["name"].(string))
 			}
-			configSet = append(configSet, setPrefixRule+" match source-port "+vv.(string))
+			configSet = append(configSet, setPrefixRule+" match source-port "+vv)
 		}
 		for _, thenV := range rule[thenWord].([]interface{}) {
 			then := thenV.(map[string]interface{})
@@ -424,6 +429,9 @@ func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				}
 			}
 		}
+	}
+	if v := d.Get("description").(string); v != "" {
+		configSet = append(configSet, setPrefix+" description \""+v+"\"")
 	}
 
 	return sess.configSet(configSet, jnprSess)
@@ -549,6 +557,8 @@ func readSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObj
 					}
 				}
 				confRead.rule = append(confRead.rule, ruleOptions)
+			case strings.HasPrefix(itemTrim, "description "):
+				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
 			}
 		}
 	}
@@ -572,6 +582,9 @@ func fillSecurityNatStaticData(d *schema.ResourceData, natStaticOptions natStati
 		panic(tfErr)
 	}
 	if tfErr := d.Set("rule", natStaticOptions.rule); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("description", natStaticOptions.description); tfErr != nil {
 		panic(tfErr)
 	}
 }

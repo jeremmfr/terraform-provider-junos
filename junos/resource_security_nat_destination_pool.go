@@ -16,6 +16,7 @@ type natDestinationPoolOptions struct {
 	name            string
 	address         string
 	addressTo       string
+	description     string
 	routingInstance string
 }
 
@@ -51,6 +52,10 @@ func resourceSecurityNatDestinationPool() *schema.Resource {
 				Optional:         true,
 				ValidateDiagFunc: validateIPMaskFunc(),
 				ConflictsWith:    []string{"address_port"},
+			},
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"routing_instance": {
 				Type:             schema.TypeString,
@@ -263,6 +268,9 @@ func setSecurityNatDestinationPool(d *schema.ResourceData, m interface{}, jnprSe
 	if d.Get("address_to").(string) != "" {
 		configSet = append(configSet, setPrefix+" address to "+d.Get("address_to").(string))
 	}
+	if v := d.Get("description").(string); v != "" {
+		configSet = append(configSet, setPrefix+" description \""+v+"\"")
+	}
 	if d.Get("routing_instance").(string) != "" {
 		configSet = append(configSet, setPrefix+" routing-instance "+d.Get("routing_instance").(string))
 	}
@@ -300,6 +308,8 @@ func readSecurityNatDestinationPool(natDestinationPool string,
 				confRead.addressTo = strings.TrimPrefix(itemTrim, "address to ")
 			case strings.HasPrefix(itemTrim, "address "):
 				confRead.address = strings.TrimPrefix(itemTrim, "address ")
+			case strings.HasPrefix(itemTrim, "description "):
+				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
 			case strings.HasPrefix(itemTrim, "routing-instance "):
 				confRead.routingInstance = strings.TrimPrefix(itemTrim, "routing-instance ")
 			}
@@ -328,6 +338,9 @@ func fillSecurityNatDestinationPoolData(d *schema.ResourceData, natDestinationPo
 		panic(tfErr)
 	}
 	if tfErr := d.Set("address_to", natDestinationPoolOptions.addressTo); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("description", natDestinationPoolOptions.description); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("routing_instance", natDestinationPoolOptions.routingInstance); tfErr != nil {

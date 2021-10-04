@@ -12,9 +12,10 @@ import (
 )
 
 type natDestinationOptions struct {
-	name string
-	from []map[string]interface{}
-	rule []map[string]interface{}
+	name        string
+	description string
+	from        []map[string]interface{}
+	rule        []map[string]interface{}
 }
 
 func resourceSecurityNatDestination() *schema.Resource {
@@ -118,6 +119,10 @@ func resourceSecurityNatDestination() *schema.Resource {
 						},
 					},
 				},
+			},
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 		},
 	}
@@ -342,26 +347,26 @@ func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *
 		if vv := rule["destination_address_name"].(string); vv != "" {
 			configSet = append(configSet, setPrefixRule+" match destination-address-name \""+vv+"\"")
 		}
-		for _, vv := range rule["application"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixRule+" match application \""+vv.(string)+"\"")
+		for _, vv := range sortSetOfString(rule["application"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixRule+" match application \""+vv+"\"")
 		}
-		for _, vv := range rule["destination_port"].(*schema.Set).List() {
-			if !regexpDestPort.MatchString(vv.(string)) {
+		for _, vv := range sortSetOfString(rule["destination_port"].(*schema.Set).List()) {
+			if !regexpDestPort.MatchString(vv) {
 				return fmt.Errorf("destination_port need to have format `x` or `x to y` in rule %s", rule["name"].(string))
 			}
-			configSet = append(configSet, setPrefixRule+" match destination-port "+vv.(string))
+			configSet = append(configSet, setPrefixRule+" match destination-port "+vv)
 		}
-		for _, vv := range rule["protocol"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixRule+" match protocol "+vv.(string))
+		for _, vv := range sortSetOfString(rule["protocol"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixRule+" match protocol "+vv)
 		}
-		for _, vv := range rule["source_address"].(*schema.Set).List() {
-			if err := validateCIDRNetwork(vv.(string)); err != nil {
+		for _, vv := range sortSetOfString(rule["source_address"].(*schema.Set).List()) {
+			if err := validateCIDRNetwork(vv); err != nil {
 				return err
 			}
-			configSet = append(configSet, setPrefixRule+" match source-address "+vv.(string))
+			configSet = append(configSet, setPrefixRule+" match source-address "+vv)
 		}
-		for _, vv := range rule["source_address_name"].(*schema.Set).List() {
-			configSet = append(configSet, setPrefixRule+" match source-address-name \""+vv.(string)+"\"")
+		for _, vv := range sortSetOfString(rule["source_address_name"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixRule+" match source-address-name \""+vv+"\"")
 		}
 		for _, thenV := range rule[thenWord].([]interface{}) {
 			then := thenV.(map[string]interface{})
@@ -376,6 +381,9 @@ func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *
 				configSet = append(configSet, setPrefixRule+" then destination-nat pool "+then["pool"].(string))
 			}
 		}
+	}
+	if v := d.Get("description").(string); v != "" {
+		configSet = append(configSet, setPrefix+" description \""+v+"\"")
 	}
 
 	return sess.configSet(configSet, jnprSess)
@@ -465,6 +473,8 @@ func readSecurityNatDestination(natDestination string,
 					}
 				}
 				confRead.rule = append(confRead.rule, ruleOptions)
+			case strings.HasPrefix(itemTrim, "description "):
+				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
 			}
 		}
 	}
@@ -488,6 +498,9 @@ func fillSecurityNatDestinationData(d *schema.ResourceData, natDestinationOption
 		panic(tfErr)
 	}
 	if tfErr := d.Set("rule", natDestinationOptions.rule); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("description", natDestinationOptions.description); tfErr != nil {
 		panic(tfErr)
 	}
 }

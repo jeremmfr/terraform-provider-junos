@@ -4,9 +4,11 @@
 ENHANCEMENTS:
 
 * resource/`*`: to avoid any confusion, the provider now detects and generates an error during `apply` when there are duplicate elements (with the same identifier, for example the same `name`) in the block lists of certain resources
-* resource/`junos_security_nat_destination`: add multiple arguments, `application`, `destination_...`, `protocol`, `source_...` in `rule` block
-* resource/`junos_security_nat_source`: add multiple arguments, `application`, `destination_...`, `protocol`, `source_...` in `match` block inside `rule` block
-* resource/`junos_security_nat_static`: add multiple arguments, `destination_...`, `source_...` in `rule` block and `mapped_port...` in `then` block. also add possibility to use `prefix-name` in `then.0.type`
+* resource/`junos_security_nat_destination`: add multiple arguments, `application`, `destination_...`, `protocol`, `source_...` in `rule` block and `description`
+* resource/`junos_security_nat_destination_pool`: add `description` argument
+* resource/`junos_security_nat_source`: add multiple arguments, `application`, `destination_...`, `protocol`, `source_...` in `match` block inside `rule` block and `description`
+* resource/`junos_security_nat_source_pool`: add `description` argument
+* resource/`junos_security_nat_static`: add multiple arguments, `destination_...`, `source_...` in `rule` block, `mapped_port...` in `then` block and `description`. also add possibility to use `prefix-name` in `then.0.type`
 
 BUG FIXES:
 

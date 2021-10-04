@@ -60,6 +60,8 @@ The following arguments are supported:
 - **rule** (Required, Block List)  
   For each name of rule to declare.  
   See [below for nested schema](#rule-arguments).
+- **description** (Optional, String)  
+  Text description of rule set
 
 ---
 

@@ -33,6 +33,8 @@ The following arguments are supported:
   Conflict with `address_to`.
 - **address_to** (Optional, String)  
   IP/mask for range of destination nat pool (range = `address` to `address_to`).
+- **description** (Optional, String)  
+  Text description of pool
 - **routing_instance** (Optional, String)  
   Name of routing instance for switch instance with nat.
 
