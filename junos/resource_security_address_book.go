@@ -339,12 +339,12 @@ func resourceSecurityAddressBookImport(d *schema.ResourceData, m interface{}) ([
 func checkAddressBookExists(addrBook string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 
-	addrBookConfig, err := sess.command("show configuration security address-book "+addrBook+
-		" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security address-book "+addrBook+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if addrBookConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -437,15 +437,15 @@ func readSecurityAddressBook(addrBook string, m interface{}, jnprSess *NetconfOb
 	sess := m.(*Session)
 	var confRead addressBookOptions
 
-	securityAddressBookConfig, err := sess.command("show configuration security address-book "+addrBook+
-		" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security address-book "+addrBook+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	descMap := make(map[string]string)
-	if securityAddressBookConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = addrBook
-		for _, item := range strings.Split(securityAddressBookConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

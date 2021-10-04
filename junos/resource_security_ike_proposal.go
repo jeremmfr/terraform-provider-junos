@@ -232,12 +232,12 @@ func resourceIkeProposalImport(d *schema.ResourceData, m interface{}) ([]*schema
 
 func checkIkeProposalExists(ikeProposal string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	ikeProposalConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security ike proposal "+ikeProposal+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if ikeProposalConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -272,14 +272,14 @@ func readIkeProposal(ikeProposal string, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 	var confRead ikeProposalOptions
 
-	ikeProposalConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security ike proposal "+ikeProposal+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if ikeProposalConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = ikeProposal
-		for _, item := range strings.Split(ikeProposalConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

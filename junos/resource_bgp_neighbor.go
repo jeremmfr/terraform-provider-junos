@@ -793,22 +793,22 @@ func resourceBgpNeighborImport(d *schema.ResourceData, m interface{}) ([]*schema
 
 func checkBgpNeighborExists(ip, instance, group string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	var bgpNeighborConfig string
+	var showConfig string
 	var err error
 	if instance == defaultWord {
-		bgpNeighborConfig, err = sess.command("show configuration protocols bgp group "+
-			group+" neighbor "+ip+" | display set", jnprSess)
+		showConfig, err = sess.command("show configuration"+
+			" protocols bgp group "+group+" neighbor "+ip+" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
-		bgpNeighborConfig, err = sess.command("show configuration routing-instances "+
-			instance+" protocols bgp group "+group+" neighbor "+ip+" | display set", jnprSess)
+		showConfig, err = sess.command("show configuration"+
+			" routing-instances "+instance+" protocols bgp group "+group+" neighbor "+ip+" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
 	}
-	if bgpNeighborConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -847,7 +847,7 @@ func setBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 func readBgpNeighbor(ip, instance, group string, m interface{}, jnprSess *NetconfObject) (bgpOptions, error) {
 	sess := m.(*Session)
 	var confRead bgpOptions
-	var bgpNeighborConfig string
+	var showConfig string
 	var err error
 	// default -1
 	confRead.localPreference = -1
@@ -855,26 +855,23 @@ func readBgpNeighbor(ip, instance, group string, m interface{}, jnprSess *Netcon
 	confRead.preference = -1
 
 	if instance == defaultWord {
-		bgpNeighborConfig, err = sess.command("show configuration"+
-			" protocols bgp group "+group+
-			" neighbor "+ip+" | display set relative", jnprSess)
+		showConfig, err = sess.command("show configuration"+
+			" protocols bgp group "+group+" neighbor "+ip+" | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
-		bgpNeighborConfig, err = sess.command("show configuration"+
-			" routing-instances "+instance+
-			" protocols bgp group "+group+
-			" neighbor "+ip+" | display set relative", jnprSess)
+		showConfig, err = sess.command("show configuration"+
+			" routing-instances "+instance+" protocols bgp group "+group+" neighbor "+ip+" | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	}
-	if bgpNeighborConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.ip = ip
 		confRead.routingInstance = instance
 		confRead.name = group
-		for _, item := range strings.Split(bgpNeighborConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

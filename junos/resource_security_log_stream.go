@@ -294,12 +294,12 @@ func resourceSecurityLogStreamImport(d *schema.ResourceData, m interface{}) ([]*
 
 func checkSecurityLogStreamExists(securityLogStream string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	securityLogStreamConfig, err := sess.command("show configuration security log stream \""+
-		securityLogStream+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security log stream \""+securityLogStream+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if securityLogStreamConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -362,14 +362,14 @@ func readSecurityLogStream(securityLogStream string, m interface{}, jnprSess *Ne
 	sess := m.(*Session)
 	var confRead securityLogStreamOptions
 
-	securityLogStreamConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security log stream \""+securityLogStream+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if securityLogStreamConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = securityLogStream
-		for _, item := range strings.Split(securityLogStreamConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

@@ -197,13 +197,12 @@ func readSystemRootAuthentication(m interface{}, jnprSess *NetconfObject) (syste
 	sess := m.(*Session)
 	var confRead systemRootAuthOptions
 
-	systemRootAuthConfig, err := sess.command("show configuration system root-authentication"+
-		" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration system root-authentication | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if systemRootAuthConfig != emptyWord {
-		for _, item := range strings.Split(systemRootAuthConfig, "\n") {
+	if showConfig != emptyWord {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

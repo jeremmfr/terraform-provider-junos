@@ -354,23 +354,23 @@ func resourceBridgeDomainImport(d *schema.ResourceData, m interface{}) ([]*schem
 func checkBridgeDomainExists(name string, instance string, m interface{},
 	jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	var bridgeDomainConfig string
+	var showConfig string
 	var err error
 	if instance == defaultWord {
-		bridgeDomainConfig, err = sess.command("show configuration"+
+		showConfig, err = sess.command("show configuration"+
 			" bridge-domains \""+name+"\" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
-		bridgeDomainConfig, err = sess.command("show configuration routing-instances "+instance+
-			" bridge-domains \""+name+"\" | display set", jnprSess)
+		showConfig, err = sess.command("show configuration"+
+			" routing-instances "+instance+" bridge-domains \""+name+"\" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
 	}
 
-	if bridgeDomainConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -455,24 +455,24 @@ func readBridgeDomain(name string, instance string, m interface{},
 	jnprSess *NetconfObject) (bridgeDomainOptions, error) {
 	sess := m.(*Session)
 	var confRead bridgeDomainOptions
-	var nameConfig string
+	var showConfig string
 	var err error
 
 	if instance == defaultWord {
-		nameConfig, err = sess.command("show configuration"+
+		showConfig, err = sess.command("show configuration"+
 			" bridge-domains \""+name+"\" | display set relative", jnprSess)
 	} else {
-		nameConfig, err = sess.command("show configuration routing-instances "+instance+
-			" bridge-domains \""+name+"\" | display set relative", jnprSess)
+		showConfig, err = sess.command("show configuration"+
+			" routing-instances "+instance+" bridge-domains \""+name+"\" | display set relative", jnprSess)
 	}
 	if err != nil {
 		return confRead, err
 	}
 
-	if nameConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = name
 		confRead.routingInstance = instance
-		for _, item := range strings.Split(nameConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
@@ -536,22 +536,22 @@ func readBridgeDomain(name string, instance string, m interface{},
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 					if vxlan["vni"] != -1 {
-						var evpnConfig string
+						var showConfigEvpn string
 						var err error
 						if confRead.routingInstance == defaultWord {
-							evpnConfig, err = sess.command("show configuration protocols evpn | display set relative", jnprSess)
+							showConfigEvpn, err = sess.command("show configuration protocols evpn | display set relative", jnprSess)
 							if err != nil {
 								return confRead, err
 							}
 						} else {
-							evpnConfig, err = sess.command("show configuration routing-instances "+instance+
-								" protocols evpn | display set relative", jnprSess)
+							showConfigEvpn, err = sess.command("show configuration"+
+								" routing-instances "+instance+" protocols evpn | display set relative", jnprSess)
 							if err != nil {
 								return confRead, err
 							}
 						}
-						if evpnConfig != emptyWord {
-							for _, item := range strings.Split(evpnConfig, "\n") {
+						if showConfigEvpn != emptyWord {
+							for _, item := range strings.Split(showConfigEvpn, "\n") {
 								if strings.Contains(item, "<configuration-output>") {
 									continue
 								}

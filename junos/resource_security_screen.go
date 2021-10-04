@@ -752,12 +752,11 @@ func resourceSecurityScreenImport(d *schema.ResourceData, m interface{}) ([]*sch
 
 func checkSecurityScreenExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	screenConfig, err := sess.command("show configuration"+
-		" security screen ids-option \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration security screen ids-option \""+name+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if screenConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -1226,14 +1225,14 @@ func readSecurityScreen(name string, m interface{}, jnprSess *NetconfObject) (sc
 	sess := m.(*Session)
 	var confRead screenOptions
 
-	screenConfig, err := sess.command("show configuration security screen ids-option "+
-		"\""+name+"\" | display set relative ", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security screen ids-option \""+name+"\" | display set relative ", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if screenConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = name
-		for _, item := range strings.Split(screenConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

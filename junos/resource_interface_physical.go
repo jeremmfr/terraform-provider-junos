@@ -735,13 +735,13 @@ func resourceInterfacePhysicalImport(d *schema.ResourceData, m interface{}) ([]*
 func checkInterfacePhysicalNCEmpty(interFace string, m interface{}, jnprSess *NetconfObject) (
 	ncInt bool, emtyInt bool, errFunc error) {
 	sess := m.(*Session)
-	intConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
 	if err != nil {
 		return false, false, err
 	}
-	intConfigLines := make([]string, 0)
+	showConfigLines := make([]string, 0)
 	// remove unused lines
-	for _, item := range strings.Split(intConfig, "\n") {
+	for _, item := range strings.Split(showConfig, "\n") {
 		// show parameters root on interface exclude unit parameters (except ethernet-switching)
 		if strings.HasPrefix(item, "set unit") && !strings.Contains(item, "ethernet-switching") {
 			continue
@@ -755,22 +755,22 @@ func checkInterfacePhysicalNCEmpty(interFace string, m interface{}, jnprSess *Ne
 		if item == "" {
 			continue
 		}
-		intConfigLines = append(intConfigLines, item)
+		showConfigLines = append(showConfigLines, item)
 	}
-	if len(intConfigLines) == 0 {
+	if len(showConfigLines) == 0 {
 		return false, true, nil
 	}
-	intConfig = strings.Join(intConfigLines, "\n")
+	showConfig = strings.Join(showConfigLines, "\n")
 	if sess.junosGroupIntDel != "" {
-		if intConfig == "set apply-groups "+sess.junosGroupIntDel {
+		if showConfig == "set apply-groups "+sess.junosGroupIntDel {
 			return true, false, nil
 		}
 	}
-	if intConfig == "set description NC\nset disable" ||
-		intConfig == "set disable\nset description NC" {
+	if showConfig == "set description NC\nset disable" ||
+		showConfig == "set disable\nset description NC" {
 		return true, false, nil
 	}
-	if intConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, true, nil
 	}
 
@@ -1173,12 +1173,12 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 	sess := m.(*Session)
 	var confRead interfacePhysicalOptions
 
-	intConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if intConfig != emptyWord {
-		for _, item := range strings.Split(intConfig, "\n") {
+	if showConfig != emptyWord {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, " unit ") && !strings.Contains(item, "ethernet-switching") {
 				continue
 			}
@@ -1611,11 +1611,11 @@ func delInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 
 func checkInterfacePhysicalContainsUnit(interFace string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
-	intConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
 	if err != nil {
 		return err
 	}
-	for _, item := range strings.Split(intConfig, "\n") {
+	for _, item := range strings.Split(showConfig, "\n") {
 		if strings.Contains(item, "<configuration-output>") {
 			continue
 		}
@@ -1725,12 +1725,12 @@ func fillInterfacePhysicalData(d *schema.ResourceData, interfaceOpt interfacePhy
 
 func interfaceAggregatedLastChild(ae, interFace string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConf, err := sess.command("show configuration interfaces | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration interfaces | display set relative", jnprSess)
 	if err != nil {
 		return false, err
 	}
 	lastAE := true
-	for _, item := range strings.Split(showConf, "\n") {
+	for _, item := range strings.Split(showConfig, "\n") {
 		if strings.HasSuffix(item, "ether-options 802.3ad "+ae) &&
 			!strings.HasPrefix(item, "set "+interFace+" ") {
 			lastAE = false
@@ -1748,14 +1748,14 @@ func interfaceAggregatedCountSearchMax(
 	if err != nil {
 		return "", fmt.Errorf("failed to convert ae interaface '%v' to integer : %w", newAE, err)
 	}
-	showConf, err := sess.command("show configuration interfaces | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration interfaces | display set relative", jnprSess)
 	if err != nil {
 		return "", err
 	}
 	listAEFound := make([]string, 0)
 	regexpAEchild := regexp.MustCompile(`ether-options 802\.3ad ae\d+$`)
 	regexpAEparent := regexp.MustCompile(`^set ae\d+ `)
-	for _, line := range strings.Split(showConf, "\n") {
+	for _, line := range strings.Split(showConfig, "\n") {
 		aeMatchChild := regexpAEchild.MatchString(line)
 		aeMatchParent := regexpAEparent.MatchString(line)
 		switch {

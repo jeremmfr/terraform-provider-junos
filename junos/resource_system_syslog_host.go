@@ -358,12 +358,11 @@ func resourceSystemSyslogHostImport(d *schema.ResourceData, m interface{}) ([]*s
 
 func checkSystemSyslogHostExists(host string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	syslogHostConfig, err := sess.command("show configuration"+
-		" system syslog host "+host+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration system syslog host "+host+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if syslogHostConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -465,14 +464,13 @@ func readSystemSyslogHost(host string, m interface{}, jnprSess *NetconfObject) (
 	sess := m.(*Session)
 	var confRead syslogHostOptions
 
-	syslogHostConfig, err := sess.command("show configuration"+
-		" system syslog host "+host+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration system syslog host "+host+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if syslogHostConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.host = host
-		for _, item := range strings.Split(syslogHostConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

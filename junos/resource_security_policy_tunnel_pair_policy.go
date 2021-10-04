@@ -238,19 +238,19 @@ func checkSecurityPolicyPairExists(zoneA, policyAtoB, zoneB, policyBtoA string,
 	m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 
-	pairAtoBConfig, err := sess.command("show configuration"+
+	showConfigPairAtoB, err := sess.command("show configuration"+
 		" security policies from-zone "+zoneA+" to-zone "+zoneB+" policy "+policyAtoB+
 		" then permit tunnel pair-policy | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	pairBtoAConfig, err := sess.command("show configuration"+
+	showConfigPairBtoA, err := sess.command("show configuration"+
 		" security policies from-zone "+zoneB+" to-zone "+zoneA+" policy "+policyBtoA+
 		" then permit tunnel pair-policy | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if pairAtoBConfig == emptyWord && pairBtoAConfig == emptyWord {
+	if showConfigPairAtoB == emptyWord && showConfigPairBtoA == emptyWord {
 		return false, nil
 	}
 
@@ -284,16 +284,16 @@ func readSecurityPolicyTunnelPairPolicy(idRessource string,
 	sess := m.(*Session)
 	var confRead policyPairPolicyOptions
 
-	policyPairConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security policies from-zone "+zoneA+" to-zone "+zoneB+" policy "+policyAtoB+
 		" then permit tunnel pair-policy | display set", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if policyPairConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.zoneA = zoneA
 		confRead.zoneB = zoneB
-		for _, item := range strings.Split(policyPairConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
@@ -307,16 +307,16 @@ func readSecurityPolicyTunnelPairPolicy(idRessource string,
 			}
 		}
 	}
-	policyPairConfig, err = sess.command("show configuration"+
+	showConfig, err = sess.command("show configuration"+
 		" security policies from-zone "+zoneB+" to-zone "+zoneA+" policy "+policyBtoA+
 		" then permit tunnel pair-policy | display set", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if policyPairConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.zoneA = zoneA
 		confRead.zoneB = zoneB
-		for _, item := range strings.Split(policyPairConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

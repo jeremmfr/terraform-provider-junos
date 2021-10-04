@@ -989,12 +989,12 @@ func resourceSecurityIdpCustomAttackImport(d *schema.ResourceData, m interface{}
 
 func checkSecurityIdpCustomAttackExists(customAttack string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	customAttackConfig, err := sess.command("show configuration security idp custom-attack \""+
-		customAttack+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security idp custom-attack \""+customAttack+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if customAttackConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -1506,14 +1506,14 @@ func readSecurityIdpCustomAttack(customAttack string, m interface{}, jnprSess *N
 	var confRead idpCustomAttackOptions
 	confRead.timeBindingCount = -1 // default to -1
 
-	customAttackConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security idp custom-attack \""+customAttack+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if customAttackConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = customAttack
-		for _, item := range strings.Split(customAttackConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

@@ -782,22 +782,22 @@ func resourceBgpGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.Re
 
 func checkBgpGroupExists(bgpGroup, instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	var bgpGroupConfig string
+	var showConfig string
 	var err error
 	if instance == defaultWord {
-		bgpGroupConfig, err = sess.command("show configuration protocols bgp group "+
-			bgpGroup+" | display set", jnprSess)
+		showConfig, err = sess.command("show configuration"+
+			" protocols bgp group "+bgpGroup+" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
-		bgpGroupConfig, err = sess.command("show configuration routing-instances "+
-			instance+" protocols bgp group "+bgpGroup+" | display set", jnprSess)
+		showConfig, err = sess.command("show configuration"+
+			" routing-instances "+instance+" protocols bgp group "+bgpGroup+" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
 	}
-	if bgpGroupConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -846,7 +846,7 @@ func setBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObject) (bgpOptions, error) {
 	sess := m.(*Session)
 	var confRead bgpOptions
-	var bgpGroupConfig string
+	var showConfig string
 	var err error
 	// default -1
 	confRead.localPreference = -1
@@ -854,22 +854,22 @@ func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObj
 	confRead.preference = -1
 
 	if instance == defaultWord {
-		bgpGroupConfig, err = sess.command("show configuration protocols bgp group "+
-			bgpGroup+" | display set relative", jnprSess)
+		showConfig, err = sess.command("show configuration"+
+			" protocols bgp group "+bgpGroup+" | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
-		bgpGroupConfig, err = sess.command("show configuration routing-instances "+
-			instance+" protocols bgp group "+bgpGroup+" | display set relative", jnprSess)
+		showConfig, err = sess.command("show configuration"+
+			" routing-instances "+instance+" protocols bgp group "+bgpGroup+" | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	}
-	if bgpGroupConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = bgpGroup
 		confRead.routingInstance = instance
-		for _, item := range strings.Split(bgpGroupConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

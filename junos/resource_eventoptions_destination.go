@@ -234,12 +234,11 @@ func resourceEventoptionsDestinationImport(d *schema.ResourceData, m interface{}
 
 func checkEventoptionsDestinationExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	eventoptionsDestinationConfig, err :=
-		sess.command("show configuration event-options destinations \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration event-options destinations \""+name+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if eventoptionsDestinationConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -271,19 +270,19 @@ func setEventoptionsDestination(d *schema.ResourceData, m interface{}, jnprSess 
 }
 
 func readEventoptionsDestination(
-	destination string, m interface{}, jnprSess *NetconfObject) (eventoptionsDestinationOptions, error) {
+	name string, m interface{}, jnprSess *NetconfObject) (eventoptionsDestinationOptions, error) {
 	sess := m.(*Session)
 	var confRead eventoptionsDestinationOptions
 	confRead.transferDelay = -1 // default value
 
-	eventoptionsDestinationConfig, err := sess.command("show configuration event-options destinations \""+
-		destination+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" event-options destinations \""+name+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if eventoptionsDestinationConfig != emptyWord {
-		confRead.name = destination
-		for _, item := range strings.Split(eventoptionsDestinationConfig, "\n") {
+	if showConfig != emptyWord {
+		confRead.name = name
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

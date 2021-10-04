@@ -264,11 +264,11 @@ func resourceFirewallPolicerImport(d *schema.ResourceData, m interface{}) ([]*sc
 
 func checkFirewallPolicerExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	policerConfig, err := sess.command("show configuration firewall policer "+name+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration firewall policer "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if policerConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -321,17 +321,17 @@ func setFirewallPolicer(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject) (policerOptions, error) {
+func readFirewallPolicer(name string, m interface{}, jnprSess *NetconfObject) (policerOptions, error) {
 	sess := m.(*Session)
 	var confRead policerOptions
 
-	policerConfig, err := sess.command("show configuration firewall policer "+policer+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration firewall policer "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if policerConfig != emptyWord {
-		confRead.name = policer
-		for _, item := range strings.Split(policerConfig, "\n") {
+	if showConfig != emptyWord {
+		confRead.name = name
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

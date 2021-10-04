@@ -612,31 +612,31 @@ func readOspf(version, routingInstance string,
 	confRead.preference = -1
 	confRead.prefixExportLimit = -1
 
-	var ospfConfig string
+	var showConfig string
 	ospfVersion := ospfV2
 	if version == "v3" {
 		ospfVersion = ospfV3
 	}
 	if routingInstance == defaultWord {
 		var err error
-		ospfConfig, err = sess.command("show configuration protocols "+
-			ospfVersion+" | display set relative", jnprSess)
+		showConfig, err = sess.command("show configuration"+
+			" protocols "+ospfVersion+" | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
 		var err error
-		ospfConfig, err = sess.command("show configuration routing-instances "+
-			routingInstance+" protocols "+ospfVersion+" | display set relative", jnprSess)
+		showConfig, err = sess.command("show configuration"+
+			" routing-instances "+routingInstance+" protocols "+ospfVersion+" | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	}
 
-	if ospfConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.version = version
 		confRead.routingInstance = routingInstance
-		for _, item := range strings.Split(ospfConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

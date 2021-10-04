@@ -311,12 +311,12 @@ func resourceSecurityNatStaticImport(d *schema.ResourceData, m interface{}) ([]*
 
 func checkSecurityNatStaticExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	natStaticConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security nat static rule-set "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if natStaticConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -429,18 +429,18 @@ func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObject) (natStaticOptions, error) {
+func readSecurityNatStatic(name string, m interface{}, jnprSess *NetconfObject) (natStaticOptions, error) {
 	sess := m.(*Session)
 	var confRead natStaticOptions
 
-	natStaticConfig, err := sess.command("show configuration"+
-		" security nat static rule-set "+natStatic+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security nat static rule-set "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if natStaticConfig != emptyWord {
-		confRead.name = natStatic
-		for _, item := range strings.Split(natStaticConfig, "\n") {
+	if showConfig != emptyWord {
+		confRead.name = name
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

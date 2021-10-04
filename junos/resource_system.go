@@ -1655,13 +1655,12 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 	confRead.maxConfigurationRollbacks = -1
 	confRead.maxConfigurationsOnFlash = -1
 
-	systemConfig, err := sess.command("show configuration system"+
-		" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration system | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if systemConfig != emptyWord {
-		for _, item := range strings.Split(systemConfig, "\n") {
+	if showConfig != emptyWord {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

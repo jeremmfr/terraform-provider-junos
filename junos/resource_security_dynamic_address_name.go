@@ -267,8 +267,8 @@ func resourceSecurityDynamicAddressNameImport(
 
 func checkSecurityDynamicAddressNamesExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration "+
-		"security dynamic-address address-name "+name+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security dynamic-address address-name "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -320,8 +320,8 @@ func readSecurityDynamicAddressName(
 	sess := m.(*Session)
 	var confRead dynamicAddressNameOptions
 
-	showConfig, err := sess.command("show configuration "+
-		"security dynamic-address address-name "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security dynamic-address address-name "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

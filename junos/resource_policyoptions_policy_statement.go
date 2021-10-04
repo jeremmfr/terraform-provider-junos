@@ -630,12 +630,12 @@ func resourcePolicyoptionsPolicyStatementImport(d *schema.ResourceData, m interf
 
 func checkPolicyStatementExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	policyStatementConfig, err := sess.command("show configuration policy-options policy-statement "+
-		name+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" policy-options policy-statement "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if policyStatementConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -709,19 +709,18 @@ func setPolicyStatementFwTableExport(policyName string, m interface{}, jnprSess 
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readPolicyStatement(policyName string,
-	m interface{}, jnprSess *NetconfObject) (policyStatementOptions, error) {
+func readPolicyStatement(name string, m interface{}, jnprSess *NetconfObject) (policyStatementOptions, error) {
 	sess := m.(*Session)
 	var confRead policyStatementOptions
 
-	policyStatementConfig, err := sess.command("show configuration "+
-		"policy-options policy-statement "+policyName+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" policy-options policy-statement "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if policyStatementConfig != emptyWord {
-		confRead.name = policyName
-		for _, item := range strings.Split(policyStatementConfig, "\n") {
+	if showConfig != emptyWord {
+		confRead.name = name
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
@@ -801,15 +800,15 @@ func readPolicyStatement(policyName string,
 func readPolicyStatementFwTableExport(policyName string,
 	m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	policyStatementConfig, err := sess.command("show configuration routing-options forwarding-table export "+
-		"| display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" routing-options forwarding-table export | display set relative", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if policyStatementConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
-	for _, item := range strings.Split(policyStatementConfig, "\n") {
+	for _, item := range strings.Split(showConfig, "\n") {
 		if strings.Contains(item, "<configuration-output>") {
 			continue
 		}

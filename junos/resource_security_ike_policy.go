@@ -253,11 +253,11 @@ func resourceIkePolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.R
 
 func checkIkePolicyExists(ikePolicy string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	ikePolicyConfig, err := sess.command("show configuration security ike policy "+ikePolicy+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration security ike policy "+ikePolicy+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if ikePolicyConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -295,14 +295,14 @@ func readIkePolicy(ikePolicy string, m interface{}, jnprSess *NetconfObject) (ik
 	sess := m.(*Session)
 	var confRead ikePolicyOptions
 
-	ikePolicyConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security ike policy "+ikePolicy+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if ikePolicyConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = ikePolicy
-		for _, item := range strings.Split(ikePolicyConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

@@ -851,13 +851,13 @@ func resourceInterfaceImport(d *schema.ResourceData, m interface{}) ([]*schema.R
 func checkInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) (
 	ncInt bool, emtyInt bool, errFunc error) {
 	sess := m.(*Session)
-	intConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
 	if err != nil {
 		return false, false, err
 	}
-	intConfigLines := make([]string, 0)
+	showConfigLines := make([]string, 0)
 	// remove unused lines
-	for _, item := range strings.Split(intConfig, "\n") {
+	for _, item := range strings.Split(showConfig, "\n") {
 		// show parameters root on interface exclude unit parameters (except ethernet-switching)
 		if !strings.Contains(interFace, ".") && strings.HasPrefix(item, "set unit") &&
 			!strings.Contains(item, "ethernet-switching") {
@@ -872,23 +872,23 @@ func checkInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) 
 		if item == "" {
 			continue
 		}
-		intConfigLines = append(intConfigLines, item)
+		showConfigLines = append(showConfigLines, item)
 	}
-	if len(intConfigLines) == 0 {
+	if len(showConfigLines) == 0 {
 		return false, true, nil
 	}
-	intConfig = strings.Join(intConfigLines, "\n")
+	showConfig = strings.Join(showConfigLines, "\n")
 	if sess.junosGroupIntDel != "" {
-		if intConfig == "set apply-groups "+sess.junosGroupIntDel {
+		if showConfig == "set apply-groups "+sess.junosGroupIntDel {
 			return true, false, nil
 		}
 	}
-	if intConfig == "set description NC\nset disable" || // nolint: goconst
-		intConfig == "set disable\nset description NC" { // nolint: goconst
+	if showConfig == "set description NC\nset disable" || // nolint: goconst
+		showConfig == "set disable\nset description NC" { // nolint: goconst
 		return true, false, nil
 	}
-	if intConfig == setLineStart ||
-		intConfig == emptyWord {
+	if showConfig == setLineStart ||
+		showConfig == emptyWord {
 		return false, true, nil
 	}
 
@@ -1113,15 +1113,15 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 	sess := m.(*Session)
 	var confRead interfaceOptions
 
-	intConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	inetAddress := make([]map[string]interface{}, 0)
 	inet6Address := make([]map[string]interface{}, 0)
 
-	if intConfig != emptyWord {
-		for _, item := range strings.Split(intConfig, "\n") {
+	if showConfig != emptyWord {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if !strings.Contains(interFace, ".") && strings.Contains(item, " unit ") &&
 				!strings.Contains(item, "ethernet-switching") {
 				continue
@@ -1241,12 +1241,12 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 		confRead.inet6Address = inet6Address
 	}
 	if checkCompatibilitySecurity(jnprSess) {
-		zonesConfig, err := sess.command("show configuration security zones | display set relative", jnprSess)
+		showConfigSecurityZones, err := sess.command("show configuration security zones | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 		regexpInts := regexp.MustCompile(`set security-zone \S+ interfaces ` + interFace + `$`)
-		for _, item := range strings.Split(zonesConfig, "\n") {
+		for _, item := range strings.Split(showConfigSecurityZones, "\n") {
 			intMatch := regexpInts.MatchString(item)
 			if intMatch {
 				confRead.securityZones = strings.TrimPrefix(strings.TrimSuffix(item, " interfaces "+interFace),
@@ -1256,12 +1256,13 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 			}
 		}
 	}
-	routingConfig, err := sess.command("show configuration routing-instances | display set relative", jnprSess)
+	showConfigRoutingInstances, err := sess.command("show configuration routing-instances "+
+		"| display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	regexpInt := regexp.MustCompile(`set \S+ interface ` + interFace + `$`)
-	for _, item := range strings.Split(routingConfig, "\n") {
+	for _, item := range strings.Split(showConfigRoutingInstances, "\n") {
 		intMatch := regexpInt.MatchString(item)
 		if intMatch {
 			confRead.routingInstances = strings.TrimPrefix(strings.TrimSuffix(item, " interface "+interFace),
@@ -1372,11 +1373,11 @@ func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 
 func checkInterfaceContainsUnit(interFace string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
-	intConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
 	if err != nil {
 		return err
 	}
-	for _, item := range strings.Split(intConfig, "\n") {
+	for _, item := range strings.Split(showConfig, "\n") {
 		if strings.Contains(item, "<configuration-output>") {
 			continue
 		}
@@ -1750,12 +1751,12 @@ func setFamilyAddressOld(inetAddress interface{}, intCut []string, configSet []s
 
 func aggregatedLastChild(ae, interFace string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConf, err := sess.command("show configuration interfaces | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration interfaces | display set relative", jnprSess)
 	if err != nil {
 		return false, err
 	}
 	lastAE := true
-	for _, item := range strings.Split(showConf, "\n") {
+	for _, item := range strings.Split(showConfig, "\n") {
 		if strings.HasSuffix(item, "ether-options 802.3ad "+ae) &&
 			!strings.HasPrefix(item, "set "+interFace+" ") {
 			lastAE = false

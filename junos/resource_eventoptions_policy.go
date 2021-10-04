@@ -635,12 +635,11 @@ func resourceEventoptionsPolicyImport(d *schema.ResourceData, m interface{}) ([]
 
 func checkEventoptionsPolicyExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	eventoptionsPolicyConfig, err :=
-		sess.command("show configuration event-options policy \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration event-options policy \""+name+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if eventoptionsPolicyConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -849,18 +848,18 @@ func setEventoptionsPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netc
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readEventoptionsPolicy(policy string, m interface{}, jnprSess *NetconfObject) (eventoptionsPolicyOptions, error) {
+func readEventoptionsPolicy(name string, m interface{}, jnprSess *NetconfObject) (eventoptionsPolicyOptions, error) {
 	sess := m.(*Session)
 	var confRead eventoptionsPolicyOptions
 
-	eventoptionsPolicyConfig, err := sess.command("show configuration event-options policy \""+
-		policy+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" event-options policy \""+name+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if eventoptionsPolicyConfig != emptyWord {
-		confRead.name = policy
-		for _, item := range strings.Split(eventoptionsPolicyConfig, "\n") {
+	if showConfig != emptyWord {
+		confRead.name = name
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

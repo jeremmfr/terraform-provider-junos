@@ -229,12 +229,12 @@ func resourcePolicyoptionsAsPathGroupImport(d *schema.ResourceData, m interface{
 
 func checkPolicyoptionsAsPathGroupExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	asPathGroupConfig, err := sess.command("show configuration "+
-		"policy-options as-path-group "+name+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" policy-options as-path-group "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if asPathGroupConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -264,19 +264,18 @@ func setPolicyoptionsAsPathGroup(d *schema.ResourceData, m interface{}, jnprSess
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readPolicyoptionsAsPathGroup(asPathGroup string,
-	m interface{}, jnprSess *NetconfObject) (asPathGroupOptions, error) {
+func readPolicyoptionsAsPathGroup(name string, m interface{}, jnprSess *NetconfObject) (asPathGroupOptions, error) {
 	sess := m.(*Session)
 	var confRead asPathGroupOptions
 
-	asPathGroupConfig, err := sess.command("show configuration"+
-		" policy-options as-path-group "+asPathGroup+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" policy-options as-path-group "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if asPathGroupConfig != emptyWord {
-		confRead.name = asPathGroup
-		for _, item := range strings.Split(asPathGroupConfig, "\n") {
+	if showConfig != emptyWord {
+		confRead.name = name
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

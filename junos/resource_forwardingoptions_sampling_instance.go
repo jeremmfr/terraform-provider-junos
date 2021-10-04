@@ -801,15 +801,15 @@ func resourceForwardingoptionsSamplingInstanceImport(d *schema.ResourceData,
 	return result, nil
 }
 
-func checkForwardingoptionsSamplingInstanceExists(
-	name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
+func checkForwardingoptionsSamplingInstanceExists(name string,
+	m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	samplingInstanceConfig, err := sess.command(
-		"show configuration forwarding-options sampling instance \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" forwarding-options sampling instance \""+name+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if samplingInstanceConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -1039,19 +1039,19 @@ func setForwardingoptionsSamplingInstanceOutput(
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readForwardingoptionsSamplingInstance(
-	samplingInstance string, m interface{}, jnprSess *NetconfObject) (samplingInstanceOptions, error) {
+func readForwardingoptionsSamplingInstance(name string,
+	m interface{}, jnprSess *NetconfObject) (samplingInstanceOptions, error) {
 	sess := m.(*Session)
 	var confRead samplingInstanceOptions
 
-	samplingInstanceConfig, err := sess.command("show configuration forwarding-options sampling instance \""+
-		samplingInstance+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" forwarding-options sampling instance \""+name+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if samplingInstanceConfig != emptyWord {
-		confRead.name = samplingInstance
-		for _, item := range strings.Split(samplingInstanceConfig, "\n") {
+	if showConfig != emptyWord {
+		confRead.name = name
+		for _, item := range strings.Split(showConfig, "\n") {
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			if strings.Contains(item, "<configuration-output>") {
 				continue

@@ -401,12 +401,11 @@ func resourceSystemSyslogFileImport(d *schema.ResourceData, m interface{}) ([]*s
 
 func checkSystemSyslogFileExists(filename string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	syslogFileConfig, err := sess.command("show configuration"+
-		" system syslog file "+filename+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration system syslog file "+filename+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if syslogFileConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -546,14 +545,13 @@ func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObjec
 	sess := m.(*Session)
 	var confRead syslogFileOptions
 
-	syslogFileConfig, err := sess.command("show configuration"+
-		" system syslog file "+filename+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration system syslog file "+filename+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if syslogFileConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.filename = filename
-		for _, item := range strings.Split(syslogFileConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

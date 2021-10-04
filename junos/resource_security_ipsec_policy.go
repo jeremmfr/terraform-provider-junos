@@ -224,12 +224,12 @@ func resourceIpsecPolicyImport(d *schema.ResourceData, m interface{}) ([]*schema
 
 func checkIpsecPolicyExists(ipsecPolicy string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	ipsecPolicyConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security ipsec policy "+ipsecPolicy+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if ipsecPolicyConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -258,14 +258,14 @@ func readIpsecPolicy(ipsecPolicy string, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 	var confRead ipsecPolicyOptions
 
-	ipsecPolicyConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security ipsec policy "+ipsecPolicy+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if ipsecPolicyConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = ipsecPolicy
-		for _, item := range strings.Split(ipsecPolicyConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

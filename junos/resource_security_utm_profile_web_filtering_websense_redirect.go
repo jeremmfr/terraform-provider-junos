@@ -284,12 +284,12 @@ func resourceSecurityUtmProfileWebFilteringWebsenseImport(
 
 func checkUtmProfileWebFWebsenseExists(profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	profileConfig, err := sess.command("show configuration security utm feature-profile "+
-		"web-filtering websense-redirect profile \""+profile+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security utm feature-profile web-filtering websense-redirect profile \""+profile+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if profileConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -360,14 +360,15 @@ func readUtmProfileWebFWebsense(profile string, m interface{}, jnprSess *Netconf
 	sess := m.(*Session)
 	var confRead utmProfileWebFilteringWebsenseOptions
 
-	profileConfig, err := sess.command("show configuration security utm feature-profile web-filtering "+
-		"websense-redirect profile \""+profile+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security utm feature-profile web-filtering websense-redirect"+
+		" profile \""+profile+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if profileConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = profile
-		for _, item := range strings.Split(profileConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

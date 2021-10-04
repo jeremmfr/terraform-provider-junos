@@ -218,12 +218,11 @@ func resourceSecurityScreenWhiteListImport(d *schema.ResourceData, m interface{}
 
 func checkSecurityScreenWhiteListExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	whiteListConfig, err := sess.command("show configuration"+
-		" security screen white-list "+name+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration security screen white-list "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if whiteListConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -250,14 +249,14 @@ func readSecurityScreenWhiteList(name string, m interface{}, jnprSess *NetconfOb
 	sess := m.(*Session)
 	var confRead screenWhiteListOptions
 
-	whiteListConfig, err := sess.command("show configuration security screen white-list "+
-		name+" | display set relative ", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security screen white-list "+name+" | display set relative ", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if whiteListConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = name
-		for _, item := range strings.Split(whiteListConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

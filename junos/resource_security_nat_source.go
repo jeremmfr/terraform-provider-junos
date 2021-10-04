@@ -332,12 +332,12 @@ func resourceSecurityNatSourceImport(d *schema.ResourceData, m interface{}) ([]*
 
 func checkSecurityNatSourceExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	natSourceConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security nat source rule-set "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if natSourceConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -442,18 +442,18 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObject) (natSourceOptions, error) {
+func readSecurityNatSource(name string, m interface{}, jnprSess *NetconfObject) (natSourceOptions, error) {
 	sess := m.(*Session)
 	var confRead natSourceOptions
 
-	natSourceConfig, err := sess.command("show configuration"+
-		" security nat source rule-set "+natSource+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security nat source rule-set "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if natSourceConfig != emptyWord {
-		confRead.name = natSource
-		for _, item := range strings.Split(natSourceConfig, "\n") {
+	if showConfig != emptyWord {
+		confRead.name = name
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

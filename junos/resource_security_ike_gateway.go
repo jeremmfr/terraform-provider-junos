@@ -443,11 +443,11 @@ func resourceIkeGatewayImport(d *schema.ResourceData, m interface{}) ([]*schema.
 
 func checkIkeGatewayExists(ikeGateway string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	ikeGatewayConfig, err := sess.command("show configuration security ike gateway "+ikeGateway+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration security ike gateway "+ikeGateway+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if ikeGatewayConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -586,14 +586,14 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 	sess := m.(*Session)
 	var confRead ikeGatewayOptions
 
-	ikeGatewayConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security ike gateway "+ikeGateway+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if ikeGatewayConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = ikeGateway
-		for _, item := range strings.Split(ikeGatewayConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

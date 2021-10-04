@@ -254,12 +254,11 @@ func resourceSnmpCommunityImport(d *schema.ResourceData, m interface{}) ([]*sche
 
 func checkSnmpCommunityExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	snmpCommunityConfig, err := sess.command("show configuration"+
-		" snmp community \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration snmp community \""+name+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if snmpCommunityConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -316,14 +315,13 @@ func readSnmpCommunity(name string, m interface{}, jnprSess *NetconfObject) (snm
 	sess := m.(*Session)
 	var confRead snmpCommunityOptions
 
-	snmpCommunityConfig, err := sess.command("show configuration"+
-		" snmp community \""+name+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration snmp community \""+name+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if snmpCommunityConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = name
-		for _, item := range strings.Split(snmpCommunityConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
