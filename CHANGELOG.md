@@ -3,6 +3,7 @@
 
 ENHANCEMENTS:
 
+* add `junos_security_nat_static_rule` resource (Fixes #281)
 * resource/`*`: to avoid any confusion, the provider now detects and generates an error during `apply` when there are duplicate elements (with the same identifier, for example the same `name`) in the block lists of certain resources
 * resource/`junos_security_nat_destination`: add multiple arguments, `application`, `destination_...`, `protocol`, `source_...` in `rule` block and `description`
 * resource/`junos_security_nat_destination_pool`: add `description` argument
