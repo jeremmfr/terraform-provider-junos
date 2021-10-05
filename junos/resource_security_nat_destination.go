@@ -303,12 +303,12 @@ func resourceSecurityNatDestinationImport(d *schema.ResourceData, m interface{})
 
 func checkSecurityNatDestinationExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	natDestinationConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security nat destination rule-set "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if natDestinationConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -390,19 +390,18 @@ func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSecurityNatDestination(natDestination string,
-	m interface{}, jnprSess *NetconfObject) (natDestinationOptions, error) {
+func readSecurityNatDestination(name string, m interface{}, jnprSess *NetconfObject) (natDestinationOptions, error) {
 	sess := m.(*Session)
 	var confRead natDestinationOptions
 
-	natDestinationConfig, err := sess.command("show configuration"+
-		" security nat destination rule-set "+natDestination+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security nat destination rule-set "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if natDestinationConfig != emptyWord {
-		confRead.name = natDestination
-		for _, item := range strings.Split(natDestinationConfig, "\n") {
+	if showConfig != emptyWord {
+		confRead.name = name
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

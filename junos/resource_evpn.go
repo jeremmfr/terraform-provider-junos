@@ -352,36 +352,36 @@ func readEvpn(routingInstance string,
 	m interface{}, jnprSess *NetconfObject) (evpnOptions, error) {
 	sess := m.(*Session)
 	var confRead evpnOptions
-	var evpnConfig string
-	var switchRIConfig string
+	var showConfig string
+	var showConfigSwitchRI string
 
 	if routingInstance == defaultWord {
 		var err error
-		evpnConfig, err = sess.command("show configuration protocols evpn | display set relative", jnprSess)
+		showConfig, err = sess.command("show configuration protocols evpn | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
-		switchRIConfig, err = sess.command("show configuration switch-options | display set relative", jnprSess)
+		showConfigSwitchRI, err = sess.command("show configuration switch-options | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
 		var err error
-		evpnConfig, err = sess.command("show configuration routing-instances "+
-			routingInstance+" protocols evpn | display set relative", jnprSess)
+		showConfig, err = sess.command("show configuration"+
+			" routing-instances "+routingInstance+" protocols evpn | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
-		switchRIConfig, err = sess.command("show configuration routing-instances "+
-			routingInstance+" | display set relative", jnprSess)
+		showConfigSwitchRI, err = sess.command("show configuration"+
+			" routing-instances "+routingInstance+" | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	}
 
-	if evpnConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.routingInstance = routingInstance
-		for _, item := range strings.Split(evpnConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
@@ -399,8 +399,8 @@ func readEvpn(routingInstance string,
 			}
 		}
 	}
-	if switchRIConfig != emptyWord {
-		for _, item := range strings.Split(switchRIConfig, "\n") {
+	if showConfigSwitchRI != emptyWord {
+		for _, item := range strings.Split(showConfigSwitchRI, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

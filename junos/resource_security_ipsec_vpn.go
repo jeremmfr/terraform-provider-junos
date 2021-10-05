@@ -360,11 +360,11 @@ func resourceIpsecVpnImport(d *schema.ResourceData, m interface{}) ([]*schema.Re
 
 func checkIpsecVpnExists(ipsecVpn string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	ipsecVpnConfig, err := sess.command("show configuration security ipsec vpn "+ipsecVpn+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration security ipsec vpn "+ipsecVpn+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if ipsecVpnConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -441,14 +441,14 @@ func readIpsecVpn(ipsecVpn string, m interface{}, jnprSess *NetconfObject) (ipse
 	sess := m.(*Session)
 	var confRead ipsecVpnOptions
 
-	ipsecVpnConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security ipsec vpn "+ipsecVpn+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if ipsecVpnConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = ipsecVpn
-		for _, item := range strings.Split(ipsecVpnConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

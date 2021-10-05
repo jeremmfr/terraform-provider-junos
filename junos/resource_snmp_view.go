@@ -215,12 +215,11 @@ func resourceSnmpViewImport(d *schema.ResourceData, m interface{}) ([]*schema.Re
 
 func checkSnmpViewExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	snmpViewConfig, err := sess.command("show configuration"+
-		" snmp view \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration snmp view \""+name+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if snmpViewConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -247,14 +246,13 @@ func readSnmpView(name string, m interface{}, jnprSess *NetconfObject) (snmpView
 	sess := m.(*Session)
 	var confRead snmpViewOptions
 
-	snmpViewConfig, err := sess.command("show configuration"+
-		" snmp view \""+name+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration snmp view \""+name+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if snmpViewConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = name
-		for _, item := range strings.Split(snmpViewConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

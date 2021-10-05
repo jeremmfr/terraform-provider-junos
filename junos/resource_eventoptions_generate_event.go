@@ -229,12 +229,11 @@ func resourceEventoptionsGenerateEventImport(d *schema.ResourceData, m interface
 
 func checkEventoptionsGenerateEventExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	eventoptionsGenerateEventConfig, err :=
-		sess.command("show configuration event-options generate-event \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration event-options generate-event \""+name+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if eventoptionsGenerateEventConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -259,19 +258,19 @@ func setEventoptionsGenerateEvent(d *schema.ResourceData, m interface{}, jnprSes
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readEventoptionsGenerateEvent(
-	event string, m interface{}, jnprSess *NetconfObject) (eventoptionsGenerateEventOptions, error) {
+func readEventoptionsGenerateEvent(name string,
+	m interface{}, jnprSess *NetconfObject) (eventoptionsGenerateEventOptions, error) {
 	sess := m.(*Session)
 	var confRead eventoptionsGenerateEventOptions
 
-	eventoptionsGenerateEventConfig, err := sess.command("show configuration event-options generate-event \""+
-		event+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" event-options generate-event \""+name+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if eventoptionsGenerateEventConfig != emptyWord {
-		confRead.name = event
-		for _, item := range strings.Split(eventoptionsGenerateEventConfig, "\n") {
+	if showConfig != emptyWord {
+		confRead.name = name
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

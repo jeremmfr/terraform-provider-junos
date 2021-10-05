@@ -216,12 +216,12 @@ func resourceSecurityUtmCustomURLPatternImport(d *schema.ResourceData, m interfa
 
 func checkUtmCustomURLPatternsExists(urlPattern string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	urlPatternConfig, err := sess.command("show configuration security utm custom-objects url-pattern "+
-		urlPattern+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security utm custom-objects url-pattern "+urlPattern+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if urlPatternConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -245,14 +245,14 @@ func readUtmCustomURLPattern(urlPattern string, m interface{}, jnprSess *Netconf
 	sess := m.(*Session)
 	var confRead utmCustomURLPatternOptions
 
-	urlPatternConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security utm custom-objects url-pattern "+urlPattern+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if urlPatternConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = urlPattern
-		for _, item := range strings.Split(urlPatternConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

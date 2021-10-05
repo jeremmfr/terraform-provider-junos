@@ -389,11 +389,11 @@ func searchInterfaceID(configInterface string, match string,
 	m interface{}, jnprSess *NetconfObject) (string, error) {
 	sess := m.(*Session)
 	intConfigList := make([]string, 0)
-	intConfig, err := sess.command("show configuration interfaces "+configInterface+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration interfaces "+configInterface+" | display set", jnprSess)
 	if err != nil {
 		return "", err
 	}
-	for _, item := range strings.Split(intConfig, "\n") {
+	for _, item := range strings.Split(showConfig, "\n") {
 		if strings.Contains(item, "<configuration-output>") {
 			continue
 		}

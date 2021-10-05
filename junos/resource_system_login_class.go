@@ -353,11 +353,11 @@ func resourceSystemLoginClassImport(d *schema.ResourceData, m interface{}) ([]*s
 
 func checkSystemLoginClassExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	systemLoginClassConfig, err := sess.command("show configuration system login class "+name+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration system login class "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if systemLoginClassConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -445,18 +445,17 @@ func setSystemLoginClass(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSystemLoginClass(class string, m interface{}, jnprSess *NetconfObject) (systemLoginClassOptions, error) {
+func readSystemLoginClass(name string, m interface{}, jnprSess *NetconfObject) (systemLoginClassOptions, error) {
 	sess := m.(*Session)
 	var confRead systemLoginClassOptions
 
-	systemLoginClassConfig, err := sess.command("show configuration system login class "+
-		class+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration system login class "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if systemLoginClassConfig != emptyWord {
-		confRead.name = class
-		for _, item := range strings.Split(systemLoginClassConfig, "\n") {
+	if showConfig != emptyWord {
+		confRead.name = name
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

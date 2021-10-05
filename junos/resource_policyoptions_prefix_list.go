@@ -222,11 +222,11 @@ func resourcePolicyoptionsPrefixListImport(d *schema.ResourceData, m interface{}
 
 func checkPolicyoptionsPrefixListExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	prefixListConfig, err := sess.command("show configuration policy-options prefix-list "+name+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration policy-options prefix-list "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if prefixListConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -258,18 +258,18 @@ func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess 
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readPolicyoptionsPrefixList(prefixList string, m interface{}, jnprSess *NetconfObject) (prefixListOptions, error) {
+func readPolicyoptionsPrefixList(name string, m interface{}, jnprSess *NetconfObject) (prefixListOptions, error) {
 	sess := m.(*Session)
 	var confRead prefixListOptions
 
-	prefixListConfig, err := sess.command("show configuration policy-options prefix-list "+
-		prefixList+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" policy-options prefix-list "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if prefixListConfig != emptyWord {
-		confRead.name = prefixList
-		for _, item := range strings.Split(prefixListConfig, "\n") {
+	if showConfig != emptyWord {
+		confRead.name = name
+		for _, item := range strings.Split(showConfig, "\n") {
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			if strings.Contains(item, "<configuration-output>") {
 				continue

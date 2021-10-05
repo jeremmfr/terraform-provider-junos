@@ -242,12 +242,12 @@ func resourceServicesUserIdentDeviceIdentityProfileImport(
 func checkServicesUserIdentDeviceIdentityProfileExists(
 	profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	profileConfig, err := sess.command("show configuration services user-identification "+
-		"device-information end-user-profile profile-name "+profile+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" services user-identification device-information end-user-profile profile-name "+profile+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if profileConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -282,14 +282,15 @@ func readServicesUserIdentDeviceIdentityProfile(profile string, m interface{}, j
 	sess := m.(*Session)
 	var confRead svcUserIdentDevIdentProfileOptions
 
-	profileConfig, err := sess.command("show configuration services user-identification "+
-		"device-information end-user-profile profile-name "+profile+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" services user-identification device-information end-user-profile"+
+		" profile-name "+profile+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if profileConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = profile
-		for _, item := range strings.Split(profileConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

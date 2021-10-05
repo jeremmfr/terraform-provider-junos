@@ -295,11 +295,11 @@ func resourceRoutingInstanceImport(d *schema.ResourceData, m interface{}) ([]*sc
 
 func checkRoutingInstanceExists(instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	routingInstanceConfig, err := sess.command("show configuration routing-instances "+instance+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration routing-instances "+instance+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if routingInstanceConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -360,14 +360,13 @@ func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject
 	sess := m.(*Session)
 	var confRead instanceOptions
 
-	instanceConfig, err := sess.command("show configuration"+
-		" routing-instances "+instance+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration routing-instances "+instance+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if instanceConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = instance
-		for _, item := range strings.Split(instanceConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

@@ -270,26 +270,26 @@ func resourceOspfAreaImport(d *schema.ResourceData, m interface{}) ([]*schema.Re
 func checkOspfAreaExists(idArea, version, routingInstance string,
 	m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	var ospfAreaConfig string
+	var showConfig string
 	var err error
 	ospfVersion := ospfV2
 	if version == "v3" {
 		ospfVersion = ospfV3
 	}
 	if routingInstance == defaultWord {
-		ospfAreaConfig, err = sess.command("show configuration protocols "+
-			ospfVersion+" area "+idArea+" | display set", jnprSess)
+		showConfig, err = sess.command("show configuration"+
+			" protocols "+ospfVersion+" area "+idArea+" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
-		ospfAreaConfig, err = sess.command("show configuration routing-instances "+
-			routingInstance+" protocols "+ospfVersion+" area "+idArea+" | display set", jnprSess)
+		showConfig, err = sess.command("show configuration"+
+			" routing-instances "+routingInstance+" protocols "+ospfVersion+" area "+idArea+" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
 	}
-	if ospfAreaConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -350,31 +350,31 @@ func readOspfArea(idArea, version, routingInstance string,
 	m interface{}, jnprSess *NetconfObject) (ospfAreaOptions, error) {
 	sess := m.(*Session)
 	var confRead ospfAreaOptions
-	var ospfAreaConfig string
+	var showConfig string
 	var err error
 	ospfVersion := ospfV2
 	if version == "v3" {
 		ospfVersion = ospfV3
 	}
 	if routingInstance == defaultWord {
-		ospfAreaConfig, err = sess.command("show configuration protocols "+
-			ospfVersion+" area "+idArea+" | display set relative", jnprSess)
+		showConfig, err = sess.command("show configuration"+
+			" protocols "+ospfVersion+" area "+idArea+" | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
-		ospfAreaConfig, err = sess.command("show configuration routing-instances "+
-			routingInstance+" protocols "+ospfVersion+" area "+idArea+" | display set relative", jnprSess)
+		showConfig, err = sess.command("show configuration"+
+			" routing-instances "+routingInstance+" protocols "+ospfVersion+" area "+idArea+" | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	}
 
-	if ospfAreaConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.areaID = idArea
 		confRead.version = version
 		confRead.routingInstance = routingInstance
-		for _, item := range strings.Split(ospfAreaConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

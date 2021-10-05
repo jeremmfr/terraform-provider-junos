@@ -244,12 +244,12 @@ func resourceSecurityNatDestinationPoolImport(d *schema.ResourceData, m interfac
 
 func checkSecurityNatDestinationPoolExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	natDestinationPoolConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security nat destination pool "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if natDestinationPoolConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -278,19 +278,19 @@ func setSecurityNatDestinationPool(d *schema.ResourceData, m interface{}, jnprSe
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSecurityNatDestinationPool(natDestinationPool string,
+func readSecurityNatDestinationPool(name string,
 	m interface{}, jnprSess *NetconfObject) (natDestinationPoolOptions, error) {
 	sess := m.(*Session)
 	var confRead natDestinationPoolOptions
 
-	natDestinationPoolConfig, err := sess.command("show configuration"+
-		" security nat destination pool "+natDestinationPool+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security nat destination pool "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if natDestinationPoolConfig != emptyWord {
-		confRead.name = natDestinationPool
-		for _, item := range strings.Split(natDestinationPoolConfig, "\n") {
+	if showConfig != emptyWord {
+		confRead.name = name
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

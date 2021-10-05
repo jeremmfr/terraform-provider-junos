@@ -256,11 +256,11 @@ func resourceSystemLoginUserImport(d *schema.ResourceData, m interface{}) ([]*sc
 
 func checkSystemLoginUserExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	systemLoginUserConfig, err := sess.command("show configuration system login user "+name+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration system login user "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if systemLoginUserConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -316,18 +316,17 @@ func setSystemLoginUser(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSystemLoginUser(user string, m interface{}, jnprSess *NetconfObject) (systemLoginUserOptions, error) {
+func readSystemLoginUser(name string, m interface{}, jnprSess *NetconfObject) (systemLoginUserOptions, error) {
 	sess := m.(*Session)
 	var confRead systemLoginUserOptions
 
-	systemLoginUserConfig, err := sess.command("show configuration system login user "+
-		user+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration system login user "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if systemLoginUserConfig != emptyWord {
-		confRead.name = user
-		for _, item := range strings.Split(systemLoginUserConfig, "\n") {
+	if showConfig != emptyWord {
+		confRead.name = name
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

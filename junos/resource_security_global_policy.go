@@ -415,13 +415,13 @@ func readSecurityGlobalPolicy(m interface{}, jnprSess *NetconfObject) (globalPol
 	sess := m.(*Session)
 	var confRead globalPolicyOptions
 
-	policyConfig, err := sess.command("show configuration security policies global | display set relative ", jnprSess)
+	showConfig, err := sess.command("show configuration security policies global | display set relative ", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	policyList := make([]map[string]interface{}, 0)
-	if policyConfig != emptyWord {
-		for _, item := range strings.Split(policyConfig, "\n") {
+	if showConfig != emptyWord {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

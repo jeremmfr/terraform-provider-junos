@@ -383,13 +383,12 @@ func readSnmp(m interface{}, jnprSess *NetconfObject) (snmpOptions, error) {
 	sess := m.(*Session)
 	var confRead snmpOptions
 
-	snmpConfig, err := sess.command("show configuration snmp"+
-		" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration snmp | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if snmpConfig != emptyWord {
-		for _, item := range strings.Split(snmpConfig, "\n") {
+	if showConfig != emptyWord {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

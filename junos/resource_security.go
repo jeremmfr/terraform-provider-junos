@@ -1762,13 +1762,12 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 	sess := m.(*Session)
 	var confRead securityOptions
 
-	securityConfig, err := sess.command("show configuration security"+
-		" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration security | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if securityConfig != emptyWord {
-		for _, item := range strings.Split(securityConfig, "\n") {
+	if showConfig != emptyWord {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
