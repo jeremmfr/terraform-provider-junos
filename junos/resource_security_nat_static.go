@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -56,9 +57,15 @@ func resourceSecurityNatStatic() *schema.Resource {
 					},
 				},
 			},
+			"configure_rules_singly": {
+				Type:         schema.TypeBool,
+				Optional:     true,
+				ExactlyOneOf: []string{"configure_rules_singly", "rule"},
+			},
 			"rule": {
-				Type:     schema.TypeList,
-				Required: true,
+				Type:         schema.TypeList,
+				Optional:     true,
+				ExactlyOneOf: []string{"rule", "configure_rules_singly"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -241,10 +248,39 @@ func resourceSecurityNatStaticUpdate(ctx context.Context, d *schema.ResourceData
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if err := delSecurityNatStatic(d.Get("name").(string), m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	configureRulesSingly := d.Get("configure_rules_singly").(bool)
+	if d.HasChange("configure_rules_singly") {
+		if o, _ := d.GetChange("configure_rules_singly"); o.(bool) {
+			configureRulesSingly = o.(bool)
+			diagWarns = append(diagWarns, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary: "Disable configure_rules_singly on resource already created doesn't " +
+					"delete rule(s) already configured.",
+				Detail:        "So refresh resource after apply to detect rule(s) that need to be deleted",
+				AttributePath: cty.Path{cty.GetAttrStep{Name: "configure_rules_singly"}},
+			})
+		} else {
+			diagWarns = append(diagWarns, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary: "Enable configure_rules_singly on resource already created doesn't " +
+					"delete rules already configured.",
+				Detail:        "So import rule(s) in dedicated resource(s) to be able to manage them",
+				AttributePath: cty.Path{cty.GetAttrStep{Name: "configure_rules_singly"}},
+			})
+		}
+	}
+	if configureRulesSingly {
+		if err := delSecurityNatStaticWithoutRules(d.Get("name").(string), m, jnprSess); err != nil {
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return append(diagWarns, diag.FromErr(err)...)
+			return append(diagWarns, diag.FromErr(err)...)
+		}
+	} else {
+		if err := delSecurityNatStatic(d.Get("name").(string), m, jnprSess); err != nil {
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+			return append(diagWarns, diag.FromErr(err)...)
+		}
 	}
 	if err := setSecurityNatStatic(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -296,17 +332,23 @@ func resourceSecurityNatStaticImport(d *schema.ResourceData, m interface{}) ([]*
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-
-	securityNatStaticExists, err := checkSecurityNatStaticExists(d.Id(), m, jnprSess)
+	idList := strings.Split(d.Id(), idSeparator)
+	securityNatStaticExists, err := checkSecurityNatStaticExists(idList[0], m, jnprSess)
 	if err != nil {
 		return nil, err
 	}
 	if !securityNatStaticExists {
-		return nil, fmt.Errorf("don't find nat static with id '%v' (id must be <name>)", d.Id())
+		return nil, fmt.Errorf("don't find nat static with id '%v' "+
+			"(id must be <name> or <name>%sno_rules)", idList[0], idSeparator)
 	}
-	natStaticOptions, err := readSecurityNatStatic(d.Id(), m, jnprSess)
+	natStaticOptions, err := readSecurityNatStatic(idList[0], m, jnprSess)
 	if err != nil {
 		return nil, err
+	}
+	if len(idList) > 1 && idList[1] == "no_rules" {
+		if tfErr := d.Set("configure_rules_singly", true); tfErr != nil {
+			panic(tfErr)
+		}
 	}
 	fillSecurityNatStaticData(d, natStaticOptions)
 
@@ -342,91 +384,93 @@ func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *Netco
 		}
 	}
 	ruleNameList := make([]string, 0)
-	for _, v := range d.Get("rule").([]interface{}) {
-		rule := v.(map[string]interface{})
-		if bchk.StringInSlice(rule["name"].(string), ruleNameList) {
-			return fmt.Errorf("multiple rule blocks with the same name")
-		}
-		ruleNameList = append(ruleNameList, rule["name"].(string))
-		setPrefixRule := setPrefix + " rule " + rule["name"].(string)
-		if rule["destination_address"].(string) == "" && rule["destination_address_name"].(string) == "" {
-			return fmt.Errorf("missing destination_address or destination_address_name in rule %s", rule["name"].(string))
-		}
-		if rule["destination_address"].(string) != "" && rule["destination_address_name"].(string) != "" {
-			return fmt.Errorf("destination_address and destination_address_name must not be set at the same time "+
-				"in rule %s", rule["name"].(string))
-		}
-		if vv := rule["destination_address"].(string); vv != "" {
-			configSet = append(configSet, setPrefixRule+" match destination-address "+vv)
-		}
-		if vv := rule["destination_address_name"].(string); vv != "" {
-			configSet = append(configSet, setPrefixRule+" match destination-address-name \""+vv+"\"")
-		}
-		if vv := rule["destination_port"].(int); vv != 0 {
-			configSet = append(configSet, setPrefixRule+" match destination-port "+strconv.Itoa(vv))
-			if vvTo := rule["destination_port_to"].(int); vvTo != 0 {
-				configSet = append(configSet, setPrefixRule+" match destination-port to "+strconv.Itoa(vvTo))
+	if !d.Get("configure_rules_singly").(bool) {
+		for _, v := range d.Get("rule").([]interface{}) {
+			rule := v.(map[string]interface{})
+			if bchk.StringInSlice(rule["name"].(string), ruleNameList) {
+				return fmt.Errorf("multiple rule blocks with the same name")
 			}
-		} else if rule["destination_port_to"].(int) != 0 {
-			return fmt.Errorf("destination_port need to be set with destination_port_to in rule %s", rule["name"].(string))
-		}
-		for _, vv := range sortSetOfString(rule["source_address"].(*schema.Set).List()) {
-			if err := validateCIDRNetwork(vv); err != nil {
-				return err
+			ruleNameList = append(ruleNameList, rule["name"].(string))
+			setPrefixRule := setPrefix + " rule " + rule["name"].(string)
+			if rule["destination_address"].(string) == "" && rule["destination_address_name"].(string) == "" {
+				return fmt.Errorf("missing destination_address or destination_address_name in rule %s", rule["name"].(string))
 			}
-			configSet = append(configSet, setPrefixRule+" match source-address "+vv)
-		}
-		for _, vv := range sortSetOfString(rule["source_address_name"].(*schema.Set).List()) {
-			configSet = append(configSet, setPrefixRule+" match source-address-name \""+vv+"\"")
-		}
-		for _, vv := range sortSetOfString(rule["source_port"].(*schema.Set).List()) {
-			if !regexpSourcePort.MatchString(vv) {
-				return fmt.Errorf("source_port need to have format `x` or `x to y` in rule %s", rule["name"].(string))
+			if rule["destination_address"].(string) != "" && rule["destination_address_name"].(string) != "" {
+				return fmt.Errorf("destination_address and destination_address_name must not be set at the same time "+
+					"in rule %s", rule["name"].(string))
 			}
-			configSet = append(configSet, setPrefixRule+" match source-port "+vv)
-		}
-		for _, thenV := range rule[thenWord].([]interface{}) {
-			then := thenV.(map[string]interface{})
-			if then["type"].(string) == inetWord {
-				if then["routing_instance"].(string) == "" {
-					return fmt.Errorf("missing routing_instance in rule %s with type = inet", rule["name"].(string))
-				}
-				if then["prefix"].(string) != "" ||
-					then["mapped_port"].(int) != 0 ||
-					then["mapped_port_to"].(int) != 0 {
-					return fmt.Errorf("only routing_instance need to be set in rule %s with type = inet", rule["name"].(string))
-				}
-				configSet = append(configSet, setPrefixRule+" then static-nat inet routing-instance "+
-					then["routing_instance"].(string))
+			if vv := rule["destination_address"].(string); vv != "" {
+				configSet = append(configSet, setPrefixRule+" match destination-address "+vv)
 			}
-			if then["type"].(string) == prefixWord || then["type"].(string) == prefixNameWord {
-				setPrefixRuleThenStaticNat := setPrefixRule + " then static-nat "
-				if then["type"].(string) == prefixWord {
-					setPrefixRuleThenStaticNat += "prefix "
-					if then["prefix"].(string) == "" {
-						return fmt.Errorf("missing prefix in rule %s with type = prefix", rule["name"].(string))
-					}
-					if err := validateCIDRNetwork(then["prefix"].(string)); err != nil {
-						return err
-					}
+			if vv := rule["destination_address_name"].(string); vv != "" {
+				configSet = append(configSet, setPrefixRule+" match destination-address-name \""+vv+"\"")
+			}
+			if vv := rule["destination_port"].(int); vv != 0 {
+				configSet = append(configSet, setPrefixRule+" match destination-port "+strconv.Itoa(vv))
+				if vvTo := rule["destination_port_to"].(int); vvTo != 0 {
+					configSet = append(configSet, setPrefixRule+" match destination-port to "+strconv.Itoa(vvTo))
 				}
-				if then["type"].(string) == prefixNameWord {
-					setPrefixRuleThenStaticNat += "prefix-name "
-					if then["prefix"].(string) == "" {
-						return fmt.Errorf("missing prefix in rule %s with type = prefix-name", rule["name"].(string))
-					}
+			} else if rule["destination_port_to"].(int) != 0 {
+				return fmt.Errorf("destination_port need to be set with destination_port_to in rule %s", rule["name"].(string))
+			}
+			for _, vv := range sortSetOfString(rule["source_address"].(*schema.Set).List()) {
+				if err := validateCIDRNetwork(vv); err != nil {
+					return err
 				}
-				configSet = append(configSet, setPrefixRuleThenStaticNat+"\""+then["prefix"].(string)+"\"")
-				if vv := then["mapped_port"].(int); vv != 0 {
-					configSet = append(configSet, setPrefixRuleThenStaticNat+"mapped-port "+strconv.Itoa(vv))
-					if vvTo := then["mapped_port_to"].(int); vvTo != 0 {
-						configSet = append(configSet, setPrefixRuleThenStaticNat+"mapped-port to "+strconv.Itoa(vvTo))
-					}
-				} else if then["mapped_port_to"].(int) != 0 {
-					return fmt.Errorf("mapped_port need to set with mapped_port_to in rule %s", rule["name"].(string))
+				configSet = append(configSet, setPrefixRule+" match source-address "+vv)
+			}
+			for _, vv := range sortSetOfString(rule["source_address_name"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefixRule+" match source-address-name \""+vv+"\"")
+			}
+			for _, vv := range sortSetOfString(rule["source_port"].(*schema.Set).List()) {
+				if !regexpSourcePort.MatchString(vv) {
+					return fmt.Errorf("source_port need to have format `x` or `x to y` in rule %s", rule["name"].(string))
 				}
-				if vv := then["routing_instance"].(string); vv != "" {
-					configSet = append(configSet, setPrefixRuleThenStaticNat+"routing-instance "+vv)
+				configSet = append(configSet, setPrefixRule+" match source-port "+vv)
+			}
+			for _, thenV := range rule[thenWord].([]interface{}) {
+				then := thenV.(map[string]interface{})
+				if then["type"].(string) == inetWord {
+					if then["routing_instance"].(string) == "" {
+						return fmt.Errorf("missing routing_instance in rule %s with type = inet", rule["name"].(string))
+					}
+					if then["prefix"].(string) != "" ||
+						then["mapped_port"].(int) != 0 ||
+						then["mapped_port_to"].(int) != 0 {
+						return fmt.Errorf("only routing_instance need to be set in rule %s with type = inet", rule["name"].(string))
+					}
+					configSet = append(configSet, setPrefixRule+" then static-nat inet routing-instance "+
+						then["routing_instance"].(string))
+				}
+				if then["type"].(string) == prefixWord || then["type"].(string) == prefixNameWord {
+					setPrefixRuleThenStaticNat := setPrefixRule + " then static-nat "
+					if then["type"].(string) == prefixWord {
+						setPrefixRuleThenStaticNat += "prefix "
+						if then["prefix"].(string) == "" {
+							return fmt.Errorf("missing prefix in rule %s with type = prefix", rule["name"].(string))
+						}
+						if err := validateCIDRNetwork(then["prefix"].(string)); err != nil {
+							return err
+						}
+					}
+					if then["type"].(string) == prefixNameWord {
+						setPrefixRuleThenStaticNat += "prefix-name "
+						if then["prefix"].(string) == "" {
+							return fmt.Errorf("missing prefix in rule %s with type = prefix-name", rule["name"].(string))
+						}
+					}
+					configSet = append(configSet, setPrefixRuleThenStaticNat+"\""+then["prefix"].(string)+"\"")
+					if vv := then["mapped_port"].(int); vv != 0 {
+						configSet = append(configSet, setPrefixRuleThenStaticNat+"mapped-port "+strconv.Itoa(vv))
+						if vvTo := then["mapped_port_to"].(int); vvTo != 0 {
+							configSet = append(configSet, setPrefixRuleThenStaticNat+"mapped-port to "+strconv.Itoa(vvTo))
+						}
+					} else if then["mapped_port_to"].(int) != 0 {
+						return fmt.Errorf("mapped_port need to set with mapped_port_to in rule %s", rule["name"].(string))
+					}
+					if vv := then["routing_instance"].(string); vv != "" {
+						configSet = append(configSet, setPrefixRuleThenStaticNat+"routing-instance "+vv)
+					}
 				}
 			}
 		}
@@ -575,6 +619,15 @@ func delSecurityNatStatic(natStatic string, m interface{}, jnprSess *NetconfObje
 	return sess.configSet(configSet, jnprSess)
 }
 
+func delSecurityNatStaticWithoutRules(natStatic string, m interface{}, jnprSess *NetconfObject) error {
+	sess := m.(*Session)
+	configSet := make([]string, 0, 1)
+	configSet = append(configSet, "delete security nat static rule-set "+natStatic+" description")
+	configSet = append(configSet, "delete security nat static rule-set "+natStatic+" from")
+
+	return sess.configSet(configSet, jnprSess)
+}
+
 func fillSecurityNatStaticData(d *schema.ResourceData, natStaticOptions natStaticOptions) {
 	if tfErr := d.Set("name", natStaticOptions.name); tfErr != nil {
 		panic(tfErr)
@@ -582,8 +635,10 @@ func fillSecurityNatStaticData(d *schema.ResourceData, natStaticOptions natStati
 	if tfErr := d.Set("from", natStaticOptions.from); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("rule", natStaticOptions.rule); tfErr != nil {
-		panic(tfErr)
+	if !d.Get("configure_rules_singly").(bool) {
+		if tfErr := d.Set("rule", natStaticOptions.rule); tfErr != nil {
+			panic(tfErr)
+		}
 	}
 	if tfErr := d.Set("description", natStaticOptions.description); tfErr != nil {
 		panic(tfErr)

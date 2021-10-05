@@ -62,6 +62,11 @@ func TestAccJunosSecurityNatStatic_basic(t *testing.T) {
 					ImportState:       true,
 					ImportStateVerify: true,
 				},
+				{
+					ResourceName:  "junos_security_nat_static.testacc_securityNATStt_singly",
+					ImportState:   true,
+					ImportStateId: "testacc_securityNATStt_singly_-_no_rules",
+				},
 			},
 		})
 	}
@@ -170,6 +175,14 @@ resource "junos_security_address_book" "testacc_securityNATStt" {
     name  = "testacc_securityNATStt-src"
     value = "192.0.2.224/27"
   }
+}
+resource "junos_security_nat_static" "testacc_securityNATStt_singly" {
+  name = "testacc_securityNATStt_singly"
+  from {
+    type  = "routing-instance"
+    value = [junos_routing_instance.testacc_securityNATStt.name]
+  }
+  configure_rules_singly = true
 }
 `
 }
