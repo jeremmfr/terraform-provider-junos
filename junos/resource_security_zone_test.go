@@ -27,7 +27,7 @@ func TestAccJunosSecurityZone_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
 							"address_book.0.name", "testacc_zone1"),
 						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
-							"address_book_set.#", "1"),
+							"address_book_set.#", "2"),
 						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
 							"address_book_set.0.name", "testacc_zoneSet"),
 						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
@@ -127,6 +127,12 @@ resource junos_security_zone "testacc_securityZone" {
     name        = "testacc_zoneSet"
     description = "testacc_zone Set"
     address     = ["testacc_zone1"]
+  }
+  address_book_set {
+    name        = "testacc_zoneSet2"
+    description = "testacc_zone Set2"
+    address     = ["testacc_zone2c"]
+    address_set = ["testacc_zoneSet"]
   }
   address_book_wildcard {
     name        = "testacc_zone4"

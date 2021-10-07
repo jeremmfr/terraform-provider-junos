@@ -68,8 +68,10 @@ The following arguments are supported:
   For each name of address-set to declare.
   - **name** (Required, String)  
     Name of address-set.
-  - **address** (Required, Set of String)  
+  - **address** (Optional, Set of String)  
     List of address names.
+  - **address_set** (Optional, Set of String)  
+    List of address-set names.
   - **description** (Optional, String)  
     Description of address-set.
 - **address_book_wildcard** (Optional, Block List)  

@@ -147,8 +147,12 @@ func resourceSecurityZone() *schema.Resource {
 						},
 						"address": {
 							Type:     schema.TypeSet,
-							Required: true,
-							MinItems: 1,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"address_set": {
+							Type:     schema.TypeSet,
+							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"description": {
@@ -501,9 +505,18 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 				return fmt.Errorf("multiple address or address-set with the same name")
 			}
 			addressNameList = append(addressNameList, addressBookSet["name"].(string))
+			if len(addressBookSet["address"].(*schema.Set).List()) == 0 &&
+				len(addressBookSet["address_set"].(*schema.Set).List()) == 0 {
+				return fmt.Errorf("at least one of address or address_set is required "+
+					"in address_book_set %s", addressBookSet["name"].(string))
+			}
 			for _, addressBookSetAddress := range sortSetOfString(addressBookSet["address"].(*schema.Set).List()) {
 				configSet = append(configSet, setPrefix+" address-book address-set "+addressBookSet["name"].(string)+
 					" address "+addressBookSetAddress)
+			}
+			for _, addressBookSetAddressSet := range sortSetOfString(addressBookSet["address_set"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefix+" address-book address-set "+addressBookSet["name"].(string)+
+					" address-set "+addressBookSetAddressSet)
 			}
 			if v2 := addressBookSet["description"].(string); v2 != "" {
 				configSet = append(configSet, setPrefix+" address-book address-set "+
@@ -614,16 +627,20 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 				adSet := map[string]interface{}{
 					"name":        addressSetSplit[0],
 					"address":     make([]string, 0),
+					"address_set": make([]string, 0),
 					"description": "",
 				}
-				// search if name of address-set already create
 				confRead.addressBookSet = copyAndRemoveItemMapList("name", adSet, confRead.addressBookSet)
-				// append new address find
-				if addressSetSplit[1] == "description" {
+				switch {
+				case strings.HasPrefix(itemTrim, "address-book address-set "+addressSetSplit[0]+" description "):
 					adSet["description"] = strings.Trim(strings.TrimPrefix(
 						itemTrim, "address-book address-set "+addressSetSplit[0]+" description "), "\"")
-				} else {
-					adSet["address"] = append(adSet["address"].([]string), addressSetSplit[2])
+				case strings.HasPrefix(itemTrim, "address-book address-set "+addressSetSplit[0]+" address "):
+					adSet["address"] = append(adSet["address"].([]string),
+						strings.TrimPrefix(itemTrim, "address-book address-set "+addressSetSplit[0]+" address "))
+				case strings.HasPrefix(itemTrim, "address-book address-set "+addressSetSplit[0]+" address-set "):
+					adSet["address_set"] = append(adSet["address_set"].([]string),
+						strings.TrimPrefix(itemTrim, "address-book address-set "+addressSetSplit[0]+" address-set "))
 				}
 				confRead.addressBookSet = append(confRead.addressBookSet, adSet)
 			case strings.HasPrefix(itemTrim, "advance-policy-based-routing-profile "):
