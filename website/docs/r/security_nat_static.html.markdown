@@ -35,6 +35,8 @@ resource junos_security_nat_static "demo_nat" {
 
 The following arguments are supported:
 
+-> **Note:** One of `rule` or `configure_rules_singly` arguments is required.
+
 - **name** (Required, String, Forces new resource)  
   The name of static nat.
 - **from** (Required, Block)  
@@ -44,9 +46,12 @@ The following arguments are supported:
     Need to be `interface`, `routing-instance` or `zone`.
   - **value** (Required, Set of String)  
     Name of interface, routing-instance or zone for from options.
-- **rule** (Required, Block List)  
+- **rule** (Optional, Block List)  
   For each name of rule to declare.  
   See [below for nested schema](#rule-arguments).
+- **configure_rules_singly** (Optional, Boolean)
+  Disable management of rules in this resource to be able to manage them with specific
+  resources.
 - **description** (Optional, String)  
   Text description of rule set
 
@@ -104,4 +109,11 @@ Junos security nat static can be imported using an id made up of `<name>`, e.g.
 
 ```shell
 $ terraform import junos_security_nat_static.demo_nat nat_from_trust
+```
+
+By default, all rules are imported. To import only rule-set with `configure_rules_singly` = true and
+without `rule` blocks, add suffix `_-_no_rules` at `<name>`, e.g.
+
+```shell
+$ terraform import junos_security_nat_static.demo_nat nat_from_trust_-_no_rules
 ```
