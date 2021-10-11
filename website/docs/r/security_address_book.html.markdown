@@ -93,12 +93,14 @@ The following arguments are supported:
     IP address of end of range.
   - **description** (Optional, String)  
     Description of range address.
-- **address_book_set** (Optional, Block List)  
+- **address_set** (Optional, Block List)  
   For each name of address-set to declare.
   - **name** (Required, String)  
     Name of address-set.
-  - **address** (Required, Set of String)  
+  - **address** (Optional, Set of String)  
     List of address names.
+  - **address_set** (Optional, Set of String)  
+    List of address-set names.
   - **description** (Optional, String)  
     Description of address-set.
 

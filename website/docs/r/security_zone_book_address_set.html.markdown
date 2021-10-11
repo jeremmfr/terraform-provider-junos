@@ -32,8 +32,10 @@ The following arguments are supported:
   The name of address-set.
 - **zone** (Required, String, Forces new resource)  
   The name of security zone.
-- **address** (Required, Set of String)  
+- **address** (Optional, Set of String)  
   Address to be included in this set.
+- **address_set** (Optional, Set of String)  
+  Address-set to be included in this set.
 - **description** (Optional, String)  
   Description of address-set.
 

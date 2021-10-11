@@ -163,6 +163,19 @@ resource junos_security_address_book "testacc_securityGlobalAddressBook" {
     description = "testacc_network description"
     value       = "10.1.0.0/24"
   }
+  dns_name {
+    name  = "testacc_dns"
+    value = "google.com"
+  }
+  address_set {
+    name    = "testacc_addressSet"
+    address = ["testacc_network", "testacc_dns"]
+  }
+  address_set {
+    name        = "testacc_addressSet2"
+    address     = ["testacc_dns"]
+    address_set = ["testacc_addressSet"]
+  }
 }
 
 resource junos_security_address_book "testacc_securityNamedAddressBook" {
