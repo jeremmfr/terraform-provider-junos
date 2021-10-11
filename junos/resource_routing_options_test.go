@@ -67,6 +67,31 @@ resource "junos_policyoptions_policy_statement" "testacc_routing_options" {
     load_balance = "per-packet"
   }
 }
+resource "junos_policyoptions_policy_statement" "testacc_routing_options2" {
+  name = "testacc_routing_options2"
+  from {
+    route_filter {
+      route  = "192.0.2.0/28"
+      option = "orlonger"
+    }
+  }
+  then {
+    action = "accept"
+  }
+}
+resource "junos_policyoptions_policy_statement" "testacc_routing_options3" {
+  name = "testacc_routing_options3"
+  from {
+    route_filter {
+      route  = "192.0.2.16/28"
+      option = "orlonger"
+    }
+  }
+  then {
+    action = "accept"
+  }
+}
+
 resource junos_routing_options "testacc_routing_options" {
   autonomous_system {
     number         = "65000"
@@ -87,13 +112,40 @@ resource junos_routing_options "testacc_routing_options" {
     restart_duration = 120
     disable          = true
   }
-  router_id = "192.0.2.4"
+  instance_export = [junos_policyoptions_policy_statement.testacc_routing_options2.name]
+  instance_import = [junos_policyoptions_policy_statement.testacc_routing_options3.name]
+  router_id       = "192.0.2.4"
 }
 `
 }
 
 func testAccJunosRoutingOptionsConfigUpdate() string {
 	return `
+resource "junos_policyoptions_policy_statement" "testacc_routing_options2" {
+  name = "testacc_routing_options2"
+  from {
+    route_filter {
+      route  = "192.0.2.0/28"
+      option = "orlonger"
+    }
+  }
+  then {
+    action = "accept"
+  }
+}
+resource "junos_policyoptions_policy_statement" "testacc_routing_options3" {
+  name = "testacc_routing_options3"
+  from {
+    route_filter {
+      route  = "192.0.2.16/28"
+      option = "orlonger"
+    }
+  }
+  then {
+    action = "accept"
+  }
+}
+
 resource junos_routing_options "testacc_routing_options" {
   clean_on_destroy                         = true
   forwarding_table_export_configure_singly = true
@@ -104,6 +156,14 @@ resource junos_routing_options "testacc_routing_options" {
     unicast_reverse_path                         = "feasible-paths"
   }
   graceful_restart {}
+  instance_export = [
+    junos_policyoptions_policy_statement.testacc_routing_options3.name,
+    junos_policyoptions_policy_statement.testacc_routing_options2.name,
+  ]
+  instance_import = [
+    junos_policyoptions_policy_statement.testacc_routing_options2.name,
+    junos_policyoptions_policy_statement.testacc_routing_options3.name,
+  ]
 }
 resource junos_policyoptions_policy_statement "testacc_routing_options" {
   name                              = "testacc_routing_options"

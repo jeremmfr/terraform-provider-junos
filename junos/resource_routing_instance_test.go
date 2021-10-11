@@ -47,9 +47,11 @@ func TestAccJunosRoutingInstance_basic(t *testing.T) {
 func testAccJunosRoutingInstanceConfigCreate() string {
 	return `
 resource junos_routing_instance "testacc_routingInst" {
-  name        = "testacc_routingInst"
-  as          = "65000"
-  description = "testacc routingInst"
+  name            = "testacc_routingInst"
+  as              = "65000"
+  description     = "testacc routingInst"
+  instance_export = [junos_policyoptions_policy_statement.testacc_routingInst2.name]
+  instance_import = [junos_policyoptions_policy_statement.testacc_routingInst2.name]
 }
 resource junos_policyoptions_community "testacc_routingInst2" {
   name    = "testacc_routingInst2"
@@ -105,6 +107,14 @@ func testAccJunosRoutingInstanceConfigUpdate() string {
 resource junos_routing_instance "testacc_routingInst" {
   name = "testacc_routingInst"
   as   = "65001"
+  instance_export = [
+    junos_policyoptions_policy_statement.testacc_routingInst3.name,
+    junos_policyoptions_policy_statement.testacc_routingInst2.name,
+  ]
+  instance_import = [
+    junos_policyoptions_policy_statement.testacc_routingInst3.name,
+    junos_policyoptions_policy_statement.testacc_routingInst2.name,
+  ]
 }
 resource junos_policyoptions_community "testacc_routingInst2" {
   name    = "testacc_routingInst2"

@@ -82,6 +82,10 @@ The following arguments are supported:
     Disable graceful restart.
   - **restart_duration** (Optional, Number)  
     Maximum time for which router is in graceful restart (120..10000).
+- **instance_export** (Optional, List of String)  
+  Export policy for instance RIBs
+- **instance_import** (Optional, List of String)  
+  Import policy for instance RIBs
 - **router_id** (Optional, String)  
   Router identifier.
 
