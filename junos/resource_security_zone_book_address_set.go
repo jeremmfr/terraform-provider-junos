@@ -14,6 +14,7 @@ type zoneBookAddressSetOptions struct {
 	name        string
 	zone        string
 	address     []string
+	addressSet  []string
 }
 
 func resourceSecurityZoneBookAddressSet() *schema.Resource {
@@ -39,10 +40,16 @@ func resourceSecurityZoneBookAddressSet() *schema.Resource {
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"address": {
-				Type:     schema.TypeSet,
-				Required: true,
-				MinItems: 1,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:         schema.TypeSet,
+				Optional:     true,
+				AtLeastOneOf: []string{"address", "address_set"},
+				Elem:         &schema.Schema{Type: schema.TypeString},
+			},
+			"address_set": {
+				Type:         schema.TypeSet,
+				Optional:     true,
+				AtLeastOneOf: []string{"address", "address_set"},
+				Elem:         &schema.Schema{Type: schema.TypeString},
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -270,8 +277,15 @@ func setSecurityZoneBookAddressSet(d *schema.ResourceData, m interface{}, jnprSe
 
 	setPrefix := "set security zones security-zone " +
 		d.Get("zone").(string) + " address-book address-set " + d.Get("name").(string) + " "
+	if len(d.Get("address").(*schema.Set).List()) == 0 &&
+		len(d.Get("address_set").(*schema.Set).List()) == 0 {
+		return fmt.Errorf("at least one element of address or address_set is required")
+	}
 	for _, v := range sortSetOfString(d.Get("address").(*schema.Set).List()) {
 		configSet = append(configSet, setPrefix+"address "+v)
+	}
+	for _, v := range sortSetOfString(d.Get("address_set").(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"address-set "+v)
 	}
 	if v := d.Get("description").(string); v != "" {
 		configSet = append(configSet, setPrefix+"description \""+v+"\"")
@@ -306,6 +320,8 @@ func readSecurityZoneBookAddressSet(
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
 			case strings.HasPrefix(itemTrim, "address "):
 				confRead.address = append(confRead.address, strings.TrimPrefix(itemTrim, "address "))
+			case strings.HasPrefix(itemTrim, "address-set "):
+				confRead.addressSet = append(confRead.addressSet, strings.TrimPrefix(itemTrim, "address-set "))
 			}
 		}
 	}
@@ -328,6 +344,9 @@ func fillSecurityZoneBookAddressSetData(d *schema.ResourceData, zoneBookAddressS
 		panic(tfErr)
 	}
 	if tfErr := d.Set("address", zoneBookAddressSetOptions.address); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("address_set", zoneBookAddressSetOptions.addressSet); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("description", zoneBookAddressSetOptions.description); tfErr != nil {
