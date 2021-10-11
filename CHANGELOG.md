@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * resource/`junos_security_nat_static`: add multiple arguments, `destination_...`, `source_...` in `rule` block, `mapped_port...` in `then` block and `description`. also add possibility to use `prefix-name` in `then.0.type`
 * resource/`junos_security_zone`: add `address_set` argument inside `address_book_set` block
 * resource/`junos_security_zone_book_address_set`: add `address_set` argument
+* release now with golang 1.17 and replace the terraform sdk to a fork to avoid the note `Objects have changed outside of Terraform` with the empty string lists when create resources
 
 BUG FIXES:
 
