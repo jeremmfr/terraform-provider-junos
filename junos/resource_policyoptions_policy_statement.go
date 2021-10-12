@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type policyStatementOptions struct {
@@ -630,12 +631,12 @@ func resourcePolicyoptionsPolicyStatementImport(d *schema.ResourceData, m interf
 
 func checkPolicyStatementExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	policyStatementConfig, err := sess.command("show configuration policy-options policy-statement "+
-		name+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" policy-options policy-statement "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if policyStatementConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -655,7 +656,10 @@ func setPolicyStatement(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	}
 	for _, then := range d.Get("then").([]interface{}) {
 		if then != nil {
-			configSetThen := setPolicyStatementOptsThen(setPrefix, then.(map[string]interface{}))
+			configSetThen, err := setPolicyStatementOptsThen(setPrefix, then.(map[string]interface{}))
+			if err != nil {
+				return err
+			}
 			configSet = append(configSet, configSetThen...)
 		}
 	}
@@ -665,8 +669,13 @@ func setPolicyStatement(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 			configSet = append(configSet, configSetTo...)
 		}
 	}
+	termNameList := make([]string, 0)
 	for _, term := range d.Get("term").([]interface{}) {
 		termMap := term.(map[string]interface{})
+		if bchk.StringInSlice(termMap["name"].(string), termNameList) {
+			return fmt.Errorf("multiple term blocks with the same name")
+		}
+		termNameList = append(termNameList, termMap["name"].(string))
 		setPrefixTerm := setPrefix + " term " + termMap["name"].(string)
 		for _, from := range termMap["from"].([]interface{}) {
 			if from != nil {
@@ -676,7 +685,10 @@ func setPolicyStatement(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		}
 		for _, then := range termMap["then"].([]interface{}) {
 			if then != nil {
-				configSetThen := setPolicyStatementOptsThen(setPrefixTerm, then.(map[string]interface{}))
+				configSetThen, err := setPolicyStatementOptsThen(setPrefixTerm, then.(map[string]interface{}))
+				if err != nil {
+					return err
+				}
 				configSet = append(configSet, configSetThen...)
 			}
 		}
@@ -698,19 +710,18 @@ func setPolicyStatementFwTableExport(policyName string, m interface{}, jnprSess 
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readPolicyStatement(policyName string,
-	m interface{}, jnprSess *NetconfObject) (policyStatementOptions, error) {
+func readPolicyStatement(name string, m interface{}, jnprSess *NetconfObject) (policyStatementOptions, error) {
 	sess := m.(*Session)
 	var confRead policyStatementOptions
 
-	policyStatementConfig, err := sess.command("show configuration "+
-		"policy-options policy-statement "+policyName+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" policy-options policy-statement "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if policyStatementConfig != emptyWord {
-		confRead.name = policyName
-		for _, item := range strings.Split(policyStatementConfig, "\n") {
+	if showConfig != emptyWord {
+		confRead.name = name
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
@@ -790,15 +801,15 @@ func readPolicyStatement(policyName string,
 func readPolicyStatementFwTableExport(policyName string,
 	m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	policyStatementConfig, err := sess.command("show configuration routing-options forwarding-table export "+
-		"| display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" routing-options forwarding-table export | display set relative", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if policyStatementConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
-	for _, item := range strings.Split(policyStatementConfig, "\n") {
+	for _, item := range strings.Split(showConfig, "\n") {
 		if strings.Contains(item, "<configuration-output>") {
 			continue
 		}
@@ -914,7 +925,7 @@ func setPolicyStatementOptsFrom(setPrefix string, opts map[string]interface{}) [
 	return configSet
 }
 
-func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) []string {
+func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) ([]string, error) {
 	configSet := make([]string, 0)
 	setPrefixThen := setPrefix + " then "
 
@@ -931,11 +942,15 @@ func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) [
 	if opts["as_path_prepend"].(string) != "" {
 		configSet = append(configSet, setPrefixThen+"as-path-prepend \""+opts["as_path_prepend"].(string)+"\"")
 	}
+	communityList := make([]string, 0)
 	for _, v := range opts["community"].([]interface{}) {
 		community := v.(map[string]interface{})
-		configSet = append(configSet, setPrefixThen+
-			"community "+community["action"].(string)+
-			" "+community["value"].(string))
+		setCommunityActVal := "community " + community["action"].(string) + " " + community["value"].(string)
+		if bchk.StringInSlice(setCommunityActVal, communityList) {
+			return configSet, fmt.Errorf("multiple community blocks with the same action and value")
+		}
+		communityList = append(communityList, setCommunityActVal)
+		configSet = append(configSet, setPrefixThen+setCommunityActVal)
 	}
 	if opts["default_action"].(string) != "" {
 		configSet = append(configSet, setPrefixThen+"default-action "+opts["default_action"].(string))
@@ -986,7 +1001,7 @@ func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) [
 		}
 	}
 
-	return configSet
+	return configSet, nil
 }
 
 func setPolicyStatementOptsTo(setPrefix string, opts map[string]interface{}) []string {

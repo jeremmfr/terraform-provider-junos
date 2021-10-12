@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type vlanOptions struct {
@@ -77,7 +78,7 @@ func resourceVlan() *schema.Resource {
 				Optional: true,
 				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
 					value := v.(string)
-					if !checkStringHasPrefixInList(value, []string{"irb.", "vlan."}) {
+					if !bchk.StringHasOneOfPrefixes(value, []string{"irb.", "vlan."}) {
 						errors = append(errors, fmt.Errorf(
 							"%q for %q is not start with 'irb.' or 'vlan.'", value, k))
 					}
@@ -325,11 +326,11 @@ func resourceVlanImport(d *schema.ResourceData, m interface{}) ([]*schema.Resour
 
 func checkVlansExists(vlan string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	vlanConfig, err := sess.command("show configuration vlans "+vlan+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration vlans "+vlan+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if vlanConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -409,14 +410,13 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 	sess := m.(*Session)
 	var confRead vlanOptions
 
-	vlanConfig, err := sess.command("show configuration"+
-		" vlans "+vlan+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration vlans "+vlan+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if vlanConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = vlan
-		for _, item := range strings.Split(vlanConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
@@ -480,12 +480,12 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 					if vxlan["vni"] != -1 {
-						evpnConfig, err := sess.command("show configuration protocols evpn | display set relative", jnprSess)
+						showConfigEvpn, err := sess.command("show configuration protocols evpn | display set relative", jnprSess)
 						if err != nil {
 							return confRead, err
 						}
-						if evpnConfig != emptyWord {
-							for _, item := range strings.Split(evpnConfig, "\n") {
+						if showConfigEvpn != emptyWord {
+							for _, item := range strings.Split(showConfigEvpn, "\n") {
 								if strings.Contains(item, "<configuration-output>") {
 									continue
 								}

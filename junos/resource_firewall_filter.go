@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type filterOptions struct {
@@ -440,12 +441,12 @@ func resourceFirewallFilterImport(d *schema.ResourceData, m interface{}) ([]*sch
 
 func checkFirewallFilterExists(name, family string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	filterConfig, err := sess.command("show configuration "+
-		"firewall family "+family+" filter "+name+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" firewall family "+family+" filter "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if filterConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -461,20 +462,25 @@ func setFirewallFilter(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	if d.Get("interface_specific").(bool) {
 		configSet = append(configSet, setPrefix+" interface-specific")
 	}
-	for _, term := range d.Get("term").([]interface{}) {
-		termMap := term.(map[string]interface{})
-		setPrefixTerm := setPrefix + " term " + termMap["name"].(string)
-		if termMap["filter"].(string) != "" {
-			configSet = append(configSet, setPrefixTerm+" filter "+termMap["filter"].(string))
+	termNameList := make([]string, 0)
+	for _, v := range d.Get("term").([]interface{}) {
+		term := v.(map[string]interface{})
+		if bchk.StringInSlice(term["name"].(string), termNameList) {
+			return fmt.Errorf("multiple term blocks with the same name")
+		}
+		termNameList = append(termNameList, term["name"].(string))
+		setPrefixTerm := setPrefix + " term " + term["name"].(string)
+		if term["filter"].(string) != "" {
+			configSet = append(configSet, setPrefixTerm+" filter "+term["filter"].(string))
 		}
 
-		for _, from := range termMap["from"].([]interface{}) {
+		for _, from := range term["from"].([]interface{}) {
 			configSet, err = setFirewallFilterOptsFrom(setPrefixTerm+" from ", configSet, from.(map[string]interface{}))
 			if err != nil {
 				return err
 			}
 		}
-		for _, then := range termMap["then"].([]interface{}) {
+		for _, then := range term["then"].([]interface{}) {
 			configSet = setFirewallFilterOptsThen(setPrefixTerm+" then ", configSet, then.(map[string]interface{}))
 		}
 	}
@@ -486,15 +492,15 @@ func readFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfO
 	sess := m.(*Session)
 	var confRead filterOptions
 
-	filterConfig, err := sess.command("show configuration "+
-		"firewall family "+family+" filter "+filter+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" firewall family "+family+" filter "+filter+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if filterConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = filter
 		confRead.family = family
-		for _, item := range strings.Split(filterConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

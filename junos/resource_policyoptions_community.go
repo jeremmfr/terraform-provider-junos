@@ -215,11 +215,11 @@ func resourcePolicyoptionsCommunityImport(d *schema.ResourceData, m interface{})
 
 func checkPolicyoptionsCommunityExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	communityConfig, err := sess.command("show configuration policy-options community "+name+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration policy-options community "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if communityConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -241,18 +241,18 @@ func setPolicyoptionsCommunity(d *schema.ResourceData, m interface{}, jnprSess *
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readPolicyoptionsCommunity(community string, m interface{}, jnprSess *NetconfObject) (communityOptions, error) {
+func readPolicyoptionsCommunity(name string, m interface{}, jnprSess *NetconfObject) (communityOptions, error) {
 	sess := m.(*Session)
 	var confRead communityOptions
 
-	communityConfig, err := sess.command("show configuration"+
-		" policy-options community "+community+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" policy-options community "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if communityConfig != emptyWord {
-		confRead.name = community
-		for _, item := range strings.Split(communityConfig, "\n") {
+	if showConfig != emptyWord {
+		confRead.name = name
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

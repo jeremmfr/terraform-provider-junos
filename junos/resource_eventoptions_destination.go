@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -234,12 +235,11 @@ func resourceEventoptionsDestinationImport(d *schema.ResourceData, m interface{}
 
 func checkEventoptionsDestinationExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	eventoptionsDestinationConfig, err :=
-		sess.command("show configuration event-options destinations \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration event-options destinations \""+name+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if eventoptionsDestinationConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -251,8 +251,13 @@ func setEventoptionsDestination(d *schema.ResourceData, m interface{}, jnprSess 
 	configSet := make([]string, 0)
 	setPrefix := "set event-options destinations \"" + d.Get("name").(string) + "\" "
 
+	archiveSiteURLList := make([]string, 0)
 	for _, v := range d.Get("archive_site").([]interface{}) {
 		archiveSite := v.(map[string]interface{})
+		if bchk.StringInSlice(archiveSite["url"].(string), archiveSiteURLList) {
+			return fmt.Errorf("multiple archive_site blocks with the same url")
+		}
+		archiveSiteURLList = append(archiveSiteURLList, archiveSite["url"].(string))
 		configSet = append(configSet, setPrefix+"archive-sites \""+archiveSite["url"].(string)+"\"")
 		if v2 := archiveSite["password"].(string); v2 != "" {
 			configSet = append(configSet, setPrefix+"archive-sites \""+archiveSite["url"].(string)+"\" password \""+v2+"\"")
@@ -266,19 +271,19 @@ func setEventoptionsDestination(d *schema.ResourceData, m interface{}, jnprSess 
 }
 
 func readEventoptionsDestination(
-	destination string, m interface{}, jnprSess *NetconfObject) (eventoptionsDestinationOptions, error) {
+	name string, m interface{}, jnprSess *NetconfObject) (eventoptionsDestinationOptions, error) {
 	sess := m.(*Session)
 	var confRead eventoptionsDestinationOptions
 	confRead.transferDelay = -1 // default value
 
-	eventoptionsDestinationConfig, err := sess.command("show configuration event-options destinations \""+
-		destination+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" event-options destinations \""+name+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if eventoptionsDestinationConfig != emptyWord {
-		confRead.name = destination
-		for _, item := range strings.Split(eventoptionsDestinationConfig, "\n") {
+	if showConfig != emptyWord {
+		confRead.name = name
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -738,7 +739,7 @@ func resourceInterfaceLogicalImport(d *schema.ResourceData, m interface{}) ([]*s
 	}
 	if interfaceLogicalOpt.vlanID == 0 {
 		intCut := strings.Split(d.Id(), ".")
-		if !stringInSlice(intCut[0], []string{st0Word, "irb", "vlan"}) &&
+		if !bchk.StringInSlice(intCut[0], []string{st0Word, "irb", "vlan"}) &&
 			intCut[1] != "0" {
 			if tfErr := d.Set("vlan_no_compute", true); tfErr != nil {
 				panic(tfErr)
@@ -756,13 +757,13 @@ func resourceInterfaceLogicalImport(d *schema.ResourceData, m interface{}) ([]*s
 func checkInterfaceLogicalNCEmpty(interFace string, m interface{}, jnprSess *NetconfObject) (
 	ncInt bool, emtyInt bool, justSet bool, _err error) {
 	sess := m.(*Session)
-	intConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
 	if err != nil {
 		return false, false, false, err
 	}
-	intConfigLines := make([]string, 0)
+	showConfigLines := make([]string, 0)
 	// remove unused lines
-	for _, item := range strings.Split(intConfig, "\n") {
+	for _, item := range strings.Split(showConfig, "\n") {
 		// exclude ethernet-switching (parameters in junos_interface_physical)
 		if strings.Contains(item, "ethernet-switching") {
 			continue
@@ -776,25 +777,25 @@ func checkInterfaceLogicalNCEmpty(interFace string, m interface{}, jnprSess *Net
 		if item == "" {
 			continue
 		}
-		intConfigLines = append(intConfigLines, item)
+		showConfigLines = append(showConfigLines, item)
 	}
-	if len(intConfigLines) == 0 {
+	if len(showConfigLines) == 0 {
 		return false, true, true, nil
 	}
-	intConfig = strings.Join(intConfigLines, "\n")
+	showConfig = strings.Join(showConfigLines, "\n")
 	if sess.junosGroupIntDel != "" {
-		if intConfig == "set apply-groups "+sess.junosGroupIntDel {
+		if showConfig == "set apply-groups "+sess.junosGroupIntDel {
 			return true, false, false, nil
 		}
 	}
-	if intConfig == "set description NC\nset disable" ||
-		intConfig == "set disable\nset description NC" {
+	if showConfig == "set description NC\nset disable" ||
+		showConfig == "set disable\nset description NC" {
 		return true, false, false, nil
 	}
 	switch {
-	case intConfig == setLineStart:
+	case showConfig == setLineStart:
 		return false, true, true, nil
-	case intConfig == emptyWord:
+	case showConfig == emptyWord:
 		return false, true, false, nil
 	default:
 		return false, false, false, nil
@@ -817,13 +818,11 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 		configSet = append(configSet, setPrefix+"family inet")
 		if v != nil {
 			familyInet := v.(map[string]interface{})
-			for _, address := range familyInet["address"].([]interface{}) {
-				var err error
-				configSet, err = setFamilyAddress(address, configSet, setPrefix, inetWord)
-				if err != nil {
-					return err
-				}
+			configSetFamilyInet, err := setFamilyAddress(familyInet, setPrefix, inetWord)
+			if err != nil {
+				return err
 			}
+			configSet = append(configSet, configSetFamilyInet...)
 			if familyInet["filter_input"].(string) != "" {
 				configSet = append(configSet, setPrefix+"family inet filter input "+
 					familyInet["filter_input"].(string))
@@ -861,13 +860,11 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 		configSet = append(configSet, setPrefix+"family inet6")
 		if v != nil {
 			familyInet6 := v.(map[string]interface{})
-			for _, address := range familyInet6["address"].([]interface{}) {
-				var err error
-				configSet, err = setFamilyAddress(address, configSet, setPrefix, inet6Word)
-				if err != nil {
-					return err
-				}
+			configSetFamilyInet6, err := setFamilyAddress(familyInet6, setPrefix, inet6Word)
+			if err != nil {
+				return err
 			}
+			configSet = append(configSet, configSetFamilyInet6...)
 			if familyInet6["dad_disable"].(bool) {
 				configSet = append(configSet, setPrefix+"family inet6 dad-disable")
 			}
@@ -924,7 +921,7 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 	}
 	if d.Get("vlan_id").(int) != 0 {
 		configSet = append(configSet, setPrefix+"vlan-id "+strconv.Itoa(d.Get("vlan_id").(int)))
-	} else if !stringInSlice(intCut[0], []string{st0Word, "irb", "vlan"}) &&
+	} else if !bchk.StringInSlice(intCut[0], []string{st0Word, "irb", "vlan"}) &&
 		intCut[1] != "0" && !d.Get("vlan_no_compute").(bool) {
 		configSet = append(configSet, setPrefix+"vlan-id "+intCut[1])
 	}
@@ -936,13 +933,13 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 	sess := m.(*Session)
 	var confRead interfaceLogicalOptions
 
-	intConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 
-	if intConfig != emptyWord {
-		for _, item := range strings.Split(intConfig, "\n") {
+	if showConfig != emptyWord {
+		for _, item := range strings.Split(showConfig, "\n") {
 			// exclude ethernet-switching (parameters in junos_interface_physical)
 			if strings.Contains(item, "ethernet-switching") {
 				continue
@@ -1071,12 +1068,13 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 			}
 		}
 	}
-	routingConfig, err := sess.command("show configuration routing-instances | display set relative", jnprSess)
+	showConfigRoutingInstances, err := sess.command("show configuration routing-instances "+
+		"| display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	regexpInt := regexp.MustCompile(`set \S+ interface ` + interFace + `$`)
-	for _, item := range strings.Split(routingConfig, "\n") {
+	for _, item := range strings.Split(showConfigRoutingInstances, "\n") {
 		intMatch := regexpInt.MatchString(item)
 		if intMatch {
 			confRead.routingInstance = strings.TrimPrefix(strings.TrimSuffix(item, " interface "+interFace),
@@ -1086,12 +1084,12 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 		}
 	}
 	if checkCompatibilitySecurity(jnprSess) {
-		zonesConfig, err := sess.command("show configuration security zones | display set relative", jnprSess)
+		showConfigSecurityZones, err := sess.command("show configuration security zones | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 		regexpInts := regexp.MustCompile(`set security-zone \S+ interfaces ` + interFace + `( host-inbound-traffic .*)?$`)
-		for _, item := range strings.Split(zonesConfig, "\n") {
+		for _, item := range strings.Split(showConfigSecurityZones, "\n") {
 			intMatch := regexpInts.MatchString(item)
 			if intMatch {
 				itemTrimSplit := strings.Split(strings.TrimPrefix(item, "set security-zone "), " ")
@@ -1112,14 +1110,14 @@ func readInterfaceLogicalSecurityInboundTraffic(interFace string, confRead *inte
 	m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 
-	intConfig, err := sess.command("show configuration security zones security-zone "+confRead.securityZone+
-		" interfaces "+interFace+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security zones security-zone "+confRead.securityZone+" interfaces "+interFace+" | display set relative", jnprSess)
 	if err != nil {
 		return err
 	}
 
-	if intConfig != emptyWord {
-		for _, item := range strings.Split(intConfig, "\n") {
+	if showConfig != emptyWord {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
@@ -1339,99 +1337,126 @@ func readFamilyInetAddress(item string, inetAddress []map[string]interface{},
 	return inetAddress, nil
 }
 
-func setFamilyAddress(inetAddress interface{}, configSet []string, setPrefix string,
-	family string) ([]string, error) {
+func setFamilyAddress(inetAddress map[string]interface{}, setPrefix string, family string) ([]string, error) {
+	configSet := make([]string, 0)
 	if family != inetWord && family != inet6Word {
-		return configSet, fmt.Errorf("setFamilyAddress() unknown family %v", family)
+		panic(fmt.Sprintf("setFamilyAddress() unknown family %v", family))
 	}
-	inetAddressMap := inetAddress.(map[string]interface{})
-	setPrefixAddress := setPrefix + "family " + family + " address " + inetAddressMap["cidr_ip"].(string)
-	configSet = append(configSet, setPrefixAddress)
-	if inetAddressMap["preferred"].(bool) {
-		configSet = append(configSet, setPrefixAddress+" preferred")
-	}
-	if inetAddressMap["primary"].(bool) {
-		configSet = append(configSet, setPrefixAddress+" primary")
-	}
-	for _, vrrpGroup := range inetAddressMap["vrrp_group"].([]interface{}) {
-		if strings.Contains(setPrefix, "set interfaces st0 unit") {
-			return configSet, fmt.Errorf("vrrp not available on st0")
+	addressCIDRIPList := make([]string, 0)
+	for _, address := range inetAddress["address"].([]interface{}) {
+		addressMap := address.(map[string]interface{})
+		if bchk.StringInSlice(addressMap["cidr_ip"].(string), addressCIDRIPList) {
+			if family == inetWord {
+				return configSet, fmt.Errorf("multiple family_inet blocks with the same cidr_ip")
+			}
+			if family == inet6Word {
+				return configSet, fmt.Errorf("multiple family_inet6 blocks with the same cidr_ip")
+			}
 		}
-		vrrpGroupMap := vrrpGroup.(map[string]interface{})
-		if vrrpGroupMap["no_preempt"].(bool) && vrrpGroupMap["preempt"].(bool) {
-			return configSet, fmt.Errorf("ConflictsWith no_preempt and preempt")
+		addressCIDRIPList = append(addressCIDRIPList, addressMap["cidr_ip"].(string))
+		setPrefixAddress := setPrefix + "family " + family + " address " + addressMap["cidr_ip"].(string)
+		configSet = append(configSet, setPrefixAddress)
+		if addressMap["preferred"].(bool) {
+			configSet = append(configSet, setPrefixAddress+" preferred")
 		}
-		if vrrpGroupMap["no_accept_data"].(bool) && vrrpGroupMap["accept_data"].(bool) {
-			return configSet, fmt.Errorf("ConflictsWith no_accept_data and accept_data")
+		if addressMap["primary"].(bool) {
+			configSet = append(configSet, setPrefixAddress+" primary")
 		}
-		var setNameAddVrrp string
-		switch family {
-		case inetWord:
-			setNameAddVrrp = setPrefixAddress + " vrrp-group " + strconv.Itoa(vrrpGroupMap["identifier"].(int))
-			for _, ip := range vrrpGroupMap["virtual_address"].([]interface{}) {
-				_, errs := validation.IsIPAddress(ip, "virtual_address")
-				if len(errs) > 0 {
-					return configSet, errs[0]
+		vrrpGroupIDList := make([]int, 0)
+		for _, vrrpGroup := range addressMap["vrrp_group"].([]interface{}) {
+			if strings.Contains(setPrefix, "set interfaces st0 unit") {
+				return configSet, fmt.Errorf("vrrp not available on st0")
+			}
+			vrrpGroupMap := vrrpGroup.(map[string]interface{})
+			if vrrpGroupMap["no_preempt"].(bool) && vrrpGroupMap["preempt"].(bool) {
+				return configSet, fmt.Errorf("ConflictsWith no_preempt and preempt")
+			}
+			if vrrpGroupMap["no_accept_data"].(bool) && vrrpGroupMap["accept_data"].(bool) {
+				return configSet, fmt.Errorf("ConflictsWith no_accept_data and accept_data")
+			}
+			if bchk.IntInSlice(vrrpGroupMap["identifier"].(int), vrrpGroupIDList) {
+				return configSet, fmt.Errorf("multiple vrrp_group blocks with the same identifier")
+			}
+			vrrpGroupIDList = append(vrrpGroupIDList, vrrpGroupMap["identifier"].(int))
+			var setNameAddVrrp string
+			switch family {
+			case inetWord:
+				setNameAddVrrp = setPrefixAddress + " vrrp-group " + strconv.Itoa(vrrpGroupMap["identifier"].(int))
+				for _, ip := range vrrpGroupMap["virtual_address"].([]interface{}) {
+					_, errs := validation.IsIPAddress(ip, "virtual_address")
+					if len(errs) > 0 {
+						return configSet, errs[0]
+					}
+					configSet = append(configSet, setNameAddVrrp+" virtual-address "+ip.(string))
 				}
-				configSet = append(configSet, setNameAddVrrp+" virtual-address "+ip.(string))
-			}
-			if vrrpGroupMap["advertise_interval"].(int) != 0 {
-				configSet = append(configSet, setNameAddVrrp+" advertise-interval "+
-					strconv.Itoa(vrrpGroupMap["advertise_interval"].(int)))
-			}
-			if vrrpGroupMap["authentication_key"].(string) != "" {
-				configSet = append(configSet, setNameAddVrrp+" authentication-key \""+
-					vrrpGroupMap["authentication_key"].(string)+"\"")
-			}
-			if vrrpGroupMap["authentication_type"].(string) != "" {
-				configSet = append(configSet, setNameAddVrrp+" authentication-type "+
-					vrrpGroupMap["authentication_type"].(string))
-			}
-		case inet6Word:
-			setNameAddVrrp = setPrefixAddress + " vrrp-inet6-group " + strconv.Itoa(vrrpGroupMap["identifier"].(int))
-			for _, ip := range vrrpGroupMap["virtual_address"].([]interface{}) {
-				_, errs := validation.IsIPAddress(ip, "virtual_address")
-				if len(errs) > 0 {
-					return configSet, errs[0]
+				if vrrpGroupMap["advertise_interval"].(int) != 0 {
+					configSet = append(configSet, setNameAddVrrp+" advertise-interval "+
+						strconv.Itoa(vrrpGroupMap["advertise_interval"].(int)))
 				}
-				configSet = append(configSet, setNameAddVrrp+" virtual-inet6-address "+ip.(string))
+				if vrrpGroupMap["authentication_key"].(string) != "" {
+					configSet = append(configSet, setNameAddVrrp+" authentication-key \""+
+						vrrpGroupMap["authentication_key"].(string)+"\"")
+				}
+				if vrrpGroupMap["authentication_type"].(string) != "" {
+					configSet = append(configSet, setNameAddVrrp+" authentication-type "+
+						vrrpGroupMap["authentication_type"].(string))
+				}
+			case inet6Word:
+				setNameAddVrrp = setPrefixAddress + " vrrp-inet6-group " + strconv.Itoa(vrrpGroupMap["identifier"].(int))
+				for _, ip := range vrrpGroupMap["virtual_address"].([]interface{}) {
+					_, errs := validation.IsIPAddress(ip, "virtual_address")
+					if len(errs) > 0 {
+						return configSet, errs[0]
+					}
+					configSet = append(configSet, setNameAddVrrp+" virtual-inet6-address "+ip.(string))
+				}
+				configSet = append(configSet, setNameAddVrrp+" virtual-link-local-address "+
+					vrrpGroupMap["virtual_link_local_address"].(string))
+				if vrrpGroupMap["advertise_interval"].(int) != 0 {
+					configSet = append(configSet, setNameAddVrrp+" inet6-advertise-interval "+
+						strconv.Itoa(vrrpGroupMap["advertise_interval"].(int)))
+				}
 			}
-			configSet = append(configSet, setNameAddVrrp+" virtual-link-local-address "+
-				vrrpGroupMap["virtual_link_local_address"].(string))
-			if vrrpGroupMap["advertise_interval"].(int) != 0 {
-				configSet = append(configSet, setNameAddVrrp+" inet6-advertise-interval "+
-					strconv.Itoa(vrrpGroupMap["advertise_interval"].(int)))
+			if vrrpGroupMap["accept_data"].(bool) {
+				configSet = append(configSet, setNameAddVrrp+" accept-data")
 			}
-		}
-		if vrrpGroupMap["accept_data"].(bool) {
-			configSet = append(configSet, setNameAddVrrp+" accept-data")
-		}
-		if vrrpGroupMap["advertisements_threshold"].(int) != 0 {
-			configSet = append(configSet, setNameAddVrrp+" advertisements-threshold "+
-				strconv.Itoa(vrrpGroupMap["advertisements_threshold"].(int)))
-		}
-		if vrrpGroupMap["no_accept_data"].(bool) {
-			configSet = append(configSet, setNameAddVrrp+" no-accept-data")
-		}
-		if vrrpGroupMap["no_preempt"].(bool) {
-			configSet = append(configSet, setNameAddVrrp+" no-preempt")
-		}
-		if vrrpGroupMap["preempt"].(bool) {
-			configSet = append(configSet, setNameAddVrrp+" preempt")
-		}
-		if vrrpGroupMap["priority"].(int) != 0 {
-			configSet = append(configSet, setNameAddVrrp+" priority "+strconv.Itoa(vrrpGroupMap["priority"].(int)))
-		}
-		for _, trackInterface := range vrrpGroupMap["track_interface"].([]interface{}) {
-			trackInterfaceMap := trackInterface.(map[string]interface{})
-			configSet = append(configSet, setNameAddVrrp+" track interface "+trackInterfaceMap["interface"].(string)+
-				" priority-cost "+strconv.Itoa(trackInterfaceMap["priority_cost"].(int)))
-		}
-		for _, trackRoute := range vrrpGroupMap["track_route"].([]interface{}) {
-			trackRouteMap := trackRoute.(map[string]interface{})
-			configSet = append(configSet, setNameAddVrrp+" track route "+trackRouteMap["route"].(string)+
-				" routing-instance "+trackRouteMap["routing_instance"].(string)+
-				" priority-cost "+strconv.Itoa(trackRouteMap["priority_cost"].(int)))
+			if vrrpGroupMap["advertisements_threshold"].(int) != 0 {
+				configSet = append(configSet, setNameAddVrrp+" advertisements-threshold "+
+					strconv.Itoa(vrrpGroupMap["advertisements_threshold"].(int)))
+			}
+			if vrrpGroupMap["no_accept_data"].(bool) {
+				configSet = append(configSet, setNameAddVrrp+" no-accept-data")
+			}
+			if vrrpGroupMap["no_preempt"].(bool) {
+				configSet = append(configSet, setNameAddVrrp+" no-preempt")
+			}
+			if vrrpGroupMap["preempt"].(bool) {
+				configSet = append(configSet, setNameAddVrrp+" preempt")
+			}
+			if vrrpGroupMap["priority"].(int) != 0 {
+				configSet = append(configSet, setNameAddVrrp+" priority "+strconv.Itoa(vrrpGroupMap["priority"].(int)))
+			}
+			trackInterfaceList := make([]string, 0)
+			for _, trackInterface := range vrrpGroupMap["track_interface"].([]interface{}) {
+				trackInterfaceMap := trackInterface.(map[string]interface{})
+				if bchk.StringInSlice(trackInterfaceMap["interface"].(string), trackInterfaceList) {
+					return configSet, fmt.Errorf("multiple track_interface blocks with the same interface")
+				}
+				trackInterfaceList = append(trackInterfaceList, trackInterfaceMap["interface"].(string))
+				configSet = append(configSet, setNameAddVrrp+" track interface "+trackInterfaceMap["interface"].(string)+
+					" priority-cost "+strconv.Itoa(trackInterfaceMap["priority_cost"].(int)))
+			}
+			trackRouteList := make([]string, 0)
+			for _, trackRoute := range vrrpGroupMap["track_route"].([]interface{}) {
+				trackRouteMap := trackRoute.(map[string]interface{})
+				if bchk.StringInSlice(trackRouteMap["route"].(string), trackRouteList) {
+					return configSet, fmt.Errorf("multiple track_route blocks with the same interface")
+				}
+				trackRouteList = append(trackRouteList, trackRouteMap["route"].(string))
+				configSet = append(configSet, setNameAddVrrp+" track route "+trackRouteMap["route"].(string)+
+					" routing-instance "+trackRouteMap["routing_instance"].(string)+
+					" priority-cost "+strconv.Itoa(trackRouteMap["priority_cost"].(int)))
+			}
 		}
 	}
 

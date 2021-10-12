@@ -75,5 +75,15 @@ resource junos_security_zone_book_address_set "testacc_szone_bookaddress_set" {
     junos_security_zone_book_address.testacc_szone_bookaddress_set2.name,
   ]
 }
+resource junos_security_zone_book_address_set "testacc_szone_bookaddress_setS2" {
+  name = "testacc_szone_bookaddress_setS2"
+  zone = junos_security_zone.testacc_szone_bookaddressset.name
+  address = [
+    junos_security_zone_book_address.testacc_szone_bookaddress_set2.name,
+  ]
+  address_set = [
+    junos_security_zone_book_address_set.testacc_szone_bookaddress_set.name,
+  ]
+}
 `
 }

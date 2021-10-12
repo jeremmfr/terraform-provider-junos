@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type dynamicAddressFeedServerOptions struct {
@@ -271,8 +272,8 @@ func resourceSecurityDynamicAddressFeedServerImport(
 
 func checkSecurityDynamicAddressFeedServersExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration "+
-		"security dynamic-address feed-server "+name+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security dynamic-address feed-server "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -293,8 +294,13 @@ func setSecurityDynamicAddressFeedServer(d *schema.ResourceData, m interface{}, 
 	if v := d.Get("description").(string); v != "" {
 		configSet = append(configSet, setPrefix+"description \""+v+"\"")
 	}
+	feedNameList := make([]string, 0)
 	for _, fn := range d.Get("feed_name").([]interface{}) {
 		feedName := fn.(map[string]interface{})
+		if bchk.StringInSlice(feedName["name"].(string), feedNameList) {
+			return fmt.Errorf("multiple feed_name blocks with the same name")
+		}
+		feedNameList = append(feedNameList, feedName["name"].(string))
 		setPrefixFeedName := setPrefix + "feed-name " + feedName["name"].(string) + " "
 		configSet = append(configSet, setPrefixFeedName)
 		configSet = append(configSet, setPrefixFeedName+"path \""+feedName["path"].(string)+"\"")
@@ -325,8 +331,8 @@ func readSecurityDynamicAddressFeedServer(
 	// default -1
 	confRead.holdInterval = -1
 
-	showConfig, err := sess.command("show configuration "+
-		"security dynamic-address feed-server "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security dynamic-address feed-server "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

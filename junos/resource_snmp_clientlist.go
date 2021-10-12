@@ -207,12 +207,11 @@ func resourceSnmpClientlistImport(d *schema.ResourceData, m interface{}) ([]*sch
 
 func checkSnmpClientlistExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	snmpClientlistConfig, err := sess.command("show configuration"+
-		" snmp client-list \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration snmp client-list \""+name+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if snmpClientlistConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -237,14 +236,13 @@ func readSnmpClientlist(name string, m interface{}, jnprSess *NetconfObject) (sn
 	sess := m.(*Session)
 	var confRead snmpClientlistOptions
 
-	snmpClientlistConfig, err := sess.command("show configuration"+
-		" snmp client-list \""+name+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration snmp client-list \""+name+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if snmpClientlistConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = name
-		for _, item := range strings.Split(snmpClientlistConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

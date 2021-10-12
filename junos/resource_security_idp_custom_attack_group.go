@@ -216,12 +216,12 @@ func resourceSecurityIdpCustomAttackGroupImport(d *schema.ResourceData, m interf
 func checkSecurityIdpCustomAttackGroupExists(
 	customAttackGroup string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	customAttackConfig, err := sess.command("show configuration security idp custom-attack-group \""+
-		customAttackGroup+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security idp custom-attack-group \""+customAttackGroup+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if customAttackConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -246,14 +246,14 @@ func readSecurityIdpCustomAttackGroup(customAttackGroup string, m interface{}, j
 	sess := m.(*Session)
 	var confRead idpCustomAttackGroupOptions
 
-	customAttackConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security idp custom-attack-group \""+customAttackGroup+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if customAttackConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = customAttackGroup
-		for _, item := range strings.Split(customAttackConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

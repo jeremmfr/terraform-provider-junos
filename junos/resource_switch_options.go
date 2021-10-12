@@ -211,13 +211,12 @@ func readSwitchOptions(m interface{}, jnprSess *NetconfObject) (switchOptionsOpt
 	sess := m.(*Session)
 	var confRead switchOptionsOptions
 
-	switchOptionsConfig, err := sess.command("show configuration switch-options"+
-		" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration switch-options | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if switchOptionsConfig != emptyWord {
-		for _, item := range strings.Split(switchOptionsConfig, "\n") {
+	if showConfig != emptyWord {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

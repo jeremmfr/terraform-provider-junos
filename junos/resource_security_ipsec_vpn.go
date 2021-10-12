@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type ipsecVpnOptions struct {
@@ -359,11 +360,11 @@ func resourceIpsecVpnImport(d *schema.ResourceData, m interface{}) ([]*schema.Re
 
 func checkIpsecVpnExists(ipsecVpn string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	ipsecVpnConfig, err := sess.command("show configuration security ipsec vpn "+ipsecVpn+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration security ipsec vpn "+ipsecVpn+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if ipsecVpnConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -401,8 +402,13 @@ func setIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 			configSet = append(configSet, setPrefix+" ike proxy-identity service "+ike["identity_service"].(string))
 		}
 	}
+	trafficSelectorName := make([]string, 0)
 	for _, v := range d.Get("traffic_selector").([]interface{}) {
 		tS := v.(map[string]interface{})
+		if bchk.StringInSlice(tS["name"].(string), trafficSelectorName) {
+			return fmt.Errorf("multiple traffic_selector blocks with the same name")
+		}
+		trafficSelectorName = append(trafficSelectorName, tS["name"].(string))
 		configSet = append(configSet, "set security ipsec vpn "+d.Get("name").(string)+" traffic-selector "+
 			tS["name"].(string)+" local-ip "+tS["local_ip"].(string))
 		configSet = append(configSet, "set security ipsec vpn "+d.Get("name").(string)+" traffic-selector "+
@@ -435,14 +441,14 @@ func readIpsecVpn(ipsecVpn string, m interface{}, jnprSess *NetconfObject) (ipse
 	sess := m.(*Session)
 	var confRead ipsecVpnOptions
 
-	ipsecVpnConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security ipsec vpn "+ipsecVpn+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if ipsecVpnConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = ipsecVpn
-		for _, item := range strings.Split(ipsecVpnConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

@@ -18,6 +18,7 @@ type natSourcePoolOptions struct {
 	poolUtilizationAlarmRaiseThreshold int
 	portOverloadingFactor              int
 	addressPooling                     string
+	description                        string
 	name                               string
 	portRange                          string
 	routingInstance                    string
@@ -50,6 +51,10 @@ func resourceSecurityNatSourcePool() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice([]string{"no-paired", "paired"}, false),
+			},
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"pool_utilization_alarm_raise_threshold": {
 				Type:         schema.TypeInt,
@@ -262,12 +267,12 @@ func resourceSecurityNatSourcePoolImport(d *schema.ResourceData, m interface{}) 
 
 func checkSecurityNatSourcePoolExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	natSourcePoolConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security nat source pool "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if natSourcePoolConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -288,6 +293,9 @@ func setSecurityNatSourcePool(d *schema.ResourceData, m interface{}, jnprSess *N
 	}
 	if d.Get("address_pooling").(string) != "" {
 		configSet = append(configSet, setPrefix+" address-pooling "+d.Get("address_pooling").(string))
+	}
+	if v := d.Get("description").(string); v != "" {
+		configSet = append(configSet, setPrefix+" description \""+v+"\"")
 	}
 	if d.Get("pool_utilization_alarm_clear_threshold").(int) != 0 {
 		configSet = append(configSet, setPrefix+" pool-utilization-alarm clear-threshold "+
@@ -315,20 +323,19 @@ func setSecurityNatSourcePool(d *schema.ResourceData, m interface{}, jnprSess *N
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSecurityNatSourcePool(natSourcePool string,
-	m interface{}, jnprSess *NetconfObject) (natSourcePoolOptions, error) {
+func readSecurityNatSourcePool(name string, m interface{}, jnprSess *NetconfObject) (natSourcePoolOptions, error) {
 	sess := m.(*Session)
 	var confRead natSourcePoolOptions
 
-	natSourcePoolConfig, err := sess.command("show configuration"+
-		" security nat source pool "+natSourcePool+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security nat source pool "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if natSourcePoolConfig != emptyWord {
-		confRead.name = natSourcePool
+	if showConfig != emptyWord {
+		confRead.name = name
 		var portRange string
-		for _, item := range strings.Split(natSourcePoolConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
@@ -341,6 +348,8 @@ func readSecurityNatSourcePool(natSourcePool string,
 				confRead.address = append(confRead.address, strings.TrimPrefix(itemTrim, "address "))
 			case strings.HasPrefix(itemTrim, "address-pooling "):
 				confRead.addressPooling = strings.TrimPrefix(itemTrim, "address-pooling ")
+			case strings.HasPrefix(itemTrim, "description "):
+				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
 			case strings.HasPrefix(itemTrim, "pool-utilization-alarm clear-threshold "):
 				confRead.poolUtilizationAlarmClearThreshold, err = strconv.Atoi(
 					strings.TrimPrefix(itemTrim, "pool-utilization-alarm clear-threshold "))
@@ -391,6 +400,9 @@ func fillSecurityNatSourcePoolData(d *schema.ResourceData, natSourcePoolOptions 
 		panic(tfErr)
 	}
 	if tfErr := d.Set("address_pooling", natSourcePoolOptions.addressPooling); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("description", natSourcePoolOptions.description); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("pool_utilization_alarm_clear_threshold",

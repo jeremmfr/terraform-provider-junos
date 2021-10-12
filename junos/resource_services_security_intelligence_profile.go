@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type securityIntellProfileOptions struct {
@@ -291,12 +292,12 @@ func resourceServicesSecurityIntellProfileImport(
 
 func checkServicesSecurityIntellProfileExists(profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	profileConfig, err := sess.command("show configuration services security-intelligence profile \""+
-		profile+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" services security-intelligence profile \""+profile+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if profileConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -309,8 +310,13 @@ func setServicesSecurityIntellProfile(d *schema.ResourceData, m interface{}, jnp
 
 	setPrefix := "set services security-intelligence profile \"" + d.Get("name").(string) + "\" "
 	configSet = append(configSet, setPrefix+"category "+d.Get("category").(string))
+	ruleNameList := make([]string, 0)
 	for _, v := range d.Get("rule").([]interface{}) {
 		rule := v.(map[string]interface{})
+		if bchk.StringInSlice(rule["name"].(string), ruleNameList) {
+			return fmt.Errorf("multiple rule blocks with the same name")
+		}
+		ruleNameList = append(ruleNameList, rule["name"].(string))
 		setPrefixRule := setPrefix + "rule \"" + rule["name"].(string) + "\" "
 		for _, v2 := range rule["match"].([]interface{}) {
 			match := v2.(map[string]interface{})
@@ -348,14 +354,14 @@ func readServicesSecurityIntellProfile(profile string, m interface{}, jnprSess *
 	sess := m.(*Session)
 	var confRead securityIntellProfileOptions
 
-	profileConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" services security-intelligence profile \""+profile+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if profileConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = profile
-		for _, item := range strings.Split(profileConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

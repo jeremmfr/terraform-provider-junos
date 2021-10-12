@@ -3,6 +3,7 @@ package junos
 const (
 	idSeparator           = "_-_"
 	defaultWord           = "default"
+	evpnWord              = "evpn"
 	inetWord              = "inet"
 	inet6Word             = "inet6"
 	mplsWord              = "mpls"
@@ -11,6 +12,7 @@ const (
 	permitWord            = "permit"
 	thenWord              = "then"
 	prefixWord            = "prefix"
+	prefixNameWord        = "prefix-name"
 	actionNoneWord        = "none"
 	addWord               = "add"
 	deleteWord            = "delete"

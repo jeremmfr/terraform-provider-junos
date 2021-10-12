@@ -37,6 +37,10 @@ The following arguments are supported:
   Autonomous system number in plain number or `higher 16bits`.`lower 16 bits` (asdot notation) format.
 - **description** (Optional, String)  
   Text description of routing instance.
+- **instance_export** (Optional, List of String)  
+  Export policy for instance RIBs
+- **instance_import** (Optional, List of String)  
+  Import policy for instance RIBs
 - **route_distinguisher** (Optional, String)  
   Route distinguisher for this instance.
 - **vrf_export** (Optional, List of String)  

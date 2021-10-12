@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type zoneOptions struct {
@@ -146,8 +147,12 @@ func resourceSecurityZone() *schema.Resource {
 						},
 						"address": {
 							Type:     schema.TypeSet,
-							Required: true,
-							MinItems: 1,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"address_set": {
+							Type:     schema.TypeSet,
+							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"description": {
@@ -415,11 +420,11 @@ func resourceSecurityZoneImport(d *schema.ResourceData, m interface{}) ([]*schem
 
 func checkSecurityZonesExists(zone string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	zoneConfig, err := sess.command("show configuration security zones security-zone "+zone+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration security zones security-zone "+zone+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if zoneConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -433,8 +438,13 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 	setPrefix := "set security zones security-zone " + d.Get("name").(string)
 	configSet = append(configSet, setPrefix)
 	if !d.Get("address_book_configure_singly").(bool) {
+		addressNameList := make([]string, 0)
 		for _, v := range d.Get("address_book").([]interface{}) {
 			addressBook := v.(map[string]interface{})
+			if bchk.StringInSlice(addressBook["name"].(string), addressNameList) {
+				return fmt.Errorf("multiple address with the same name")
+			}
+			addressNameList = append(addressNameList, addressBook["name"].(string))
 			configSet = append(configSet, setPrefix+" address-book address "+
 				addressBook["name"].(string)+" "+addressBook["network"].(string))
 			if v2 := addressBook["description"].(string); v2 != "" {
@@ -444,6 +454,10 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 		}
 		for _, v := range d.Get("address_book_dns").([]interface{}) {
 			addressBook := v.(map[string]interface{})
+			if bchk.StringInSlice(addressBook["name"].(string), addressNameList) {
+				return fmt.Errorf("multiple address with the same name")
+			}
+			addressNameList = append(addressNameList, addressBook["name"].(string))
 			setLine := setPrefix + " address-book address " + addressBook["name"].(string) +
 				" dns-name " + addressBook["fqdn"].(string)
 			configSet = append(configSet, setLine)
@@ -460,6 +474,10 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 		}
 		for _, v := range d.Get("address_book_range").([]interface{}) {
 			addressBook := v.(map[string]interface{})
+			if bchk.StringInSlice(addressBook["name"].(string), addressNameList) {
+				return fmt.Errorf("multiple address with the same name")
+			}
+			addressNameList = append(addressNameList, addressBook["name"].(string))
 			configSet = append(configSet, setPrefix+" address-book address "+
 				addressBook["name"].(string)+" range-address "+addressBook["from"].(string)+
 				" to "+addressBook["to"].(string))
@@ -468,24 +486,41 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 					addressBook["name"].(string)+" description \""+v2+"\"")
 			}
 		}
-		for _, v := range d.Get("address_book_set").([]interface{}) {
-			addressBookSet := v.(map[string]interface{})
-			for _, addressBookSetAddress := range sortSetOfString(addressBookSet["address"].(*schema.Set).List()) {
-				configSet = append(configSet, setPrefix+" address-book address-set "+addressBookSet["name"].(string)+
-					" address "+addressBookSetAddress)
-			}
-			if v2 := addressBookSet["description"].(string); v2 != "" {
-				configSet = append(configSet, setPrefix+" address-book address-set "+
-					addressBookSet["name"].(string)+" description \""+v2+"\"")
-			}
-		}
 		for _, v := range d.Get("address_book_wildcard").([]interface{}) {
 			addressBook := v.(map[string]interface{})
+			if bchk.StringInSlice(addressBook["name"].(string), addressNameList) {
+				return fmt.Errorf("multiple address with the same name")
+			}
+			addressNameList = append(addressNameList, addressBook["name"].(string))
 			configSet = append(configSet, setPrefix+" address-book address "+
 				addressBook["name"].(string)+" wildcard-address "+addressBook["network"].(string))
 			if v2 := addressBook["description"].(string); v2 != "" {
 				configSet = append(configSet, setPrefix+" address-book address "+
 					addressBook["name"].(string)+" description \""+v2+"\"")
+			}
+		}
+		for _, v := range d.Get("address_book_set").([]interface{}) {
+			addressBookSet := v.(map[string]interface{})
+			if bchk.StringInSlice(addressBookSet["name"].(string), addressNameList) {
+				return fmt.Errorf("multiple address or address-set with the same name")
+			}
+			addressNameList = append(addressNameList, addressBookSet["name"].(string))
+			if len(addressBookSet["address"].(*schema.Set).List()) == 0 &&
+				len(addressBookSet["address_set"].(*schema.Set).List()) == 0 {
+				return fmt.Errorf("at least one of address or address_set is required "+
+					"in address_book_set %s", addressBookSet["name"].(string))
+			}
+			for _, addressBookSetAddress := range sortSetOfString(addressBookSet["address"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefix+" address-book address-set "+addressBookSet["name"].(string)+
+					" address "+addressBookSetAddress)
+			}
+			for _, addressBookSetAddressSet := range sortSetOfString(addressBookSet["address_set"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefix+" address-book address-set "+addressBookSet["name"].(string)+
+					" address-set "+addressBookSetAddressSet)
+			}
+			if v2 := addressBookSet["description"].(string); v2 != "" {
+				configSet = append(configSet, setPrefix+" address-book address-set "+
+					addressBookSet["name"].(string)+" description \""+v2+"\"")
 			}
 		}
 	}
@@ -525,15 +560,15 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 	sess := m.(*Session)
 	var confRead zoneOptions
 
-	zoneConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security zones security-zone "+zone+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	descAddressBookMap := make(map[string]string)
-	if zoneConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = zone
-		for _, item := range strings.Split(zoneConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
@@ -592,16 +627,20 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 				adSet := map[string]interface{}{
 					"name":        addressSetSplit[0],
 					"address":     make([]string, 0),
+					"address_set": make([]string, 0),
 					"description": "",
 				}
-				// search if name of address-set already create
 				confRead.addressBookSet = copyAndRemoveItemMapList("name", adSet, confRead.addressBookSet)
-				// append new address find
-				if addressSetSplit[1] == "description" {
+				switch {
+				case strings.HasPrefix(itemTrim, "address-book address-set "+addressSetSplit[0]+" description "):
 					adSet["description"] = strings.Trim(strings.TrimPrefix(
 						itemTrim, "address-book address-set "+addressSetSplit[0]+" description "), "\"")
-				} else {
-					adSet["address"] = append(adSet["address"].([]string), addressSetSplit[2])
+				case strings.HasPrefix(itemTrim, "address-book address-set "+addressSetSplit[0]+" address "):
+					adSet["address"] = append(adSet["address"].([]string),
+						strings.TrimPrefix(itemTrim, "address-book address-set "+addressSetSplit[0]+" address "))
+				case strings.HasPrefix(itemTrim, "address-book address-set "+addressSetSplit[0]+" address-set "):
+					adSet["address_set"] = append(adSet["address_set"].([]string),
+						strings.TrimPrefix(itemTrim, "address-book address-set "+addressSetSplit[0]+" address-set "))
 				}
 				confRead.addressBookSet = append(confRead.addressBookSet, adSet)
 			case strings.HasPrefix(itemTrim, "advance-policy-based-routing-profile "):

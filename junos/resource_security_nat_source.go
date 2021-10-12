@@ -3,18 +3,21 @@ package junos
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type natSourceOptions struct {
-	name string
-	from []map[string]interface{}
-	to   []map[string]interface{}
-	rule []map[string]interface{}
+	name        string
+	description string
+	from        []map[string]interface{}
+	to          []map[string]interface{}
+	rule        []map[string]interface{}
 }
 
 func resourceSecurityNatSource() *schema.Resource {
@@ -89,7 +92,22 @@ func resourceSecurityNatSource() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"application": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
 									"destination_address": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"destination_address_name": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"destination_port": {
 										Type:     schema.TypeSet,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
@@ -100,6 +118,16 @@ func resourceSecurityNatSource() *schema.Resource {
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"source_address": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"source_address_name": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"source_port": {
 										Type:     schema.TypeSet,
 										Optional: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
@@ -128,6 +156,10 @@ func resourceSecurityNatSource() *schema.Resource {
 						},
 					},
 				},
+			},
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 		},
 	}
@@ -306,12 +338,12 @@ func resourceSecurityNatSourceImport(d *schema.ResourceData, m interface{}) ([]*
 
 func checkSecurityNatSourceExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	natSourceConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security nat source rule-set "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if natSourceConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -321,6 +353,7 @@ func checkSecurityNatSourceExists(name string, m interface{}, jnprSess *NetconfO
 func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
+	regexpPort := regexp.MustCompile(`^\d+( to \d+)?$`)
 
 	setPrefix := "set security nat source rule-set " + d.Get("name").(string)
 	for _, v := range d.Get("from").([]interface{}) {
@@ -335,17 +368,44 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 			configSet = append(configSet, setPrefix+" to "+to["type"].(string)+" "+value)
 		}
 	}
+	ruleNameList := make([]string, 0)
 	for _, v := range d.Get("rule").([]interface{}) {
 		rule := v.(map[string]interface{})
+		if bchk.StringInSlice(rule["name"].(string), ruleNameList) {
+			return fmt.Errorf("multiple rule blocks with the same name")
+		}
+		ruleNameList = append(ruleNameList, rule["name"].(string))
 		setPrefixRule := setPrefix + " rule " + rule["name"].(string)
 		for _, matchV := range rule[matchWord].([]interface{}) {
+			if matchV == nil {
+				return fmt.Errorf("match block in rule %s need to have an argument", rule["name"].(string))
+			}
 			match := matchV.(map[string]interface{})
+			if len(match["destination_address"].(*schema.Set).List()) == 0 &&
+				len(match["destination_address_name"].(*schema.Set).List()) == 0 &&
+				len(match["source_address"].(*schema.Set).List()) == 0 &&
+				len(match["source_address_name"].(*schema.Set).List()) == 0 {
+				return fmt.Errorf("one of destination_address, destination_address_name, " +
+					"source_address or source_address_name arguments must be set")
+			}
+			for _, vv := range sortSetOfString(match["application"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefixRule+" match application \""+vv+"\"")
+			}
 			for _, address := range sortSetOfString(match["destination_address"].(*schema.Set).List()) {
 				err := validateCIDRNetwork(address)
 				if err != nil {
 					return err
 				}
 				configSet = append(configSet, setPrefixRule+" match destination-address "+address)
+			}
+			for _, vv := range sortSetOfString(match["destination_address_name"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefixRule+" match destination-address-name \""+vv+"\"")
+			}
+			for _, vv := range sortSetOfString(match["destination_port"].(*schema.Set).List()) {
+				if !regexpPort.MatchString(vv) {
+					return fmt.Errorf("destination_port need to have format `x` or `x to y` in rule %s", rule["name"].(string))
+				}
+				configSet = append(configSet, setPrefixRule+" match destination-port "+vv)
 			}
 			for _, proto := range sortSetOfString(match["protocol"].(*schema.Set).List()) {
 				configSet = append(configSet, setPrefixRule+" match protocol "+proto)
@@ -356,6 +416,15 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 					return err
 				}
 				configSet = append(configSet, setPrefixRule+" match source-address "+address)
+			}
+			for _, vv := range sortSetOfString(match["source_address_name"].(*schema.Set).List()) {
+				configSet = append(configSet, setPrefixRule+" match source-address-name \""+vv+"\"")
+			}
+			for _, vv := range sortSetOfString(match["source_port"].(*schema.Set).List()) {
+				if !regexpPort.MatchString(vv) {
+					return fmt.Errorf("source_port need to have format `x` or `x to y` in rule %s", rule["name"].(string))
+				}
+				configSet = append(configSet, setPrefixRule+" match source-port "+vv)
 			}
 		}
 		for _, thenV := range rule[thenWord].([]interface{}) {
@@ -375,22 +444,25 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 			}
 		}
 	}
+	if v := d.Get("description").(string); v != "" {
+		configSet = append(configSet, setPrefix+" description \""+v+"\"")
+	}
 
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObject) (natSourceOptions, error) {
+func readSecurityNatSource(name string, m interface{}, jnprSess *NetconfObject) (natSourceOptions, error) {
 	sess := m.(*Session)
 	var confRead natSourceOptions
 
-	natSourceConfig, err := sess.command("show configuration"+
-		" security nat source rule-set "+natSource+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security nat source rule-set "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if natSourceConfig != emptyWord {
-		confRead.name = natSource
-		for _, item := range strings.Split(natSourceConfig, "\n") {
+	if showConfig != emptyWord {
+		confRead.name = name
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
@@ -431,22 +503,42 @@ func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObj
 					if len(ruleOptions["match"].([]map[string]interface{})) == 0 {
 						ruleOptions["match"] = append(ruleOptions["match"].([]map[string]interface{}),
 							map[string]interface{}{
-								"destination_address": make([]string, 0),
-								"protocol":            make([]string, 0),
-								"source_address":      make([]string, 0),
+								"application":              make([]string, 0),
+								"destination_address":      make([]string, 0),
+								"destination_address_name": make([]string, 0),
+								"destination_port":         make([]string, 0),
+								"protocol":                 make([]string, 0),
+								"source_address":           make([]string, 0),
+								"source_address_name":      make([]string, 0),
+								"source_port":              make([]string, 0),
 							})
 					}
 					ruleMatchOptions := ruleOptions["match"].([]map[string]interface{})[0]
 					switch {
+					case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match application "):
+						ruleMatchOptions["application"] = append(ruleMatchOptions["application"].([]string),
+							strings.Trim(strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match application "), "\""))
 					case strings.HasPrefix(itemTrimMatch, "destination-address "):
 						ruleMatchOptions["destination_address"] = append(ruleMatchOptions["destination_address"].([]string),
 							strings.TrimPrefix(itemTrimMatch, "destination-address "))
+					case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-address-name "):
+						ruleMatchOptions["destination_address_name"] = append(ruleMatchOptions["destination_address_name"].([]string),
+							strings.Trim(strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-address-name "), "\""))
+					case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-port "):
+						ruleMatchOptions["destination_port"] = append(ruleMatchOptions["destination_port"].([]string),
+							strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-port "))
 					case strings.HasPrefix(itemTrimMatch, "protocol "):
 						ruleMatchOptions["protocol"] = append(ruleMatchOptions["protocol"].([]string),
 							strings.TrimPrefix(itemTrimMatch, "protocol "))
 					case strings.HasPrefix(itemTrimMatch, "source-address "):
 						ruleMatchOptions["source_address"] = append(ruleMatchOptions["source_address"].([]string),
 							strings.TrimPrefix(itemTrimMatch, "source-address "))
+					case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-address-name "):
+						ruleMatchOptions["source_address_name"] = append(ruleMatchOptions["source_address_name"].([]string),
+							strings.Trim(strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-address-name "), "\""))
+					case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-port "):
+						ruleMatchOptions["source_port"] = append(ruleMatchOptions["source_port"].([]string),
+							strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-port "))
 					}
 				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" then source-nat "):
 					itemTrimThen := strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" then source-nat ")
@@ -467,6 +559,8 @@ func readSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObj
 					}
 				}
 				confRead.rule = append(confRead.rule, ruleOptions)
+			case strings.HasPrefix(itemTrim, "description "):
+				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
 			}
 		}
 	}
@@ -493,6 +587,9 @@ func fillSecurityNatSourceData(d *schema.ResourceData, natSourceOptions natSourc
 		panic(tfErr)
 	}
 	if tfErr := d.Set("rule", natSourceOptions.rule); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("description", natSourceOptions.description); tfErr != nil {
 		panic(tfErr)
 	}
 }

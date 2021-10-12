@@ -292,12 +292,11 @@ func resourceSystemRadiusServerImport(d *schema.ResourceData, m interface{}) ([]
 
 func checkSystemRadiusServerExists(address string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	radiusServerConfig, err := sess.command("show configuration"+
-		" system radius-server "+address+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration system radius-server "+address+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if radiusServerConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -369,14 +368,13 @@ func readSystemRadiusServer(address string, m interface{}, jnprSess *NetconfObje
 	confRead.accountingTimeout = -1
 	confRead.maxOutstandingRequests = -1
 
-	radiusServerConfig, err := sess.command("show configuration"+
-		" system radius-server "+address+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration system radius-server "+address+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if radiusServerConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.address = address
-		for _, item := range strings.Split(radiusServerConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

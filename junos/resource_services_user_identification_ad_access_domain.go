@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -302,15 +303,15 @@ func resourceServicesUserIdentAdAccessDomainImport(
 	return result, nil
 }
 
-func checkServicesUserIdentAdAccessDomainExists(
-	domain string, m interface{}, jnprSess *NetconfObject) (bool, error) {
+func checkServicesUserIdentAdAccessDomainExists(domain string,
+	m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	profileConfig, err := sess.command("show configuration services user-identification "+
-		"active-directory-access domain "+domain+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" services user-identification active-directory-access domain "+domain+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if profileConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -324,8 +325,13 @@ func setServicesUserIdentAdAccessDomain(d *schema.ResourceData, m interface{}, j
 	setPrefix := "set services user-identification active-directory-access domain " + d.Get("name").(string) + " "
 	configSet = append(configSet, setPrefix+"user "+d.Get("user_name").(string))
 	configSet = append(configSet, setPrefix+"user password \""+d.Get("user_password").(string)+"\"")
+	domainControllerNameList := make([]string, 0)
 	for _, v := range d.Get("domain_controller").([]interface{}) {
 		domainController := v.(map[string]interface{})
+		if bchk.StringInSlice(domainController["name"].(string), domainControllerNameList) {
+			return fmt.Errorf("multiple domain_controller blocks with the same name")
+		}
+		domainControllerNameList = append(domainControllerNameList, domainController["name"].(string))
 		configSet = append(configSet, setPrefix+"domain-controller "+domainController["name"].(string)+
 			" address "+domainController["address"].(string))
 	}
@@ -366,19 +372,19 @@ func setServicesUserIdentAdAccessDomain(d *schema.ResourceData, m interface{}, j
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readServicesUserIdentAdAccessDomain(domain string, m interface{}, jnprSess *NetconfObject) (
-	svcUserIdentAdAccessDomainOptions, error) {
+func readServicesUserIdentAdAccessDomain(domain string,
+	m interface{}, jnprSess *NetconfObject) (svcUserIdentAdAccessDomainOptions, error) {
 	sess := m.(*Session)
 	var confRead svcUserIdentAdAccessDomainOptions
 
-	profileConfig, err := sess.command("show configuration services user-identification "+
-		"active-directory-access domain "+domain+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" services user-identification active-directory-access domain "+domain+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if profileConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = domain
-		for _, item := range strings.Split(profileConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

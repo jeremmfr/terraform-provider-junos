@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type idpCustomAttackOptions struct {
@@ -989,12 +990,12 @@ func resourceSecurityIdpCustomAttackImport(d *schema.ResourceData, m interface{}
 
 func checkSecurityIdpCustomAttackExists(customAttack string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	customAttackConfig, err := sess.command("show configuration security idp custom-attack \""+
-		customAttack+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security idp custom-attack \""+customAttack+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if customAttackConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -1014,6 +1015,7 @@ func setSecurityIdpCustomAttack(d *schema.ResourceData, m interface{}, jnprSess 
 	}
 	for _, v := range d.Get("attack_type_chain").([]interface{}) {
 		attackChain := v.(map[string]interface{})
+		memberNameList := make([]string, 0)
 		for _, v2 := range attackChain["member"].([]interface{}) {
 			attackChainMember := v2.(map[string]interface{})
 			if len(attackChainMember["attack_type_anomaly"].([]interface{})) != 0 &&
@@ -1024,6 +1026,10 @@ func setSecurityIdpCustomAttack(d *schema.ResourceData, m interface{}, jnprSess 
 				len(attackChainMember["attack_type_signature"].([]interface{})) == 0 {
 				return fmt.Errorf("missing one attack type in member %s for attack_type_chain", attackChainMember["name"].(string))
 			}
+			if bchk.StringInSlice(attackChainMember["name"].(string), memberNameList) {
+				return fmt.Errorf("multiple member blocks with the same name")
+			}
+			memberNameList = append(memberNameList, attackChainMember["name"].(string))
 			for _, v3 := range attackChainMember["attack_type_anomaly"].([]interface{}) {
 				attackAnomaly := v3.(map[string]interface{})
 				configSet = append(configSet, setSecurityIdpCustomAttackTypeAnomaly(
@@ -1501,14 +1507,14 @@ func readSecurityIdpCustomAttack(customAttack string, m interface{}, jnprSess *N
 	var confRead idpCustomAttackOptions
 	confRead.timeBindingCount = -1 // default to -1
 
-	customAttackConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security idp custom-attack \""+customAttack+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if customAttackConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = customAttack
-		for _, item := range strings.Split(customAttackConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

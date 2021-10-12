@@ -229,12 +229,11 @@ func resourceSystemNtpServerImport(d *schema.ResourceData, m interface{}) ([]*sc
 
 func checkSystemNtpServerExists(address string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	ntpServerConfig, err := sess.command("show configuration"+
-		" system ntp server "+address+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration system ntp server "+address+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if ntpServerConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -267,14 +266,13 @@ func readSystemNtpServer(address string, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 	var confRead ntpServerOptions
 
-	ntpServerConfig, err := sess.command("show configuration"+
-		" system ntp server "+address+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration system ntp server "+address+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if ntpServerConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.address = address
-		for _, item := range strings.Split(ntpServerConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

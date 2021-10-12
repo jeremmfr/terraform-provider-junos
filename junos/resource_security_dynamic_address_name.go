@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type dynamicAddressNameOptions struct {
@@ -267,8 +268,8 @@ func resourceSecurityDynamicAddressNameImport(
 
 func checkSecurityDynamicAddressNamesExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration "+
-		"security dynamic-address address-name "+name+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security dynamic-address address-name "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -298,8 +299,13 @@ func setSecurityDynamicAddressName(d *schema.ResourceData, m interface{}, jnprSe
 		if v := profileCategory["feed"].(string); v != "" {
 			configSet = append(configSet, setPrefixProfileCategory+"feed "+v)
 		}
+		propertyNameList := make([]string, 0)
 		for _, pro := range profileCategory["property"].([]interface{}) {
 			property := pro.(map[string]interface{})
+			if bchk.StringInSlice(property["name"].(string), propertyNameList) {
+				return fmt.Errorf("multiple property blocks with the same name")
+			}
+			propertyNameList = append(propertyNameList, property["name"].(string))
 			for _, str := range property["string"].([]interface{}) {
 				configSet = append(configSet, setPrefixProfileCategory+"property "+
 					"\""+property["name"].(string)+"\" string \""+str.(string)+"\"")
@@ -315,8 +321,8 @@ func readSecurityDynamicAddressName(
 	sess := m.(*Session)
 	var confRead dynamicAddressNameOptions
 
-	showConfig, err := sess.command("show configuration "+
-		"security dynamic-address address-name "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security dynamic-address address-name "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

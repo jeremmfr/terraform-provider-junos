@@ -292,12 +292,12 @@ func resourceSecurityZoneBookAddressImport(d *schema.ResourceData, m interface{}
 
 func checkSecurityZoneBookAddresssExists(zone, address string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	zoneConfig, err := sess.command("show configuration security zones security-zone "+
-		zone+" address-book address "+address+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security zones security-zone "+zone+" address-book address "+address+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if zoneConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -341,15 +341,15 @@ func readSecurityZoneBookAddress(
 	sess := m.(*Session)
 	var confRead zoneBookAddressOptions
 
-	zoneConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security zones security-zone "+zone+" address-book address "+address+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if zoneConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = address
 		confRead.zone = zone
-		for _, item := range strings.Split(zoneConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

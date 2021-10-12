@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type flowMonitoringVIPFixTemplateOptions struct {
@@ -309,12 +310,12 @@ func resourceServicesFlowMonitoringVIPFixTemplateImport(
 func checkServicesFlowMonitoringVIPFixTemplateExists(
 	template string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	templateConfig, err := sess.command("show configuration services flow-monitoring version-ipfix template \""+
-		template+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" services flow-monitoring version-ipfix template \""+template+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if templateConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -389,14 +390,14 @@ func readServicesFlowMonitoringVIPFixTemplate(template string, m interface{}, jn
 	// setup default value
 	confRead.observationDomainID = -1
 
-	templateConfig, err := sess.command("show configuration services flow-monitoring version-ipfix "+
-		" template \""+template+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" services flow-monitoring version-ipfix template \""+template+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if templateConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = template
-		for _, item := range strings.Split(templateConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
@@ -405,7 +406,7 @@ func readServicesFlowMonitoringVIPFixTemplate(template string, m interface{}, jn
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case stringInSlice(itemTrim, []string{"ipv4-template", "ipv6-template", "mpls-template"}):
+			case bchk.StringInSlice(itemTrim, []string{"ipv4-template", "ipv6-template", "mpls-template"}):
 				confRead.typeTemplate = itemTrim
 			case strings.HasPrefix(itemTrim, "ipv6-template export-extension ") ||
 				strings.HasPrefix(itemTrim, "ipv4-template export-extension "):

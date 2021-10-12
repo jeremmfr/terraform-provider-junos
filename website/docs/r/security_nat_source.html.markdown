@@ -60,6 +60,8 @@ The following arguments are supported:
 - **rule** (Required, Block List)  
   For each name of rule to declare.  
   See [below for nested schema](#rule-arguments).
+- **description** (Optional, String)  
+  Text description of rule set
 
 ---
 
@@ -69,12 +71,24 @@ The following arguments are supported:
   Name of rule.
 - **match** (Required, Block)  
   Declare `match` configuration.
+  - **application** (Optional, Set of String)  
+    Specify application or application-set name to match.
   - **destination_address** (Optional, Set of String)  
-    CIDR list to match destination address.
+    List of CIDR destination address to match.
+  - **destination_address_name** (Optional, Set of String)  
+    List of destination address from address book to match.
+  - **destination_port** (Optional, Set of String)  
+    List of destination port to match.  
+    Format need to be `x` or `x to y`.
   - **protocol** (Optional, Set of String)  
-    Protocol list to match.
+    List of protocol to match.
   - **source_address** (Optional, Set of String)  
-    CIDR list to match source address.
+    List of CIDR source address to match.
+  - **source_address_name** (Optional, Set of String)  
+    List of source address from address book to match.
+  - **source_port** (Optional, Set of String)  
+    List of source port to match.  
+    Format need to be `x` or `x to y`.
 - **then** (Required, Block)  
   Declare `then` configuration.
   - **type** (Required, String)  

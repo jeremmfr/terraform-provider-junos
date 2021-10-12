@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type samplingInstanceOptions struct {
@@ -801,15 +802,15 @@ func resourceForwardingoptionsSamplingInstanceImport(d *schema.ResourceData,
 	return result, nil
 }
 
-func checkForwardingoptionsSamplingInstanceExists(
-	name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
+func checkForwardingoptionsSamplingInstanceExists(name string,
+	m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	samplingInstanceConfig, err := sess.command(
-		"show configuration forwarding-options sampling instance \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" forwarding-options sampling instance \""+name+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if samplingInstanceConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -947,8 +948,13 @@ func setForwardingoptionsSamplingInstanceOutput(
 	if v := output["flow_inactive_timeout"].(int); v != 0 {
 		configSet = append(configSet, setPrefix+"flow-inactive-timeout "+strconv.Itoa(v))
 	}
+	flowServerHostnameList := make([]string, 0)
 	for _, vFS := range output["flow_server"].([]interface{}) {
 		flowServer := vFS.(map[string]interface{})
+		if bchk.StringInSlice(flowServer["hostname"].(string), flowServerHostnameList) {
+			return fmt.Errorf("multiple flow_server blocks with the same hostname")
+		}
+		flowServerHostnameList = append(flowServerHostnameList, flowServer["hostname"].(string))
 		setPrefixFlowServer := setPrefix + "flow-server " + flowServer["hostname"].(string) + " "
 		configSet = append(configSet, setPrefixFlowServer+"port "+strconv.Itoa(flowServer["port"].(int)))
 		if flowServer["aggregation_autonomous_system"].(bool) {
@@ -1011,8 +1017,13 @@ func setForwardingoptionsSamplingInstanceOutput(
 	if v := output["inline_jflow_source_address"].(string); v != "" {
 		configSet = append(configSet, setPrefix+"inline-jflow source-address "+v)
 	}
+	interfaceNameList := make([]string, 0)
 	for _, vIF := range output["interface"].([]interface{}) {
 		interFace := vIF.(map[string]interface{})
+		if bchk.StringInSlice(interFace["name"].(string), interfaceNameList) {
+			return fmt.Errorf("multiple interface blocks with the same name")
+		}
+		interfaceNameList = append(interfaceNameList, interFace["name"].(string))
 		setPrefixInterface := setPrefix + "interface " + interFace["name"].(string) + " "
 		configSet = append(configSet, setPrefixInterface)
 		if v := interFace["engine_id"].(int); v != -1 {
@@ -1029,19 +1040,19 @@ func setForwardingoptionsSamplingInstanceOutput(
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readForwardingoptionsSamplingInstance(
-	samplingInstance string, m interface{}, jnprSess *NetconfObject) (samplingInstanceOptions, error) {
+func readForwardingoptionsSamplingInstance(name string,
+	m interface{}, jnprSess *NetconfObject) (samplingInstanceOptions, error) {
 	sess := m.(*Session)
 	var confRead samplingInstanceOptions
 
-	samplingInstanceConfig, err := sess.command("show configuration forwarding-options sampling instance \""+
-		samplingInstance+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" forwarding-options sampling instance \""+name+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if samplingInstanceConfig != emptyWord {
-		confRead.name = samplingInstance
-		for _, item := range strings.Split(samplingInstanceConfig, "\n") {
+	if showConfig != emptyWord {
+		confRead.name = name
+		for _, item := range strings.Split(showConfig, "\n") {
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			if strings.Contains(item, "<configuration-output>") {
 				continue

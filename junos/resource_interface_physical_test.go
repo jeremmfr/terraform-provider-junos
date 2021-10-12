@@ -26,7 +26,7 @@ func TestAccJunosInterfacePhysical_basic(t *testing.T) {
 	if os.Getenv("TESTACC_INTERFACE2") != "" {
 		testaccInterface2 = os.Getenv("TESTACC_INTERFACE2")
 	} else {
-		testaccInterface2 = "ge-0/0/4"
+		testaccInterface2 = defaultInterfaceTestAcc2
 	}
 	if os.Getenv("TESTACC_SWITCH") != "" {
 		resource.Test(t, resource.TestCase{

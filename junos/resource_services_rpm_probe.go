@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type rpmProbeOptions struct {
@@ -491,11 +492,11 @@ func resourceServicesRpmProbeImport(
 
 func checkServicesRpmProbeExists(probe string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	probeConfig, err := sess.command("show configuration services rpm probe \""+probe+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration services rpm probe \""+probe+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if probeConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -511,8 +512,13 @@ func setServicesRpmProbe(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 	if d.Get("delegate_probes").(bool) {
 		configSet = append(configSet, setPrefix+"delegate-probes")
 	}
+	testNameList := make([]string, 0)
 	for _, t := range d.Get("test").([]interface{}) {
 		test := t.(map[string]interface{})
+		if bchk.StringInSlice(test["name"].(string), testNameList) {
+			return fmt.Errorf("multiple test blocks with the same name")
+		}
+		testNameList = append(testNameList, test["name"].(string))
 		setPrefixTest := setPrefix + "test \"" + test["name"].(string) + "\" "
 		configSet = append(configSet, setPrefixTest)
 		if v := test["data_fill"].(string); v != "" {
@@ -680,14 +686,13 @@ func readServicesRpmProbe(probe string, m interface{}, jnprSess *NetconfObject) 
 	sess := m.(*Session)
 	var confRead rpmProbeOptions
 
-	probeConfig, err := sess.command("show configuration services rpm probe \""+probe+"\" "+
-		"| display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration services rpm probe \""+probe+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if probeConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = probe
-		for _, item := range strings.Split(probeConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

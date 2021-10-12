@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type globalPolicyOptions struct {
@@ -340,8 +341,13 @@ func setSecurityGlobalPolicy(d *schema.ResourceData, m interface{}, jnprSess *Ne
 	configSet := make([]string, 0)
 
 	setPrefix := "set security policies global policy "
+	policyNameList := make([]string, 0)
 	for _, v := range d.Get("policy").([]interface{}) {
 		policy := v.(map[string]interface{})
+		if bchk.StringInSlice(policy["name"].(string), policyNameList) {
+			return fmt.Errorf("multiple policy blocks with the same name")
+		}
+		policyNameList = append(policyNameList, policy["name"].(string))
 		setPrefixPolicy := setPrefix + policy["name"].(string)
 		for _, address := range sortSetOfString(policy["match_source_address"].(*schema.Set).List()) {
 			configSet = append(configSet, setPrefixPolicy+" match source-address "+address)
@@ -409,13 +415,13 @@ func readSecurityGlobalPolicy(m interface{}, jnprSess *NetconfObject) (globalPol
 	sess := m.(*Session)
 	var confRead globalPolicyOptions
 
-	policyConfig, err := sess.command("show configuration security policies global | display set relative ", jnprSess)
+	showConfig, err := sess.command("show configuration security policies global | display set relative ", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	policyList := make([]map[string]interface{}, 0)
-	if policyConfig != emptyWord {
-		for _, item := range strings.Split(policyConfig, "\n") {
+	if showConfig != emptyWord {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

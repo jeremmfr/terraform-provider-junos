@@ -18,6 +18,7 @@ linters:
     - gci
     - cyclop
     - forcetypeassert
+    - gomoddirectives
 linters-settings:
   gocognit:
     # minimal code complexity to report, 30 by default

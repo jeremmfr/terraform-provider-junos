@@ -3,17 +3,20 @@ package junos
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type natDestinationOptions struct {
-	name string
-	from []map[string]interface{}
-	rule []map[string]interface{}
+	name        string
+	description string
+	from        []map[string]interface{}
+	rule        []map[string]interface{}
 }
 
 func resourceSecurityNatDestination() *schema.Resource {
@@ -64,8 +67,37 @@ func resourceSecurityNatDestination() *schema.Resource {
 						},
 						"destination_address": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.IsCIDRNetwork(0, 128),
+						},
+						"destination_address_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"application": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"destination_port": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"protocol": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"source_address": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"source_address_name": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"then": {
 							Type:     schema.TypeList,
@@ -88,6 +120,10 @@ func resourceSecurityNatDestination() *schema.Resource {
 						},
 					},
 				},
+			},
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 		},
 	}
@@ -267,12 +303,12 @@ func resourceSecurityNatDestinationImport(d *schema.ResourceData, m interface{})
 
 func checkSecurityNatDestinationExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	natDestinationConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security nat destination rule-set "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if natDestinationConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -282,6 +318,7 @@ func checkSecurityNatDestinationExists(name string, m interface{}, jnprSess *Net
 func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
+	regexpDestPort := regexp.MustCompile(`^\d+( to \d+)?$`)
 
 	setPrefix := "set security nat destination rule-set " + d.Get("name").(string)
 	for _, v := range d.Get("from").([]interface{}) {
@@ -290,11 +327,48 @@ func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *
 			configSet = append(configSet, setPrefix+" from "+from["type"].(string)+" "+value)
 		}
 	}
+	ruleNameList := make([]string, 0)
 	for _, v := range d.Get("rule").([]interface{}) {
 		rule := v.(map[string]interface{})
+		if bchk.StringInSlice(rule["name"].(string), ruleNameList) {
+			return fmt.Errorf("multiple rule blocks with the same name")
+		}
+		ruleNameList = append(ruleNameList, rule["name"].(string))
 		setPrefixRule := setPrefix + " rule " + rule["name"].(string)
-		configSet = append(configSet, setPrefixRule+
-			" match destination-address "+rule["destination_address"].(string))
+		if rule["destination_address"].(string) == "" && rule["destination_address_name"].(string) == "" {
+			return fmt.Errorf("missing destination_address or destination_address_name in rule %s", rule["name"].(string))
+		}
+		if rule["destination_address"].(string) != "" && rule["destination_address_name"].(string) != "" {
+			return fmt.Errorf("destination_address and destination_address_name must not be set at the same time "+
+				"in rule %s", rule["name"].(string))
+		}
+		if vv := rule["destination_address"].(string); vv != "" {
+			configSet = append(configSet, setPrefixRule+" match destination-address "+vv)
+		}
+		if vv := rule["destination_address_name"].(string); vv != "" {
+			configSet = append(configSet, setPrefixRule+" match destination-address-name \""+vv+"\"")
+		}
+		for _, vv := range sortSetOfString(rule["application"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixRule+" match application \""+vv+"\"")
+		}
+		for _, vv := range sortSetOfString(rule["destination_port"].(*schema.Set).List()) {
+			if !regexpDestPort.MatchString(vv) {
+				return fmt.Errorf("destination_port need to have format `x` or `x to y` in rule %s", rule["name"].(string))
+			}
+			configSet = append(configSet, setPrefixRule+" match destination-port "+vv)
+		}
+		for _, vv := range sortSetOfString(rule["protocol"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixRule+" match protocol "+vv)
+		}
+		for _, vv := range sortSetOfString(rule["source_address"].(*schema.Set).List()) {
+			if err := validateCIDRNetwork(vv); err != nil {
+				return err
+			}
+			configSet = append(configSet, setPrefixRule+" match source-address "+vv)
+		}
+		for _, vv := range sortSetOfString(rule["source_address_name"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefixRule+" match source-address-name \""+vv+"\"")
+		}
 		for _, thenV := range rule[thenWord].([]interface{}) {
 			then := thenV.(map[string]interface{})
 			if then["type"].(string) == "off" {
@@ -309,23 +383,25 @@ func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *
 			}
 		}
 	}
+	if v := d.Get("description").(string); v != "" {
+		configSet = append(configSet, setPrefix+" description \""+v+"\"")
+	}
 
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSecurityNatDestination(natDestination string,
-	m interface{}, jnprSess *NetconfObject) (natDestinationOptions, error) {
+func readSecurityNatDestination(name string, m interface{}, jnprSess *NetconfObject) (natDestinationOptions, error) {
 	sess := m.(*Session)
 	var confRead natDestinationOptions
 
-	natDestinationConfig, err := sess.command("show configuration"+
-		" security nat destination rule-set "+natDestination+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security nat destination rule-set "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if natDestinationConfig != emptyWord {
-		confRead.name = natDestination
-		for _, item := range strings.Split(natDestinationConfig, "\n") {
+	if showConfig != emptyWord {
+		confRead.name = name
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
@@ -346,15 +422,39 @@ func readSecurityNatDestination(natDestination string,
 			case strings.HasPrefix(itemTrim, "rule "):
 				ruleConfig := strings.Split(strings.TrimPrefix(itemTrim, "rule "), " ")
 				ruleOptions := map[string]interface{}{
-					"name":                ruleConfig[0],
-					"destination_address": "",
-					"then":                make([]map[string]interface{}, 0),
+					"name":                     ruleConfig[0],
+					"destination_address":      "",
+					"destination_address_name": "",
+					"application":              make([]string, 0),
+					"destination_port":         make([]string, 0),
+					"protocol":                 make([]string, 0),
+					"source_address":           make([]string, 0),
+					"source_address_name":      make([]string, 0),
+					"then":                     make([]map[string]interface{}, 0),
 				}
 				confRead.rule = copyAndRemoveItemMapList("name", ruleOptions, confRead.rule)
 				switch {
 				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-address "):
 					ruleOptions["destination_address"] = strings.TrimPrefix(itemTrim,
 						"rule "+ruleConfig[0]+" match destination-address ")
+				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-address-name "):
+					ruleOptions["destination_address_name"] = strings.Trim(strings.TrimPrefix(itemTrim,
+						"rule "+ruleConfig[0]+" match destination-address-name "), "\"")
+				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match application "):
+					ruleOptions["application"] = append(ruleOptions["application"].([]string),
+						strings.Trim(strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match application "), "\""))
+				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-port "):
+					ruleOptions["destination_port"] = append(ruleOptions["destination_port"].([]string),
+						strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-port "))
+				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match protocol "):
+					ruleOptions["protocol"] = append(ruleOptions["protocol"].([]string), strings.TrimPrefix(itemTrim,
+						"rule "+ruleConfig[0]+" match protocol "))
+				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-address "):
+					ruleOptions["source_address"] = append(ruleOptions["source_address"].([]string),
+						strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-address "))
+				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-address-name "):
+					ruleOptions["source_address_name"] = append(ruleOptions["source_address_name"].([]string),
+						strings.Trim(strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-address-name "), "\""))
 				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" then destination-nat "):
 					itemTrimThen := strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" then destination-nat ")
 					if len(ruleOptions["then"].([]map[string]interface{})) == 0 {
@@ -373,6 +473,8 @@ func readSecurityNatDestination(natDestination string,
 					}
 				}
 				confRead.rule = append(confRead.rule, ruleOptions)
+			case strings.HasPrefix(itemTrim, "description "):
+				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
 			}
 		}
 	}
@@ -396,6 +498,9 @@ func fillSecurityNatDestinationData(d *schema.ResourceData, natDestinationOption
 		panic(tfErr)
 	}
 	if tfErr := d.Set("rule", natDestinationOptions.rule); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("description", natDestinationOptions.description); tfErr != nil {
 		panic(tfErr)
 	}
 }

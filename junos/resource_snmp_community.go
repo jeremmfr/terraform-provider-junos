@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type snmpCommunityOptions struct {
@@ -254,12 +255,11 @@ func resourceSnmpCommunityImport(d *schema.ResourceData, m interface{}) ([]*sche
 
 func checkSnmpCommunityExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	snmpCommunityConfig, err := sess.command("show configuration"+
-		" snmp community \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration snmp community \""+name+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if snmpCommunityConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -284,12 +284,17 @@ func setSnmpCommunity(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 	for _, v := range sortSetOfString(d.Get("clients").(*schema.Set).List()) {
 		configSet = append(configSet, setPrefix+"clients "+v)
 	}
+	routingInstanceNameList := make([]string, 0)
 	for _, v := range d.Get("routing_instance").([]interface{}) {
 		routingInstance := v.(map[string]interface{})
 		if len(routingInstance["clients"].(*schema.Set).List()) > 0 && routingInstance["client_list_name"].(string) != "" {
 			return fmt.Errorf("conflict between clients and client_list_name in routing-instance %s",
 				routingInstance["name"].(string))
 		}
+		if bchk.StringInSlice(routingInstance["name"].(string), routingInstanceNameList) {
+			return fmt.Errorf("multiple routing_instance blocks with the same name")
+		}
+		routingInstanceNameList = append(routingInstanceNameList, routingInstance["name"].(string))
 		configSet = append(configSet, setPrefix+"routing-instance "+routingInstance["name"].(string))
 		if cLNname := routingInstance["client_list_name"].(string); cLNname != "" {
 			configSet = append(configSet,
@@ -311,14 +316,13 @@ func readSnmpCommunity(name string, m interface{}, jnprSess *NetconfObject) (snm
 	sess := m.(*Session)
 	var confRead snmpCommunityOptions
 
-	snmpCommunityConfig, err := sess.command("show configuration"+
-		" snmp community \""+name+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration snmp community \""+name+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if snmpCommunityConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = name
-		for _, item := range strings.Split(snmpCommunityConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

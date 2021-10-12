@@ -144,6 +144,7 @@ func Provider() *schema.Provider {
 			"junos_security_nat_source":                                  resourceSecurityNatSource(),
 			"junos_security_nat_source_pool":                             resourceSecurityNatSourcePool(),
 			"junos_security_nat_static":                                  resourceSecurityNatStatic(),
+			"junos_security_nat_static_rule":                             resourceSecurityNatStaticRule(),
 			"junos_security_policy":                                      resourceSecurityPolicy(),
 			"junos_security_policy_tunnel_pair_policy":                   resourceSecurityPolicyTunnelPairPolicy(),
 			"junos_security_screen":                                      resourceSecurityScreen(),

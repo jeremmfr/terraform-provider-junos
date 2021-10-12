@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type securityIntellPolicyOptions struct {
@@ -230,12 +231,12 @@ func resourceServicesSecurityIntellPolicyImport(
 
 func checkServicesSecurityIntellPolicyExists(policy string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	policyConfig, err := sess.command("show configuration services security-intelligence policy \""+
-		policy+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" services security-intelligence policy \""+policy+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if policyConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -247,8 +248,13 @@ func setServicesSecurityIntellPolicy(d *schema.ResourceData, m interface{}, jnpr
 	configSet := make([]string, 0)
 
 	setPrefix := "set services security-intelligence policy \"" + d.Get("name").(string) + "\" "
+	categoryNameList := make([]string, 0)
 	for _, v := range d.Get("category").([]interface{}) {
 		category := v.(map[string]interface{})
+		if bchk.StringInSlice(category["name"].(string), categoryNameList) {
+			return fmt.Errorf("multiple category blocks with the same name")
+		}
+		categoryNameList = append(categoryNameList, category["name"].(string))
 		configSet = append(configSet,
 			setPrefix+category["name"].(string)+" \""+category["profile_name"].(string)+"\"")
 	}
@@ -264,14 +270,14 @@ func readServicesSecurityIntellPolicy(policy string, m interface{}, jnprSess *Ne
 	sess := m.(*Session)
 	var confRead securityIntellPolicyOptions
 
-	policyConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" services security-intelligence policy \""+policy+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if policyConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = policy
-		for _, item := range strings.Split(policyConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -961,8 +962,13 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 
 	for _, v := range d.Get("archival_configuration").([]interface{}) {
 		archivalConfig := v.(map[string]interface{})
+		archiveSiteURLList := make([]string, 0)
 		for _, v2 := range archivalConfig["archive_site"].([]interface{}) {
 			archiveSite := v2.(map[string]interface{})
+			if bchk.StringInSlice(archiveSite["url"].(string), archiveSiteURLList) {
+				return fmt.Errorf("multiple archive_site blocks with the same url")
+			}
+			archiveSiteURLList = append(archiveSiteURLList, archiveSite["url"].(string))
 			configSet = append(configSet, setPrefix+"archival configuration archive-sites \""+archiveSite["url"].(string)+"\"")
 			if pass := archiveSite["password"].(string); pass != "" {
 				configSet = append(configSet,
@@ -1650,13 +1656,12 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 	confRead.maxConfigurationRollbacks = -1
 	confRead.maxConfigurationsOnFlash = -1
 
-	systemConfig, err := sess.command("show configuration system"+
-		" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration system | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if systemConfig != emptyWord {
-		for _, item := range strings.Split(systemConfig, "\n") {
+	if showConfig != emptyWord {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
@@ -1732,11 +1737,11 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 				if err := readSystemInternetOptions(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
-			case checkStringHasPrefixInList(itemTrim, listLinesLicense()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesLicense()):
 				if err := readSystemLicense(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
-			case checkStringHasPrefixInList(itemTrim, listLinesLogin()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesLogin()):
 				if err := readSystemLogin(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}
@@ -1752,7 +1757,7 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
-			case checkStringHasPrefixInList(itemTrim, listLinesNtp()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesNtp()):
 				if len(confRead.ntp) == 0 {
 					confRead.ntp = append(confRead.ntp, map[string]interface{}{
 						"boot_server":              "",
@@ -1808,7 +1813,7 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 				confRead.radiusOptionsEnhancedAccounting = true
 			case itemTrim == "radius-options password-protocol mschap-v2":
 				confRead.radiusOptionsPasswodProtoclMsChapV2 = true
-			case checkStringHasPrefixInList(itemTrim, listLinesServices()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesServices()):
 				if len(confRead.services) == 0 {
 					confRead.services = append(confRead.services, map[string]interface{}{
 						"netconf_traceoptions": make([]map[string]interface{}, 0),
@@ -1822,17 +1827,17 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 						return confRead, err
 					}
 				}
-				if checkStringHasPrefixInList(itemTrim, listLinesServicesSSH()) {
+				if bchk.StringHasOneOfPrefixes(itemTrim, listLinesServicesSSH()) {
 					if err := readSystemServicesSSH(&confRead, itemTrim); err != nil {
 						return confRead, err
 					}
 				}
-				if checkStringHasPrefixInList(itemTrim, listLinesServicesWebManagement()) {
+				if bchk.StringHasOneOfPrefixes(itemTrim, listLinesServicesWebManagement()) {
 					if err := readSystemServicesWebManagement(&confRead, itemTrim); err != nil {
 						return confRead, err
 					}
 				}
-			case checkStringHasPrefixInList(itemTrim, listLinesSyslog()):
+			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesSyslog()):
 				if err := readSystemSyslog(&confRead, itemTrim); err != nil {
 					return confRead, err
 				}

@@ -47,15 +47,32 @@ The following arguments are supported:
 - **rule** (Required, Block List)  
   For each name of rule to declare.  
   See [below for nested schema](#rule-arguments).
+- **description** (Optional, String)  
+  Text description of rule set
 
 ---
 
 ### rule arguments
 
+-> **Note:** One of `destination_address` or `destination_address_name` arguments is required.
+
 - **name** (Required, String)  
   Name of rule
-- **destination_address** (Required, String)  
+- **destination_address** (Optional, String)  
   CIDR for match destination address
+- **destination_address_name** (Optional, String)  
+  Destination address from address book for rule match.
+- **application** (Optional, Set of String)  
+  Specify application or application-set name for rule match.
+- **destination_port** (Optional, Set of String)  
+  List of destination port for rule match.  
+  Format need to be `x` or `x to y`.
+- **protocol** (Optional, Set of String)  
+  IP Protocol for rule match.
+- **source_address** (Optional, Set of String)  
+  List of CIDR source address for rule match.
+- **source_address_name** (Optional, Set of String)  
+  List of source address from address book for rule match.
 - **then** (Required, Block)  
   Declare `then` action.
   - **type** (Required, String)  

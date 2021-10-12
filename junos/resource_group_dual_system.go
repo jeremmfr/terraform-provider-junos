@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type groupDualSystemOptions struct {
@@ -340,7 +341,7 @@ func resourceGroupDualSystemImport(d *schema.ResourceData, m interface{}) ([]*sc
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
 
-	if !stringInSlice(d.Id(), []string{"node0", "node1", "re0", "re1"}) {
+	if !bchk.StringInSlice(d.Id(), []string{"node0", "node1", "re0", "re1"}) {
 		return nil, fmt.Errorf("invalid group id '%v' (id must be <name>)", d.Id())
 	}
 	groupDualSystemExists, err := checkGroupDualSystemExists(d.Id(), m, jnprSess)
@@ -363,11 +364,11 @@ func resourceGroupDualSystemImport(d *schema.ResourceData, m interface{}) ([]*sc
 
 func checkGroupDualSystemExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	groupDualSystemConfig, err := sess.command("show configuration groups "+name+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration groups "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if groupDualSystemConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -394,8 +395,13 @@ func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		if v2 := interfaceFxp0["description"].(string); v2 != "" {
 			configSet = append(configSet, setPrefix+"interfaces fxp0 description \""+v2+"\"")
 		}
+		familyInetAddressCIDRIPList := make([]string, 0)
 		for _, v2 := range interfaceFxp0["family_inet_address"].([]interface{}) {
 			familyInetAddress := v2.(map[string]interface{})
+			if bchk.StringInSlice(familyInetAddress["cidr_ip"].(string), familyInetAddressCIDRIPList) {
+				return fmt.Errorf("multiple family_inet_address blocks with the same cidr_ip")
+			}
+			familyInetAddressCIDRIPList = append(familyInetAddressCIDRIPList, familyInetAddress["cidr_ip"].(string))
 			configSet = append(configSet, setPrefix+"interfaces fxp0 unit 0 family inet address "+
 				familyInetAddress["cidr_ip"].(string))
 			if familyInetAddress["master_only"].(bool) {
@@ -411,8 +417,13 @@ func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 					familyInetAddress["cidr_ip"].(string)+" primary")
 			}
 		}
+		familyInet6AddressCIDRIPList := make([]string, 0)
 		for _, v2 := range interfaceFxp0["family_inet6_address"].([]interface{}) {
 			familyInet6Address := v2.(map[string]interface{})
+			if bchk.StringInSlice(familyInet6Address["cidr_ip"].(string), familyInet6AddressCIDRIPList) {
+				return fmt.Errorf("multiple family_inet6_address blocks with the same cidr_ip")
+			}
+			familyInet6AddressCIDRIPList = append(familyInet6AddressCIDRIPList, familyInet6Address["cidr_ip"].(string))
 			configSet = append(configSet, setPrefix+"interfaces fxp0 unit 0 family inet6 address "+
 				familyInet6Address["cidr_ip"].(string))
 			if familyInet6Address["master_only"].(bool) {
@@ -431,8 +442,13 @@ func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	}
 	for _, v := range d.Get("routing_options").([]interface{}) {
 		routingOptions := v.(map[string]interface{})
+		staticRouteDestList := make([]string, 0)
 		for _, v2 := range routingOptions["static_route"].([]interface{}) {
 			staticRoute := v2.(map[string]interface{})
+			if bchk.StringInSlice(staticRoute["destination"].(string), staticRouteDestList) {
+				return fmt.Errorf("multiple static_route blocks with the same destination")
+			}
+			staticRouteDestList = append(staticRouteDestList, staticRoute["destination"].(string))
 			for _, v3 := range staticRoute["next_hop"].([]interface{}) {
 				configSet = append(configSet, setPrefix+"routing-options static route "+
 					staticRoute["destination"].(string)+" next-hop "+v3.(string))
@@ -468,13 +484,13 @@ func readGroupDualSystem(group string, m interface{}, jnprSess *NetconfObject) (
 	sess := m.(*Session)
 	var confRead groupDualSystemOptions
 
-	groupDualSystemConfig, err := sess.command("show configuration groups "+group+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration groups "+group+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if groupDualSystemConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = group
-		for _, item := range strings.Split(groupDualSystemConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
@@ -586,13 +602,13 @@ func readGroupDualSystem(group string, m interface{}, jnprSess *NetconfObject) (
 			}
 		}
 	}
-	applyGroupsConfig, err := sess.command("show configuration apply-groups | display set relative", jnprSess)
+	showConfigApplyGroups, err := sess.command("show configuration apply-groups | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if applyGroupsConfig != emptyWord {
+	if showConfigApplyGroups != emptyWord {
 		confRead.name = group
-		for _, item := range strings.Split(applyGroupsConfig, "\n") {
+		for _, item := range strings.Split(showConfigApplyGroups, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

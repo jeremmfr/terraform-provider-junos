@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type utmProfileWebFilteringEnhancedOptions struct {
@@ -366,12 +367,12 @@ func resourceSecurityUtmProfileWebFilteringEnhancedImport(
 
 func checkUtmProfileWebFEnhancedExists(profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	profileConfig, err := sess.command("show configuration security utm feature-profile "+
-		"web-filtering juniper-enhanced profile \""+profile+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security utm feature-profile web-filtering juniper-enhanced profile \""+profile+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if profileConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -397,12 +398,22 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, m interface{}, jnprSess *
 			configSet = append(configSet, setPrefix+"block-message")
 		}
 	}
+	categoryNameList := make([]string, 0)
 	for _, v := range d.Get("category").([]interface{}) {
 		category := v.(map[string]interface{})
+		if bchk.StringInSlice(category["name"].(string), categoryNameList) {
+			return fmt.Errorf("multiple category blocks with the same name")
+		}
+		categoryNameList = append(categoryNameList, category["name"].(string))
 		setPrefixCategory := setPrefix + "category \"" + category["name"].(string) + "\" "
 		configSet = append(configSet, setPrefixCategory+"action "+category["action"].(string))
+		reputationActionSiteList := make([]string, 0)
 		for _, r := range category["reputation_action"].([]interface{}) {
 			reputation := r.(map[string]interface{})
+			if bchk.StringInSlice(reputation["site_reputation"].(string), reputationActionSiteList) {
+				return fmt.Errorf("multiple reputation_action blocks with the same site_reputation")
+			}
+			reputationActionSiteList = append(reputationActionSiteList, reputation["site_reputation"].(string))
 			configSet = append(configSet, setPrefixCategory+"reputation-action "+
 				reputation["site_reputation"].(string)+" "+reputation["action"].(string))
 		}
@@ -456,8 +467,13 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, m interface{}, jnprSess *
 			configSet = append(configSet, setPrefix+"quarantine-message")
 		}
 	}
+	siteReputationNameList := make([]string, 0)
 	for _, v := range d.Get("site_reputation_action").([]interface{}) {
 		siteReputation := v.(map[string]interface{})
+		if bchk.StringInSlice(siteReputation["site_reputation"].(string), siteReputationNameList) {
+			return fmt.Errorf("multiple site_reputation_action blocks with the same site_reputation")
+		}
+		siteReputationNameList = append(siteReputationNameList, siteReputation["site_reputation"].(string))
 		configSet = append(configSet, setPrefix+"site-reputation-action "+
 			siteReputation["site_reputation"].(string)+" "+siteReputation["action"].(string))
 	}
@@ -473,15 +489,16 @@ func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *Netconf
 	sess := m.(*Session)
 	var confRead utmProfileWebFilteringEnhancedOptions
 
-	profileConfig, err := sess.command("show configuration security utm feature-profile web-filtering "+
-		"juniper-enhanced profile \""+profile+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security utm feature-profile web-filtering juniper-enhanced"+
+		" profile \""+profile+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if profileConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = profile
 		categoryList := make([]map[string]interface{}, 0)
-		for _, item := range strings.Split(profileConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

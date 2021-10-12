@@ -117,7 +117,7 @@ The following arguments are supported:
 - **filename** (Required, String)  
   Local filename of the script file.
 - **arguments** (Optional, Block List)  
-  For each combination of block arguments, command line argument to the script.
+  For each name of arguments, command line argument to the script.
   - **name** (Required, String)  
     Name of the argument.
   - **value** (Required, String)  

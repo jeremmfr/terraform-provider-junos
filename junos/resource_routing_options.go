@@ -14,6 +14,8 @@ import (
 
 type routingOptionsOptions struct {
 	routerID         string
+	instanceExport   []string
+	instanceImport   []string
 	autonomousSystem []map[string]interface{}
 	forwardingTable  []map[string]interface{}
 	gracefulRestart  []map[string]interface{}
@@ -156,6 +158,16 @@ func resourceRoutingOptions() *schema.Resource {
 						},
 					},
 				},
+			},
+			"instance_export": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"instance_import": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"router_id": {
 				Type:         schema.TypeString,
@@ -402,6 +414,12 @@ func setRoutingOptions(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			}
 		}
 	}
+	for _, v := range d.Get("instance_export").([]interface{}) {
+		configSet = append(configSet, setPrefix+"instance-export "+v.(string))
+	}
+	for _, v := range d.Get("instance_import").([]interface{}) {
+		configSet = append(configSet, setPrefix+"instance-import "+v.(string))
+	}
 	if v := d.Get("router_id").(string); v != "" {
 		configSet = append(configSet, setPrefix+"router-id "+v)
 	}
@@ -413,6 +431,8 @@ func delRoutingOptions(fwTableExportConfigSingly bool, m interface{}, jnprSess *
 	listLinesToDelete := []string{
 		"autonomous-system",
 		"graceful-restart",
+		"instance-export",
+		"instance-import",
 		"router-id",
 	}
 	if fwTableExportConfigSingly {
@@ -449,13 +469,13 @@ func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsO
 	sess := m.(*Session)
 	var confRead routingOptionsOptions
 
-	routingOptionsConfig, err := sess.command("show configuration routing-options"+
-		" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" routing-options"+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if routingOptionsConfig != emptyWord {
-		for _, item := range strings.Split(routingOptionsConfig, "\n") {
+	if showConfig != emptyWord {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
@@ -573,6 +593,10 @@ func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsO
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				}
+			case strings.HasPrefix(itemTrim, "instance-export "):
+				confRead.instanceExport = append(confRead.instanceExport, strings.TrimPrefix(itemTrim, "instance-export "))
+			case strings.HasPrefix(itemTrim, "instance-import "):
+				confRead.instanceImport = append(confRead.instanceImport, strings.TrimPrefix(itemTrim, "instance-import "))
 			case strings.HasPrefix(itemTrim, "router-id "):
 				confRead.routerID = strings.TrimPrefix(itemTrim, "router-id ")
 			}
@@ -596,6 +620,12 @@ func fillRoutingOptions(d *schema.ResourceData, routingOptionsOptions routingOpt
 		panic(tfErr)
 	}
 	if tfErr := d.Set("graceful_restart", routingOptionsOptions.gracefulRestart); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("instance_export", routingOptionsOptions.instanceExport); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("instance_import", routingOptionsOptions.instanceImport); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("router_id", routingOptionsOptions.routerID); tfErr != nil {

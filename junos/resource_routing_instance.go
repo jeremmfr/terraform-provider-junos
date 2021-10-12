@@ -22,6 +22,8 @@ type instanceOptions struct {
 	vrfTargetExport    string
 	vrfTargetImport    string
 	vtepSourceIf       string
+	instanceExport     []string
+	instanceImport     []string
 	vrfExport          []string
 	vrfImport          []string
 }
@@ -73,6 +75,16 @@ func resourceRoutingInstance() *schema.Resource {
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
+			},
+			"instance_export": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"instance_import": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"route_distinguisher": {
 				Type:     schema.TypeString,
@@ -295,11 +307,11 @@ func resourceRoutingInstanceImport(d *schema.ResourceData, m interface{}) ([]*sc
 
 func checkRoutingInstanceExists(instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	routingInstanceConfig, err := sess.command("show configuration routing-instances "+instance+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration routing-instances "+instance+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if routingInstanceConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -349,6 +361,12 @@ func setRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	if v := d.Get("description").(string); v != "" {
 		configSet = append(configSet, setPrefix+"description \""+v+"\"")
 	}
+	for _, v := range d.Get("instance_export").([]interface{}) {
+		configSet = append(configSet, setPrefix+"routing-options instance-export "+v.(string))
+	}
+	for _, v := range d.Get("instance_import").([]interface{}) {
+		configSet = append(configSet, setPrefix+"routing-options instance-import "+v.(string))
+	}
 	if v := d.Get("vtep_source_interface").(string); v != "" {
 		configSet = append(configSet, setPrefix+"vtep-source-interface "+v)
 	}
@@ -360,14 +378,13 @@ func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject
 	sess := m.(*Session)
 	var confRead instanceOptions
 
-	instanceConfig, err := sess.command("show configuration"+
-		" routing-instances "+instance+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration routing-instances "+instance+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if instanceConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = instance
-		for _, item := range strings.Split(instanceConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
@@ -384,6 +401,12 @@ func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject
 				confRead.routeDistinguisher = strings.TrimPrefix(itemTrim, "route-distinguisher ")
 			case strings.HasPrefix(itemTrim, "routing-options autonomous-system "):
 				confRead.as = strings.TrimPrefix(itemTrim, "routing-options autonomous-system ")
+			case strings.HasPrefix(itemTrim, "routing-options instance-export "):
+				confRead.instanceExport = append(confRead.instanceExport,
+					strings.TrimPrefix(itemTrim, "routing-options instance-export "))
+			case strings.HasPrefix(itemTrim, "routing-options instance-import "):
+				confRead.instanceImport = append(confRead.instanceImport,
+					strings.TrimPrefix(itemTrim, "routing-options instance-import "))
 			case strings.HasPrefix(itemTrim, "vrf-export "):
 				confRead.vrfExport = append(confRead.vrfExport, strings.Trim(strings.TrimPrefix(itemTrim, "vrf-export "), "\""))
 			case strings.HasPrefix(itemTrim, "vrf-import "):
@@ -412,6 +435,8 @@ func delRoutingInstanceOpts(d *schema.ResourceData, m interface{}, jnprSess *Net
 	configSet = append(configSet,
 		setPrefix+"description",
 		setPrefix+"routing-options autonomous-system",
+		setPrefix+"routing-options instance-export",
+		setPrefix+"routing-options instance-import",
 		setPrefix+"vtep-source-interface",
 	)
 	if !d.Get("configure_type_singly").(bool) {
@@ -445,6 +470,12 @@ func fillRoutingInstanceData(d *schema.ResourceData, instanceOptions instanceOpt
 		panic(tfErr)
 	}
 	if tfErr := d.Set("description", instanceOptions.description); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("instance_export", instanceOptions.instanceExport); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("instance_import", instanceOptions.instanceImport); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("vtep_source_interface", instanceOptions.vtepSourceIf); tfErr != nil {

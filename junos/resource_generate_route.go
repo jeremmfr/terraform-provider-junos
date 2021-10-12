@@ -321,34 +321,35 @@ func resourceGenerateRouteImport(d *schema.ResourceData, m interface{}) ([]*sche
 	return result, nil
 }
 
-func checkGenerateRouteExists(
-	destination string, instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
+func checkGenerateRouteExists(destination, instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	var generateRouteConfig string
+	var showConfig string
 	var err error
 	if instance == defaultWord {
 		if !strings.Contains(destination, ":") {
-			generateRouteConfig, err = sess.command("show configuration"+
+			showConfig, err = sess.command("show configuration"+
 				" routing-options generate route "+destination+" | display set", jnprSess)
 			if err != nil {
 				return false, err
 			}
 		} else {
-			generateRouteConfig, err = sess.command("show configuration routing-options rib inet6.0 "+
-				"generate route "+destination+" | display set", jnprSess)
+			showConfig, err = sess.command("show configuration"+
+				" routing-options rib inet6.0 "+"generate route "+destination+" | display set", jnprSess)
 			if err != nil {
 				return false, err
 			}
 		}
 	} else {
 		if !strings.Contains(destination, ":") {
-			generateRouteConfig, err = sess.command("show configuration routing-instances "+instance+
+			showConfig, err = sess.command("show configuration"+
+				" routing-instances "+instance+
 				" routing-options generate route "+destination+" | display set", jnprSess)
 			if err != nil {
 				return false, err
 			}
 		} else {
-			generateRouteConfig, err = sess.command("show configuration routing-instances "+instance+
+			showConfig, err = sess.command("show configuration"+
+				" routing-instances "+instance+
 				" routing-options rib "+instance+".inet6.0 generate route "+destination+" | display set", jnprSess)
 			if err != nil {
 				return false, err
@@ -356,7 +357,7 @@ func checkGenerateRouteExists(
 		}
 	}
 
-	if generateRouteConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -433,39 +434,40 @@ func setGenerateRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readGenerateRoute(destination string, instance string, m interface{},
-	jnprSess *NetconfObject) (generateRouteOptions, error) {
+func readGenerateRoute(destination, instance string,
+	m interface{}, jnprSess *NetconfObject) (generateRouteOptions, error) {
 	sess := m.(*Session)
 	var confRead generateRouteOptions
-	var destinationConfig string
+	var showConfig string
 	var err error
 
 	if instance == defaultWord {
 		if !strings.Contains(destination, ":") {
-			destinationConfig, err = sess.command("show configuration routing-options "+
-				"generate route "+destination+" | display set relative", jnprSess)
+			showConfig, err = sess.command("show configuration"+
+				" routing-options generate route "+destination+" | display set relative", jnprSess)
 		} else {
-			destinationConfig, err = sess.command("show configuration routing-options rib inet6.0 "+
-				"generate route "+destination+" | display set relative", jnprSess)
+			showConfig, err = sess.command("show configuration"+
+				" routing-options rib inet6.0 generate route "+destination+" | display set relative", jnprSess)
 		}
 	} else {
 		if !strings.Contains(destination, ":") {
-			destinationConfig, err = sess.command("show configuration routing-instances "+instance+
+			showConfig, err = sess.command("show configuration"+
+				" routing-instances "+instance+
 				" routing-options generate route "+destination+" | display set relative", jnprSess)
 		} else {
-			destinationConfig, err = sess.command("show configuration routing-instances "+instance+
-				" routing-options rib "+instance+".inet6.0 "+
-				"generate route "+destination+" | display set relative", jnprSess)
+			showConfig, err = sess.command("show configuration"+
+				" routing-instances "+instance+
+				" routing-options rib "+instance+".inet6.0 generate route "+destination+" | display set relative", jnprSess)
 		}
 	}
 	if err != nil {
 		return confRead, err
 	}
 
-	if destinationConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.destination = destination
 		confRead.routingInstance = instance
-		for _, item := range strings.Split(destinationConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

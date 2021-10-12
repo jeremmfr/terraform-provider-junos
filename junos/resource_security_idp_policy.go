@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type idpPolicyOptions struct {
@@ -449,12 +450,12 @@ func resourceSecurityIdpPolicyImport(d *schema.ResourceData, m interface{}) ([]*
 
 func checkSecurityIdpPolicyExists(policy string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	policyConfig, err := sess.command("show configuration security idp idp-policy \""+
-		policy+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security idp idp-policy \""+policy+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if policyConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -467,15 +468,27 @@ func setSecurityIdpPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netco
 
 	setPrefix := "set security idp idp-policy \"" + d.Get("name").(string) + "\" "
 	configSet = append(configSet, setPrefix)
+	exemptRuleNameList := make([]string, 0)
 	for _, e := range d.Get("exempt_rule").([]interface{}) {
-		sets, err := setSecurityIdpPolicyExemptRule(setPrefix, e.(map[string]interface{}))
+		eM := e.(map[string]interface{})
+		if bchk.StringInSlice(eM["name"].(string), exemptRuleNameList) {
+			return fmt.Errorf("multiple exempt_rule blocks with the same name")
+		}
+		exemptRuleNameList = append(exemptRuleNameList, eM["name"].(string))
+		sets, err := setSecurityIdpPolicyExemptRule(setPrefix, eM)
 		if err != nil {
 			return err
 		}
 		configSet = append(configSet, sets...)
 	}
+	ipsRuleNameList := make([]string, 0)
 	for _, e := range d.Get("ips_rule").([]interface{}) {
-		sets, err := setSecurityIdpPolicyIpsRule(setPrefix, e.(map[string]interface{}))
+		eM := e.(map[string]interface{})
+		if bchk.StringInSlice(eM["name"].(string), ipsRuleNameList) {
+			return fmt.Errorf("multiple ips_rule blocks with the same name")
+		}
+		ipsRuleNameList = append(ipsRuleNameList, eM["name"].(string))
+		sets, err := setSecurityIdpPolicyIpsRule(setPrefix, eM)
 		if err != nil {
 			return err
 		}
@@ -706,14 +719,14 @@ func readSecurityIdpPolicy(policy string, m interface{}, jnprSess *NetconfObject
 	sess := m.(*Session)
 	var confRead idpPolicyOptions
 
-	policyConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security idp idp-policy \""+policy+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if policyConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = policy
-		for _, item := range strings.Split(policyConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

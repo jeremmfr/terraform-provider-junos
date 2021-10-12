@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 func dataSourceInterfacePhysical() *schema.Resource {
@@ -373,11 +374,11 @@ func searchInterfacePhysicalID(configInterface string, match string,
 	m interface{}, jnprSess *NetconfObject) (string, error) {
 	sess := m.(*Session)
 	intConfigList := make([]string, 0)
-	intConfig, err := sess.command("show configuration interfaces "+configInterface+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration interfaces "+configInterface+" | display set", jnprSess)
 	if err != nil {
 		return "", err
 	}
-	for _, item := range strings.Split(intConfig, "\n") {
+	for _, item := range strings.Split(showConfig, "\n") {
 		if strings.Contains(item, "<configuration-output>") {
 			continue
 		}
@@ -401,7 +402,7 @@ func searchInterfacePhysicalID(configInterface string, match string,
 		}
 		intConfigList = append(intConfigList, itemTrimSplit[0])
 	}
-	intConfigList = uniqueListString(intConfigList)
+	intConfigList = balt.UniqueStrings(intConfigList)
 	if len(intConfigList) == 0 {
 		return "", nil
 	}

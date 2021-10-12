@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type svcUserIdentDevIdentProfileOptions struct {
@@ -241,12 +242,12 @@ func resourceServicesUserIdentDeviceIdentityProfileImport(
 func checkServicesUserIdentDeviceIdentityProfileExists(
 	profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	profileConfig, err := sess.command("show configuration services user-identification "+
-		"device-information end-user-profile profile-name "+profile+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" services user-identification device-information end-user-profile profile-name "+profile+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if profileConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -260,8 +261,13 @@ func setServicesUserIdentDeviceIdentityProfile(d *schema.ResourceData, m interfa
 	setPrefix :=
 		"set services user-identification device-information end-user-profile profile-name " + d.Get("name").(string) + " "
 	configSet = append(configSet, setPrefix+"domain-name "+d.Get("domain").(string))
+	attributeNameList := make([]string, 0)
 	for _, v := range d.Get("attribute").([]interface{}) {
 		attribute := v.(map[string]interface{})
+		if bchk.StringInSlice(attribute["name"].(string), attributeNameList) {
+			return fmt.Errorf("multiple attribute blocks with the same name")
+		}
+		attributeNameList = append(attributeNameList, attribute["name"].(string))
 		for _, v2 := range sortSetOfString(attribute["value"].(*schema.Set).List()) {
 			configSet = append(configSet, setPrefix+"attribute "+attribute["name"].(string)+
 				" string \""+v2+"\"")
@@ -276,14 +282,15 @@ func readServicesUserIdentDeviceIdentityProfile(profile string, m interface{}, j
 	sess := m.(*Session)
 	var confRead svcUserIdentDevIdentProfileOptions
 
-	profileConfig, err := sess.command("show configuration services user-identification "+
-		"device-information end-user-profile profile-name "+profile+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" services user-identification device-information end-user-profile"+
+		" profile-name "+profile+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if profileConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = profile
-		for _, item := range strings.Split(profileConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

@@ -18,7 +18,10 @@ var (
 	testAccProvider = junos.Provider() // nolint: gochecknoglobals
 )
 
-const defaultInterfaceTestAcc = "ge-0/0/3"
+const (
+	defaultInterfaceTestAcc  = "ge-0/0/3"
+	defaultInterfaceTestAcc2 = "ge-0/0/4"
+)
 
 func TestProvider(t *testing.T) {
 	if err := junos.Provider().InternalValidate(); err != nil {

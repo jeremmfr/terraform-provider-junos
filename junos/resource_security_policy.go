@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type policyOptions struct {
@@ -372,12 +373,12 @@ func resourceSecurityPolicyImport(d *schema.ResourceData, m interface{}) ([]*sch
 
 func checkSecurityPolicyExists(fromZone, toZone string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	policyConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security policies from-zone "+fromZone+" to-zone "+toZone+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if policyConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -392,8 +393,13 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		" from-zone " + d.Get("from_zone").(string) +
 		" to-zone " + d.Get("to_zone").(string) +
 		" policy "
+	policyNameList := make([]string, 0)
 	for _, v := range d.Get("policy").([]interface{}) {
 		policy := v.(map[string]interface{})
+		if bchk.StringInSlice(policy["name"].(string), policyNameList) {
+			return fmt.Errorf("multiple policy blocks with the same name")
+		}
+		policyNameList = append(policyNameList, policy["name"].(string))
 		setPrefixPolicy := setPrefix + policy["name"].(string)
 		for _, address := range sortSetOfString(policy["match_source_address"].(*schema.Set).List()) {
 			configSet = append(configSet, setPrefixPolicy+" match source-address "+address)
@@ -467,16 +473,16 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 	var confRead policyOptions
 
-	policyConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security policies from-zone "+fromZone+" to-zone "+toZone+" | display set relative ", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	policyList := make([]map[string]interface{}, 0)
-	if policyConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.fromZone = fromZone
 		confRead.toZone = toZone
-		for _, item := range strings.Split(policyConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type chassisClusterOptions struct {
@@ -360,8 +361,13 @@ func setChassisCluster(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			configSet = append(configSet, setChassisluster+"redundancy-group "+strconv.Itoa(i)+
 				" hold-down-interval "+strconv.Itoa(redundancyGroup["hold_down_interval"].(int)))
 		}
+		interfaceMonitorNameList := make([]string, 0)
 		for _, v2 := range redundancyGroup["interface_monitor"].([]interface{}) {
 			interfaceMonitor := v2.(map[string]interface{})
+			if bchk.StringInSlice(interfaceMonitor["name"].(string), interfaceMonitorNameList) {
+				return fmt.Errorf("multiple interface_monitor blocks with the same name")
+			}
+			interfaceMonitorNameList = append(interfaceMonitorNameList, interfaceMonitor["name"].(string))
 			configSet = append(configSet, setChassisluster+"redundancy-group "+strconv.Itoa(i)+
 				" interface-monitor "+interfaceMonitor["name"].(string)+
 				" weight "+strconv.Itoa(interfaceMonitor["weight"].(int)))
@@ -426,13 +432,12 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 	sess := m.(*Session)
 	var confRead chassisClusterOptions
 
-	chassisClusterConfig, err := sess.command("show configuration chassis cluster"+
-		" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration chassis cluster | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if chassisClusterConfig != emptyWord {
-		for _, item := range strings.Split(chassisClusterConfig, "\n") {
+	if showConfig != emptyWord {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
@@ -556,19 +561,18 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 			}
 		}
 	}
-	fab0Config, err := sess.command("show configuration interfaces fab0"+
-		" | display set relative", jnprSess)
+	showConfigFab0, err := sess.command("show configuration interfaces fab0 | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if fab0Config != emptyWord {
+	if showConfigFab0 != emptyWord {
 		if len(confRead.fab0) == 0 {
 			confRead.fab0 = append(confRead.fab0, map[string]interface{}{
 				"member_interfaces": make([]string, 0),
 				"description":       "",
 			})
 		}
-		for _, item := range strings.Split(fab0Config, "\n") {
+		for _, item := range strings.Split(showConfigFab0, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
@@ -585,19 +589,18 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 			}
 		}
 	}
-	fab1Config, err := sess.command("show configuration interfaces fab1"+
-		" | display set relative", jnprSess)
+	showConfigFab1, err := sess.command("show configuration interfaces fab1 | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if fab1Config != emptyWord {
+	if showConfigFab1 != emptyWord {
 		if len(confRead.fab1) == 0 {
 			confRead.fab1 = append(confRead.fab1, map[string]interface{}{
 				"member_interfaces": make([]string, 0),
 				"description":       "",
 			})
 		}
-		for _, item := range strings.Split(fab1Config, "\n") {
+		for _, item := range strings.Split(showConfigFab1, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

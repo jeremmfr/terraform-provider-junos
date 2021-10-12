@@ -306,12 +306,11 @@ func resourceSecurityUtmPolicyImport(d *schema.ResourceData, m interface{}) ([]*
 
 func checkUtmPolicysExists(policy string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	policyConfig, err := sess.command("show configuration security utm utm-policy \""+
-		policy+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration security utm utm-policy \""+policy+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if policyConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -418,14 +417,14 @@ func readUtmPolicy(policy string, m interface{}, jnprSess *NetconfObject) (
 	sess := m.(*Session)
 	var confRead utmPolicyOptions
 
-	policyConfig, err := sess.command("show configuration"+
+	showConfig, err := sess.command("show configuration"+
 		" security utm utm-policy \""+policy+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if policyConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = policy
-		for _, item := range strings.Split(policyConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

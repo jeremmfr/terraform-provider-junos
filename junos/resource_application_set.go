@@ -206,12 +206,12 @@ func resourceApplicationSetImport(d *schema.ResourceData, m interface{}) ([]*sch
 
 func checkApplicationSetExists(applicationSet string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	applicationSetConfig, err := sess.command("show configuration applications application-set "+
-		applicationSet+" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" applications application-set "+applicationSet+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if applicationSetConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -234,14 +234,14 @@ func readApplicationSet(applicationSet string, m interface{}, jnprSess *NetconfO
 	sess := m.(*Session)
 	var confRead applicationSetOptions
 
-	applicationSetConfig, err := sess.command("show configuration applications application-set "+
-		applicationSet+" | display set relative", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" applications application-set "+applicationSet+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if applicationSetConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = applicationSet
-		for _, item := range strings.Split(applicationSetConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}

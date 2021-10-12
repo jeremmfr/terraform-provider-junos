@@ -31,6 +31,8 @@ The following arguments are supported:
 - **address_pooling** (Optional, String)  
   Type of address pooling.  
   Need to be `paired` or `no-paired`.
+- **description** (Optional, String)  
+  Text description of pool
 - **pool_utilization_alarm_raise_threshold** (Optional, Number)  
   Upper threshold at which an SNMP trap is triggered.  
   Range 50 through 100.

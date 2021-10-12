@@ -10,8 +10,8 @@ description: |-
 
 Provides an address resource in address-book of security zone.
 
--> **Note:** The `security_zone` resource needs to have `address_book_configure_singly` set to true
-otherwise there will be a conflict between resources.
+-> **Note:** The `junos_security_zone` resource needs to have `address_book_configure_singly` set to
+true otherwise there will be a conflict between resources.
 
 ## Example Usage
 

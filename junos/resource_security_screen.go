@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 const (
@@ -752,12 +753,11 @@ func resourceSecurityScreenImport(d *schema.ResourceData, m interface{}) ([]*sch
 
 func checkSecurityScreenExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	screenConfig, err := sess.command("show configuration"+
-		" security screen ids-option \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command("show configuration security screen ids-option \""+name+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if screenConfig == emptyWord {
+	if showConfig == emptyWord {
 		return false, nil
 	}
 
@@ -1143,6 +1143,7 @@ func setSecurityScreenTCP(tcp map[string]interface{}, setPrefix string) ([]strin
 				configSet = append(configSet, setPrefix+"syn-flood timeout "+
 					strconv.Itoa(tcpSynFlood["timeout"].(int)))
 			}
+			whitelistNameList := make([]string, 0)
 			for _, v2 := range tcpSynFlood["whitelist"].(*schema.Set).List() {
 				whitelist := v2.(map[string]interface{})
 				if len(whitelist["source_address"].(*schema.Set).List()) == 0 &&
@@ -1150,6 +1151,10 @@ func setSecurityScreenTCP(tcp map[string]interface{}, setPrefix string) ([]strin
 					return configSet, fmt.Errorf("white-list %s need to have a source or destination address set",
 						whitelist["name"].(string))
 				}
+				if bchk.StringInSlice(whitelist["name"].(string), whitelistNameList) {
+					return configSet, fmt.Errorf("multiple whitelist blocks with the same name")
+				}
+				whitelistNameList = append(whitelistNameList, whitelist["name"].(string))
 				for _, destination := range sortSetOfString(whitelist["destination_address"].(*schema.Set).List()) {
 					if err := validateCIDRNetwork(destination); err != nil {
 						return configSet, err
@@ -1221,14 +1226,14 @@ func readSecurityScreen(name string, m interface{}, jnprSess *NetconfObject) (sc
 	sess := m.(*Session)
 	var confRead screenOptions
 
-	screenConfig, err := sess.command("show configuration security screen ids-option "+
-		"\""+name+"\" | display set relative ", jnprSess)
+	showConfig, err := sess.command("show configuration"+
+		" security screen ids-option \""+name+"\" | display set relative ", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if screenConfig != emptyWord {
+	if showConfig != emptyWord {
 		confRead.name = name
-		for _, item := range strings.Split(screenConfig, "\n") {
+		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
 			}
