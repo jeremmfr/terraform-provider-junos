@@ -25,9 +25,9 @@ jobs:
           cp /tmp/terraform-website/content/source/layouts/inner.erb ./source/layouts/
           echo "redirect 'index.html', to: 'docs/providers/junos/index.html'" >> config.rb
       - name: Setup ruby
-        uses: actions/setup-ruby@v1
+        uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "2.x"
+          ruby-version: "2.7"
       - name: Install middleman
         working-directory: ./.terraform-website/
         run: |
@@ -38,25 +38,15 @@ jobs:
       - name: Build Website
         working-directory: ./.terraform-website/
         run: bundle exec middleman build --verbose
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-1
       - name: Download google files from S3
-        uses: ItsKarma/aws-cli@v1.70.0
-        with:
-          args: s3 cp s3://terraform-provider-junos.jeremm.fr/google72955f25e01c2a06.html .terraform-website/build/
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: aws s3 cp s3://terraform-provider-junos.jeremm.fr/google72955f25e01c2a06.html .terraform-website/build/
       - name: Upload Website on S3
-        uses: ItsKarma/aws-cli@v1.70.0
-        with:
-          args: s3 sync .terraform-website/build/ s3://terraform-provider-junos.jeremm.fr/ --delete
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: aws s3 sync .terraform-website/build/ s3://terraform-provider-junos.jeremm.fr/ --delete
       - name: Invalidate Cloudfront Distribution
-        uses: chetan/invalidate-cloudfront-action@v1.3
-        env:
-          PATHS: '/docs/*'
-          AWS_REGION: 'eu-west-1'
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          DISTRIBUTION: ${{ secrets.DISTRIBUTION_ID }}
+        run: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/docs/*"
