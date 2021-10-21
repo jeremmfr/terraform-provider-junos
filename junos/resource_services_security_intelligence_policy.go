@@ -252,7 +252,7 @@ func setServicesSecurityIntellPolicy(d *schema.ResourceData, m interface{}, jnpr
 	for _, v := range d.Get("category").([]interface{}) {
 		category := v.(map[string]interface{})
 		if bchk.StringInSlice(category["name"].(string), categoryNameList) {
-			return fmt.Errorf("multiple category blocks with the same name")
+			return fmt.Errorf("multiple blocks category with the same name %s", category["name"].(string))
 		}
 		categoryNameList = append(categoryNameList, category["name"].(string))
 		configSet = append(configSet,

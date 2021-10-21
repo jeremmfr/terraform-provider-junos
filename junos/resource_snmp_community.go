@@ -292,7 +292,7 @@ func setSnmpCommunity(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 				routingInstance["name"].(string))
 		}
 		if bchk.StringInSlice(routingInstance["name"].(string), routingInstanceNameList) {
-			return fmt.Errorf("multiple routing_instance blocks with the same name")
+			return fmt.Errorf("multiple blocks routing_instance with the same name %s", routingInstance["name"].(string))
 		}
 		routingInstanceNameList = append(routingInstanceNameList, routingInstance["name"].(string))
 		configSet = append(configSet, setPrefix+"routing-instance "+routingInstance["name"].(string))

@@ -1027,7 +1027,7 @@ func setSecurityIdpCustomAttack(d *schema.ResourceData, m interface{}, jnprSess 
 				return fmt.Errorf("missing one attack type in member %s for attack_type_chain", attackChainMember["name"].(string))
 			}
 			if bchk.StringInSlice(attackChainMember["name"].(string), memberNameList) {
-				return fmt.Errorf("multiple member blocks with the same name")
+				return fmt.Errorf("multiple blocks member with the same name %s", attackChainMember["name"].(string))
 			}
 			memberNameList = append(memberNameList, attackChainMember["name"].(string))
 			for _, v3 := range attackChainMember["attack_type_anomaly"].([]interface{}) {

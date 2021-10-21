@@ -5,6 +5,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* r/`*`: fix missing identifier value in the errors `multiple blocks with the same identifier` (Fixes parts of #292)
+
 ## 1.21.0 (October 12, 2021)
 
 FEATURES:

@@ -399,7 +399,8 @@ func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		for _, v2 := range interfaceFxp0["family_inet_address"].([]interface{}) {
 			familyInetAddress := v2.(map[string]interface{})
 			if bchk.StringInSlice(familyInetAddress["cidr_ip"].(string), familyInetAddressCIDRIPList) {
-				return fmt.Errorf("multiple family_inet_address blocks with the same cidr_ip")
+				return fmt.Errorf("multiple blocks family_inet_address with the same cidr_ip %s",
+					familyInetAddress["cidr_ip"].(string))
 			}
 			familyInetAddressCIDRIPList = append(familyInetAddressCIDRIPList, familyInetAddress["cidr_ip"].(string))
 			configSet = append(configSet, setPrefix+"interfaces fxp0 unit 0 family inet address "+
@@ -421,7 +422,8 @@ func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		for _, v2 := range interfaceFxp0["family_inet6_address"].([]interface{}) {
 			familyInet6Address := v2.(map[string]interface{})
 			if bchk.StringInSlice(familyInet6Address["cidr_ip"].(string), familyInet6AddressCIDRIPList) {
-				return fmt.Errorf("multiple family_inet6_address blocks with the same cidr_ip")
+				return fmt.Errorf("multiple blocks family_inet6_address with the same cidr_ip %s",
+					familyInet6Address["cidr_ip"].(string))
 			}
 			familyInet6AddressCIDRIPList = append(familyInet6AddressCIDRIPList, familyInet6Address["cidr_ip"].(string))
 			configSet = append(configSet, setPrefix+"interfaces fxp0 unit 0 family inet6 address "+
@@ -446,7 +448,7 @@ func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		for _, v2 := range routingOptions["static_route"].([]interface{}) {
 			staticRoute := v2.(map[string]interface{})
 			if bchk.StringInSlice(staticRoute["destination"].(string), staticRouteDestList) {
-				return fmt.Errorf("multiple static_route blocks with the same destination")
+				return fmt.Errorf("multiple blocks static_route with the same destination %s", staticRoute["destination"].(string))
 			}
 			staticRouteDestList = append(staticRouteDestList, staticRoute["destination"].(string))
 			for _, v3 := range staticRoute["next_hop"].([]interface{}) {

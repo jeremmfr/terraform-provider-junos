@@ -507,7 +507,8 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	for _, qualifiedNextHop := range d.Get("qualified_next_hop").([]interface{}) {
 		qualifiedNextHopMap := qualifiedNextHop.(map[string]interface{})
 		if bchk.StringInSlice(qualifiedNextHopMap["next_hop"].(string), qualifiedNextHopList) {
-			return fmt.Errorf("multiple qualified_next_hop blocks with the same next_hop")
+			return fmt.Errorf("multiple blocks qualified_next_hop with the same next_hop %s",
+				qualifiedNextHopMap["next_hop"].(string))
 		}
 		qualifiedNextHopList = append(qualifiedNextHopList, qualifiedNextHopMap["next_hop"].(string))
 		configSet = append(configSet, setPrefix+" qualified-next-hop "+qualifiedNextHopMap["next_hop"].(string))

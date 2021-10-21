@@ -314,7 +314,7 @@ func setOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	for _, v := range d.Get("interface").([]interface{}) {
 		ospfInterface := v.(map[string]interface{})
 		if bchk.StringInSlice(ospfInterface["name"].(string), interfaceNameList) {
-			return fmt.Errorf("multiple interface blocks with the same name")
+			return fmt.Errorf("multiple blocks interface with the same name %s", ospfInterface["name"].(string))
 		}
 		interfaceNameList = append(interfaceNameList, ospfInterface["name"].(string))
 		setPrefixInterface := setPrefix + "interface " + ospfInterface["name"].(string) + " "

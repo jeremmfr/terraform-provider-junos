@@ -365,7 +365,7 @@ func setChassisCluster(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 		for _, v2 := range redundancyGroup["interface_monitor"].([]interface{}) {
 			interfaceMonitor := v2.(map[string]interface{})
 			if bchk.StringInSlice(interfaceMonitor["name"].(string), interfaceMonitorNameList) {
-				return fmt.Errorf("multiple interface_monitor blocks with the same name")
+				return fmt.Errorf("multiple blocks interface_monitor with the same name %s", interfaceMonitor["name"].(string))
 			}
 			interfaceMonitorNameList = append(interfaceMonitorNameList, interfaceMonitor["name"].(string))
 			configSet = append(configSet, setChassisluster+"redundancy-group "+strconv.Itoa(i)+

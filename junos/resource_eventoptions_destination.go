@@ -255,7 +255,7 @@ func setEventoptionsDestination(d *schema.ResourceData, m interface{}, jnprSess 
 	for _, v := range d.Get("archive_site").([]interface{}) {
 		archiveSite := v.(map[string]interface{})
 		if bchk.StringInSlice(archiveSite["url"].(string), archiveSiteURLList) {
-			return fmt.Errorf("multiple archive_site blocks with the same url")
+			return fmt.Errorf("multiple blocks archive_site with the same url %s", archiveSite["url"].(string))
 		}
 		archiveSiteURLList = append(archiveSiteURLList, archiveSite["url"].(string))
 		configSet = append(configSet, setPrefix+"archive-sites \""+archiveSite["url"].(string)+"\"")

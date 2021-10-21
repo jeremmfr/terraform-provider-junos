@@ -472,7 +472,7 @@ func setSecurityIdpPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	for _, e := range d.Get("exempt_rule").([]interface{}) {
 		eM := e.(map[string]interface{})
 		if bchk.StringInSlice(eM["name"].(string), exemptRuleNameList) {
-			return fmt.Errorf("multiple exempt_rule blocks with the same name")
+			return fmt.Errorf("multiple blocks exempt_rule with the same name %s", eM["name"].(string))
 		}
 		exemptRuleNameList = append(exemptRuleNameList, eM["name"].(string))
 		sets, err := setSecurityIdpPolicyExemptRule(setPrefix, eM)
@@ -485,7 +485,7 @@ func setSecurityIdpPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	for _, e := range d.Get("ips_rule").([]interface{}) {
 		eM := e.(map[string]interface{})
 		if bchk.StringInSlice(eM["name"].(string), ipsRuleNameList) {
-			return fmt.Errorf("multiple ips_rule blocks with the same name")
+			return fmt.Errorf("multiple blocks ips_rule with the same name %s", eM["name"].(string))
 		}
 		ipsRuleNameList = append(ipsRuleNameList, eM["name"].(string))
 		sets, err := setSecurityIdpPolicyIpsRule(setPrefix, eM)
