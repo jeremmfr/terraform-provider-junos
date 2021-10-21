@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	warningSeverity string = "warning"
+	errorSeverity string = "error"
 
 	rpcCommand         = "<command format=\"text\">%s</command>"
 	rpcConfigStringSet = "<load-configuration action=\"set\" format=\"text\">" +
@@ -55,16 +55,9 @@ type netconfAuthMethod struct {
 	Ciphers        []string
 }
 
-type commitError struct {
-	Path     string `xml:"error-path"`
-	Element  string `xml:"error-info>bad-element"`
-	Message  string `xml:"error-message"`
-	Severity string `xml:"error-severity"`
-}
-
 type commitResults struct {
-	XMLName xml.Name      `xml:"commit-results"`
-	Errors  []commitError `xml:"rpc-error"`
+	XMLName xml.Name           `xml:"commit-results"`
+	Errors  []netconf.RPCError `xml:"rpc-error"`
 }
 
 // netconfNewSession establishes a new connection to a NetconfObject device that we will use
@@ -193,7 +186,7 @@ func (j *NetconfObject) netconfCommand(cmd string) (string, error) {
 	}
 	if reply.Errors != nil {
 		for _, m := range reply.Errors {
-			return "", errors.New(m.Message)
+			return "", errors.New(m.Error())
 		}
 	}
 	if reply.Data == "" || strings.Count(reply.Data, "") <= 2 {
@@ -214,7 +207,7 @@ func (j *NetconfObject) netconfCommandXML(cmd string) (string, error) {
 	}
 	if reply.Errors != nil {
 		for _, m := range reply.Errors {
-			return "", errors.New(m.Message)
+			return "", errors.New(m.Error())
 		}
 	}
 
@@ -298,10 +291,10 @@ func (j *NetconfObject) netconfCommit(logMessage string) (_warn []error, _err er
 	if reply.Errors != nil {
 		warnings := make([]error, 0)
 		for _, m := range reply.Errors {
-			if m.Severity != warningSeverity {
-				return warnings, errors.New(m.Message)
+			if m.Severity == errorSeverity {
+				return warnings, errors.New(m.Error())
 			}
-			warnings = append(warnings, errors.New(m.Message))
+			warnings = append(warnings, errors.New(m.Error()))
 		}
 
 		return warnings, nil
@@ -317,15 +310,10 @@ func (j *NetconfObject) netconfCommit(logMessage string) (_warn []error, _err er
 		if errs.Errors != nil {
 			warnings := make([]error, 0)
 			for _, m := range errs.Errors {
-				if m.Severity != warningSeverity {
-					message := fmt.Sprintf("[%s]\n    %s\nError: %s",
-						strings.Trim(m.Path, "[\r\n]"),
-						strings.Trim(m.Element, "[\r\n]"),
-						strings.Trim(m.Message, "[\r\n]"))
-
-					return []error{}, errors.New(message)
+				if m.Severity == errorSeverity {
+					return []error{}, errors.New(m.Error())
 				}
-				warnings = append(warnings, errors.New(m.Message))
+				warnings = append(warnings, errors.New(m.Error()))
 			}
 
 			return warnings, nil
