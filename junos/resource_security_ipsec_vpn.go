@@ -406,7 +406,7 @@ func setIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	for _, v := range d.Get("traffic_selector").([]interface{}) {
 		tS := v.(map[string]interface{})
 		if bchk.StringInSlice(tS["name"].(string), trafficSelectorName) {
-			return fmt.Errorf("multiple traffic_selector blocks with the same name")
+			return fmt.Errorf("multiple blocks traffic_selector with the same name %s", tS["name"].(string))
 		}
 		trafficSelectorName = append(trafficSelectorName, tS["name"].(string))
 		configSet = append(configSet, "set security ipsec vpn "+d.Get("name").(string)+" traffic-selector "+

@@ -1347,10 +1347,12 @@ func setFamilyAddress(inetAddress map[string]interface{}, setPrefix string, fami
 		addressMap := address.(map[string]interface{})
 		if bchk.StringInSlice(addressMap["cidr_ip"].(string), addressCIDRIPList) {
 			if family == inetWord {
-				return configSet, fmt.Errorf("multiple family_inet blocks with the same cidr_ip")
+				return configSet, fmt.Errorf("multiple blocks family_inet with the same cidr_ip %s",
+					addressMap["cidr_ip"].(string))
 			}
 			if family == inet6Word {
-				return configSet, fmt.Errorf("multiple family_inet6 blocks with the same cidr_ip")
+				return configSet, fmt.Errorf("multiple blocks family_inet6 with the same cidr_ip %s",
+					addressMap["cidr_ip"].(string))
 			}
 		}
 		addressCIDRIPList = append(addressCIDRIPList, addressMap["cidr_ip"].(string))
@@ -1375,7 +1377,8 @@ func setFamilyAddress(inetAddress map[string]interface{}, setPrefix string, fami
 				return configSet, fmt.Errorf("ConflictsWith no_accept_data and accept_data")
 			}
 			if bchk.IntInSlice(vrrpGroupMap["identifier"].(int), vrrpGroupIDList) {
-				return configSet, fmt.Errorf("multiple vrrp_group blocks with the same identifier")
+				return configSet, fmt.Errorf("multiple blocks vrrp_group with the same identifier %d",
+					vrrpGroupMap["identifier"].(int))
 			}
 			vrrpGroupIDList = append(vrrpGroupIDList, vrrpGroupMap["identifier"].(int))
 			var setNameAddVrrp string
@@ -1440,7 +1443,8 @@ func setFamilyAddress(inetAddress map[string]interface{}, setPrefix string, fami
 			for _, trackInterface := range vrrpGroupMap["track_interface"].([]interface{}) {
 				trackInterfaceMap := trackInterface.(map[string]interface{})
 				if bchk.StringInSlice(trackInterfaceMap["interface"].(string), trackInterfaceList) {
-					return configSet, fmt.Errorf("multiple track_interface blocks with the same interface")
+					return configSet, fmt.Errorf("multiple blocks track_interface with the same interface %s",
+						trackInterfaceMap["interface"].(string))
 				}
 				trackInterfaceList = append(trackInterfaceList, trackInterfaceMap["interface"].(string))
 				configSet = append(configSet, setNameAddVrrp+" track interface "+trackInterfaceMap["interface"].(string)+
@@ -1450,7 +1454,8 @@ func setFamilyAddress(inetAddress map[string]interface{}, setPrefix string, fami
 			for _, trackRoute := range vrrpGroupMap["track_route"].([]interface{}) {
 				trackRouteMap := trackRoute.(map[string]interface{})
 				if bchk.StringInSlice(trackRouteMap["route"].(string), trackRouteList) {
-					return configSet, fmt.Errorf("multiple track_route blocks with the same interface")
+					return configSet, fmt.Errorf("multiple blocks track_route with the same interface %s",
+						trackRouteMap["route"].(string))
 				}
 				trackRouteList = append(trackRouteList, trackRouteMap["route"].(string))
 				configSet = append(configSet, setNameAddVrrp+" track route "+trackRouteMap["route"].(string)+

@@ -516,7 +516,7 @@ func setServicesRpmProbe(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 	for _, t := range d.Get("test").([]interface{}) {
 		test := t.(map[string]interface{})
 		if bchk.StringInSlice(test["name"].(string), testNameList) {
-			return fmt.Errorf("multiple test blocks with the same name")
+			return fmt.Errorf("multiple blocks test with the same name %s", test["name"].(string))
 		}
 		testNameList = append(testNameList, test["name"].(string))
 		setPrefixTest := setPrefix + "test \"" + test["name"].(string) + "\" "

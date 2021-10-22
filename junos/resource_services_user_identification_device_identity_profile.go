@@ -265,7 +265,7 @@ func setServicesUserIdentDeviceIdentityProfile(d *schema.ResourceData, m interfa
 	for _, v := range d.Get("attribute").([]interface{}) {
 		attribute := v.(map[string]interface{})
 		if bchk.StringInSlice(attribute["name"].(string), attributeNameList) {
-			return fmt.Errorf("multiple attribute blocks with the same name")
+			return fmt.Errorf("multiple blocks attribute with the same name %s", attribute["name"].(string))
 		}
 		attributeNameList = append(attributeNameList, attribute["name"].(string))
 		for _, v2 := range sortSetOfString(attribute["value"].(*schema.Set).List()) {
