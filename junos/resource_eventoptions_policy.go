@@ -691,7 +691,7 @@ func setEventoptionsPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netc
 		for _, v2 := range then["event_script"].([]interface{}) {
 			eventScript := v2.(map[string]interface{})
 			if bchk.StringInSlice(eventScript["filename"].(string), eventScriptFilenameList) {
-				return fmt.Errorf("multiple event_script blocks with the same filename")
+				return fmt.Errorf("multiple blocks event_script with the same filename %s", eventScript["filename"].(string))
 			}
 			eventScriptFilenameList = append(eventScriptFilenameList, eventScript["filename"].(string))
 			setPrefixThenEventScript := setPrefix + "then event-script \"" + eventScript["filename"].(string) + "\" "
@@ -700,7 +700,7 @@ func setEventoptionsPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netc
 			for _, v3 := range eventScript["arguments"].([]interface{}) {
 				arguments := v3.(map[string]interface{})
 				if bchk.StringInSlice(arguments["name"].(string), argumentsNameList) {
-					return fmt.Errorf("multiple arguments blocks with the same name")
+					return fmt.Errorf("multiple blocks arguments with the same name %s", arguments["name"].(string))
 				}
 				argumentsNameList = append(argumentsNameList, arguments["name"].(string))
 				configSet = append(configSet, setPrefixThenEventScript+
@@ -785,7 +785,8 @@ func setEventoptionsPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netc
 			setPrefixThenUpload := setPrefix + "then upload filename \"" + upload["filename"].(string) + "\" " +
 				"destination \"" + upload["destination"].(string) + "\" "
 			if bchk.StringInSlice(setPrefixThenUpload, uploadFileDestList) {
-				return fmt.Errorf("multiple upload blocks with the same filename and destination")
+				return fmt.Errorf("multiple blocks upload with the same filename %s and destination %s",
+					upload["filename"].(string), upload["destination"].(string))
 			}
 			uploadFileDestList = append(uploadFileDestList, setPrefixThenUpload)
 			configSet = append(configSet, setPrefixThenUpload)
@@ -813,7 +814,8 @@ func setEventoptionsPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netc
 		setAttriMatch := setPrefix + "attributes-match \"" + attriMatch["from"].(string) + "\" " +
 			attriMatch["compare"].(string) + " \"" + attriMatch["to"].(string) + "\""
 		if bchk.StringInSlice(setAttriMatch, attriMatchList) {
-			return fmt.Errorf("multiple attributes_match blocks with the same from, compare and to")
+			return fmt.Errorf("multiple blocks attributes_match with the same from %s, compare %s and to %s",
+				attriMatch["from"].(string), attriMatch["compare"].(string), attriMatch["to"].(string))
 		}
 		attriMatchList = append(attriMatchList, setAttriMatch)
 		configSet = append(configSet, setAttriMatch)
@@ -822,7 +824,7 @@ func setEventoptionsPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netc
 	for _, v := range d.Get("within").([]interface{}) {
 		within := v.(map[string]interface{})
 		if bchk.IntInSlice(within["time_interval"].(int), withinTimeInterval) {
-			return fmt.Errorf("multiple within blocks with the same time_interval")
+			return fmt.Errorf("multiple blocks within with the same time_interval %d", within["time_interval"].(int))
 		}
 		withinTimeInterval = append(withinTimeInterval, within["time_interval"].(int))
 		setPrefixWithin := setPrefix + "within " + strconv.Itoa(within["time_interval"].(int)) + " "

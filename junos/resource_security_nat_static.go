@@ -388,7 +388,7 @@ func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *Netco
 		for _, v := range d.Get("rule").([]interface{}) {
 			rule := v.(map[string]interface{})
 			if bchk.StringInSlice(rule["name"].(string), ruleNameList) {
-				return fmt.Errorf("multiple rule blocks with the same name")
+				return fmt.Errorf("multiple blocks rule with the same name %s", rule["name"].(string))
 			}
 			ruleNameList = append(ruleNameList, rule["name"].(string))
 			setPrefixRule := setPrefix + " rule " + rule["name"].(string)

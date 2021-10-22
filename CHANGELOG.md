@@ -5,6 +5,13 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+## 1.21.1 (October 22, 2021)
+
+BUG FIXES:
+
+* module go-netconf updated to enhance RPCError display with the `error-path` and `error-info>bad-element` values if set (Fixes parts of [#292](https://github.com/jeremmfr/terraform-provider-junos/issues/292))
+* r/`*`: fix missing identifier value in the errors `multiple blocks with the same identifier` (Fixes parts of [#292](https://github.com/jeremmfr/terraform-provider-junos/issues/292))
+
 ## 1.21.0 (October 12, 2021)
 
 FEATURES:

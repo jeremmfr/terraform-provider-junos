@@ -673,7 +673,7 @@ func setPolicyStatement(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	for _, term := range d.Get("term").([]interface{}) {
 		termMap := term.(map[string]interface{})
 		if bchk.StringInSlice(termMap["name"].(string), termNameList) {
-			return fmt.Errorf("multiple term blocks with the same name")
+			return fmt.Errorf("multiple blocks term with the same name %s", termMap["name"].(string))
 		}
 		termNameList = append(termNameList, termMap["name"].(string))
 		setPrefixTerm := setPrefix + " term " + termMap["name"].(string)
@@ -947,7 +947,8 @@ func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) (
 		community := v.(map[string]interface{})
 		setCommunityActVal := "community " + community["action"].(string) + " " + community["value"].(string)
 		if bchk.StringInSlice(setCommunityActVal, communityList) {
-			return configSet, fmt.Errorf("multiple community blocks with the same action and value")
+			return configSet, fmt.Errorf("multiple blocks community with the same action %s and value %s",
+				community["action"].(string), community["value"].(string))
 		}
 		communityList = append(communityList, setCommunityActVal)
 		configSet = append(configSet, setPrefixThen+setCommunityActVal)

@@ -574,11 +574,11 @@ func setBgpOptsFamily(setPrefix, familyType string, familyOptsList []interface{}
 		if bchk.StringInSlice(familyOptsM["nlri_type"].(string), familyNlriTypeList) {
 			switch familyType {
 			case evpnWord:
-				return fmt.Errorf("multiple family_evpn blocks with the same nlri_type")
+				return fmt.Errorf("multiple blocks family_evpn with the same nlri_type %s", familyOptsM["nlri_type"].(string))
 			case inetWord:
-				return fmt.Errorf("multiple family_inet blocks with the same nlri_type")
+				return fmt.Errorf("multiple blocks family_inet with the same nlri_type %s", familyOptsM["nlri_type"].(string))
 			case inet6Word:
-				return fmt.Errorf("multiple family_inet6 blocks with the same nlri_type")
+				return fmt.Errorf("multiple blocks family_inet6 with the same nlri_type %s", familyOptsM["nlri_type"].(string))
 			}
 		}
 		familyNlriTypeList = append(familyNlriTypeList, familyOptsM["nlri_type"].(string))

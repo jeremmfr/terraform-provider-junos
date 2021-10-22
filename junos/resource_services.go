@@ -1011,7 +1011,8 @@ func setServicesSecurityIntell(d *schema.ResourceData, secuIntel interface{}) ([
 		for _, v := range secuIntelM["default_policy"].([]interface{}) {
 			defPolicy := v.(map[string]interface{})
 			if bchk.StringInSlice(defPolicy["category_name"].(string), defaultPolicyCatNameList) {
-				return configSet, fmt.Errorf("multiple default_policy blocks with the same category_name")
+				return configSet, fmt.Errorf("multiple blocks default_policy with the same category_name %s",
+					defPolicy["category_name"].(string))
 			}
 			defaultPolicyCatNameList = append(defaultPolicyCatNameList, defPolicy["category_name"].(string))
 			configSet = append(configSet, setPrefix+"default-policy "+

@@ -494,7 +494,7 @@ func setSystemSyslogFile(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 			for _, v2 := range archive["sites"].([]interface{}) {
 				sites := v2.(map[string]interface{})
 				if bchk.StringInSlice(sites["url"].(string), sitesURLList) {
-					return fmt.Errorf("multiple sites blocks with the same url")
+					return fmt.Errorf("multiple blocks sites with the same url %s", sites["url"].(string))
 				}
 				sitesURLList = append(sitesURLList, sites["url"].(string))
 				setPrefixArchiveSite := setPrefixArchive + " archive-sites " + sites["url"].(string)

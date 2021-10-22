@@ -345,7 +345,7 @@ func setSecurityGlobalPolicy(d *schema.ResourceData, m interface{}, jnprSess *Ne
 	for _, v := range d.Get("policy").([]interface{}) {
 		policy := v.(map[string]interface{})
 		if bchk.StringInSlice(policy["name"].(string), policyNameList) {
-			return fmt.Errorf("multiple policy blocks with the same name")
+			return fmt.Errorf("multiple blocks policy with the same name %s", policy["name"].(string))
 		}
 		policyNameList = append(policyNameList, policy["name"].(string))
 		setPrefixPolicy := setPrefix + policy["name"].(string)

@@ -466,7 +466,7 @@ func setFirewallFilter(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	for _, v := range d.Get("term").([]interface{}) {
 		term := v.(map[string]interface{})
 		if bchk.StringInSlice(term["name"].(string), termNameList) {
-			return fmt.Errorf("multiple term blocks with the same name")
+			return fmt.Errorf("multiple blocks term with the same name %s", term["name"].(string))
 		}
 		termNameList = append(termNameList, term["name"].(string))
 		setPrefixTerm := setPrefix + " term " + term["name"].(string)

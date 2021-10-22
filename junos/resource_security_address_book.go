@@ -375,7 +375,7 @@ func setSecurityAddressBook(d *schema.ResourceData, m interface{}, jnprSess *Net
 	for _, v := range d.Get("network_address").([]interface{}) {
 		address := v.(map[string]interface{})
 		if bchk.StringInSlice(address["name"].(string), addressNameList) {
-			return fmt.Errorf("multiple address with the same name")
+			return fmt.Errorf("multiple addresses with the same name %s", address["name"].(string))
 		}
 		addressNameList = append(addressNameList, address["name"].(string))
 		setPrefixAddr := setPrefix + " address " + address["name"].(string) + " "
@@ -387,7 +387,7 @@ func setSecurityAddressBook(d *schema.ResourceData, m interface{}, jnprSess *Net
 	for _, v := range d.Get("wildcard_address").([]interface{}) {
 		address := v.(map[string]interface{})
 		if bchk.StringInSlice(address["name"].(string), addressNameList) {
-			return fmt.Errorf("multiple address with the same name")
+			return fmt.Errorf("multiple addresses with the same name %s", address["name"].(string))
 		}
 		addressNameList = append(addressNameList, address["name"].(string))
 		setPrefixAddr := setPrefix + " address " + address["name"].(string)
@@ -399,7 +399,7 @@ func setSecurityAddressBook(d *schema.ResourceData, m interface{}, jnprSess *Net
 	for _, v := range d.Get("dns_name").([]interface{}) {
 		address := v.(map[string]interface{})
 		if bchk.StringInSlice(address["name"].(string), addressNameList) {
-			return fmt.Errorf("multiple address with the same name")
+			return fmt.Errorf("multiple addresses with the same name %s", address["name"].(string))
 		}
 		addressNameList = append(addressNameList, address["name"].(string))
 		setPrefixAddr := setPrefix + " address " + address["name"].(string)
@@ -411,7 +411,7 @@ func setSecurityAddressBook(d *schema.ResourceData, m interface{}, jnprSess *Net
 	for _, v := range d.Get("range_address").([]interface{}) {
 		address := v.(map[string]interface{})
 		if bchk.StringInSlice(address["name"].(string), addressNameList) {
-			return fmt.Errorf("multiple address with the same name")
+			return fmt.Errorf("multiple addresses with the same name %s", address["name"].(string))
 		}
 		addressNameList = append(addressNameList, address["name"].(string))
 		setPrefixAddr := setPrefix + " address " + address["name"].(string)
@@ -423,7 +423,7 @@ func setSecurityAddressBook(d *schema.ResourceData, m interface{}, jnprSess *Net
 	for _, v := range d.Get("address_set").([]interface{}) {
 		addressSet := v.(map[string]interface{})
 		if bchk.StringInSlice(addressSet["name"].(string), addressNameList) {
-			return fmt.Errorf("multiple address or address_set with the same name")
+			return fmt.Errorf("multiple addresses or address-sets with the same name %s", addressSet["name"].(string))
 		}
 		addressNameList = append(addressNameList, addressSet["name"].(string))
 		setPrefixAddrSet := setPrefix + " address-set " + addressSet["name"].(string)
