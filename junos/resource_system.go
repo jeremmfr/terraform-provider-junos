@@ -39,6 +39,7 @@ type systemOptions struct {
 	license                              []map[string]interface{}
 	login                                []map[string]interface{}
 	ntp                                  []map[string]interface{}
+	ports                                []map[string]interface{}
 	services                             []map[string]interface{}
 	syslog                               []map[string]interface{}
 }
@@ -525,6 +526,59 @@ func resourceSystem() *schema.Resource {
 							Optional:     true,
 							RequiredWith: []string{"ntp.0.threshold_action"},
 							ValidateFunc: validation.IntBetween(1, 600),
+						},
+					},
+				},
+			},
+			"ports": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"auxiliary_authentication_order": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"auxiliary_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"auxiliary_insecure": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"auxiliary_logout_on_disconnect": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"auxiliary_type": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"ansi", "small-xterm", "vt100", "xterm"}, false),
+						},
+						"console_authentication_order": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"console_disable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"console_insecure": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"console_logout_on_disconnect": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"console_type": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"ansi", "small-xterm", "vt100", "xterm"}, false),
 						},
 					},
 				},
@@ -1095,6 +1149,45 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 			return fmt.Errorf("ntp block is empty")
 		}
 	}
+	for _, p := range d.Get("ports").([]interface{}) {
+		if p == nil {
+			return fmt.Errorf("ports block is empty")
+		}
+		ports := p.(map[string]interface{})
+		for _, v := range ports["auxiliary_authentication_order"].([]interface{}) {
+			configSet = append(configSet, setPrefix+"ports auxiliary authentication-order "+v.(string))
+		}
+		if ports["auxiliary_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"ports auxiliary disable")
+		}
+		if ports["auxiliary_insecure"].(bool) {
+			configSet = append(configSet, setPrefix+"ports auxiliary insecure")
+		}
+		if ports["auxiliary_logout_on_disconnect"].(bool) {
+			configSet = append(configSet, setPrefix+"ports auxiliary log-out-on-disconnect")
+		}
+		if v := ports["auxiliary_type"].(string); v != "" {
+			configSet = append(configSet, setPrefix+"ports auxiliary type "+v)
+		}
+		for _, v := range ports["console_authentication_order"].([]interface{}) {
+			configSet = append(configSet, setPrefix+"ports console authentication-order "+v.(string))
+		}
+		if ports["console_disable"].(bool) {
+			configSet = append(configSet, setPrefix+"ports console disable")
+		}
+		if ports["console_insecure"].(bool) {
+			configSet = append(configSet, setPrefix+"ports console insecure")
+		}
+		if ports["console_logout_on_disconnect"].(bool) {
+			configSet = append(configSet, setPrefix+"ports console log-out-on-disconnect")
+		}
+		if v := ports["console_type"].(string); v != "" {
+			configSet = append(configSet, setPrefix+"ports console type "+v)
+		}
+		if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefix+"ports ") {
+			return fmt.Errorf("ports block is empty")
+		}
+	}
 	if v := d.Get("radius_options_attributes_nas_ipaddress").(string); v != "" {
 		configSet = append(configSet, setPrefix+"radius-options attributes nas-ip-address "+v)
 	}
@@ -1631,6 +1724,7 @@ func delSystem(m interface{}, jnprSess *NetconfObject) error {
 	listLinesToDelete = append(listLinesToDelete, "no-ping-time-stamp")
 	listLinesToDelete = append(listLinesToDelete, "no-redirects")
 	listLinesToDelete = append(listLinesToDelete, "no-redirects-ipv6")
+	listLinesToDelete = append(listLinesToDelete, "ports")
 	listLinesToDelete = append(listLinesToDelete, "radius-options")
 	listLinesToDelete = append(listLinesToDelete, listLinesServices()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesSyslog()...)
@@ -1793,6 +1887,48 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
+				}
+			case strings.HasPrefix(itemTrim, "ports "):
+				if len(confRead.ports) == 0 {
+					confRead.ports = append(confRead.ports, map[string]interface{}{
+						"auxiliary_authentication_order": make([]string, 0),
+						"auxiliary_disable":              false,
+						"auxiliary_insecure":             false,
+						"auxiliary_logout_on_disconnect": false,
+						"auxiliary_type":                 "",
+						"console_authentication_order":   make([]string, 0),
+						"console_disable":                false,
+						"console_insecure":               false,
+						"console_logout_on_disconnect":   false,
+						"console_type":                   "",
+					})
+				}
+				itemTrimPorts := strings.TrimPrefix(itemTrim, "ports ")
+				switch {
+				case strings.HasPrefix(itemTrimPorts, "auxiliary authentication-order "):
+					confRead.ports[0]["auxiliary_authentication_order"] = append(
+						confRead.ports[0]["auxiliary_authentication_order"].([]string),
+						strings.TrimPrefix(itemTrimPorts, "auxiliary authentication-order "))
+				case itemTrimPorts == "auxiliary disable":
+					confRead.ports[0]["auxiliary_disable"] = true
+				case itemTrimPorts == "auxiliary insecure":
+					confRead.ports[0]["auxiliary_insecure"] = true
+				case itemTrimPorts == "auxiliary log-out-on-disconnect":
+					confRead.ports[0]["auxiliary_logout_on_disconnect"] = true
+				case strings.HasPrefix(itemTrimPorts, "auxiliary type "):
+					confRead.ports[0]["auxiliary_type"] = strings.TrimPrefix(itemTrimPorts, "auxiliary type ")
+				case strings.HasPrefix(itemTrimPorts, "console authentication-order "):
+					confRead.ports[0]["console_authentication_order"] = append(
+						confRead.ports[0]["console_authentication_order"].([]string),
+						strings.TrimPrefix(itemTrimPorts, "console authentication-order "))
+				case itemTrimPorts == "console disable":
+					confRead.ports[0]["console_disable"] = true
+				case itemTrimPorts == "console insecure":
+					confRead.ports[0]["console_insecure"] = true
+				case itemTrimPorts == "console log-out-on-disconnect":
+					confRead.ports[0]["console_logout_on_disconnect"] = true
+				case strings.HasPrefix(itemTrimPorts, "console type "):
+					confRead.ports[0]["console_type"] = strings.TrimPrefix(itemTrimPorts, "console type ")
 				}
 			case strings.HasPrefix(itemTrim, "name-server "):
 				confRead.nameServer = append(confRead.nameServer, strings.TrimPrefix(itemTrim, "name-server "))
@@ -2583,6 +2719,9 @@ func fillSystem(d *schema.ResourceData, systemOptions systemOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("ntp", systemOptions.ntp); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("ports", systemOptions.ports); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("radius_options_attributes_nas_ipaddress",
