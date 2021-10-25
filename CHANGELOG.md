@@ -3,6 +3,8 @@
 
 ENHANCEMENTS:
 
+* resource/`junos_application`: add `term` block argument (Fixes #296)
+
 BUG FIXES:
 
 ## 1.21.1 (October 22, 2021)
