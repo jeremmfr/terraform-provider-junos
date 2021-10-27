@@ -3,7 +3,7 @@
 
 ENHANCEMENTS:
 
-* resource/`junos_group_dual_system`: add validation on `system.0.backup_router_address` and list of string for `system.0.backup_router_destination` is now unordered
+* resource/`junos_group_dual_system`: add `system.0.inet6_backup_router_address` and `system.0.inet6_backup_router_destination` arguments, add validation on `system.0.backup_router_address` and list of string for `system.0.backup_router_destination` is now unordered (Fixes #302)
 
 BUG FIXES:
 

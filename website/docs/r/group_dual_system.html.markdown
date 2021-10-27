@@ -67,6 +67,10 @@ The following arguments are supported:
     IPv4 address backup router.
   - **backup_router_destination** (Optional, Set of String)  
     Destinations network reachable through the IPv4 router.
+  - **inet6_backup_router_address** (Optional, String)  
+    IPv6 address backup router.
+  - **inet6_backup_router_destination** (Optional, Set of String)  
+    Destinations network reachable through the IPv6 router.
 
 ---
 

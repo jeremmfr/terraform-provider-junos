@@ -164,6 +164,16 @@ func resourceGroupDualSystem() *schema.Resource {
 							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
+						"inet6_backup_router_address": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsIPv6Address,
+						},
+						"inet6_backup_router_destination": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
 					},
 				},
 			},
@@ -478,6 +488,12 @@ func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		for _, v2 := range sortSetOfString(system["backup_router_destination"].(*schema.Set).List()) {
 			configSet = append(configSet, setPrefix+" system backup-router destination "+v2)
 		}
+		if v2 := system["inet6_backup_router_address"].(string); v2 != "" {
+			configSet = append(configSet, setPrefix+" system inet6-backup-router "+v2)
+		}
+		for _, v2 := range sortSetOfString(system["inet6_backup_router_destination"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefix+" system inet6-backup-router destination "+v2)
+		}
 	}
 
 	return sess.configSet(configSet, jnprSess)
@@ -587,9 +603,11 @@ func readGroupDualSystem(group string, m interface{}, jnprSess *NetconfObject) (
 			case strings.HasPrefix(itemTrim, "system"):
 				if len(confRead.system) == 0 {
 					confRead.system = append(confRead.system, map[string]interface{}{
-						"host_name":                 "",
-						"backup_router_address":     "",
-						"backup_router_destination": make([]string, 0),
+						"host_name":                       "",
+						"backup_router_address":           "",
+						"backup_router_destination":       make([]string, 0),
+						"inet6_backup_router_address":     "",
+						"inet6_backup_router_destination": make([]string, 0),
 					})
 				}
 				switch {
@@ -601,6 +619,12 @@ func readGroupDualSystem(group string, m interface{}, jnprSess *NetconfObject) (
 						strings.TrimPrefix(itemTrim, "system backup-router destination "))
 				case strings.HasPrefix(itemTrim, "system backup-router "):
 					confRead.system[0]["backup_router_address"] = strings.TrimPrefix(itemTrim, "system backup-router ")
+				case strings.HasPrefix(itemTrim, "system inet6-backup-router destination "):
+					confRead.system[0]["inet6_backup_router_destination"] = append(
+						confRead.system[0]["inet6_backup_router_destination"].([]string),
+						strings.TrimPrefix(itemTrim, "system inet6-backup-router destination "))
+				case strings.HasPrefix(itemTrim, "system inet6-backup-router "):
+					confRead.system[0]["inet6_backup_router_address"] = strings.TrimPrefix(itemTrim, "system inet6-backup-router ")
 				}
 			}
 		}
