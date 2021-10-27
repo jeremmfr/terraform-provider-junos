@@ -155,11 +155,12 @@ func resourceGroupDualSystem() *schema.Resource {
 							Optional: true,
 						},
 						"backup_router_address": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 						"backup_router_destination": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
@@ -474,8 +475,8 @@ func setGroupDualSystem(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		if v2 := system["backup_router_address"].(string); v2 != "" {
 			configSet = append(configSet, setPrefix+" system backup-router "+v2)
 		}
-		for _, v2 := range system["backup_router_destination"].([]interface{}) {
-			configSet = append(configSet, setPrefix+" system backup-router destination "+v2.(string))
+		for _, v2 := range sortSetOfString(system["backup_router_destination"].(*schema.Set).List()) {
+			configSet = append(configSet, setPrefix+" system backup-router destination "+v2)
 		}
 	}
 

@@ -3,6 +3,8 @@
 
 ENHANCEMENTS:
 
+* resource/`junos_group_dual_system`: add validation on `system.0.backup_router_address` and list of string for `system.0.backup_router_destination` is now unordered
+
 BUG FIXES:
 
 ## 1.21.1 (October 22, 2021)

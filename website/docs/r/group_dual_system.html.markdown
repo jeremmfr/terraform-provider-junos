@@ -65,8 +65,8 @@ The following arguments are supported:
     Hostname.
   - **backup_router_address** (Optional, String)  
     IPv4 address backup router.
-  - **backup_router_destination** (Optional, List of String)  
-    Destinations network reachable through the router.
+  - **backup_router_destination** (Optional, Set of String)  
+    Destinations network reachable through the IPv4 router.
 
 ---
 
