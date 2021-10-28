@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type applicationOptions struct {
@@ -23,6 +24,7 @@ type applicationOptions struct {
 	rpcProgramNumber    string
 	sourcePort          string
 	uuid                string
+	term                []map[string]interface{}
 }
 
 func resourceApplication() *schema.Resource {
@@ -77,6 +79,78 @@ func resourceApplication() *schema.Resource {
 			"source_port": {
 				Type:     schema.TypeString,
 				Optional: true,
+			},
+			"term": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ConflictsWith: []string{
+					"application_protocol",
+					"destination_port",
+					"inactivity_timeout",
+					"protocol",
+					"rpc_program_number",
+					"source_port",
+					"uuid",
+				},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+						},
+						"protocol": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"alg": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"destination_port": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"icmp_code": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"icmp_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"icmp6_code": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"icmp6_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"inactivity_timeout": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(4, 86400),
+						},
+						"rpc_program_number": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringMatch(regexp.MustCompile(
+								`^\d+(-\d+)?$`), "must be an integer or a range of integers"),
+						},
+						"source_port": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"uuid": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringMatch(regexp.MustCompile(
+								`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
+								"must be of the form xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"),
+						},
+					},
+				},
 			},
 			"uuid": {
 				Type:     schema.TypeString,
@@ -295,7 +369,58 @@ func setApplication(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	if v := d.Get("source_port").(string); v != "" {
 		configSet = append(configSet, setPrefix+"source-port "+v)
 	}
+	termName := make([]string, 0)
+	for _, v := range d.Get("term").([]interface{}) {
+		term := v.(map[string]interface{})
+		if bchk.StringInSlice(term["name"].(string), termName) {
+			return fmt.Errorf("multiple blocks term with the same name %s", term["name"].(string))
+		}
+		termName = append(termName, term["name"].(string))
+		if err := setApplicationTerm(setPrefix, term, sess, jnprSess); err != nil {
+			return err
+		}
+	}
 	if v := d.Get("uuid").(string); v != "" {
+		configSet = append(configSet, setPrefix+"uuid "+v)
+	}
+
+	return sess.configSet(configSet, jnprSess)
+}
+
+func setApplicationTerm(setApp string, term map[string]interface{}, sess *Session, jnprSess *NetconfObject) error {
+	configSet := make([]string, 0)
+	setPrefix := setApp + "term " + term["name"].(string) + " "
+
+	configSet = append(configSet, setPrefix)
+	configSet = append(configSet, setPrefix+"protocol "+term["protocol"].(string))
+	if v := term["alg"].(string); v != "" {
+		configSet = append(configSet, setPrefix+"alg "+v)
+	}
+	if v := term["destination_port"].(string); v != "" {
+		configSet = append(configSet, setPrefix+"destination-port "+v)
+	}
+	if v := term["icmp_code"].(string); v != "" {
+		configSet = append(configSet, setPrefix+"icmp-code "+v)
+	}
+	if v := term["icmp_type"].(string); v != "" {
+		configSet = append(configSet, setPrefix+"icmp-type "+v)
+	}
+	if v := term["icmp6_code"].(string); v != "" {
+		configSet = append(configSet, setPrefix+"icmp6-code "+v)
+	}
+	if v := term["icmp6_type"].(string); v != "" {
+		configSet = append(configSet, setPrefix+"icmp6-type "+v)
+	}
+	if v := term["inactivity_timeout"].(int); v != 0 {
+		configSet = append(configSet, setPrefix+"inactivity-timeout "+strconv.Itoa(v))
+	}
+	if v := term["rpc_program_number"].(string); v != "" {
+		configSet = append(configSet, setPrefix+"rpc-program-number "+v)
+	}
+	if v := term["source_port"].(string); v != "" {
+		configSet = append(configSet, setPrefix+"source-port "+v)
+	}
+	if v := term["uuid"].(string); v != "" {
 		configSet = append(configSet, setPrefix+"uuid "+v)
 	}
 
@@ -342,6 +467,27 @@ func readApplication(application string, m interface{}, jnprSess *NetconfObject)
 				confRead.rpcProgramNumber = strings.TrimPrefix(itemTrim, "rpc-program-number ")
 			case strings.HasPrefix(itemTrim, "source-port "):
 				confRead.sourcePort = strings.TrimPrefix(itemTrim, "source-port ")
+			case strings.HasPrefix(itemTrim, "term "):
+				itemTermList := strings.Split(strings.TrimPrefix(itemTrim, "term "), " ")
+				termOpts := map[string]interface{}{
+					"name":               itemTermList[0],
+					"protocol":           "",
+					"alg":                "",
+					"destination_port":   "",
+					"icmp_code":          "",
+					"icmp_type":          "",
+					"icmp6_code":         "",
+					"icmp6_type":         "",
+					"inactivity_timeout": 0,
+					"rpc_program_number": "",
+					"source_port":        "",
+					"uuid":               "",
+				}
+				confRead.term = copyAndRemoveItemMapList("name", termOpts, confRead.term)
+				if err := readApplicationTerm(strings.TrimPrefix(itemTrim, "term "+itemTermList[0]+" "), termOpts); err != nil {
+					return confRead, err
+				}
+				confRead.term = append(confRead.term, termOpts)
 			case strings.HasPrefix(itemTrim, "uuid "):
 				confRead.uuid = strings.TrimPrefix(itemTrim, "uuid ")
 			}
@@ -349,6 +495,39 @@ func readApplication(application string, m interface{}, jnprSess *NetconfObject)
 	}
 
 	return confRead, nil
+}
+
+func readApplicationTerm(itemTrim string, term map[string]interface{}) error {
+	switch {
+	case strings.HasPrefix(itemTrim, "protocol "):
+		term["protocol"] = strings.TrimPrefix(itemTrim, "protocol ")
+	case strings.HasPrefix(itemTrim, "alg "):
+		term["alg"] = strings.TrimPrefix(itemTrim, "alg ")
+	case strings.HasPrefix(itemTrim, "destination-port "):
+		term["destination_port"] = strings.TrimPrefix(itemTrim, "destination-port ")
+	case strings.HasPrefix(itemTrim, "icmp-code "):
+		term["icmp_code"] = strings.TrimPrefix(itemTrim, "icmp-code ")
+	case strings.HasPrefix(itemTrim, "icmp-type "):
+		term["icmp_type"] = strings.TrimPrefix(itemTrim, "icmp-type ")
+	case strings.HasPrefix(itemTrim, "icmp6-code "):
+		term["icmp6_code"] = strings.TrimPrefix(itemTrim, "icmp6-code ")
+	case strings.HasPrefix(itemTrim, "icmp6-type "):
+		term["icmp6_type"] = strings.TrimPrefix(itemTrim, "icmp6-type ")
+	case strings.HasPrefix(itemTrim, "inactivity-timeout "):
+		var err error
+		term["inactivity_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "inactivity-timeout "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "rpc-program-number "):
+		term["rpc_program_number"] = strings.TrimPrefix(itemTrim, "rpc-program-number ")
+	case strings.HasPrefix(itemTrim, "source-port "):
+		term["source_port"] = strings.TrimPrefix(itemTrim, "source-port ")
+	case strings.HasPrefix(itemTrim, "uuid "):
+		term["uuid"] = strings.TrimPrefix(itemTrim, "uuid ")
+	}
+
+	return nil
 }
 
 func delApplication(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
@@ -385,6 +564,9 @@ func fillApplicationData(d *schema.ResourceData, applicationOptions applicationO
 		panic(tfErr)
 	}
 	if tfErr := d.Set("source_port", applicationOptions.sourcePort); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("term", applicationOptions.term); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("uuid", applicationOptions.uuid); tfErr != nil {

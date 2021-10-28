@@ -4,6 +4,7 @@
 ENHANCEMENTS:
 
 * resource/`junos_system`: add `ports` block argument (Fixes #294)
+* resource/`junos_application`: add `term` block argument (Fixes #296)
 
 BUG FIXES:
 
