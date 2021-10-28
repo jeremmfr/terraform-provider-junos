@@ -3,6 +3,8 @@
 
 ENHANCEMENTS:
 
+* resource/`junos_system`: add `ports` block argument (Fixes #294)
+
 BUG FIXES:
 
 ## 1.21.1 (October 22, 2021)
