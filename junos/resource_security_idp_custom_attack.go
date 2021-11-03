@@ -480,7 +480,7 @@ func schemaSecurityIdpCustomAttackTypeSignature(chain bool) map[string]*schema.S
 					"destination_value": {
 						Type:         schema.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.IsIPv6Address,
+						ValidateFunc: validateIsIPv6Address,
 					},
 					"extension_header_destination_option_home_address_match": {
 						Type:         schema.TypeString,
@@ -490,7 +490,7 @@ func schemaSecurityIdpCustomAttackTypeSignature(chain bool) map[string]*schema.S
 					"extension_header_destination_option_home_address_value": {
 						Type:         schema.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.IsIPv6Address,
+						ValidateFunc: validateIsIPv6Address,
 					},
 					"extension_header_destination_option_type_match": {
 						Type:         schema.TypeString,
@@ -566,7 +566,7 @@ func schemaSecurityIdpCustomAttackTypeSignature(chain bool) map[string]*schema.S
 					"source_value": {
 						Type:         schema.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.IsIPv6Address,
+						ValidateFunc: validateIsIPv6Address,
 					},
 					"traffic_class_match": {
 						Type:         schema.TypeString,

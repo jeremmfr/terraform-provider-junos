@@ -8,6 +8,9 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* resource/`junos_security_idp_custom_attack`: fix validation of IPv6 address for `destination_value`, `extension_header_destination_option_home_address_value` and `source_value` inside `protocol_ipv6` block
+* resource/`junos_services_rpm_probe`: fix validation of IPv6 address for `inet6_source_address`, `rpm_scale.0.source_inet6_address_base`, `rpm_scale.0.source_inet6_step`, `rpm_scale.0.target_inet6_address_base` and `rpm_scale.0.target_inet6_step` inside `test` block
+
 ## 1.21.1 (October 22, 2021)
 
 BUG FIXES:
