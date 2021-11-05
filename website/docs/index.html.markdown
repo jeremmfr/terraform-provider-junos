@@ -224,7 +224,7 @@ ge-0/0/3 {
 }
 ```
 
-and considers the interface available if the is this lines and only this lines on interface.
+and considers the interface available if there is this lines and only this lines on interface.
 
 ## Number of ssh connections and netconf commands
 

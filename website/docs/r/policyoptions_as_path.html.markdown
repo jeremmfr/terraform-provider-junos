@@ -3,17 +3,17 @@ layout: "junos"
 page_title: "Junos: junos_policyoptions_as_path"
 sidebar_current: "docs-junos-resource-policyoptions-as-path"
 description: |-
-  Create a as-path
+  Create an as-path
 ---
 
 # junos_policyoptions_as_path
 
-Provides a as-path resource.
+Provides an as-path resource.
 
 ## Example Usage
 
 ```hcl
-# Add a as-path
+# Add an as-path
 resource junos_policyoptions_as_path "github" {
   name = "github"
   path = ".* 36459"

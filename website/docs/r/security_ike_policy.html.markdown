@@ -13,7 +13,7 @@ Provides a security ike policy resource.
 ## Example Usage
 
 ```hcl
-# Add a ike policy
+# Add an ike policy
 resource junos_security_ike_policy "demo_vpn_policy" {
   name                = "ike-policy"
   proposals           = ["ike-proposal"]

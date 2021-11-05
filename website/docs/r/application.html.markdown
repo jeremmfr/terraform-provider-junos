@@ -3,17 +3,17 @@ layout: "junos"
 page_title: "Junos: junos_application"
 sidebar_current: "docs-junos-resource-application"
 description: |-
-  Create a application
+  Create an application
 ---
 
 # junos_application
 
-Provides a application resource.
+Provides an application resource.
 
 ## Example Usage
 
 ```hcl
-# Add a application
+# Add an application
 resource junos_application "mysql" {
   name             = "mysql"
   protocol         = "tcp"

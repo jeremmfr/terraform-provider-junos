@@ -52,7 +52,7 @@ The following arguments are supported:
   Conflict with `vlan_id_list`.
 - **vlan_id_list** (Optional, Set of String)  
   List of vlan ID.  
-  Can be a ID or range (exemple: 10-20).  
+  Can be an ID or range (exemple: 10-20).  
   Conflict with `vlan_id`.
 - **vxlan** (Optional, Block)  
   Declare vxlan configuration (when Junos device supports it).

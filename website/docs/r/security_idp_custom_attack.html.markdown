@@ -13,7 +13,7 @@ Provides a security idp custom-attack resource.
 ## Example Usage
 
 ```hcl
-# Add a idp custom-attack
+# Add an idp custom-attack
 resource junos_security_idp_custom_attack "demo_idp_custom_attack" {
   name               = "SSH:BRUTE-FORCE-CUSTOM"
   recommended_action = "drop"
