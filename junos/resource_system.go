@@ -1089,7 +1089,7 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 			configSet = append(configSet, setPrefixLicense+"renew interval "+
 				strconv.Itoa(license["renew_interval"].(int)))
 		}
-		if !strings.HasPrefix(configSet[len(configSet)-1], setPrefixLicense) {
+		if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefixLicense) {
 			return fmt.Errorf("license block is empty")
 		}
 	}
