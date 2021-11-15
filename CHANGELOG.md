@@ -3,6 +3,10 @@
 
 ENHANCEMENTS:
 
+* add `junos_access_address_assignment_pool` resource (Fixes parts of #301)
+* add `junos_system_services_dhcp_localserver_group` resource (Fixes parts of #301)
+* resource/`junos_interface_logical`: add `dhcp` and `dhcpv6_client` block arguments inside `family_inet` and `family_inet6` block arguments (Fixes parts of #301)
+* data-source/`junos_interface_logical`: add `dhcp` and `dhcpv6_client` block attributes inside `family_inet` and `family_inet6` block attributes
 * resource/`junos_system`: add `ports` block argument (Fixes #294)
 * resource/`junos_application`: add `term` block argument (Fixes #296)
 
