@@ -167,7 +167,7 @@ func resourceGroupDualSystem() *schema.Resource {
 						"inet6_backup_router_address": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.IsIPv6Address,
+							ValidateFunc: validateIsIPv6Address,
 						},
 						"inet6_backup_router_destination": {
 							Type:     schema.TypeSet,
