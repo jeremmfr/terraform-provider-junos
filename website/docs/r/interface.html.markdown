@@ -3,12 +3,12 @@ layout: "junos"
 page_title: "Junos: junos_interface"
 sidebar_current: "docs-junos-resource-interface"
 description: |-
-  Create/configure a interface or interface unit
+  Create/configure an interface or interface unit
 ---
 
 # junos_interface
 
-Provides a interface resource.
+Provides an interface resource.
 
 !> **NOTE:** Since v1.11.0, this resource is **deprecated**. For more consistency, functionalities
 of this resource have been splitted in two new resource `junos_interface_physical` and `junos_interface_logical`.

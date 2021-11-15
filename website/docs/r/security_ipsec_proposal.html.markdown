@@ -13,7 +13,7 @@ Provides a security ipsec proposal resource.
 ## Example Usage
 
 ```hcl
-# Add a ipsec proposal
+# Add an ipsec proposal
 resource junos_security_ipsec_proposal "demo_vpn_proposal" {
   name                     = "ipsec-proposal"
   authentication_algorithm = "hmac-sha1-96"
