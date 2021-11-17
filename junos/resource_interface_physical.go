@@ -1544,8 +1544,10 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 
 func delInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
-	if err := checkInterfacePhysicalContainsUnit(d.Get("name").(string), m, jnprSess); err != nil {
+	if containsUnit, err := checkInterfacePhysicalContainsUnit(d.Get("name").(string), m, jnprSess); err != nil {
 		return err
+	} else if containsUnit {
+		return fmt.Errorf("interface %s is used for a logical unit interface", d.Get("name").(string))
 	}
 	if err := sess.configSet([]string{"delete interfaces " + d.Get("name").(string)}, jnprSess); err != nil {
 		return err
@@ -1609,11 +1611,11 @@ func delInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	return nil
 }
 
-func checkInterfacePhysicalContainsUnit(interFace string, m interface{}, jnprSess *NetconfObject) error {
+func checkInterfacePhysicalContainsUnit(interFace string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
 	if err != nil {
-		return err
+		return false, err
 	}
 	for _, item := range strings.Split(showConfig, "\n") {
 		if strings.Contains(item, "<configuration-output>") {
@@ -1627,11 +1629,11 @@ func checkInterfacePhysicalContainsUnit(interFace string, m interface{}, jnprSes
 				continue
 			}
 
-			return fmt.Errorf("interface %s is used for other son unit interface", interFace)
+			return true, nil
 		}
 	}
 
-	return nil
+	return false, nil
 }
 
 func delInterfaceNC(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
