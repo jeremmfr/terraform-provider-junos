@@ -14,17 +14,18 @@ import (
 )
 
 type applicationOptions struct {
-	inactivityTimeout   int
-	name                string
-	applicationProtocol string
-	description         string
-	destinationPort     string
-	etherType           string
-	protocol            string
-	rpcProgramNumber    string
-	sourcePort          string
-	uuid                string
-	term                []map[string]interface{}
+	inactivityTimeoutNever bool
+	inactivityTimeout      int
+	name                   string
+	applicationProtocol    string
+	description            string
+	destinationPort        string
+	etherType              string
+	protocol               string
+	rpcProgramNumber       string
+	sourcePort             string
+	uuid                   string
+	term                   []map[string]interface{}
 }
 
 func resourceApplication() *schema.Resource {
@@ -62,9 +63,15 @@ func resourceApplication() *schema.Resource {
 					`^0[xX][0-9a-fA-F]{4}$`), "must be in hex (example: 0x8906)"),
 			},
 			"inactivity_timeout": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntBetween(4, 86400),
+				Type:          schema.TypeInt,
+				Optional:      true,
+				ConflictsWith: []string{"inactivity_timeout_never"},
+				ValidateFunc:  validation.IntBetween(4, 86400),
+			},
+			"inactivity_timeout_never": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"inactivity_timeout"},
 			},
 			"protocol": {
 				Type:     schema.TypeString,
@@ -87,6 +94,7 @@ func resourceApplication() *schema.Resource {
 					"application_protocol",
 					"destination_port",
 					"inactivity_timeout",
+					"inactivity_timeout_never",
 					"protocol",
 					"rpc_program_number",
 					"source_port",
@@ -131,6 +139,10 @@ func resourceApplication() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(4, 86400),
+						},
+						"inactivity_timeout_never": {
+							Type:     schema.TypeBool,
+							Optional: true,
 						},
 						"rpc_program_number": {
 							Type:     schema.TypeString,
@@ -359,6 +371,8 @@ func setApplication(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	}
 	if v := d.Get("inactivity_timeout").(int); v != 0 {
 		configSet = append(configSet, setPrefix+"inactivity-timeout "+strconv.Itoa(v))
+	} else if d.Get("inactivity_timeout_never").(bool) {
+		configSet = append(configSet, setPrefix+"inactivity-timeout never")
 	}
 	if v := d.Get("protocol").(string); v != "" {
 		configSet = append(configSet, setPrefix+"protocol "+v)
@@ -413,6 +427,12 @@ func setApplicationTerm(setApp string, term map[string]interface{}, sess *Sessio
 	}
 	if v := term["inactivity_timeout"].(int); v != 0 {
 		configSet = append(configSet, setPrefix+"inactivity-timeout "+strconv.Itoa(v))
+		if term["inactivity_timeout_never"].(bool) {
+			return fmt.Errorf("conflict between 'inactivity_timeout' and 'inactivity_timeout_never' "+
+				"in term %s", term["name"].(string))
+		}
+	} else if term["inactivity_timeout_never"].(bool) {
+		configSet = append(configSet, setPrefix+"inactivity-timeout never")
 	}
 	if v := term["rpc_program_number"].(string); v != "" {
 		configSet = append(configSet, setPrefix+"rpc-program-number "+v)
@@ -455,6 +475,8 @@ func readApplication(application string, m interface{}, jnprSess *NetconfObject)
 				confRead.destinationPort = strings.TrimPrefix(itemTrim, "destination-port ")
 			case strings.HasPrefix(itemTrim, "ether-type "):
 				confRead.etherType = strings.TrimPrefix(itemTrim, "ether-type ")
+			case itemTrim == "inactivity-timeout never":
+				confRead.inactivityTimeoutNever = true
 			case strings.HasPrefix(itemTrim, "inactivity-timeout "):
 				var err error
 				confRead.inactivityTimeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "inactivity-timeout "))
@@ -470,18 +492,19 @@ func readApplication(application string, m interface{}, jnprSess *NetconfObject)
 			case strings.HasPrefix(itemTrim, "term "):
 				itemTermList := strings.Split(strings.TrimPrefix(itemTrim, "term "), " ")
 				termOpts := map[string]interface{}{
-					"name":               itemTermList[0],
-					"protocol":           "",
-					"alg":                "",
-					"destination_port":   "",
-					"icmp_code":          "",
-					"icmp_type":          "",
-					"icmp6_code":         "",
-					"icmp6_type":         "",
-					"inactivity_timeout": 0,
-					"rpc_program_number": "",
-					"source_port":        "",
-					"uuid":               "",
+					"name":                     itemTermList[0],
+					"protocol":                 "",
+					"alg":                      "",
+					"destination_port":         "",
+					"icmp_code":                "",
+					"icmp_type":                "",
+					"icmp6_code":               "",
+					"icmp6_type":               "",
+					"inactivity_timeout":       0,
+					"inactivity_timeout_never": false,
+					"rpc_program_number":       "",
+					"source_port":              "",
+					"uuid":                     "",
 				}
 				confRead.term = copyAndRemoveItemMapList("name", termOpts, confRead.term)
 				if err := readApplicationTerm(strings.TrimPrefix(itemTrim, "term "+itemTermList[0]+" "), termOpts); err != nil {
@@ -513,6 +536,8 @@ func readApplicationTerm(itemTrim string, term map[string]interface{}) error {
 		term["icmp6_code"] = strings.TrimPrefix(itemTrim, "icmp6-code ")
 	case strings.HasPrefix(itemTrim, "icmp6-type "):
 		term["icmp6_type"] = strings.TrimPrefix(itemTrim, "icmp6-type ")
+	case itemTrim == "inactivity-timeout never":
+		term["inactivity_timeout_never"] = true
 	case strings.HasPrefix(itemTrim, "inactivity-timeout "):
 		var err error
 		term["inactivity_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "inactivity-timeout "))
@@ -555,6 +580,9 @@ func fillApplicationData(d *schema.ResourceData, applicationOptions applicationO
 		panic(tfErr)
 	}
 	if tfErr := d.Set("inactivity_timeout", applicationOptions.inactivityTimeout); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("inactivity_timeout_never", applicationOptions.inactivityTimeoutNever); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("protocol", applicationOptions.protocol); tfErr != nil {
