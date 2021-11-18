@@ -7,6 +7,7 @@ ENHANCEMENTS:
 * add `junos_system_services_dhcp_localserver_group` resource (Fixes parts of #301)
 * resource/`junos_interface_logical`: add `dhcp` and `dhcpv6_client` block arguments inside `family_inet` and `family_inet6` block arguments (Fixes parts of #301)
 * data-source/`junos_interface_logical`: add `dhcp` and `dhcpv6_client` block attributes inside `family_inet` and `family_inet6` block attributes
+* add `junos_interface_physical_disable` resource (Fixes #305)
 * resource/`junos_system`: add `ports` block argument (Fixes #294)
 * resource/`junos_application`: add `term` block argument (Fixes #296)
 * resource/`junos_chassis_cluster`: add `control_ports` block argument (Fixes #304)
