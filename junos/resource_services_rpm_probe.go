@@ -86,7 +86,7 @@ func resourceServicesRpmProbe() *schema.Resource {
 						"inet6_source_address": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.IsIPv6Address,
+							ValidateFunc: validateIsIPv6Address,
 						},
 						"moving_average_size": {
 							Type:         schema.TypeInt,
@@ -161,7 +161,7 @@ func resourceServicesRpmProbe() *schema.Resource {
 									"source_inet6_address_base": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validation.IsIPv6Address,
+										ValidateFunc: validateIsIPv6Address,
 									},
 									"source_inet6_count": {
 										Type:         schema.TypeInt,
@@ -171,7 +171,7 @@ func resourceServicesRpmProbe() *schema.Resource {
 									"source_inet6_step": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validation.IsIPv6Address,
+										ValidateFunc: validateIsIPv6Address,
 									},
 									"target_address_base": {
 										Type:         schema.TypeString,
@@ -191,7 +191,7 @@ func resourceServicesRpmProbe() *schema.Resource {
 									"target_inet6_address_base": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validation.IsIPv6Address,
+										ValidateFunc: validateIsIPv6Address,
 									},
 									"target_inet6_count": {
 										Type:         schema.TypeInt,
@@ -201,7 +201,7 @@ func resourceServicesRpmProbe() *schema.Resource {
 									"target_inet6_step": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validation.IsIPv6Address,
+										ValidateFunc: validateIsIPv6Address,
 									},
 								},
 							},

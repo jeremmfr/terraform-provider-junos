@@ -50,6 +50,9 @@ The following attributes are exported:
   - **address** (Block List)  
     List of address.  
     See [below for nested schema](#address-attributes-for-family_inet).
+  - **dhcp** (Block)  
+    Enable DHCP client and configuration.  
+    See [below for nested schema](#dhcp-attributes-for-family_inet).
   - **filter_input** (String)  
     Filter applied to received packets.
   - **filter_output** (String)  
@@ -70,6 +73,9 @@ The following attributes are exported:
     See [below for nested schema](#address-attributes-for-family_inet6).
   - **dad_disable** (Boolean)  
     Disable duplicate-address-detection.
+  - **dhcpv6_client** (Block)  
+    Enable DHCP client and configuration.  
+    See [below for nested schema](#dhcpv6_client-attributes-for-family_inet6).
   - **filter_input** (String)  
     Filter applied to received packets.
   - **filter_output** (String)  
@@ -151,6 +157,47 @@ The following attributes are exported:
 
 ---
 
+### dhcp attributes for family_inet
+
+- **client_identifier_ascii** (String)  
+  Client identifier as an ASCII string.  
+- **client_identifier_hexadecimal** (String)  
+  Client identifier as a hexadecimal string.  
+- **client_identifier_prefix_hostname** (Boolean)  
+  Add prefix router host name to client-id option.
+- **client_identifier_prefix_routing_instance_name** (Boolean)  
+  Add prefix routing instance name to client-id option.
+- **client_identifier_use_interface_description** (Boolean)  
+  Use the interface description.  
+- **client_identifier_userid_ascii** (String)  
+  Add user id as an ASCII string to client-id option.
+- **client_identifier_userid_hexadecimal** (String)  
+  Add user id as a hexadecimal string to client-id option.
+- **force_discover** (Boolean)  
+  Send DHCPDISCOVER after DHCPREQUEST retransmission failure.
+- **lease_time** (Number)  
+  Lease time in seconds requested in DHCP client protocol packet (60..2147483647 seconds).  
+- **lease_time_infinite** (Boolean)  
+  Lease never expires.  
+- **metric** (Number)  
+  Client initiated default-route metric (0..255).
+- **no_dns_install** (Boolean)  
+  Do not install DNS information learned from DHCP server.
+- **options_no_hostname** (Boolean)  
+  Do not carry hostname (RFC option code is 12) in packet.
+- **retransmission_attempt** (Number)  
+  Number of attempts to retransmit the DHCP client protocol packet (0..50000).
+- **retransmission_interval** (Number)  
+  Number of seconds between successive retransmission (4..64 seconds).
+- **server_address** (String)  
+  DHCP Server-address.
+- **update_server** (Boolean)  
+  Propagate TCP/IP settings to DHCP server.
+- **vendor_id** (String)  
+  Vendor class id for the DHCP Client.
+
+---
+
 ### address attributes for family_inet6
 
 - **cidr_ip** (String)  
@@ -172,6 +219,35 @@ block but without `authentication_key`, `authentication_type` and with
 
 - **virtual_link_local_address** (String)  
   Address IPv6 for Virtual link-local addresses.
+
+---
+
+### dhcpv6_client attributes for family_inet6
+
+- **client_identifier_duid_type** (String)  
+  DUID identifying a client.  
+- **client_type** (String)  
+  DHCPv6 client type.  
+- **client_ia_type_na** (Boolean)  
+  DHCPv6 client identity association type Non-temporary Address.  
+- **client_ia_type_pd** (Boolean)  
+  DHCPv6 client identity association type Prefix Address.  
+- **no_dns_install** (Boolean)  
+  Do not install DNS information learned from DHCP server.
+- **prefix_delegating_preferred_prefix_length** (Number)  
+  Client preferred prefix length (0..64).
+- **prefix_delegating_sub_prefix_length** (Number)  
+  The sub prefix length for LAN interfaces (1..127).
+- **rapid_commit** (Boolean)  
+  Option is used to signal the use of the two message exchange for address assignment.
+- **req_option** (Set of String)  
+  DHCPV6 client requested option configuration.
+- **retransmission_attempt** (Number)  
+  Number of attempts to retransmit the DHCPV6 client protocol packet (0..9).
+- **update_router_advertisement_interface** (Set of String)  
+  Interfaces on which to delegate prefix.
+- **update_server** (Boolean)  
+  Propagate TCP/IP settings to DHCP server.
 
 ---
 

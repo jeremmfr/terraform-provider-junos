@@ -42,7 +42,12 @@ The following arguments are supported:
   Enable family inet and add configurations if specified.
   - **address** (Optional, Block List)  
     For each ip address to declare.  
+    Conflict with `dhcp`.  
     See [below for nested schema](#address-arguments-for-family_inet).
+  - **dhcp** (Optional, Block)  
+    Enable DHCP client and configuration.  
+    Conflict with `address`.  
+    See [below for nested schema](#dhcp-arguments-for-family_inet).
   - **filter_input** (Optional, String)  
     Filter to be applied to received packets.
   - **filter_output** (Optional, String)  
@@ -60,9 +65,14 @@ The following arguments are supported:
   Enable family inet6 and add configurations if specified.
   - **address** (Optional, Block List)  
     For each ipv6 address to declare.  
+    Conflict with `dhcpv6_client`.  
     See [below for nested schema](#address-arguments-for-family_inet6).
   - **dad_disable** (Optional, Boolean)  
     Disable duplicate-address-detection.
+  - **dhcpv6_client** (Optional, Block)  
+    Enable DHCP client and configuration.  
+    Conflict with `address`.  
+    See [below for nested schema](#dhcpv6_client-arguments-for-family_inet6).
   - **filter_input** (Optional, String)  
     Filter to be applied to received packets.
   - **filter_output** (Optional, String)  
@@ -160,6 +170,52 @@ The following arguments are supported:
 
 ---
 
+### dhcp arguments for family_inet
+
+- **client_identifier_ascii** (Optional, String)  
+  Client identifier as an ASCII string.  
+  Conflict witch `client_identifier_hexadecimal`.
+- **client_identifier_hexadecimal** (Optional, String)  
+  Client identifier as a hexadecimal string.  
+  Conflict witch `client_identifier_ascii`.
+- **client_identifier_prefix_hostname** (Optional, Boolean)  
+  Add prefix router host name to client-id option.
+- **client_identifier_prefix_routing_instance_name** (Optional, Boolean)  
+  Add prefix routing instance name to client-id option.
+- **client_identifier_use_interface_description** (Optional, Boolean)  
+  Use the interface description.  
+  Need to be `device` or `logical`.
+- **client_identifier_userid_ascii** (Optional, String)  
+  Add user id as an ASCII string to client-id option.
+- **client_identifier_userid_hexadecimal** (Optional, String)  
+  Add user id as a hexadecimal string to client-id option.
+- **force_discover** (Optional, Boolean)  
+  Send DHCPDISCOVER after DHCPREQUEST retransmission failure.
+- **lease_time** (Optional, Number)  
+  Lease time in seconds requested in DHCP client protocol packet (60..2147483647 seconds).  
+  Conflict witch `lease_time_infinite`.
+- **lease_time_infinite** (Optional, Boolean)  
+  Lease never expires.  
+  Conflict witch `lease_time`.
+- **metric** (Optional, Number)  
+  Client initiated default-route metric (0..255).
+- **no_dns_install** (Optional, Boolean)  
+  Do not install DNS information learned from DHCP server.
+- **options_no_hostname** (Optional, Boolean)  
+  Do not carry hostname (RFC option code is 12) in packet.
+- **retransmission_attempt** (Optional, Number)  
+  Number of attempts to retransmit the DHCP client protocol packet (0..50000).
+- **retransmission_interval** (Optional, Number)  
+  Number of seconds between successive retransmission (4..64 seconds).
+- **server_address** (Optional, String)  
+  DHCP Server-address.
+- **update_server** (Optional, Boolean)  
+  Propagate TCP/IP settings to DHCP server.
+- **vendor_id** (Optional, String)  
+  Vendor class id for the DHCP Client.
+
+---
+
 ### address arguments for family_inet6
 
 - **cidr_ip** (Required, String)  
@@ -181,6 +237,39 @@ block but without `authentication_key`, `authentication_type` and with
 
 - **virtual_link_local_address** (Required, String)  
   Address IPv6 for Virtual link-local addresses.
+
+---
+
+### dhcpv6_client arguments for family_inet6
+
+- **client_identifier_duid_type** (Required, String)  
+  DUID identifying a client.  
+  Need to be `duid-ll`, `duid-llt` or `vendor`.
+- **client_type** (Required, String)  
+  DHCPv6 client type.  
+  Need to be `autoconfig` or `stateful`.
+- **client_ia_type_na** (Optional, Boolean)  
+  DHCPv6 client identity association type Non-temporary Address.  
+  At least one of `client_ia_type_na`, `client_ia_type_pd` need to be true.
+- **client_ia_type_pd** (Optional, Boolean)  
+  DHCPv6 client identity association type Prefix Address.  
+  At least one of `client_ia_type_na`, `client_ia_type_pd` need to be true.
+- **no_dns_install** (Optional, Boolean)  
+  Do not install DNS information learned from DHCP server.
+- **prefix_delegating_preferred_prefix_length** (Optional, Number)  
+  Client preferred prefix length (0..64).
+- **prefix_delegating_sub_prefix_length** (Optional, Number)  
+  The sub prefix length for LAN interfaces (1..127).
+- **rapid_commit** (Optional, Boolean)  
+  Option is used to signal the use of the two message exchange for address assignment.
+- **req_option** (Optional, Set of String)  
+  DHCPV6 client requested option configuration.
+- **retransmission_attempt** (Optional, Number)  
+  Number of attempts to retransmit the DHCPV6 client protocol packet (0..9).
+- **update_router_advertisement_interface** (Optional, Set of String)  
+  Interfaces on which to delegate prefix.
+- **update_server** (Optional, Boolean)  
+  Propagate TCP/IP settings to DHCP server.
 
 ---
 

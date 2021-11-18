@@ -93,6 +93,7 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
+			"junos_access_address_assignment_pool":                       resourceAccessAddressAssignPool(),
 			"junos_aggregate_route":                                      resourceAggregateRoute(),
 			"junos_application":                                          resourceApplication(),
 			"junos_application_set":                                      resourceApplicationSet(),
@@ -180,6 +181,7 @@ func Provider() *schema.Provider {
 			"junos_system_ntp_server":                                    resourceSystemNtpServer(),
 			"junos_system_radius_server":                                 resourceSystemRadiusServer(),
 			"junos_system_root_authentication":                           resourceSystemRootAuthentication(),
+			"junos_system_services_dhcp_localserver_group":               resourceSystemServicesDhcpLocalServerGroup(),
 			"junos_system_syslog_file":                                   resourceSystemSyslogFile(),
 			"junos_system_syslog_host":                                   resourceSystemSyslogHost(),
 			"junos_vlan":                                                 resourceVlan(),

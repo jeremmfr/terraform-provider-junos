@@ -64,8 +64,9 @@ func resourceInterfaceLogical() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"address": {
-							Type:     schema.TypeList,
-							Optional: true,
+							Type:          schema.TypeList,
+							Optional:      true,
+							ConflictsWith: []string{"family_inet.0.dhcp"},
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"cidr_ip": {
@@ -182,6 +183,109 @@ func resourceInterfaceLogical() *schema.Resource {
 								},
 							},
 						},
+						"dhcp": {
+							Type:          schema.TypeList,
+							Optional:      true,
+							ConflictsWith: []string{"family_inet.0.address"},
+							MaxItems:      1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"client_identifier_ascii": {
+										Type:          schema.TypeString,
+										Optional:      true,
+										ConflictsWith: []string{"family_inet.0.dhcp.0.client_identifier_hexadecimal"},
+									},
+									"client_identifier_hexadecimal": {
+										Type:          schema.TypeString,
+										Optional:      true,
+										ConflictsWith: []string{"family_inet.0.dhcp.0.client_identifier_ascii"},
+										ValidateFunc: validation.StringMatch(
+											regexp.MustCompile(`^[0-9a-fA-F]+$`),
+											"must be hexadecimal digits (0-9, a-f, A-F)"),
+									},
+									"client_identifier_prefix_hostname": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"client_identifier_prefix_routing_instance_name": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"client_identifier_use_interface_description": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice([]string{"device", "logical"}, false),
+									},
+									"client_identifier_userid_ascii": {
+										Type:          schema.TypeString,
+										Optional:      true,
+										ConflictsWith: []string{"family_inet.0.dhcp.0.client_identifier_userid_hexadecimal"},
+									},
+									"client_identifier_userid_hexadecimal": {
+										Type:          schema.TypeString,
+										Optional:      true,
+										ConflictsWith: []string{"family_inet.0.dhcp.0.client_identifier_userid_ascii"},
+										ValidateFunc: validation.StringMatch(
+											regexp.MustCompile(`^[0-9a-fA-F]+$`),
+											"must be hexadecimal digits (0-9, a-f, A-F)"),
+									},
+									"force_discover": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"lease_time": {
+										Type:          schema.TypeInt,
+										Optional:      true,
+										ConflictsWith: []string{"family_inet.0.dhcp.0.lease_time_infinite"},
+										ValidateFunc:  validation.IntBetween(60, 2147483647),
+									},
+									"lease_time_infinite": {
+										Type:          schema.TypeBool,
+										Optional:      true,
+										ConflictsWith: []string{"family_inet.0.dhcp.0.lease_time"},
+									},
+									"metric": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      -1,
+										ValidateFunc: validation.IntBetween(0, 255),
+									},
+									"no_dns_install": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"options_no_hostname": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"retransmission_attempt": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      -1,
+										ValidateFunc: validation.IntBetween(0, 50000),
+									},
+									"retransmission_interval": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(4, 64),
+									},
+									"server_address": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.IsIPv4Address,
+									},
+									"update_server": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"vendor_id": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringLenBetween(1, 60),
+									},
+								},
+							},
+						},
 						"filter_input": {
 							Type:             schema.TypeString,
 							Optional:         true,
@@ -232,8 +336,9 @@ func resourceInterfaceLogical() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"address": {
-							Type:     schema.TypeList,
-							Optional: true,
+							Type:          schema.TypeList,
+							Optional:      true,
+							ConflictsWith: []string{"family_inet6.0.dhcpv6_client"},
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"cidr_ip": {
@@ -348,6 +453,81 @@ func resourceInterfaceLogical() *schema.Resource {
 						"dad_disable": {
 							Type:     schema.TypeBool,
 							Optional: true,
+						},
+						"dhcpv6_client": {
+							Type:          schema.TypeList,
+							Optional:      true,
+							ConflictsWith: []string{"family_inet6.0.address"},
+							MaxItems:      1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"client_identifier_duid_type": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice([]string{"duid-ll", "duid-llt", "vendor"}, false),
+									},
+									"client_type": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice([]string{"autoconfig", "stateful"}, false),
+									},
+									"client_ia_type_na": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										AtLeastOneOf: []string{
+											"family_inet6.0.dhcpv6_client.0.client_ia_type_na",
+											"family_inet6.0.dhcpv6_client.0.client_ia_type_pd",
+										},
+									},
+									"client_ia_type_pd": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										AtLeastOneOf: []string{
+											"family_inet6.0.dhcpv6_client.0.client_ia_type_na",
+											"family_inet6.0.dhcpv6_client.0.client_ia_type_pd",
+										},
+									},
+									"no_dns_install": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"prefix_delegating_preferred_prefix_length": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      -1,
+										ValidateFunc: validation.IntBetween(0, 64),
+									},
+									"prefix_delegating_sub_prefix_length": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 127),
+									},
+									"rapid_commit": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"req_option": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"retransmission_attempt": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      -1,
+										ValidateFunc: validation.IntBetween(0, 9),
+									},
+									"update_router_advertisement_interface": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"update_server": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+								},
+							},
 						},
 						"filter_input": {
 							Type:             schema.TypeString,
@@ -823,6 +1003,9 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 				return err
 			}
 			configSet = append(configSet, configSetFamilyInet...)
+			for _, dhcp := range familyInet["dhcp"].([]interface{}) {
+				configSet = append(configSet, setFamilyInetDhcp(dhcp.(map[string]interface{}), setPrefix)...)
+			}
 			if familyInet["filter_input"].(string) != "" {
 				configSet = append(configSet, setPrefix+"family inet filter input "+
 					familyInet["filter_input"].(string))
@@ -865,6 +1048,9 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 				return err
 			}
 			configSet = append(configSet, configSetFamilyInet6...)
+			for _, dhcp := range familyInet6["dhcpv6_client"].([]interface{}) {
+				configSet = append(configSet, setFamilyInet6Dhcpv6Client(dhcp.(map[string]interface{}), setPrefix)...)
+			}
 			if familyInet6["dad_disable"].(bool) {
 				configSet = append(configSet, setPrefix+"family inet6 dad-disable")
 			}
@@ -959,6 +1145,7 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 					confRead.familyInet6 = append(confRead.familyInet6, map[string]interface{}{
 						"address":         make([]map[string]interface{}, 0),
 						"dad_disable":     false,
+						"dhcpv6_client":   make([]map[string]interface{}, 0),
 						"filter_input":    "",
 						"filter_output":   "",
 						"mtu":             0,
@@ -973,6 +1160,28 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 					confRead.familyInet6[0]["address"], err = readFamilyInetAddress(
 						itemTrim, confRead.familyInet6[0]["address"].([]map[string]interface{}), inet6Word)
 					if err != nil {
+						return confRead, err
+					}
+				case strings.HasPrefix(itemTrim, "family inet6 dhcpv6-client "):
+					if len(confRead.familyInet6[0]["dhcpv6_client"].([]map[string]interface{})) == 0 {
+						confRead.familyInet6[0]["dhcpv6_client"] = append(
+							confRead.familyInet6[0]["dhcpv6_client"].([]map[string]interface{}), map[string]interface{}{
+								"client_identifier_duid_type":               "",
+								"client_type":                               "",
+								"client_ia_type_na":                         false,
+								"client_ia_type_pd":                         false,
+								"no_dns_install":                            false,
+								"prefix_delegating_preferred_prefix_length": -1,
+								"prefix_delegating_sub_prefix_length":       0,
+								"rapid_commit":                              false,
+								"req_option":                                make([]string, 0),
+								"retransmission_attempt":                    -1,
+								"update_router_advertisement_interface":     make([]string, 0),
+								"update_server":                             false,
+							})
+					}
+					if err := readFamilyInet6Dhcpv6Client(
+						itemTrim, confRead.familyInet6[0]["dhcpv6_client"].([]map[string]interface{})[0]); err != nil {
 						return confRead, err
 					}
 				case itemTrim == "family inet6 dad-disable":
@@ -1011,6 +1220,7 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 				if len(confRead.familyInet) == 0 {
 					confRead.familyInet = append(confRead.familyInet, map[string]interface{}{
 						"address":         make([]map[string]interface{}, 0),
+						"dhcp":            make([]map[string]interface{}, 0),
 						"mtu":             0,
 						"filter_input":    "",
 						"filter_output":   "",
@@ -1026,6 +1236,36 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 						itemTrim, confRead.familyInet[0]["address"].([]map[string]interface{}), inetWord)
 					if err != nil {
 						return confRead, err
+					}
+				case strings.HasPrefix(itemTrim, "family inet dhcp"):
+					if len(confRead.familyInet[0]["dhcp"].([]map[string]interface{})) == 0 {
+						confRead.familyInet[0]["dhcp"] = append(
+							confRead.familyInet[0]["dhcp"].([]map[string]interface{}), map[string]interface{}{
+								"client_identifier_ascii":                        "",
+								"client_identifier_hexadecimal":                  "",
+								"client_identifier_prefix_hostname":              false,
+								"client_identifier_prefix_routing_instance_name": false,
+								"client_identifier_use_interface_description":    "",
+								"client_identifier_userid_ascii":                 "",
+								"client_identifier_userid_hexadecimal":           "",
+								"force_discover":                                 false,
+								"lease_time":                                     0,
+								"lease_time_infinite":                            false,
+								"metric":                                         -1,
+								"no_dns_install":                                 false,
+								"options_no_hostname":                            false,
+								"retransmission_attempt":                         -1,
+								"retransmission_interval":                        0,
+								"server_address":                                 "",
+								"update_server":                                  false,
+								"vendor_id":                                      "",
+							})
+					}
+					if strings.HasPrefix(itemTrim, "family inet dhcp ") {
+						if err := readFamilyInetDhcp(
+							itemTrim, confRead.familyInet[0]["dhcp"].([]map[string]interface{})[0]); err != nil {
+							return confRead, err
+						}
 					}
 				case strings.HasPrefix(itemTrim, "family inet filter input "):
 					confRead.familyInet[0]["filter_input"] = strings.TrimPrefix(itemTrim, "family inet filter input ")
@@ -1337,6 +1577,115 @@ func readFamilyInetAddress(item string, inetAddress []map[string]interface{},
 	return inetAddress, nil
 }
 
+func readFamilyInetDhcp(item string, dhcp map[string]interface{}) error {
+	itemTrim := strings.TrimPrefix(item, "family inet dhcp ")
+	switch {
+	case strings.HasPrefix(itemTrim, "client-identifier ascii "):
+		dhcp["client_identifier_ascii"] = strings.Trim(strings.TrimPrefix(itemTrim, "client-identifier ascii "), "\"")
+	case strings.HasPrefix(itemTrim, "client-identifier hexadecimal "):
+		dhcp["client_identifier_hexadecimal"] = strings.TrimPrefix(itemTrim, "client-identifier hexadecimal ")
+	case itemTrim == "client-identifier prefix host-name":
+		dhcp["client_identifier_prefix_hostname"] = true
+	case itemTrim == "client-identifier prefix routing-instance-name":
+		dhcp["client_identifier_prefix_routing_instance_name"] = true
+	case strings.HasPrefix(itemTrim, "client-identifier use-interface-description "):
+		dhcp["client_identifier_use_interface_description"] =
+			strings.TrimPrefix(itemTrim, "client-identifier use-interface-description ")
+	case strings.HasPrefix(itemTrim, "client-identifier user-id ascii "):
+		dhcp["client_identifier_userid_ascii"] =
+			strings.Trim(strings.TrimPrefix(itemTrim, "client-identifier user-id ascii "), "\"")
+	case strings.HasPrefix(itemTrim, "client-identifier user-id hexadecimal "):
+		dhcp["client_identifier_userid_hexadecimal"] = strings.TrimPrefix(itemTrim, "client-identifier user-id hexadecimal ")
+	case itemTrim == "force-discover":
+		dhcp["force_discover"] = true
+	case itemTrim == "lease-time infinite":
+		dhcp["lease_time_infinite"] = true
+	case strings.HasPrefix(itemTrim, "lease-time "):
+		var err error
+		dhcp["lease_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "lease-time "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "metric "):
+		var err error
+		dhcp["metric"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "metric "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case itemTrim == "no-dns-install":
+		dhcp["no_dns_install"] = true
+	case itemTrim == "options no-hostname":
+		dhcp["options_no_hostname"] = true
+	case strings.HasPrefix(itemTrim, "retransmission-attempt "):
+		var err error
+		dhcp["retransmission_attempt"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "retransmission-attempt "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "retransmission-interval "):
+		var err error
+		dhcp["retransmission_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "retransmission-interval "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "server-address "):
+		dhcp["server_address"] = strings.TrimPrefix(itemTrim, "server-address ")
+	case itemTrim == "update-server":
+		dhcp["update_server"] = true
+	case strings.HasPrefix(itemTrim, "vendor-id "):
+		dhcp["vendor_id"] = strings.Trim(strings.TrimPrefix(itemTrim, "vendor-id "), "\"")
+	}
+
+	return nil
+}
+
+func readFamilyInet6Dhcpv6Client(item string, dhcp map[string]interface{}) error {
+	itemTrim := strings.TrimPrefix(item, "family inet6 dhcpv6-client ")
+	switch {
+	case strings.HasPrefix(itemTrim, "client-identifier duid-type "):
+		dhcp["client_identifier_duid_type"] = strings.TrimPrefix(itemTrim, "client-identifier duid-type ")
+	case strings.HasPrefix(itemTrim, "client-type "):
+		dhcp["client_type"] = strings.TrimPrefix(itemTrim, "client-type ")
+	case itemTrim == "client-ia-type ia-na":
+		dhcp["client_ia_type_na"] = true
+	case itemTrim == "client-ia-type ia-pd":
+		dhcp["client_ia_type_pd"] = true
+	case itemTrim == "no-dns-install":
+		dhcp["no_dns_install"] = true
+	case strings.HasPrefix(itemTrim, "prefix-delegating preferred-prefix-length "):
+		var err error
+		dhcp["prefix_delegating_preferred_prefix_length"], err =
+			strconv.Atoi(strings.TrimPrefix(itemTrim, "prefix-delegating preferred-prefix-length "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "prefix-delegating sub-prefix-length "):
+		var err error
+		dhcp["prefix_delegating_sub_prefix_length"], err =
+			strconv.Atoi(strings.TrimPrefix(itemTrim, "prefix-delegating sub-prefix-length "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case itemTrim == "rapid-commit":
+		dhcp["rapid_commit"] = true
+	case strings.HasPrefix(itemTrim, "req-option "):
+		dhcp["req_option"] = append(dhcp["req_option"].([]string), strings.TrimPrefix(itemTrim, "req-option "))
+	case strings.HasPrefix(itemTrim, "retransmission-attempt "):
+		var err error
+		dhcp["retransmission_attempt"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "retransmission-attempt "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "update-router-advertisement interface "):
+		dhcp["update_router_advertisement_interface"] = append(dhcp["update_router_advertisement_interface"].([]string),
+			strings.TrimPrefix(itemTrim, "update-router-advertisement interface "))
+	case itemTrim == "update-server":
+		dhcp["update_server"] = true
+	}
+
+	return nil
+}
+
 func setFamilyAddress(inetAddress map[string]interface{}, setPrefix string, family string) ([]string, error) {
 	configSet := make([]string, 0)
 	if family != inetWord && family != inet6Word {
@@ -1466,6 +1815,109 @@ func setFamilyAddress(inetAddress map[string]interface{}, setPrefix string, fami
 	}
 
 	return configSet, nil
+}
+
+func setFamilyInetDhcp(dhcp map[string]interface{}, setPrefixInt string) []string {
+	configSet := make([]string, 0)
+	setPrefix := setPrefixInt + "family inet dhcp "
+
+	configSet = append(configSet, setPrefix)
+	if v := dhcp["client_identifier_ascii"].(string); v != "" {
+		configSet = append(configSet, setPrefix+"client-identifier ascii \""+v+"\"")
+	}
+	if v := dhcp["client_identifier_hexadecimal"].(string); v != "" {
+		configSet = append(configSet, setPrefix+"client-identifier hexadecimal "+v)
+	}
+	if dhcp["client_identifier_prefix_hostname"].(bool) {
+		configSet = append(configSet, setPrefix+"client-identifier prefix host-name")
+	}
+	if dhcp["client_identifier_prefix_routing_instance_name"].(bool) {
+		configSet = append(configSet, setPrefix+"client-identifier prefix routing-instance-name")
+	}
+	if v := dhcp["client_identifier_use_interface_description"].(string); v != "" {
+		configSet = append(configSet, setPrefix+"client-identifier use-interface-description "+v)
+	}
+	if v := dhcp["client_identifier_userid_ascii"].(string); v != "" {
+		configSet = append(configSet, setPrefix+"client-identifier user-id ascii \""+v+"\"")
+	}
+	if v := dhcp["client_identifier_userid_hexadecimal"].(string); v != "" {
+		configSet = append(configSet, setPrefix+"client-identifier user-id hexadecimal "+v)
+	}
+	if dhcp["force_discover"].(bool) {
+		configSet = append(configSet, setPrefix+"force-discover")
+	}
+	if v := dhcp["lease_time"].(int); v != 0 {
+		configSet = append(configSet, setPrefix+"lease-time "+strconv.Itoa(v))
+	}
+	if dhcp["lease_time_infinite"].(bool) {
+		configSet = append(configSet, setPrefix+"lease-time infinite")
+	}
+	if v := dhcp["metric"].(int); v != -1 {
+		configSet = append(configSet, setPrefix+"metric "+strconv.Itoa(v))
+	}
+	if dhcp["no_dns_install"].(bool) {
+		configSet = append(configSet, setPrefix+"no-dns-install")
+	}
+	if dhcp["options_no_hostname"].(bool) {
+		configSet = append(configSet, setPrefix+"options no-hostname")
+	}
+	if v := dhcp["retransmission_attempt"].(int); v != -1 {
+		configSet = append(configSet, setPrefix+"retransmission-attempt "+strconv.Itoa(v))
+	}
+	if v := dhcp["retransmission_interval"].(int); v != 0 {
+		configSet = append(configSet, setPrefix+"retransmission-interval "+strconv.Itoa(v))
+	}
+	if v := dhcp["server_address"].(string); v != "" {
+		configSet = append(configSet, setPrefix+"server-address "+v)
+	}
+	if dhcp["update_server"].(bool) {
+		configSet = append(configSet, setPrefix+"update-server")
+	}
+	if v := dhcp["vendor_id"].(string); v != "" {
+		configSet = append(configSet, setPrefix+"vendor-id \""+v+"\"")
+	}
+
+	return configSet
+}
+
+func setFamilyInet6Dhcpv6Client(dhcp map[string]interface{}, setPrefixInt string) []string {
+	configSet := make([]string, 0)
+	setPrefix := setPrefixInt + "family inet6 dhcpv6-client "
+
+	configSet = append(configSet, setPrefix+"client-identifier duid-type "+dhcp["client_identifier_duid_type"].(string))
+	configSet = append(configSet, setPrefix+"client-type "+dhcp["client_type"].(string))
+	if dhcp["client_ia_type_na"].(bool) {
+		configSet = append(configSet, setPrefix+"client-ia-type ia-na")
+	}
+	if dhcp["client_ia_type_pd"].(bool) {
+		configSet = append(configSet, setPrefix+"client-ia-type ia-pd")
+	}
+	if dhcp["no_dns_install"].(bool) {
+		configSet = append(configSet, setPrefix+"no-dns-install")
+	}
+	if v := dhcp["prefix_delegating_preferred_prefix_length"].(int); v != -1 {
+		configSet = append(configSet, setPrefix+"prefix-delegating preferred-prefix-length "+strconv.Itoa(v))
+	}
+	if v := dhcp["prefix_delegating_sub_prefix_length"].(int); v != 0 {
+		configSet = append(configSet, setPrefix+"prefix-delegating sub-prefix-length "+strconv.Itoa(v))
+	}
+	if dhcp["rapid_commit"].(bool) {
+		configSet = append(configSet, setPrefix+"rapid-commit")
+	}
+	for _, v := range sortSetOfString(dhcp["req_option"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"req-option "+v)
+	}
+	if v := dhcp["retransmission_attempt"].(int); v != -1 {
+		configSet = append(configSet, setPrefix+"retransmission-attempt "+strconv.Itoa(v))
+	}
+	for _, v := range sortSetOfString(dhcp["update_router_advertisement_interface"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefix+"update-router-advertisement interface "+v)
+	}
+	if dhcp["update_server"].(bool) {
+		configSet = append(configSet, setPrefix+"update-server")
+	}
+
+	return configSet
 }
 
 func genFamilyInetAddress(address string) map[string]interface{} {
