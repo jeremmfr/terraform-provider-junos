@@ -185,10 +185,11 @@ func Provider() *schema.Provider {
 			"junos_vlan":                                                 resourceVlan(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"junos_interface":          dataSourceInterface(),
-			"junos_interface_logical":  dataSourceInterfaceLogical(),
-			"junos_interface_physical": dataSourceInterfacePhysical(),
-			"junos_system_information": dataSourceSystemInformation(),
+			"junos_interface":                   dataSourceInterface(),
+			"junos_interface_logical":           dataSourceInterfaceLogical(),
+			"junos_interface_physical":          dataSourceInterfacePhysical(),
+			"junos_interfaces_physical_present": dataSourceInterfacesPhysicalPresent(),
+			"junos_system_information":          dataSourceSystemInformation(),
 		},
 		ConfigureContextFunc: configureProvider,
 	}
