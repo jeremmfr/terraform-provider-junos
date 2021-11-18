@@ -18,6 +18,7 @@ type chassisClusterOptions struct {
 	heartbeatInterval       int
 	heartbeatThreshold      int
 	rethCount               int
+	controlPorts            []map[string]interface{}
 	redundancyGroup         []map[string]interface{}
 	fab0                    []map[string]interface{}
 	fab1                    []map[string]interface{}
@@ -149,6 +150,24 @@ func resourceChassisCluster() *schema.Resource {
 			"control_link_recovery": {
 				Type:     schema.TypeBool,
 				Optional: true,
+			},
+			"control_ports": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"fpc": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(0, 23),
+						},
+						"port": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(0, 1),
+						},
+					},
+				},
 			},
 			"heartbeat_interval": {
 				Type:         schema.TypeInt,
@@ -401,6 +420,11 @@ func setChassisCluster(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	if d.Get("control_link_recovery").(bool) {
 		configSet = append(configSet, setChassisluster+"control-link-recovery")
 	}
+	for _, cp := range d.Get("control_ports").(*schema.Set).List() {
+		controlPort := cp.(map[string]interface{})
+		configSet = append(configSet, setChassisluster+"control-ports fpc "+
+			strconv.Itoa(controlPort["fpc"].(int))+" port "+strconv.Itoa(controlPort["port"].(int)))
+	}
 	if v := d.Get("heartbeat_interval").(int); v != 0 {
 		configSet = append(configSet, setChassisluster+"heartbeat-interval "+
 			strconv.Itoa(v))
@@ -544,6 +568,22 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 				}
 			case itemTrim == "configuration-synchronize no-secondary-bootup-auto":
 				confRead.configSyncNoSecBootAuto = true
+			case strings.HasPrefix(itemTrim, "control-ports fpc "):
+				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "control-ports fpc "), " ")
+				if len(itemTrimSplit) < 3 {
+					return confRead, fmt.Errorf("can't read values for control-ports fpc in '%s'", itemTrim)
+				}
+				controlPort := make(map[string]interface{})
+				var err error
+				controlPort["fpc"], err = strconv.Atoi(itemTrimSplit[0])
+				if err != nil {
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimSplit[0], err)
+				}
+				controlPort["port"], err = strconv.Atoi(itemTrimSplit[2])
+				if err != nil {
+					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimSplit[2], err)
+				}
+				confRead.controlPorts = append(confRead.controlPorts, controlPort)
 			case itemTrim == "control-link-recovery":
 				confRead.controlLinkRecovery = true
 			case strings.HasPrefix(itemTrim, "heartbeat-interval "):
@@ -636,6 +676,9 @@ func fillChassisCluster(d *schema.ResourceData, chassisClusterOptions chassisClu
 	}
 	if tfErr := d.Set("config_sync_no_secondary_bootup_auto",
 		chassisClusterOptions.configSyncNoSecBootAuto); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("control_ports", chassisClusterOptions.controlPorts); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("control_link_recovery", chassisClusterOptions.controlLinkRecovery); tfErr != nil {
