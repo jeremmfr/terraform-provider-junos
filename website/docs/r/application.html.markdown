@@ -37,7 +37,11 @@ The following arguments are supported:
   Match ether type.  
   Must be in hex (example: 0x8906).
 - **inactivity_timeout** (Optional, Number)  
-  Application-specific inactivity timeout (4..86400 seconds).
+  Application-specific inactivity timeout (4..86400 seconds).  
+  Conflict with `inactivity_timeout_never`.
+- **inactivity_timeout_never** (Optional, Boolean)  
+  Disables inactivity timeout.  
+  Conflict with `inactivity_timeout`.
 - **protocol** (Optional, String)  
   Protocol used by application.
 - **rpc_program_number** (Optional, String)  
@@ -72,7 +76,11 @@ The following arguments are supported:
 - **icmp6_type** (Optional, String)  
   Match ICMP6 message type.
 - **inactivity_timeout** (Optional, Number)  
-  Application-specific inactivity timeout (4..86400 seconds).
+  Application-specific inactivity timeout (4..86400 seconds).  
+  Conflict with `inactivity_timeout_never`.
+- **inactivity_timeout_never** (Optional, Boolean)  
+  Disables inactivity timeout.  
+  Conflict with `inactivity_timeout`.
 - **rpc_program_number** (Optional, String)  
   Match range of RPC program numbers.  
   Must be an integer or a range of integers.

@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * resource/`junos_system`: add `ports` block argument (Fixes #294)
 * resource/`junos_application`: add `term` block argument (Fixes #296)
 * resource/`junos_chassis_cluster`: add `control_ports` block argument (Fixes #304)
+* resource/`junos_application`: add `term` block argument (Fixes #296), add `inactivity_timeout_never` argument (Fixes #308)
 * resource/`junos_group_dual_system`: add `system.0.inet6_backup_router_address` and `system.0.inet6_backup_router_destination` arguments, add validation on `system.0.backup_router_address` and list of string for `system.0.backup_router_destination` is now unordered (Fixes #302)
 
 BUG FIXES:

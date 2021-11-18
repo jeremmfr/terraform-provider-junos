@@ -88,11 +88,12 @@ resource "junos_application" "testacc_app" {
   source_port          = "1024-65535"
 }
 resource "junos_application" "testacc_app2" {
-  name               = "testacc_app2"
-  protocol           = "tcp"
-  ether_type         = "0x0800"
-  rpc_program_number = "0-0"
-  uuid               = "AAAAA0AA-B9B0-CCcc-DDDD-EEEffFFFAAAA"
+  name                     = "testacc_app2"
+  protocol                 = "tcp"
+  ether_type               = "0x0800"
+  rpc_program_number       = "0-0"
+  inactivity_timeout_never = true
+  uuid                     = "AAAAA0AA-B9B0-CCcc-DDDD-EEEffFFFAAAA"
 }
 resource "junos_application" "testacc_app3" {
   name = "testacc_app3"
@@ -112,10 +113,11 @@ resource "junos_application" "testacc_app3" {
 resource "junos_application" "testacc_app4" {
   name = "testacc_app4"
   term {
-    name               = "term_B"
-    protocol           = "tcp"
-    rpc_program_number = "1-1"
-    uuid               = "BBBAA0AA-B9B0-CCcc-DDDD-EEEffFFFAAAA"
+    name                     = "term_B"
+    protocol                 = "tcp"
+    rpc_program_number       = "1-1"
+    inactivity_timeout_never = true
+    uuid                     = "BBBAA0AA-B9B0-CCcc-DDDD-EEEffFFFAAAA"
   }
 }
 resource "junos_application" "testacc_app5" {
