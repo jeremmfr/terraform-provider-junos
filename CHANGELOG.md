@@ -3,17 +3,25 @@
 
 ENHANCEMENTS:
 
-* add `junos_access_address_assignment_pool` resource (Fixes parts of #301)
-* add `junos_system_services_dhcp_localserver_group` resource (Fixes parts of #301)
-* resource/`junos_interface_logical`: add `dhcp` and `dhcpv6_client` block arguments inside `family_inet` and `family_inet6` block arguments (Fixes parts of #301)
-* data-source/`junos_interface_logical`: add `dhcp` and `dhcpv6_client` block attributes inside `family_inet` and `family_inet6` block attributes
-* add `junos_interface_physical_disable` resource (Fixes #305)
+BUG FIXES:
+
+## 1.22.0 (November 19, 2021)
+
+FEATURES:
+
+* add `junos_access_address_assignment_pool` resource (Fixes parts of [#301](https://github.com/jeremmfr/terraform-provider-junos/issues/301))
+* add `junos_interface_physical_disable` resource (Fixes [#305](https://github.com/jeremmfr/terraform-provider-junos/issues/305))
 * add `junos_interfaces_physical_present` data-source
-* resource/`junos_system`: add `ports` block argument (Fixes #294)
-* resource/`junos_application`: add `term` block argument (Fixes #296)
-* resource/`junos_chassis_cluster`: add `control_ports` block argument (Fixes #304)
-* resource/`junos_application`: add `term` block argument (Fixes #296), add `inactivity_timeout_never` argument (Fixes #308)
-* resource/`junos_group_dual_system`: add `system.0.inet6_backup_router_address` and `system.0.inet6_backup_router_destination` arguments, add validation on `system.0.backup_router_address` and list of string for `system.0.backup_router_destination` is now unordered (Fixes #302)
+* add `junos_system_services_dhcp_localserver_group` resource (Fixes parts of [#301](https://github.com/jeremmfr/terraform-provider-junos/issues/301))
+
+ENHANCEMENTS:
+
+* resource/`junos_application`: add `term` block argument (Fixes [#296](https://github.com/jeremmfr/terraform-provider-junos/issues/296)), add `inactivity_timeout_never` argument (Fixes [#308](https://github.com/jeremmfr/terraform-provider-junos/issues/308))
+* resource/`junos_chassis_cluster`: add `control_ports` block argument (Fixes [#304](https://github.com/jeremmfr/terraform-provider-junos/issues/304))
+* resource/`junos_group_dual_system`: add `system.0.inet6_backup_router_address` and `system.0.inet6_backup_router_destination` arguments, add validation on `system.0.backup_router_address` and list of string for `system.0.backup_router_destination` is now unordered (Fixes [#302](https://github.com/jeremmfr/terraform-provider-junos/issues/302))
+* resource/`junos_interface_logical`: add `dhcp` and `dhcpv6_client` block arguments inside `family_inet` and `family_inet6` block arguments (Fixes parts of [#301](https://github.com/jeremmfr/terraform-provider-junos/issues/301))
+* data-source/`junos_interface_logical`: add `dhcp` and `dhcpv6_client` block attributes inside `family_inet` and `family_inet6` block attributes
+* resource/`junos_system`: add `ports` block argument (Fixes [#294](https://github.com/jeremmfr/terraform-provider-junos/issues/294))
 
 BUG FIXES:
 
