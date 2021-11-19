@@ -19,8 +19,9 @@ var (
 )
 
 const (
-	defaultInterfaceTestAcc  = "ge-0/0/3"
-	defaultInterfaceTestAcc2 = "ge-0/0/4"
+	defaultInterfaceTestAcc       = "ge-0/0/3"
+	defaultInterfaceTestAcc2      = "ge-0/0/4"
+	defaultInterfaceSwitchTestAcc = "xe-0/0/3"
 )
 
 func TestProvider(t *testing.T) {

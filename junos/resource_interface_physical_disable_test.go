@@ -14,7 +14,11 @@ func TestAccJunosInterfacePhysicalDisable_basic(t *testing.T) {
 	if os.Getenv("TESTACC_INTERFACE") != "" {
 		testaccInterface = os.Getenv("TESTACC_INTERFACE")
 	} else {
-		testaccInterface = defaultInterfaceTestAcc
+		if os.Getenv("TESTACC_SWITCH") != "" {
+			testaccInterface = defaultInterfaceSwitchTestAcc
+		} else {
+			testaccInterface = defaultInterfaceTestAcc
+		}
 	}
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -47,6 +51,10 @@ func testAccJunosInterfacePhysicalDisablePreConfigCreate(interFace string) strin
 resource junos_interface_physical testacc_interface_disable {
   name                  = "` + interFace + `"
   no_disable_on_destroy = true
+}
+resource junos_interface_logical testacc_interface_disable {
+  name        = "${junos_interface_physical.testacc_interface_disable.name}.0"
+  description = "testacc_interface_disable"
 }
 `
 }
