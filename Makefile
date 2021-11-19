@@ -6,14 +6,14 @@ install:
 	go install
 # Run acceptance tests
 testacc:
-	TF_ACC=1 go test ./... -v --timeout 0 -coverprofile=coverage.out $(TESTARGS)
+	cd junos ; TF_ACC=1 go test -v --timeout 0 -coverprofile=../coverage.out $(TESTARGS)
 	go tool cover -html=coverage.out
 testacc/srx:
-	TESTACC_SRX=1 TF_ACC=1 go test ./... -v --timeout 0 -coverprofile=coverage_srx.out $(TESTARGS)
+	cd junos ; TESTACC_SRX=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../coverage_srx.out $(TESTARGS)
 	go tool cover -html=coverage_srx.out
 testacc/router:
-	TESTACC_ROUTER=1 TF_ACC=1 go test ./... -v --timeout 0 -coverprofile=coverage_router.out $(TESTARGS)
+	cd junos ; TESTACC_ROUTER=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../coverage_router.out $(TESTARGS)
 	go tool cover -html=coverage_router.out
 testacc/switch:
-	TESTACC_SWITCH=1 TF_ACC=1 go test ./... -v --timeout 0 -coverprofile=coverage_switch.out $(TESTARGS)
+	cd junos ; TESTACC_SWITCH=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../coverage_switch.out $(TESTARGS)
 	go tool cover -html=coverage_switch.out
