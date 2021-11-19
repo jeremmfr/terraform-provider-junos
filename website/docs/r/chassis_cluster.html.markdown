@@ -85,6 +85,14 @@ The following arguments are supported:
   Number of redundant ethernet interfaces (1..128)
 - **config_sync_no_secondary_bootup_auto** (Optional, Boolean)  
   Disable auto configuration synchronize on secondary bootup.
+- **control_ports** (Optional, Set of Block)  
+  For each combination of block arguments,
+  enable the specific control port to use as a control link for the chassis cluster.  
+  Only available for some higher end Juniper SRX devices.
+  - **fpc** (Required, Number)  
+    Flexible PIC Concentrator (FPC) slot number.
+  - **port** (Required, Number)  
+    Port number on which to configure the control port.
 - **control_link_recovery** (Optional, Boolean)  
   Enable automatic control link recovery.
 - **heartbeat_interval** (Optional, Number)  

@@ -17,7 +17,7 @@ func TestAccJunosInterface_basic(t *testing.T) {
 		testaccInterface = os.Getenv("TESTACC_INTERFACE")
 	} else {
 		if os.Getenv("TESTACC_SWITCH") != "" {
-			testaccInterface = "xe-0/0/3"
+			testaccInterface = defaultInterfaceSwitchTestAcc
 		} else {
 			testaccInterface = defaultInterfaceTestAcc
 		}

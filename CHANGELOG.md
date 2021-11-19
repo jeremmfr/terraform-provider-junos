@@ -5,6 +5,29 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+## 1.22.0 (November 19, 2021)
+
+FEATURES:
+
+* add `junos_access_address_assignment_pool` resource (Fixes parts of [#301](https://github.com/jeremmfr/terraform-provider-junos/issues/301))
+* add `junos_interface_physical_disable` resource (Fixes [#305](https://github.com/jeremmfr/terraform-provider-junos/issues/305))
+* add `junos_interfaces_physical_present` data-source
+* add `junos_system_services_dhcp_localserver_group` resource (Fixes parts of [#301](https://github.com/jeremmfr/terraform-provider-junos/issues/301))
+
+ENHANCEMENTS:
+
+* resource/`junos_application`: add `term` block argument (Fixes [#296](https://github.com/jeremmfr/terraform-provider-junos/issues/296)), add `inactivity_timeout_never` argument (Fixes [#308](https://github.com/jeremmfr/terraform-provider-junos/issues/308))
+* resource/`junos_chassis_cluster`: add `control_ports` block argument (Fixes [#304](https://github.com/jeremmfr/terraform-provider-junos/issues/304))
+* resource/`junos_group_dual_system`: add `system.0.inet6_backup_router_address` and `system.0.inet6_backup_router_destination` arguments, add validation on `system.0.backup_router_address` and list of string for `system.0.backup_router_destination` is now unordered (Fixes [#302](https://github.com/jeremmfr/terraform-provider-junos/issues/302))
+* resource/`junos_interface_logical`: add `dhcp` and `dhcpv6_client` block arguments inside `family_inet` and `family_inet6` block arguments (Fixes parts of [#301](https://github.com/jeremmfr/terraform-provider-junos/issues/301))
+* data-source/`junos_interface_logical`: add `dhcp` and `dhcpv6_client` block attributes inside `family_inet` and `family_inet6` block attributes
+* resource/`junos_system`: add `ports` block argument (Fixes [#294](https://github.com/jeremmfr/terraform-provider-junos/issues/294))
+
+BUG FIXES:
+
+* resource/`junos_security_idp_custom_attack`: fix validation of IPv6 address for `destination_value`, `extension_header_destination_option_home_address_value` and `source_value` inside `protocol_ipv6` block
+* resource/`junos_services_rpm_probe`: fix validation of IPv6 address for `inet6_source_address`, `rpm_scale.0.source_inet6_address_base`, `rpm_scale.0.source_inet6_step`, `rpm_scale.0.target_inet6_address_base` and `rpm_scale.0.target_inet6_step` inside `test` block
+
 ## 1.21.1 (October 22, 2021)
 
 BUG FIXES:

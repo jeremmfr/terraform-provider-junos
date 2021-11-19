@@ -13,7 +13,7 @@ Provides a security idp custom-attack-group resource.
 ## Example Usage
 
 ```hcl
-# Add a idp custom-attack_group
+# Add an idp custom-attack_group
 resource junos_security_idp_custom_attack_group "demo_idp_custom_attack_group" {
   name   = "group_of_Attacks"
   member = ["custom_attack_1", "custom_attack_2"]

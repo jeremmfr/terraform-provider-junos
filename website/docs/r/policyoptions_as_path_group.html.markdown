@@ -3,17 +3,17 @@ layout: "junos"
 page_title: "Junos: junos_policyoptions_as_path_group"
 sidebar_current: "docs-junos-resource-policyoptions-as-path-group"
 description: |-
-  Create a as-path group
+  Create an as-path group
 ---
 
 # junos_policyoptions_as_path_group
 
-Provides a as-path group resource.
+Provides an as-path group resource.
 
 ## Example Usage
 
 ```hcl
-# Add a as-path group
+# Add an as-path group
 resource junos_policyoptions_as_path_group "via_century_link" {
   name = "viaCenturyLink"
   as_path {

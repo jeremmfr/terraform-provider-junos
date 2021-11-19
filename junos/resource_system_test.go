@@ -339,6 +339,18 @@ resource junos_system "testacc_system" {
     threshold_action         = "accept"
     threshold_value          = 30
   }
+  ports {
+    auxiliary_authentication_order = ["password", "radius"]
+    auxiliary_disable              = true
+    auxiliary_insecure             = true
+    auxiliary_logout_on_disconnect = true
+    auxiliary_type                 = "vt100"
+    console_authentication_order   = ["radius", "password"]
+    console_disable                = true
+    console_insecure               = true
+    console_logout_on_disconnect   = true
+    console_type                   = "vt100"
+  }
   radius_options_attributes_nas_ipaddress   = "192.0.2.12"
   radius_options_enhanced_accounting        = true
   radius_options_password_protocol_mschapv2 = true

@@ -25,6 +25,8 @@ const (
 	rpcCandidateUnlock = "<unlock><target><candidate/></target></unlock>"
 	rpcClearCandidate  = "<delete-config><target><candidate/></target></delete-config>"
 	rpcClose           = "<close-session/>"
+
+	rpcGetInterfaceInformationTerse = `<get-interface-information><terse/></get-interface-information>`
 )
 
 // NetconfObject : store Junos device info and session.
@@ -58,6 +60,16 @@ type netconfAuthMethod struct {
 type commitResults struct {
 	XMLName xml.Name           `xml:"commit-results"`
 	Errors  []netconf.RPCError `xml:"rpc-error"`
+}
+
+type getInterfaceTerseReply struct {
+	InterfaceInfo struct {
+		PhysicalInterface []struct {
+			Name        string `xml:"name"`
+			AdminStatus string `xml:"admin-status"`
+			OperStatus  string `xml:"oper-status"`
+		} `xml:"physical-interface"`
+	} `xml:"interface-information"`
 }
 
 // netconfNewSession establishes a new connection to a NetconfObject device that we will use

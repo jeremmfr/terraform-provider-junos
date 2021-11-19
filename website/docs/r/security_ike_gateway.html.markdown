@@ -13,7 +13,7 @@ Provides a security ike gateway resource.
 ## Example Usage
 
 ```hcl
-# Add a ike gateway
+# Add an ike gateway
 resource junos_security_ike_gateway "demo_vpn_p1" {
   name               = "first-vpn"
   address            = ["192.0.2.1"]

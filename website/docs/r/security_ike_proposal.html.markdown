@@ -13,7 +13,7 @@ Provides a security ike proposal resource.
 ## Example Usage
 
 ```hcl
-# Add a ike proposal
+# Add an ike proposal
 resource junos_security_ike_proposal "demo_vpn_proposal" {
   name                     = "ike-proposal"
   authentication_algorithm = "sha1"

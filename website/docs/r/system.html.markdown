@@ -118,6 +118,28 @@ The following arguments are supported:
   - **threshold_value** (Optional, Number)  
     Set the maximum threshold(sec) allowed for NTP adjustment (1..600).
     `threshold_action` needs to be set.
+- **ports** (Optional, Block)  
+  Declare `ports` configuration.
+  - **auxiliary_authentication_order** (Optional, List of String)  
+    Order in which authentication methods are invoked on auxiliary port.
+  - **auxiliary_disable** (Optional, Boolean)  
+    Disable console on auxiliary port.
+  - **auxiliary_insecure** (Optional, Boolean)  
+    Disallow superuser access on auxiliary port.
+  - **auxiliary_logout_on_disconnect** (Optional, Boolean)  
+    Log out the console session when cable is unplugged.
+  - **auxiliary_type** (Optional, String)  
+    Terminal type on auxiliary port.
+  - **console_authentication_order** (Optional, List of String)  
+    Order in which authentication methods are invoked on console port.
+  - **console_disable** (Optional, Boolean)  
+    Disable console on console port.
+  - **console_insecure** (Optional, Boolean)  
+    Disallow superuser access on console port.
+  - **console_logout_on_disconnect** (Optional, Boolean)  
+    Log out the console session when cable is unplugged.
+  - **console_type** (Optional, String)  
+    Terminal type on console port.
 - **radius_options_attributes_nas_ipaddress** (Optional, String)  
   Value of NAS-IP-Address in outgoing RADIUS packets.
 - **radius_options_enhanced_accounting** (Optional, Boolean)  

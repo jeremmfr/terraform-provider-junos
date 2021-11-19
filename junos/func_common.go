@@ -327,3 +327,19 @@ func replaceTildeToHomeDir(path *string) error {
 
 	return nil
 }
+
+func validateIsIPv6Address(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
+
+		return warnings, errors
+	}
+
+	ip := net.ParseIP(v)
+	if four, six := ip.To4(), ip.To16(); four != nil || six == nil {
+		errors = append(errors, fmt.Errorf("expected %s to contain a valid IPv6 address, got: %s", k, v))
+	}
+
+	return warnings, errors
+}

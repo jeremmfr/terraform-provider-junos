@@ -3,17 +3,17 @@ layout: "junos"
 page_title: "Junos: junos_ospf_area"
 sidebar_current: "docs-junos-resource-ospf-area"
 description: |-
-  Create a ospf area
+  Create an ospf area
 ---
 
 # junos_ospf_area
 
-Provides a ospf area resource.
+Provides an ospf area resource.
 
 ## Example Usage
 
 ```hcl
-# Add a ospf area
+# Add an ospf area
 resource junos_ospf_area "demo_area" {
   area_id = "0.0.0.0"
   interface {

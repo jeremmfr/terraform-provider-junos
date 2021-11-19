@@ -156,6 +156,86 @@ func dataSourceInterfaceLogical() *schema.Resource {
 								},
 							},
 						},
+						"dhcp": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"client_identifier_ascii": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"client_identifier_hexadecimal": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"client_identifier_prefix_hostname": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"client_identifier_prefix_routing_instance_name": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"client_identifier_use_interface_description": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"client_identifier_userid_ascii": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"client_identifier_userid_hexadecimal": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"force_discover": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"lease_time": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+									"lease_time_infinite": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"metric": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+									"no_dns_install": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"options_no_hostname": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"retransmission_attempt": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+									"retransmission_interval": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+									"server_address": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"update_server": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"vendor_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
 						"filter_input": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -303,7 +383,65 @@ func dataSourceInterfaceLogical() *schema.Resource {
 						},
 						"dad_disable": {
 							Type:     schema.TypeBool,
-							Optional: true,
+							Computed: true,
+						},
+						"dhcpv6_client": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"client_identifier_duid_type": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"client_type": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"client_ia_type_na": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"client_ia_type_pd": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"no_dns_install": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"prefix_delegating_preferred_prefix_length": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+									"prefix_delegating_sub_prefix_length": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+									"rapid_commit": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"req_option": {
+										Type:     schema.TypeSet,
+										Computed: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"retransmission_attempt": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+									"update_router_advertisement_interface": {
+										Type:     schema.TypeSet,
+										Computed: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"update_server": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+								},
+							},
 						},
 						"filter_input": {
 							Type:     schema.TypeString,

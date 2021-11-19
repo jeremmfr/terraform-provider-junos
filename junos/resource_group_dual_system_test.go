@@ -33,8 +33,8 @@ func TestAccJunosGroupDualSystem_basic(t *testing.T) {
 							"system.0.backup_router_destination.#", "2"),
 						resource.TestCheckResourceAttr("junos_group_dual_system.testacc_node0",
 							"system.#", "1"),
-						resource.TestCheckResourceAttr("junos_group_dual_system.testacc_node0",
-							"system.0.backup_router_destination.1", "192.0.2.0/26"),
+						resource.TestCheckTypeSetElemAttr("junos_group_dual_system.testacc_node0",
+							"system.0.backup_router_destination.*", "192.0.2.0/26"),
 					),
 				},
 				{
@@ -79,6 +79,10 @@ resource "junos_group_dual_system" "testacc_node0" {
     backup_router_destination = [
       "192.0.2.0/26",
     ]
+    inet6_backup_router_address = "fe80::1"
+    inet6_backup_router_destination = [
+      "fe80:a::/48",
+    ]
   }
 }
 `
@@ -122,7 +126,11 @@ resource "junos_group_dual_system" "testacc_node0" {
     backup_router_destination = [
       "192.0.2.64/26",
       "192.0.2.0/26",
-
+    ]
+    inet6_backup_router_address = "fe80::1"
+    inet6_backup_router_destination = [
+      "fe80:b::/48",
+      "fe80:a::/48",
     ]
   }
 }

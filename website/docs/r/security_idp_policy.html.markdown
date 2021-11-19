@@ -13,7 +13,7 @@ Provides a security idp policy resource.
 ## Example Usage
 
 ```hcl
-# Add a idp policy
+# Add an idp policy
 resource junos_security_idp_policy "demo_idp_policy" {
   name = "Idp-Policy"
   ips_rule {
