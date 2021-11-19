@@ -64,6 +64,9 @@ func resourceInterfacePhysicalDisableCreate(ctx context.Context,
 	}
 	if ncInt {
 		d.SetId(d.Get("name").(string))
+		if errs := sess.configClear(jnprSess); len(errs) > 0 {
+			return diagWarns
+		}
 
 		return nil
 	}
