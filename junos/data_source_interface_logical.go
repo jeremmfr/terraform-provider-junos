@@ -161,6 +161,10 @@ func dataSourceInterfaceLogical() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"srx_old_option_name": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
 									"client_identifier_ascii": {
 										Type:     schema.TypeString,
 										Computed: true,

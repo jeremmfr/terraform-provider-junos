@@ -5,6 +5,9 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* resource/`junos_interface_logical`: add `srx_old_option_name` argument inside `dhcp` block argument to be able to fix the configuration of DHCP client on SRX devices with an old version of Junos (use option name `dhcp-client` instead of `dhcp` in `family inet`) (Fixes #313)
+* data-source/`junos_interface_logical`: add `srx_old_option_name` argument inside `dhcp` block argument (like resource)
+
 ## 1.22.0 (November 19, 2021)
 
 FEATURES:

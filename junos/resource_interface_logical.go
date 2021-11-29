@@ -190,6 +190,10 @@ func resourceInterfaceLogical() *schema.Resource {
 							MaxItems:      1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"srx_old_option_name": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
 									"client_identifier_ascii": {
 										Type:          schema.TypeString,
 										Optional:      true,
@@ -1237,10 +1241,11 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 					if err != nil {
 						return confRead, err
 					}
-				case strings.HasPrefix(itemTrim, "family inet dhcp"):
+				case strings.HasPrefix(itemTrim, "family inet dhcp"), strings.HasPrefix(itemTrim, "family inet dhcp-client"):
 					if len(confRead.familyInet[0]["dhcp"].([]map[string]interface{})) == 0 {
 						confRead.familyInet[0]["dhcp"] = append(
 							confRead.familyInet[0]["dhcp"].([]map[string]interface{}), map[string]interface{}{
+								"srx_old_option_name":                            false,
 								"client_identifier_ascii":                        "",
 								"client_identifier_hexadecimal":                  "",
 								"client_identifier_prefix_hostname":              false,
@@ -1261,7 +1266,10 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 								"vendor_id":                                      "",
 							})
 					}
-					if strings.HasPrefix(itemTrim, "family inet dhcp ") {
+					if strings.HasPrefix(itemTrim, "family inet dhcp-client") {
+						confRead.familyInet[0]["dhcp"].([]map[string]interface{})[0]["srx_old_option_name"] = true
+					}
+					if strings.HasPrefix(itemTrim, "family inet dhcp ") || strings.HasPrefix(itemTrim, "family inet dhcp-client ") {
 						if err := readFamilyInetDhcp(
 							itemTrim, confRead.familyInet[0]["dhcp"].([]map[string]interface{})[0]); err != nil {
 							return confRead, err
@@ -1579,6 +1587,9 @@ func readFamilyInetAddress(item string, inetAddress []map[string]interface{},
 
 func readFamilyInetDhcp(item string, dhcp map[string]interface{}) error {
 	itemTrim := strings.TrimPrefix(item, "family inet dhcp ")
+	if strings.HasPrefix(item, "family inet dhcp-client ") {
+		itemTrim = strings.TrimPrefix(item, "family inet dhcp-client ")
+	}
 	switch {
 	case strings.HasPrefix(itemTrim, "client-identifier ascii "):
 		dhcp["client_identifier_ascii"] = strings.Trim(strings.TrimPrefix(itemTrim, "client-identifier ascii "), "\"")
@@ -1820,6 +1831,9 @@ func setFamilyAddress(inetAddress map[string]interface{}, setPrefix string, fami
 func setFamilyInetDhcp(dhcp map[string]interface{}, setPrefixInt string) []string {
 	configSet := make([]string, 0)
 	setPrefix := setPrefixInt + "family inet dhcp "
+	if dhcp["srx_old_option_name"].(bool) {
+		setPrefix = setPrefixInt + "family inet dhcp-client "
+	}
 
 	configSet = append(configSet, setPrefix)
 	if v := dhcp["client_identifier_ascii"].(string); v != "" {
