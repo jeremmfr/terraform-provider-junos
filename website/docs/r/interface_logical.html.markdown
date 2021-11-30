@@ -172,6 +172,9 @@ The following arguments are supported:
 
 ### dhcp arguments for family_inet
 
+- **srx_old_option_name** (Optional, Boolean)  
+  For configuration, use the old option name `dhcp-client` instead of `dhcp`.  
+  This is useful for SRX devices with an older version of Junos.
 - **client_identifier_ascii** (Optional, String)  
   Client identifier as an ASCII string.  
   Conflict witch `client_identifier_hexadecimal`.
