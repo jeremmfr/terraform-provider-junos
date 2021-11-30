@@ -159,6 +159,9 @@ The following attributes are exported:
 
 ### dhcp attributes for family_inet
 
+- **srx_old_option_name** (Boolean)  
+  For configuration, use the old option name `dhcp-client` instead of `dhcp`.  
+  This is used for SRX devices with an older version of Junos.
 - **client_identifier_ascii** (String)  
   Client identifier as an ASCII string.  
 - **client_identifier_hexadecimal** (String)  
