@@ -379,9 +379,12 @@ resource "junos_interface_physical" "testacc_interface" {
     redundant_parent = "reth0"
   }
 }
+resource "junos_interface_physical" "testacc_interface2" {
+  name = "` + interFace2 + `"
+}
 resource "junos_chassis_cluster" "testacc_interface" {
   fab0 {
-    member_interfaces = ["` + interFace2 + `"]
+    member_interfaces = [junos_interface_physical.testacc_interface2.name]
   }
   redundancy_group {
     node0_priority = 100

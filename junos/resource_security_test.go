@@ -167,7 +167,7 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"log.0.transport.0.tcp_connections", "5"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
-							"log.0.transport.0.tls_profile", "testacc"),
+							"log.0.transport.0.tls_profile", "testacc_security"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
 							"log.0.utc_timestamp", "true"),
 						resource.TestCheckResourceAttr("junos_security.testacc_security",
@@ -293,6 +293,12 @@ resource "junos_services_proxy_profile" "testacc_security" {
   name               = "testacc_security"
   protocol_http_host = "192.0.2.11"
   protocol_http_port = 3128
+}
+resource "junos_services_ssl_initiation_profile" "testacc_security" {
+  lifecycle {
+    create_before_destroy = true
+  }
+  name = "testacc_security"
 }
 
 resource junos_security "testacc_security" {
@@ -421,7 +427,7 @@ resource junos_security "testacc_security" {
     transport {
       protocol        = "tcp"
       tcp_connections = 5
-      tls_profile     = "testacc"
+      tls_profile     = junos_services_ssl_initiation_profile.testacc_security.name
     }
     utc_timestamp = true
   }

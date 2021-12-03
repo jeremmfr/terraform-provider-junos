@@ -8,7 +8,35 @@ import (
 )
 
 func TestAccJunosRoutingInstance_basic(t *testing.T) {
-	if os.Getenv("TESTACC_SWITCH") == "" && os.Getenv("TESTACC_ROUTER") == "" {
+	if os.Getenv("TESTACC_SRX") != "" {
+		resource.Test(t, resource.TestCase{
+			PreCheck:  func() { testAccPreCheck(t) },
+			Providers: testAccProviders,
+			Steps: []resource.TestStep{
+				{
+					Config: testAccJunosRoutingInstanceConfigSRXCreate(),
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("junos_routing_instance.testacc_routingInst",
+							"type", "virtual-router"),
+						resource.TestCheckResourceAttr("junos_routing_instance.testacc_routingInst",
+							"as", "65000"),
+					),
+				},
+				{
+					Config: testAccJunosRoutingInstanceConfigSRXUpdate(),
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("junos_routing_instance.testacc_routingInst",
+							"as", "65001"),
+					),
+				},
+				{
+					ResourceName:      "junos_routing_instance.testacc_routingInst",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+			},
+		})
+	} else if os.Getenv("TESTACC_ROUTER") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:  func() { testAccPreCheck(t) },
 			Providers: testAccProviders,
@@ -42,6 +70,74 @@ func TestAccJunosRoutingInstance_basic(t *testing.T) {
 			},
 		})
 	}
+}
+
+func testAccJunosRoutingInstanceConfigSRXCreate() string {
+	return `
+resource junos_routing_instance "testacc_routingInst" {
+  name            = "testacc_routingInst"
+  as              = "65000"
+  description     = "testacc routingInst"
+  instance_export = [junos_policyoptions_policy_statement.testacc_routingInst2.name]
+  instance_import = [junos_policyoptions_policy_statement.testacc_routingInst2.name]
+}
+resource junos_policyoptions_community "testacc_routingInst2" {
+  name    = "testacc_routingInst2"
+  members = ["target:65000:100"]
+}
+resource junos_policyoptions_policy_statement "testacc_routingInst2" {
+  name = "testacc_routingInst2"
+  from {
+    bgp_community = [junos_policyoptions_community.testacc_routingInst2.name]
+  }
+  then {
+    action = "accept"
+  }
+}
+`
+}
+
+func testAccJunosRoutingInstanceConfigSRXUpdate() string {
+	return `
+resource junos_routing_instance "testacc_routingInst" {
+  name = "testacc_routingInst"
+  as   = "65001"
+  instance_export = [
+    junos_policyoptions_policy_statement.testacc_routingInst3.name,
+    junos_policyoptions_policy_statement.testacc_routingInst2.name,
+  ]
+  instance_import = [
+    junos_policyoptions_policy_statement.testacc_routingInst3.name,
+    junos_policyoptions_policy_statement.testacc_routingInst2.name,
+  ]
+}
+resource junos_policyoptions_community "testacc_routingInst2" {
+  name    = "testacc_routingInst2"
+  members = ["target:65000:100"]
+}
+resource junos_policyoptions_community "testacc_routingInst3" {
+  name    = "testacc_routingInst3"
+  members = ["target:65000:200"]
+}
+resource junos_policyoptions_policy_statement "testacc_routingInst2" {
+  name = "testacc_routingInst2"
+  from {
+    bgp_community = [junos_policyoptions_community.testacc_routingInst2.name]
+  }
+  then {
+    action = "accept"
+  }
+}
+resource junos_policyoptions_policy_statement "testacc_routingInst3" {
+  name = "testacc_routingInst3"
+  from {
+    bgp_community = [junos_policyoptions_community.testacc_routingInst3.name]
+  }
+  then {
+    action = "accept"
+  }
+}
+`
 }
 
 func testAccJunosRoutingInstanceConfigCreate() string {
@@ -94,7 +190,7 @@ resource junos_routing_instance "testacc_routingInst3" {
 }
 resource junos_routing_instance "testacc_routingInst4" {
   name                = "testacc_routingInst4"
-  type                = "vrf"
+  type                = "virtual-switch"
   route_distinguisher = "8:9"
   vrf_export          = [junos_policyoptions_policy_statement.testacc_routingInst2.name]
   vrf_target_auto     = true
@@ -176,7 +272,7 @@ resource junos_routing_instance "testacc_routingInst3" {
 }
 resource junos_routing_instance "testacc_routingInst4" {
   name                = "testacc_routingInst4"
-  type                = "vrf"
+  type                = "virtual-switch"
   route_distinguisher = "10:11"
   vrf_export          = [junos_policyoptions_policy_statement.testacc_routingInst2.name]
   vrf_target_auto     = true

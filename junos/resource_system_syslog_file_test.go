@@ -142,7 +142,6 @@ func testAccJunosSystemSyslogFileConfigUpdate() string {
 resource junos_system_syslog_file testacc_syslogFile {
   filename                     = "testacc"
   allow_duplicates             = true
-  explicit_priority            = true
   match                        = "match testacc"
   any_severity                 = "emergency"
   changelog_severity           = "critical"
@@ -161,6 +160,10 @@ resource junos_system_syslog_file testacc_syslogFile {
   structured_data {}
   archive {}
 }
+resource junos_system_syslog_file testacc_syslogFile2 {
+  filename          = "testacc2"
+  explicit_priority = true
+}
 `
 }
 
@@ -172,7 +175,6 @@ resource junos_routing_instance testacc_syslogFile {
 resource junos_system_syslog_file testacc_syslogFile {
   filename                     = "testacc"
   allow_duplicates             = true
-  explicit_priority            = true
   match                        = "match testacc"
   any_severity                 = "emergency"
   changelog_severity           = "critical"
