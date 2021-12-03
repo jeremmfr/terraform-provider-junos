@@ -191,8 +191,6 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
 							"dynamic_remote.0.distinguished_name.0.container", "dc=example,dc=com"),
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
-							"dynamic_remote.0.distinguished_name.0.wildcard", "dc=example,dc=com"),
-						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
 							"dynamic_remote.0.connections_limit", "10"),
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
 							"aaa.#", "1"),
@@ -240,6 +238,13 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 							"dynamic_remote.0.reject_duplicate_connection", "true"),
 						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
 							"dynamic_remote.0.user_at_hostname", "user@example.com"),
+					),
+				},
+				{
+					Config: testAccJunosSecurityIkeIpsecConfigUpdate7(testaccIkeIpsec),
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("junos_security_ike_gateway.testacc_ikegateway",
+							"dynamic_remote.0.distinguished_name.0.wildcard", "*.com"),
 					),
 				},
 			},
@@ -466,7 +471,6 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
   dynamic_remote {
     distinguished_name {
       container = "dc=example,dc=com"
-      wildcard  = "dc=example,dc=com"
     }
     connections_limit = 10
   }
@@ -721,6 +725,42 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
     ike_user_type               = "group-ike-id"
     reject_duplicate_connection = true
     user_at_hostname            = "user@example.com"
+  }
+  policy             = junos_security_ike_policy.testacc_ikepol.name
+  external_interface = junos_interface_logical.testacc_ikegateway.name
+}
+`
+}
+
+func testAccJunosSecurityIkeIpsecConfigUpdate7(interFace string) string {
+	return `
+resource junos_interface_logical "testacc_ikegateway" {
+  name = "` + interFace + `.0"
+  family_inet {
+    address {
+      cidr_ip = "192.0.2.4/25"
+    }
+  }
+}
+resource junos_security_ike_proposal "testacc_ikeprop" {
+  name                     = "testacc_ikeprop"
+  authentication_algorithm = "sha1"
+  encryption_algorithm     = "aes-256-cbc"
+  dh_group                 = "group1"
+  lifetime_seconds         = 3600
+}
+resource junos_security_ike_policy "testacc_ikepol" {
+  name                = "testacc_ikepol"
+  proposals           = [junos_security_ike_proposal.testacc_ikeprop.name]
+  mode                = "aggressive"
+  pre_shared_key_text = "mysecret"
+}
+resource junos_security_ike_gateway "testacc_ikegateway" {
+  name = "testacc_ikegateway"
+  dynamic_remote {
+    distinguished_name {
+      wildcard = "*.com"
+    }
   }
   policy             = junos_security_ike_policy.testacc_ikepol.name
   external_interface = junos_interface_logical.testacc_ikegateway.name

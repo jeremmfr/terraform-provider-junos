@@ -5,6 +5,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* resource/`junos_security_ike_gateway`: fix bad value used when adding Junos config with `wildcard` argument inside `distinguished_name` block inside `dynamic_remote` block
+
 ## 1.22.1 (November 30, 2021)
 
 BUG FIXES:
