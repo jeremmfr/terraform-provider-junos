@@ -5,6 +5,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* resource/`junos_system_login_user`: fix validation of `name` with a dot that is acceptable for Junos (Fixes #318)
+
 ## 1.22.1 (November 30, 2021)
 
 BUG FIXES:
