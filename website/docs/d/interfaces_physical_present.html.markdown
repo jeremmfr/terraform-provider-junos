@@ -40,7 +40,7 @@ The following attributes are exported:
   An identifier for the resource.
 - **interface_names** (List of String)  
   List of interface names found.
-- **interface_statuses** (List of Block)  
+- **interface_statuses** (Block List)  
   For each interface name.
   - **name** (String)  
     Interface name.
