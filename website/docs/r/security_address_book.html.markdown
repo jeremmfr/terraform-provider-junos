@@ -59,7 +59,7 @@ The following arguments are supported:
 - **attach_zone** (Optional, List of String)  
   List of zones to attach address book to.  
   **NOTE:** Cannot be set on global address book.
-- **network_address** (Optional, Block List)  
+- **network_address** (Optional, Block Set)  
   For each name of network address.
   - **name** (Required, String)  
     Name of network address.
@@ -67,7 +67,7 @@ The following arguments are supported:
     CIDR value of network address (`192.0.0.0/24`).
   - **description** (Optional, String)  
     Description of network address.
-- **wildcard_address** (Optional, Block List)  
+- **wildcard_address** (Optional, Block Set)  
   For each name of wildcard address.
   - **name** (Required, String)  
     Name of wildcard address.
@@ -75,7 +75,7 @@ The following arguments are supported:
     Network and mask of wildcard address (`192.0.0.0/255.255.0.255`).
   - **description** (Optional, String)  
     Description of network address.
-- **dns_name** (Optional, Block List)  
+- **dns_name** (Optional, Block Set)  
   For each name of dns name address.
   - **name** (Required, String)  
     Name of dns name address.
@@ -83,7 +83,7 @@ The following arguments are supported:
     DNS name string value (`juniper.net`).
   - **description** (Optional, String)  
     Description of dns name address.
-- **range_address** (Optional, Block List)  
+- **range_address** (Optional, Block Set)  
    For each name of range address.
   - **name** (Required, String)  
     Name of range address.
@@ -93,7 +93,7 @@ The following arguments are supported:
     IP address of end of range.
   - **description** (Optional, String)  
     Description of range address.
-- **address_set** (Optional, Block List)  
+- **address_set** (Optional, Block Set)  
   For each name of address-set to declare.
   - **name** (Required, String)  
     Name of address-set.
