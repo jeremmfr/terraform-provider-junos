@@ -90,7 +90,7 @@ resource junos_security_global_policy "testacc_secglobpolicy" {
     match_destination_address          = ["green"]
     match_destination_address_excluded = true
     match_application                  = ["any"]
-    match_dynamic_application          = ["junos:web:wiki", "junos:web:infrastructure"]
+    match_dynamic_application          = ["any"]
     match_source_end_user_profile      = junos_services_user_identification_device_identity_profile.profile.name
     match_from_zone                    = [junos_security_zone.testacc_secglobpolicy1.name]
     match_to_zone                      = [junos_security_zone.testacc_secglobpolicy2.name]
@@ -155,7 +155,6 @@ resource junos_security_global_policy "testacc_secglobpolicy" {
     match_source_address          = ["blue"]
     match_destination_address     = ["any"]
     match_application             = ["any"]
-    match_dynamic_application     = ["junos:web:wiki", "junos:web:search", "junos:web:infrastructure"]
     match_from_zone               = ["any"]
     match_to_zone                 = ["any"]
     match_source_address_excluded = true

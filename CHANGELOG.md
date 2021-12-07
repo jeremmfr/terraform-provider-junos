@@ -5,6 +5,9 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* resource/`junos_interface`, `junos_interface_physical`, `junos_interface_logical`: fix detection of missing interfaces with the latest versions of Junos (the `not found` message has been moved from the reply field to the error field in the netconf message)
+* resource/`junos_security_ike_gateway`: fix bad value used when adding Junos config with `wildcard` argument inside `distinguished_name` block inside `dynamic_remote` block
+
 ## 1.22.1 (November 30, 2021)
 
 BUG FIXES:

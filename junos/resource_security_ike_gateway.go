@@ -485,7 +485,7 @@ func setIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 					}
 					if distinguishedName["wildcard"].(string) != "" {
 						configSet = append(configSet, setPrefix+" dynamic distinguished-name wildcard \""+
-							distinguishedName["container"].(string)+"\"")
+							distinguishedName["wildcard"].(string)+"\"")
 					}
 				}
 			}

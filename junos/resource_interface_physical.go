@@ -798,6 +798,11 @@ func checkInterfaceExists(interFace string, m interface{}, jnprSess *NetconfObje
 		"</interface-name></get-interface-information>"
 	reply, err := sess.commandXML(rpcIntName, jnprSess)
 	if err != nil {
+		if strings.Contains(err.Error(), " not found\n") ||
+			strings.HasSuffix(err.Error(), " not found") {
+			return false, nil
+		}
+
 		return false, err
 	}
 	if strings.Contains(reply, " not found\n") {

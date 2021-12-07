@@ -54,7 +54,7 @@ resource "junos_services_ssl_initiation_profile" "testacc_sslInitProf" {
   enable_session_cache = true
   preferred_ciphers    = "medium"
   protocol_version     = "all"
-  trusted_ca           = ["all"]
+  # trusted_ca         = ["all"] # fail on recent version of Junos
 }
 `
 }
@@ -74,7 +74,7 @@ resource "junos_services_ssl_initiation_profile" "testacc_sslInitProf" {
   enable_session_cache = true
   preferred_ciphers    = "medium"
   protocol_version     = "tls12"
-  trusted_ca           = ["all"]
+  # trusted_ca         = ["all"] # fail on recent version of Junos
 }
 `
 }

@@ -9,38 +9,40 @@ import (
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
 func TestAccDataSourceInterface_basic(t *testing.T) {
-	var testaccInterface string
-	if os.Getenv("TESTACC_INTERFACE") != "" {
-		testaccInterface = os.Getenv("TESTACC_INTERFACE")
-	} else {
-		testaccInterface = defaultInterfaceTestAcc
-	}
-	if os.Getenv("TESTACC_SWITCH") == "" {
-		resource.Test(t, resource.TestCase{
-			PreCheck:  func() { testAccPreCheck(t) },
-			Providers: testAccProviders,
-			Steps: []resource.TestStep{
-				{
-					Config: testAccDataSourceInterfaceConfigCreate(testaccInterface),
+	if os.Getenv("TESTACC_DEPRECATED") != "" {
+		var testaccInterface string
+		if os.Getenv("TESTACC_INTERFACE") != "" {
+			testaccInterface = os.Getenv("TESTACC_INTERFACE")
+		} else {
+			testaccInterface = defaultInterfaceTestAcc
+		}
+		if os.Getenv("TESTACC_SWITCH") == "" {
+			resource.Test(t, resource.TestCase{
+				PreCheck:  func() { testAccPreCheck(t) },
+				Providers: testAccProviders,
+				Steps: []resource.TestStep{
+					{
+						Config: testAccDataSourceInterfaceConfigCreate(testaccInterface),
+					},
+					{
+						Config: testAccDataSourceInterfaceConfigData(testaccInterface),
+						Check: resource.ComposeTestCheckFunc(
+							resource.TestCheckResourceAttr("data.junos_interface.testacc_datainterface",
+								"id", testaccInterface+".100"),
+							resource.TestCheckResourceAttr("data.junos_interface.testacc_datainterface",
+								"name", testaccInterface+".100"),
+							resource.TestCheckResourceAttr("data.junos_interface.testacc_datainterface",
+								"inet_address.#", "1"),
+							resource.TestCheckResourceAttr("data.junos_interface.testacc_datainterface",
+								"inet_address.0.address", "192.0.2.1/25"),
+							resource.TestCheckResourceAttr("data.junos_interface.testacc_datainterface2",
+								"id", testaccInterface+".100"),
+						),
+					},
 				},
-				{
-					Config: testAccDataSourceInterfaceConfigData(testaccInterface),
-					Check: resource.ComposeTestCheckFunc(
-						resource.TestCheckResourceAttr("data.junos_interface.testacc_datainterface",
-							"id", testaccInterface+".100"),
-						resource.TestCheckResourceAttr("data.junos_interface.testacc_datainterface",
-							"name", testaccInterface+".100"),
-						resource.TestCheckResourceAttr("data.junos_interface.testacc_datainterface",
-							"inet_address.#", "1"),
-						resource.TestCheckResourceAttr("data.junos_interface.testacc_datainterface",
-							"inet_address.0.address", "192.0.2.1/25"),
-						resource.TestCheckResourceAttr("data.junos_interface.testacc_datainterface2",
-							"id", testaccInterface+".100"),
-					),
-				},
-			},
-			PreventPostDestroyRefresh: true,
-		})
+				PreventPostDestroyRefresh: true,
+			})
+		}
 	}
 }
 

@@ -79,9 +79,12 @@ resource "junos_interface_physical" "testacc_cluster_int2" {
     redundant_parent = "reth0"
   }
 }
+resource "junos_interface_physical" "testacc_cluster" {
+  name = "` + interFace + `"
+}
 resource "junos_chassis_cluster" "testacc_cluster" {
   fab0 {
-    member_interfaces = ["` + interFace + `"]
+    member_interfaces = [junos_interface_physical.testacc_cluster.name]
   }
   redundancy_group {
     node0_priority = 100
@@ -110,9 +113,12 @@ resource "junos_interface_physical" "testacc_cluster_int2" {
     redundant_parent = "reth0"
   }
 }
+resource "junos_interface_physical" "testacc_cluster" {
+  name = "` + interFace + `"
+}
 resource "junos_chassis_cluster" "testacc_cluster" {
   fab0 {
-    member_interfaces = ["` + interFace + `"]
+    member_interfaces = [junos_interface_physical.testacc_cluster.name]
   }
   redundancy_group {
     node0_priority = 100
