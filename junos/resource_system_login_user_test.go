@@ -59,6 +59,10 @@ resource "junos_system_login_user" "testacc" {
     no_public_keys     = true
   }
 }
+resource "junos_system_login_user" "testacc2" {
+  name  = "test.acc2"
+  class = "unauthorized"
+}
 `
 }
 

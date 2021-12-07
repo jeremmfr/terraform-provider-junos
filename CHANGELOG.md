@@ -5,6 +5,14 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+## 1.22.2 (December 07, 2021)
+
+BUG FIXES:
+
+* resource/`junos_interface`, `junos_interface_physical`, `junos_interface_logical`: fix detection of missing interfaces with the latest versions of Junos (the `not found` message has been moved from the reply field to the error field in the netconf message)
+* resource/`junos_security_ike_gateway`: fix bad value used when adding Junos config with `wildcard` argument inside `distinguished_name` block inside `dynamic_remote` block
+* resource/`junos_system_login_user`: fix validation of `name` with a dot that is acceptable for Junos (Fixes [#318](https://github.com/jeremmfr/terraform-provider-junos/issues/318))
+
 ## 1.22.1 (November 30, 2021)
 
 BUG FIXES:

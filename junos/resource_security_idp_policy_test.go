@@ -8,15 +8,11 @@ import (
 )
 
 func TestAccJunosSecurityIdpPolicy_basic(t *testing.T) {
-	if os.Getenv("TESTACC_SWITCH") == "" && os.Getenv("TESTACC_ROUTER") == "" {
+	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:  func() { testAccPreCheck(t) },
 			Providers: testAccProviders,
 			Steps: []resource.TestStep{
-				{
-					Config:             testAccJunosSecurityIdpPolicyConfigPreCreate(),
-					ExpectNonEmptyPlan: true,
-				},
 				{
 					Config: testAccJunosSecurityIdpPolicyConfigCreate(),
 				},
@@ -36,20 +32,6 @@ func TestAccJunosSecurityIdpPolicy_basic(t *testing.T) {
 	}
 }
 
-func testAccJunosSecurityIdpPolicyConfigPreCreate() string {
-	return `
-resource junos_security "testacc_secIdpPolicy" {
-  idp_sensor_configuration {
-    packet_log {
-      source_address = "192.0.2.4"
-      host_address   = "192.0.2.5"
-      host_port      = 514
-    }
-  }
-}
-`
-}
-
 func testAccJunosSecurityIdpPolicyConfigCreate() string {
 	return `
 resource junos_security "testacc_secIdpPolicy" {
@@ -59,6 +41,22 @@ resource junos_security "testacc_secIdpPolicy" {
       host_address   = "192.0.2.5"
       host_port      = 514
     }
+  }
+  alg {
+    dns_disable    = true
+    ftp_disable    = true
+    h323_disable   = true
+    mgcp_disable   = true
+    msrpc_disable  = true
+    pptp_disable   = true
+    rsh_disable    = true
+    rtsp_disable   = true
+    sccp_disable   = true
+    sip_disable    = true
+    sql_disable    = true
+    sunrpc_disable = true
+    talk_disable   = true
+    tftp_disable   = true
   }
 }
 resource "junos_security_zone" "testacc_idp_pol_from" {
@@ -135,6 +133,22 @@ resource junos_security "testacc_secIdpPolicy" {
       host_address   = "192.0.2.5"
       host_port      = 514
     }
+  }
+  alg {
+    dns_disable    = true
+    ftp_disable    = true
+    h323_disable   = true
+    mgcp_disable   = true
+    msrpc_disable  = true
+    pptp_disable   = true
+    rsh_disable    = true
+    rtsp_disable   = true
+    sccp_disable   = true
+    sip_disable    = true
+    sql_disable    = true
+    sunrpc_disable = true
+    talk_disable   = true
+    tftp_disable   = true
   }
 }
 resource "junos_security_idp_policy" "testacc_idp_pol" {

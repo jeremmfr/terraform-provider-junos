@@ -34,10 +34,10 @@ func TestProvider_impl(t *testing.T) {
 	var _ *schema.Provider = junos.Provider()
 }
 
-// export TESTACC_SWITCH not empty for test switch options (interface mode trunk, vlan native/members)
-// with switch Junos device, else it's test for all others parameters
-// (interface inet, 802.3ad, routing instance, security zone/nat/ike/ipsec, etc  ).
-// Few resources and parameters works on both devices, but most tested without TESTACC_SWITCH
+// export TESTACC_SWITCH not empty to test specific switch options
+// export TESTACC_ROUTER not empty to test specific router options
+// export TESTACC_SRX not empty to test specific SRX options
+// export TESTACC_DEPRECATED not empty to launch testacc on deprecated resources
 
 func testAccPreCheck(t *testing.T) {
 	t.Helper()
