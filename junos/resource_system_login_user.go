@@ -35,7 +35,7 @@ func resourceSystemLoginUser() *schema.Resource {
 				Type:             schema.TypeString,
 				ForceNew:         true,
 				Required:         true,
-				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefAndDots),
 			},
 			"class": {
 				Type:     schema.TypeString,
