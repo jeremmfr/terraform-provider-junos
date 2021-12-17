@@ -1,7 +1,7 @@
 <!-- markdownlint-disable-file MD013 MD033 MD041 -->
 <div>
-<a href="https://www.juniper.net"><img src="https://www.juniper.net/assets/img/products/junos-os.png" alt="Junos logo" title="Junos" align="right" height="50" /></a>
-<a href="https://www.terraform.io"><img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/product-icons/terraform-icon-color.svg" alt="Terraform logo" title="Terraform" align="right" height="50" /></a>
+<a href="https://www.juniper.net"><img src=".github/junos-os.png" alt="Junos logo" title="Junos" align="right" height="50" /></a>
+<a href="https://www.terraform.io"><img src=".github/terraform.png" alt="Terraform logo" title="Terraform" align="right" height="50" /></a>
 </div>
 
 # terraform-provider-junos
