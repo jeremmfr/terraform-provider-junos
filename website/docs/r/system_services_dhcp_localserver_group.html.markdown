@@ -109,7 +109,7 @@ The following arguments are supported:
   Merge or replace the client dynamic profiles.  
   Need to be `merge` or `replace`.  
   `dynamic_profile_aggregate_clients` need to be true.
-- **interface** (Optional, Set of Block)  
+- **interface** (Optional, Block Set)  
   For each name of interface to declare.  
   See [below for nested schema](#interface-arguments).
 - **lease_time_validation** (Optional, Block)  
@@ -253,7 +253,7 @@ The following arguments are supported:
 - **client_discover_match** (Optional, String)  
   Use incoming interface or option 60 and option 82 match criteria for DISCOVER PDU.  
   Need to be `incoming-interface` or `option60-and-option82`.
-- **delay_offer_based_on** (Optional, Set of Block)  
+- **delay_offer_based_on** (Optional, Block Set)  
   For each combination of block arguments, filter options for dhcp-server.
   - **option** (Required, String)  
     Option.  
@@ -298,7 +298,7 @@ The following arguments are supported:
   Use a reduced prefix lease time for the client. In seconds (600..86400 seconds).
 - **client_negotiation_match_incoming_interface** (Optional, Boolean)  
   Use incoming interface match criteria for SOLICIT PDU
-- **delay_advertise_based_on** (Optional, Set of Block)  
+- **delay_advertise_based_on** (Optional, Block Set)  
   For each combination of block arguments, filter options for dhcp-server.
   - **option** (Required, String)  
     Option.  

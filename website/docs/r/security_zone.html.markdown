@@ -30,7 +30,7 @@ The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
   The name of security zone.
-- **address_book** (Optional, Block List)  
+- **address_book** (Optional, Block Set)  
   For each name of address to declare.
   - **name** (Required, String)  
     Name of address.
@@ -42,7 +42,7 @@ The following arguments are supported:
   Disable management of address-book in this resource to be able to manage them with specific
   resources.  
   Conflict with `address_book_*`.
-- **address_book_dns** (Optional, Block List)  
+- **address_book_dns** (Optional, Block Set)  
   For each name of dns-name address to declare.
   - **name** (Required, String)  
     Name of address.
@@ -54,7 +54,7 @@ The following arguments are supported:
     IPv4 dns address.
   - **ipv6_only** (Optional, Boolean)  
     IPv6 dns address.
-- **address_book_range** (Optional, Block List)  
+- **address_book_range** (Optional, Block Set)  
   For each name of range-address to declare.
   - **name** (Required, String)  
     Name of address.
@@ -64,7 +64,7 @@ The following arguments are supported:
     Upper limit of address range.
   - **description** (Optional, String)  
     Description of address.
-- **address_book_set** (Optional, Block List)  
+- **address_book_set** (Optional, Block Set)  
   For each name of address-set to declare.
   - **name** (Required, String)  
     Name of address-set.
@@ -74,7 +74,7 @@ The following arguments are supported:
     List of address-set names.
   - **description** (Optional, String)  
     Description of address-set.
-- **address_book_wildcard** (Optional, Block List)  
+- **address_book_wildcard** (Optional, Block Set)  
   For each name of wildcard-address to declare.
   - **name** (Required, String)  
     Name of address.

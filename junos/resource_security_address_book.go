@@ -48,7 +48,7 @@ func resourceSecurityAddressBook() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"network_address": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -65,12 +65,13 @@ func resourceSecurityAddressBook() *schema.Resource {
 						"description": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  "",
 						},
 					},
 				},
 			},
 			"wildcard_address": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -87,12 +88,13 @@ func resourceSecurityAddressBook() *schema.Resource {
 						"description": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  "",
 						},
 					},
 				},
 			},
 			"dns_name": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -108,12 +110,13 @@ func resourceSecurityAddressBook() *schema.Resource {
 						"description": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  "",
 						},
 					},
 				},
 			},
 			"range_address": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -135,12 +138,13 @@ func resourceSecurityAddressBook() *schema.Resource {
 						"description": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  "",
 						},
 					},
 				},
 			},
 			"address_set": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -162,6 +166,7 @@ func resourceSecurityAddressBook() *schema.Resource {
 						"description": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  "",
 						},
 					},
 				},
@@ -372,7 +377,7 @@ func setSecurityAddressBook(d *schema.ResourceData, m interface{}, jnprSess *Net
 		configSet = append(configSet, setPrefix+" attach zone "+attachZone)
 	}
 	addressNameList := make([]string, 0)
-	for _, v := range d.Get("network_address").([]interface{}) {
+	for _, v := range d.Get("network_address").(*schema.Set).List() {
 		address := v.(map[string]interface{})
 		if bchk.StringInSlice(address["name"].(string), addressNameList) {
 			return fmt.Errorf("multiple addresses with the same name %s", address["name"].(string))
@@ -384,7 +389,7 @@ func setSecurityAddressBook(d *schema.ResourceData, m interface{}, jnprSess *Net
 			configSet = append(configSet, setPrefixAddr+"description \""+address["description"].(string)+"\"")
 		}
 	}
-	for _, v := range d.Get("wildcard_address").([]interface{}) {
+	for _, v := range d.Get("wildcard_address").(*schema.Set).List() {
 		address := v.(map[string]interface{})
 		if bchk.StringInSlice(address["name"].(string), addressNameList) {
 			return fmt.Errorf("multiple addresses with the same name %s", address["name"].(string))
@@ -396,7 +401,7 @@ func setSecurityAddressBook(d *schema.ResourceData, m interface{}, jnprSess *Net
 			configSet = append(configSet, setPrefixAddr+"description \""+address["description"].(string)+"\"")
 		}
 	}
-	for _, v := range d.Get("dns_name").([]interface{}) {
+	for _, v := range d.Get("dns_name").(*schema.Set).List() {
 		address := v.(map[string]interface{})
 		if bchk.StringInSlice(address["name"].(string), addressNameList) {
 			return fmt.Errorf("multiple addresses with the same name %s", address["name"].(string))
@@ -408,7 +413,7 @@ func setSecurityAddressBook(d *schema.ResourceData, m interface{}, jnprSess *Net
 			configSet = append(configSet, setPrefixAddr+"description \""+address["description"].(string)+"\"")
 		}
 	}
-	for _, v := range d.Get("range_address").([]interface{}) {
+	for _, v := range d.Get("range_address").(*schema.Set).List() {
 		address := v.(map[string]interface{})
 		if bchk.StringInSlice(address["name"].(string), addressNameList) {
 			return fmt.Errorf("multiple addresses with the same name %s", address["name"].(string))
@@ -420,7 +425,7 @@ func setSecurityAddressBook(d *schema.ResourceData, m interface{}, jnprSess *Net
 			configSet = append(configSet, setPrefixAddr+"description \""+address["description"].(string)+"\"")
 		}
 	}
-	for _, v := range d.Get("address_set").([]interface{}) {
+	for _, v := range d.Get("address_set").(*schema.Set).List() {
 		addressSet := v.(map[string]interface{})
 		if bchk.StringInSlice(addressSet["name"].(string), addressNameList) {
 			return fmt.Errorf("multiple addresses or address-sets with the same name %s", addressSet["name"].(string))

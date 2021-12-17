@@ -3,6 +3,9 @@
 
 ENHANCEMENTS:
 
+* resource/`junos_security_address_book`: `network_address`, `wildcard_address`, `dns_name`, `range_address` and `address_set` block arguments are now unordered blocks. (Fixes #316)
+* resource/`junos_security_zone`: `address_book`, `address_book_dns`, `address_book_range`, `address_book_set` and `address_book_wildcard` block arguments are now unordered blocks. (Fixes #169)
+
 BUG FIXES:
 
 ## 1.22.2 (December 07, 2021)
