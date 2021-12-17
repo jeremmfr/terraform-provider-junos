@@ -34,13 +34,3 @@ jobs:
           if [[ $(grep -r "^ \{3,\}\(\*\|-\) " website/docs/* | wc -l) -gt 0 ]] ; then \
           echo "Too many level of arugments in docs" ; grep -nr "^ \{3,\}\(\*\|-\)" website/docs/* ; exit 1 ; \
           fi
-      - name: Check link for pages in sidebar
-        run: |
-          cd website/docs
-          missing=""
-          for i in $(find . -type f | sed 's/^.//' | sed 's/.markdown$//') ; do \
-          grep -q $i ../junos.erb || missing+="Missing link to $i in website sidebar\n" ; \
-          done
-          if [[ ${missing} != "" ]] ; then \
-          echo -e "${missing}" ; exit 1 ; \
-          fi
