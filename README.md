@@ -1,7 +1,7 @@
 <!-- markdownlint-disable-file MD013 MD033 MD041 -->
 <div>
-<a href="https://www.juniper.net"><img src="https://www.juniper.net/assets/img/products/junos-os.png" alt="Junos logo" title="Junos" align="right" height="50" /></a>
-<a href="https://www.terraform.io"><img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/product-icons/terraform-icon-color.svg" alt="Terraform logo" title="Terraform" align="right" height="50" /></a>
+<a href="https://www.juniper.net"><img src=".github/junos-os.png" alt="Junos logo" title="Junos" align="right" height="50" /></a>
+<a href="https://www.terraform.io"><img src=".github/terraform.png" alt="Terraform logo" title="Terraform" align="right" height="50" /></a>
 </div>
 
 # terraform-provider-junos
@@ -10,7 +10,6 @@
 [![Release](https://img.shields.io/github/v/release/jeremmfr/terraform-provider-junos)](https://github.com/jeremmfr/terraform-provider-junos/releases)
 [![Installs](https://img.shields.io/badge/dynamic/json?logo=terraform&label=installs&query=$.data.attributes.downloads&url=https%3A%2F%2Fregistry.terraform.io%2Fv2%2Fproviders%2F713)](https://registry.terraform.io/providers/jeremmfr/junos)
 [![Registry](https://img.shields.io/badge/registry-doc%40latest-lightgrey?logo=terraform)](https://registry.terraform.io/providers/jeremmfr/junos/latest/docs)
-[![Website](https://img.shields.io/badge/website-doc%40latest-lightgrey)](https://terraform-provider-junos.jeremm.fr/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/jeremmfr/terraform-provider-junos/blob/main/LICENSE)  
 [![Go Status](https://github.com/jeremmfr/terraform-provider-junos/actions/workflows/go.yml/badge.svg)](https://github.com/jeremmfr/terraform-provider-junos/actions/workflows/go.yml)
 [![Linters Status](https://github.com/jeremmfr/terraform-provider-junos/actions/workflows/linters.yml/badge.svg)](https://github.com/jeremmfr/terraform-provider-junos/actions/workflows/linters.yml)
@@ -22,8 +21,7 @@
 
 This is an **unofficial** Terraform provider for Junos devices with netconf protocol
 
-See [website](https://terraform-provider-junos.jeremm.fr/) or
-[Terraform registry](https://registry.terraform.io/providers/jeremmfr/junos)
+See [Terraform registry](https://registry.terraform.io/providers/jeremmfr/junos)
 for provider and resources documentation.
 
 ## Requirements

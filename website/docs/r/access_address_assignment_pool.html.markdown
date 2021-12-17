@@ -58,7 +58,7 @@ The following arguments are supported:
 - **excluded_address** (Optional, Set of String)  
   Excluded Addresses.  
   Need to be valid IP addresses.
-- **excluded_range** (Optional, List of Block)  
+- **excluded_range** (Optional, Block List)  
   For each name of excluded address range to declare.
   - **name** (Required, String)  
     Range name.
@@ -68,7 +68,7 @@ The following arguments are supported:
   - **high** (Required, String)  
     Upper limit of excluded address range.  
     Need to be a valid IP address.
-- **host** (Optional, List of Block)  
+- **host** (Optional, Block List)  
   For each name of host to declare.  
   `type` need to be `inet`.
   - **name** (Required, String)  
@@ -79,7 +79,7 @@ The following arguments are supported:
   - **Reserved address** (Required, String)  
     Hardware address.  
     Need to be a valid IPv4 address.
-- **inet_range** (Optional, List of Block)  
+- **inet_range** (Optional, Block List)  
   For each name of address range to declare.  
   `type` need to be `inet`.
   - **name** (Required, String)  
@@ -90,7 +90,7 @@ The following arguments are supported:
   - **high** (Required, String)  
     Upper limit of address range.  
     Need to be a valid IPv4 address.
-- **inet6_range** (Optional, List of Block)  
+- **inet6_range** (Optional, Block List)  
   For each name of address range to declare.  
   Need to set one of `prefix_length` or `low` + `high`.  
   `type` need to be `inet6`.
@@ -159,13 +159,13 @@ The following arguments are supported:
   DHCP option.  
   Format need to match `^\d+ (array )?(byte|flag|hex-string|integer|ip-address|short|string|unsigned-integer|unsigned-short) .*$`.
 <!-- markdownlint-restore -->
-- **option_match_82_circuit_id** (Optional, List of Block)  
+- **option_match_82_circuit_id** (Optional, Block List)  
   For each value to declare, circuit ID portion of the option 82.
   - **value** (Required, String)  
     Match value.
   - **range** (Required, String)  
     Range name.
-- **option_match_82_remote_id** (Optional, List of Block)  
+- **option_match_82_remote_id** (Optional, Block List)  
   For each value to declare, remote ID portion of the option 82.
   - **value** (Required, String)  
     Match value.

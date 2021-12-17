@@ -47,7 +47,7 @@ func resourceSecurityZone() *schema.Resource {
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"address_book": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -64,6 +64,7 @@ func resourceSecurityZone() *schema.Resource {
 						"description": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  "",
 						},
 					},
 				},
@@ -80,7 +81,7 @@ func resourceSecurityZone() *schema.Resource {
 				},
 			},
 			"address_book_dns": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -96,20 +97,23 @@ func resourceSecurityZone() *schema.Resource {
 						"description": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  "",
 						},
 						"ipv4_only": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 						"ipv6_only": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 					},
 				},
 			},
 			"address_book_range": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -131,12 +135,13 @@ func resourceSecurityZone() *schema.Resource {
 						"description": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  "",
 						},
 					},
 				},
 			},
 			"address_book_set": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -158,12 +163,13 @@ func resourceSecurityZone() *schema.Resource {
 						"description": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  "",
 						},
 					},
 				},
 			},
 			"address_book_wildcard": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -180,6 +186,7 @@ func resourceSecurityZone() *schema.Resource {
 						"description": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  "",
 						},
 					},
 				},
@@ -439,7 +446,7 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 	configSet = append(configSet, setPrefix)
 	if !d.Get("address_book_configure_singly").(bool) {
 		addressNameList := make([]string, 0)
-		for _, v := range d.Get("address_book").([]interface{}) {
+		for _, v := range d.Get("address_book").(*schema.Set).List() {
 			addressBook := v.(map[string]interface{})
 			if bchk.StringInSlice(addressBook["name"].(string), addressNameList) {
 				return fmt.Errorf("multiple addresses with the same name %s", addressBook["name"].(string))
@@ -452,7 +459,7 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 					addressBook["name"].(string)+" description \""+v2+"\"")
 			}
 		}
-		for _, v := range d.Get("address_book_dns").([]interface{}) {
+		for _, v := range d.Get("address_book_dns").(*schema.Set).List() {
 			addressBook := v.(map[string]interface{})
 			if bchk.StringInSlice(addressBook["name"].(string), addressNameList) {
 				return fmt.Errorf("multiple addresses with the same name %s", addressBook["name"].(string))
@@ -472,7 +479,7 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 					addressBook["name"].(string)+" description \""+v2+"\"")
 			}
 		}
-		for _, v := range d.Get("address_book_range").([]interface{}) {
+		for _, v := range d.Get("address_book_range").(*schema.Set).List() {
 			addressBook := v.(map[string]interface{})
 			if bchk.StringInSlice(addressBook["name"].(string), addressNameList) {
 				return fmt.Errorf("multiple addresses with the same name %s", addressBook["name"].(string))
@@ -486,7 +493,7 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 					addressBook["name"].(string)+" description \""+v2+"\"")
 			}
 		}
-		for _, v := range d.Get("address_book_wildcard").([]interface{}) {
+		for _, v := range d.Get("address_book_wildcard").(*schema.Set).List() {
 			addressBook := v.(map[string]interface{})
 			if bchk.StringInSlice(addressBook["name"].(string), addressNameList) {
 				return fmt.Errorf("multiple addresses with the same name %s", addressBook["name"].(string))
@@ -499,7 +506,7 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 					addressBook["name"].(string)+" description \""+v2+"\"")
 			}
 		}
-		for _, v := range d.Get("address_book_set").([]interface{}) {
+		for _, v := range d.Get("address_book_set").(*schema.Set).List() {
 			addressBookSet := v.(map[string]interface{})
 			if bchk.StringInSlice(addressBookSet["name"].(string), addressNameList) {
 				return fmt.Errorf("multiple addresses or address-sets with the same name %s", addressBookSet["name"].(string))
