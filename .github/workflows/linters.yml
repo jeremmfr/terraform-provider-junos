@@ -46,14 +46,14 @@ jobs:
           path: terrafmt
       - name: Build terrafmt bin
         run: cd terrafmt && go install ./... && cd ${GITHUB_WORKSPACE}
-      - name: Terrafmt diff on html.markdown
-        run: find . | egrep "html.markdown" | sort | while read f; do terrafmt diff $f; done >> /tmp/results.html.markdown
+      - name: Terrafmt diff on docs markdown
+        run: find docs | egrep "md$" | sort | while read f; do terrafmt diff $f; done >> /tmp/results.md
       - name: Terrafmt diff on _test.go
-        run: find . | egrep "_test.go" | sort | while read f; do terrafmt diff $f; done >> /tmp/results.test.go
+        run: find junos | egrep "_test.go" | sort | while read f; do terrafmt diff $f; done >> /tmp/results.test.go
       - name: Generate error if results not empty
         run: |
-          if [[ -s /tmp/results.html.markdown || -s /tmp/results.test.go ]] ; then 
-            cat /tmp/results.html.markdown
+          if [[ -s /tmp/results.md || -s /tmp/results.test.go ]] ; then 
+            cat /tmp/results.md
             cat /tmp/results.test.go
             echo "terraform blocks in website/test-go files not being properly formatted"
             exit 1
