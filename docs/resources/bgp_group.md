@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_bgp_group"
-sidebar_current: "docs-junos-resource-bgp-group"
-description: |-
-  Create a BGP group
 ---
 
 # junos_bgp_group

@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_utm_policy"
-sidebar_current: "docs-junos-resource-security-utm-policy"
-description: |-
-  Create a security utm utm-policy (when Junos device supports it)
 ---
 
 # junos_security_utm_policy

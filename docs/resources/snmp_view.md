@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_snmp_view"
-sidebar_current: "docs-junos-resource-snmp-view"
-description: |-
-  Create a snmp view
 ---
 
 # junos_snmp_view

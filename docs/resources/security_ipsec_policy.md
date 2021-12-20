@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_ipsec_policy"
-sidebar_current: "docs-junos-resource-security-ipsec-policy"
-description: |-
-  Create a security ipsec policy (when Junos device supports it)
 ---
 
 # junos_security_ipsec_policy

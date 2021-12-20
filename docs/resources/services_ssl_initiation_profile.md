@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_services_ssl_initiation_profile"
-sidebar_current: "docs-junos-resource-services-ssl-initiation-profile"
-description: |-
-  Create a services ssl initiation profile
 ---
 
 # junos_services_ssl_initiation_profile

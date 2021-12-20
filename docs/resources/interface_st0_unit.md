@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_interface_st0_unit"
-sidebar_current: "docs-junos-resource-interface-st0-unit"
-description: |-
-  Find st0 unit available and create interface.
 ---
 
 # junos_interface_st0_unit

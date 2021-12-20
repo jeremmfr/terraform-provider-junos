@@ -1,14 +1,11 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_interface_physical"
-sidebar_current: "docs-junos-data-source-interface-physical"
-description: |-
-  Get information on a physical interface (as with an junos_interface_physcial resource import)
 ---
 
 # junos_interface_physical
 
-Get information on a physical interface.
+Get information on a physical interface  
+(as with an junos_interface_physical resource import).
 
 ## Example Usage
 

@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_rib_group"
-sidebar_current: "docs-junos-resource-rib-group"
-description: |-
-  Create a rib group
 ---
 
 # junos_rib_group

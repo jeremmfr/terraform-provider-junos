@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_services_rpm_probe"
-sidebar_current: "docs-junos-resource-services-rpm-probe"
-description: |-
-  Create a services rpm probe
 ---
 
 # junos_services_rpm_probe

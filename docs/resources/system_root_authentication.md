@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_system_root_authentication"
-sidebar_current: "docs-junos-resource-system-root-authentication"
-description: |-
-  Configure static configuration in system root-authentication block
 ---
 
 # junos_system_root_authentication

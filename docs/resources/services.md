@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_services"
-sidebar_current: "docs-junos-resource-services"
-description: |-
-  Configure static configuration in services block
 ---
 
 # junos_services

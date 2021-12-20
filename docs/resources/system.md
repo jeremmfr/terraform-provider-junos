@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_system"
-sidebar_current: "docs-junos-resource-system"
-description: |-
-  Configure static configuration in system block
 ---
 
 # junos_system

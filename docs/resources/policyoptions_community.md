@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_policyoptions_community"
-sidebar_current: "docs-junos-resource-policyoptions-community"
-description: |-
-  Create a community
 ---
 
 # junos_policyoptions_community

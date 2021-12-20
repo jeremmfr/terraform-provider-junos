@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_utm_profile_web_filtering_juniper_local"
-sidebar_current: "docs-junos-resource-security-utm-profile-web-filtering-juniper-local"
-description: |-
-  Create a security utm feature-profile web-filtering juniper-local profile (when Junos device supports it)
 ---
 
 # junos_security_utm_profile_web_filtering_juniper_local

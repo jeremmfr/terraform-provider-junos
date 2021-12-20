@@ -1,14 +1,11 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_interface_logical"
-sidebar_current: "docs-junos-data-source-interface-logical"
-description: |-
-  Get information on a logical interface (as with an junos_interface_logical resource import)
 ---
 
 # junos_interface_logical
 
-Get information on a logical interface
+Get information on a logical interface  
+(as with an junos_interface_logical resource import).
 
 ## Example Usage
 

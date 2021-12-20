@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_services_user_identification_device_identity_profile"
-sidebar_current: "docs-junos-resource-services-user-identification-device-identity-profile"
-description: |-
-  Create a services user-identification device-information end-user-profile (also named device identity profile)
 ---
 
 # junos_services_user_identification_device_identity_profile

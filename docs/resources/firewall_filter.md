@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_firewall_filter"
-sidebar_current: "docs-junos-resource-firewall-filter"
-description: |-
-  Create firewall filter
 ---
 
 # junos_firewall_filter

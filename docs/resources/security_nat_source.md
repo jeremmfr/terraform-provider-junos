@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_nat_source"
-sidebar_current: "docs-junos-resource-security-nat-source"
-description: |-
-  Create a security nat source (when Junos device supports it)
 ---
 
 # junos_security_nat_source

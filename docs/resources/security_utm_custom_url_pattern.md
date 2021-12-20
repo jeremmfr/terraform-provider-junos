@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_utm_custom_url_pattern"
-sidebar_current: "docs-junos-resource-security-utm-custom-url-pattern"
-description: |-
-  Create a security utm custom-object url-pattern (when Junos device supports it)
 ---
 
 # junos_security_utm_custom_url_pattern

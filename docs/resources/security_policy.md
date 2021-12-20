@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_policy"
-sidebar_current: "docs-junos-resource-security-policy"
-description: |-
-  Create a security policy (when Junos device supports it)
 ---
 
 # junos_security_policy

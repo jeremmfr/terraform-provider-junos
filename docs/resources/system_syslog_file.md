@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_system_syslog_file"
-sidebar_current: "docs-junos-resource-system-syslog-file"
-description: |-
-  Configure a system syslog file
 ---
 
 # junos_system_syslog_file

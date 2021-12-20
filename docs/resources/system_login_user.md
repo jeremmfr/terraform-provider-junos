@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_system_login_user"
-sidebar_current: "docs-junos-resource-system-login-user"
-description: |-
-  Create a system login user
 ---
 
 # junos_system_login_user

@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_services_user_identification_ad_access_domain"
-sidebar_current: "docs-junos-resource-services-user-identification-ad-access-domain"
-description: |-
-  Create a services user-identification active-directory-access domain
 ---
 
 # junos_services_user_identification_ad_access_domain

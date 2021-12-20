@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_log_stream"
-sidebar_current: "docs-junos-resource-security-log-stream"
-description: |-
-  Create a security log stream (when Junos device supports it)
 ---
 
 # junos_security_log_stream

@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_nat_destination"
-sidebar_current: "docs-junos-resource-security-nat-destination"
-description: |-
-  Create a security nat destination (when Junos device supports it)
 ---
 
 # junos_security_nat_destination

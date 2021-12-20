@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_policyoptions_as_path"
-sidebar_current: "docs-junos-resource-policyoptions-as-path"
-description: |-
-  Create an as-path
 ---
 
 # junos_policyoptions_as_path

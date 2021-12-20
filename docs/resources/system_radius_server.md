@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_system_radius_server"
-sidebar_current: "docs-junos-resource-system-radius-server"
-description: |-
-  Configure a system radius-server
 ---
 
 # junos_system_radius_server

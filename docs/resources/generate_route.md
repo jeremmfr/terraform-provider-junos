@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_generate_route"
-sidebar_current: "docs-junos-resource-generate-route"
-description: |-
-  Create a generate route for destination
 ---
 
 # junos_generate_route

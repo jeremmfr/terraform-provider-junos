@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_aggregate_route"
-sidebar_current: "docs-junos-resource-aggregate-route"
-description: |-
-  Create an aggregate route for destination
 ---
 
 # junos_aggregate_route

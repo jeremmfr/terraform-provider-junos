@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_address_book"
-sidebar_current: "docs-junos-resource-security-address-book"
-description: |-
-  Create a security address book (when Junos device supports it)
 ---
 
 # junos_security_address_book

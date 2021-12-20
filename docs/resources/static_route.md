@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_static_route"
-sidebar_current: "docs-junos-resource-static-route"
-description: |-
-  Create a static route for destination
 ---
 
 # junos_static_route

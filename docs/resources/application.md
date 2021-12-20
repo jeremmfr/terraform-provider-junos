@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_application"
-sidebar_current: "docs-junos-resource-application"
-description: |-
-  Create an application
 ---
 
 # junos_application

@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_interface resource deprecated"
-description: |-
-    Junos: Migrate to new interface resource guide
-
 ---
 
 # junos_interface deprecated

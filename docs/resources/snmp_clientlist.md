@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_snmp_clientlist"
-sidebar_current: "docs-junos-resource-snmp-clientlist"
-description: |-
-  Create a snmp client-list
 ---
 
 # junos_snmp_clientlist

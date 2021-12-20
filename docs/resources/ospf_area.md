@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_ospf_area"
-sidebar_current: "docs-junos-resource-ospf-area"
-description: |-
-  Create an ospf area
 ---
 
 # junos_ospf_area

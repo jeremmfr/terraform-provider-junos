@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_services_security_intelligence_profile"
-sidebar_current: "docs-junos-resource-services-security-intelligence-profile"
-description: |-
-  Create a services security-intelligence profile
 ---
 
 # junos_services_security_intelligence_profile

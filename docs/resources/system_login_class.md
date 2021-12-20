@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_system_login_class"
-sidebar_current: "docs-junos-resource-system-login-class"
-description: |-
-  Create a system login class
 ---
 
 # junos_system_login_class

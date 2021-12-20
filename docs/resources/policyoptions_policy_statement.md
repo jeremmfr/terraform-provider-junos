@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_policyoptions_policy_statement"
-sidebar_current: "docs-junos-resource-policyoptions-policy-statement"
-description: |-
-  Create a routing policy
 ---
 
 # junos_policyoptions_policy_statement

@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_null_commit_file"
-sidebar_current: "docs-junos-resource-null-commmit-file"
-description: |-
-  Load a file with set/delete lines on device and commit
 ---
 
 # junos_null_commit_file

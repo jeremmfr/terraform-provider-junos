@@ -1,14 +1,11 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_interface"
-sidebar_current: "docs-junos-data-source-interface"
-description: |-
-  Get information on an Interface (as with an junos_interface resource import)
 ---
 
 # junos_interface
 
-Get information on an Interface
+Get information on an Interface  
+(as with an junos_interface resource import).
 
 !> **NOTE:** Since v1.11.0, this data soure is **deprecated**.  
 For more consistency, functionalities of this data source have been splitted in two new data source

@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_services_proxy_profile"
-sidebar_current: "docs-junos-resource-services-proxy-profile"
-description: |-
-  Create a services proxy profile
 ---
 
 # junos_services_proxy_profile

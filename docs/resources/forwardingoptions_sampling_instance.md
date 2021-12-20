@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_forwardingoptions_sampling_instance"
-sidebar_current: "docs-junos-resource-forwardingoptions-sampling-instance"
-description: |-
-  Create a forwarding-options sampling-instance
 ---
 
 # junos_forwardingoptions_sampling_instance

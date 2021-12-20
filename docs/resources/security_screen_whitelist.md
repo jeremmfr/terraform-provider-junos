@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_screen_whitelist"
-sidebar_current: "docs-junos-resource-security-screen-whitelist"
-description: |-
-  Create a security screen white-list (when Junos device supports it)
 ---
 
 # junos_security_screen_whitelist

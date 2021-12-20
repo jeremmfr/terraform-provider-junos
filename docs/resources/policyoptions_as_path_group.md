@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_policyoptions_as_path_group"
-sidebar_current: "docs-junos-resource-policyoptions-as-path-group"
-description: |-
-  Create an as-path group
 ---
 
 # junos_policyoptions_as_path_group

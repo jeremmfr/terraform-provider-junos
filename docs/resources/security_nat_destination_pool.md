@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_nat_destination_pool"
-sidebar_current: "docs-junos-resource-security-nat-destination-pool"
-description: |-
-  Create a security nat destination pool (when Junos device supports it)
 ---
 
 # junos_security_nat_destination_pool

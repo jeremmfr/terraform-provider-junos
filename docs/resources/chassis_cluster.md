@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_chassis_cluster"
-sidebar_current: "docs-junos-resource-chassis-cluster"
-description: |-
-  Configure chassis cluster configuration (when Junos device supports it)
 ---
 
 # junos_chassis_cluster

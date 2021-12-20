@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_ospf"
-sidebar_current: "docs-junos-resource-ospf"
-description: |-
-  Configure static configuration in protocols ospf or ospf3 block in root or routing-instance level.
 ---
 
 # junos_ospf

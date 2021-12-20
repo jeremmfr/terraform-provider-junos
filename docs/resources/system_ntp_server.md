@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_system_ntp_server"
-sidebar_current: "docs-junos-resource-system-ntp-server"
-description: |-
-  Configure a system ntp server
 ---
 
 # junos_system_ntp_server

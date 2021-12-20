@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_global_policy"
-sidebar_current: "docs-junos-resource-security-global-policy"
-description: |-
-  Configure static configuration in security policies global block
 ---
 
 # junos_security_global_policy

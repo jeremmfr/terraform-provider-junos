@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_routing_options"
-sidebar_current: "docs-junos-resource-routing-options"
-description: |-
-  Configure static configuration in routing-options block
 ---
 
 # junos_routing_options

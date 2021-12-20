@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_utm_custom_url_category"
-sidebar_current: "docs-junos-resource-security-utm-custom-url-category"
-description: |-
-  Create a security utm custom-object custom-url-category (when Junos device supports it)
 ---
 
 # junos_security_utm_custom_url_category

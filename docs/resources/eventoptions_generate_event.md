@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_eventoptions_generate_event"
-sidebar_current: "docs-junos-resource-eventoptions-generate-event"
-description: |-
-  Create an event-options generate-event
 ---
 
 # junos_eventoptions_generate_event

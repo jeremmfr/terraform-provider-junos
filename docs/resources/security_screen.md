@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_screen"
-sidebar_current: "docs-junos-resource-security-screen"
-description: |-
-  Create a security screen (when Junos device supports it)
 ---
 
 # junos_security_screen

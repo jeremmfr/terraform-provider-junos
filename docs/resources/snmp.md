@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_snmp"
-sidebar_current: "docs-junos-resource-snmp"
-description: |-
-  Configure static configuration in snmp block
 ---
 
 # junos_snmp

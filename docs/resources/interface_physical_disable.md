@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_interface_physical_disable"
-sidebar_current: "docs-junos-resource-interface-physical-disable"
-description: |-
-  Disable a not configured physical interface (same as when destroy junos_interface_physical resource)
 ---
 
 # junos_interface_physical_disable

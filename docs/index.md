@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Provider: Junos"
-sidebar_current: "docs-junos-index"
-description: |-
-  The Junos provider communicate with Junos device via netconf protocol and modify a part of configuration
 ---
 
 # Junos Provider

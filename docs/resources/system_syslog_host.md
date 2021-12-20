@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_system_syslog_host"
-sidebar_current: "docs-junos-resource-system-syslog-host"
-description: |-
-  Configure a system syslog host
 ---
 
 # junos_system_syslog_host

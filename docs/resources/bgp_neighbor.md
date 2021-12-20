@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_bgp_neighbor"
-sidebar_current: "docs-junos-resource-bgp-neighbor"
-description: |-
-  Create a BGP session with neighbor
 ---
 
 # junos_bgp_neighbor

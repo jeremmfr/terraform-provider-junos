@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_application_set"
-sidebar_current: "docs-junos-resource-application-set"
-description: |-
-  Create a set of application
 ---
 
 # junos_application_set

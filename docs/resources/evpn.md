@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_evpn"
-sidebar_current: "docs-junos-resource-evpn"
-description: |-
-  Configure static configuration in protocols evpn block in root or routing-instance level and options potentially required in switch-options or on routing-instance.
 ---
 
 # junos_evpn

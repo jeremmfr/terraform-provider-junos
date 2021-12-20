@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_utm_profile_web_filtering_juniper_enhanced"
-sidebar_current: "docs-junos-resource-security-utm-profile-web-filtering-juniper-enhanced"
-description: |-
-  Create a security utm feature-profile web-filtering juniper-enhanced profile (when Junos device supports it)
 ---
 
 # junos_security_utm_profile_web_filtering_juniper_enhanced

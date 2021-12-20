@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_ike_policy"
-sidebar_current: "docs-junos-resource-security-ike-policy"
-description: |-
-  Create a security ike policy (when Junos device supports it)
 ---
 
 # junos_security_ike_policy

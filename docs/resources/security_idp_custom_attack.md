@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_idp_custom_attack"
-sidebar_current: "docs-junos-resource-security-idp-custom-attack"
-description: |-
-  Create a security idp custom-attack (when Junos device supports it)
 ---
 
 # junos_security_idp_custom_attack

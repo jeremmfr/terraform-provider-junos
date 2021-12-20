@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_idp_policy"
-sidebar_current: "docs-junos-resource-security-idp-policy"
-description: |-
-  Create a security idp policy (when Junos device supports it)
 ---
 
 # junos_security_idp_policy

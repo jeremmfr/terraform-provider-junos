@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_bridge_domain"
-sidebar_current: "docs-junos-resource-bridge-domain"
-description: |-
-  Create an bridge domain on root level or routing-instance (when Junos device supports it: MX, vMX)
 ---
 
 # junos_bridge_domain

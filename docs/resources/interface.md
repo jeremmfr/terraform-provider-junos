@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_interface"
-sidebar_current: "docs-junos-resource-interface"
-description: |-
-  Create/configure an interface or interface unit
 ---
 
 # junos_interface

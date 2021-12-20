@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_eventoptions_destination"
-sidebar_current: "docs-junos-resource-eventoptions-destination"
-description: |-
-  Create an event-options destination
 ---
 
 # junos_eventoptions_destination

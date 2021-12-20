@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_ike_proposal"
-sidebar_current: "docs-junos-resource-security-ike-proposal"
-description: |-
-  Create a security ike proposal (when Junos device supports it)
 ---
 
 # junos_security_ike_proposal

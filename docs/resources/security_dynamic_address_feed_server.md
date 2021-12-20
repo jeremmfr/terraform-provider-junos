@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_dynamic_address_feed_server"
-sidebar_current: "docs-junos-resource-security-dynamic-address-feed-server"
-description: |-
-  Create a security dynamic-address feed-server (when Junos device supports it)
 ---
 
 # junos_security_dynamic_address_feed_server

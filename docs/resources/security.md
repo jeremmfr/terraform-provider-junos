@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security"
-sidebar_current: "docs-junos-resource-security"
-description: |-
-  Configure static configuration in security block (when Junos device supports it)
 ---
 
 # junos_security

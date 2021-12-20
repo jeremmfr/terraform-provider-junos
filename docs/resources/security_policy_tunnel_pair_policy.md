@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_policy_tunnel_pair_policy"
-sidebar_current: "docs-junos-resource-security-policy-tunnel-pair-policy"
-description: |-
-  Add a tunnel pair policy options in each policy (when Junos device supports it)
 ---
 
 # junos_security_policy_tunnel_pair_policy

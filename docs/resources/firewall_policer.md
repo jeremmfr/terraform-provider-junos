@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_firewall_policer"
-sidebar_current: "docs-junos-resource-firewall-policer"
-description: |-
-  Create firewall policer
 ---
 
 # junos_firewall_policer

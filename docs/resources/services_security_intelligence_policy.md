@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_services_security_intelligence_policy"
-sidebar_current: "docs-junos-resource-services-security-intelligence-policy"
-description: |-
-  Create a services security-intelligence policy
 ---
 
 # junos_services_security_intelligence_policy

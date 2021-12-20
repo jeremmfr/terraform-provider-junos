@@ -1,14 +1,10 @@
 ---
-layout: "junos"
 page_title: "Junos: system_information"
-sidebar_current: "docs-junos-data-source-system-information"
-description: |-
-  Get information of the Junos device system information
 ---
 
 # junos_system_information
 
-Get information on the junos system
+Get information of the Junos device system information.
 
 ## Example Usage
 

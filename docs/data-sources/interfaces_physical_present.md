@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_interfaces_physical_present"
-sidebar_current: "docs-junos-data-source-interfaces-physical-present"
-description: |-
-  Get list of all or filtered physical interfaces present on the Junos device and their admin/operational status.
 ---
 
 # junos_interfaces_physical_present

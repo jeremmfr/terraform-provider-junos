@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_system_services_dhcp_localserver_group"
-sidebar_current: "docs-junos-resource-system-services-dhcp-localserver-group"
-description: |-
-  Create a DHCP (or DHCPv6) local server group
 ---
 
 # junos_system_services_dhcp_localserver_group

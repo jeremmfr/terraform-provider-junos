@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_policyoptions_prefix_list"
-sidebar_current: "docs-junos-resource-policyoptions-prefix-list"
-description: |-
-  Create a prefix list
 ---
 
 # junos_policyoptions_prefix_list

@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_group_dual_system"
-sidebar_current: "docs-junos-group-dual-system"
-description: |-
-  Create a group for member of dual system (node/re) 
 ---
 
 # junos_group_dual_system

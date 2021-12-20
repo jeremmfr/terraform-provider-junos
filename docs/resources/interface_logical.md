@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_interface_logical"
-sidebar_current: "docs-junos-resource-interface-logical"
-description: |-
-  Create/configure a logical interface
 ---
 
 # junos_interface_logical

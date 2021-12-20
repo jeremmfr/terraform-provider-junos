@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_interface_physical"
-sidebar_current: "docs-junos-resource-interface-physical"
-description: |-
-  Create/configure a physical interface
 ---
 
 # junos_interface_physical

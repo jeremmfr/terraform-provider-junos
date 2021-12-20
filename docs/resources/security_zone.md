@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_zone"
-sidebar_current: "docs-junos-resource-security-zone"
-description: |-
-  Create a security zone (when Junos device supports it)
 ---
 
 # junos_security_zone

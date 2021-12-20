@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_ike_gateway"
-sidebar_current: "docs-junos-resource-security-ike-gateway"
-description: |-
-  Create a security ike gateway (when Junos device supports it)
 ---
 
 # junos_security_ike_gateway

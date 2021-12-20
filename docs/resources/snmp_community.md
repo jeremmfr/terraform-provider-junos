@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_snmp_community"
-sidebar_current: "docs-junos-resource-snmp-community"
-description: |-
-  Create a snmp community
 ---
 
 # junos_snmp_community

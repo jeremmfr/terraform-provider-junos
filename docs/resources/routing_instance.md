@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_routing_instance"
-sidebar_current: "docs-junos-resource-routing-instance"
-description: |-
-  Create a routing instance
 ---
 
 # junos_routing_instance

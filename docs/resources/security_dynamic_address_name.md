@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_dynamic_address_name"
-sidebar_current: "docs-junos-resource-security-dynamic-address-name"
-description: |-
-  Create a security dynamic-address address-name (when Junos device supports it)
 ---
 
 # junos_security_dynamic_address_name

@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_vlan"
-sidebar_current: "docs-junos-resource-vlan"
-description: |-
-  Create a vlan (when Junos device supports it)
 ---
 
 # junos_vlan

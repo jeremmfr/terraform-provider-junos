@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_switch_options"
-sidebar_current: "docs-junos-resource-switch-options"
-description: |-
-  Configure static configuration in switch-options block
 ---
 
 # junos_switch_options

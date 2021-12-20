@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_access_address_assignment_pool"
-sidebar_current: "docs-junos-resource-access-address-assignment-pool"
-description: |-
-  Create an access address-assignment pool
 ---
 
 # junos_access_address_assignment_pool

@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_eventoptions_policy"
-sidebar_current: "docs-junos-resource-eventoptions-policy"
-description: |-
-  Create an event-options policy
 ---
 
 # junos_eventoptions_policy

@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_nat_static"
-sidebar_current: "docs-junos-resource-security-nat-static"
-description: |-
-  Create a security nat static (when Junos device supports it)
 ---
 
 # junos_security_nat_static

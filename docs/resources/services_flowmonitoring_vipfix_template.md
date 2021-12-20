@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_services_flowmonitoring_vipfix_template"
-sidebar_current: "docs-junos-resource-services-flowmonitoring-vipfix-template"
-description: |-
-  Create a services flow-monitoring version-ipfix template
 ---
 
 # junos_services_flowmonitoring_vipfix_template

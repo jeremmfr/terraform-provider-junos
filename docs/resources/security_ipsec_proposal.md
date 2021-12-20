@@ -1,9 +1,5 @@
 ---
-layout: "junos"
 page_title: "Junos: junos_security_ipsec_proposal"
-sidebar_current: "docs-junos-resource-security-ipsec-proposal"
-description: |-
-  Create a security ipsec proposal (when Junos device supports it)
 ---
 
 # junos_security_ipsec_proposal
