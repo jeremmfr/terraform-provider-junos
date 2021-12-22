@@ -11,7 +11,7 @@ jobs:
         run: |
           missing=""
           for resource in $(ls junos/resource_*.go | grep -v "_test.go$" | cut -d'/' -f2 | cut -d'.' -f1 | sed 's/^resource_//' ) ; do \
-          if [[ ! -f website/docs/r/${resource}.html.markdown ]] ; then \
+          if [[ ! -f docs/resources/${resource}.md ]] ; then \
           missing+="${resource} " ; \
           fi ; \
           done
@@ -22,7 +22,7 @@ jobs:
         run: |
           missing=""
           for datasource in $(ls junos/data_source_*.go | grep -v "_test.go$" | cut -d'/' -f2 | cut -d'.' -f1 | sed 's/^data_source_//' ) ; do \
-          if [[ ! -f website/docs/d/${datasource}.html.markdown ]] ; then \
+          if [[ ! -f docs/data-sources/${datasource}.md ]] ; then \
           missing+="${datasource} " ; \
           fi ; \
           done

@@ -26,7 +26,7 @@ for provider and resources documentation.
 
 ## Requirements
 
-- [Terraform](https://www.terraform.io/downloads.html)
+- [Terraform](https://www.terraform.io/downloads)
 
 ### In addition to develop
 
@@ -52,7 +52,7 @@ Download latest version in [releases](https://github.com/jeremmfr/terraform-prov
 
 ### Terraform 0.13 and later
 
-Extract provider binary in [local mirror directory](https://www.terraform.io/docs/cli/config/config-file.html#implied-local-mirror-directories) with a fake registry (`registry.local`):
+Extract provider binary in [local mirror directory](https://www.terraform.io/cli/config/config-file#implied-local-mirror-directories) with a fake registry (`registry.local`):
 
 ```bash
 for archive in $(ls terraform-provider-junos*.zip) ; do
@@ -99,8 +99,8 @@ To contribute, please read the [contribution guideline](.github/CONTRIBUTING.md)
 
 ### Build to override automatic install version (Terraform 0.14 and later)
 
-Since Terraform 0.14, [development overrides for provider developers](https://www.terraform.io/docs/cli/config/config-file.html#development-overrides-for-provider-developers) allow to use the provider built from source.  
-Use a Terraform [cli configuration file](https://www.terraform.io/docs/cli/config/config-file.html) (`~/.terraformrc` by default) with at least the following options:
+Since Terraform 0.14, [development overrides for provider developers](https://www.terraform.io/cli/config/config-file#development-overrides-for-provider-developers) allow to use the provider built from source.  
+Use a Terraform [cli configuration file](https://www.terraform.io/cli/config/config-file) (`~/.terraformrc` by default) with at least the following options:
 
 ```hcl
 provider_installation {
