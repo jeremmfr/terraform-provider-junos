@@ -368,6 +368,17 @@ func resourceSecurityIdpPolicyReadWJnprSess(
 func resourceSecurityIdpPolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delSecurityIdpPolicy(d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setSecurityIdpPolicy(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -399,6 +410,13 @@ func resourceSecurityIdpPolicyUpdate(ctx context.Context, d *schema.ResourceData
 
 func resourceSecurityIdpPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delSecurityIdpPolicy(d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
