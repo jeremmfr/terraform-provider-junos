@@ -613,6 +613,17 @@ func resourceInterfacePhysicalReadWJnprSess(
 func resourceInterfacePhysicalUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delInterfacePhysicalOpts(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setInterfacePhysical(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -649,6 +660,13 @@ func resourceInterfacePhysicalUpdate(ctx context.Context, d *schema.ResourceData
 
 func resourceInterfacePhysicalDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delInterfacePhysical(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -1549,13 +1567,18 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 
 func delInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
-	if containsUnit, err := checkInterfacePhysicalContainsUnit(d.Get("name").(string), m, jnprSess); err != nil {
-		return err
-	} else if containsUnit {
-		return fmt.Errorf("interface %s is used for a logical unit interface", d.Get("name").(string))
+	if jnprSess != nil {
+		if containsUnit, err := checkInterfacePhysicalContainsUnit(d.Get("name").(string), m, jnprSess); err != nil {
+			return err
+		} else if containsUnit {
+			return fmt.Errorf("interface %s is used for a logical unit interface", d.Get("name").(string))
+		}
 	}
 	if err := sess.configSet([]string{"delete interfaces " + d.Get("name").(string)}, jnprSess); err != nil {
 		return err
+	}
+	if jnprSess == nil {
+		return nil
 	}
 	if v := d.Get("name").(string); strings.HasPrefix(v, "ae") {
 		aggregatedCount, err := interfaceAggregatedCountSearchMax("ae-1", v, v, m, jnprSess)
