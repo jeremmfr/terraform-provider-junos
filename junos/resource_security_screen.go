@@ -670,6 +670,17 @@ func resourceSecurityScreenReadWJnprSess(
 func resourceSecurityScreenUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delSecurityScreen(d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setSecurityScreen(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -682,7 +693,6 @@ func resourceSecurityScreenUpdate(ctx context.Context, d *schema.ResourceData, m
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-
 	if err := setSecurityScreen(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -702,6 +712,13 @@ func resourceSecurityScreenUpdate(ctx context.Context, d *schema.ResourceData, m
 
 func resourceSecurityScreenDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delSecurityScreen(d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
