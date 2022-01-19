@@ -5,6 +5,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* resource/`junos_security_policy`: read the config lines with `then allow tunnel pair-policy` to add them when updating the resource and thus avoid modifying the `junos_security_policy_tunnel_pair_policy` resource lines
+
 ## 1.23.0 (December 17, 2021)
 
 ENHANCEMENTS:
