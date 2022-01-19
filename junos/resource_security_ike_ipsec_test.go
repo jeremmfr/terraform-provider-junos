@@ -411,24 +411,32 @@ resource junos_security_zone testacc_secIkeIpsec_remote {
   }
 }
 resource junos_security_policy testacc_policyIpsecLocToRem {
+  depends_on = [
+    junos_security_zone.testacc_secIkeIpsec_local,
+    junos_security_zone.testacc_secIkeIpsec_remote
+  ]
   from_zone = junos_security_zone.testacc_secIkeIpsec_local.name
   to_zone   = junos_security_zone.testacc_secIkeIpsec_remote.name
   policy {
     name                      = "testacc_vpn-out"
-    match_source_address      = [junos_security_zone.testacc_secIkeIpsec_local.address_book[0].name]
-    match_destination_address = [junos_security_zone.testacc_secIkeIpsec_remote.address_book[0].name]
+    match_source_address      = ["testacc_vpnlocal"]
+    match_destination_address = ["testacc_vpnremote"]
     match_application         = ["any"]
     permit_tunnel_ipsec_vpn   = junos_security_ipsec_vpn.testacc_ipsecvpn2.name
   }
 }
 
 resource junos_security_policy testacc_policyIpsecRemToLoc {
+  depends_on = [
+    junos_security_zone.testacc_secIkeIpsec_local,
+    junos_security_zone.testacc_secIkeIpsec_remote
+  ]
   from_zone = junos_security_zone.testacc_secIkeIpsec_remote.name
   to_zone   = junos_security_zone.testacc_secIkeIpsec_local.name
   policy {
     name                      = "testacc_vpn-in"
-    match_source_address      = [junos_security_zone.testacc_secIkeIpsec_remote.address_book[0].name]
-    match_destination_address = [junos_security_zone.testacc_secIkeIpsec_local.address_book[0].name]
+    match_source_address      = ["testacc_vpnremote"]
+    match_destination_address = ["testacc_vpnlocal"]
     match_application         = ["any"]
     permit_tunnel_ipsec_vpn   = junos_security_ipsec_vpn.testacc_ipsecvpn2.name
   }
@@ -527,24 +535,32 @@ resource junos_security_zone testacc_secIkeIpsec_remote {
   }
 }
 resource junos_security_policy testacc_policyIpsecLocToRem {
+  depends_on = [
+    junos_security_zone.testacc_secIkeIpsec_local,
+    junos_security_zone.testacc_secIkeIpsec_remote
+  ]
   from_zone = junos_security_zone.testacc_secIkeIpsec_local.name
   to_zone   = junos_security_zone.testacc_secIkeIpsec_remote.name
   policy {
     name                      = "testacc_vpn-out"
-    match_source_address      = [junos_security_zone.testacc_secIkeIpsec_local.address_book[0].name]
-    match_destination_address = [junos_security_zone.testacc_secIkeIpsec_remote.address_book[0].name]
+    match_source_address      = ["testacc_vpnlocal"]
+    match_destination_address = ["testacc_vpnremote"]
     match_application         = ["any"]
     permit_tunnel_ipsec_vpn   = junos_security_ipsec_vpn.testacc_ipsecvpn2.name
   }
 }
 
 resource junos_security_policy testacc_policyIpsecRemToLoc {
+  depends_on = [
+    junos_security_zone.testacc_secIkeIpsec_local,
+    junos_security_zone.testacc_secIkeIpsec_remote
+  ]
   from_zone = junos_security_zone.testacc_secIkeIpsec_remote.name
   to_zone   = junos_security_zone.testacc_secIkeIpsec_local.name
   policy {
     name                      = "testacc_vpn-in"
-    match_source_address      = [junos_security_zone.testacc_secIkeIpsec_remote.address_book[0].name]
-    match_destination_address = [junos_security_zone.testacc_secIkeIpsec_local.address_book[0].name]
+    match_source_address      = ["testacc_vpnremote"]
+    match_destination_address = ["testacc_vpnlocal"]
     match_application         = ["any"]
     permit_tunnel_ipsec_vpn   = junos_security_ipsec_vpn.testacc_ipsecvpn2.name
   }
