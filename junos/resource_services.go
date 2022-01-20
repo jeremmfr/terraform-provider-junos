@@ -674,6 +674,17 @@ func resourceServicesReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSe
 func resourceServicesUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delServices(d, m, nil, false); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setServices(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -706,6 +717,13 @@ func resourceServicesUpdate(ctx context.Context, d *schema.ResourceData, m inter
 func resourceServicesDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	if d.Get("clean_on_destroy").(bool) {
 		sess := m.(*Session)
+		if sess.junosFakeDeleteAlso {
+			if err := delServices(d, m, nil, true); err != nil {
+				return diag.FromErr(err)
+			}
+
+			return nil
+		}
 		jnprSess, err := sess.startNewSession()
 		if err != nil {
 			return diag.FromErr(err)
