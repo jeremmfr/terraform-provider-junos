@@ -237,6 +237,22 @@ func resourceVlanReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *
 func resourceVlanUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if d.HasChange("vxlan") {
+			oldVxlan, _ := d.GetChange("vxlan")
+			if err := delVlan(d.Get("name").(string), oldVxlan.([]interface{}), m, nil); err != nil {
+				return diag.FromErr(err)
+			}
+		} else if err := delVlan(d.Get("name").(string), d.Get("vxlan").([]interface{}), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setVlan(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -275,6 +291,13 @@ func resourceVlanUpdate(ctx context.Context, d *schema.ResourceData, m interface
 
 func resourceVlanDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delVlan(d.Get("name").(string), d.Get("vxlan").([]interface{}), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
