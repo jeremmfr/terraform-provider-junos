@@ -2,6 +2,9 @@ package junos
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"strings"
 	"sync"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -90,6 +93,18 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JUNOS_FAKECREATE_SETFILE", ""),
+			},
+			"fake_update_also": {
+				Type:         schema.TypeBool,
+				Optional:     true,
+				RequiredWith: []string{"fake_create_with_setfile"},
+				DefaultFunc:  EnvDefaultBooleanFunc("JUNOS_FAKEUPDATE_ALSO"),
+			},
+			"fake_delete_also": {
+				Type:         schema.TypeBool,
+				Optional:     true,
+				RequiredWith: []string{"fake_create_with_setfile"},
+				DefaultFunc:  EnvDefaultBooleanFunc("JUNOS_FAKEDELETE_ALSO"),
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -199,6 +214,12 @@ func Provider() *schema.Provider {
 }
 
 func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	if d.Get("fake_update_also").(bool) || d.Get("fake_delete_also").(bool) {
+		if d.Get("fake_create_with_setfile").(string) == "" {
+			return nil, diag.FromErr(fmt.Errorf(
+				"'fake_create_with_setfile' need to be set with 'fake_update_also' and 'fake_delete_also'"))
+		}
+	}
 	c := configProvider{
 		junosIP:                  d.Get("ip").(string),
 		junosPort:                d.Get("port").(int),
@@ -214,10 +235,22 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		junosFilePermission:      d.Get("file_permission").(string),
 		junosDebugNetconfLogPath: d.Get("debug_netconf_log_path").(string),
 		junosFakeCreateSetFile:   d.Get("fake_create_with_setfile").(string),
+		junosFakeUpdateAlso:      d.Get("fake_update_also").(bool),
+		junosFakeDeleteAlso:      d.Get("fake_delete_also").(bool),
 	}
 	for _, v := range d.Get("ssh_ciphers").([]interface{}) {
 		c.junosSSHCiphers = append(c.junosSSHCiphers, v.(string))
 	}
 
 	return c.prepareSession()
+}
+
+func EnvDefaultBooleanFunc(k string) schema.SchemaDefaultFunc {
+	return func() (interface{}, error) {
+		if v := os.Getenv(k); strings.ToLower(v) == "true" {
+			return true, nil
+		}
+
+		return false, nil
+	}
 }

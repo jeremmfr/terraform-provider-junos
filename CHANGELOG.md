@@ -3,6 +3,10 @@
 
 ENHANCEMENTS:
 
+* add provider arguments `fake_update_also` and `fake_delete_also` to add the same workaround as with `fake_create_with_setfile`  
+  **Don't use in normal terraform run** and **be careful with this option**  
+  See docs for more information (Fixes #329)
+
 BUG FIXES:
 
 ## 1.23.0 (December 17, 2021)

@@ -9,6 +9,8 @@ import (
 
 // configProvider.
 type configProvider struct {
+	junosFakeUpdateAlso      bool
+	junosFakeDeleteAlso      bool
 	junosPort                int
 	junosCmdSleepShort       int
 	junosCmdSleepLock        int
@@ -40,6 +42,8 @@ func (c *configProvider) prepareSession() (*Session, diag.Diagnostics) {
 		junosSleepShort:     c.junosCmdSleepShort,
 		junosSleepSSHClosed: c.junosSSHSleepClosed,
 		junosSSHCiphers:     c.junosSSHCiphers,
+		junosFakeUpdateAlso: c.junosFakeUpdateAlso,
+		junosFakeDeleteAlso: c.junosFakeDeleteAlso,
 	}
 	// junosSSHKeyFile
 	sshKeyFile := c.junosSSHKeyFile
