@@ -2148,15 +2148,16 @@ func readSecurityFlow(confRead *securityOptions, itemTrimFlow string) error {
 						"session_timeout":           0,
 					})
 			}
+			timeWaitState := flowTCPSession["time_wait_state"].([]map[string]interface{})[0]
 			switch {
 			case itemTrim == "tcp-session time-wait-state apply-to-half-close-state":
-				flowTCPSession["time_wait_state"].([]map[string]interface{})[0]["apply_to_half_close_state"] = true
+				timeWaitState["apply_to_half_close_state"] = true
 			case itemTrim == "tcp-session time-wait-state session-ageout":
-				flowTCPSession["time_wait_state"].([]map[string]interface{})[0]["session_ageout"] = true
+				timeWaitState["session_ageout"] = true
 			case strings.HasPrefix(itemTrim, "tcp-session time-wait-state session-timeout "):
 				var err error
-				flowTCPSession["time_wait_state"].([]map[string]interface{})[0]["session_timeout"], err =
-					strconv.Atoi(strings.TrimPrefix(itemTrim, "tcp-session time-wait-state session-timeout "))
+				timeWaitState["session_timeout"], err = strconv.Atoi(strings.TrimPrefix(
+					itemTrim, "tcp-session time-wait-state session-timeout "))
 				if err != nil {
 					return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
@@ -2356,48 +2357,40 @@ func readSecurityIkeTraceOptions(confRead *securityOptions, itemTrimIkeTraceOpts
 					"no_world_readable": false,
 				})
 		}
+		file := confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]
 		switch {
 		case strings.HasPrefix(itemTrim, "file files"):
 			var err error
-			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["files"], err = strconv.Atoi(
-				strings.TrimPrefix(itemTrim, "file files "))
+			file["files"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file files "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "file match"):
-			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["match"] = strings.Trim(
-				strings.TrimPrefix(itemTrim, "file match "), "\"")
+			file["match"] = strings.Trim(strings.TrimPrefix(itemTrim, "file match "), "\"")
 		case strings.HasPrefix(itemTrim, "file size"):
 			var err error
 			switch {
 			case strings.HasSuffix(itemTrim, "k"):
-				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"], err =
-					strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "k"))
-				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"] =
-					confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"].(int) * 1024
+				file["size"], err = strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "k"))
+				file["size"] = file["size"].(int) * 1024
 			case strings.HasSuffix(itemTrim, "m"):
-				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"], err =
-					strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "m"))
-				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"] =
-					confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"].(int) * 1024 * 1024
+				file["size"], err = strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "m"))
+				file["size"] = file["size"].(int) * 1024 * 1024
 			case strings.HasSuffix(itemTrim, "g"):
-				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"], err =
-					strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "g"))
-				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"] =
-					confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"].(int) * 1024 * 1024 * 1024
+				file["size"], err = strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "g"))
+				file["size"] = file["size"].(int) * 1024 * 1024 * 1024
 			default:
-				confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["size"], err =
-					strconv.Atoi(strings.TrimPrefix(itemTrim, "file size "))
+				file["size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file size "))
 			}
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case itemTrim == "file world-readable":
-			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["world_readable"] = true
+			file["world_readable"] = true
 		case itemTrim == "file no-world-readable":
-			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["no_world_readable"] = true
+			file["no_world_readable"] = true
 		case strings.HasPrefix(itemTrim, "file "):
-			confRead.ikeTraceoptions[0]["file"].([]map[string]interface{})[0]["name"] = strings.Trim(
+			file["name"] = strings.Trim(
 				strings.TrimPrefix(itemTrim, "file "), "\"")
 		}
 	case strings.HasPrefix(itemTrim, "flag"):
@@ -2456,22 +2449,21 @@ func readSecurityLog(confRead *securityOptions, itemTrimLog string) error {
 				"size":  0,
 			})
 		}
+		file := confRead.log[0]["file"].([]map[string]interface{})[0]
 		switch {
 		case strings.HasPrefix(itemTrim, "file files "):
 			var err error
-			confRead.log[0]["file"].([]map[string]interface{})[0]["files"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "file files "))
+			file["files"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file files "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "file name "):
-			confRead.log[0]["file"].([]map[string]interface{})[0]["name"] = strings.TrimPrefix(itemTrim, "file name ")
+			file["name"] = strings.TrimPrefix(itemTrim, "file name ")
 		case strings.HasPrefix(itemTrim, "file path "):
-			confRead.log[0]["file"].([]map[string]interface{})[0]["path"] = strings.TrimPrefix(itemTrim, "file path ")
+			file["path"] = strings.TrimPrefix(itemTrim, "file path ")
 		case strings.HasPrefix(itemTrim, "file size "):
 			var err error
-			confRead.log[0]["file"].([]map[string]interface{})[0]["size"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "file size "))
+			file["size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file size "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
@@ -2507,20 +2499,18 @@ func readSecurityLog(confRead *securityOptions, itemTrimLog string) error {
 					"tls_profile":     "",
 				})
 		}
+		transport := confRead.log[0]["transport"].([]map[string]interface{})[0]
 		switch {
 		case strings.HasPrefix(itemTrim, "transport protocol "):
-			confRead.log[0]["transport"].([]map[string]interface{})[0]["protocol"] =
-				strings.TrimPrefix(itemTrim, "transport protocol ")
+			transport["protocol"] = strings.TrimPrefix(itemTrim, "transport protocol ")
 		case strings.HasPrefix(itemTrim, "transport tcp-connections "):
 			var err error
-			confRead.log[0]["transport"].([]map[string]interface{})[0]["tcp_connections"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "transport tcp-connections "))
+			transport["tcp_connections"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "transport tcp-connections "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "transport tls-profile "):
-			confRead.log[0]["transport"].([]map[string]interface{})[0]["tls_profile"] =
-				strings.TrimPrefix(itemTrim, "transport tls-profile ")
+			transport["tls_profile"] = strings.TrimPrefix(itemTrim, "transport tls-profile ")
 		}
 	case itemTrim == "utc-timestamp":
 		confRead.log[0]["utc_timestamp"] = true
@@ -2577,9 +2567,9 @@ func readSecurityUtm(confRead *securityOptions, itemTrimUtm string) error {
 		confRead.utm[0]["feature_profile_web_filtering_type"] = strings.TrimPrefix(itemTrimUtm,
 			"utm feature-profile web-filtering type ")
 	case strings.HasPrefix(itemTrimUtm, "utm feature-profile web-filtering juniper-enhanced server"):
-		if len(confRead.utm[0]["feature_profile_web_filtering_juniper_enhanced_server"].([]map[string]interface{})) == 0 {
-			confRead.utm[0]["feature_profile_web_filtering_juniper_enhanced_server"] = append(
-				confRead.utm[0]["feature_profile_web_filtering_juniper_enhanced_server"].([]map[string]interface{}),
+		utmArg := "feature_profile_web_filtering_juniper_enhanced_server"
+		if len(confRead.utm[0][utmArg].([]map[string]interface{})) == 0 {
+			confRead.utm[0][utmArg] = append(confRead.utm[0][utmArg].([]map[string]interface{}),
 				map[string]interface{}{
 					"host":             "",
 					"port":             0,
@@ -2588,8 +2578,7 @@ func readSecurityUtm(confRead *securityOptions, itemTrimUtm string) error {
 				})
 		}
 		itemTrimServer := strings.TrimPrefix(itemTrimUtm, "utm feature-profile web-filtering juniper-enhanced server")
-		utmFeatProfWebFiltJunEnhServer :=
-			confRead.utm[0]["feature_profile_web_filtering_juniper_enhanced_server"].([]map[string]interface{})[0]
+		utmFeatProfWebFiltJunEnhServer := confRead.utm[0][utmArg].([]map[string]interface{})[0]
 		switch {
 		case strings.HasPrefix(itemTrimServer, " host "):
 			utmFeatProfWebFiltJunEnhServer["host"] = strings.TrimPrefix(itemTrimServer, " host ")

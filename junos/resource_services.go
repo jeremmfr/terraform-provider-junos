@@ -1510,26 +1510,22 @@ func readServicesApplicationIdentification(confRead *servicesOptions, itemTrimAp
 					"url":                      "",
 				})
 		}
+		download := confRead.appIdent[0]["download"].([]map[string]interface{})[0]
 		switch {
 		case strings.HasPrefix(itemTrim, "download automatic interval "):
 			var err error
-			confRead.appIdent[0]["download"].([]map[string]interface{})[0]["automatic_interval"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "download automatic interval "))
+			download["automatic_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "download automatic interval "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "download automatic start-time "):
-			confRead.appIdent[0]["download"].([]map[string]interface{})[0]["automatic_start_time"] =
-				strings.TrimPrefix(itemTrim, "download automatic start-time ")
+			download["automatic_start_time"] = strings.TrimPrefix(itemTrim, "download automatic start-time ")
 		case itemTrim == "download ignore-server-validation":
-			confRead.appIdent[0]["download"].([]map[string]interface{})[0]["ignore_server_validation"] =
-				true
+			download["ignore_server_validation"] = true
 		case strings.HasPrefix(itemTrim, "download proxy-profile "):
-			confRead.appIdent[0]["download"].([]map[string]interface{})[0]["proxy_profile"] =
-				strings.Trim(strings.TrimPrefix(itemTrim, "download proxy-profile "), "\"")
+			download["proxy_profile"] = strings.Trim(strings.TrimPrefix(itemTrim, "download proxy-profile "), "\"")
 		case strings.HasPrefix(itemTrim, "download url "):
-			confRead.appIdent[0]["download"].([]map[string]interface{})[0]["url"] =
-				strings.Trim(strings.TrimPrefix(itemTrim, "download url "), "\"")
+			download["url"] = strings.Trim(strings.TrimPrefix(itemTrim, "download url "), "\"")
 		}
 	case strings.HasPrefix(itemTrim, "enable-performance-mode"):
 		if len(confRead.appIdent[0]["enable_performance_mode"].([]map[string]interface{})) == 0 {
@@ -1538,10 +1534,11 @@ func readServicesApplicationIdentification(confRead *servicesOptions, itemTrimAp
 					"max_packet_threshold": 0,
 				})
 		}
+		enablePerfMode := confRead.appIdent[0]["enable_performance_mode"].([]map[string]interface{})[0]
 		if strings.HasPrefix(itemTrim, "enable-performance-mode max-packet-threshold ") {
 			var err error
-			confRead.appIdent[0]["enable_performance_mode"].([]map[string]interface{})[0]["max_packet_threshold"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "enable-performance-mode max-packet-threshold "))
+			enablePerfMode["max_packet_threshold"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "enable-performance-mode max-packet-threshold "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
@@ -1573,18 +1570,17 @@ func readServicesApplicationIdentification(confRead *servicesOptions, itemTrimAp
 					"packet_limit": -1,
 				})
 		}
+		inspLimitTCP := confRead.appIdent[0]["inspection_limit_tcp"].([]map[string]interface{})[0]
 		switch {
 		case strings.HasPrefix(itemTrim, "inspection-limit tcp byte-limit "):
 			var err error
-			confRead.appIdent[0]["inspection_limit_tcp"].([]map[string]interface{})[0]["byte_limit"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "inspection-limit tcp byte-limit "))
+			inspLimitTCP["byte_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "inspection-limit tcp byte-limit "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "inspection-limit tcp packet-limit "):
 			var err error
-			confRead.appIdent[0]["inspection_limit_tcp"].([]map[string]interface{})[0]["packet_limit"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "inspection-limit tcp packet-limit "))
+			inspLimitTCP["packet_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "inspection-limit tcp packet-limit "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
@@ -1597,18 +1593,17 @@ func readServicesApplicationIdentification(confRead *servicesOptions, itemTrimAp
 					"packet_limit": -1,
 				})
 		}
+		inspLimitUDP := confRead.appIdent[0]["inspection_limit_udp"].([]map[string]interface{})[0]
 		switch {
 		case strings.HasPrefix(itemTrim, "inspection-limit udp byte-limit "):
 			var err error
-			confRead.appIdent[0]["inspection_limit_udp"].([]map[string]interface{})[0]["byte_limit"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "inspection-limit udp byte-limit "))
+			inspLimitUDP["byte_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "inspection-limit udp byte-limit "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "inspection-limit udp packet-limit "):
 			var err error
-			confRead.appIdent[0]["inspection_limit_udp"].([]map[string]interface{})[0]["packet_limit"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "inspection-limit udp packet-limit "))
+			inspLimitUDP["packet_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "inspection-limit udp packet-limit "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}

@@ -1482,29 +1482,25 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 				})
 		}
 		itemTrimLacp := strings.TrimPrefix(itemTrim, "lacp ")
+		lacp := confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]
 		switch {
 		case itemTrimLacp == activeW || itemTrimLacp == "passive":
-			confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]["mode"] = itemTrimLacp
+			lacp["mode"] = itemTrimLacp
 		case strings.HasPrefix(itemTrimLacp, "admin-key "):
 			var err error
-			confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]["admin_key"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrimLacp, "admin-key "))
+			lacp["admin_key"], err = strconv.Atoi(strings.TrimPrefix(itemTrimLacp, "admin-key "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimLacp, "periodic "):
-			confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]["periodic"] =
-				strings.TrimPrefix(itemTrimLacp, "periodic ")
+			lacp["periodic"] = strings.TrimPrefix(itemTrimLacp, "periodic ")
 		case strings.HasPrefix(itemTrimLacp, "sync-reset "):
-			confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]["sync_reset"] =
-				strings.TrimPrefix(itemTrimLacp, "sync-reset ")
+			lacp["sync_reset"] = strings.TrimPrefix(itemTrimLacp, "sync-reset ")
 		case strings.HasPrefix(itemTrimLacp, "system-id "):
-			confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]["system_id"] =
-				strings.TrimPrefix(itemTrimLacp, "system-id ")
+			lacp["system_id"] = strings.TrimPrefix(itemTrimLacp, "system-id ")
 		case strings.HasPrefix(itemTrimLacp, "system-priority "):
 			var err error
-			confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]["system_priority"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrimLacp, "system-priority "))
+			lacp["system_priority"], err = strconv.Atoi(strings.TrimPrefix(itemTrimLacp, "system-priority "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
