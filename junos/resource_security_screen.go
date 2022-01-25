@@ -1607,8 +1607,8 @@ func readSecurityScreenTCP(confRead *screenOptions, itemTrim string) error {
 		}
 		if strings.HasPrefix(itemTrim, "tcp port-scan threshold ") {
 			var err error
-			confRead.tcp[0]["port_scan"].([]map[string]interface{})[0]["threshold"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "tcp port-scan threshold "))
+			confRead.tcp[0]["port_scan"].([]map[string]interface{})[0]["threshold"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "tcp port-scan threshold "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
@@ -1622,8 +1622,8 @@ func readSecurityScreenTCP(confRead *screenOptions, itemTrim string) error {
 		}
 		if strings.HasPrefix(itemTrim, "tcp tcp-sweep threshold ") {
 			var err error
-			confRead.tcp[0]["sweep"].([]map[string]interface{})[0]["threshold"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "tcp tcp-sweep threshold "))
+			confRead.tcp[0]["sweep"].([]map[string]interface{})[0]["threshold"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "tcp tcp-sweep threshold "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}

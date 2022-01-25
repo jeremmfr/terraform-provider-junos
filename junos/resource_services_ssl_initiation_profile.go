@@ -118,8 +118,7 @@ func resourceServicesSSLInitiationProfileCreate(ctx context.Context,
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	svcSSLInitiationProfileExists, err :=
-		checkServicesSSLInitiationProfileExists(d.Get("name").(string), m, jnprSess)
+	svcSSLInitiationProfileExists, err := checkServicesSSLInitiationProfileExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -145,8 +144,7 @@ func resourceServicesSSLInitiationProfileCreate(ctx context.Context,
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	svcSSLInitiationProfileExists, err =
-		checkServicesSSLInitiationProfileExists(d.Get("name").(string), m, jnprSess)
+	svcSSLInitiationProfileExists, err = checkServicesSSLInitiationProfileExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -176,8 +174,7 @@ func resourceServicesSSLInitiationProfileRead(ctx context.Context,
 func resourceServicesSSLInitiationProfileReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
-	svcSSLInitiationProfileOptions, err :=
-		readServicesSSLInitiationProfile(d.Get("name").(string), m, jnprSess)
+	svcSSLInitiationProfileOptions, err := readServicesSSLInitiationProfile(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -296,8 +293,7 @@ func setServicesSSLInitiationProfile(d *schema.ResourceData, m interface{}, jnpr
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 
-	setPrefix :=
-		"set services ssl initiation profile \"" + d.Get("name").(string) + "\" "
+	setPrefix := "set services ssl initiation profile \"" + d.Get("name").(string) + "\" "
 	configSet = append(configSet, setPrefix)
 	for _, v := range d.Get("actions").([]interface{}) {
 		if v == nil {

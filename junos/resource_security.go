@@ -2134,8 +2134,8 @@ func readSecurityFlow(confRead *securityOptions, itemTrimFlow string) error {
 			flowTCPSession["strict_syn_check"] = true
 		case strings.HasPrefix(itemTrim, "tcp-session tcp-initial-timeout "):
 			var err error
-			flowTCPSession["tcp_initial_timeout"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "tcp-session tcp-initial-timeout "))
+			flowTCPSession["tcp_initial_timeout"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "tcp-session tcp-initial-timeout "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
@@ -2204,14 +2204,14 @@ func readSecurityIdpSecurityPackage(confRead *securityOptions, itemTrimIdpSecuri
 		confRead.idpSecurityPackage[0]["automatic_enable"] = true
 	case strings.HasPrefix(itemTrim, "automatic interval "):
 		var err error
-		confRead.idpSecurityPackage[0]["automatic_interval"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "automatic interval "))
+		confRead.idpSecurityPackage[0]["automatic_interval"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "automatic interval "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "automatic start-time "):
-		confRead.idpSecurityPackage[0]["automatic_start_time"] =
-			strings.Split(strings.Trim(strings.TrimPrefix(itemTrim, "automatic start-time "), "\""), " ")[0]
+		confRead.idpSecurityPackage[0]["automatic_start_time"] = strings.Split(strings.Trim(strings.TrimPrefix(
+			itemTrim, "automatic start-time "), "\""), " ")[0]
 	case itemTrim == "install ignore-version-check":
 		confRead.idpSecurityPackage[0]["install_ignore_version_check"] = true
 	case strings.HasPrefix(itemTrim, "proxy-profile "):
@@ -2313,8 +2313,8 @@ func readSecurityIdpSensorConfig(confRead *securityOptions, itemTrimIdpSensorCon
 			}
 		case strings.HasPrefix(itemTrim, "packet-log threshold-logging-interval "):
 			var err error
-			packetLog["threshold_logging_interval"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "packet-log threshold-logging-interval "))
+			packetLog["threshold_logging_interval"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "packet-log threshold-logging-interval "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
@@ -2326,8 +2326,8 @@ func readSecurityIdpSensorConfig(confRead *securityOptions, itemTrimIdpSensorCon
 			}
 		}
 	case strings.HasPrefix(itemTrim, "security-configuration protection-mode "):
-		confRead.idpSensorConfig[0]["security_configuration_protection_mode"] =
-			strings.TrimPrefix(itemTrim, "security-configuration protection-mode ")
+		confRead.idpSensorConfig[0]["security_configuration_protection_mode"] = strings.TrimPrefix(
+			itemTrim, "security-configuration protection-mode ")
 	}
 
 	return nil
@@ -2543,20 +2543,20 @@ func readSecurityUserIdentAuthSource(confRead *securityOptions, itemTrimUserIden
 	itemTrim := strings.TrimPrefix(itemTrimUserIdentAuthSource, "user-identification authentication-source ")
 	switch {
 	case strings.HasPrefix(itemTrim, "active-directory-authentication-table priority "):
-		confRead.userIdentAuthSource[0]["ad_auth_priority"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "active-directory-authentication-table priority "))
+		confRead.userIdentAuthSource[0]["ad_auth_priority"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "active-directory-authentication-table priority "))
 	case strings.HasPrefix(itemTrim, "aruba-clearpass priority "):
-		confRead.userIdentAuthSource[0]["aruba_clearpass_priority"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "aruba-clearpass priority "))
+		confRead.userIdentAuthSource[0]["aruba_clearpass_priority"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "aruba-clearpass priority "))
 	case strings.HasPrefix(itemTrim, "firewall-authentication priority "):
-		confRead.userIdentAuthSource[0]["firewall_auth_priority"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "firewall-authentication priority "))
+		confRead.userIdentAuthSource[0]["firewall_auth_priority"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "firewall-authentication priority "))
 	case strings.HasPrefix(itemTrim, "local-authentication-table priority "):
-		confRead.userIdentAuthSource[0]["local_auth_priority"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "local-authentication-table priority "))
+		confRead.userIdentAuthSource[0]["local_auth_priority"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "local-authentication-table priority "))
 	case strings.HasPrefix(itemTrim, "unified-access-control priority "):
-		confRead.userIdentAuthSource[0]["unified_access_control_priority"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "unified-access-control priority "))
+		confRead.userIdentAuthSource[0]["unified_access_control_priority"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "unified-access-control priority "))
 	}
 	if err != nil {
 		return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
@@ -2600,8 +2600,8 @@ func readSecurityUtm(confRead *securityOptions, itemTrimUtm string) error {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimUtm, err)
 			}
 		case strings.HasPrefix(itemTrimServer, " proxy-profile "):
-			utmFeatProfWebFiltJunEnhServer["proxy_profile"] =
-				strings.Trim(strings.TrimPrefix(itemTrimServer, " proxy-profile "), "\"")
+			utmFeatProfWebFiltJunEnhServer["proxy_profile"] = strings.Trim(strings.TrimPrefix(
+				itemTrimServer, " proxy-profile "), "\"")
 		case strings.HasPrefix(itemTrimServer, " routing-instance "):
 			utmFeatProfWebFiltJunEnhServer["routing_instance"] = strings.TrimPrefix(itemTrimServer, " routing-instance ")
 		}

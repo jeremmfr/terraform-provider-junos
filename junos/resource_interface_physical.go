@@ -1403,45 +1403,44 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 		case strings.HasPrefix(itemTrimBfdLiveDet, "local-address "):
 			parentEtherOptsBFDLiveDetect["local_address"] = strings.TrimPrefix(itemTrimBfdLiveDet, "local-address ")
 		case strings.HasPrefix(itemTrimBfdLiveDet, "authentication algorithm "):
-			parentEtherOptsBFDLiveDetect["authentication_algorithm"] =
-				strings.TrimPrefix(itemTrimBfdLiveDet, "authentication algorithm ")
+			parentEtherOptsBFDLiveDetect["authentication_algorithm"] = strings.TrimPrefix(
+				itemTrimBfdLiveDet, "authentication algorithm ")
 		case strings.HasPrefix(itemTrimBfdLiveDet, "authentication key-chain "):
-			parentEtherOptsBFDLiveDetect["authentication_key_chain"] =
-				strings.TrimPrefix(itemTrimBfdLiveDet, "authentication key-chain ")
+			parentEtherOptsBFDLiveDetect["authentication_key_chain"] = strings.TrimPrefix(
+				itemTrimBfdLiveDet, "authentication key-chain ")
 		case itemTrimBfdLiveDet == "authentication loose-check":
 			parentEtherOptsBFDLiveDetect["authentication_loose_check"] = true
 		case strings.HasPrefix(itemTrimBfdLiveDet, "detection-time threshold "):
 			var err error
-			parentEtherOptsBFDLiveDetect["detection_time_threshold"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "detection-time threshold "))
+			parentEtherOptsBFDLiveDetect["detection_time_threshold"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrimBfdLiveDet, "detection-time threshold "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "holddown-interval "):
 			var err error
-			parentEtherOptsBFDLiveDetect["holddown_interval"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "holddown-interval "))
+			parentEtherOptsBFDLiveDetect["holddown_interval"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrimBfdLiveDet, "holddown-interval "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "minimum-interval "):
 			var err error
-			parentEtherOptsBFDLiveDetect["minimum_interval"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "minimum-interval "))
+			parentEtherOptsBFDLiveDetect["minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrimBfdLiveDet, "minimum-interval "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "minimum-receive-interval "):
 			var err error
-			parentEtherOptsBFDLiveDetect["minimum_receive_interval"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "minimum-receive-interval "))
+			parentEtherOptsBFDLiveDetect["minimum_receive_interval"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrimBfdLiveDet, "minimum-receive-interval "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "multiplier "):
 			var err error
-			parentEtherOptsBFDLiveDetect["multiplier"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "multiplier "))
+			parentEtherOptsBFDLiveDetect["multiplier"], err = strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "multiplier "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
@@ -1451,15 +1450,15 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 			parentEtherOptsBFDLiveDetect["no_adaptation"] = true
 		case strings.HasPrefix(itemTrimBfdLiveDet, "transmit-interval minimum-interval "):
 			var err error
-			parentEtherOptsBFDLiveDetect["transmit_interval_minimum_interval"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "transmit-interval minimum-interval "))
+			parentEtherOptsBFDLiveDetect["transmit_interval_minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrimBfdLiveDet, "transmit-interval minimum-interval "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "transmit-interval threshold "):
 			var err error
-			parentEtherOptsBFDLiveDetect["transmit_interval_threshold"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "transmit-interval threshold "))
+			parentEtherOptsBFDLiveDetect["transmit_interval_threshold"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrimBfdLiveDet, "transmit-interval threshold "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
@@ -1524,15 +1523,13 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 			" " + strings.TrimPrefix(itemTrim, "minimum-bandwidth bw-unit ")
 	case strings.HasPrefix(itemTrim, "minimum-links "):
 		var err error
-		confRead.parentEtherOpts[0]["minimum_links"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-links "))
+		confRead.parentEtherOpts[0]["minimum_links"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-links "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "redundancy-group "):
 		var err error
-		confRead.parentEtherOpts[0]["redundancy_group"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "redundancy-group "))
+		confRead.parentEtherOpts[0]["redundancy_group"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "redundancy-group "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}

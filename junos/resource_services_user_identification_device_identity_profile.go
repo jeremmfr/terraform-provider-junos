@@ -79,8 +79,8 @@ func resourceServicesUserIdentDeviceIdentityProfileCreate(ctx context.Context,
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	svcUserIdentDevIdentProfileExists, err :=
-		checkServicesUserIdentDeviceIdentityProfileExists(d.Get("name").(string), m, jnprSess)
+	svcUserIdentDevIdentProfileExists, err := checkServicesUserIdentDeviceIdentityProfileExists(
+		d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -106,8 +106,8 @@ func resourceServicesUserIdentDeviceIdentityProfileCreate(ctx context.Context,
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	svcUserIdentDevIdentProfileExists, err =
-		checkServicesUserIdentDeviceIdentityProfileExists(d.Get("name").(string), m, jnprSess)
+	svcUserIdentDevIdentProfileExists, err = checkServicesUserIdentDeviceIdentityProfileExists(
+		d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -137,8 +137,8 @@ func resourceServicesUserIdentDeviceIdentityProfileRead(ctx context.Context,
 func resourceServicesUserIdentDeviceIdentityProfileReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
-	svcUserIdentDevIdentProfileOptions, err :=
-		readServicesUserIdentDeviceIdentityProfile(d.Get("name").(string), m, jnprSess)
+	svcUserIdentDevIdentProfileOptions, err := readServicesUserIdentDeviceIdentityProfile(
+		d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -258,8 +258,8 @@ func setServicesUserIdentDeviceIdentityProfile(d *schema.ResourceData, m interfa
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 
-	setPrefix :=
-		"set services user-identification device-information end-user-profile profile-name " + d.Get("name").(string) + " "
+	setPrefix := "set services user-identification device-information end-user-profile profile-name " +
+		d.Get("name").(string) + " "
 	configSet = append(configSet, setPrefix+"domain-name "+d.Get("domain").(string))
 	attributeNameList := make([]string, 0)
 	for _, v := range d.Get("attribute").([]interface{}) {

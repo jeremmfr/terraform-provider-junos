@@ -496,29 +496,29 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 				switch {
 				case strings.HasPrefix(itemRGNbTrim, "node 0 priority "):
 					var err error
-					confRead.redundancyGroup[number]["node0_priority"], err =
-						strconv.Atoi(strings.TrimPrefix(itemRGNbTrim, "node 0 priority "))
+					confRead.redundancyGroup[number]["node0_priority"], err = strconv.Atoi(strings.TrimPrefix(
+						itemRGNbTrim, "node 0 priority "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGNbTrim, err)
 					}
 				case strings.HasPrefix(itemRGNbTrim, "node 1 priority "):
 					var err error
-					confRead.redundancyGroup[number]["node1_priority"], err =
-						strconv.Atoi(strings.TrimPrefix(itemRGNbTrim, "node 1 priority "))
+					confRead.redundancyGroup[number]["node1_priority"], err = strconv.Atoi(strings.TrimPrefix(
+						itemRGNbTrim, "node 1 priority "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGNbTrim, err)
 					}
 				case strings.HasPrefix(itemRGNbTrim, "gratuitous-arp-count "):
 					var err error
-					confRead.redundancyGroup[number]["gratuitous_arp_count"], err =
-						strconv.Atoi(strings.TrimPrefix(itemRGNbTrim, "gratuitous-arp-count "))
+					confRead.redundancyGroup[number]["gratuitous_arp_count"], err = strconv.Atoi(strings.TrimPrefix(
+						itemRGNbTrim, "gratuitous-arp-count "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGNbTrim, err)
 					}
 				case strings.HasPrefix(itemRGNbTrim, "hold-down-interval "):
 					var err error
-					confRead.redundancyGroup[number]["hold_down_interval"], err =
-						strconv.Atoi(strings.TrimPrefix(itemRGNbTrim, "hold-down-interval "))
+					confRead.redundancyGroup[number]["hold_down_interval"], err = strconv.Atoi(strings.TrimPrefix(
+						itemRGNbTrim, "hold-down-interval "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGNbTrim, err)
 					}
@@ -539,22 +539,22 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 					switch {
 					case strings.HasPrefix(itemRGNbTrim, preemptWord+" delay "):
 						var err error
-						confRead.redundancyGroup[number]["preempt_delay"], err =
-							strconv.Atoi(strings.TrimPrefix(itemRGNbTrim, preemptWord+" delay "))
+						confRead.redundancyGroup[number]["preempt_delay"], err = strconv.Atoi(strings.TrimPrefix(
+							itemRGNbTrim, preemptWord+" delay "))
 						if err != nil {
 							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGNbTrim, err)
 						}
 					case strings.HasPrefix(itemRGNbTrim, preemptWord+" limit "):
 						var err error
-						confRead.redundancyGroup[number]["preempt_limit"], err =
-							strconv.Atoi(strings.TrimPrefix(itemRGNbTrim, preemptWord+" limit "))
+						confRead.redundancyGroup[number]["preempt_limit"], err = strconv.Atoi(strings.TrimPrefix(
+							itemRGNbTrim, preemptWord+" limit "))
 						if err != nil {
 							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGNbTrim, err)
 						}
 					case strings.HasPrefix(itemRGNbTrim, preemptWord+" period "):
 						var err error
-						confRead.redundancyGroup[number]["preempt_period"], err =
-							strconv.Atoi(strings.TrimPrefix(itemRGNbTrim, preemptWord+" period "))
+						confRead.redundancyGroup[number]["preempt_period"], err = strconv.Atoi(strings.TrimPrefix(
+							itemRGNbTrim, preemptWord+" period "))
 						if err != nil {
 							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGNbTrim, err)
 						}

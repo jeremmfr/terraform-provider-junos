@@ -1208,8 +1208,8 @@ func readForwardingoptionsSamplingInstanceOutput(
 	switch {
 	case strings.HasPrefix(itemTrim, "aggregate-export-interval "):
 		var err error
-		outputRead["aggregate_export_interval"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "aggregate-export-interval "))
+		outputRead["aggregate_export_interval"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "aggregate-export-interval "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -1300,16 +1300,16 @@ func readForwardingoptionsSamplingInstanceOutput(
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimFlowServer, err)
 			}
 		case strings.HasPrefix(itemTrimFlowServer, "version-ipfix template "):
-			flowServer["version_ipfix_template"] =
-				strings.Trim(strings.TrimPrefix(itemTrimFlowServer, "version-ipfix template "), "\"")
+			flowServer["version_ipfix_template"] = strings.Trim(strings.TrimPrefix(
+				itemTrimFlowServer, "version-ipfix template "), "\"")
 		case strings.HasPrefix(itemTrimFlowServer, "version9 template "):
 			flowServer["version9_template"] = strings.Trim(strings.TrimPrefix(itemTrimFlowServer, "version9 template "), "\"")
 		}
 		outputRead["flow_server"] = append(outputRead["flow_server"].([]map[string]interface{}), flowServer)
 	case strings.HasPrefix(itemTrim, "inline-jflow flow-export-rate "):
 		var err error
-		outputRead["inline_jflow_export_rate"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "inline-jflow flow-export-rate "))
+		outputRead["inline_jflow_export_rate"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "inline-jflow flow-export-rate "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}

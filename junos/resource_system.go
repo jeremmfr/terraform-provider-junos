@@ -1794,8 +1794,8 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 					}
 				case strings.HasPrefix(itemTrim, "archival configuration transfer-interval "):
 					var err error
-					confRead.archivalConfiguration[0]["transfer_interval"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrim, "archival configuration transfer-interval "))
+					confRead.archivalConfiguration[0]["transfer_interval"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrim, "archival configuration transfer-interval "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
@@ -2002,8 +2002,8 @@ func readSystemLogin(confRead *systemOptions, itemTrim string) error {
 	}
 	switch {
 	case strings.HasPrefix(itemTrim, "login announcement "):
-		confRead.login[0]["announcement"] =
-			html.UnescapeString(strings.Trim(strings.TrimPrefix(itemTrim, "login announcement "), "\""))
+		confRead.login[0]["announcement"] = html.UnescapeString(strings.Trim(strings.TrimPrefix(
+			itemTrim, "login announcement "), "\""))
 	case strings.HasPrefix(itemTrim, "login deny-sources address "):
 		confRead.login[0]["deny_sources_address"] = append(confRead.login[0]["deny_sources_address"].([]string),
 			strings.TrimPrefix(itemTrim, "login deny-sources address "))
@@ -2246,8 +2246,8 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 		confRead.internetOptions[0]["ipip_path_mtu_discovery"] = true
 	case strings.HasPrefix(itemTrim, "internet-options ipv6-duplicate-addr-detection-transmits "):
 		var err error
-		confRead.internetOptions[0]["ipv6_duplicate_addr_detection_transmits"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "internet-options ipv6-duplicate-addr-detection-transmits "))
+		confRead.internetOptions[0]["ipv6_duplicate_addr_detection_transmits"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "internet-options ipv6-duplicate-addr-detection-transmits "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2255,8 +2255,8 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 		confRead.internetOptions[0]["ipv6_path_mtu_discovery"] = true
 	case strings.HasPrefix(itemTrim, "internet-options ipv6-path-mtu-discovery-timeout "):
 		var err error
-		confRead.internetOptions[0]["ipv6_path_mtu_discovery_timeout"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "internet-options ipv6-path-mtu-discovery-timeout "))
+		confRead.internetOptions[0]["ipv6_path_mtu_discovery_timeout"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "internet-options ipv6-path-mtu-discovery-timeout "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2284,8 +2284,8 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 		confRead.internetOptions[0]["path_mtu_discovery"] = true
 	case strings.HasPrefix(itemTrim, "internet-options source-port upper-limit "):
 		var err error
-		confRead.internetOptions[0]["source_port_upper_limit"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "internet-options source-port upper-limit "))
+		confRead.internetOptions[0]["source_port_upper_limit"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "internet-options source-port upper-limit "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2295,8 +2295,7 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 		confRead.internetOptions[0]["tcp_drop_synfin_set"] = true
 	case strings.HasPrefix(itemTrim, "internet-options tcp-mss "):
 		var err error
-		confRead.internetOptions[0]["tcp_mss"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "internet-options tcp-mss "))
+		confRead.internetOptions[0]["tcp_mss"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "internet-options tcp-mss "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2334,15 +2333,14 @@ func readSystemLicense(confRead *systemOptions, itemTrim string) error {
 		}
 	case strings.HasPrefix(itemTrim, "license renew before-expiration "):
 		var err error
-		confRead.license[0]["renew_before_expiration"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "license renew before-expiration "))
+		confRead.license[0]["renew_before_expiration"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "license renew before-expiration "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "license renew interval "):
 		var err error
-		confRead.license[0]["renew_interval"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "license renew interval "))
+		confRead.license[0]["renew_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "license renew interval "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2384,20 +2382,19 @@ func readSystemServicesNetconfTraceOpts(confRead *systemOptions, itemTrimNetconf
 		var err error
 		switch {
 		case strings.HasSuffix(itemTrim, "k"):
-			netconfTraceOpts["file_size"], err =
-				strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "k"))
+			netconfTraceOpts["file_size"], err = strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(
+				itemTrim, "file size "), "k"))
 			netconfTraceOpts["file_size"] = netconfTraceOpts["file_size"].(int) * 1024
 		case strings.HasSuffix(itemTrim, "m"):
-			netconfTraceOpts["file_size"], err =
-				strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "m"))
+			netconfTraceOpts["file_size"], err = strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(
+				itemTrim, "file size "), "m"))
 			netconfTraceOpts["file_size"] = netconfTraceOpts["file_size"].(int) * 1024 * 1024
 		case strings.HasSuffix(itemTrim, "g"):
-			netconfTraceOpts["file_size"], err =
-				strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "g"))
+			netconfTraceOpts["file_size"], err = strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(
+				itemTrim, "file size "), "g"))
 			netconfTraceOpts["file_size"] = netconfTraceOpts["file_size"].(int) * 1024 * 1024 * 1024
 		default:
-			netconfTraceOpts["file_size"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "file size "))
+			netconfTraceOpts["file_size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file size "))
 		}
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
@@ -2559,8 +2556,7 @@ func readSystemServicesWebManagement(confRead *systemOptions, itemTrim string) e
 		}
 		if strings.HasPrefix(itemTrim, "services web-management https port ") {
 			var err error
-			webMHTTPS["port"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "services web-management https port "))
+			webMHTTPS["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "services web-management https port "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
@@ -2592,8 +2588,7 @@ func readSystemServicesWebManagement(confRead *systemOptions, itemTrim string) e
 		}
 		if strings.HasPrefix(itemTrim, "services web-management http port ") {
 			var err error
-			webMHTTP["port"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "services web-management http port "))
+			webMHTTP["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "services web-management http port "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}

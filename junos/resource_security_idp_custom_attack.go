@@ -1874,8 +1874,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoICMP(itemTrim string, protoICM
 		protoICMP["checksum_validate_match"] = strings.TrimPrefix(itemTrim, "checksum-validate match ")
 	case strings.HasPrefix(itemTrim, "checksum-validate value "):
 		var err error
-		protoICMP["checksum_validate_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "checksum-validate value "))
+		protoICMP["checksum_validate_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "checksum-validate value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -1930,8 +1929,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoIPv4(itemTrim string, protoIPv
 		protoIPv4["checksum_validate_match"] = strings.TrimPrefix(itemTrim, "checksum-validate match ")
 	case strings.HasPrefix(itemTrim, "checksum-validate value "):
 		var err error
-		protoIPv4["checksum_validate_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "checksum-validate value "))
+		protoIPv4["checksum_validate_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "checksum-validate value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -1943,8 +1941,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoIPv4(itemTrim string, protoIPv
 		protoIPv4["identification_match"] = strings.TrimPrefix(itemTrim, "identification match ")
 	case strings.HasPrefix(itemTrim, "identification value "):
 		var err error
-		protoIPv4["identification_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "identification value "))
+		protoIPv4["identification_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "identification value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -1952,8 +1949,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoIPv4(itemTrim string, protoIPv
 		protoIPv4["ihl_match"] = strings.TrimPrefix(itemTrim, "ihl match ")
 	case strings.HasPrefix(itemTrim, "ihl value "):
 		var err error
-		protoIPv4["ihl_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "ihl value "))
+		protoIPv4["ihl_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "ihl value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -1963,8 +1959,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoIPv4(itemTrim string, protoIPv
 		protoIPv4["protocol_match"] = strings.TrimPrefix(itemTrim, "protocol match ")
 	case strings.HasPrefix(itemTrim, "protocol value "):
 		var err error
-		protoIPv4["protocol_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "protocol value "))
+		protoIPv4["protocol_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "protocol value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -1976,8 +1971,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoIPv4(itemTrim string, protoIPv
 		protoIPv4["tos_match"] = strings.TrimPrefix(itemTrim, "tos match ")
 	case strings.HasPrefix(itemTrim, "tos value "):
 		var err error
-		protoIPv4["tos_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "tos value "))
+		protoIPv4["tos_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "tos value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -1985,8 +1979,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoIPv4(itemTrim string, protoIPv
 		protoIPv4["total_length_match"] = strings.TrimPrefix(itemTrim, "total-length match ")
 	case strings.HasPrefix(itemTrim, "total-length value "):
 		var err error
-		protoIPv4["total_length_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "total-length value "))
+		protoIPv4["total_length_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "total-length value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -1994,8 +1987,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoIPv4(itemTrim string, protoIPv
 		protoIPv4["ttl_match"] = strings.TrimPrefix(itemTrim, "ttl match ")
 	case strings.HasPrefix(itemTrim, "ttl value "):
 		var err error
-		protoIPv4["ttl_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "ttl value "))
+		protoIPv4["ttl_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "ttl value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2011,28 +2003,28 @@ func readSecurityIdpCustomAttackTypeSignatureProtoIPv6(itemTrim string, protoIPv
 	case strings.HasPrefix(itemTrim, "destination value "):
 		protoIPv6["destination_value"] = strings.TrimPrefix(itemTrim, "destination value ")
 	case strings.HasPrefix(itemTrim, "extension-header destination-option home-address match "):
-		protoIPv6["extension_header_destination_option_home_address_match"] =
-			strings.TrimPrefix(itemTrim, "extension-header destination-option home-address match ")
+		protoIPv6["extension_header_destination_option_home_address_match"] = strings.TrimPrefix(
+			itemTrim, "extension-header destination-option home-address match ")
 	case strings.HasPrefix(itemTrim, "extension-header destination-option home-address value "):
-		protoIPv6["extension_header_destination_option_home_address_value"] =
-			strings.TrimPrefix(itemTrim, "extension-header destination-option home-address value ")
+		protoIPv6["extension_header_destination_option_home_address_value"] = strings.TrimPrefix(
+			itemTrim, "extension-header destination-option home-address value ")
 	case strings.HasPrefix(itemTrim, "extension-header destination-option option-type match "):
-		protoIPv6["extension_header_destination_option_type_match"] =
-			strings.TrimPrefix(itemTrim, "extension-header destination-option option-type match ")
+		protoIPv6["extension_header_destination_option_type_match"] = strings.TrimPrefix(
+			itemTrim, "extension-header destination-option option-type match ")
 	case strings.HasPrefix(itemTrim, "extension-header destination-option option-type value "):
 		var err error
-		protoIPv6["extension_header_destination_option_type_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "extension-header destination-option option-type value "))
+		protoIPv6["extension_header_destination_option_type_value"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "extension-header destination-option option-type value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "extension-header routing-header header-type match "):
-		protoIPv6["extension_header_routing_header_type_match"] =
-			strings.TrimPrefix(itemTrim, "extension-header routing-header header-type match ")
+		protoIPv6["extension_header_routing_header_type_match"] = strings.TrimPrefix(
+			itemTrim, "extension-header routing-header header-type match ")
 	case strings.HasPrefix(itemTrim, "extension-header routing-header header-type value "):
 		var err error
-		protoIPv6["extension_header_routing_header_type_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "extension-header routing-header header-type value "))
+		protoIPv6["extension_header_routing_header_type_value"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "extension-header routing-header header-type value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2040,8 +2032,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoIPv6(itemTrim string, protoIPv
 		protoIPv6["flow_label_match"] = strings.TrimPrefix(itemTrim, "flow-label match ")
 	case strings.HasPrefix(itemTrim, "flow-label value "):
 		var err error
-		protoIPv6["flow_label_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "flow-label value "))
+		protoIPv6["flow_label_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "flow-label value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2049,8 +2040,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoIPv6(itemTrim string, protoIPv
 		protoIPv6["hop_limit_match"] = strings.TrimPrefix(itemTrim, "hop-limit match ")
 	case strings.HasPrefix(itemTrim, "hop-limit value "):
 		var err error
-		protoIPv6["hop_limit_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "hop-limit value "))
+		protoIPv6["hop_limit_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "hop-limit value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2058,8 +2048,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoIPv6(itemTrim string, protoIPv
 		protoIPv6["next_header_match"] = strings.TrimPrefix(itemTrim, "next-header match ")
 	case strings.HasPrefix(itemTrim, "next-header value "):
 		var err error
-		protoIPv6["next_header_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "next-header value "))
+		protoIPv6["next_header_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "next-header value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2067,8 +2056,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoIPv6(itemTrim string, protoIPv
 		protoIPv6["payload_length_match"] = strings.TrimPrefix(itemTrim, "payload-length match ")
 	case strings.HasPrefix(itemTrim, "payload-length value "):
 		var err error
-		protoIPv6["payload_length_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "payload-length value "))
+		protoIPv6["payload_length_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "payload-length value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2080,8 +2068,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoIPv6(itemTrim string, protoIPv
 		protoIPv6["traffic_class_match"] = strings.TrimPrefix(itemTrim, "traffic-class match ")
 	case strings.HasPrefix(itemTrim, "traffic-class value "):
 		var err error
-		protoIPv6["traffic_class_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "traffic-class value "))
+		protoIPv6["traffic_class_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "traffic-class value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2096,8 +2083,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoTCP(itemTrim string, protoTCP 
 		protoTCP["ack_number_match"] = strings.TrimPrefix(itemTrim, "ack-number match ")
 	case strings.HasPrefix(itemTrim, "ack-number value "):
 		var err error
-		protoTCP["ack_number_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "ack-number value "))
+		protoTCP["ack_number_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "ack-number value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2105,8 +2091,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoTCP(itemTrim string, protoTCP 
 		protoTCP["checksum_validate_match"] = strings.TrimPrefix(itemTrim, "checksum-validate match ")
 	case strings.HasPrefix(itemTrim, "checksum-validate value "):
 		var err error
-		protoTCP["checksum_validate_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "checksum-validate value "))
+		protoTCP["checksum_validate_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "checksum-validate value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2114,8 +2099,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoTCP(itemTrim string, protoTCP 
 		protoTCP["data_length_match"] = strings.TrimPrefix(itemTrim, "data-length match ")
 	case strings.HasPrefix(itemTrim, "data-length value "):
 		var err error
-		protoTCP["data_length_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "data-length value "))
+		protoTCP["data_length_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "data-length value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2123,8 +2107,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoTCP(itemTrim string, protoTCP 
 		protoTCP["destination_port_match"] = strings.TrimPrefix(itemTrim, "destination-port match ")
 	case strings.HasPrefix(itemTrim, "destination-port value "):
 		var err error
-		protoTCP["destination_port_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "destination-port value "))
+		protoTCP["destination_port_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "destination-port value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2132,8 +2115,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoTCP(itemTrim string, protoTCP 
 		protoTCP["header_length_match"] = strings.TrimPrefix(itemTrim, "header-length match ")
 	case strings.HasPrefix(itemTrim, "header-length value "):
 		var err error
-		protoTCP["header_length_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "header-length value "))
+		protoTCP["header_length_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "header-length value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2141,8 +2123,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoTCP(itemTrim string, protoTCP 
 		protoTCP["mss_match"] = strings.TrimPrefix(itemTrim, "mss match ")
 	case strings.HasPrefix(itemTrim, "mss value "):
 		var err error
-		protoTCP["mss_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "mss value "))
+		protoTCP["mss_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "mss value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2150,8 +2131,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoTCP(itemTrim string, protoTCP 
 		protoTCP["option_match"] = strings.TrimPrefix(itemTrim, "option match ")
 	case strings.HasPrefix(itemTrim, "option value "):
 		var err error
-		protoTCP["option_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "option value "))
+		protoTCP["option_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "option value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2159,8 +2139,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoTCP(itemTrim string, protoTCP 
 		protoTCP["reserved_match"] = strings.TrimPrefix(itemTrim, "reserved match ")
 	case strings.HasPrefix(itemTrim, "reserved value "):
 		var err error
-		protoTCP["reserved_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "reserved value "))
+		protoTCP["reserved_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "reserved value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2168,8 +2147,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoTCP(itemTrim string, protoTCP 
 		protoTCP["sequence_number_match"] = strings.TrimPrefix(itemTrim, "sequence-number match ")
 	case strings.HasPrefix(itemTrim, "sequence-number value "):
 		var err error
-		protoTCP["sequence_number_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "sequence-number value "))
+		protoTCP["sequence_number_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "sequence-number value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2177,8 +2155,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoTCP(itemTrim string, protoTCP 
 		protoTCP["source_port_match"] = strings.TrimPrefix(itemTrim, "source-port match ")
 	case strings.HasPrefix(itemTrim, "source-port value "):
 		var err error
-		protoTCP["source_port_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "source-port value "))
+		protoTCP["source_port_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "source-port value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2188,8 +2165,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoTCP(itemTrim string, protoTCP 
 		protoTCP["urgent_pointer_match"] = strings.TrimPrefix(itemTrim, "urgent-pointer match ")
 	case strings.HasPrefix(itemTrim, "urgent-pointer value "):
 		var err error
-		protoTCP["urgent_pointer_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "urgent-pointer value "))
+		protoTCP["urgent_pointer_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "urgent-pointer value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2197,8 +2173,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoTCP(itemTrim string, protoTCP 
 		protoTCP["window_scale_match"] = strings.TrimPrefix(itemTrim, "window-scale match ")
 	case strings.HasPrefix(itemTrim, "window-scale value "):
 		var err error
-		protoTCP["window_scale_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "window-scale value "))
+		protoTCP["window_scale_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "window-scale value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2206,8 +2181,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoTCP(itemTrim string, protoTCP 
 		protoTCP["window_size_match"] = strings.TrimPrefix(itemTrim, "window-size match ")
 	case strings.HasPrefix(itemTrim, "window-size value "):
 		var err error
-		protoTCP["window_size_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "window-size value "))
+		protoTCP["window_size_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "window-size value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2222,8 +2196,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoUDP(itemTrim string, protoUDP 
 		protoUDP["checksum_validate_match"] = strings.TrimPrefix(itemTrim, "checksum-validate match ")
 	case strings.HasPrefix(itemTrim, "checksum-validate value "):
 		var err error
-		protoUDP["checksum_validate_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "checksum-validate value "))
+		protoUDP["checksum_validate_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "checksum-validate value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2231,8 +2204,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoUDP(itemTrim string, protoUDP 
 		protoUDP["data_length_match"] = strings.TrimPrefix(itemTrim, "data-length match ")
 	case strings.HasPrefix(itemTrim, "data-length value "):
 		var err error
-		protoUDP["data_length_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "data-length value "))
+		protoUDP["data_length_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "data-length value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2240,8 +2212,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoUDP(itemTrim string, protoUDP 
 		protoUDP["destination_port_match"] = strings.TrimPrefix(itemTrim, "destination-port match ")
 	case strings.HasPrefix(itemTrim, "destination-port value "):
 		var err error
-		protoUDP["destination_port_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "destination-port value "))
+		protoUDP["destination_port_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "destination-port value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2249,8 +2220,7 @@ func readSecurityIdpCustomAttackTypeSignatureProtoUDP(itemTrim string, protoUDP 
 		protoUDP["source_port_match"] = strings.TrimPrefix(itemTrim, "source-port match ")
 	case strings.HasPrefix(itemTrim, "source-port value "):
 		var err error
-		protoUDP["source_port_value"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "source-port value "))
+		protoUDP["source_port_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "source-port value "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
