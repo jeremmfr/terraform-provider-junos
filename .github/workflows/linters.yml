@@ -76,7 +76,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: bflad/tfproviderlint
-          ref: v0.27.1
+          ref: v0.28.0
           path: tfproviderlint
       - name: Build tfproviderlint bin
         run: cd tfproviderlint && go install ./... && cd ${GITHUB_WORKSPACE}
