@@ -293,6 +293,13 @@ func resourceSecurityPolicyUpdate(ctx context.Context, d *schema.ResourceData, m
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
+	listLinesToPairPolicy := make([]string, 0)
+	if err := readSecurityPolicyTunnelPairPolicyLines(&listLinesToPairPolicy,
+		d.Get("from_zone").(string), d.Get("to_zone").(string), m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	if err := delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -300,6 +307,11 @@ func resourceSecurityPolicyUpdate(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	if err := setSecurityPolicy(d, m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
+	if err := sess.configSet(listLinesToPairPolicy, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -563,6 +575,31 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 	confRead.policy = policyList
 
 	return confRead, nil
+}
+
+func readSecurityPolicyTunnelPairPolicyLines(
+	listLines *[]string, fromZone string, toZone string, m interface{}, jnprSess *NetconfObject) error {
+	sess := m.(*Session)
+	showConfig, err := sess.command("show configuration"+
+		" security policies from-zone "+fromZone+" to-zone "+toZone+" | display set ", jnprSess)
+	if err != nil {
+		return err
+	}
+	if showConfig != emptyWord {
+		for _, item := range strings.Split(showConfig, "\n") {
+			if strings.Contains(item, "<configuration-output>") {
+				continue
+			}
+			if strings.Contains(item, "</configuration-output>") {
+				break
+			}
+			if strings.Contains(item, "then permit tunnel pair-policy ") {
+				*listLines = append(*listLines, item)
+			}
+		}
+	}
+
+	return nil
 }
 
 func delSecurityPolicy(fromZone string, toZone string, m interface{}, jnprSess *NetconfObject) error {
