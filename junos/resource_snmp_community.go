@@ -350,8 +350,8 @@ func readSnmpCommunity(name string, m interface{}, jnprSess *NetconfObject) (snm
 				itemTrimRoutingInstance := strings.TrimPrefix(itemTrim, "routing-instance "+routingInstanceLineCut[1]+" ")
 				switch {
 				case strings.HasPrefix(itemTrimRoutingInstance, "client-list-name "):
-					mRoutingInstance["client_list_name"] =
-						strings.Trim(strings.TrimPrefix(itemTrimRoutingInstance, "client-list-name "), "\"")
+					mRoutingInstance["client_list_name"] = strings.Trim(strings.TrimPrefix(
+						itemTrimRoutingInstance, "client-list-name "), "\"")
 				case strings.HasPrefix(itemTrimRoutingInstance, "clients "):
 					mRoutingInstance["clients"] = append(mRoutingInstance["clients"].([]string),
 						strings.TrimPrefix(itemTrimRoutingInstance, "clients "))

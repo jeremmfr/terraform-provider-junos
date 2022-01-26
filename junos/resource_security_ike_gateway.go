@@ -636,13 +636,14 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 								"wildcard":  "",
 							})
 					}
+					distName := confRead.dynamicRemote[0]["distinguished_name"].([]map[string]interface{})[0]
 					switch {
 					case strings.HasPrefix(itemTrim, "dynamic distinguished-name container "):
-						confRead.dynamicRemote[0]["distinguished_name"].([]map[string]interface{})[0]["container"] =
-							strings.Trim(strings.TrimPrefix(itemTrim, "dynamic distinguished-name container "), "\"")
+						distName["container"] = strings.Trim(strings.TrimPrefix(
+							itemTrim, "dynamic distinguished-name container "), "\"")
 					case strings.HasPrefix(itemTrim, "dynamic distinguished-name wildcard "):
-						confRead.dynamicRemote[0]["distinguished_name"].([]map[string]interface{})[0]["wildcard"] =
-							strings.Trim(strings.TrimPrefix(itemTrim, "dynamic distinguished-name wildcard "), "\"")
+						distName["wildcard"] = strings.Trim(strings.TrimPrefix(
+							itemTrim, "dynamic distinguished-name wildcard "), "\"")
 					}
 				case strings.HasPrefix(itemTrim, "dynamic hostname "):
 					confRead.dynamicRemote[0]["hostname"] = strings.TrimPrefix(itemTrim, "dynamic hostname ")

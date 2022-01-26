@@ -572,8 +572,8 @@ func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsO
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "forwarding-table unicast-reverse-path "):
-					confRead.forwardingTable[0]["unicast_reverse_path"] =
-						strings.TrimPrefix(itemTrim, "forwarding-table unicast-reverse-path ")
+					confRead.forwardingTable[0]["unicast_reverse_path"] = strings.TrimPrefix(
+						itemTrim, "forwarding-table unicast-reverse-path ")
 				}
 			case strings.HasPrefix(itemTrim, "graceful-restart"):
 				if len(confRead.gracefulRestart) == 0 {

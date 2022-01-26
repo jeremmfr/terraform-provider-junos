@@ -110,8 +110,7 @@ func resourceSecurityDynamicAddressNameCreate(ctx context.Context,
 	}
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	securityDynamicAddressNameExists, err :=
-		checkSecurityDynamicAddressNamesExists(d.Get("name").(string), m, jnprSess)
+	securityDynamicAddressNameExists, err := checkSecurityDynamicAddressNamesExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -136,8 +135,7 @@ func resourceSecurityDynamicAddressNameCreate(ctx context.Context,
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	securityDynamicAddressNameExists, err =
-		checkSecurityDynamicAddressNamesExists(d.Get("name").(string), m, jnprSess)
+	securityDynamicAddressNameExists, err = checkSecurityDynamicAddressNamesExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}

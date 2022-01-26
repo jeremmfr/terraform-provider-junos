@@ -646,8 +646,8 @@ func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObjec
 					}
 				case strings.HasPrefix(itemTrim, "archive transfer-interval "):
 					var err error
-					confRead.archive[0]["transfer_interval"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrim, "archive transfer-interval "))
+					confRead.archive[0]["transfer_interval"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrim, "archive transfer-interval "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}

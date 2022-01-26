@@ -143,8 +143,8 @@ func resourceServicesUserIdentAdAccessDomainCreate(ctx context.Context,
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	svcUserIdentAdAccessDomainExists, err :=
-		checkServicesUserIdentAdAccessDomainExists(d.Get("name").(string), m, jnprSess)
+	svcUserIdentAdAccessDomainExists, err := checkServicesUserIdentAdAccessDomainExists(
+		d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -170,8 +170,7 @@ func resourceServicesUserIdentAdAccessDomainCreate(ctx context.Context,
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	svcUserIdentAdAccessDomainExists, err =
-		checkServicesUserIdentAdAccessDomainExists(d.Get("name").(string), m, jnprSess)
+	svcUserIdentAdAccessDomainExists, err = checkServicesUserIdentAdAccessDomainExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -201,8 +200,7 @@ func resourceServicesUserIdentAdAccessDomainRead(ctx context.Context,
 func resourceServicesUserIdentAdAccessDomainReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
-	svcUserIdentAdAccessDomainOptions, err :=
-		readServicesUserIdentAdAccessDomain(d.Get("name").(string), m, jnprSess)
+	svcUserIdentAdAccessDomainOptions, err := readServicesUserIdentAdAccessDomain(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -418,15 +416,15 @@ func readServicesUserIdentAdAccessDomain(domain string,
 				switch {
 				case strings.HasPrefix(itemTrim, "ip-user-mapping discovery-method wmi event-log-scanning-interval "):
 					var err error
-					confRead.ipUserMappingDiscoveryWmi[0]["event_log_scanning_interval"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrim, "ip-user-mapping discovery-method wmi event-log-scanning-interval "))
+					confRead.ipUserMappingDiscoveryWmi[0]["event_log_scanning_interval"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrim, "ip-user-mapping discovery-method wmi event-log-scanning-interval "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "ip-user-mapping discovery-method wmi initial-event-log-timespan "):
 					var err error
-					confRead.ipUserMappingDiscoveryWmi[0]["initial_event_log_timespan"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrim, "ip-user-mapping discovery-method wmi initial-event-log-timespan "))
+					confRead.ipUserMappingDiscoveryWmi[0]["initial_event_log_timespan"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrim, "ip-user-mapping discovery-method wmi initial-event-log-timespan "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
@@ -444,8 +442,8 @@ func readServicesUserIdentAdAccessDomain(domain string,
 				}
 				switch {
 				case strings.HasPrefix(itemTrim, "user-group-mapping ldap base "):
-					confRead.userGroupMappingLdap[0]["base"] =
-						strings.Trim(strings.TrimPrefix(itemTrim, "user-group-mapping ldap base "), "\"")
+					confRead.userGroupMappingLdap[0]["base"] = strings.Trim(strings.TrimPrefix(
+						itemTrim, "user-group-mapping ldap base "), "\"")
 				case strings.HasPrefix(itemTrim, "user-group-mapping ldap address "):
 					confRead.userGroupMappingLdap[0]["address"] = append(confRead.userGroupMappingLdap[0]["address"].([]string),
 						strings.TrimPrefix(itemTrim, "user-group-mapping ldap address "))
@@ -455,8 +453,8 @@ func readServicesUserIdentAdAccessDomain(domain string,
 					confRead.userGroupMappingLdap[0]["ssl"] = true
 				case strings.HasPrefix(itemTrim, "user-group-mapping ldap user password "):
 					var err error
-					confRead.userGroupMappingLdap[0]["user_password"], err =
-						jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim, "user-group-mapping ldap user password "), "\""))
+					confRead.userGroupMappingLdap[0]["user_password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
+						itemTrim, "user-group-mapping ldap user password "), "\""))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to decode user password : %w", err)
 					}

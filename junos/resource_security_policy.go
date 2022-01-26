@@ -712,12 +712,10 @@ func setPolicyPermitApplicationServices(setPrefixPolicy string,
 	}
 	if len(policyPermitApplicationServices["ssl_proxy"].([]interface{})) > 0 {
 		if policyPermitApplicationServices["ssl_proxy"].([]interface{})[0] != nil {
-			policyPermitApplicationServicesSSLProxy :=
-				policyPermitApplicationServices["ssl_proxy"].([]interface{})[0].(map[string]interface{})
-			if policyPermitApplicationServicesSSLProxy["profile_name"].(string) != "" {
+			sslProxy := policyPermitApplicationServices["ssl_proxy"].([]interface{})[0].(map[string]interface{})
+			if sslProxy["profile_name"].(string) != "" {
 				configSet = append(configSet, setPrefixPolicyPermitAppSvc+
-					" ssl-proxy profile-name \""+
-					policyPermitApplicationServicesSSLProxy["profile_name"].(string)+"\"")
+					" ssl-proxy profile-name \""+sslProxy["profile_name"].(string)+"\"")
 			} else {
 				configSet = append(configSet, setPrefixPolicyPermitAppSvc+" ssl-proxy")
 			}
@@ -727,12 +725,10 @@ func setPolicyPermitApplicationServices(setPrefixPolicy string,
 	}
 	if len(policyPermitApplicationServices["uac_policy"].([]interface{})) > 0 {
 		if policyPermitApplicationServices["uac_policy"].([]interface{})[0] != nil {
-			policyPermitApplicationServicesUACPolicy :=
-				policyPermitApplicationServices["uac_policy"].([]interface{})[0].(map[string]interface{})
-			if policyPermitApplicationServicesUACPolicy["captive_portal"].(string) != "" {
+			uacPolicy := policyPermitApplicationServices["uac_policy"].([]interface{})[0].(map[string]interface{})
+			if uacPolicy["captive_portal"].(string) != "" {
 				configSet = append(configSet, setPrefixPolicyPermitAppSvc+
-					" uac-policy captive-portal \""+
-					policyPermitApplicationServicesUACPolicy["captive_portal"].(string)+"\"")
+					" uac-policy captive-portal \""+uacPolicy["captive_portal"].(string)+"\"")
 			} else {
 				configSet = append(configSet, setPrefixPolicyPermitAppSvc+" uac-policy")
 			}

@@ -120,8 +120,8 @@ func resourceSecurityZoneBookAddressSetCreate(ctx context.Context,
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	securityZoneBookAddressSetExists, err =
-		checkSecurityZoneBookAddressSetsExists(d.Get("zone").(string), d.Get("name").(string), m, jnprSess)
+	securityZoneBookAddressSetExists, err = checkSecurityZoneBookAddressSetsExists(
+		d.Get("zone").(string), d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}

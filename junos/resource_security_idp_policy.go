@@ -895,12 +895,12 @@ func readSecurityIdpPolicy(policy string, m interface{}, jnprSess *NetconfObject
 							then["action"] = actionCos
 							switch {
 							case strings.HasPrefix(itemTrimRuleAction, actionCos+" forwarding-class "):
-								then["action_cos_forwarding_class"] =
-									strings.Trim(strings.TrimPrefix(itemTrimRuleAction, actionCos+" forwarding-class "), "\"")
+								then["action_cos_forwarding_class"] = strings.Trim(strings.TrimPrefix(
+									itemTrimRuleAction, actionCos+" forwarding-class "), "\"")
 							case strings.HasPrefix(itemTrimRuleAction, actionCos+" dscp-code-point "):
 								var err error
-								then["action_dscp_code_point"], err =
-									strconv.Atoi(strings.TrimPrefix(itemTrimRuleAction, actionCos+" dscp-code-point "))
+								then["action_dscp_code_point"], err = strconv.Atoi(strings.TrimPrefix(
+									itemTrimRuleAction, actionCos+" dscp-code-point "))
 								if err != nil {
 									return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 								}
@@ -908,8 +908,8 @@ func readSecurityIdpPolicy(policy string, m interface{}, jnprSess *NetconfObject
 						case strings.HasPrefix(itemTrimRuleAction, actionMarkDiffServ+" "):
 							then["action"] = actionMarkDiffServ
 							var err error
-							then["action_dscp_code_point"], err =
-								strconv.Atoi(strings.TrimPrefix(itemTrimRuleAction, actionMarkDiffServ+" "))
+							then["action_dscp_code_point"], err = strconv.Atoi(strings.TrimPrefix(
+								itemTrimRuleAction, actionMarkDiffServ+" "))
 							if err != nil {
 								return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 							}
@@ -948,14 +948,14 @@ func readSecurityIdpPolicy(policy string, m interface{}, jnprSess *NetconfObject
 							var err error
 							switch {
 							case strings.HasPrefix(itemTrimRule, "then notification packet-log post-attack "):
-								then["notification_packet_log_post_attack"], err =
-									strconv.Atoi(strings.TrimPrefix(itemTrimRule, "then notification packet-log post-attack "))
+								then["notification_packet_log_post_attack"], err = strconv.Atoi(strings.TrimPrefix(
+									itemTrimRule, "then notification packet-log post-attack "))
 							case strings.HasPrefix(itemTrimRule, "then notification packet-log post-attack-timeout "):
-								then["notification_packet_log_post_attack_timeout"], err =
-									strconv.Atoi(strings.TrimPrefix(itemTrimRule, "then notification packet-log post-attack-timeout "))
+								then["notification_packet_log_post_attack_timeout"], err = strconv.Atoi(strings.TrimPrefix(
+									itemTrimRule, "then notification packet-log post-attack-timeout "))
 							case strings.HasPrefix(itemTrimRule, "then notification packet-log pre-attack "):
-								then["notification_packet_log_pre_attack"], err =
-									strconv.Atoi(strings.TrimPrefix(itemTrimRule, "then notification packet-log pre-attack "))
+								then["notification_packet_log_pre_attack"], err = strconv.Atoi(strings.TrimPrefix(
+									itemTrimRule, "then notification packet-log pre-attack "))
 							}
 							if err != nil {
 								return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)

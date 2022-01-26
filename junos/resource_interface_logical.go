@@ -1600,11 +1600,11 @@ func readFamilyInetDhcp(item string, dhcp map[string]interface{}) error {
 	case itemTrim == "client-identifier prefix routing-instance-name":
 		dhcp["client_identifier_prefix_routing_instance_name"] = true
 	case strings.HasPrefix(itemTrim, "client-identifier use-interface-description "):
-		dhcp["client_identifier_use_interface_description"] =
-			strings.TrimPrefix(itemTrim, "client-identifier use-interface-description ")
+		dhcp["client_identifier_use_interface_description"] = strings.TrimPrefix(
+			itemTrim, "client-identifier use-interface-description ")
 	case strings.HasPrefix(itemTrim, "client-identifier user-id ascii "):
-		dhcp["client_identifier_userid_ascii"] =
-			strings.Trim(strings.TrimPrefix(itemTrim, "client-identifier user-id ascii "), "\"")
+		dhcp["client_identifier_userid_ascii"] = strings.Trim(strings.TrimPrefix(
+			itemTrim, "client-identifier user-id ascii "), "\"")
 	case strings.HasPrefix(itemTrim, "client-identifier user-id hexadecimal "):
 		dhcp["client_identifier_userid_hexadecimal"] = strings.TrimPrefix(itemTrim, "client-identifier user-id hexadecimal ")
 	case itemTrim == "force-discover":
@@ -1665,15 +1665,15 @@ func readFamilyInet6Dhcpv6Client(item string, dhcp map[string]interface{}) error
 		dhcp["no_dns_install"] = true
 	case strings.HasPrefix(itemTrim, "prefix-delegating preferred-prefix-length "):
 		var err error
-		dhcp["prefix_delegating_preferred_prefix_length"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "prefix-delegating preferred-prefix-length "))
+		dhcp["prefix_delegating_preferred_prefix_length"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "prefix-delegating preferred-prefix-length "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "prefix-delegating sub-prefix-length "):
 		var err error
-		dhcp["prefix_delegating_sub_prefix_length"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "prefix-delegating sub-prefix-length "))
+		dhcp["prefix_delegating_sub_prefix_length"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "prefix-delegating sub-prefix-length "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}

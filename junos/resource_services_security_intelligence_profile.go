@@ -422,8 +422,7 @@ func readServicesSecurityIntellProfileRule(itemTrimPolicyRule string, ruleMap ma
 		}
 		switch {
 		case strings.HasPrefix(itemTrimPolicyRule, "match threat-level "):
-			threatLevel, err :=
-				strconv.Atoi(strings.TrimPrefix(itemTrimPolicyRule, "match threat-level "))
+			threatLevel, err := strconv.Atoi(strings.TrimPrefix(itemTrimPolicyRule, "match threat-level "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimPolicyRule, err)
 			}

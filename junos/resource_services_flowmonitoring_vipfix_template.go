@@ -148,8 +148,8 @@ func resourceServicesFlowMonitoringVIPFixTemplateCreate(ctx context.Context,
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	flowMonitoringVIPFixTemplateExists, err :=
-		checkServicesFlowMonitoringVIPFixTemplateExists(d.Get("name").(string), m, jnprSess)
+	flowMonitoringVIPFixTemplateExists, err := checkServicesFlowMonitoringVIPFixTemplateExists(
+		d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -175,8 +175,8 @@ func resourceServicesFlowMonitoringVIPFixTemplateCreate(ctx context.Context,
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	flowMonitoringVIPFixTemplateExists, err =
-		checkServicesFlowMonitoringVIPFixTemplateExists(d.Get("name").(string), m, jnprSess)
+	flowMonitoringVIPFixTemplateExists, err = checkServicesFlowMonitoringVIPFixTemplateExists(
+		d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -205,8 +205,8 @@ func resourceServicesFlowMonitoringVIPFixTemplateRead(ctx context.Context,
 func resourceServicesFlowMonitoringVIPFixTemplateReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
-	flowMonitoringVIPFixTemplateOptions, err :=
-		readServicesFlowMonitoringVIPFixTemplate(d.Get("name").(string), m, jnprSess)
+	flowMonitoringVIPFixTemplateOptions, err := readServicesFlowMonitoringVIPFixTemplate(
+		d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -450,15 +450,15 @@ func readServicesFlowMonitoringVIPFixTemplate(template string, m interface{}, jn
 				switch {
 				case strings.HasPrefix(itemTrim, "option-refresh-rate packets "):
 					var err error
-					confRead.optionRefreshRate[0]["packets"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrim, "option-refresh-rate packets "))
+					confRead.optionRefreshRate[0]["packets"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrim, "option-refresh-rate packets "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "option-refresh-rate seconds "):
 					var err error
-					confRead.optionRefreshRate[0]["seconds"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrim, "option-refresh-rate seconds "))
+					confRead.optionRefreshRate[0]["seconds"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrim, "option-refresh-rate seconds "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}

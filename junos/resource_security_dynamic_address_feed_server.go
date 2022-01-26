@@ -114,8 +114,8 @@ func resourceSecurityDynamicAddressFeedServerCreate(ctx context.Context,
 	}
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	securityDynamicAddressFeedServerExists, err :=
-		checkSecurityDynamicAddressFeedServersExists(d.Get("name").(string), m, jnprSess)
+	securityDynamicAddressFeedServerExists, err := checkSecurityDynamicAddressFeedServersExists(
+		d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -140,8 +140,8 @@ func resourceSecurityDynamicAddressFeedServerCreate(ctx context.Context,
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	securityDynamicAddressFeedServerExists, err =
-		checkSecurityDynamicAddressFeedServersExists(d.Get("name").(string), m, jnprSess)
+	securityDynamicAddressFeedServerExists, err = checkSecurityDynamicAddressFeedServersExists(
+		d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
