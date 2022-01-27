@@ -140,6 +140,29 @@ func resourceRibGroupUpdate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if d.HasChange("import_policy") {
+			if err := delRibGroupElement("import-policy", d.Get("name").(string), m, nil); err != nil {
+				return diag.FromErr(err)
+			}
+		}
+		if d.HasChange("import_rib") {
+			if err := delRibGroupElement("import-rib", d.Get("name").(string), m, nil); err != nil {
+				return diag.FromErr(err)
+			}
+		}
+		if d.HasChange("export_rib") {
+			if err := delRibGroupElement("export-rib", d.Get("name").(string), m, nil); err != nil {
+				return diag.FromErr(err)
+			}
+		}
+		if err := setRibGroup(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -190,6 +213,13 @@ func resourceRibGroupUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceRibGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delRibGroup(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)

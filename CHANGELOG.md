@@ -3,6 +3,10 @@
 
 ENHANCEMENTS:
 
+* add provider arguments `fake_update_also` and `fake_delete_also` to add the same workaround as with `fake_create_with_setfile`  
+  **Don't use in normal terraform run** and **be careful with this option**  
+  See docs for more information (Fixes #329)
+
 BUG FIXES:
 
 * resource/`junos_security_policy`: read the config lines with `then allow tunnel pair-policy` to add them when updating the resource and thus avoid modifying the `junos_security_policy_tunnel_pair_policy` resource lines

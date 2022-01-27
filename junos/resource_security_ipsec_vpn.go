@@ -255,25 +255,42 @@ func resourceIpsecVpnReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSe
 
 func resourceIpsecVpnUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if err := delIpsecVpnConf(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
-
-		return append(diagWarns, diag.FromErr(err)...)
-	}
 	if d.HasChanges("bind_interface_auto") {
 		diagWarns = append(diagWarns, diag.Diagnostic{
 			Severity:      diag.Warning,
 			Summary:       "Modifying bind_interface_auto on resource already created has no effect",
 			AttributePath: cty.Path{cty.GetAttrStep{Name: "bind_interface_auto"}},
 		})
+	}
+	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delIpsecVpnConf(d, m, nil); err != nil {
+			return append(diagWarns, diag.FromErr(err)...)
+		}
+		if d.HasChanges("bind_interface") && d.Get("bind_interface_auto").(bool) {
+			oldInt, _ := d.GetChange("bind_interface")
+			if err := sess.configSet([]string{"delete interfaces " + oldInt.(string)}, nil); err != nil {
+				return append(diagWarns, diag.FromErr(err)...)
+			}
+		}
+		if err := setIpsecVpn(d, m, nil); err != nil {
+			return append(diagWarns, diag.FromErr(err)...)
+		}
+		d.Partial(false)
+
+		return diagWarns
+	}
+	jnprSess, err := sess.startNewSession()
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	defer sess.closeSession(jnprSess)
+	sess.configLock(jnprSess)
+	if err := delIpsecVpnConf(d, m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if d.HasChanges("bind_interface") && d.Get("bind_interface_auto").(bool) {
 		oldInt, _ := d.GetChange("bind_interface")
@@ -310,6 +327,13 @@ func resourceIpsecVpnUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceIpsecVpnDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delIpsecVpn(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -539,12 +563,16 @@ func delIpsecVpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ipsec vpn "+d.Get("name").(string))
 	if d.Get("bind_interface_auto").(bool) {
-		st0NC, st0Emtpy, _, err := checkInterfaceLogicalNCEmpty(d.Get("bind_interface").(string), m, jnprSess)
-		if err != nil {
-			return err
-		}
-		if st0NC || st0Emtpy {
+		if jnprSess == nil {
 			configSet = append(configSet, "delete interfaces "+d.Get("bind_interface").(string))
+		} else {
+			st0NC, st0Emtpy, _, err := checkInterfaceLogicalNCEmpty(d.Get("bind_interface").(string), m, jnprSess)
+			if err != nil {
+				return err
+			}
+			if st0NC || st0Emtpy {
+				configSet = append(configSet, "delete interfaces "+d.Get("bind_interface").(string))
+			}
 		}
 	}
 

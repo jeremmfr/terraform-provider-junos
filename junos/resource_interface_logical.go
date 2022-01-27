@@ -772,6 +772,35 @@ func resourceInterfaceLogicalReadWJnprSess(
 func resourceInterfaceLogicalUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delInterfaceLogicalOpts(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if d.HasChange("security_zone") {
+			if oSecurityZone, _ := d.GetChange("security_zone"); oSecurityZone.(string) != "" {
+				if err := delZoneInterfaceLogical(oSecurityZone.(string), d, m, nil); err != nil {
+					return diag.FromErr(err)
+				}
+			}
+		} else if v := d.Get("security_zone").(string); v != "" {
+			if err := delZoneInterfaceLogical(v, d, m, nil); err != nil {
+				return diag.FromErr(err)
+			}
+		}
+		if d.HasChange("routing_instance") {
+			if oRoutingInstance, _ := d.GetChange("routing_instance"); oRoutingInstance.(string) != "" {
+				if err := delRoutingInstanceInterfaceLogical(oRoutingInstance.(string), d, m, nil); err != nil {
+					return diag.FromErr(err)
+				}
+			}
+		}
+		if err := setInterfaceLogical(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -864,6 +893,13 @@ func resourceInterfaceLogicalUpdate(ctx context.Context, d *schema.ResourceData,
 
 func resourceInterfaceLogicalDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delInterfaceLogical(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -1406,9 +1442,11 @@ func delInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 			return err
 		}
 	}
-	if checkCompatibilitySecurity(jnprSess) && d.Get("security_zone").(string) != "" {
-		if err := delZoneInterfaceLogical(d.Get("security_zone").(string), d, m, jnprSess); err != nil {
-			return err
+	if d.Get("security_zone").(string) != "" {
+		if jnprSess == nil || checkCompatibilitySecurity(jnprSess) {
+			if err := delZoneInterfaceLogical(d.Get("security_zone").(string), d, m, jnprSess); err != nil {
+				return err
+			}
 		}
 	}
 

@@ -322,13 +322,6 @@ func resourceSecurityZoneReadWJnprSess(
 
 func resourceSecurityZoneUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
 	addressBookConfiguredSingly := d.Get("address_book_configure_singly").(bool)
 	if d.HasChange("address_book_configure_singly") {
@@ -351,6 +344,25 @@ func resourceSecurityZoneUpdate(ctx context.Context, d *schema.ResourceData, m i
 			})
 		}
 	}
+	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delSecurityZoneOpts(
+			d.Get("name").(string), addressBookConfiguredSingly, m, nil); err != nil {
+			return append(diagWarns, diag.FromErr(err)...)
+		}
+		if err := setSecurityZone(d, m, nil); err != nil {
+			return append(diagWarns, diag.FromErr(err)...)
+		}
+		d.Partial(false)
+
+		return diagWarns
+	}
+	jnprSess, err := sess.startNewSession()
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	defer sess.closeSession(jnprSess)
+	sess.configLock(jnprSess)
 	if err := delSecurityZoneOpts(
 		d.Get("name").(string), addressBookConfiguredSingly, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -376,6 +388,13 @@ func resourceSecurityZoneUpdate(ctx context.Context, d *schema.ResourceData, m i
 
 func resourceSecurityZoneDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delSecurityZone(d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)

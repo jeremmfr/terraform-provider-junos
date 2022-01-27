@@ -263,6 +263,17 @@ func resourceSecurityGlobalPolicyReadWJnprSess(
 func resourceSecurityGlobalPolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delSecurityGlobalPolicy(m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setSecurityGlobalPolicy(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -275,7 +286,6 @@ func resourceSecurityGlobalPolicyUpdate(ctx context.Context, d *schema.ResourceD
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-
 	if err := setSecurityGlobalPolicy(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -295,6 +305,14 @@ func resourceSecurityGlobalPolicyUpdate(ctx context.Context, d *schema.ResourceD
 
 func resourceSecurityGlobalPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delSecurityGlobalPolicy(m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
+
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)

@@ -956,6 +956,17 @@ func resourceSystemReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess
 func resourceSystemUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delSystem(m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setSystem(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)

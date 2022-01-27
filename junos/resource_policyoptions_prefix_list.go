@@ -138,6 +138,17 @@ func resourcePolicyoptionsPrefixListUpdate(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delPolicyoptionsPrefixList(d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setPolicyoptionsPrefixList(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -170,6 +181,13 @@ func resourcePolicyoptionsPrefixListUpdate(
 func resourcePolicyoptionsPrefixListDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delPolicyoptionsPrefixList(d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)

@@ -88,6 +88,13 @@ func resourceInterfaceSt0UnitRead(ctx context.Context, d *schema.ResourceData, m
 
 func resourceInterfaceSt0UnitDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := sess.configSet([]string{"delete interfaces " + d.Id()}, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)

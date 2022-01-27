@@ -180,20 +180,57 @@ The following arguments are supported in the `provider` block:
   last.  
   This options is useful to create a workaround for a long terraform run if there are many resources
   to be created and Junos device is slow to commit.  
-  As many tests are skipped, this option may generate extra config (not managed by terraform) on
+  As many tests are skipped, this option may generate extra config (not managed by Terraform) on
   Junos device or conflicts/errors for resources in tfstate.
-  A `terraform refresh` will be able to detect parts of errors but **be carefully with**
+  A `terraform refresh` will be able to detect parts of errors but **be careful with**
   **this option**.  
   There are exceptions for resources :
-  - **junos_null_commit_file**, the skip doesn’t of course concern this resource.
-  - **junos_interface_st0_unit** cannot take into account the option and run still
-    normal process.
   - **junos_interface_physical** don’t generate `chassis aggregated-devices ethernet device-count`
     line when it should be necessary.
+  - **junos_interface_st0_unit** cannot take into account the option and run still
+    normal process.
+  - **junos_null_commit_file**, the skip doesn’t of course concern this resource.
+  - **junos_security_ipsec_vpn** with `bind_interface_auto`=`true` cannot take into account the
+    option and run still normal process.
 
   It can also be sourced from the `JUNOS_FAKECREATE_SETFILE` environment
   variable.  
   Defaults is empty.
+
+- **fake_update_also** (Optional, Boolean, **don't use in normal terraform run**)  
+  As with `create` and `fake_create_with_setfile`, when this option is true, the normal
+  process to update resources skipped to generate set/delete lines, append them to the same file as
+  `fake_create_with_setfile`, and respond with a `fake` successful update of resources to
+  Terraform.  
+  As with `fake_create_with_setfile`, this option may generate conflicts/errors for resources
+  in tfstate. A `terraform refresh` will be able to detect parts of errors but
+  **be careful with this option**.  
+  There are exceptions for resources :
+  - **junos_interface**, it's a deprecated resource
+  - **junos_interface_physical** don’t generate `chassis aggregated-devices ethernet device-count`
+    line when it should be necessary.
+  - **junos_null_commit_file**, the skip doesn’t of course concern this resource.
+
+  It can also be sourced from the `JUNOS_FAKEUPDATE_ALSO` environment variable and
+  its value is `true`.  
+  Defaults is `false`.
+
+- **fake_delete_also** (Optional, Boolean, **don't use in normal terraform run**)  
+  As with `create` and `fake_create_with_setfile`, when this option is true, the normal
+  process to delete resources skipped to generate delete lines, append them to the same file as
+  `fake_create_with_setfile`, and respond with a `fake` successful delete of resources to
+  Terraform.  
+  As with `fake_create_with_setfile`, this option may leave extra config (not managed by Terraform)
+  on Junos device. **Be careful with this option**.  
+  There are exceptions for resources :
+  - **junos_interface**, it's a deprecated resource
+  - **junos_interface_physical** don’t generate `chassis aggregated-devices ethernet device-count`
+    line when it should be necessary.
+  - **junos_null_commit_file**, the skip doesn’t of course concern this resource.
+
+  It can also be sourced from the `JUNOS_FAKEDELETE_ALSO` environment variable and
+  its value is `true`.  
+  Defaults is `false`.
 
 ## Interface specifications
 

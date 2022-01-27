@@ -286,6 +286,17 @@ func resourceSecurityPolicyReadWJnprSess(
 func resourceSecurityPolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setSecurityPolicy(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -305,7 +316,6 @@ func resourceSecurityPolicyUpdate(ctx context.Context, d *schema.ResourceData, m
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-
 	if err := setSecurityPolicy(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -330,6 +340,13 @@ func resourceSecurityPolicyUpdate(ctx context.Context, d *schema.ResourceData, m
 
 func resourceSecurityPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)

@@ -208,6 +208,17 @@ func resourceServicesSecurityIntellProfileUpdate(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delServicesSecurityIntellProfile(d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setServicesSecurityIntellProfile(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -240,6 +251,13 @@ func resourceServicesSecurityIntellProfileUpdate(ctx context.Context,
 func resourceServicesSecurityIntellProfileDelete(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delServicesSecurityIntellProfile(d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
