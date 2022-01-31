@@ -362,6 +362,17 @@ func resourceIkeGatewayReadWJnprSess(d *schema.ResourceData, m interface{}, jnpr
 func resourceIkeGatewayUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delIkeGateway(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setIkeGateway(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -393,6 +404,13 @@ func resourceIkeGatewayUpdate(ctx context.Context, d *schema.ResourceData, m int
 
 func resourceIkeGatewayDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delIkeGateway(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -636,13 +654,14 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 								"wildcard":  "",
 							})
 					}
+					distName := confRead.dynamicRemote[0]["distinguished_name"].([]map[string]interface{})[0]
 					switch {
 					case strings.HasPrefix(itemTrim, "dynamic distinguished-name container "):
-						confRead.dynamicRemote[0]["distinguished_name"].([]map[string]interface{})[0]["container"] =
-							strings.Trim(strings.TrimPrefix(itemTrim, "dynamic distinguished-name container "), "\"")
+						distName["container"] = strings.Trim(strings.TrimPrefix(
+							itemTrim, "dynamic distinguished-name container "), "\"")
 					case strings.HasPrefix(itemTrim, "dynamic distinguished-name wildcard "):
-						confRead.dynamicRemote[0]["distinguished_name"].([]map[string]interface{})[0]["wildcard"] =
-							strings.Trim(strings.TrimPrefix(itemTrim, "dynamic distinguished-name wildcard "), "\"")
+						distName["wildcard"] = strings.Trim(strings.TrimPrefix(
+							itemTrim, "dynamic distinguished-name wildcard "), "\"")
 					}
 				case strings.HasPrefix(itemTrim, "dynamic hostname "):
 					confRead.dynamicRemote[0]["hostname"] = strings.TrimPrefix(itemTrim, "dynamic hostname ")

@@ -72,6 +72,9 @@ resource "junos_services_ssl_initiation_profile" "testacc_services" {
   name = "testacc_services"
 }
 resource "junos_services" "testacc" {
+  depends_on = [
+    junos_security_address_book.testacc_services
+  ]
   advanced_anti_malware {
     connection {
       auth_tls_profile = junos_services_ssl_initiation_profile.testacc_services.name
@@ -132,9 +135,9 @@ resource "junos_services" "testacc" {
       batch_query_interval                 = 30
       filter_domain                        = ["test3", "test2"]
       filter_exclude_ip_address_book       = junos_security_address_book.testacc_services.name
-      filter_exclude_ip_address_set        = junos_security_address_book.testacc_services.address_set[0].name
+      filter_exclude_ip_address_set        = "testacc_services_set"
       filter_include_ip_address_book       = junos_security_address_book.testacc_services.name
-      filter_include_ip_address_set        = junos_security_address_book.testacc_services.address_set[0].name
+      filter_include_ip_address_set        = "testacc_services_set"
       invalid_authentication_entry_timeout = 60
       ip_query_disable                     = true
       ip_query_delay_time                  = 30

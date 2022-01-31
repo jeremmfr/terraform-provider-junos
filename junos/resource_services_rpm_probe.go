@@ -408,6 +408,17 @@ func resourceServicesRpmProbeUpdate(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delServicesRpmProbe(d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setServicesRpmProbe(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -440,6 +451,13 @@ func resourceServicesRpmProbeUpdate(ctx context.Context,
 func resourceServicesRpmProbeDelete(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delServicesRpmProbe(d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -567,8 +585,7 @@ func setServicesRpmProbe(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 			rpmScale := v.(map[string]interface{})
 			configSet = append(configSet,
 				setPrefixTest+"rpm-scale tests-count "+strconv.Itoa(rpmScale["tests_count"].(int)))
-			if v2int, v2cnt :=
-				rpmScale["destination_interface"].(string),
+			if v2int, v2cnt := rpmScale["destination_interface"].(string),
 				rpmScale["destination_subunit_cnt"].(int); v2int != "" || v2cnt != 0 {
 				if v2int == "" || v2cnt == 0 {
 					return fmt.Errorf("all of `destination_interface,destination_subunit_cnt` must be specified")
@@ -576,9 +593,7 @@ func setServicesRpmProbe(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 				configSet = append(configSet, setPrefixTest+"rpm-scale destination interface "+v2int)
 				configSet = append(configSet, setPrefixTest+"rpm-scale destination subunit-cnt "+strconv.Itoa(v2cnt))
 			}
-			if v2add, v2cnt, v2step :=
-				rpmScale["source_address_base"].(string),
-				rpmScale["source_count"].(int),
+			if v2add, v2cnt, v2step := rpmScale["source_address_base"].(string), rpmScale["source_count"].(int),
 				rpmScale["source_step"].(string); v2add != "" || v2cnt != 0 || v2step != "" {
 				if v2add == "" || v2cnt == 0 || v2step == "" {
 					return fmt.Errorf("all of `source_address_base,source_count,source_step` must be specified")
@@ -587,9 +602,7 @@ func setServicesRpmProbe(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 				configSet = append(configSet, setPrefixTest+"rpm-scale source count "+strconv.Itoa(v2cnt))
 				configSet = append(configSet, setPrefixTest+"rpm-scale source step "+v2step)
 			}
-			if v2add, v2cnt, v2step :=
-				rpmScale["source_inet6_address_base"].(string),
-				rpmScale["source_inet6_count"].(int),
+			if v2add, v2cnt, v2step := rpmScale["source_inet6_address_base"].(string), rpmScale["source_inet6_count"].(int),
 				rpmScale["source_inet6_step"].(string); v2add != "" || v2cnt != 0 || v2step != "" {
 				if v2add == "" || v2cnt == 0 || v2step == "" {
 					return fmt.Errorf("all of `source_inet6_address_base,source_inet6_count,source_inet6_step` must be specified")
@@ -598,9 +611,7 @@ func setServicesRpmProbe(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 				configSet = append(configSet, setPrefixTest+"rpm-scale source-inet6 count "+strconv.Itoa(v2cnt))
 				configSet = append(configSet, setPrefixTest+"rpm-scale source-inet6 step "+v2step)
 			}
-			if v2add, v2cnt, v2step :=
-				rpmScale["target_address_base"].(string),
-				rpmScale["target_count"].(int),
+			if v2add, v2cnt, v2step := rpmScale["target_address_base"].(string), rpmScale["target_count"].(int),
 				rpmScale["target_step"].(string); v2add != "" || v2cnt != 0 || v2step != "" {
 				if v2add == "" || v2cnt == 0 || v2step == "" {
 					return fmt.Errorf("all of `target_address_base,target_count,target_step` must be specified")
@@ -609,9 +620,7 @@ func setServicesRpmProbe(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 				configSet = append(configSet, setPrefixTest+"rpm-scale target count "+strconv.Itoa(v2cnt))
 				configSet = append(configSet, setPrefixTest+"rpm-scale target step "+v2step)
 			}
-			if v2add, v2cnt, v2step :=
-				rpmScale["target_inet6_address_base"].(string),
-				rpmScale["target_inet6_count"].(int),
+			if v2add, v2cnt, v2step := rpmScale["target_inet6_address_base"].(string), rpmScale["target_inet6_count"].(int),
 				rpmScale["target_inet6_step"].(string); v2add != "" || v2cnt != 0 || v2step != "" {
 				if v2add == "" || v2cnt == 0 || v2step == "" {
 					return fmt.Errorf("all of `target_inet6_address_base,target_inet6_count,target_inet6_step` must be specified")
@@ -830,8 +839,8 @@ func readServicesRpmProbeTest(itemTrim string, test map[string]interface{}) erro
 		case strings.HasPrefix(itemTrimRpmScale, "destination interface "):
 			rpmScale["destination_interface"] = strings.TrimPrefix(itemTrimRpmScale, "destination interface ")
 		case strings.HasPrefix(itemTrimRpmScale, "destination subunit-cnt "):
-			rpmScale["destination_subunit_cnt"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrimRpmScale, "destination subunit-cnt "))
+			rpmScale["destination_subunit_cnt"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrimRpmScale, "destination subunit-cnt "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}

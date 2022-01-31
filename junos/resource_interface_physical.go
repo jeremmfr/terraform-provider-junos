@@ -613,6 +613,17 @@ func resourceInterfacePhysicalReadWJnprSess(
 func resourceInterfacePhysicalUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delInterfacePhysicalOpts(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setInterfacePhysical(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -649,6 +660,13 @@ func resourceInterfacePhysicalUpdate(ctx context.Context, d *schema.ResourceData
 
 func resourceInterfacePhysicalDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delInterfacePhysical(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -1403,45 +1421,44 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 		case strings.HasPrefix(itemTrimBfdLiveDet, "local-address "):
 			parentEtherOptsBFDLiveDetect["local_address"] = strings.TrimPrefix(itemTrimBfdLiveDet, "local-address ")
 		case strings.HasPrefix(itemTrimBfdLiveDet, "authentication algorithm "):
-			parentEtherOptsBFDLiveDetect["authentication_algorithm"] =
-				strings.TrimPrefix(itemTrimBfdLiveDet, "authentication algorithm ")
+			parentEtherOptsBFDLiveDetect["authentication_algorithm"] = strings.TrimPrefix(
+				itemTrimBfdLiveDet, "authentication algorithm ")
 		case strings.HasPrefix(itemTrimBfdLiveDet, "authentication key-chain "):
-			parentEtherOptsBFDLiveDetect["authentication_key_chain"] =
-				strings.TrimPrefix(itemTrimBfdLiveDet, "authentication key-chain ")
+			parentEtherOptsBFDLiveDetect["authentication_key_chain"] = strings.TrimPrefix(
+				itemTrimBfdLiveDet, "authentication key-chain ")
 		case itemTrimBfdLiveDet == "authentication loose-check":
 			parentEtherOptsBFDLiveDetect["authentication_loose_check"] = true
 		case strings.HasPrefix(itemTrimBfdLiveDet, "detection-time threshold "):
 			var err error
-			parentEtherOptsBFDLiveDetect["detection_time_threshold"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "detection-time threshold "))
+			parentEtherOptsBFDLiveDetect["detection_time_threshold"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrimBfdLiveDet, "detection-time threshold "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "holddown-interval "):
 			var err error
-			parentEtherOptsBFDLiveDetect["holddown_interval"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "holddown-interval "))
+			parentEtherOptsBFDLiveDetect["holddown_interval"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrimBfdLiveDet, "holddown-interval "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "minimum-interval "):
 			var err error
-			parentEtherOptsBFDLiveDetect["minimum_interval"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "minimum-interval "))
+			parentEtherOptsBFDLiveDetect["minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrimBfdLiveDet, "minimum-interval "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "minimum-receive-interval "):
 			var err error
-			parentEtherOptsBFDLiveDetect["minimum_receive_interval"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "minimum-receive-interval "))
+			parentEtherOptsBFDLiveDetect["minimum_receive_interval"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrimBfdLiveDet, "minimum-receive-interval "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "multiplier "):
 			var err error
-			parentEtherOptsBFDLiveDetect["multiplier"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "multiplier "))
+			parentEtherOptsBFDLiveDetect["multiplier"], err = strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "multiplier "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
@@ -1451,15 +1468,15 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 			parentEtherOptsBFDLiveDetect["no_adaptation"] = true
 		case strings.HasPrefix(itemTrimBfdLiveDet, "transmit-interval minimum-interval "):
 			var err error
-			parentEtherOptsBFDLiveDetect["transmit_interval_minimum_interval"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "transmit-interval minimum-interval "))
+			parentEtherOptsBFDLiveDetect["transmit_interval_minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrimBfdLiveDet, "transmit-interval minimum-interval "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "transmit-interval threshold "):
 			var err error
-			parentEtherOptsBFDLiveDetect["transmit_interval_threshold"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "transmit-interval threshold "))
+			parentEtherOptsBFDLiveDetect["transmit_interval_threshold"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrimBfdLiveDet, "transmit-interval threshold "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
@@ -1483,29 +1500,25 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 				})
 		}
 		itemTrimLacp := strings.TrimPrefix(itemTrim, "lacp ")
+		lacp := confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]
 		switch {
 		case itemTrimLacp == activeW || itemTrimLacp == "passive":
-			confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]["mode"] = itemTrimLacp
+			lacp["mode"] = itemTrimLacp
 		case strings.HasPrefix(itemTrimLacp, "admin-key "):
 			var err error
-			confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]["admin_key"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrimLacp, "admin-key "))
+			lacp["admin_key"], err = strconv.Atoi(strings.TrimPrefix(itemTrimLacp, "admin-key "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimLacp, "periodic "):
-			confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]["periodic"] =
-				strings.TrimPrefix(itemTrimLacp, "periodic ")
+			lacp["periodic"] = strings.TrimPrefix(itemTrimLacp, "periodic ")
 		case strings.HasPrefix(itemTrimLacp, "sync-reset "):
-			confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]["sync_reset"] =
-				strings.TrimPrefix(itemTrimLacp, "sync-reset ")
+			lacp["sync_reset"] = strings.TrimPrefix(itemTrimLacp, "sync-reset ")
 		case strings.HasPrefix(itemTrimLacp, "system-id "):
-			confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]["system_id"] =
-				strings.TrimPrefix(itemTrimLacp, "system-id ")
+			lacp["system_id"] = strings.TrimPrefix(itemTrimLacp, "system-id ")
 		case strings.HasPrefix(itemTrimLacp, "system-priority "):
 			var err error
-			confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]["system_priority"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrimLacp, "system-priority "))
+			lacp["system_priority"], err = strconv.Atoi(strings.TrimPrefix(itemTrimLacp, "system-priority "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
@@ -1524,15 +1537,13 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 			" " + strings.TrimPrefix(itemTrim, "minimum-bandwidth bw-unit ")
 	case strings.HasPrefix(itemTrim, "minimum-links "):
 		var err error
-		confRead.parentEtherOpts[0]["minimum_links"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-links "))
+		confRead.parentEtherOpts[0]["minimum_links"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-links "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "redundancy-group "):
 		var err error
-		confRead.parentEtherOpts[0]["redundancy_group"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "redundancy-group "))
+		confRead.parentEtherOpts[0]["redundancy_group"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "redundancy-group "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -1549,13 +1560,18 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 
 func delInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
-	if containsUnit, err := checkInterfacePhysicalContainsUnit(d.Get("name").(string), m, jnprSess); err != nil {
-		return err
-	} else if containsUnit {
-		return fmt.Errorf("interface %s is used for a logical unit interface", d.Get("name").(string))
+	if jnprSess != nil {
+		if containsUnit, err := checkInterfacePhysicalContainsUnit(d.Get("name").(string), m, jnprSess); err != nil {
+			return err
+		} else if containsUnit {
+			return fmt.Errorf("interface %s is used for a logical unit interface", d.Get("name").(string))
+		}
 	}
 	if err := sess.configSet([]string{"delete interfaces " + d.Get("name").(string)}, jnprSess); err != nil {
 		return err
+	}
+	if jnprSess == nil {
+		return nil
 	}
 	if v := d.Get("name").(string); strings.HasPrefix(v, "ae") {
 		aggregatedCount, err := interfaceAggregatedCountSearchMax("ae-1", v, v, m, jnprSess)

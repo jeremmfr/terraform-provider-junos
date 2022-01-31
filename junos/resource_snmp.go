@@ -207,6 +207,17 @@ func resourceSnmpReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *
 func resourceSnmpUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delSnmp(m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setSnmp(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -239,6 +250,13 @@ func resourceSnmpUpdate(ctx context.Context, d *schema.ResourceData, m interface
 func resourceSnmpDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	if d.Get("clean_on_destroy").(bool) {
 		sess := m.(*Session)
+		if sess.junosFakeDeleteAlso {
+			if err := delSnmp(m, nil); err != nil {
+				return diag.FromErr(err)
+			}
+
+			return nil
+		}
 		jnprSess, err := sess.startNewSession()
 		if err != nil {
 			return diag.FromErr(err)
@@ -428,8 +446,8 @@ func readSnmp(m interface{}, jnprSess *NetconfObject) (snmpOptions, error) {
 				switch {
 				case strings.HasPrefix(itemTrim, "health-monitor falling-threshold "):
 					var err error
-					confRead.healthMonitor[0]["falling_threshold"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrim, "health-monitor falling-threshold "))
+					confRead.healthMonitor[0]["falling_threshold"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrim, "health-monitor falling-threshold "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
@@ -438,38 +456,37 @@ func readSnmp(m interface{}, jnprSess *NetconfObject) (snmpOptions, error) {
 				case strings.HasPrefix(itemTrim, "health-monitor idp falling-threshold "):
 					confRead.healthMonitor[0]["idp"] = true
 					var err error
-					confRead.healthMonitor[0]["idp_falling_threshold"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrim, "health-monitor idp falling-threshold "))
+					confRead.healthMonitor[0]["idp_falling_threshold"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrim, "health-monitor idp falling-threshold "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "health-monitor idp interval "):
 					confRead.healthMonitor[0]["idp"] = true
 					var err error
-					confRead.healthMonitor[0]["idp_interval"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrim, "health-monitor idp interval "))
+					confRead.healthMonitor[0]["idp_interval"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrim, "health-monitor idp interval "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "health-monitor idp rising-threshold "):
 					confRead.healthMonitor[0]["idp"] = true
 					var err error
-					confRead.healthMonitor[0]["idp_rising_threshold"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrim, "health-monitor idp rising-threshold "))
+					confRead.healthMonitor[0]["idp_rising_threshold"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrim, "health-monitor idp rising-threshold "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "health-monitor interval "):
 					var err error
-					confRead.healthMonitor[0]["interval"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrim, "health-monitor interval "))
+					confRead.healthMonitor[0]["interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "health-monitor interval "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "health-monitor rising-threshold "):
 					var err error
-					confRead.healthMonitor[0]["rising_threshold"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrim, "health-monitor rising-threshold "))
+					confRead.healthMonitor[0]["rising_threshold"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrim, "health-monitor rising-threshold "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}

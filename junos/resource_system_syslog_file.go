@@ -319,6 +319,17 @@ func resourceSystemSyslogFileReadWJnprSess(
 func resourceSystemSyslogFileUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delSystemSyslogFile(d.Get("filename").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setSystemSyslogFile(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -350,6 +361,13 @@ func resourceSystemSyslogFileUpdate(ctx context.Context, d *schema.ResourceData,
 
 func resourceSystemSyslogFileDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delSystemSyslogFile(d.Get("filename").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -646,8 +664,8 @@ func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObjec
 					}
 				case strings.HasPrefix(itemTrim, "archive transfer-interval "):
 					var err error
-					confRead.archive[0]["transfer_interval"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrim, "archive transfer-interval "))
+					confRead.archive[0]["transfer_interval"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrim, "archive transfer-interval "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}

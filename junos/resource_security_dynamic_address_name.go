@@ -110,8 +110,7 @@ func resourceSecurityDynamicAddressNameCreate(ctx context.Context,
 	}
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	securityDynamicAddressNameExists, err :=
-		checkSecurityDynamicAddressNamesExists(d.Get("name").(string), m, jnprSess)
+	securityDynamicAddressNameExists, err := checkSecurityDynamicAddressNamesExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -136,8 +135,7 @@ func resourceSecurityDynamicAddressNameCreate(ctx context.Context,
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	securityDynamicAddressNameExists, err =
-		checkSecurityDynamicAddressNamesExists(d.Get("name").(string), m, jnprSess)
+	securityDynamicAddressNameExists, err = checkSecurityDynamicAddressNamesExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -184,6 +182,17 @@ func resourceSecurityDynamicAddressNameUpdate(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delSecurityDynamicAddressName(d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setSecurityDynamicAddressName(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -216,6 +225,13 @@ func resourceSecurityDynamicAddressNameUpdate(ctx context.Context,
 func resourceSecurityDynamicAddressNameDelete(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delSecurityDynamicAddressName(d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)

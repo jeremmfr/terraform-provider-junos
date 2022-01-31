@@ -105,6 +105,17 @@ func resourceSwitchOptionsReadWJnprSess(
 func resourceSwitchOptionsUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delSwitchOptions(m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setSwitchOptions(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -137,6 +148,13 @@ func resourceSwitchOptionsUpdate(ctx context.Context, d *schema.ResourceData, m 
 func resourceSwitchOptionsDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	if d.Get("clean_on_destroy").(bool) {
 		sess := m.(*Session)
+		if sess.junosFakeDeleteAlso {
+			if err := delSwitchOptions(m, nil); err != nil {
+				return diag.FromErr(err)
+			}
+
+			return nil
+		}
 		jnprSess, err := sess.startNewSession()
 		if err != nil {
 			return diag.FromErr(err)

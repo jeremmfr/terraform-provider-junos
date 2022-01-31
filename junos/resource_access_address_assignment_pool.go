@@ -537,8 +537,8 @@ func resourceAccessAddressAssignPoolRead(ctx context.Context, d *schema.Resource
 func resourceAccessAddressAssignPoolReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
-	accessAddressAssignPoolOptions, err :=
-		readAccessAddressAssignPool(d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
+	accessAddressAssignPoolOptions, err := readAccessAddressAssignPool(
+		d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -556,6 +556,18 @@ func resourceAccessAddressAssignPoolUpdate(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delAccessAddressAssignPool(
+			d.Get("name").(string), d.Get("routing_instance").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setAccessAddressAssignPool(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -589,6 +601,14 @@ func resourceAccessAddressAssignPoolUpdate(ctx context.Context,
 func resourceAccessAddressAssignPoolDelete(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delAccessAddressAssignPool(
+			d.Get("name").(string), d.Get("routing_instance").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -720,8 +740,8 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 		dhcpAttr := da.(map[string]interface{})
 		setPrefixDhcpAttr := setPrefixFamily + "dhcp-attributes "
 
-		configSetDhcpAttributes, err :=
-			setAccessAddressAssignPoolFamilyDhcpAttributes(dhcpAttr, family["type"].(string), setPrefixDhcpAttr)
+		configSetDhcpAttributes, err := setAccessAddressAssignPoolFamilyDhcpAttributes(
+			dhcpAttr, family["type"].(string), setPrefixDhcpAttr)
 		if err != nil {
 			return configSet, err
 		}
@@ -1212,8 +1232,8 @@ func readAccessAddressAssignPoolFamily(itemTrim string, family map[string]interf
 			dhcpAttr["sip_server_inet_domain_name"] = append(dhcpAttr["sip_server_inet_domain_name"].([]string),
 				strings.Trim(strings.TrimPrefix(itemTrimAttr, "sip-server name "), "\""))
 		case strings.HasPrefix(itemTrimAttr, "sip-server-domain-name "):
-			dhcpAttr["sip_server_inet6_domain_name"] =
-				strings.Trim(strings.TrimPrefix(itemTrimAttr, "sip-server-domain-name "), "\"")
+			dhcpAttr["sip_server_inet6_domain_name"] = strings.Trim(strings.TrimPrefix(
+				itemTrimAttr, "sip-server-domain-name "), "\"")
 		case strings.HasPrefix(itemTrimAttr, "t1-percentage "):
 			dhcpAttr["t1_percentage"], err = strconv.Atoi(strings.TrimPrefix(itemTrimAttr, "t1-percentage "))
 		case strings.HasPrefix(itemTrimAttr, "t1-renewal-time "):

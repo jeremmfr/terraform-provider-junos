@@ -257,6 +257,24 @@ func resourceBridgeDomainReadWJnprSess(
 func resourceBridgeDomainUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if d.HasChange("vxlan") {
+			oldVxlan, _ := d.GetChange("vxlan")
+			if err := delBridgeDomainOpts(d.Get("name").(string), d.Get("routing_instance").(string), oldVxlan.([]interface{}),
+				m, nil); err != nil {
+				return diag.FromErr(err)
+			}
+		} else if err := delBridgeDomainOpts(
+			d.Get("name").(string), d.Get("routing_instance").(string), d.Get("vxlan").([]interface{}), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setBridgeDomain(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -297,6 +315,14 @@ func resourceBridgeDomainUpdate(ctx context.Context, d *schema.ResourceData, m i
 
 func resourceBridgeDomainDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delBridgeDomain(d.Get("name").(string), d.Get("routing_instance").(string), d.Get("vxlan").([]interface{}),
+			m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)

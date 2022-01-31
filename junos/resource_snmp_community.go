@@ -172,6 +172,17 @@ func resourceSnmpCommunityReadWJnprSess(
 func resourceSnmpCommunityUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delSnmpCommunity(d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setSnmpCommunity(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -203,6 +214,13 @@ func resourceSnmpCommunityUpdate(ctx context.Context, d *schema.ResourceData, m 
 
 func resourceSnmpCommunityDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delSnmpCommunity(d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -350,8 +368,8 @@ func readSnmpCommunity(name string, m interface{}, jnprSess *NetconfObject) (snm
 				itemTrimRoutingInstance := strings.TrimPrefix(itemTrim, "routing-instance "+routingInstanceLineCut[1]+" ")
 				switch {
 				case strings.HasPrefix(itemTrimRoutingInstance, "client-list-name "):
-					mRoutingInstance["client_list_name"] =
-						strings.Trim(strings.TrimPrefix(itemTrimRoutingInstance, "client-list-name "), "\"")
+					mRoutingInstance["client_list_name"] = strings.Trim(strings.TrimPrefix(
+						itemTrimRoutingInstance, "client-list-name "), "\"")
 				case strings.HasPrefix(itemTrimRoutingInstance, "clients "):
 					mRoutingInstance["clients"] = append(mRoutingInstance["clients"].([]string),
 						strings.TrimPrefix(itemTrimRoutingInstance, "clients "))

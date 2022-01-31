@@ -855,6 +855,18 @@ func resourceSystemServicesDhcpLocalServerGroupUpdate(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delSystemServicesDhcpLocalServerGroup(
+			d.Get("name").(string), d.Get("routing_instance").(string), d.Get("version").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setSystemServicesDhcpLocalServerGroup(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -888,6 +900,14 @@ func resourceSystemServicesDhcpLocalServerGroupUpdate(ctx context.Context,
 func resourceSystemServicesDhcpLocalServerGroupDelete(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delSystemServicesDhcpLocalServerGroup(
+			d.Get("name").(string), d.Get("routing_instance").(string), d.Get("version").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -929,8 +949,8 @@ func resourceSystemServicesDhcpLocalServerGroupImport(
 		return nil, fmt.Errorf("bad version '%s' in id, need to be 'v4' or 'v6' (id must be "+
 			"<name>"+idSeparator+"<routing_instance>"+idSeparator+"<version>)", idSplit[2])
 	}
-	systemServicesDhcpLocalServerGroupExists, err :=
-		checkSystemServicesDhcpLocalServerGroupExists(idSplit[0], idSplit[1], idSplit[2], m, jnprSess)
+	systemServicesDhcpLocalServerGroupExists, err := checkSystemServicesDhcpLocalServerGroupExists(
+		idSplit[0], idSplit[1], idSplit[2], m, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -943,8 +963,8 @@ func resourceSystemServicesDhcpLocalServerGroupImport(
 		return nil, fmt.Errorf("don't find system services dhcp-local-server group with id '%v' (id must be "+
 			"<name>"+idSeparator+"<routing_instance>"+idSeparator+"<version>)", d.Id())
 	}
-	systemServicesDhcpLocalServerGroupOptions, err :=
-		readSystemServicesDhcpLocalServerGroup(idSplit[0], idSplit[1], idSplit[2], m, jnprSess)
+	systemServicesDhcpLocalServerGroupOptions, err := readSystemServicesDhcpLocalServerGroup(
+		idSplit[0], idSplit[1], idSplit[2], m, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -1115,8 +1135,8 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, m interface{}
 			return fmt.Errorf("multiple blocks interface with the same name %s", interFace["name"].(string))
 		}
 		interfaceNameList = append(interfaceNameList, interFace["name"].(string))
-		configSetInterface, err :=
-			setSystemServicesDhcpLocalServerGroupInterface(interFace, setPrefix, d.Get("version").(string))
+		configSetInterface, err := setSystemServicesDhcpLocalServerGroupInterface(
+			interFace, setPrefix, d.Get("version").(string))
 		if err != nil {
 			return err
 		}
@@ -1193,8 +1213,8 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, m interface{}
 		if d.Get("version").(string) == "v6" {
 			return fmt.Errorf("overrides_v4 not compatible if version = v6")
 		}
-		configSetOverrides, err :=
-			setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV4(v.(map[string]interface{}), setPrefix)
+		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV4(
+			v.(map[string]interface{}), setPrefix)
 		if err != nil {
 			return err
 		}
@@ -1204,8 +1224,8 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, m interface{}
 		if d.Get("version").(string) == "v4" {
 			return fmt.Errorf("overrides_v6 not compatible if version = v4")
 		}
-		configSetOverrides, err :=
-			setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV6(v.(map[string]interface{}), setPrefix)
+		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV6(
+			v.(map[string]interface{}), setPrefix)
 		if err != nil {
 			return err
 		}
@@ -1309,8 +1329,8 @@ func setSystemServicesDhcpLocalServerGroupInterface(
 		if version == "v6" {
 			return configSet, fmt.Errorf("overrides_v4 not compatible if version = v6")
 		}
-		configSetOverrides, err :=
-			setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV4(v.(map[string]interface{}), setPrefix)
+		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV4(
+			v.(map[string]interface{}), setPrefix)
 		if err != nil {
 			return configSet, err
 		}
@@ -1320,8 +1340,8 @@ func setSystemServicesDhcpLocalServerGroupInterface(
 		if version == "v4" {
 			return configSet, fmt.Errorf("overrides_v6 not compatible if version = v4")
 		}
-		configSetOverrides, err :=
-			setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV6(v.(map[string]interface{}), setPrefix)
+		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV6(
+			v.(map[string]interface{}), setPrefix)
 		if err != nil {
 			return configSet, err
 		}
@@ -1555,14 +1575,14 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 				case itemTrimAuthUserIncl == "client-id":
 					confRead.authenticationUsernameInclude[0]["client_id"] = true
 				case strings.HasPrefix(itemTrimAuthUserIncl, "delimiter "):
-					confRead.authenticationUsernameInclude[0]["delimiter"] =
-						strings.Trim(strings.TrimPrefix(itemTrimAuthUserIncl, "delimiter "), "\"")
+					confRead.authenticationUsernameInclude[0]["delimiter"] = strings.Trim(strings.TrimPrefix(
+						itemTrimAuthUserIncl, "delimiter "), "\"")
 				case strings.HasPrefix(itemTrimAuthUserIncl, "domain-name "):
-					confRead.authenticationUsernameInclude[0]["domain_name"] =
-						strings.Trim(strings.TrimPrefix(itemTrimAuthUserIncl, "domain-name "), "\"")
+					confRead.authenticationUsernameInclude[0]["domain_name"] = strings.Trim(strings.TrimPrefix(
+						itemTrimAuthUserIncl, "domain-name "), "\"")
 				case strings.HasPrefix(itemTrimAuthUserIncl, "interface-description "):
-					confRead.authenticationUsernameInclude[0]["interface_description"] =
-						strings.TrimPrefix(itemTrimAuthUserIncl, "interface-description ")
+					confRead.authenticationUsernameInclude[0]["interface_description"] = strings.TrimPrefix(
+						itemTrimAuthUserIncl, "interface-description ")
 				case itemTrimAuthUserIncl == "interface-name":
 					confRead.authenticationUsernameInclude[0]["interface_name"] = true
 				case itemTrimAuthUserIncl == "mac-address":
@@ -1586,25 +1606,24 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 				case itemTrimAuthUserIncl == "routing-instance-name":
 					confRead.authenticationUsernameInclude[0]["routing_instance_name"] = true
 				case strings.HasPrefix(itemTrimAuthUserIncl, "user-prefix "):
-					confRead.authenticationUsernameInclude[0]["user_prefix"] =
-						strings.Trim(strings.TrimPrefix(itemTrimAuthUserIncl, "user-prefix "), "\"")
+					confRead.authenticationUsernameInclude[0]["user_prefix"] = strings.Trim(strings.TrimPrefix(
+						itemTrimAuthUserIncl, "user-prefix "), "\"")
 				case itemTrimAuthUserIncl == "vlan-tags":
 					confRead.authenticationUsernameInclude[0]["vlan_tags"] = true
 				}
 			case strings.HasPrefix(itemTrim, "dynamic-profile "):
 				switch {
 				case strings.HasPrefix(itemTrim, "dynamic-profile use-primary "):
-					confRead.dynamicProfileUsePrimary =
-						strings.Trim(strings.TrimPrefix(itemTrim, "dynamic-profile use-primary "), "\"")
+					confRead.dynamicProfileUsePrimary = strings.Trim(strings.TrimPrefix(
+						itemTrim, "dynamic-profile use-primary "), "\"")
 				case strings.HasPrefix(itemTrim, "dynamic-profile aggregate-clients"):
 					confRead.dynamicProfileAggregateClients = true
 					if strings.HasPrefix(itemTrim, "dynamic-profile aggregate-clients ") {
-						confRead.dynamicProfileAggregateClientsAction =
-							strings.TrimPrefix(itemTrim, "dynamic-profile aggregate-clients ")
+						confRead.dynamicProfileAggregateClientsAction = strings.TrimPrefix(
+							itemTrim, "dynamic-profile aggregate-clients ")
 					}
 				default:
-					confRead.dynamicProfile =
-						strings.Trim(strings.TrimPrefix(itemTrim, "dynamic-profile "), "\"")
+					confRead.dynamicProfile = strings.Trim(strings.TrimPrefix(itemTrim, "dynamic-profile "), "\"")
 				}
 			case strings.HasPrefix(itemTrim, "interface "):
 				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "interface "), " ")
@@ -1643,14 +1662,14 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 				switch {
 				case strings.HasPrefix(itemTrim, "lease-time-validation lease-time-threshold "):
 					var err error
-					confRead.leaseTimeValidation[0]["lease_time_threshold"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrim, "lease-time-validation lease-time-threshold "))
+					confRead.leaseTimeValidation[0]["lease_time_threshold"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrim, "lease-time-validation lease-time-threshold "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "lease-time-validation violation-action "):
-					confRead.leaseTimeValidation[0]["violation_action"] =
-						strings.TrimPrefix(itemTrim, "lease-time-validation violation-action ")
+					confRead.leaseTimeValidation[0]["violation_action"] = strings.TrimPrefix(
+						itemTrim, "lease-time-validation violation-action ")
 				}
 			case strings.HasPrefix(itemTrim, "liveness-detection failure-action "):
 				confRead.livenessDetectionFailureAction = strings.TrimPrefix(itemTrim, "liveness-detection failure-action ")
@@ -1673,34 +1692,33 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 				var err error
 				switch {
 				case strings.HasPrefix(itemTrimLiveDetMethBfd, "detection-time threshold "):
-					confRead.livenessDetectionMethodBfd[0]["detection_time_threshold"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrimLiveDetMethBfd, "detection-time threshold "))
+					confRead.livenessDetectionMethodBfd[0]["detection_time_threshold"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrimLiveDetMethBfd, "detection-time threshold "))
 				case strings.HasPrefix(itemTrimLiveDetMethBfd, "holddown-interval "):
-					confRead.livenessDetectionMethodBfd[0]["holddown_interval"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrimLiveDetMethBfd, "holddown-interval "))
+					confRead.livenessDetectionMethodBfd[0]["holddown_interval"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrimLiveDetMethBfd, "holddown-interval "))
 				case strings.HasPrefix(itemTrimLiveDetMethBfd, "minimum-interval "):
-					confRead.livenessDetectionMethodBfd[0]["minimum_interval"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrimLiveDetMethBfd, "minimum-interval "))
+					confRead.livenessDetectionMethodBfd[0]["minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrimLiveDetMethBfd, "minimum-interval "))
 				case strings.HasPrefix(itemTrimLiveDetMethBfd, "minimum-receive-interval "):
-					confRead.livenessDetectionMethodBfd[0]["minimum_receive_interval"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrimLiveDetMethBfd, "minimum-receive-interval "))
+					confRead.livenessDetectionMethodBfd[0]["minimum_receive_interval"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrimLiveDetMethBfd, "minimum-receive-interval "))
 				case strings.HasPrefix(itemTrimLiveDetMethBfd, "multiplier "):
-					confRead.livenessDetectionMethodBfd[0]["multiplier"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrimLiveDetMethBfd, "multiplier "))
+					confRead.livenessDetectionMethodBfd[0]["multiplier"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrimLiveDetMethBfd, "multiplier "))
 				case itemTrimLiveDetMethBfd == "no-adaptation":
 					confRead.livenessDetectionMethodBfd[0]["no_adaptation"] = true
 				case strings.HasPrefix(itemTrimLiveDetMethBfd, "session-mode "):
-					confRead.livenessDetectionMethodBfd[0]["session_mode"] =
-						strings.TrimPrefix(itemTrimLiveDetMethBfd, "session-mode ")
+					confRead.livenessDetectionMethodBfd[0]["session_mode"] = strings.TrimPrefix(
+						itemTrimLiveDetMethBfd, "session-mode ")
 				case strings.HasPrefix(itemTrimLiveDetMethBfd, "transmit-interval minimum-interval "):
-					confRead.livenessDetectionMethodBfd[0]["transmit_interval_minimum"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrimLiveDetMethBfd, "transmit-interval minimum-interval "))
+					confRead.livenessDetectionMethodBfd[0]["transmit_interval_minimum"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrimLiveDetMethBfd, "transmit-interval minimum-interval "))
 				case strings.HasPrefix(itemTrimLiveDetMethBfd, "transmit-interval threshold "):
-					confRead.livenessDetectionMethodBfd[0]["transmit_interval_threshold"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrimLiveDetMethBfd, "transmit-interval threshold "))
+					confRead.livenessDetectionMethodBfd[0]["transmit_interval_threshold"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrimLiveDetMethBfd, "transmit-interval threshold "))
 				case strings.HasPrefix(itemTrimLiveDetMethBfd, "version "):
-					confRead.livenessDetectionMethodBfd[0]["version"] =
-						strings.TrimPrefix(itemTrimLiveDetMethBfd, "version ")
+					confRead.livenessDetectionMethodBfd[0]["version"] = strings.TrimPrefix(itemTrimLiveDetMethBfd, "version ")
 				}
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
@@ -1715,13 +1733,11 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 				var err error
 				switch {
 				case strings.HasPrefix(itemTrim, "liveness-detection method layer2-liveness-detection max-consecutive-retries "):
-					confRead.livenessDetectionMethodLayer2[0]["max_consecutive_retries"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrim,
-							"liveness-detection method layer2-liveness-detection max-consecutive-retries "))
+					confRead.livenessDetectionMethodLayer2[0]["max_consecutive_retries"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrim, "liveness-detection method layer2-liveness-detection max-consecutive-retries "))
 				case strings.HasPrefix(itemTrim, "liveness-detection method layer2-liveness-detection transmit-interval "):
-					confRead.livenessDetectionMethodLayer2[0]["transmit_interval"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrim,
-							"liveness-detection method layer2-liveness-detection transmit-interval "))
+					confRead.livenessDetectionMethodLayer2[0]["transmit_interval"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrim, "liveness-detection method layer2-liveness-detection transmit-interval "))
 				}
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
@@ -1795,15 +1811,15 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 				confRead.serviceProfile = strings.Trim(strings.TrimPrefix(itemTrim, "service-profile "), "\"")
 			case strings.HasPrefix(itemTrim, "short-cycle-protection lockout-max-time "):
 				var err error
-				confRead.shortCycleProtectionLockoutMaxTime, err =
-					strconv.Atoi(strings.TrimPrefix(itemTrim, "short-cycle-protection lockout-max-time "))
+				confRead.shortCycleProtectionLockoutMaxTime, err = strconv.Atoi(strings.TrimPrefix(
+					itemTrim, "short-cycle-protection lockout-max-time "))
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "short-cycle-protection lockout-min-time "):
 				var err error
-				confRead.shortCycleProtectionLockoutMinTime, err =
-					strconv.Atoi(strings.TrimPrefix(itemTrim, "short-cycle-protection lockout-min-time "))
+				confRead.shortCycleProtectionLockoutMinTime, err = strconv.Atoi(strings.TrimPrefix(
+					itemTrim, "short-cycle-protection lockout-min-time "))
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
@@ -1822,13 +1838,13 @@ func readSystemServicesDhcpLocalServerGroupInterface(itemTrim, version string, i
 	case strings.HasPrefix(itemTrim, "dynamic-profile "):
 		switch {
 		case strings.HasPrefix(itemTrim, "dynamic-profile use-primary "):
-			interFace["dynamic_profile_use_primary"] =
-				strings.Trim(strings.TrimPrefix(itemTrim, "dynamic-profile use-primary "), "\"")
+			interFace["dynamic_profile_use_primary"] = strings.Trim(strings.TrimPrefix(
+				itemTrim, "dynamic-profile use-primary "), "\"")
 		case strings.HasPrefix(itemTrim, "dynamic-profile aggregate-clients"):
 			interFace["dynamic_profile_aggregate_clients"] = true
 			if strings.HasPrefix(itemTrim, "dynamic-profile aggregate-clients ") {
-				interFace["dynamic_profile_aggregate_clients_action"] =
-					strings.TrimPrefix(itemTrim, "dynamic-profile aggregate-clients ")
+				interFace["dynamic_profile_aggregate_clients_action"] = strings.TrimPrefix(
+					itemTrim, "dynamic-profile aggregate-clients ")
 			}
 		default:
 			interFace["dynamic_profile"] = strings.Trim(strings.TrimPrefix(itemTrim, "dynamic-profile "), "\"")
@@ -1866,11 +1882,11 @@ func readSystemServicesDhcpLocalServerGroupInterface(itemTrim, version string, i
 	case strings.HasPrefix(itemTrim, "service-profile "):
 		interFace["service_profile"] = strings.Trim(strings.TrimPrefix(itemTrim, "service-profile "), "\"")
 	case strings.HasPrefix(itemTrim, "short-cycle-protection lockout-max-time "):
-		interFace["short_cycle_protection_lockout_max_time"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "short-cycle-protection lockout-max-time "))
+		interFace["short_cycle_protection_lockout_max_time"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "short-cycle-protection lockout-max-time "))
 	case strings.HasPrefix(itemTrim, "short-cycle-protection lockout-min-time "):
-		interFace["short_cycle_protection_lockout_min_time"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "short-cycle-protection lockout-min-time "))
+		interFace["short_cycle_protection_lockout_min_time"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "short-cycle-protection lockout-min-time "))
 	case itemTrim == "trace":
 		interFace["trace"] = true
 	case strings.HasPrefix(itemTrim, "upto "):
@@ -1986,8 +2002,8 @@ func readSystemServicesDhcpLocalServerGroupOverridesV6(itemTrim string, override
 	case strings.HasPrefix(itemTrim, "asymmetric-lease-time "):
 		overrides["asymmetric_lease_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "asymmetric-lease-time "))
 	case strings.HasPrefix(itemTrim, "asymmetric-prefix-lease-time "):
-		overrides["asymmetric_prefix_lease_time"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "asymmetric-prefix-lease-time "))
+		overrides["asymmetric_prefix_lease_time"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "asymmetric-prefix-lease-time "))
 	case itemTrim == "client-negotiation-match incoming-interface":
 		overrides["client_negotiation_match_incoming_interface"] = true
 	case strings.HasPrefix(itemTrim, "delay-advertise based-on "):
@@ -2005,8 +2021,8 @@ func readSystemServicesDhcpLocalServerGroupOverridesV6(itemTrim string, override
 					"delay-advertise based-on "+itemTrimSplit[0]+" "+itemTrimSplit[1]+" "+itemTrimSplit[2]+" "), "\""),
 			})
 	case strings.HasPrefix(itemTrim, "delay-advertise delay-time "):
-		overrides["delay_advertise_delay_time"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "delay-advertise delay-time "))
+		overrides["delay_advertise_delay_time"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "delay-advertise delay-time "))
 	case strings.HasPrefix(itemTrim, "delegated-pool "):
 		overrides["delegated_pool"] = strings.Trim(strings.TrimPrefix(itemTrim, "delegated-pool "), "\"")
 	case itemTrim == "delete-binding-on-renegotiation":

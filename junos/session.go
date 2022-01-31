@@ -13,6 +13,8 @@ const directoryPermission = 0o755
 
 // Session information to connect on Junos Device and more.
 type Session struct {
+	junosFakeUpdateAlso    bool
+	junosFakeDeleteAlso    bool
 	junosPort              int
 	junosSleepLock         int
 	junosSleepShort        int

@@ -69,7 +69,7 @@ the execution of one or more steps of applying one or more configuration files,
 allowing multiple scenarios to be tested. Terraform acceptance tests use real
 Terraform configurations to exercise the code in real plan, apply, refresh, and
 destroy life cycles. See more on terraform
-[website](https://www.terraform.io/docs/extend/testing/acceptance-tests/index.html)
+[website](https://www.terraform.io/plugin/sdkv2/testing/acceptance-tests)
 
 Terraform requires an environment variable `TF_ACC` be set in order to run
 acceptance tests. More environment variables is also necessary for configure the

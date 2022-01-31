@@ -120,8 +120,8 @@ func resourceSecurityZoneBookAddressSetCreate(ctx context.Context,
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	securityZoneBookAddressSetExists, err =
-		checkSecurityZoneBookAddressSetsExists(d.Get("zone").(string), d.Get("name").(string), m, jnprSess)
+	securityZoneBookAddressSetExists, err = checkSecurityZoneBookAddressSetsExists(
+		d.Get("zone").(string), d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -170,6 +170,17 @@ func resourceSecurityZoneBookAddressSetUpdate(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delSecurityZoneBookAddressSet(d.Get("zone").(string), d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setSecurityZoneBookAddressSet(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -202,6 +213,13 @@ func resourceSecurityZoneBookAddressSetUpdate(ctx context.Context,
 func resourceSecurityZoneBookAddressSetDelete(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delSecurityZoneBookAddressSet(d.Get("zone").(string), d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)

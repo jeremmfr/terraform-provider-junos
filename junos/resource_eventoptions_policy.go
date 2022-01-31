@@ -553,6 +553,17 @@ func resourceEventoptionsPolicyReadWJnprSess(
 func resourceEventoptionsPolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delEventoptionsPolicy(d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setEventoptionsPolicy(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -584,6 +595,13 @@ func resourceEventoptionsPolicyUpdate(ctx context.Context, d *schema.ResourceDat
 
 func resourceEventoptionsPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delEventoptionsPolicy(d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -972,19 +990,19 @@ func readEventoptionsPolicyThen(then map[string]interface{}, itemTrim string) er
 		case itemTrim == "then change-configuration commit-options force":
 			changeConfiguration["commit_options_force"] = true
 		case strings.HasPrefix(itemTrim, "then change-configuration commit-options log "):
-			changeConfiguration["commit_options_log"] = strings.Trim(
-				strings.TrimPrefix(itemTrim, "then change-configuration commit-options log "), "\"")
+			changeConfiguration["commit_options_log"] = strings.Trim(strings.TrimPrefix(
+				itemTrim, "then change-configuration commit-options log "), "\"")
 		case itemTrim == "then change-configuration commit-options synchronize":
 			changeConfiguration["commit_options_synchronize"] = true
 		case strings.HasPrefix(itemTrim, "then change-configuration retry count "):
-			changeConfiguration["retry_count"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "then change-configuration retry count "))
+			changeConfiguration["retry_count"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "then change-configuration retry count "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "then change-configuration retry interval "):
-			changeConfiguration["retry_interval"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "then change-configuration retry interval "))
+			changeConfiguration["retry_interval"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "then change-configuration retry interval "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
@@ -1001,8 +1019,8 @@ func readEventoptionsPolicyThen(then map[string]interface{}, itemTrim string) er
 			"output_format":   "",
 			"user_name":       "",
 		}
-		then["event_script"] =
-			copyAndRemoveItemMapList("filename", eventScript, then["event_script"].([]map[string]interface{}))
+		then["event_script"] = copyAndRemoveItemMapList(
+			"filename", eventScript, then["event_script"].([]map[string]interface{}))
 		itemTrimEventScript := strings.TrimPrefix(itemTrim, "then event-script "+itemTrimSplit[0]+" ")
 		itemTrimEventScriptSplit := strings.Split(itemTrimEventScript, " ")
 		switch {
@@ -1027,8 +1045,8 @@ func readEventoptionsPolicyThen(then map[string]interface{}, itemTrim string) er
 			itemTrimDestination := strings.TrimPrefix(itemTrimEventScript, "destination "+itemTrimEventScriptSplit[1]+" ")
 			switch {
 			case strings.HasPrefix(itemTrimDestination, "retry-count retry-interval "):
-				destination["retry_interval"], err =
-					strconv.Atoi(strings.TrimPrefix(itemTrimDestination, "retry-count retry-interval "))
+				destination["retry_interval"], err = strconv.Atoi(strings.TrimPrefix(
+					itemTrimDestination, "retry-count retry-interval "))
 				if err != nil {
 					return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
@@ -1083,8 +1101,8 @@ func readEventoptionsPolicyThen(then map[string]interface{}, itemTrim string) er
 			itemTrimDestination := strings.TrimPrefix(itemTrimExecCommands, "destination "+itemTrimExecCommandsSplit[0]+" ")
 			switch {
 			case strings.HasPrefix(itemTrimDestination, "retry-count retry-interval "):
-				destination["retry_interval"], err =
-					strconv.Atoi(strings.TrimPrefix(itemTrimDestination, "retry-count retry-interval "))
+				destination["retry_interval"], err = strconv.Atoi(strings.TrimPrefix(
+					itemTrimDestination, "retry-count retry-interval "))
 				if err != nil {
 					return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
@@ -1100,8 +1118,7 @@ func readEventoptionsPolicyThen(then map[string]interface{}, itemTrim string) er
 				}
 			}
 		case strings.HasPrefix(itemTrimExecCommands, "output-filename "):
-			executeCommands["output_filename"] =
-				strings.Trim(strings.TrimPrefix(itemTrimExecCommands, "output-filename "), "\"")
+			executeCommands["output_filename"] = strings.Trim(strings.TrimPrefix(itemTrimExecCommands, "output-filename "), "\"")
 		case strings.HasPrefix(itemTrimExecCommands, "output-format "):
 			executeCommands["output_format"] = strings.TrimPrefix(itemTrimExecCommands, "output-format ")
 		case strings.HasPrefix(itemTrimExecCommands, "user-name "):

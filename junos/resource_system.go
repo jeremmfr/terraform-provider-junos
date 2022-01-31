@@ -956,6 +956,17 @@ func resourceSystemReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess
 func resourceSystemUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delSystem(m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setSystem(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -1794,8 +1805,8 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 					}
 				case strings.HasPrefix(itemTrim, "archival configuration transfer-interval "):
 					var err error
-					confRead.archivalConfiguration[0]["transfer_interval"], err =
-						strconv.Atoi(strings.TrimPrefix(itemTrim, "archival configuration transfer-interval "))
+					confRead.archivalConfiguration[0]["transfer_interval"], err = strconv.Atoi(strings.TrimPrefix(
+						itemTrim, "archival configuration transfer-interval "))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
@@ -2002,8 +2013,8 @@ func readSystemLogin(confRead *systemOptions, itemTrim string) error {
 	}
 	switch {
 	case strings.HasPrefix(itemTrim, "login announcement "):
-		confRead.login[0]["announcement"] =
-			html.UnescapeString(strings.Trim(strings.TrimPrefix(itemTrim, "login announcement "), "\""))
+		confRead.login[0]["announcement"] = html.UnescapeString(strings.Trim(strings.TrimPrefix(
+			itemTrim, "login announcement "), "\""))
 	case strings.HasPrefix(itemTrim, "login deny-sources address "):
 		confRead.login[0]["deny_sources_address"] = append(confRead.login[0]["deny_sources_address"].([]string),
 			strings.TrimPrefix(itemTrim, "login deny-sources address "))
@@ -2032,73 +2043,72 @@ func readSystemLogin(confRead *systemOptions, itemTrim string) error {
 					"minimum_upper_cases":       0,
 				})
 		}
+		password := confRead.login[0]["password"].([]map[string]interface{})[0]
 		switch {
 		case strings.HasPrefix(itemTrim, "login password change-type "):
-			confRead.login[0]["password"].([]map[string]interface{})[0]["change_type"] =
-				strings.TrimPrefix(itemTrim, "login password change-type ")
+			password["change_type"] = strings.TrimPrefix(itemTrim, "login password change-type ")
 		case strings.HasPrefix(itemTrim, "login password format "):
-			confRead.login[0]["password"].([]map[string]interface{})[0]["format"] =
-				strings.TrimPrefix(itemTrim, "login password format ")
+			password["format"] = strings.TrimPrefix(itemTrim, "login password format ")
 		case strings.HasPrefix(itemTrim, "login password maximum-length "):
 			var err error
-			confRead.login[0]["password"].([]map[string]interface{})[0]["maximum_length"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "login password maximum-length "))
+			password["maximum_length"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "login password maximum-length "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login password minimum-changes "):
 			var err error
-			confRead.login[0]["password"].([]map[string]interface{})[0]["minimum_changes"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "login password minimum-changes "))
+			password["minimum_changes"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "login password minimum-changes "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login password minimum-character-changes "):
 			var err error
-			confRead.login[0]["password"].([]map[string]interface{})[0]["minimum_character_changes"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "login password minimum-character-changes "))
+			password["minimum_character_changes"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "login password minimum-character-changes "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login password minimum-length "):
 			var err error
-			confRead.login[0]["password"].([]map[string]interface{})[0]["minimum_length"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "login password minimum-length "))
+			password["minimum_length"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "login password minimum-length "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login password minimum-lower-cases "):
 			var err error
-			confRead.login[0]["password"].([]map[string]interface{})[0]["minimum_lower_cases"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "login password minimum-lower-cases "))
+			password["minimum_lower_cases"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "login password minimum-lower-cases "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login password minimum-numerics "):
 			var err error
-			confRead.login[0]["password"].([]map[string]interface{})[0]["minimum_numerics"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "login password minimum-numerics "))
+			password["minimum_numerics"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "login password minimum-numerics "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login password minimum-punctuations "):
 			var err error
-			confRead.login[0]["password"].([]map[string]interface{})[0]["minimum_punctuations"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "login password minimum-punctuations "))
+			password["minimum_punctuations"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "login password minimum-punctuations "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login password minimum-reuse "):
 			var err error
-			confRead.login[0]["password"].([]map[string]interface{})[0]["minimum_reuse"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "login password minimum-reuse "))
+			password["minimum_reuse"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "login password minimum-reuse "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login password minimum-upper-cases "):
 			var err error
-			confRead.login[0]["password"].([]map[string]interface{})[0]["minimum_upper_cases"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "login password minimum-upper-cases "))
+			password["minimum_upper_cases"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "login password minimum-upper-cases "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
@@ -2115,46 +2125,47 @@ func readSystemLogin(confRead *systemOptions, itemTrim string) error {
 					"tries_before_disconnect": 0,
 				})
 		}
+		retryOptions := confRead.login[0]["retry_options"].([]map[string]interface{})[0]
 		switch {
 		case strings.HasPrefix(itemTrim, "login retry-options backoff-factor "):
 			var err error
-			confRead.login[0]["retry_options"].([]map[string]interface{})[0]["backoff_factor"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "login retry-options backoff-factor "))
+			retryOptions["backoff_factor"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "login retry-options backoff-factor "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login retry-options backoff-threshold "):
 			var err error
-			confRead.login[0]["retry_options"].([]map[string]interface{})[0]["backoff_threshold"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "login retry-options backoff-threshold "))
+			retryOptions["backoff_threshold"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "login retry-options backoff-threshold "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login retry-options lockout-period "):
 			var err error
-			confRead.login[0]["retry_options"].([]map[string]interface{})[0]["lockout_period"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "login retry-options lockout-period "))
+			retryOptions["lockout_period"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "login retry-options lockout-period "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login retry-options maximum-time "):
 			var err error
-			confRead.login[0]["retry_options"].([]map[string]interface{})[0]["maximum_time"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "login retry-options maximum-time "))
+			retryOptions["maximum_time"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "login retry-options maximum-time "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login retry-options minimum-time "):
 			var err error
-			confRead.login[0]["retry_options"].([]map[string]interface{})[0]["minimum_time"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "login retry-options minimum-time "))
+			retryOptions["minimum_time"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "login retry-options minimum-time "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login retry-options tries-before-disconnect "):
 			var err error
-			confRead.login[0]["retry_options"].([]map[string]interface{})[0]["tries_before_disconnect"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "login retry-options tries-before-disconnect "))
+			retryOptions["tries_before_disconnect"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "login retry-options tries-before-disconnect "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
@@ -2202,18 +2213,19 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 					"packet_rate": -1,
 				})
 		}
+		icmpV4RateLimit := confRead.internetOptions[0]["icmpv4_rate_limit"].([]map[string]interface{})[0]
 		switch {
 		case strings.HasPrefix(itemTrim, "internet-options icmpv4-rate-limit bucket-size "):
 			var err error
-			confRead.internetOptions[0]["icmpv4_rate_limit"].([]map[string]interface{})[0]["bucket_size"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "internet-options icmpv4-rate-limit bucket-size "))
+			icmpV4RateLimit["bucket_size"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "internet-options icmpv4-rate-limit bucket-size "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "internet-options icmpv4-rate-limit packet-rate "):
 			var err error
-			confRead.internetOptions[0]["icmpv4_rate_limit"].([]map[string]interface{})[0]["packet_rate"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "internet-options icmpv4-rate-limit packet-rate "))
+			icmpV4RateLimit["packet_rate"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "internet-options icmpv4-rate-limit packet-rate "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
@@ -2226,18 +2238,19 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 					"packet_rate": -1,
 				})
 		}
+		icmpV6RateLimit := confRead.internetOptions[0]["icmpv6_rate_limit"].([]map[string]interface{})[0]
 		switch {
 		case strings.HasPrefix(itemTrim, "internet-options icmpv6-rate-limit bucket-size "):
 			var err error
-			confRead.internetOptions[0]["icmpv6_rate_limit"].([]map[string]interface{})[0]["bucket_size"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "internet-options icmpv6-rate-limit bucket-size "))
+			icmpV6RateLimit["bucket_size"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "internet-options icmpv6-rate-limit bucket-size "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "internet-options icmpv6-rate-limit packet-rate "):
 			var err error
-			confRead.internetOptions[0]["icmpv6_rate_limit"].([]map[string]interface{})[0]["packet_rate"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "internet-options icmpv6-rate-limit packet-rate "))
+			icmpV6RateLimit["packet_rate"], err = strconv.Atoi(strings.TrimPrefix(
+				itemTrim, "internet-options icmpv6-rate-limit packet-rate "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
@@ -2246,8 +2259,8 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 		confRead.internetOptions[0]["ipip_path_mtu_discovery"] = true
 	case strings.HasPrefix(itemTrim, "internet-options ipv6-duplicate-addr-detection-transmits "):
 		var err error
-		confRead.internetOptions[0]["ipv6_duplicate_addr_detection_transmits"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "internet-options ipv6-duplicate-addr-detection-transmits "))
+		confRead.internetOptions[0]["ipv6_duplicate_addr_detection_transmits"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "internet-options ipv6-duplicate-addr-detection-transmits "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2255,8 +2268,8 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 		confRead.internetOptions[0]["ipv6_path_mtu_discovery"] = true
 	case strings.HasPrefix(itemTrim, "internet-options ipv6-path-mtu-discovery-timeout "):
 		var err error
-		confRead.internetOptions[0]["ipv6_path_mtu_discovery_timeout"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "internet-options ipv6-path-mtu-discovery-timeout "))
+		confRead.internetOptions[0]["ipv6_path_mtu_discovery_timeout"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "internet-options ipv6-path-mtu-discovery-timeout "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2284,8 +2297,8 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 		confRead.internetOptions[0]["path_mtu_discovery"] = true
 	case strings.HasPrefix(itemTrim, "internet-options source-port upper-limit "):
 		var err error
-		confRead.internetOptions[0]["source_port_upper_limit"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "internet-options source-port upper-limit "))
+		confRead.internetOptions[0]["source_port_upper_limit"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "internet-options source-port upper-limit "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2295,8 +2308,7 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 		confRead.internetOptions[0]["tcp_drop_synfin_set"] = true
 	case strings.HasPrefix(itemTrim, "internet-options tcp-mss "):
 		var err error
-		confRead.internetOptions[0]["tcp_mss"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "internet-options tcp-mss "))
+		confRead.internetOptions[0]["tcp_mss"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "internet-options tcp-mss "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2334,15 +2346,14 @@ func readSystemLicense(confRead *systemOptions, itemTrim string) error {
 		}
 	case strings.HasPrefix(itemTrim, "license renew before-expiration "):
 		var err error
-		confRead.license[0]["renew_before_expiration"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "license renew before-expiration "))
+		confRead.license[0]["renew_before_expiration"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "license renew before-expiration "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "license renew interval "):
 		var err error
-		confRead.license[0]["renew_interval"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "license renew interval "))
+		confRead.license[0]["renew_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "license renew interval "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
@@ -2384,20 +2395,19 @@ func readSystemServicesNetconfTraceOpts(confRead *systemOptions, itemTrimNetconf
 		var err error
 		switch {
 		case strings.HasSuffix(itemTrim, "k"):
-			netconfTraceOpts["file_size"], err =
-				strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "k"))
+			netconfTraceOpts["file_size"], err = strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(
+				itemTrim, "file size "), "k"))
 			netconfTraceOpts["file_size"] = netconfTraceOpts["file_size"].(int) * 1024
 		case strings.HasSuffix(itemTrim, "m"):
-			netconfTraceOpts["file_size"], err =
-				strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "m"))
+			netconfTraceOpts["file_size"], err = strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(
+				itemTrim, "file size "), "m"))
 			netconfTraceOpts["file_size"] = netconfTraceOpts["file_size"].(int) * 1024 * 1024
 		case strings.HasSuffix(itemTrim, "g"):
-			netconfTraceOpts["file_size"], err =
-				strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(itemTrim, "file size "), "g"))
+			netconfTraceOpts["file_size"], err = strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(
+				itemTrim, "file size "), "g"))
 			netconfTraceOpts["file_size"] = netconfTraceOpts["file_size"].(int) * 1024 * 1024 * 1024
 		default:
-			netconfTraceOpts["file_size"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "file size "))
+			netconfTraceOpts["file_size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file size "))
 		}
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
@@ -2443,96 +2453,84 @@ func readSystemServicesSSH(confRead *systemOptions, itemTrim string) error {
 				"tcp_forwarding":                 false,
 			})
 	}
+	ssh := confRead.services[0]["ssh"].([]map[string]interface{})[0]
 	switch {
 	case strings.HasPrefix(itemTrim, "services ssh authentication-order "):
-		confRead.services[0]["ssh"].([]map[string]interface{})[0]["authentication_order"] = append(
-			confRead.services[0]["ssh"].([]map[string]interface{})[0]["authentication_order"].([]string),
+		ssh["authentication_order"] = append(ssh["authentication_order"].([]string),
 			strings.TrimPrefix(itemTrim, "services ssh authentication-order "))
 	case strings.HasPrefix(itemTrim, "services ssh ciphers "):
-		confRead.services[0]["ssh"].([]map[string]interface{})[0]["ciphers"] = append(
-			confRead.services[0]["ssh"].([]map[string]interface{})[0]["ciphers"].([]string),
+		ssh["ciphers"] = append(ssh["ciphers"].([]string),
 			strings.Trim(strings.TrimPrefix(itemTrim, "services ssh ciphers "), "\""))
 	case strings.HasPrefix(itemTrim, "services ssh client-alive-count-max "):
 		var err error
-		confRead.services[0]["ssh"].([]map[string]interface{})[0]["client_alive_count_max"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh client-alive-count-max "))
+		ssh["client_alive_count_max"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "services ssh client-alive-count-max "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "services ssh client-alive-interval "):
 		var err error
-		confRead.services[0]["ssh"].([]map[string]interface{})[0]["client_alive_interval"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh client-alive-interval "))
+		ssh["client_alive_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh client-alive-interval "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "services ssh connection-limit "):
 		var err error
-		confRead.services[0]["ssh"].([]map[string]interface{})[0]["connection_limit"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh connection-limit "))
+		ssh["connection_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh connection-limit "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "services ssh fingerprint-hash "):
-		confRead.services[0]["ssh"].([]map[string]interface{})[0]["fingerprint_hash"] = strings.TrimPrefix(
-			itemTrim, "services ssh fingerprint-hash ")
+		ssh["fingerprint_hash"] = strings.TrimPrefix(itemTrim, "services ssh fingerprint-hash ")
 	case strings.HasPrefix(itemTrim, "services ssh hostkey-algorithm "):
-		confRead.services[0]["ssh"].([]map[string]interface{})[0]["hostkey_algorithm"] = append(
-			confRead.services[0]["ssh"].([]map[string]interface{})[0]["hostkey_algorithm"].([]string),
+		ssh["hostkey_algorithm"] = append(ssh["hostkey_algorithm"].([]string),
 			strings.TrimPrefix(itemTrim, "services ssh hostkey-algorithm "))
 	case strings.HasPrefix(itemTrim, "services ssh key-exchange "):
-		confRead.services[0]["ssh"].([]map[string]interface{})[0]["key_exchange"] = append(
-			confRead.services[0]["ssh"].([]map[string]interface{})[0]["key_exchange"].([]string),
+		ssh["key_exchange"] = append(ssh["key_exchange"].([]string),
 			strings.TrimPrefix(itemTrim, "services ssh key-exchange "))
 	case itemTrim == "services ssh log-key-changes":
-		confRead.services[0]["ssh"].([]map[string]interface{})[0]["log_key_changes"] = true
+		ssh["log_key_changes"] = true
 	case strings.HasPrefix(itemTrim, "services ssh macs "):
-		confRead.services[0]["ssh"].([]map[string]interface{})[0]["macs"] = append(
-			confRead.services[0]["ssh"].([]map[string]interface{})[0]["macs"].([]string),
-			strings.TrimPrefix(itemTrim, "services ssh macs "))
+		ssh["macs"] = append(ssh["macs"].([]string), strings.TrimPrefix(itemTrim, "services ssh macs "))
 	case strings.HasPrefix(itemTrim, "services ssh max-pre-authentication-packets "):
 		var err error
-		confRead.services[0]["ssh"].([]map[string]interface{})[0]["max_pre_authentication_packets"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh max-pre-authentication-packets "))
+		ssh["max_pre_authentication_packets"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "services ssh max-pre-authentication-packets "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "services ssh max-sessions-per-connection "):
 		var err error
-		confRead.services[0]["ssh"].([]map[string]interface{})[0]["max_sessions_per_connection"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh max-sessions-per-connection "))
+		ssh["max_sessions_per_connection"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "services ssh max-sessions-per-connection "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case itemTrim == "services ssh no-passwords":
-		confRead.services[0]["ssh"].([]map[string]interface{})[0]["no_passwords"] = true
+		ssh["no_passwords"] = true
 	case itemTrim == "services ssh no-public-keys":
-		confRead.services[0]["ssh"].([]map[string]interface{})[0]["no_public_keys"] = true
+		ssh["no_public_keys"] = true
 	case strings.HasPrefix(itemTrim, "services ssh port "):
 		var err error
-		confRead.services[0]["ssh"].([]map[string]interface{})[0]["port"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh port "))
+		ssh["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh port "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "services ssh protocol-version "):
-		confRead.services[0]["ssh"].([]map[string]interface{})[0]["protocol_version"] = append(
-			confRead.services[0]["ssh"].([]map[string]interface{})[0]["protocol_version"].([]string),
+		ssh["protocol_version"] = append(ssh["protocol_version"].([]string),
 			strings.TrimPrefix(itemTrim, "services ssh protocol-version "))
 	case strings.HasPrefix(itemTrim, "services ssh rate-limit "):
 		var err error
-		confRead.services[0]["ssh"].([]map[string]interface{})[0]["rate_limit"], err =
-			strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh rate-limit "))
+		ssh["rate_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh rate-limit "))
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "services ssh root-login "):
-		confRead.services[0]["ssh"].([]map[string]interface{})[0]["root_login"] =
-			strings.TrimPrefix(itemTrim, "services ssh root-login ")
+		ssh["root_login"] = strings.TrimPrefix(itemTrim, "services ssh root-login ")
 	case itemTrim == "services ssh no-tcp-forwarding":
-		confRead.services[0]["ssh"].([]map[string]interface{})[0]["no_tcp_forwarding"] = true
+		ssh["no_tcp_forwarding"] = true
 	case itemTrim == "services ssh tcp-forwarding":
-		confRead.services[0]["ssh"].([]map[string]interface{})[0]["tcp_forwarding"] = true
+		ssh["tcp_forwarding"] = true
 	}
 
 	return nil
@@ -2559,8 +2557,7 @@ func readSystemServicesWebManagement(confRead *systemOptions, itemTrim string) e
 		}
 		if strings.HasPrefix(itemTrim, "services web-management https port ") {
 			var err error
-			webMHTTPS["port"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "services web-management https port "))
+			webMHTTPS["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "services web-management https port "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
@@ -2592,8 +2589,7 @@ func readSystemServicesWebManagement(confRead *systemOptions, itemTrim string) e
 		}
 		if strings.HasPrefix(itemTrim, "services web-management http port ") {
 			var err error
-			webMHTTP["port"], err =
-				strconv.Atoi(strings.TrimPrefix(itemTrim, "services web-management http port "))
+			webMHTTP["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "services web-management http port "))
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}

@@ -183,8 +183,8 @@ func resourceSecurityNatStaticRuleCreate(ctx context.Context,
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	natStaticRuleExists, err =
-		checkSecurityNatStaticRuleExists(d.Get("rule_set").(string), d.Get("name").(string), m, jnprSess)
+	natStaticRuleExists, err = checkSecurityNatStaticRuleExists(
+		d.Get("rule_set").(string), d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -231,6 +231,17 @@ func resourceSecurityNatStaticRuleUpdate(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delSecurityNatStaticRule(d.Get("rule_set").(string), d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setSecurityNatStaticRule(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -263,6 +274,13 @@ func resourceSecurityNatStaticRuleUpdate(ctx context.Context,
 func resourceSecurityNatStaticRuleDelete(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delSecurityNatStaticRule(d.Get("rule_set").(string), d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -442,8 +460,8 @@ func readSecurityNatStaticRule(ruleSet, name string,
 			case strings.HasPrefix(itemTrim, "match destination-address "):
 				confRead.destinationAddress = strings.TrimPrefix(itemTrim, "match destination-address ")
 			case strings.HasPrefix(itemTrim, "match destination-address-name "):
-				confRead.destinationAddressName =
-					strings.Trim(strings.TrimPrefix(itemTrim, "match destination-address-name "), "\"")
+				confRead.destinationAddressName = strings.Trim(strings.TrimPrefix(
+					itemTrim, "match destination-address-name "), "\"")
 			case strings.HasPrefix(itemTrim, "match destination-port to "):
 				var err error
 				confRead.destinationPortTo, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "match destination-port to "))

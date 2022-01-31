@@ -177,6 +177,13 @@ func resourceSecurityPolicyTunnelPairPolicyReadWJnprSess(
 func resourceSecurityPolicyTunnelPairPolicyDelete(
 	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delSecurityPolicyTunnelPairPolicy(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)

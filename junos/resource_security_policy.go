@@ -286,6 +286,17 @@ func resourceSecurityPolicyReadWJnprSess(
 func resourceSecurityPolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setSecurityPolicy(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -293,13 +304,24 @@ func resourceSecurityPolicyUpdate(ctx context.Context, d *schema.ResourceData, m
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
+	listLinesToPairPolicy := make([]string, 0)
+	if err := readSecurityPolicyTunnelPairPolicyLines(&listLinesToPairPolicy,
+		d.Get("from_zone").(string), d.Get("to_zone").(string), m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
 	if err := delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-
 	if err := setSecurityPolicy(d, m, jnprSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		return append(diagWarns, diag.FromErr(err)...)
+	}
+	if err := sess.configSet(listLinesToPairPolicy, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -318,6 +340,13 @@ func resourceSecurityPolicyUpdate(ctx context.Context, d *schema.ResourceData, m
 
 func resourceSecurityPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -565,6 +594,31 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 	return confRead, nil
 }
 
+func readSecurityPolicyTunnelPairPolicyLines(
+	listLines *[]string, fromZone string, toZone string, m interface{}, jnprSess *NetconfObject) error {
+	sess := m.(*Session)
+	showConfig, err := sess.command("show configuration"+
+		" security policies from-zone "+fromZone+" to-zone "+toZone+" | display set ", jnprSess)
+	if err != nil {
+		return err
+	}
+	if showConfig != emptyWord {
+		for _, item := range strings.Split(showConfig, "\n") {
+			if strings.Contains(item, "<configuration-output>") {
+				continue
+			}
+			if strings.Contains(item, "</configuration-output>") {
+				break
+			}
+			if strings.Contains(item, "then permit tunnel pair-policy ") {
+				*listLines = append(*listLines, item)
+			}
+		}
+	}
+
+	return nil
+}
+
 func delSecurityPolicy(fromZone string, toZone string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
@@ -712,12 +766,10 @@ func setPolicyPermitApplicationServices(setPrefixPolicy string,
 	}
 	if len(policyPermitApplicationServices["ssl_proxy"].([]interface{})) > 0 {
 		if policyPermitApplicationServices["ssl_proxy"].([]interface{})[0] != nil {
-			policyPermitApplicationServicesSSLProxy :=
-				policyPermitApplicationServices["ssl_proxy"].([]interface{})[0].(map[string]interface{})
-			if policyPermitApplicationServicesSSLProxy["profile_name"].(string) != "" {
+			sslProxy := policyPermitApplicationServices["ssl_proxy"].([]interface{})[0].(map[string]interface{})
+			if sslProxy["profile_name"].(string) != "" {
 				configSet = append(configSet, setPrefixPolicyPermitAppSvc+
-					" ssl-proxy profile-name \""+
-					policyPermitApplicationServicesSSLProxy["profile_name"].(string)+"\"")
+					" ssl-proxy profile-name \""+sslProxy["profile_name"].(string)+"\"")
 			} else {
 				configSet = append(configSet, setPrefixPolicyPermitAppSvc+" ssl-proxy")
 			}
@@ -727,12 +779,10 @@ func setPolicyPermitApplicationServices(setPrefixPolicy string,
 	}
 	if len(policyPermitApplicationServices["uac_policy"].([]interface{})) > 0 {
 		if policyPermitApplicationServices["uac_policy"].([]interface{})[0] != nil {
-			policyPermitApplicationServicesUACPolicy :=
-				policyPermitApplicationServices["uac_policy"].([]interface{})[0].(map[string]interface{})
-			if policyPermitApplicationServicesUACPolicy["captive_portal"].(string) != "" {
+			uacPolicy := policyPermitApplicationServices["uac_policy"].([]interface{})[0].(map[string]interface{})
+			if uacPolicy["captive_portal"].(string) != "" {
 				configSet = append(configSet, setPrefixPolicyPermitAppSvc+
-					" uac-policy captive-portal \""+
-					policyPermitApplicationServicesUACPolicy["captive_portal"].(string)+"\"")
+					" uac-policy captive-portal \""+uacPolicy["captive_portal"].(string)+"\"")
 			} else {
 				configSet = append(configSet, setPrefixPolicyPermitAppSvc+" uac-policy")
 			}

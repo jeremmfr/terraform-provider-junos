@@ -20,6 +20,7 @@ linters:
     - forcetypeassert
     - gomoddirectives
     - varnamelen
+    - maintidx
 linters-settings:
   gocognit:
     # minimal code complexity to report, 30 by default

@@ -238,13 +238,6 @@ func resourceRoutingOptionsReadWJnprSess(
 
 func resourceRoutingOptionsUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
 	fwTableExportConfigSingly := d.Get("forwarding_table_export_configure_singly").(bool)
 	if d.HasChange("forwarding_table_export_configure_singly") {
@@ -268,6 +261,24 @@ func resourceRoutingOptionsUpdate(ctx context.Context, d *schema.ResourceData, m
 			})
 		}
 	}
+	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delRoutingOptions(fwTableExportConfigSingly, m, nil); err != nil {
+			return append(diagWarns, diag.FromErr(err)...)
+		}
+		if err := setRoutingOptions(d, m, nil); err != nil {
+			return append(diagWarns, diag.FromErr(err)...)
+		}
+		d.Partial(false)
+
+		return diagWarns
+	}
+	jnprSess, err := sess.startNewSession()
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	defer sess.closeSession(jnprSess)
+	sess.configLock(jnprSess)
 	if err := delRoutingOptions(fwTableExportConfigSingly, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -293,6 +304,13 @@ func resourceRoutingOptionsUpdate(ctx context.Context, d *schema.ResourceData, m
 func resourceRoutingOptionsDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	if d.Get("clean_on_destroy").(bool) {
 		sess := m.(*Session)
+		if sess.junosFakeDeleteAlso {
+			if err := delRoutingOptions(d.Get("forwarding_table_export_configure_singly").(bool), m, nil); err != nil {
+				return diag.FromErr(err)
+			}
+
+			return nil
+		}
 		jnprSess, err := sess.startNewSession()
 		if err != nil {
 			return diag.FromErr(err)
@@ -572,8 +590,8 @@ func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsO
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "forwarding-table unicast-reverse-path "):
-					confRead.forwardingTable[0]["unicast_reverse_path"] =
-						strings.TrimPrefix(itemTrim, "forwarding-table unicast-reverse-path ")
+					confRead.forwardingTable[0]["unicast_reverse_path"] = strings.TrimPrefix(
+						itemTrim, "forwarding-table unicast-reverse-path ")
 				}
 			case strings.HasPrefix(itemTrim, "graceful-restart"):
 				if len(confRead.gracefulRestart) == 0 {

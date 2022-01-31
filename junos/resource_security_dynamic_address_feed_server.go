@@ -114,8 +114,8 @@ func resourceSecurityDynamicAddressFeedServerCreate(ctx context.Context,
 	}
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	securityDynamicAddressFeedServerExists, err :=
-		checkSecurityDynamicAddressFeedServersExists(d.Get("name").(string), m, jnprSess)
+	securityDynamicAddressFeedServerExists, err := checkSecurityDynamicAddressFeedServersExists(
+		d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -140,8 +140,8 @@ func resourceSecurityDynamicAddressFeedServerCreate(ctx context.Context,
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	securityDynamicAddressFeedServerExists, err =
-		checkSecurityDynamicAddressFeedServersExists(d.Get("name").(string), m, jnprSess)
+	securityDynamicAddressFeedServerExists, err = checkSecurityDynamicAddressFeedServersExists(
+		d.Get("name").(string), m, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -188,6 +188,17 @@ func resourceSecurityDynamicAddressFeedServerUpdate(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
+	if sess.junosFakeUpdateAlso {
+		if err := delSecurityDynamicAddressFeedServer(d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := setSecurityDynamicAddressFeedServer(d, m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+		d.Partial(false)
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -220,6 +231,13 @@ func resourceSecurityDynamicAddressFeedServerUpdate(ctx context.Context,
 func resourceSecurityDynamicAddressFeedServerDelete(ctx context.Context,
 	d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
+	if sess.junosFakeDeleteAlso {
+		if err := delSecurityDynamicAddressFeedServer(d.Get("name").(string), m, nil); err != nil {
+			return diag.FromErr(err)
+		}
+
+		return nil
+	}
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
 		return diag.FromErr(err)
