@@ -35,6 +35,11 @@ func TestAccJunosSecurityIdpPolicy_basic(t *testing.T) {
 func testAccJunosSecurityIdpPolicyConfigCreate() string {
 	return `
 resource junos_security "testacc_secIdpPolicy" {
+  lifecycle {
+    ignore_changes = [
+      log
+    ]
+  }
   idp_sensor_configuration {
     packet_log {
       source_address = "192.0.2.4"
