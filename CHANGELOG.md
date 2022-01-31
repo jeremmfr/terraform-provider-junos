@@ -3,9 +3,15 @@
 
 ENHANCEMENTS:
 
+BUG FIXES:
+
+## 1.24.0 (January 31, 2022)
+
+FEATURES:
+
 * add provider arguments `fake_update_also` and `fake_delete_also` to add the same workaround as with `fake_create_with_setfile`  
   **Don't use in normal terraform run** and **be careful with this option**  
-  See docs for more information (Fixes #329)
+  See docs for more information (Fixes [#329](https://github.com/jeremmfr/terraform-provider-junos/issues/329))
 
 BUG FIXES:
 
