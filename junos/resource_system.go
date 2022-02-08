@@ -602,6 +602,37 @@ func resourceSystem() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"netconf_ssh": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"client_alive_count_max": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      -1,
+										ValidateFunc: validation.IntBetween(0, 255),
+									},
+									"client_alive_interval": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      -1,
+										ValidateFunc: validation.IntBetween(0, 65535),
+									},
+									"connection_limit": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 250),
+									},
+									"rate_limit": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 250),
+									},
+								},
+							},
+						},
 						"netconf_traceoptions": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -1275,6 +1306,24 @@ func setSystemServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			return fmt.Errorf("services block is empty")
 		}
 		servicesM := services.(map[string]interface{})
+		for _, servicesNetconfSSH := range servicesM["netconf_ssh"].([]interface{}) {
+			netconfSSH := servicesNetconfSSH.(map[string]interface{})
+			if v := netconfSSH["client_alive_count_max"].(int); v > -1 {
+				configSet = append(configSet, setPrefix+"netconf ssh client-alive-count-max "+strconv.Itoa(v))
+			}
+			if v := netconfSSH["client_alive_interval"].(int); v > -1 {
+				configSet = append(configSet, setPrefix+"netconf ssh client-alive-interval "+strconv.Itoa(v))
+			}
+			if v := netconfSSH["connection_limit"].(int); v > 0 {
+				configSet = append(configSet, setPrefix+"netconf ssh connection-limit "+strconv.Itoa(v))
+			}
+			if v := netconfSSH["rate_limit"].(int); v > 0 {
+				configSet = append(configSet, setPrefix+"netconf ssh rate-limit "+strconv.Itoa(v))
+			}
+			if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefix+"netconf ssh ") {
+				return fmt.Errorf("services.0.netconf_ssh block is empty")
+			}
+		}
 		for _, servicesNetconfTraceOpts := range servicesM["netconf_traceoptions"].([]interface{}) {
 			if servicesNetconfTraceOpts == nil {
 				return fmt.Errorf("services.0.netconf_traceoptions block is empty")
@@ -1668,10 +1717,20 @@ func listLinesNtp() []string {
 func listLinesServices() []string {
 	ls := make([]string, 0)
 	ls = append(ls, "services netconf traceoptions")
+	ls = append(ls, listLinesServicesNetconfSSH()...)
 	ls = append(ls, listLinesServicesSSH()...)
 	ls = append(ls, listLinesServicesWebManagement()...)
 
 	return ls
+}
+
+func listLinesServicesNetconfSSH() []string {
+	return []string{
+		"services netconf ssh client-alive-count-max",
+		"services netconf ssh client-alive-interval",
+		"services netconf ssh connection-limit",
+		"services netconf ssh rate-limit",
+	}
 }
 
 func listLinesServicesSSH() []string {
@@ -1963,11 +2022,17 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesServices()):
 				if len(confRead.services) == 0 {
 					confRead.services = append(confRead.services, map[string]interface{}{
+						"netconf_ssh":          make([]map[string]interface{}, 0),
 						"netconf_traceoptions": make([]map[string]interface{}, 0),
 						"ssh":                  make([]map[string]interface{}, 0),
 						"web_management_http":  make([]map[string]interface{}, 0),
 						"web_management_https": make([]map[string]interface{}, 0),
 					})
+				}
+				if bchk.StringHasOneOfPrefixes(itemTrim, listLinesServicesNetconfSSH()) {
+					if err := readSystemServicesNetconfSSH(&confRead, itemTrim); err != nil {
+						return confRead, err
+					}
 				}
 				if strings.HasPrefix(itemTrim, "services netconf traceoptions ") {
 					if err := readSystemServicesNetconfTraceOpts(&confRead, itemTrim); err != nil {
@@ -2422,6 +2487,51 @@ func readSystemServicesNetconfTraceOpts(confRead *systemOptions, itemTrimNetconf
 		netconfTraceOpts["no_remote_trace"] = true
 	case itemTrim == "on-demand":
 		netconfTraceOpts["on_demand"] = true
+	}
+
+	return nil
+}
+
+func readSystemServicesNetconfSSH(confRead *systemOptions, itemTrim string) error {
+	if len(confRead.services[0]["netconf_ssh"].([]map[string]interface{})) == 0 {
+		confRead.services[0]["netconf_ssh"] = append(confRead.services[0]["netconf_ssh"].([]map[string]interface{}),
+			map[string]interface{}{
+				"client_alive_count_max": -1,
+				"client_alive_interval":  -1,
+				"connection_limit":       0,
+				"rate_limit":             0,
+			})
+	}
+	netconfSSH := confRead.services[0]["netconf_ssh"].([]map[string]interface{})[0]
+	switch {
+	case strings.HasPrefix(itemTrim, "services netconf ssh client-alive-count-max "):
+		var err error
+		netconfSSH["client_alive_count_max"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "services netconf ssh client-alive-count-max "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "services netconf ssh client-alive-interval "):
+		var err error
+		netconfSSH["client_alive_interval"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "services netconf ssh client-alive-interval "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "services netconf ssh connection-limit "):
+		var err error
+		netconfSSH["connection_limit"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "services netconf ssh connection-limit "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
+	case strings.HasPrefix(itemTrim, "services netconf ssh rate-limit "):
+		var err error
+		netconfSSH["rate_limit"], err = strconv.Atoi(strings.TrimPrefix(
+			itemTrim, "services netconf ssh rate-limit "))
+		if err != nil {
+			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		}
 	}
 
 	return nil

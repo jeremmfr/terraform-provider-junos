@@ -3,6 +3,8 @@
 
 ENHANCEMENTS:
 
+* resource/`junos_system`: add `netconf_ssh` block argument inside `services` block argument (Fixes #335)
+
 BUG FIXES:
 
 ## 1.24.0 (January 31, 2022)
