@@ -5,6 +5,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* bump package github.com/jeremmfr/go-netconf to v0.4.2 to correctly detect protection on a private key in `sshkey_pem` or `sshkeyfile` and use passphrase from `keypass` argument (Fixes #337)
+
 ## 1.24.0 (January 31, 2022)
 
 FEATURES:
