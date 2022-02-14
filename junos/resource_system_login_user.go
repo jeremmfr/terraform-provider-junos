@@ -292,43 +292,42 @@ func setSystemLoginUser(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 
 	configSet = append(configSet, setPrefix+"class "+d.Get("class").(string))
 
-	if d.Get("uid").(int) != 0 {
-		configSet = append(configSet, setPrefix+"uid "+strconv.Itoa(d.Get("uid").(int)))
+	if v := d.Get("uid").(int); v != 0 {
+		configSet = append(configSet, setPrefix+"uid "+strconv.Itoa(v))
 	}
-	for _, v := range d.Get("authentication").([]interface{}) {
-		if v == nil {
+	for _, block := range d.Get("authentication").([]interface{}) {
+		if block == nil {
 			return fmt.Errorf("authentication block is empty")
 		}
-		authentication := v.(map[string]interface{})
-		if authentication["encrypted_password"].(string) != "" {
-			configSet = append(configSet, setPrefix+"authentication encrypted-password \""+
-				authentication["encrypted_password"].(string)+"\"")
+		authentication := block.(map[string]interface{})
+		if pass := authentication["encrypted_password"].(string); pass != "" {
+			configSet = append(configSet, setPrefix+"authentication encrypted-password \""+pass+"\"")
 		}
 		if authentication["no_public_keys"].(bool) {
 			configSet = append(configSet, setPrefix+"authentication no-public-keys")
 		}
-		for _, v2 := range sortSetOfString(authentication["ssh_public_keys"].(*schema.Set).List()) {
+		for _, key := range sortSetOfString(authentication["ssh_public_keys"].(*schema.Set).List()) {
 			switch {
-			case strings.HasPrefix(v2, ssh.KeyAlgoDSA):
-				configSet = append(configSet, setPrefix+"authentication ssh-dsa \""+v2+"\"")
-			case strings.HasPrefix(v2, ssh.KeyAlgoRSA):
-				configSet = append(configSet, setPrefix+"authentication ssh-rsa \""+v2+"\"")
-			case strings.HasPrefix(v2, ssh.KeyAlgoECDSA256),
-				strings.HasPrefix(v2, ssh.KeyAlgoECDSA384),
-				strings.HasPrefix(v2, ssh.KeyAlgoECDSA521):
-				configSet = append(configSet, setPrefix+"authentication ssh-ecdsa \""+v2+"\"")
-			case strings.HasPrefix(v2, ssh.KeyAlgoED25519):
-				configSet = append(configSet, setPrefix+"authentication ssh-ed25519 \""+v2+"\"")
+			case strings.HasPrefix(key, ssh.KeyAlgoDSA):
+				configSet = append(configSet, setPrefix+"authentication ssh-dsa \""+key+"\"")
+			case strings.HasPrefix(key, ssh.KeyAlgoRSA):
+				configSet = append(configSet, setPrefix+"authentication ssh-rsa \""+key+"\"")
+			case strings.HasPrefix(key, ssh.KeyAlgoECDSA256),
+				strings.HasPrefix(key, ssh.KeyAlgoECDSA384),
+				strings.HasPrefix(key, ssh.KeyAlgoECDSA521):
+				configSet = append(configSet, setPrefix+"authentication ssh-ecdsa \""+key+"\"")
+			case strings.HasPrefix(key, ssh.KeyAlgoED25519):
+				configSet = append(configSet, setPrefix+"authentication ssh-ed25519 \""+key+"\"")
 			default:
-				return fmt.Errorf("format in public key '%v' not supported", v2)
+				return fmt.Errorf("format in public key '%v' not supported", key)
 			}
 		}
 	}
-	if d.Get("cli_prompt").(string) != "" {
-		configSet = append(configSet, setPrefix+"cli prompt \""+d.Get("cli_prompt").(string)+"\"")
+	if v := d.Get("cli_prompt").(string); v != "" {
+		configSet = append(configSet, setPrefix+"cli prompt \""+v+"\"")
 	}
-	if d.Get("full_name").(string) != "" {
-		configSet = append(configSet, setPrefix+"full-name \""+d.Get("full_name").(string)+"\"")
+	if v := d.Get("full_name").(string); v != "" {
+		configSet = append(configSet, setPrefix+"full-name \""+v+"\"")
 	}
 
 	return sess.configSet(configSet, jnprSess)
