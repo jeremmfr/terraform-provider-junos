@@ -3,6 +3,8 @@
 
 ENHANCEMENTS:
 
+* resource/`junos_system_login_user`: add `plain_text_password` argument inside `authentication` block argument to be able to set password in plain text format (Fixes #338)
+
 BUG FIXES:
 
 ## 1.24.1 (February 11, 2022)

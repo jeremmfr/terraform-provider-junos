@@ -55,8 +55,9 @@ func resourceSystemLoginUser() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"encrypted_password": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"authentication.0.plain_text_password"},
 						},
 						"no_public_keys": {
 							Type:     schema.TypeBool,
@@ -64,6 +65,12 @@ func resourceSystemLoginUser() *schema.Resource {
 							ConflictsWith: []string{
 								"authentication.0.ssh_public_keys",
 							},
+						},
+						"plain_text_password": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							Sensitive:     true,
+							ConflictsWith: []string{"authentication.0.encrypted_password"},
 						},
 						"ssh_public_keys": {
 							Type:          schema.TypeSet,
@@ -154,8 +161,9 @@ func resourceSystemLoginUserRead(ctx context.Context, d *schema.ResourceData, m 
 
 func resourceSystemLoginUserReadWJnprSess(
 	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	plainTextPassword := readSystemLoginUserReadDataPlainTextPassword(d)
 	mutex.Lock()
-	systemLoginUserOptions, err := readSystemLoginUser(d.Get("name").(string), m, jnprSess)
+	systemLoginUserOptions, err := readSystemLoginUser(d.Get("name").(string), plainTextPassword, m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -261,7 +269,7 @@ func resourceSystemLoginUserImport(d *schema.ResourceData, m interface{}) ([]*sc
 	if !systemLoginUserExists {
 		return nil, fmt.Errorf("don't find system login user with id '%v' (id must be <name>)", d.Id())
 	}
-	systemLoginUserOptions, err := readSystemLoginUser(d.Id(), m, jnprSess)
+	systemLoginUserOptions, err := readSystemLoginUser(d.Id(), "", m, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -300,6 +308,9 @@ func setSystemLoginUser(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 			return fmt.Errorf("authentication block is empty")
 		}
 		authentication := block.(map[string]interface{})
+		if pass := authentication["plain_text_password"].(string); pass != "" {
+			configSet = append(configSet, setPrefix+"authentication plain-text-password-value \""+pass+"\"")
+		}
 		if pass := authentication["encrypted_password"].(string); pass != "" {
 			configSet = append(configSet, setPrefix+"authentication encrypted-password \""+pass+"\"")
 		}
@@ -333,7 +344,21 @@ func setSystemLoginUser(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSystemLoginUser(name string, m interface{}, jnprSess *NetconfObject) (systemLoginUserOptions, error) {
+func readSystemLoginUserReadDataPlainTextPassword(d *schema.ResourceData) string {
+	if blocks := d.Get("authentication").([]interface{}); len(blocks) > 0 {
+		if blocks[0] == nil {
+			return ""
+		}
+		auth := blocks[0].(map[string]interface{})
+
+		return auth["plain_text_password"].(string)
+	}
+
+	return ""
+}
+
+func readSystemLoginUser(name, plainTextPassword string, m interface{}, jnprSess *NetconfObject,
+) (systemLoginUserOptions, error) {
 	sess := m.(*Session)
 	var confRead systemLoginUserOptions
 
@@ -363,15 +388,20 @@ func readSystemLoginUser(name string, m interface{}, jnprSess *NetconfObject) (s
 			case strings.HasPrefix(itemTrim, "authentication "):
 				if len(confRead.authentication) == 0 {
 					confRead.authentication = append(confRead.authentication, map[string]interface{}{
-						"encrypted_password": "",
-						"no_public_keys":     false,
-						"ssh_public_keys":    make([]string, 0),
+						"encrypted_password":  "",
+						"no_public_keys":      false,
+						"plain_text_password": "",
+						"ssh_public_keys":     make([]string, 0),
 					})
 				}
 				switch {
 				case strings.HasPrefix(itemTrim, "authentication encrypted-password "):
-					confRead.authentication[0]["encrypted_password"] = strings.Trim(strings.TrimPrefix(
-						itemTrim, "authentication encrypted-password "), "\"")
+					if plainTextPassword != "" {
+						confRead.authentication[0]["plain_text_password"] = plainTextPassword
+					} else {
+						confRead.authentication[0]["encrypted_password"] = strings.Trim(strings.TrimPrefix(
+							itemTrim, "authentication encrypted-password "), "\"")
+					}
 				case itemTrim == "authentication no-public-keys":
 					confRead.authentication[0]["no_public_keys"] = true
 				case strings.HasPrefix(itemTrim, "authentication ssh-dsa "):
