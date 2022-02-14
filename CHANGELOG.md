@@ -3,6 +3,8 @@
 
 ENHANCEMENTS:
 
+* resource/`junos_firewall_filter`: add `packet_mode` argument inside `then` argumens for `term` (Fixes #341)
+
 BUG FIXES:
 
 ## 1.24.1 (February 11, 2022)
