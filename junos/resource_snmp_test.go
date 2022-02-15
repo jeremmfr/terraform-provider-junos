@@ -32,6 +32,7 @@ resource "junos_snmp" "testacc_snmp" {
   arp                        = true
   contact                    = "contact@example.com"
   description                = "snmp description"
+  engine_id                  = "use-mac-address"
   filter_duplicates          = true
   filter_interfaces          = ["(ge|xe|ae).*\\.0", "fxp0"]
   filter_internal_interfaces = true
@@ -65,6 +66,7 @@ resource "junos_snmp" "testacc_snmp" {
   clean_on_destroy         = true
   arp                      = true
   arp_host_name_resolution = true
+  engine_id                = "local \"test#123\""
   health_monitor {}
   routing_instance_access = true
 }

@@ -3,6 +3,8 @@
 
 ENHANCEMENTS:
 
+* resource/`junos_snmp`: add `engine_id` argument (Fixes parts of #339)
+
 BUG FIXES:
 
 ## 1.24.1 (February 11, 2022)
