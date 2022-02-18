@@ -34,4 +34,6 @@ const (
 	noLoopbackWord        = "no-loopback"
 	actionCos             = "class-of-service"
 	actionMarkDiffServ    = "mark-diffserv"
+	localWord             = "local"
+	privacyNoneWord       = "privacy-none"
 )

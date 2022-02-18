@@ -188,6 +188,7 @@ func Provider() *schema.Provider {
 			"junos_snmp":                                                 resourceSnmp(),
 			"junos_snmp_clientlist":                                      resourceSnmpClientlist(),
 			"junos_snmp_community":                                       resourceSnmpCommunity(),
+			"junos_snmp_v3_usm_user":                                     resourceSnmpV3UsmUser(),
 			"junos_snmp_view":                                            resourceSnmpView(),
 			"junos_static_route":                                         resourceStaticRoute(),
 			"junos_switch_options":                                       resourceSwitchOptions(),
