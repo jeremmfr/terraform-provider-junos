@@ -277,6 +277,28 @@ func copyAndRemoveItemMapList(identifier string,
 	return list
 }
 
+func copyAndRemoveItemMapList2(identifier, identifier2 string,
+	m map[string]interface{}, list []map[string]interface{}) []map[string]interface{} {
+	if m[identifier] == nil {
+		panic(fmt.Errorf("internal error: can't find identifier %s in map", identifier))
+	}
+	if m[identifier2] == nil {
+		panic(fmt.Errorf("internal error: can't find identifier %s in map", identifier2))
+	}
+	for i, element := range list {
+		if element[identifier] == m[identifier] && element[identifier2] == m[identifier2] {
+			for key, value := range element {
+				m[key] = value
+			}
+			list = append(list[:i], list[i+1:]...)
+
+			break
+		}
+	}
+
+	return list
+}
+
 func checkCompatibilitySecurity(jnprSess *NetconfObject) bool {
 	if strings.HasPrefix(strings.ToLower(jnprSess.SystemInformation.HardwareModel), "srx") {
 		return true

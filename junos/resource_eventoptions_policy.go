@@ -1145,17 +1145,9 @@ func readEventoptionsPolicyThen(then map[string]interface{}, itemTrim string) er
 			"transfer_delay": -1,
 			"user_name":      "",
 		}
-		for i, element := range then["upload"].([]map[string]interface{}) {
-			if element["filename"] == upload["filename"] && element["destination"] == upload["destination"] {
-				for key, value := range element {
-					upload[key] = value
-				}
-				then["upload"] = append(then["upload"].([]map[string]interface{})[:i],
-					then["upload"].([]map[string]interface{})[i+1:]...)
 
-				break
-			}
-		}
+		then["upload"] = copyAndRemoveItemMapList2(
+			"filename", "destination", upload, then["upload"].([]map[string]interface{}))
 		itemTrimUpload := strings.TrimPrefix(
 			itemTrim, "then upload filename "+itemTrimSplit[3]+" destination "+itemTrimSplit[5]+" ")
 		switch {
