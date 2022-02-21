@@ -4,6 +4,7 @@
 ENHANCEMENTS:
 
 * resource/`junos_snmp`: add `engine_id` argument (Fixes parts of #339)
+* add `junos_snmp_v3_community` resource
 * add `junos_snmp_v3_usm_user` resource (Fixes parts of #339)
 * add `junos_snmp_v3_vacm_accessgroup` resource (Fixes parts of #339)
 * add `junos_snmp_v3_vacm_securitytogroup` resource (Fixes parts of #339)
