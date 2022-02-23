@@ -36,6 +36,8 @@ func TestAccJunosSecurityZone_basic(t *testing.T) {
 							"address_book_set.0.address.*", "testacc_zone1"),
 						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
 							"application_tracking", "true"),
+						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
+							"interfaces.*", "ge-0/0/0.0"),
 						resource.TestCheckTypeSetElemAttr("junos_security_zone.testacc_securityZone",
 							"inbound_protocols.*", "bgp"),
 						resource.TestCheckResourceAttr("junos_security_zone.testacc_securityZone",
@@ -139,6 +141,7 @@ resource junos_security_zone "testacc_securityZone" {
     description = "testacc_zone 4"
     network     = "192.0.2.0/255.0.255.255"
   }
+	interfaces           = ["ge-0/0/0.0"]
   application_tracking = true
   inbound_protocols    = ["bgp"]
   description          = "testacc securityZone"
