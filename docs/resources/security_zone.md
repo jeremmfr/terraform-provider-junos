@@ -26,6 +26,8 @@ The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
   The name of security zone.
+- **interfaces** (Optional, Set of String)  
+  List of interfaces in the zone.
 - **address_book** (Optional, Block Set)  
   For each name of address to declare.
   - **name** (Required, String)  

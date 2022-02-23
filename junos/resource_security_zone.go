@@ -46,6 +46,11 @@ func resourceSecurityZone() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
+			"interfaces": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 			"address_book": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -549,6 +554,9 @@ func setSecurityZone(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 					addressBookSet["name"].(string)+" description \""+v2+"\"")
 			}
 		}
+	}
+	for _, v := range d.Get("interfaces").([]interface{}) {
+		configSet = append(configSet, setPrefix+" interfaces "+v.(string))
 	}
 	if d.Get("advance_policy_based_routing_profile").(string) != "" {
 		configSet = append(configSet, setPrefix+" advance-policy-based-routing-profile \""+
