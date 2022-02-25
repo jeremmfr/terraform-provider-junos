@@ -132,6 +132,7 @@ func Provider() *schema.Provider {
 			"junos_interface_physical_disable":                           resourceInterfacePhysicalDisable(),
 			"junos_interface_st0_unit":                                   resourceInterfaceSt0Unit(),
 			"junos_lldp_interface":                                       resourceLldpInterface(),
+			"junos_lldpmed_interface":                                    resourceLldpMedInterface(),
 			"junos_null_commit_file":                                     resourceNullCommitFile(),
 			"junos_ospf":                                                 resourceOspf(),
 			"junos_ospf_area":                                            resourceOspfArea(),
