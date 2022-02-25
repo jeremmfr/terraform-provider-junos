@@ -3,6 +3,8 @@
 
 ENHANCEMENTS:
 
+* add `junos_igmp_snooping_vlan` resource (Fixes parts of #340)
+
 BUG FIXES:
 
 ## 1.24.1 (February 11, 2022)

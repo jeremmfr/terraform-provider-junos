@@ -125,6 +125,7 @@ func Provider() *schema.Provider {
 			"junos_forwardingoptions_sampling_instance":                  resourceForwardingoptionsSamplingInstance(),
 			"junos_generate_route":                                       resourceGenerateRoute(),
 			"junos_group_dual_system":                                    resourceGroupDualSystem(),
+			"junos_igmp_snooping_vlan":                                   resourceIgmpSnoopingVlan(),
 			"junos_interface":                                            resourceInterface(),
 			"junos_interface_logical":                                    resourceInterfaceLogical(),
 			"junos_interface_physical":                                   resourceInterfacePhysical(),
