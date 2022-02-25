@@ -1079,7 +1079,7 @@ func readForwardingoptionsSamplingInstance(name string,
 				break
 			}
 			switch {
-			case itemTrim == "disable":
+			case itemTrim == disableW:
 				confRead.disable = true
 			case strings.HasPrefix(itemTrim, "family inet input "):
 				if len(confRead.familyInetInput) == 0 {
