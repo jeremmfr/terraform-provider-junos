@@ -27,7 +27,7 @@ The following arguments are supported:
   Address pool name.
 - **routing_instance** (Optional, String, Forces new resource)  
   Routing instance for pool.  
-  Need to be default or name of routing instance.  
+  Need to be `default` or name of routing instance.  
   Defaults to `default`
 - **family** (Required, Block)  
   Configure address family (`inet` or `inet6`).  

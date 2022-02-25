@@ -25,7 +25,7 @@ The following arguments are supported:
   The destination for aggregate route.
 - **routing_instance** (Optional, String, Forces new resource)  
   Routing instance for route.  
-  Need to be default or name of routing instance.  
+  Need to be `default` or name of routing instance.  
   Defaults to `default`
 - **active** (Optional, Boolean)  
   Remove inactive route from forwarding table.
