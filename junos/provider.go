@@ -144,6 +144,7 @@ func Provider() *schema.Provider {
 			"junos_rib_group":                                            resourceRibGroup(),
 			"junos_routing_instance":                                     resourceRoutingInstance(),
 			"junos_routing_options":                                      resourceRoutingOptions(),
+			"junos_rstp_interface":                                       resourceRstpInterface(),
 			"junos_security":                                             resourceSecurity(),
 			"junos_security_address_book":                                resourceSecurityAddressBook(),
 			"junos_security_dynamic_address_feed_server":                 resourceSecurityDynamicAddressFeedServer(),
