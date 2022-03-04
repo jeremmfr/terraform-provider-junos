@@ -7,14 +7,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
+// export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
 func TestAccJunosSecurity_basic(t *testing.T) {
-	var testaccSecurity string
-	if os.Getenv("TESTACC_INTERFACE") != "" {
-		testaccSecurity = os.Getenv("TESTACC_INTERFACE")
-	} else {
-		testaccSecurity = defaultInterfaceTestAcc
+	testaccSecurity := defaultInterfaceTestAcc
+	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
+		testaccSecurity = iface
 	}
-	if os.Getenv("TESTACC_SWITCH") == "" && os.Getenv("TESTACC_ROUTER") == "" {
+	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:  func() { testAccPreCheck(t) },
 			Providers: testAccProviders,

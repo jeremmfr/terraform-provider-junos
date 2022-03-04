@@ -11,19 +11,15 @@ import (
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
 // export TESTACC_INTERFACE2=<interface> for choose 2nd interface available else it's ge-0/0/4.
 func TestAccJunosCluster_basic(t *testing.T) {
-	var testaccInterface string
-	var testaccInterface2 string
-	if os.Getenv("TESTACC_INTERFACE") != "" {
-		testaccInterface = os.Getenv("TESTACC_INTERFACE")
-	} else {
-		testaccInterface = defaultInterfaceTestAcc
+	testaccInterface := defaultInterfaceTestAcc
+	testaccInterface2 := defaultInterfaceTestAcc2
+	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
+		testaccInterface = iface
 	}
-	if os.Getenv("TESTACC_INTERFACE2") != "" {
-		testaccInterface2 = os.Getenv("TESTACC_INTERFACE2")
-	} else {
-		testaccInterface2 = defaultInterfaceTestAcc2
+	if iface := os.Getenv("TESTACC_INTERFACE2"); iface != "" {
+		testaccInterface2 = iface
 	}
-	if os.Getenv("TESTACC_SWITCH") == "" && os.Getenv("TESTACC_ROUTER") == "" {
+	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:  func() { testAccPreCheck(t) },
 			Providers: testAccProviders,

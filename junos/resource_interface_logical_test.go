@@ -10,13 +10,11 @@ import (
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
 func TestAccJunosInterfaceLogical_basic(t *testing.T) {
-	var testaccInterface string
-	if os.Getenv("TESTACC_INTERFACE") != "" {
-		testaccInterface = os.Getenv("TESTACC_INTERFACE")
-	} else {
-		testaccInterface = defaultInterfaceTestAcc
+	testaccInterface := defaultInterfaceTestAcc
+	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
+		testaccInterface = iface
 	}
-	if os.Getenv("TESTACC_SWITCH") == "" && os.Getenv("TESTACC_ROUTER") == "" {
+	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:  func() { testAccPreCheck(t) },
 			Providers: testAccProviders,

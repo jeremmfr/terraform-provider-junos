@@ -8,17 +8,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-// export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
+// export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3 or xe-0/0/3.
 func TestAccJunosInterfacePhysicalDisable_basic(t *testing.T) {
-	var testaccInterface string
-	if os.Getenv("TESTACC_INTERFACE") != "" {
-		testaccInterface = os.Getenv("TESTACC_INTERFACE")
-	} else {
-		if os.Getenv("TESTACC_SWITCH") != "" {
-			testaccInterface = defaultInterfaceSwitchTestAcc
-		} else {
-			testaccInterface = defaultInterfaceTestAcc
-		}
+	testaccInterface := defaultInterfaceTestAcc
+	if os.Getenv("TESTACC_SWITCH") != "" {
+		testaccInterface = defaultInterfaceSwitchTestAcc
+	}
+	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
+		testaccInterface = iface
 	}
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
