@@ -3,6 +3,7 @@
 
 ENHANCEMENTS:
 
+* add `junos_chassis_redundancy` resource
 * add `junos_igmp_snooping_vlan` resource (Fixes parts of #340)
 * add `junos_lldp_interface` resource (Fixes parts of #340)
 * add `junos_lldpmed_interface` resource (Fixes parts of #340)

@@ -116,6 +116,7 @@ func Provider() *schema.Provider {
 			"junos_bgp_neighbor":                                         resourceBgpNeighbor(),
 			"junos_bridge_domain":                                        resourceBridgeDomain(),
 			"junos_chassis_cluster":                                      resourceChassisCluster(),
+			"junos_chassis_redundancy":                                   resourceChassisRedundancy(),
 			"junos_eventoptions_destination":                             resourceEventoptionsDestination(),
 			"junos_eventoptions_generate_event":                          resourceEventoptionsGenerateEvent(),
 			"junos_eventoptions_policy":                                  resourceEventoptionsPolicy(),
