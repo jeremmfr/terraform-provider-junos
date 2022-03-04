@@ -6,6 +6,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * resource/`junos_evpn`: generate an error when import and delete the state of resource when there isn't evpn config on the device
+* resource/`junos_ospf`: fix read config from the device with an empty resource
 
 ## 1.24.1 (February 11, 2022)
 

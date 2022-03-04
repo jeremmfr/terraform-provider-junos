@@ -457,7 +457,7 @@ func resourceOspfImport(d *schema.ResourceData, m interface{}) ([]*schema.Resour
 			return nil, err
 		}
 		if !instanceExists {
-			return nil, fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string))
+			return nil, fmt.Errorf("routing instance %v doesn't exist", idSplit[1])
 		}
 	}
 	ospfOptions, err := readOspf(idSplit[0], idSplit[1], m, jnprSess)
@@ -652,9 +652,9 @@ func readOspf(version, routingInstance string,
 		}
 	}
 
+	confRead.version = version
+	confRead.routingInstance = routingInstance
 	if showConfig != emptyWord {
-		confRead.version = version
-		confRead.routingInstance = routingInstance
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
