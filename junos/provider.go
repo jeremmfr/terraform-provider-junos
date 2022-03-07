@@ -210,6 +210,7 @@ func Provider() *schema.Provider {
 			"junos_vlan":                                                 resourceVlan(),
 			"junos_vstp":                                                 resourceVstp(),
 			"junos_vstp_vlan":                                            resourceVstpVlan(),
+			"junos_vstp_vlan_group":                                      resourceVstpVlanGroup(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"junos_interface":                   dataSourceInterface(),
