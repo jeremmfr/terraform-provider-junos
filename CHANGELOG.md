@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * add `junos_rstp` resource (Fixes parts of #340)
 * add `junos_rstp_interface` resource (Fixes parts of #340)
 * add `junos_vstp` resource
+* add `junos_vstp_interface` resource (Fixes parts of #340)
 * add `junos_vstp_vlan` resource
 * add `junos_vstp_vlan_group` resource
 

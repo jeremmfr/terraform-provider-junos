@@ -209,6 +209,7 @@ func Provider() *schema.Provider {
 			"junos_system_syslog_host":                                   resourceSystemSyslogHost(),
 			"junos_vlan":                                                 resourceVlan(),
 			"junos_vstp":                                                 resourceVstp(),
+			"junos_vstp_interface":                                       resourceVstpInterface(),
 			"junos_vstp_vlan":                                            resourceVstpVlan(),
 			"junos_vstp_vlan_group":                                      resourceVstpVlanGroup(),
 		},
