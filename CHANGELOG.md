@@ -4,6 +4,7 @@
 ENHANCEMENTS:
 
 * resource/`junos_system`: add `netconf_ssh` block argument inside `services` block argument (Fixes #335)
+* resource/`junos_system_login_user`: add `plain_text_password` argument inside `authentication` block argument to be able to set password in plain text format (Fixes #338)
 
 BUG FIXES:
 
