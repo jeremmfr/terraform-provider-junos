@@ -60,6 +60,10 @@ The following attributes are exported:
 
 - **id** (String)  
   An identifier for the resource with format `<name>`.
+- **interface** (String Set)  
+  List of interfaces in routing-instance.  
+  The interfaces can be configured with the `junos_interface_logical` resource and the
+  `routing_instance` argument.
 
 ## Import
 

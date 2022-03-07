@@ -24,6 +24,7 @@ type instanceOptions struct {
 	vtepSourceIf       string
 	instanceExport     []string
 	instanceImport     []string
+	interFace          []string
 	vrfExport          []string
 	vrfImport          []string
 }
@@ -136,6 +137,11 @@ func resourceRoutingInstance() *schema.Resource {
 
 					return
 				},
+			},
+			"interface": {
+				Type:     schema.TypeSet,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}
@@ -439,6 +445,9 @@ func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject
 				confRead.vrfTarget = strings.TrimPrefix(itemTrim, "vrf-target ")
 			case strings.HasPrefix(itemTrim, "vtep-source-interface "):
 				confRead.vtepSourceIf = strings.TrimPrefix(itemTrim, "vtep-source-interface ")
+			case strings.HasPrefix(itemTrim, "interface "):
+				confRead.interFace = append(confRead.interFace,
+					strings.Split(strings.TrimPrefix(itemTrim, "interface "), " ")[0])
 			}
 		}
 	}
@@ -526,5 +535,8 @@ func fillRoutingInstanceData(d *schema.ResourceData, instanceOptions instanceOpt
 		if tfErr := d.Set("vrf_target_import", instanceOptions.vrfTargetImport); tfErr != nil {
 			panic(tfErr)
 		}
+	}
+	if tfErr := d.Set("interface", instanceOptions.interFace); tfErr != nil {
+		panic(tfErr)
 	}
 }

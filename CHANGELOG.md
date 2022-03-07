@@ -3,6 +3,8 @@
 
 ENHANCEMENTS:
 
+* resource/`junos_routing_instance`: add `interface` attribute to be able to read the list of interfaces in routing-instance
+
 BUG FIXES:
 
 ## 1.24.1 (February 11, 2022)
