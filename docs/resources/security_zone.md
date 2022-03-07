@@ -105,6 +105,16 @@ The following attributes are exported:
 
 - **id** (String)  
   An identifier for the resource with format `<name>`.
+- **interface** (Block List)  
+  List of interfaces in security-zone.  
+  The interfaces can be configured with the `junos_interface_logical` resource and the
+  `security_zone`, `security_inbound_protocols` and `security_inbound_services` arguments.
+  - **name** (String)  
+    Interface name.
+  - **inbound_protocols** (String Set)  
+    Protocol type of incoming traffic to accept.
+  - **inbound_services** (String Set)  
+    Type of incoming system-service traffic to accept.
 
 ## Import
 

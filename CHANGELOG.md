@@ -4,6 +4,7 @@
 ENHANCEMENTS:
 
 * resource/`junos_routing_instance`: add `interface` attribute to be able to read the list of interfaces in routing-instance
+* resource/`junos_security_zone`: add `interface` attribute to be able to read the list of interfaces in security-zone
 
 BUG FIXES:
 
