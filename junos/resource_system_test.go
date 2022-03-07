@@ -248,8 +248,14 @@ func TestAccJunosSystem_basic(t *testing.T) {
 	}
 }
 
+// nolint: lll
 func testAccJunosSystemConfigCreate() string {
 	return `
+data junos_system_information "srx" {}
+locals {
+  netconfSSHCltAliveCountMax    = "${tonumber(replace(data.junos_system_information.srx.os_version, "/\\..*$/", "")) >= 21 ? 100 : null}"
+  netconfSSHClientAliveInterval = "${tonumber(replace(data.junos_system_information.srx.os_version, "/\\..*$/", "")) >= 21 ? 1000 : null}"
+}
 resource junos_system "testacc_system" {
   host_name = "testacc-terraform"
   archival_configuration {
@@ -355,6 +361,12 @@ resource junos_system "testacc_system" {
   radius_options_enhanced_accounting        = true
   radius_options_password_protocol_mschapv2 = true
   services {
+    netconf_ssh {
+      client_alive_count_max = local.netconfSSHCltAliveCountMax
+      client_alive_interval  = local.netconfSSHClientAliveInterval
+      connection_limit       = 200
+      rate_limit             = 200
+    }
     netconf_traceoptions {
       file_name           = "testacc_netconf"
       file_match          = "test"
