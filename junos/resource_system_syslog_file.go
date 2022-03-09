@@ -670,7 +670,8 @@ func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObjec
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "archive start-time "):
-					confRead.archive[0]["start_time"] = strings.TrimPrefix(itemTrim, "archive start-time ")
+					confRead.archive[0]["start_time"] = strings.Split(strings.Trim(strings.TrimPrefix(
+						itemTrim, "archive start-time "), "\""), " ")[0]
 				case strings.HasPrefix(itemTrim, "archive archive-sites "):
 					itemTrimArchSitesSplit := strings.Split(
 						strings.TrimPrefix(itemTrim, "archive archive-sites "), " ")
