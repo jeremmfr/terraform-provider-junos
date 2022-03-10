@@ -1426,7 +1426,7 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 		case strings.HasPrefix(itemTrimBfdLiveDet, "authentication key-chain "):
 			parentEtherOptsBFDLiveDetect["authentication_key_chain"] = strings.TrimPrefix(
 				itemTrimBfdLiveDet, "authentication key-chain ")
-		case itemTrimBfdLiveDet == "authentication loose-check":
+		case itemTrimBfdLiveDet == authenticationLooseCheck:
 			parentEtherOptsBFDLiveDetect["authentication_loose_check"] = true
 		case strings.HasPrefix(itemTrimBfdLiveDet, "detection-time threshold "):
 			var err error
@@ -1464,7 +1464,7 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "neighbor "):
 			parentEtherOptsBFDLiveDetect["neighbor"] = strings.TrimPrefix(itemTrimBfdLiveDet, "neighbor ")
-		case itemTrimBfdLiveDet == "no-adaptation":
+		case itemTrimBfdLiveDet == noAdaptation:
 			parentEtherOptsBFDLiveDetect["no_adaptation"] = true
 		case strings.HasPrefix(itemTrimBfdLiveDet, "transmit-interval minimum-interval "):
 			var err error

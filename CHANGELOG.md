@@ -3,6 +3,8 @@
 
 ENHANCEMENTS:
 
+* resource/`junos_ospf_area`: add multiple new arguments to `interface` block (Fixes #348, #356)
+
 BUG FIXES:
 
 ## 1.24.1 (February 11, 2022)
