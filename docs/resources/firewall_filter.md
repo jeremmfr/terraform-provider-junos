@@ -144,6 +144,8 @@ The following arguments are supported:
   Count the packet in the named counter.
 - **log** (Optional, Boolean)  
   Log the packet.
+- **packet_mode** (Optional, Boolean)  
+  Bypass flow mode for the packet.
 - **policer** (Optional, String)  
   Name of policer to use to rate-limit traffic.
 - **port_mirror** (Optional, Boolean)  

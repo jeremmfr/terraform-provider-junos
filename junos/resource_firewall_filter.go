@@ -234,6 +234,10 @@ func resourceFirewallFilter() *schema.Resource {
 										Type:     schema.TypeBool,
 										Optional: true,
 									},
+									"packet_mode": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
 									"policer": {
 										Type:             schema.TypeString,
 										Optional:         true,
@@ -751,6 +755,9 @@ func setFirewallFilterOptsThen(setPrefixTermThen string, configSet []string, the
 	if thenMap["log"].(bool) {
 		configSet = append(configSet, setPrefixTermThen+"log")
 	}
+	if thenMap["packet_mode"].(bool) {
+		configSet = append(configSet, setPrefixTermThen+"packet-mode")
+	}
 	if thenMap["policer"].(string) != "" {
 		configSet = append(configSet, setPrefixTermThen+"policer "+thenMap["policer"].(string))
 	}
@@ -884,6 +891,8 @@ func readFirewallFilterOptsThen(item string, thenMap map[string]interface{}) {
 		thenMap["count"] = strings.TrimPrefix(item, "count ")
 	case item == "log":
 		thenMap["log"] = true
+	case item == "packet-mode":
+		thenMap["packet_mode"] = true
 	case strings.HasPrefix(item, "policer "):
 		thenMap["policer"] = strings.TrimPrefix(item, "policer ")
 	case item == "port-mirror":
@@ -939,6 +948,7 @@ func genMapFirewallFilterOptsThen() map[string]interface{} {
 		"action":             "",
 		"count":              "",
 		"log":                false,
+		"packet_mode":        false,
 		"policer":            "",
 		"port_mirror":        false,
 		"routing_instance":   "",
