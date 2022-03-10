@@ -191,7 +191,11 @@ func resourceEvpnReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	fillEvpnData(d, evpnOptions)
+	if evpnOptions.routingInstance == "" {
+		d.SetId("")
+	} else {
+		fillEvpnData(d, evpnOptions)
+	}
 
 	return nil
 }
@@ -286,12 +290,16 @@ func resourceEvpnImport(d *schema.ResourceData, m interface{}) ([]*schema.Resour
 			return nil, err
 		}
 		if !instanceExists {
-			return nil, fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string))
+			return nil, fmt.Errorf("routing instance %v doesn't exist", idList[0])
 		}
 	}
 	evpnOptions, err := readEvpn(idList[0], m, jnprSess)
 	if err != nil {
 		return nil, err
+	}
+	if evpnOptions.routingInstance == "" {
+		return nil, fmt.Errorf("don't find protocols evpn with id '%v' "+
+			"(id must be <routing_instance>)", d.Id())
 	}
 	fillEvpnData(d, evpnOptions)
 	if len(idList) > 1 || idList[0] == defaultWord {
