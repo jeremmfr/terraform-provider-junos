@@ -7,17 +7,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
+// export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
+// export TESTACC_INTERFACE2=<interface> for choose 2nd interface available else it's ge-0/0/4.
 func TestAccJunosOspfArea_basic(t *testing.T) {
-	var testaccOspfArea, testaccOspfArea2 string
-	if os.Getenv("TESTACC_INTERFACE") != "" {
-		testaccOspfArea = os.Getenv("TESTACC_INTERFACE")
-	} else {
-		testaccOspfArea = defaultInterfaceTestAcc
+	testaccOspfArea := defaultInterfaceTestAcc
+	testaccOspfArea2 := defaultInterfaceTestAcc2
+	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
+		testaccOspfArea = iface
 	}
-	if os.Getenv("TESTACC_INTERFACE2") != "" {
-		testaccOspfArea2 = os.Getenv("TESTACC_INTERFACE2")
-	} else {
-		testaccOspfArea2 = defaultInterfaceTestAcc2
+	if iface := os.Getenv("TESTACC_INTERFACE2"); iface != "" {
+		testaccOspfArea2 = iface
 	}
 	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.Test(t, resource.TestCase{

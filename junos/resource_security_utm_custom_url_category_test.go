@@ -8,7 +8,7 @@ import (
 )
 
 func TestAccJunosSecurityUtmCustomURLCategory_basic(t *testing.T) {
-	if os.Getenv("TESTACC_SWITCH") == "" && os.Getenv("TESTACC_ROUTER") == "" {
+	if os.Getenv("TESTACC_SRX") != "" {
 		resource.Test(t, resource.TestCase{
 			PreCheck:  func() { testAccPreCheck(t) },
 			Providers: testAccProviders,

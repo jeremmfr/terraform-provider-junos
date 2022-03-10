@@ -9,11 +9,9 @@ import (
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
 func TestAccDataSourceInterfacePhysical_basic(t *testing.T) {
-	var testaccInterface string
-	if os.Getenv("TESTACC_INTERFACE") != "" {
-		testaccInterface = os.Getenv("TESTACC_INTERFACE")
-	} else {
-		testaccInterface = defaultInterfaceTestAcc
+	testaccInterface := defaultInterfaceTestAcc
+	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
+		testaccInterface = iface
 	}
 	if os.Getenv("TESTACC_SWITCH") == "" {
 		resource.Test(t, resource.TestCase{
