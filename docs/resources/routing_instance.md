@@ -17,6 +17,9 @@ resource junos_routing_instance "demo_ri" {
 
 ## Argument Reference
 
+-> **Note:** The interfaces can be configured with the `junos_interface_logical` resource and
+the `routing_instance` argument.
+
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
@@ -60,10 +63,6 @@ The following attributes are exported:
 
 - **id** (String)  
   An identifier for the resource with format `<name>`.
-- **interface** (String Set)  
-  List of interfaces in routing-instance.  
-  The interfaces can be configured with the `junos_interface_logical` resource and the
-  `routing_instance` argument.
 
 ## Import
 
