@@ -28,7 +28,7 @@ type zoneOptions struct {
 	addressBookRange                 []map[string]interface{}
 	addressBookSet                   []map[string]interface{}
 	addressBookWildcard              []map[string]interface{}
-	interFace                        []map[string]interface{}
+	interFace                        []map[string]interface{} // to data_source
 }
 
 func resourceSecurityZone() *schema.Resource {
@@ -229,28 +229,6 @@ func resourceSecurityZone() *schema.Resource {
 			"tcp_rst": {
 				Type:     schema.TypeBool,
 				Optional: true,
-			},
-			"interface": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"inbound_protocols": {
-							Type:     schema.TypeSet,
-							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"inbound_services": {
-							Type:     schema.TypeSet,
-							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-					},
-				},
 			},
 		},
 	}
@@ -817,9 +795,6 @@ func fillSecurityZoneData(d *schema.ResourceData, zoneOptions zoneOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("tcp_rst", zoneOptions.tcpRst); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("interface", zoneOptions.interFace); tfErr != nil {
 		panic(tfErr)
 	}
 }

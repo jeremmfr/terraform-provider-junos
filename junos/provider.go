@@ -208,6 +208,7 @@ func Provider() *schema.Provider {
 			"junos_interface_physical":          dataSourceInterfacePhysical(),
 			"junos_interfaces_physical_present": dataSourceInterfacesPhysicalPresent(),
 			"junos_routing_instance":            dataSourceRoutingInstance(),
+			"junos_security_zone":               dataSourceSecurityZone(),
 			"junos_system_information":          dataSourceSystemInformation(),
 		},
 		ConfigureContextFunc: configureProvider,
