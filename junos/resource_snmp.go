@@ -3,6 +3,7 @@ package junos
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -20,6 +21,7 @@ type snmpOptions struct {
 	routingInstanceAccess       bool
 	contact                     string
 	description                 string
+	engineID                    string
 	location                    string
 	filterInterfaces            []string
 	interFace                   []string
@@ -57,6 +59,13 @@ func resourceSnmp() *schema.Resource {
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
+			},
+			"engine_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(
+					`^(use-default-ip-address|use-mac-address|local .+)$`),
+					"must have 'use-default-ip-address', 'use-mac-address' or 'local ...'"),
 			},
 			"filter_duplicates": {
 				Type:     schema.TypeBool,
@@ -318,6 +327,9 @@ func setSnmp(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	if v := d.Get("description").(string); v != "" {
 		configSet = append(configSet, setPrefix+"description \""+v+"\"")
 	}
+	if v := d.Get("engine_id").(string); v != "" {
+		configSet = append(configSet, setPrefix+"engine-id "+v)
+	}
 	if d.Get("filter_duplicates").(bool) {
 		configSet = append(configSet, setPrefix+"filter-duplicates")
 	}
@@ -378,6 +390,7 @@ func delSnmp(m interface{}, jnprSess *NetconfObject) error {
 		"arp",
 		"contact",
 		"description",
+		"engine-id",
 		"filter-duplicates",
 		"filter-interfaces",
 		"health-monitor",
@@ -424,6 +437,8 @@ func readSnmp(m interface{}, jnprSess *NetconfObject) (snmpOptions, error) {
 				confRead.contact = strings.Trim(strings.TrimPrefix(itemTrim, "contact "), "\"")
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
+			case strings.HasPrefix(itemTrim, "engine-id "):
+				confRead.engineID = strings.TrimPrefix(itemTrim, "engine-id ")
 			case itemTrim == "filter-duplicates":
 				confRead.filterDuplicates = true
 			case strings.HasPrefix(itemTrim, "filter-interfaces interfaces "):
@@ -521,6 +536,9 @@ func fillSnmp(d *schema.ResourceData, snmpOptions snmpOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("description", snmpOptions.description); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("engine_id", snmpOptions.engineID); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("filter_duplicates", snmpOptions.filterDuplicates); tfErr != nil {
