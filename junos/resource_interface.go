@@ -631,7 +631,7 @@ func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m inte
 	if d.HasChange("ether802_3ad") {
 		oAE, nAE := d.GetChange("ether802_3ad")
 		if oAE.(string) != "" {
-			newAE := "ae-1" // nolint: goconst
+			newAE := "ae-1"
 			if nAE.(string) != "" {
 				newAE = nAE.(string)
 			}
@@ -883,8 +883,8 @@ func checkInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) 
 			return true, false, nil
 		}
 	}
-	if showConfig == "set description NC\nset disable" || // nolint: goconst
-		showConfig == "set disable\nset description NC" { // nolint: goconst
+	if showConfig == "set description NC\nset disable" ||
+		showConfig == "set disable\nset description NC" {
 		return true, false, nil
 	}
 	if showConfig == setLineStart ||

@@ -93,7 +93,7 @@ func resourceSecurityNatStaticRule() *schema.Resource {
 						"type": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{inetWord, prefixWord, prefixNameWord}, false),
+							ValidateFunc: validation.StringInSlice([]string{inetWord, "prefix", "prefix-name"}, false),
 						},
 						"mapped_port": {
 							Type:         schema.TypeInt,
@@ -400,9 +400,9 @@ func setSecurityNatStaticRule(d *schema.ResourceData, m interface{}, jnprSess *N
 			configSet = append(configSet, setPrefix+"then static-nat inet routing-instance "+
 				then["routing_instance"].(string))
 		}
-		if then["type"].(string) == prefixWord || then["type"].(string) == prefixNameWord {
+		if then["type"].(string) == "prefix" || then["type"].(string) == "prefix-name" {
 			setPrefixRuleThenStaticNat := setPrefix + "then static-nat "
-			if then["type"].(string) == prefixWord {
+			if then["type"].(string) == "prefix" {
 				setPrefixRuleThenStaticNat += "prefix "
 				if then["prefix"].(string) == "" {
 					return fmt.Errorf("missing prefix with type = prefix")
@@ -411,7 +411,7 @@ func setSecurityNatStaticRule(d *schema.ResourceData, m interface{}, jnprSess *N
 					return err
 				}
 			}
-			if then["type"].(string) == prefixNameWord {
+			if then["type"].(string) == "prefix-name" {
 				setPrefixRuleThenStaticNat += "prefix-name "
 				if then["prefix"].(string) == "" {
 					return fmt.Errorf("missing prefix with type = prefix-name")
@@ -497,11 +497,11 @@ func readSecurityNatStaticRule(ruleSet, name string,
 				switch {
 				case strings.HasPrefix(itemThen, "prefix ") || strings.HasPrefix(itemThen, "prefix-name "):
 					if strings.HasPrefix(itemThen, "prefix ") {
-						ruleThenOptions["type"] = prefixWord
+						ruleThenOptions["type"] = "prefix"
 						itemThen = strings.TrimPrefix(itemThen, "prefix ")
 					}
 					if strings.HasPrefix(itemThen, "prefix-name ") {
-						ruleThenOptions["type"] = prefixNameWord
+						ruleThenOptions["type"] = "prefix-name"
 						itemThen = strings.TrimPrefix(itemThen, "prefix-name ")
 					}
 					switch {

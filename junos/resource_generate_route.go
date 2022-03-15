@@ -502,7 +502,7 @@ func readGenerateRoute(destination, instance string,
 				itemTrimSplit := strings.Split(itemTrim, " ")
 				confRead.asPathAggregatorAsNumber = itemTrimSplit[2]
 				confRead.asPathAggregatorAddress = itemTrimSplit[3]
-			case itemTrim == asPathAtomicAggregate:
+			case itemTrim == "as-path atomic-aggregate":
 				confRead.asPathAtomicAggregate = true
 			case strings.HasPrefix(itemTrim, "as-path origin "):
 				confRead.asPathOrigin = strings.TrimPrefix(itemTrim, "as-path origin ")
@@ -523,7 +523,7 @@ func readGenerateRoute(destination, instance string,
 				}
 			case strings.HasPrefix(itemTrim, "next-table "):
 				confRead.nextTable = strings.TrimPrefix(itemTrim, "next-table ")
-			case itemTrim == passiveW:
+			case itemTrim == "passive":
 				confRead.passive = true
 			case strings.HasPrefix(itemTrim, "policy "):
 				confRead.policy = append(confRead.policy, strings.TrimPrefix(itemTrim, "policy "))

@@ -552,27 +552,27 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 							"name":   name,
 							"weight": weight,
 						})
-				case strings.HasPrefix(itemRGNbTrim, preemptWord):
-					confRead.redundancyGroup[number][preemptWord] = true
+				case strings.HasPrefix(itemRGNbTrim, "preempt"):
+					confRead.redundancyGroup[number]["preempt"] = true
 					switch {
-					case strings.HasPrefix(itemRGNbTrim, preemptWord+" delay "):
+					case strings.HasPrefix(itemRGNbTrim, "preempt delay "):
 						var err error
 						confRead.redundancyGroup[number]["preempt_delay"], err = strconv.Atoi(strings.TrimPrefix(
-							itemRGNbTrim, preemptWord+" delay "))
+							itemRGNbTrim, "preempt delay "))
 						if err != nil {
 							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGNbTrim, err)
 						}
-					case strings.HasPrefix(itemRGNbTrim, preemptWord+" limit "):
+					case strings.HasPrefix(itemRGNbTrim, "preempt limit "):
 						var err error
 						confRead.redundancyGroup[number]["preempt_limit"], err = strconv.Atoi(strings.TrimPrefix(
-							itemRGNbTrim, preemptWord+" limit "))
+							itemRGNbTrim, "preempt limit "))
 						if err != nil {
 							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGNbTrim, err)
 						}
-					case strings.HasPrefix(itemRGNbTrim, preemptWord+" period "):
+					case strings.HasPrefix(itemRGNbTrim, "preempt period "):
 						var err error
 						confRead.redundancyGroup[number]["preempt_period"], err = strconv.Atoi(strings.TrimPrefix(
-							itemRGNbTrim, preemptWord+" period "))
+							itemRGNbTrim, "preempt period "))
 						if err != nil {
 							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGNbTrim, err)
 						}

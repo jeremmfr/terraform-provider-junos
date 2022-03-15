@@ -410,7 +410,7 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
 		}
-	case item == passiveW:
+	case item == "passive":
 		confRead.passive = true
 	case strings.HasPrefix(item, "peer-as "):
 		confRead.peerAs = strings.TrimPrefix(item, "peer-as ")
@@ -445,7 +445,7 @@ func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{},
 				configSet = append(configSet, setPrefixBfd+"authentication key-chain "+bfdLD["authentication_key_chain"].(string))
 			}
 			if bfdLD["authentication_loose_check"].(bool) {
-				configSet = append(configSet, setPrefixBfd+authenticationLooseCheck)
+				configSet = append(configSet, setPrefixBfd+"authentication loose-check")
 			}
 			if bfdLD["detection_time_threshold"].(int) != 0 {
 				configSet = append(configSet, setPrefixBfd+"detection-time threshold "+
@@ -500,7 +500,7 @@ func readBgpOptsBfd(item string, bfdRead map[string]interface{}) error {
 		bfdRead["authentication_algorithm"] = strings.TrimPrefix(itemTrim, "authentication algorithm ")
 	case strings.HasPrefix(itemTrim, "authentication key-chain "):
 		bfdRead["authentication_key_chain"] = strings.TrimPrefix(itemTrim, "authentication key-chain ")
-	case itemTrim == authenticationLooseCheck:
+	case itemTrim == "authentication loose-check":
 		bfdRead["authentication_loose_check"] = true
 	case strings.HasPrefix(itemTrim, "detection-time threshold "):
 		var err error

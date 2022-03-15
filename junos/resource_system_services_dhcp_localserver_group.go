@@ -1176,7 +1176,7 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, m interface{}
 			configSet = append(configSet, setPrefixLDMBfd+"multiplier "+strconv.Itoa(v))
 		}
 		if liveDetectMethBfd["no_adaptation"].(bool) {
-			configSet = append(configSet, setPrefixLDMBfd+noAdaptation)
+			configSet = append(configSet, setPrefixLDMBfd+"no-adaptation")
 		}
 		if v := liveDetectMethBfd["session_mode"].(string); v != "" {
 			configSet = append(configSet, setPrefixLDMBfd+"session-mode "+v)
@@ -1706,7 +1706,7 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 				case strings.HasPrefix(itemTrimLiveDetMethBfd, "multiplier "):
 					confRead.livenessDetectionMethodBfd[0]["multiplier"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrimLiveDetMethBfd, "multiplier "))
-				case itemTrimLiveDetMethBfd == noAdaptation:
+				case itemTrimLiveDetMethBfd == "no-adaptation":
 					confRead.livenessDetectionMethodBfd[0]["no_adaptation"] = true
 				case strings.HasPrefix(itemTrimLiveDetMethBfd, "session-mode "):
 					confRead.livenessDetectionMethodBfd[0]["session_mode"] = strings.TrimPrefix(

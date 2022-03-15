@@ -387,7 +387,7 @@ func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *
 		for _, vv := range sortSetOfString(rule["source_address_name"].(*schema.Set).List()) {
 			configSet = append(configSet, setPrefixRule+" match source-address-name \""+vv+"\"")
 		}
-		for _, thenV := range rule[thenWord].([]interface{}) {
+		for _, thenV := range rule["then"].([]interface{}) {
 			then := thenV.(map[string]interface{})
 			if then["type"].(string) == "off" {
 				configSet = append(configSet, setPrefixRule+" then destination-nat off")

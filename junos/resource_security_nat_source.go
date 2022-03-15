@@ -394,7 +394,7 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 		}
 		ruleNameList = append(ruleNameList, rule["name"].(string))
 		setPrefixRule := setPrefix + " rule " + rule["name"].(string)
-		for _, matchV := range rule[matchWord].([]interface{}) {
+		for _, matchV := range rule["match"].([]interface{}) {
 			if matchV == nil {
 				return fmt.Errorf("match block in rule %s need to have an argument", rule["name"].(string))
 			}
@@ -445,7 +445,7 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				configSet = append(configSet, setPrefixRule+" match source-port "+vv)
 			}
 		}
-		for _, thenV := range rule[thenWord].([]interface{}) {
+		for _, thenV := range rule["then"].([]interface{}) {
 			then := thenV.(map[string]interface{})
 			if then["type"].(string) == "interface" {
 				configSet = append(configSet, setPrefixRule+" then source-nat interface")

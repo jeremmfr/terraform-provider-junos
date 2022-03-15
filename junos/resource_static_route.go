@@ -622,7 +622,7 @@ func readStaticRoute(destination string, instance string, m interface{},
 				itemTrimSplit := strings.Split(itemTrim, " ")
 				confRead.asPathAggregatorAsNumber = itemTrimSplit[2]
 				confRead.asPathAggregatorAddress = itemTrimSplit[3]
-			case itemTrim == asPathAtomicAggregate:
+			case itemTrim == "as-path atomic-aggregate":
 				confRead.asPathAtomicAggregate = true
 			case strings.HasPrefix(itemTrim, "as-path origin "):
 				confRead.asPathOrigin = strings.TrimPrefix(itemTrim, "as-path origin ")
@@ -645,7 +645,7 @@ func readStaticRoute(destination string, instance string, m interface{},
 				confRead.nextHop = append(confRead.nextHop, strings.TrimPrefix(itemTrim, "next-hop "))
 			case strings.HasPrefix(itemTrim, "next-table "):
 				confRead.nextTable = strings.TrimPrefix(itemTrim, "next-table ")
-			case itemTrim == passiveW:
+			case itemTrim == "passive":
 				confRead.passive = true
 			case strings.HasPrefix(itemTrim, "preference "):
 				confRead.preference, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "preference "))

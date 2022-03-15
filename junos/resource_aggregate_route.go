@@ -484,13 +484,13 @@ func readAggregateRoute(destination string, instance string, m interface{},
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case itemTrim == activeW:
+			case itemTrim == "active":
 				confRead.active = true
 			case strings.HasPrefix(itemTrim, "as-path aggregator "):
 				itemTrimSplit := strings.Split(itemTrim, " ")
 				confRead.asPathAggregatorAsNumber = itemTrimSplit[2]
 				confRead.asPathAggregatorAddress = itemTrimSplit[3]
-			case itemTrim == asPathAtomicAggregate:
+			case itemTrim == "as-path atomic-aggregate":
 				confRead.asPathAtomicAggregate = true
 			case strings.HasPrefix(itemTrim, "as-path origin "):
 				confRead.asPathOrigin = strings.TrimPrefix(itemTrim, "as-path origin ")
@@ -509,7 +509,7 @@ func readAggregateRoute(destination string, instance string, m interface{},
 				if err != nil {
 					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 				}
-			case itemTrim == passiveW:
+			case itemTrim == "passive":
 				confRead.passive = true
 			case strings.HasPrefix(itemTrim, "policy "):
 				confRead.policy = append(confRead.policy, strings.TrimPrefix(itemTrim, "policy "))

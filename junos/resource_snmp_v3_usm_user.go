@@ -42,8 +42,8 @@ func resourceSnmpV3UsmUser() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				Default:      localWord,
-				ValidateFunc: validation.StringInSlice([]string{localWord, "remote"}, false),
+				Default:      "local",
+				ValidateFunc: validation.StringInSlice([]string{"local", "remote"}, false),
 			},
 			"engine_id": {
 				Type:     schema.TypeString,
@@ -89,12 +89,12 @@ func resourceSnmpV3UsmUser() *schema.Resource {
 			"privacy_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  privacyNoneWord,
+				Default:  "privacy-none",
 				ValidateFunc: validation.StringInSlice([]string{
 					"privacy-3des",
 					"privacy-aes128",
 					"privacy-des",
-					privacyNoneWord,
+					"privacy-none",
 				}, false),
 			},
 		},
@@ -107,8 +107,8 @@ func resourceSnmpV3UsmUserCreate(ctx context.Context, d *schema.ResourceData, m 
 		if err := setSnmpV3UsmUser(d, m, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if d.Get("engine_type").(string) == localWord {
-			d.SetId(localWord + idSeparator + d.Get("name").(string))
+		if d.Get("engine_type").(string) == "local" {
+			d.SetId("local" + idSeparator + d.Get("name").(string))
 		} else {
 			d.SetId("remote" + idSeparator + d.Get("engine_id").(string) + idSeparator + d.Get("name").(string))
 		}
@@ -132,7 +132,7 @@ func resourceSnmpV3UsmUserCreate(ctx context.Context, d *schema.ResourceData, m 
 	if snmpV3UsmUserExists {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		if d.Get("engine_type").(string) != localWord {
+		if d.Get("engine_type").(string) != "local" {
 			return append(diagWarns, diag.FromErr(fmt.Errorf("snmp v3 usm user %v in remote-engine %s already exists",
 				d.Get("name").(string), d.Get("engine_id").(string)))...)
 		}
@@ -159,13 +159,13 @@ func resourceSnmpV3UsmUserCreate(ctx context.Context, d *schema.ResourceData, m 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if snmpV3UsmUserExists {
-		if d.Get("engine_type").(string) == localWord {
-			d.SetId(localWord + idSeparator + d.Get("name").(string))
+		if d.Get("engine_type").(string) == "local" {
+			d.SetId("local" + idSeparator + d.Get("name").(string))
 		} else {
 			d.SetId("remote" + idSeparator + d.Get("engine_id").(string) + idSeparator + d.Get("name").(string))
 		}
 	} else {
-		if d.Get("engine_type").(string) != localWord {
+		if d.Get("engine_type").(string) != "local" {
 			return append(diagWarns, diag.FromErr(fmt.Errorf("snmp v3 usm user %v in remote-engine %s not exists after commit "+
 				"=> check your config", d.Get("name").(string), d.Get("engine_id").(string)))...)
 		}
@@ -304,7 +304,7 @@ func resourceSnmpV3UsmUserImport(d *schema.ResourceData, m interface{}) ([]*sche
 	idSplit := strings.Split(d.Id(), idSeparator)
 	var configImport snmpV3UsmUserOptions
 	switch {
-	case len(idSplit) == 2 && idSplit[0] == localWord:
+	case len(idSplit) == 2 && idSplit[0] == "local":
 		snmpV3UsmUserExists, err := checkSnmpV3UsmUserExists(idSplit[1], idSplit[0], "", m, jnprSess)
 		if err != nil {
 			return nil, err
@@ -343,7 +343,7 @@ func resourceSnmpV3UsmUserImport(d *schema.ResourceData, m interface{}) ([]*sche
 
 func checkSnmpV3UsmUserExists(name, engineType, engineID string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	if engineType == localWord {
+	if engineType == "local" {
 		showConfig, err := sess.command(
 			"show configuration snmp v3 usm local-engine user \""+name+"\" | display set", jnprSess)
 		if err != nil {
@@ -370,7 +370,7 @@ func setSnmpV3UsmUser(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 	sess := m.(*Session)
 
 	setPrefix := "set snmp v3 usm local-engine user \"" + d.Get("name").(string) + "\" "
-	if d.Get("engine_type").(string) != localWord {
+	if d.Get("engine_type").(string) != "local" {
 		engineID := d.Get("engine_id").(string)
 		if engineID == "" {
 			return fmt.Errorf("engine_id need to set when engine_type != local")
@@ -394,7 +394,7 @@ func setSnmpV3UsmUser(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 			configSet = append(configSet, setPrefixAuth+"authentication-password \""+authPass+"\"")
 		}
 	} else {
-		if d.Get("privacy_type").(string) != privacyNoneWord {
+		if d.Get("privacy_type").(string) != "privacy-none" {
 			return fmt.Errorf("authentication should be configured before configuring the privacy")
 		}
 		if d.Get("authentication_key").(string) != "" {
@@ -405,7 +405,7 @@ func setSnmpV3UsmUser(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 		}
 		configSet = append(configSet, setPrefix+"authentication-none")
 	}
-	if privType := d.Get("privacy_type").(string); privType != privacyNoneWord {
+	if privType := d.Get("privacy_type").(string); privType != "privacy-none" {
 		if d.Get("privacy_key").(string) == "" && d.Get("privacy_password").(string) == "" {
 			return fmt.Errorf("privacy_key or privacy_password need to set when privacy_type != privacy-none")
 		}
@@ -423,7 +423,7 @@ func setSnmpV3UsmUser(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 		if d.Get("privacy_password").(string) != "" {
 			return fmt.Errorf("privacy_password not compatible when privacy_type = privacy-none")
 		}
-		configSet = append(configSet, setPrefix+privacyNoneWord)
+		configSet = append(configSet, setPrefix+"privacy-none")
 	}
 
 	return sess.configSet(configSet, jnprSess)
@@ -435,7 +435,7 @@ func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, m interface{}, jnprSess *Ne
 	var confRead snmpV3UsmUserOptions
 
 	showCommand := "show configuration snmp v3 usm local-engine user \"" + confSrc.name + "\" | display set relative"
-	if confSrc.engineType != localWord {
+	if confSrc.engineType != "local" {
 		showCommand = "show configuration snmp v3 usm remote-engine \"" + confSrc.engineID +
 			"\" user \"" + confSrc.name + "\" | display set relative"
 	}
@@ -518,7 +518,7 @@ func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, m interface{}, jnprSess *Ne
 						return confRead, fmt.Errorf("failed to decode privacy-key : %w", err)
 					}
 				}
-			case itemTrim == privacyNoneWord:
+			case itemTrim == "privacy-none":
 				confRead.privacyType = itemTrim
 			}
 		}
@@ -530,7 +530,7 @@ func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, m interface{}, jnprSess *Ne
 func delSnmpV3UsmUser(name, engineType, engineID string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	var configSet []string
-	if engineType == localWord {
+	if engineType == "local" {
 		configSet = append(configSet, "delete snmp v3 usm local-engine user \""+name+"\"")
 	} else {
 		configSet = append(configSet, "delete snmp v3 usm remote-engine \""+engineID+"\" user \""+name+"\"")

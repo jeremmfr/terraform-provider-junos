@@ -116,7 +116,7 @@ func resourceSecurityNatStatic() *schema.Resource {
 									"type": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validation.StringInSlice([]string{inetWord, prefixWord, prefixNameWord}, false),
+										ValidateFunc: validation.StringInSlice([]string{inetWord, "prefix", "prefix-name"}, false),
 									},
 									"mapped_port": {
 										Type:         schema.TypeInt,
@@ -452,7 +452,7 @@ func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				}
 				configSet = append(configSet, setPrefixRule+" match source-port "+vv)
 			}
-			for _, thenV := range rule[thenWord].([]interface{}) {
+			for _, thenV := range rule["then"].([]interface{}) {
 				then := thenV.(map[string]interface{})
 				if then["type"].(string) == inetWord {
 					if then["routing_instance"].(string) == "" {
@@ -466,9 +466,9 @@ func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *Netco
 					configSet = append(configSet, setPrefixRule+" then static-nat inet routing-instance "+
 						then["routing_instance"].(string))
 				}
-				if then["type"].(string) == prefixWord || then["type"].(string) == prefixNameWord {
+				if then["type"].(string) == "prefix" || then["type"].(string) == "prefix-name" {
 					setPrefixRuleThenStaticNat := setPrefixRule + " then static-nat "
-					if then["type"].(string) == prefixWord {
+					if then["type"].(string) == "prefix" {
 						setPrefixRuleThenStaticNat += "prefix "
 						if then["prefix"].(string) == "" {
 							return fmt.Errorf("missing prefix in rule %s with type = prefix", rule["name"].(string))
@@ -477,7 +477,7 @@ func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *Netco
 							return err
 						}
 					}
-					if then["type"].(string) == prefixNameWord {
+					if then["type"].(string) == "prefix-name" {
 						setPrefixRuleThenStaticNat += "prefix-name "
 						if then["prefix"].(string) == "" {
 							return fmt.Errorf("missing prefix in rule %s with type = prefix-name", rule["name"].(string))
@@ -595,11 +595,11 @@ func readSecurityNatStatic(name string, m interface{}, jnprSess *NetconfObject) 
 					switch {
 					case strings.HasPrefix(itemThen, "prefix ") || strings.HasPrefix(itemThen, "prefix-name "):
 						if strings.HasPrefix(itemThen, "prefix ") {
-							ruleThenOptions["type"] = prefixWord
+							ruleThenOptions["type"] = "prefix"
 							itemThen = strings.TrimPrefix(itemThen, "prefix ")
 						}
 						if strings.HasPrefix(itemThen, "prefix-name ") {
-							ruleThenOptions["type"] = prefixNameWord
+							ruleThenOptions["type"] = "prefix-name"
 							itemThen = strings.TrimPrefix(itemThen, "prefix-name ")
 						}
 						switch {

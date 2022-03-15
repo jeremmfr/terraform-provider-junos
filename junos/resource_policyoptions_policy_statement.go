@@ -239,7 +239,7 @@ func schemaPolicyoptionsPolicyStatementThen() map[string]*schema.Schema {
 					"action": {
 						Type:         schema.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice([]string{addWord, deleteWord, setWord}, false),
+						ValidateFunc: validation.StringInSlice([]string{"add", deleteWord, setWord}, false),
 					},
 					"value": {
 						Type:     schema.TypeString,
@@ -267,7 +267,7 @@ func schemaPolicyoptionsPolicyStatementThen() map[string]*schema.Schema {
 					"action": {
 						Type:         schema.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice([]string{addWord, "subtract", actionNoneWord}, false),
+						ValidateFunc: validation.StringInSlice([]string{"add", "subtract", "none"}, false),
 					},
 					"value": {
 						Type:     schema.TypeInt,
@@ -294,7 +294,7 @@ func schemaPolicyoptionsPolicyStatementThen() map[string]*schema.Schema {
 					"action": {
 						Type:         schema.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice([]string{"add", "subtract", actionNoneWord}, false),
+						ValidateFunc: validation.StringInSlice([]string{"add", "subtract", "none"}, false),
 					},
 					"value": {
 						Type:     schema.TypeInt,
@@ -316,7 +316,7 @@ func schemaPolicyoptionsPolicyStatementThen() map[string]*schema.Schema {
 					"action": {
 						Type:         schema.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice([]string{"add", "subtract", actionNoneWord}, false),
+						ValidateFunc: validation.StringInSlice([]string{"add", "subtract", "none"}, false),
 					},
 					"value": {
 						Type:     schema.TypeInt,
@@ -996,7 +996,7 @@ func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) (
 	}
 	for _, v := range opts["local_preference"].([]interface{}) {
 		localPreference := v.(map[string]interface{})
-		if localPreference["action"] == actionNoneWord {
+		if localPreference["action"] == "none" {
 			configSet = append(configSet, setPrefixThen+
 				"local-preference "+strconv.Itoa(localPreference["value"].(int)))
 		} else {
@@ -1013,7 +1013,7 @@ func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) (
 	}
 	for _, v := range opts["metric"].([]interface{}) {
 		metric := v.(map[string]interface{})
-		if metric["action"] == actionNoneWord {
+		if metric["action"] == "none" {
 			configSet = append(configSet, setPrefixThen+
 				"metric "+strconv.Itoa(metric["value"].(int)))
 		} else {
@@ -1027,7 +1027,7 @@ func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) (
 	}
 	for _, v := range opts["preference"].([]interface{}) {
 		preference := v.(map[string]interface{})
-		if preference["action"] == actionNoneWord {
+		if preference["action"] == "none" {
 			configSet = append(configSet, setPrefixThen+
 				"preference "+strconv.Itoa(preference["value"].(int)))
 		} else {
@@ -1190,7 +1190,7 @@ func readPolicyStatementOptsThen(item string, thenMap map[string]interface{}) er
 		itemSplit := strings.Split(item, " ")
 		var err error
 		if len(itemSplit) == 2 {
-			localPreferenceMap["action"] = actionNoneWord
+			localPreferenceMap["action"] = "none"
 			localPreferenceMap["value"], err = strconv.Atoi(itemSplit[1])
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
@@ -1216,7 +1216,7 @@ func readPolicyStatementOptsThen(item string, thenMap map[string]interface{}) er
 		itemSplit := strings.Split(item, " ")
 		var err error
 		if len(itemSplit) == 2 {
-			metricMap["action"] = actionNoneWord
+			metricMap["action"] = "none"
 			metricMap["value"], err = strconv.Atoi(itemSplit[1])
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
@@ -1239,7 +1239,7 @@ func readPolicyStatementOptsThen(item string, thenMap map[string]interface{}) er
 		itemSplit := strings.Split(item, " ")
 		var err error
 		if len(itemSplit) == 2 {
-			preferenceMap["action"] = actionNoneWord
+			preferenceMap["action"] = "none"
 			preferenceMap["value"], err = strconv.Atoi(itemSplit[1])
 			if err != nil {
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)

@@ -303,7 +303,7 @@ func readPolicyoptionsAsPathGroup(name string, m interface{}, jnprSess *NetconfO
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case itemTrim == dynamicDB:
+			case itemTrim == "dynamic-db":
 				confRead.dynamicDB = true
 			case strings.HasPrefix(itemTrim, "as-path "):
 				asPath := map[string]interface{}{

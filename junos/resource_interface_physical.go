@@ -1136,10 +1136,10 @@ func setInterfacePhysicalParentEtherOpts(
 		}
 	}
 	if ethOpts["flow_control"].(bool) {
-		configSet = append(configSet, setPrefix+flowControlWords)
+		configSet = append(configSet, setPrefix+"flow-control")
 	}
 	if ethOpts["no_flow_control"].(bool) {
-		configSet = append(configSet, setPrefix+noFlowControlWords)
+		configSet = append(configSet, setPrefix+"no-flow-control")
 	}
 	for _, v := range ethOpts["lacp"].([]interface{}) {
 		lacp := v.(map[string]interface{})
@@ -1161,10 +1161,10 @@ func setInterfacePhysicalParentEtherOpts(
 		}
 	}
 	if ethOpts["loopback"].(bool) {
-		configSet = append(configSet, setPrefix+loopbackWord)
+		configSet = append(configSet, setPrefix+"loopback")
 	}
 	if ethOpts["no_loopback"].(bool) {
-		configSet = append(configSet, setPrefix+noLoopbackWord)
+		configSet = append(configSet, setPrefix+"no-loopback")
 	}
 	if v := ethOpts["link_speed"].(string); v != "" {
 		configSet = append(configSet, setPrefix+"link-speed "+v)
@@ -1329,13 +1329,13 @@ func readInterfacePhysicalEtherOpts(confRead *interfacePhysicalOptions, itemTrim
 		confRead.etherOpts[0]["auto_negotiation"] = true
 	case itemTrim == "no-auto-negotiation":
 		confRead.etherOpts[0]["no_auto_negotiation"] = true
-	case itemTrim == flowControlWords:
+	case itemTrim == "flow-control":
 		confRead.etherOpts[0]["flow_control"] = true
-	case itemTrim == noFlowControlWords:
+	case itemTrim == "no-flow-control":
 		confRead.etherOpts[0]["no_flow_control"] = true
-	case itemTrim == loopbackWord:
+	case itemTrim == "loopback":
 		confRead.etherOpts[0]["loopback"] = true
-	case itemTrim == noLoopbackWord:
+	case itemTrim == "no-loopback":
 		confRead.etherOpts[0]["no_loopback"] = true
 	case strings.HasPrefix(itemTrim, "redundant-parent "):
 		confRead.etherOpts[0]["redundant_parent"] = strings.TrimPrefix(itemTrim, "redundant-parent ")
@@ -1363,13 +1363,13 @@ func readInterfacePhysicalGigetherOpts(confRead *interfacePhysicalOptions, itemT
 		confRead.gigetherOpts[0]["auto_negotiation"] = true
 	case itemTrim == "no-auto-negotiation":
 		confRead.gigetherOpts[0]["no_auto_negotiation"] = true
-	case itemTrim == flowControlWords:
+	case itemTrim == "flow-control":
 		confRead.gigetherOpts[0]["flow_control"] = true
-	case itemTrim == noFlowControlWords:
+	case itemTrim == "no-flow-control":
 		confRead.gigetherOpts[0]["no_flow_control"] = true
-	case itemTrim == loopbackWord:
+	case itemTrim == "loopback":
 		confRead.gigetherOpts[0]["loopback"] = true
-	case itemTrim == noLoopbackWord:
+	case itemTrim == "no-loopback":
 		confRead.gigetherOpts[0]["no_loopback"] = true
 	case strings.HasPrefix(itemTrim, "redundant-parent "):
 		confRead.gigetherOpts[0]["redundant_parent"] = strings.TrimPrefix(itemTrim, "redundant-parent ")
@@ -1426,7 +1426,7 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 		case strings.HasPrefix(itemTrimBfdLiveDet, "authentication key-chain "):
 			parentEtherOptsBFDLiveDetect["authentication_key_chain"] = strings.TrimPrefix(
 				itemTrimBfdLiveDet, "authentication key-chain ")
-		case itemTrimBfdLiveDet == authenticationLooseCheck:
+		case itemTrimBfdLiveDet == "authentication loose-check":
 			parentEtherOptsBFDLiveDetect["authentication_loose_check"] = true
 		case strings.HasPrefix(itemTrimBfdLiveDet, "detection-time threshold "):
 			var err error
@@ -1464,7 +1464,7 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "neighbor "):
 			parentEtherOptsBFDLiveDetect["neighbor"] = strings.TrimPrefix(itemTrimBfdLiveDet, "neighbor ")
-		case itemTrimBfdLiveDet == noAdaptation:
+		case itemTrimBfdLiveDet == "no-adaptation":
 			parentEtherOptsBFDLiveDetect["no_adaptation"] = true
 		case strings.HasPrefix(itemTrimBfdLiveDet, "transmit-interval minimum-interval "):
 			var err error
@@ -1483,9 +1483,9 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 		case strings.HasPrefix(itemTrimBfdLiveDet, "version "):
 			parentEtherOptsBFDLiveDetect["version"] = strings.TrimPrefix(itemTrimBfdLiveDet, "version ")
 		}
-	case itemTrim == flowControlWords:
+	case itemTrim == "flow-control":
 		confRead.parentEtherOpts[0]["flow_control"] = true
-	case itemTrim == noFlowControlWords:
+	case itemTrim == "no-flow-control":
 		confRead.parentEtherOpts[0]["no_flow_control"] = true
 	case strings.HasPrefix(itemTrim, "lacp "):
 		if len(confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})) == 0 {
@@ -1502,7 +1502,7 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 		itemTrimLacp := strings.TrimPrefix(itemTrim, "lacp ")
 		lacp := confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]
 		switch {
-		case itemTrimLacp == activeW || itemTrimLacp == "passive":
+		case itemTrimLacp == "active" || itemTrimLacp == "passive":
 			lacp["mode"] = itemTrimLacp
 		case strings.HasPrefix(itemTrimLacp, "admin-key "):
 			var err error
@@ -1523,9 +1523,9 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 			}
 		}
-	case itemTrim == loopbackWord:
+	case itemTrim == "loopback":
 		confRead.parentEtherOpts[0]["loopback"] = true
-	case itemTrim == noLoopbackWord:
+	case itemTrim == "no-loopback":
 		confRead.parentEtherOpts[0]["no_loopback"] = true
 	case strings.HasPrefix(itemTrim, "link-speed "):
 		confRead.parentEtherOpts[0]["link_speed"] = strings.TrimPrefix(itemTrim, "link-speed ")

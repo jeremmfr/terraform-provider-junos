@@ -277,7 +277,7 @@ func readPolicyoptionsAsPath(name string, m interface{}, jnprSess *NetconfObject
 			}
 			itemTrim := strings.TrimPrefix(item, setLineStart)
 			switch {
-			case itemTrim == dynamicDB:
+			case itemTrim == "dynamic-db":
 				confRead.dynamicDB = true
 			default:
 				confRead.path = strings.Trim(itemTrim, "\"")

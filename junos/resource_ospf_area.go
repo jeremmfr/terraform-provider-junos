@@ -651,14 +651,14 @@ func setOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 				configSet = append(configSet, setPrefixBfd+"multiplier "+strconv.Itoa(v))
 			}
 			if bfdLiveDetect["no_adaptation"].(bool) {
-				configSet = append(configSet, setPrefixBfd+noAdaptation)
+				configSet = append(configSet, setPrefixBfd+"no-adaptation")
 			}
 			if v := bfdLiveDetect["transmit_interval_minimum_interval"].(int); v != 0 {
-				configSet = append(configSet, setPrefixBfd+""+
+				configSet = append(configSet, setPrefixBfd+
 					"transmit-interval minimum-interval "+strconv.Itoa(v))
 			}
 			if v := bfdLiveDetect["transmit_interval_threshold"].(int); v != 0 {
-				configSet = append(configSet, setPrefixBfd+""+
+				configSet = append(configSet, setPrefixBfd+
 					"transmit-interval threshold "+strconv.Itoa(v))
 			}
 			if v := bfdLiveDetect["version"].(string); v != "" {
@@ -1083,7 +1083,7 @@ func readOspfAreaInterfaceBfd(itemTrim string, bfd map[string]interface{}) error
 		bfd["authentication_algorithm"] = strings.TrimPrefix(itemTrim, "authentication algorithm ")
 	case strings.HasPrefix(itemTrim, "authentication key-chain "):
 		bfd["authentication_key_chain"] = strings.Trim(strings.TrimPrefix(itemTrim, "authentication key-chain "), "\"")
-	case itemTrim == authenticationLooseCheck:
+	case itemTrim == "authentication loose-check":
 		bfd["authentication_loose_check"] = true
 	case strings.HasPrefix(itemTrim, "detection-time threshold "):
 		var err error
@@ -1117,7 +1117,7 @@ func readOspfAreaInterfaceBfd(itemTrim string, bfd map[string]interface{}) error
 		if err != nil {
 			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 		}
-	case itemTrim == noAdaptation:
+	case itemTrim == "no-adaptation":
 		bfd["no_adaptation"] = true
 	case strings.HasPrefix(itemTrim, "transmit-interval minimum-interval "):
 		var err error
