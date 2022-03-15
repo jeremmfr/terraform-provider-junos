@@ -27,7 +27,7 @@ The following arguments are supported:
   IP of neighbor.
 - **routing_instance** (Optional, String, Forces new resource)  
   Routing instance for bgp protocol.  
-  Need to be default or name of routing instance.  
+  Need to be `default` or name of routing instance.  
   Defaults to `default`.
 - **group** (Required, String, Forces new resource)  
   Name of BGP group for this neighbor

@@ -11,6 +11,17 @@ ENHANCEMENTS:
 * add `junos_snmp_v3_usm_user` resource (Fixes parts of #339)
 * add `junos_snmp_v3_vacm_accessgroup` resource (Fixes parts of #339)
 * add `junos_snmp_v3_vacm_securitytogroup` resource (Fixes parts of #339)
+* add `junos_chassis_redundancy` resource
+* add `junos_igmp_snooping_vlan` resource (Fixes parts of #340)
+* add `junos_layer2_control` resource (Fixes parts of #340)
+* add `junos_lldp_interface` resource (Fixes parts of #340)
+* add `junos_lldpmed_interface` resource (Fixes parts of #340)
+* add `junos_rstp` resource (Fixes parts of #340)
+* add `junos_rstp_interface` resource (Fixes parts of #340)
+* add `junos_vstp` resource
+* add `junos_vstp_interface` resource (Fixes parts of #340)
+* add `junos_vstp_vlan` resource
+* add `junos_vstp_vlan_group` resource
 
 BUG FIXES:
 
