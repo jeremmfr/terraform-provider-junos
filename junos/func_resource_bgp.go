@@ -66,25 +66,18 @@ type bgpOptions struct {
 func delBgpOpts(d *schema.ResourceData, typebgp string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
-	delPrefix := deleteWord + " "
+	delPrefix := deleteLS
+	if d.Get("routing_instance").(string) != defaultWord {
+		delPrefix = delRoutingInstances + d.Get("routing_instance").(string) + " "
+	}
 	switch typebgp {
 	case "group":
-		if d.Get("routing_instance").(string) == defaultWord {
-			delPrefix += "protocols bgp group " + d.Get("name").(string) + " "
-		} else {
-			delPrefix += "routing-instances " + d.Get("routing_instance").(string) +
-				" protocols bgp group " + d.Get("name").(string) + " "
-		}
+		delPrefix += "protocols bgp group " + d.Get("name").(string) + " "
 	case "neighbor":
-		if d.Get("routing_instance").(string) == defaultWord {
-			delPrefix += "protocols bgp group " + d.Get("group").(string) +
-				" neighbor " + d.Get("ip").(string) + " "
-		} else {
-			delPrefix += "routing-instances " + d.Get("routing_instance").(string) +
-				" protocols bgp group " + d.Get("group").(string) +
-				" neighbor " + d.Get("ip").(string) + " "
-		}
+		delPrefix += "protocols bgp group " + d.Get("group").(string) +
+			" neighbor " + d.Get("ip").(string) + " "
 	}
+
 	configSet = append(configSet,
 		delPrefix+"accept-remote-nexthop",
 		delPrefix+"advertise-external",

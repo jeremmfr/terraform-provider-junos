@@ -1780,7 +1780,7 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 	sess := m.(*Session)
 	var confRead securityOptions
 
-	showConfig, err := sess.command("show configuration security | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"security | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

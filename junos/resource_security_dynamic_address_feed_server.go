@@ -290,8 +290,8 @@ func resourceSecurityDynamicAddressFeedServerImport(
 
 func checkSecurityDynamicAddressFeedServersExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security dynamic-address feed-server "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security dynamic-address feed-server "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -349,8 +349,8 @@ func readSecurityDynamicAddressFeedServer(
 	// default -1
 	confRead.holdInterval = -1
 
-	showConfig, err := sess.command("show configuration"+
-		" security dynamic-address feed-server "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security dynamic-address feed-server "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

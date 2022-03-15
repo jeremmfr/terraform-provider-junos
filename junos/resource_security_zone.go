@@ -447,7 +447,7 @@ func resourceSecurityZoneImport(d *schema.ResourceData, m interface{}) ([]*schem
 
 func checkSecurityZonesExists(zone string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration security zones security-zone "+zone+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"security zones security-zone "+zone+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -587,8 +587,8 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 	sess := m.(*Session)
 	var confRead zoneOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security zones security-zone "+zone+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security zones security-zone "+zone+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

@@ -1820,7 +1820,7 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 	confRead.maxConfigurationRollbacks = -1
 	confRead.maxConfigurationsOnFlash = -1
 
-	showConfig, err := sess.command("show configuration system | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

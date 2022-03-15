@@ -527,26 +527,26 @@ func checkVstpInterfaceExists(name, routingInstance, vlan, vlanGroup string, m i
 	if routingInstance == defaultWord {
 		switch {
 		case vlan != "":
-			showConfig, err = sess.command(
-				"show configuration protocols vstp vlan "+vlan+" interface "+name+" | display set", jnprSess)
+			showConfig, err = sess.command(cmdShowConfig+
+				"protocols vstp vlan "+vlan+" interface "+name+" | display set", jnprSess)
 		case vlanGroup != "":
-			showConfig, err = sess.command(
-				"show configuration protocols vstp vlan-group group "+vlanGroup+" interface "+name+" | display set", jnprSess)
+			showConfig, err = sess.command(cmdShowConfig+
+				"protocols vstp vlan-group group "+vlanGroup+" interface "+name+" | display set", jnprSess)
 		default:
-			showConfig, err = sess.command(
-				"show configuration protocols vstp interface "+name+" | display set", jnprSess)
+			showConfig, err = sess.command(cmdShowConfig+
+				"protocols vstp interface "+name+" | display set", jnprSess)
 		}
 	} else {
 		switch {
 		case vlan != "":
-			showConfig, err = sess.command("show configuration routing-instances "+routingInstance+
-				" protocols vstp vlan "+vlan+" interface "+name+" | display set", jnprSess)
+			showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+				"protocols vstp vlan "+vlan+" interface "+name+" | display set", jnprSess)
 		case vlanGroup != "":
-			showConfig, err = sess.command("show configuration routing-instances "+routingInstance+
-				" protocols vstp vlan-group group "+vlanGroup+" interface "+name+" | display set", jnprSess)
+			showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+				"protocols vstp vlan-group group "+vlanGroup+" interface "+name+" | display set", jnprSess)
 		default:
-			showConfig, err = sess.command("show configuration routing-instances "+routingInstance+
-				" protocols vstp interface "+name+" | display set", jnprSess)
+			showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+				"protocols vstp interface "+name+" | display set", jnprSess)
 		}
 	}
 	if err != nil {
@@ -561,31 +561,23 @@ func checkVstpInterfaceExists(name, routingInstance, vlan, vlanGroup string, m i
 
 func setVstpInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
+	configSet := make([]string, 0)
 
 	name := d.Get("name").(string)
 	vlan := d.Get("vlan").(string)
 	vlanGroup := d.Get("vlan_group").(string)
 	setPrefix := setLineStart
-	if rI := d.Get("routing_instance").(string); rI == defaultWord {
-		switch {
-		case vlan != "":
-			setPrefix += "protocols vstp vlan " + vlan + " interface " + name + " "
-		case vlanGroup != "":
-			setPrefix += "protocols vstp vlan-group group " + vlanGroup + " interface " + name + " "
-		default:
-			setPrefix += "protocols vstp interface " + name + " "
-		}
-	} else {
-		switch {
-		case vlan != "":
-			setPrefix += "routing-instances " + rI + " protocols vstp vlan " + vlan + " interface " + name + " "
-		case vlanGroup != "":
-			setPrefix += "routing-instances " + rI + " protocols vstp vlan-group group " + vlanGroup + " interface " + name + " "
-		default:
-			setPrefix += "routing-instances " + rI + " protocols vstp interface " + name + " "
-		}
+	if rI := d.Get("routing_instance").(string); rI != defaultWord {
+		setPrefix = setRoutingInstances + rI + " "
 	}
-	configSet := make([]string, 0)
+	switch {
+	case vlan != "":
+		setPrefix += "protocols vstp vlan " + vlan + " interface " + name + " "
+	case vlanGroup != "":
+		setPrefix += "protocols vstp vlan-group group " + vlanGroup + " interface " + name + " "
+	default:
+		setPrefix += "protocols vstp interface " + name + " "
+	}
 
 	configSet = append(configSet, setPrefix)
 	if d.Get("access_trunk").(bool) {
@@ -629,27 +621,26 @@ func readVstpInterface(name, routingInstance, vlan, vlanGroup string, m interfac
 	if routingInstance == defaultWord {
 		switch {
 		case vlan != "":
-			showConfig, err = sess.command(
-				"show configuration protocols vstp vlan "+vlan+" interface "+name+" | display set relative", jnprSess)
+			showConfig, err = sess.command(cmdShowConfig+
+				"protocols vstp vlan "+vlan+" interface "+name+" | display set relative", jnprSess)
 		case vlanGroup != "":
-			showConfig, err = sess.command(
-				"show configuration protocols vstp vlan-group group "+vlanGroup+" interface "+name+
-					" | display set relative", jnprSess)
+			showConfig, err = sess.command(cmdShowConfig+
+				"protocols vstp vlan-group group "+vlanGroup+" interface "+name+" | display set relative", jnprSess)
 		default:
-			showConfig, err = sess.command(
-				"show configuration protocols vstp interface "+name+" | display set relative", jnprSess)
+			showConfig, err = sess.command(cmdShowConfig+
+				"protocols vstp interface "+name+" | display set relative", jnprSess)
 		}
 	} else {
 		switch {
 		case vlan != "":
-			showConfig, err = sess.command("show configuration routing-instances "+routingInstance+
-				" protocols vstp vlan "+vlan+" interface "+name+" | display set relative", jnprSess)
+			showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+				"protocols vstp vlan "+vlan+" interface "+name+" | display set relative", jnprSess)
 		case vlanGroup != "":
-			showConfig, err = sess.command("show configuration routing-instances "+routingInstance+
-				" protocols vstp vlan-group group "+vlanGroup+" interface "+name+" | display set relative", jnprSess)
+			showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+				"protocols vstp vlan-group group "+vlanGroup+" interface "+name+" | display set relative", jnprSess)
 		default:
-			showConfig, err = sess.command("show configuration routing-instances "+routingInstance+
-				" protocols vstp interface "+name+" | display set relative", jnprSess)
+			showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+				"protocols vstp interface "+name+" | display set relative", jnprSess)
 		}
 	}
 	if err != nil {
@@ -718,13 +709,13 @@ func delVstpInterface(name, routingInstance, vlan, vlanGroup string, m interface
 	} else {
 		switch {
 		case vlan != "":
-			configSet = append(configSet, "delete routing-instances "+routingInstance+
+			configSet = append(configSet, delRoutingInstances+routingInstance+
 				" protocols vstp vlan "+vlan+" interface "+name)
 		case vlanGroup != "":
-			configSet = append(configSet, "delete routing-instances "+routingInstance+
+			configSet = append(configSet, delRoutingInstances+routingInstance+
 				" protocols vstp vlan-group group "+vlanGroup+" interface "+name)
 		default:
-			configSet = append(configSet, "delete routing-instances "+routingInstance+
+			configSet = append(configSet, delRoutingInstances+routingInstance+
 				" protocols vstp interface "+name)
 		}
 	}

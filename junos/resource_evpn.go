@@ -330,9 +330,10 @@ func setEvpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 		setPrefix += "protocols evpn "
 		setPrefixSwitchRIVRF += "switch-options "
 	} else {
-		setPrefix += "routing-instances " + d.Get("routing_instance").(string) + " protocols evpn "
-		setPrefixSwitchRIVRF += "routing-instances " + d.Get("routing_instance").(string) + " "
+		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " protocols evpn "
+		setPrefixSwitchRIVRF = setRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
+
 	if d.Get("routing_instance_evpn").(bool) {
 		if len(d.Get("switch_or_ri_options").([]interface{})) == 0 {
 			return fmt.Errorf("`switch_or_ri_options` required if routing_instance_evpn = true")
@@ -383,23 +384,23 @@ func readEvpn(routingInstance string,
 
 	if routingInstance == defaultWord {
 		var err error
-		showConfig, err = sess.command("show configuration protocols evpn | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+"protocols evpn | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
-		showConfigSwitchRI, err = sess.command("show configuration switch-options | display set relative", jnprSess)
+		showConfigSwitchRI, err = sess.command(cmdShowConfig+"switch-options | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
 		var err error
-		showConfig, err = sess.command("show configuration"+
-			" routing-instances "+routingInstance+" protocols evpn | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+			"protocols evpn | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
-		showConfigSwitchRI, err = sess.command("show configuration"+
-			" routing-instances "+routingInstance+" | display set relative", jnprSess)
+		showConfigSwitchRI, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+
+			" | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
@@ -480,16 +481,14 @@ func readEvpn(routingInstance string,
 func delEvpn(destroy bool, d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	delPrefix := deleteWord + " "
-	delPrefixSwitchRIVRF := deleteWord + " "
 
-	if d.Get("routing_instance").(string) == defaultWord {
-		delPrefix += "protocols evpn "
-		delPrefixSwitchRIVRF += "switch-options "
-	} else {
-		delPrefix += "routing-instances " + d.Get("routing_instance").(string) + " protocols evpn "
-		delPrefixSwitchRIVRF += "routing-instances " + d.Get("routing_instance").(string) + " "
+	delPrefix := "delete protocols evpn "
+	delPrefixSwitchRIVRF := "delete switch-options "
+	if d.Get("routing_instance").(string) != defaultWord {
+		delPrefix = delRoutingInstances + d.Get("routing_instance").(string) + " protocols evpn "
+		delPrefixSwitchRIVRF = delRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
+
 	listLinesToDelete := []string{
 		"default-gateway",
 		"encapsulation",

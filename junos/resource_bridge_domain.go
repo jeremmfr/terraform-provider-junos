@@ -384,14 +384,14 @@ func checkBridgeDomainExists(name string, instance string, m interface{},
 	var showConfig string
 	var err error
 	if instance == defaultWord {
-		showConfig, err = sess.command("show configuration"+
-			" bridge-domains \""+name+"\" | display set", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+
+			"bridge-domains \""+name+"\" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
-		showConfig, err = sess.command("show configuration"+
-			" routing-instances "+instance+" bridge-domains \""+name+"\" | display set", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+instance+" "+
+			"bridge-domains \""+name+"\" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
@@ -408,13 +408,12 @@ func setBridgeDomain(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 
-	var setPrefix string
-	if d.Get("routing_instance").(string) == defaultWord {
-		setPrefix = "set bridge-domains \"" + d.Get("name").(string) + "\" "
-	} else {
-		setPrefix = "set routing-instances " + d.Get("routing_instance").(string) +
-			" bridge-domains \"" + d.Get("name").(string) + "\" "
+	setPrefix := setLineStart
+	if d.Get("routing_instance").(string) != defaultWord {
+		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
+	setPrefix += "bridge-domains \"" + d.Get("name").(string) + "\" "
+
 	for _, v := range sortSetOfString(d.Get("community_vlans").(*schema.Set).List()) {
 		configSet = append(configSet, setPrefix+"community-vlans "+v)
 	}
@@ -450,7 +449,7 @@ func setBridgeDomain(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 			if d.Get("routing_instance").(string) == defaultWord {
 				configSet = append(configSet, "set protocols evpn extended-vni-list "+strconv.Itoa(vxlan["vni"].(int)))
 			} else {
-				configSet = append(configSet, "set routing-instances "+d.Get("routing_instance").(string)+
+				configSet = append(configSet, setRoutingInstances+d.Get("routing_instance").(string)+
 					" protocols evpn extended-vni-list "+strconv.Itoa(vxlan["vni"].(int)))
 			}
 		}
@@ -486,11 +485,11 @@ func readBridgeDomain(name string, instance string, m interface{},
 	var err error
 
 	if instance == defaultWord {
-		showConfig, err = sess.command("show configuration"+
-			" bridge-domains \""+name+"\" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+
+			"bridge-domains \""+name+"\" | display set relative", jnprSess)
 	} else {
-		showConfig, err = sess.command("show configuration"+
-			" routing-instances "+instance+" bridge-domains \""+name+"\" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+instance+" "+
+			"bridge-domains \""+name+"\" | display set relative", jnprSess)
 	}
 	if err != nil {
 		return confRead, err
@@ -566,13 +565,13 @@ func readBridgeDomain(name string, instance string, m interface{},
 						var showConfigEvpn string
 						var err error
 						if confRead.routingInstance == defaultWord {
-							showConfigEvpn, err = sess.command("show configuration protocols evpn | display set relative", jnprSess)
+							showConfigEvpn, err = sess.command(cmdShowConfig+"protocols evpn | display set relative", jnprSess)
 							if err != nil {
 								return confRead, err
 							}
 						} else {
-							showConfigEvpn, err = sess.command("show configuration"+
-								" routing-instances "+instance+" protocols evpn | display set relative", jnprSess)
+							showConfigEvpn, err = sess.command(cmdShowConfig+routingInstancesW+instance+" "+
+								"protocols evpn | display set relative", jnprSess)
 							if err != nil {
 								return confRead, err
 							}
@@ -620,10 +619,12 @@ func delBridgeDomainOpts(
 	name string, instance string, vxlan []interface{}, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
-	delPrefix := "delete bridge-domains \"" + name + "\" "
+	delPrefix := deleteLS
 	if instance != defaultWord {
-		delPrefix = "delete routing-instances " + instance + " bridge-domains \"" + name + "\" "
+		delPrefix = delRoutingInstances + instance + " "
 	}
+	delPrefix += "bridge-domains \"" + name + "\" "
+
 	configSet = append(configSet,
 		delPrefix+"community-vlans",
 		delPrefix+"description",
@@ -640,10 +641,11 @@ func delBridgeDomainOpts(
 		vxlanParams := v.(map[string]interface{})
 		if vxlanParams["vni_extend_evpn"].(bool) {
 			if instance == defaultWord {
-				configSet = append(configSet, "delete protocols evpn extended-vni-list "+strconv.Itoa(vxlanParams["vni"].(int)))
+				configSet = append(configSet, deleteLS+
+					"protocols evpn extended-vni-list "+strconv.Itoa(vxlanParams["vni"].(int)))
 			} else {
-				configSet = append(configSet, "delete routing-instances "+instance+
-					" protocols evpn extended-vni-list "+strconv.Itoa(vxlanParams["vni"].(int)))
+				configSet = append(configSet, delRoutingInstances+instance+" "+
+					"protocols evpn extended-vni-list "+strconv.Itoa(vxlanParams["vni"].(int)))
 			}
 		}
 	}
@@ -657,16 +659,17 @@ func delBridgeDomain(name string, instance string, vxlan []interface{}, m interf
 	if instance == defaultWord {
 		configSet = append(configSet, "delete bridge-domains \""+name+"\"")
 	} else {
-		configSet = append(configSet, "delete routing-instances "+instance+" bridge-domains \""+name+"\"")
+		configSet = append(configSet, delRoutingInstances+instance+" bridge-domains \""+name+"\"")
 	}
 	for _, v := range vxlan {
 		vxlanParams := v.(map[string]interface{})
 		if vxlanParams["vni_extend_evpn"].(bool) {
 			if instance == defaultWord {
-				configSet = append(configSet, "delete protocols evpn extended-vni-list "+strconv.Itoa(vxlanParams["vni"].(int)))
+				configSet = append(configSet, deleteLS+
+					"protocols evpn extended-vni-list "+strconv.Itoa(vxlanParams["vni"].(int)))
 			} else {
-				configSet = append(configSet, "delete routing-instances "+instance+
-					" protocols evpn extended-vni-list "+strconv.Itoa(vxlanParams["vni"].(int)))
+				configSet = append(configSet, delRoutingInstances+instance+" "+
+					"protocols evpn extended-vni-list "+strconv.Itoa(vxlanParams["vni"].(int)))
 			}
 		}
 	}

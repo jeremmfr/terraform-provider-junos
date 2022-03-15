@@ -324,7 +324,7 @@ func resourceSecurityUtmPolicyImport(d *schema.ResourceData, m interface{}) ([]*
 
 func checkUtmPolicysExists(policy string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration security utm utm-policy \""+policy+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"security utm utm-policy \""+policy+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -435,8 +435,8 @@ func readUtmPolicy(policy string, m interface{}, jnprSess *NetconfObject) (
 	sess := m.(*Session)
 	var confRead utmPolicyOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security utm utm-policy \""+policy+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security utm utm-policy \""+policy+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

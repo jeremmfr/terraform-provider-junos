@@ -980,20 +980,17 @@ func checkSystemServicesDhcpLocalServerGroupExists(name, instance, version strin
 	sess := m.(*Session)
 	var showConfig string
 	var err error
-	showCmd := "show configuration system services dhcp-local-server group " + name
-	if instance == defaultWord {
-		if version == "v6" {
-			showCmd = "show configuration system services dhcp-local-server dhcpv6 group " + name
-		}
-	} else {
-		if version == "v6" {
-			showCmd = "show configuration routing-instances " + instance +
-				" system services dhcp-local-server dhcpv6 group " + name
-		} else {
-			showCmd = "show configuration routing-instances " + instance +
-				" system services dhcp-local-server group " + name
-		}
+	showCmd := cmdShowConfig
+	if instance != defaultWord {
+		showCmd += routingInstancesW + instance + " "
 	}
+	showCmd += "system services dhcp-local-server "
+	if version == "v6" {
+		showCmd += "dhcpv6 group " + name
+	} else {
+		showCmd += "group " + name
+	}
+
 	showConfig, err = sess.command(showCmd+" | display set", jnprSess)
 	if err != nil {
 		return false, err
@@ -1010,19 +1007,14 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, m interface{}
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 
-	setPrefix := "set system services dhcp-local-server group " + d.Get("name").(string) + " "
-	if d.Get("routing_instance").(string) == defaultWord {
-		if d.Get("version").(string) == "v6" {
-			setPrefix = "set system services dhcp-local-server dhcpv6 group " + d.Get("name").(string) + " "
-		}
+	setPrefix := setLineStart
+	if d.Get("routing_instance").(string) != defaultWord {
+		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
+	}
+	if d.Get("version").(string) == "v6" {
+		setPrefix += "system services dhcp-local-server dhcpv6 group " + d.Get("name").(string) + " "
 	} else {
-		if d.Get("version").(string) == "v6" {
-			setPrefix = "set routing-instances " + d.Get("routing_instance").(string) +
-				" system services dhcp-local-server dhcpv6 group " + d.Get("name").(string) + " "
-		} else {
-			setPrefix = "set routing-instances " + d.Get("routing_instance").(string) +
-				" system services dhcp-local-server group " + d.Get("name").(string) + " "
-		}
+		setPrefix += "system services dhcp-local-server group " + d.Get("name").(string) + " "
 	}
 
 	if v := d.Get("access_profile").(string); v != "" {
@@ -1509,21 +1501,17 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 	var confRead systemServicesDhcpLocalServerGroupOptions
 	var showConfig string
 	var err error
-
-	showCmd := "show configuration system services dhcp-local-server group " + name
-	if instance == defaultWord {
-		if version == "v6" {
-			showCmd = "show configuration system services dhcp-local-server dhcpv6 group " + name
-		}
-	} else {
-		if version == "v6" {
-			showCmd = "show configuration routing-instances " + instance +
-				" system services dhcp-local-server dhcpv6 group " + name
-		} else {
-			showCmd = "show configuration routing-instances " + instance +
-				" system services dhcp-local-server group " + name
-		}
+	showCmd := cmdShowConfig
+	if instance != defaultWord {
+		showCmd += routingInstancesW + instance + " "
 	}
+	showCmd += "system services dhcp-local-server "
+	if version == "v6" {
+		showCmd += "dhcpv6 group " + name
+	} else {
+		showCmd += "group " + name
+	}
+
 	showConfig, err = sess.command(showCmd+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
@@ -2056,20 +2044,17 @@ func delSystemServicesDhcpLocalServerGroup(
 	name, instance, version string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	if instance == defaultWord {
-		if version == "v6" {
-			configSet = append(configSet, "delete system services dhcp-local-server dhcpv6 group "+name)
-		} else {
-			configSet = append(configSet, "delete system services dhcp-local-server group "+name)
-		}
-	} else {
-		if version == "v6" {
-			configSet = append(configSet, "delete routing-instances "+instance+
-				" system services dhcp-local-server dhcpv6 group "+name)
-		} else {
-			configSet = append(configSet, "delete routing-instances "+instance+
-				" system services dhcp-local-server group "+name)
-		}
+	switch {
+	case instance == defaultWord && version == "v6":
+		configSet = append(configSet, "delete system services dhcp-local-server dhcpv6 group "+name)
+	case instance == defaultWord && version == "v4":
+		configSet = append(configSet, "delete system services dhcp-local-server group "+name)
+	case instance != defaultWord && version == "v6":
+		configSet = append(configSet, delRoutingInstances+instance+" "+
+			"system services dhcp-local-server dhcpv6 group "+name)
+	case instance != defaultWord && version == "v4":
+		configSet = append(configSet, delRoutingInstances+instance+" "+
+			"system services dhcp-local-server group "+name)
 	}
 
 	return sess.configSet(configSet, jnprSess)

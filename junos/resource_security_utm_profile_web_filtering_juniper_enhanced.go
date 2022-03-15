@@ -385,8 +385,8 @@ func resourceSecurityUtmProfileWebFilteringEnhancedImport(
 
 func checkUtmProfileWebFEnhancedExists(profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security utm feature-profile web-filtering juniper-enhanced profile \""+profile+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security utm feature-profile web-filtering juniper-enhanced profile \""+profile+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -509,8 +509,8 @@ func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *Netconf
 	sess := m.(*Session)
 	var confRead utmProfileWebFilteringEnhancedOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security utm feature-profile web-filtering juniper-enhanced"+
+	showConfig, err := sess.command(cmdShowConfig+
+		"security utm feature-profile web-filtering juniper-enhanced"+
 		" profile \""+profile+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err

@@ -328,8 +328,8 @@ func resourceServicesFlowMonitoringVIPFixTemplateImport(
 func checkServicesFlowMonitoringVIPFixTemplateExists(
 	template string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" services flow-monitoring version-ipfix template \""+template+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"services flow-monitoring version-ipfix template \""+template+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -408,8 +408,8 @@ func readServicesFlowMonitoringVIPFixTemplate(template string, m interface{}, jn
 	// setup default value
 	confRead.observationDomainID = -1
 
-	showConfig, err := sess.command("show configuration"+
-		" services flow-monitoring version-ipfix template \""+template+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"services flow-monitoring version-ipfix template \""+template+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

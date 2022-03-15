@@ -250,8 +250,8 @@ func resourceIkeProposalImport(d *schema.ResourceData, m interface{}) ([]*schema
 
 func checkIkeProposalExists(ikeProposal string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security ike proposal "+ikeProposal+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security ike proposal "+ikeProposal+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -290,8 +290,8 @@ func readIkeProposal(ikeProposal string, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 	var confRead ikeProposalOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security ike proposal "+ikeProposal+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security ike proposal "+ikeProposal+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

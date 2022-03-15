@@ -270,7 +270,7 @@ func resourceRibGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.Re
 
 func checkRibGroupExists(group string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration routing-options rib-groups "+group+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"routing-options rib-groups "+group+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -303,8 +303,8 @@ func readRibGroup(group string, m interface{}, jnprSess *NetconfObject) (ribGrou
 	sess := m.(*Session)
 	var confRead ribGroupOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" routing-options rib-groups "+group+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"routing-options rib-groups "+group+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

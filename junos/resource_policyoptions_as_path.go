@@ -231,7 +231,7 @@ func resourcePolicyoptionsAsPathImport(d *schema.ResourceData, m interface{}) ([
 
 func checkPolicyoptionsAsPathExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration policy-options as-path "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"policy-options as-path "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -262,7 +262,7 @@ func readPolicyoptionsAsPath(name string, m interface{}, jnprSess *NetconfObject
 	sess := m.(*Session)
 	var confRead asPathOptions
 
-	showConfig, err := sess.command("show configuration policy-options as-path "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"policy-options as-path "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

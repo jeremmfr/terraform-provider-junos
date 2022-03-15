@@ -344,8 +344,8 @@ func resourceSnmpV3UsmUserImport(d *schema.ResourceData, m interface{}) ([]*sche
 func checkSnmpV3UsmUserExists(name, engineType, engineID string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	if engineType == "local" {
-		showConfig, err := sess.command(
-			"show configuration snmp v3 usm local-engine user \""+name+"\" | display set", jnprSess)
+		showConfig, err := sess.command(cmdShowConfig+
+			"snmp v3 usm local-engine user \""+name+"\" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
@@ -353,8 +353,8 @@ func checkSnmpV3UsmUserExists(name, engineType, engineID string, m interface{}, 
 			return false, nil
 		}
 	} else {
-		showConfig, err := sess.command(
-			"show configuration snmp v3 usm remote-engine \""+engineID+"\" user \""+name+"\" | display set", jnprSess)
+		showConfig, err := sess.command(cmdShowConfig+
+			"snmp v3 usm remote-engine \""+engineID+"\" user \""+name+"\" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
@@ -434,9 +434,9 @@ func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, m interface{}, jnprSess *Ne
 	sess := m.(*Session)
 	var confRead snmpV3UsmUserOptions
 
-	showCommand := "show configuration snmp v3 usm local-engine user \"" + confSrc.name + "\" | display set relative"
+	showCommand := cmdShowConfig + "snmp v3 usm local-engine user \"" + confSrc.name + "\" | display set relative"
 	if confSrc.engineType != "local" {
-		showCommand = "show configuration snmp v3 usm remote-engine \"" + confSrc.engineID +
+		showCommand = cmdShowConfig + "snmp v3 usm remote-engine \"" + confSrc.engineID +
 			"\" user \"" + confSrc.name + "\" | display set relative"
 	}
 	showConfig, err := sess.command(showCommand, jnprSess)

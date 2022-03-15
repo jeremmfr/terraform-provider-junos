@@ -208,7 +208,7 @@ func readSystemRootAuthentication(m interface{}, jnprSess *NetconfObject) (syste
 	sess := m.(*Session)
 	var confRead systemRootAuthOptions
 
-	showConfig, err := sess.command("show configuration system root-authentication | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system root-authentication | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

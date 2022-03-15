@@ -249,8 +249,8 @@ func resourceServicesSecurityIntellPolicyImport(
 
 func checkServicesSecurityIntellPolicyExists(policy string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" services security-intelligence policy \""+policy+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"services security-intelligence policy \""+policy+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -288,8 +288,8 @@ func readServicesSecurityIntellPolicy(policy string, m interface{}, jnprSess *Ne
 	sess := m.(*Session)
 	var confRead securityIntellPolicyOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" services security-intelligence policy \""+policy+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"services security-intelligence policy \""+policy+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

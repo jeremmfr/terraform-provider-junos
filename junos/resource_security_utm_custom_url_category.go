@@ -236,8 +236,8 @@ func resourceSecurityUtmCustomURLCategoryImport(d *schema.ResourceData, m interf
 
 func checkUtmCustomURLCategorysExists(urlCategory string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security utm custom-objects custom-url-category "+urlCategory+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security utm custom-objects custom-url-category "+urlCategory+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -265,8 +265,8 @@ func readUtmCustomURLCategory(urlCategory string, m interface{}, jnprSess *Netco
 	sess := m.(*Session)
 	var confRead utmCustomURLCategoryOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security utm custom-objects custom-url-category "+urlCategory+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security utm custom-objects custom-url-category "+urlCategory+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

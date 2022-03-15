@@ -310,8 +310,8 @@ func resourceServicesSecurityIntellProfileImport(
 
 func checkServicesSecurityIntellProfileExists(profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" services security-intelligence profile \""+profile+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"services security-intelligence profile \""+profile+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -372,8 +372,8 @@ func readServicesSecurityIntellProfile(profile string, m interface{}, jnprSess *
 	sess := m.(*Session)
 	var confRead securityIntellProfileOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" services security-intelligence profile \""+profile+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"services security-intelligence profile \""+profile+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

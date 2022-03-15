@@ -654,7 +654,7 @@ func resourceEventoptionsPolicyImport(d *schema.ResourceData, m interface{}) ([]
 
 func checkEventoptionsPolicyExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration event-options policy \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"event-options policy \""+name+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -873,8 +873,8 @@ func readEventoptionsPolicy(name string, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 	var confRead eventoptionsPolicyOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" event-options policy \""+name+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"event-options policy \""+name+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

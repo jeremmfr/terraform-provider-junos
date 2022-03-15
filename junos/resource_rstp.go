@@ -325,11 +325,11 @@ func setRstp(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	setPrefix := setLineStart
-	if d.Get("routing_instance").(string) == defaultWord {
-		setPrefix += "protocols rstp "
-	} else {
-		setPrefix += "routing-instances " + d.Get("routing_instance").(string) + " protocols rstp "
+	if d.Get("routing_instance").(string) != defaultWord {
+		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
+	setPrefix += "protocols rstp "
+
 	if v := d.Get("backup_bridge_priority").(string); v != "" {
 		configSet = append(configSet, setPrefix+"backup-bridge-priority "+v)
 	}
@@ -393,15 +393,15 @@ func readRstp(routingInstance string, m interface{}, jnprSess *NetconfObject) (r
 	var showConfig string
 	if routingInstance == defaultWord {
 		var err error
-		showConfig, err = sess.command("show configuration "+
+		showConfig, err = sess.command(cmdShowConfig+
 			"protocols rstp | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
 		var err error
-		showConfig, err = sess.command("show configuration "+
-			"routing-instances "+routingInstance+" protocols rstp | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+			"protocols rstp | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
@@ -490,13 +490,12 @@ func readRstp(routingInstance string, m interface{}, jnprSess *NetconfObject) (r
 func delRstp(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	delPrefix := deleteWord + " "
-	if d.Get("routing_instance").(string) == defaultWord {
-		delPrefix += "protocols rstp "
-	} else {
-		delPrefix += "routing-instances " + d.Get("routing_instance").(string) +
-			" protocols rstp "
+	delPrefix := deleteLS
+	if d.Get("routing_instance").(string) != defaultWord {
+		delPrefix = delRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
+	delPrefix += "protocols rstp "
+
 	listLinesToDelete := []string{
 		"backup-bridge-priority",
 		"bpdu-block-on-edge",

@@ -366,8 +366,8 @@ func resourceSecurityAddressBookImport(d *schema.ResourceData, m interface{}) ([
 func checkSecurityAddressBookExists(addrBook string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 
-	showConfig, err := sess.command("show configuration"+
-		" security address-book "+addrBook+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security address-book "+addrBook+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -472,8 +472,8 @@ func readSecurityAddressBook(addrBook string, m interface{}, jnprSess *NetconfOb
 	sess := m.(*Session)
 	var confRead addressBookOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security address-book "+addrBook+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security address-book "+addrBook+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

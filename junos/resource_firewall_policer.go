@@ -282,7 +282,7 @@ func resourceFirewallPolicerImport(d *schema.ResourceData, m interface{}) ([]*sc
 
 func checkFirewallPolicerExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration firewall policer "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"firewall policer "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -343,7 +343,7 @@ func readFirewallPolicer(name string, m interface{}, jnprSess *NetconfObject) (p
 	sess := m.(*Session)
 	var confRead policerOptions
 
-	showConfig, err := sess.command("show configuration firewall policer "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"firewall policer "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

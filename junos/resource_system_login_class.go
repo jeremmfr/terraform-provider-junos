@@ -371,7 +371,7 @@ func resourceSystemLoginClassImport(d *schema.ResourceData, m interface{}) ([]*s
 
 func checkSystemLoginClassExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration system login class "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system login class "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -467,7 +467,7 @@ func readSystemLoginClass(name string, m interface{}, jnprSess *NetconfObject) (
 	sess := m.(*Session)
 	var confRead systemLoginClassOptions
 
-	showConfig, err := sess.command("show configuration system login class "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system login class "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

@@ -240,7 +240,7 @@ func resourcePolicyoptionsPrefixListImport(d *schema.ResourceData, m interface{}
 
 func checkPolicyoptionsPrefixListExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration policy-options prefix-list "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"policy-options prefix-list "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -280,8 +280,8 @@ func readPolicyoptionsPrefixList(name string, m interface{}, jnprSess *NetconfOb
 	sess := m.(*Session)
 	var confRead prefixListOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" policy-options prefix-list "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"policy-options prefix-list "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

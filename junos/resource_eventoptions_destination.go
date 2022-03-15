@@ -253,7 +253,7 @@ func resourceEventoptionsDestinationImport(d *schema.ResourceData, m interface{}
 
 func checkEventoptionsDestinationExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration event-options destinations \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"event-options destinations \""+name+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -294,8 +294,8 @@ func readEventoptionsDestination(
 	var confRead eventoptionsDestinationOptions
 	confRead.transferDelay = -1 // default value
 
-	showConfig, err := sess.command("show configuration"+
-		" event-options destinations \""+name+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"event-options destinations \""+name+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

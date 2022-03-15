@@ -666,8 +666,8 @@ func resourcePolicyoptionsPolicyStatementImport(d *schema.ResourceData, m interf
 
 func checkPolicyStatementExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" policy-options policy-statement "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"policy-options policy-statement "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -749,8 +749,8 @@ func readPolicyStatement(name string, m interface{}, jnprSess *NetconfObject) (p
 	sess := m.(*Session)
 	var confRead policyStatementOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" policy-options policy-statement "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"policy-options policy-statement "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -836,8 +836,8 @@ func readPolicyStatement(name string, m interface{}, jnprSess *NetconfObject) (p
 func readPolicyStatementFwTableExport(policyName string,
 	m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" routing-options forwarding-table export | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"routing-options forwarding-table export | display set relative", jnprSess)
 	if err != nil {
 		return false, err
 	}

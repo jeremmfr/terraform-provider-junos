@@ -242,8 +242,8 @@ func resourceIpsecPolicyImport(d *schema.ResourceData, m interface{}) ([]*schema
 
 func checkIpsecPolicyExists(ipsecPolicy string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security ipsec policy "+ipsecPolicy+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security ipsec policy "+ipsecPolicy+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -276,8 +276,8 @@ func readIpsecPolicy(ipsecPolicy string, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 	var confRead ipsecPolicyOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security ipsec policy "+ipsecPolicy+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security ipsec policy "+ipsecPolicy+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

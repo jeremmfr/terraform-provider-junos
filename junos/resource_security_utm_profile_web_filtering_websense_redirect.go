@@ -302,8 +302,8 @@ func resourceSecurityUtmProfileWebFilteringWebsenseImport(
 
 func checkUtmProfileWebFWebsenseExists(profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security utm feature-profile web-filtering websense-redirect profile \""+profile+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security utm feature-profile web-filtering websense-redirect profile \""+profile+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -378,8 +378,8 @@ func readUtmProfileWebFWebsense(profile string, m interface{}, jnprSess *Netconf
 	sess := m.(*Session)
 	var confRead utmProfileWebFilteringWebsenseOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security utm feature-profile web-filtering websense-redirect"+
+	showConfig, err := sess.command(cmdShowConfig+
+		"security utm feature-profile web-filtering websense-redirect"+
 		" profile \""+profile+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err

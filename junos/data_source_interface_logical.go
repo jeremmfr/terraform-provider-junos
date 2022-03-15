@@ -553,7 +553,7 @@ func searchInterfaceLogicalID(configInterface string, match string,
 	m interface{}, jnprSess *NetconfObject) (string, error) {
 	sess := m.(*Session)
 	intConfigList := make([]string, 0)
-	showConfig, err := sess.command("show configuration interfaces "+configInterface+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"interfaces "+configInterface+" | display set", jnprSess)
 	if err != nil {
 		return "", err
 	}

@@ -414,7 +414,7 @@ func readSnmp(m interface{}, jnprSess *NetconfObject) (snmpOptions, error) {
 	sess := m.(*Session)
 	var confRead snmpOptions
 
-	showConfig, err := sess.command("show configuration snmp | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"snmp | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

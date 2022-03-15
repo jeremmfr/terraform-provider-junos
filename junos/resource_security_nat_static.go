@@ -383,8 +383,8 @@ func resourceSecurityNatStaticImport(d *schema.ResourceData, m interface{}) ([]*
 
 func checkSecurityNatStaticExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security nat static rule-set "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security nat static rule-set "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -510,8 +510,8 @@ func readSecurityNatStatic(name string, m interface{}, jnprSess *NetconfObject) 
 	sess := m.(*Session)
 	var confRead natStaticOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security nat static rule-set "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security nat static rule-set "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

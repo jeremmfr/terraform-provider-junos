@@ -474,16 +474,15 @@ func setOspf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	setPrefix := setLineStart
+	if d.Get("routing_instance").(string) != defaultWord {
+		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
+	}
 	ospfVersion := ospfV2
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = ospfV3
 	}
-	if d.Get("routing_instance").(string) == defaultWord {
-		setPrefix += "protocols " + ospfVersion + " "
-	} else {
-		setPrefix += "routing-instances " + d.Get("routing_instance").(string) +
-			" protocols " + ospfVersion + " "
-	}
+	setPrefix += "protocols " + ospfVersion + " "
+
 	for _, dbPro := range d.Get("database_protection").([]interface{}) {
 		dbProM := dbPro.(map[string]interface{})
 		configSet = append(configSet, setPrefix+"database-protection maximum-lsa "+strconv.Itoa(dbProM["maximum_lsa"].(int)))
@@ -638,15 +637,15 @@ func readOspf(version, routingInstance string,
 	}
 	if routingInstance == defaultWord {
 		var err error
-		showConfig, err = sess.command("show configuration"+
-			" protocols "+ospfVersion+" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols "+ospfVersion+" | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
 		var err error
-		showConfig, err = sess.command("show configuration"+
-			" routing-instances "+routingInstance+" protocols "+ospfVersion+" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+			"protocols "+ospfVersion+" | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
@@ -863,17 +862,17 @@ func readOspf(version, routingInstance string,
 func delOspf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	delPrefix := deleteWord + " "
+
 	ospfVersion := ospfV2
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = ospfV3
 	}
-	if d.Get("routing_instance").(string) == defaultWord {
-		delPrefix += "protocols " + ospfVersion + " "
-	} else {
-		delPrefix += "routing-instances " + d.Get("routing_instance").(string) +
-			" protocols " + ospfVersion + " "
+	delPrefix := deleteLS
+	if d.Get("routing_instance").(string) != defaultWord {
+		delPrefix = delRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
+	delPrefix += "protocols " + ospfVersion + " "
+
 	listLinesToDelete := []string{
 		"database-protection",
 		"disable",

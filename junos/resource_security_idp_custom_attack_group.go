@@ -235,8 +235,8 @@ func resourceSecurityIdpCustomAttackGroupImport(d *schema.ResourceData, m interf
 func checkSecurityIdpCustomAttackGroupExists(
 	customAttackGroup string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security idp custom-attack-group \""+customAttackGroup+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security idp custom-attack-group \""+customAttackGroup+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -265,8 +265,8 @@ func readSecurityIdpCustomAttackGroup(customAttackGroup string, m interface{}, j
 	sess := m.(*Session)
 	var confRead idpCustomAttackGroupOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security idp custom-attack-group \""+customAttackGroup+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security idp custom-attack-group \""+customAttackGroup+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

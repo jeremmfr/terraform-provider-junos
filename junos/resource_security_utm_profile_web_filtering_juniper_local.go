@@ -278,8 +278,8 @@ func resourceSecurityUtmProfileWebFilteringLocalImport(
 
 func checkUtmProfileWebFLocalExists(profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security utm feature-profile web-filtering juniper-local profile \""+profile+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security utm feature-profile web-filtering juniper-local profile \""+profile+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -337,8 +337,8 @@ func readUtmProfileWebFLocal(profile string, m interface{}, jnprSess *NetconfObj
 	sess := m.(*Session)
 	var confRead utmProfileWebFilteringLocalOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security utm feature-profile web-filtering juniper-local profile \""+profile+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security utm feature-profile web-filtering juniper-local profile \""+profile+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

@@ -753,7 +753,7 @@ func resourceInterfacePhysicalImport(d *schema.ResourceData, m interface{}) ([]*
 func checkInterfacePhysicalNCEmpty(interFace string, m interface{}, jnprSess *NetconfObject) (
 	ncInt bool, emtyInt bool, errFunc error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+" | display set relative", jnprSess)
 	if err != nil {
 		return false, false, err
 	}
@@ -1196,7 +1196,7 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 	sess := m.(*Session)
 	var confRead interfacePhysicalOptions
 
-	showConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -1634,7 +1634,7 @@ func delInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 
 func checkInterfacePhysicalContainsUnit(interFace string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+" | display set relative", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -1748,14 +1748,14 @@ func fillInterfacePhysicalData(d *schema.ResourceData, interfaceOpt interfacePhy
 
 func interfaceAggregatedLastChild(ae, interFace string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration interfaces | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"interfaces | display set relative", jnprSess)
 	if err != nil {
 		return false, err
 	}
 	lastAE := true
 	for _, item := range strings.Split(showConfig, "\n") {
 		if strings.HasSuffix(item, "ether-options 802.3ad "+ae) &&
-			!strings.HasPrefix(item, "set "+interFace+" ") {
+			!strings.HasPrefix(item, setLineStart+interFace+" ") {
 			lastAE = false
 		}
 	}
@@ -1771,7 +1771,7 @@ func interfaceAggregatedCountSearchMax(
 	if err != nil {
 		return "", fmt.Errorf("failed to convert ae interaface '%v' to integer : %w", newAE, err)
 	}
-	showConfig, err := sess.command("show configuration interfaces | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"interfaces | display set relative", jnprSess)
 	if err != nil {
 		return "", err
 	}

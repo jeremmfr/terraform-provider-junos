@@ -303,11 +303,11 @@ func checkVstpVlanExists(vlanID, routingInstance string, m interface{}, jnprSess
 	var showConfig string
 	var err error
 	if routingInstance == defaultWord {
-		showConfig, err = sess.command(
-			"show configuration protocols vstp vlan "+vlanID+" | display set", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols vstp vlan "+vlanID+" | display set", jnprSess)
 	} else {
-		showConfig, err = sess.command("show configuration routing-instances "+routingInstance+
-			" protocols vstp vlan "+vlanID+" | display set", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+			"protocols vstp vlan "+vlanID+" | display set", jnprSess)
 	}
 	if err != nil {
 		return false, err
@@ -321,14 +321,13 @@ func checkVstpVlanExists(vlanID, routingInstance string, m interface{}, jnprSess
 
 func setVstpVlan(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
-
-	var setPrefix string
-	if rI := d.Get("routing_instance").(string); rI == defaultWord {
-		setPrefix = "set protocols vstp vlan " + d.Get("vlan_id").(string) + " "
-	} else {
-		setPrefix = "set routing-instances " + rI + " protocols vstp vlan " + d.Get("vlan_id").(string) + " "
-	}
 	configSet := make([]string, 0, 1)
+
+	setPrefix := setLineStart
+	if rI := d.Get("routing_instance").(string); rI != defaultWord {
+		setPrefix = setRoutingInstances + rI + " "
+	}
+	setPrefix += "protocols vstp vlan " + d.Get("vlan_id").(string) + " "
 
 	configSet = append(configSet, setPrefix)
 	if v := d.Get("backup_bridge_priority").(string); v != "" {
@@ -360,11 +359,11 @@ func readVstpVlan(vlanID, routingInstance string, m interface{}, jnprSess *Netco
 	var showConfig string
 	var err error
 	if routingInstance == defaultWord {
-		showConfig, err = sess.command(
-			"show configuration protocols vstp vlan "+vlanID+" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols vstp vlan "+vlanID+" | display set relative", jnprSess)
 	} else {
-		showConfig, err = sess.command("show configuration routing-instances "+routingInstance+
-			" protocols vstp vlan "+vlanID+" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+			"protocols vstp vlan "+vlanID+" | display set relative", jnprSess)
 	}
 	if err != nil {
 		return confRead, err
@@ -415,12 +414,12 @@ func readVstpVlan(vlanID, routingInstance string, m interface{}, jnprSess *Netco
 func delVstpVlan(vlanID, routingInstance string, deleteAll bool, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	delPrefix := deleteWord + " "
-	if routingInstance == defaultWord {
-		delPrefix += "protocols vstp vlan " + vlanID + " "
-	} else {
-		delPrefix += "routing-instances " + routingInstance + " protocols vstp vlan " + vlanID + " "
+	delPrefix := deleteLS
+	if routingInstance != defaultWord {
+		delPrefix = delRoutingInstances + routingInstance + " "
 	}
+	delPrefix += "protocols vstp vlan " + vlanID + " "
+
 	if deleteAll {
 		return sess.configSet([]string{delPrefix}, jnprSess)
 	}

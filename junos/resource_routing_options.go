@@ -487,8 +487,8 @@ func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsO
 	sess := m.(*Session)
 	var confRead routingOptionsOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" routing-options"+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"routing-options"+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

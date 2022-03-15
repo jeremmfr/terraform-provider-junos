@@ -542,14 +542,14 @@ func checkOspfAreaExists(idArea, version, routingInstance string,
 		ospfVersion = ospfV3
 	}
 	if routingInstance == defaultWord {
-		showConfig, err = sess.command("show configuration"+
-			" protocols "+ospfVersion+" area "+idArea+" | display set", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols "+ospfVersion+" area "+idArea+" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
-		showConfig, err = sess.command("show configuration"+
-			" routing-instances "+routingInstance+" protocols "+ospfVersion+" area "+idArea+" | display set", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+			"protocols "+ospfVersion+" area "+idArea+" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
@@ -565,16 +565,15 @@ func setOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	setPrefix := setLineStart
+	if d.Get("routing_instance").(string) != defaultWord {
+		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
+	}
 	ospfVersion := ospfV2
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = ospfV3
 	}
-	if d.Get("routing_instance").(string) == defaultWord {
-		setPrefix += "protocols " + ospfVersion + " area " + d.Get("area_id").(string) + " "
-	} else {
-		setPrefix += "routing-instances " + d.Get("routing_instance").(string) +
-			" protocols " + ospfVersion + " area " + d.Get("area_id").(string) + " "
-	}
+	setPrefix += "protocols " + ospfVersion + " area " + d.Get("area_id").(string) + " "
+
 	interfaceNameList := make([]string, 0)
 	for _, v := range d.Get("interface").([]interface{}) {
 		ospfInterface := v.(map[string]interface{})
@@ -802,14 +801,14 @@ func readOspfArea(idArea, version, routingInstance string,
 		ospfVersion = ospfV3
 	}
 	if routingInstance == defaultWord {
-		showConfig, err = sess.command("show configuration"+
-			" protocols "+ospfVersion+" area "+idArea+" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols "+ospfVersion+" area "+idArea+" | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
-		showConfig, err = sess.command("show configuration"+
-			" routing-instances "+routingInstance+" protocols "+ospfVersion+" area "+idArea+" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+			"protocols "+ospfVersion+" area "+idArea+" | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
@@ -1150,7 +1149,7 @@ func delOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	if d.Get("routing_instance").(string) == defaultWord {
 		configSet = append(configSet, "delete protocols "+ospfVersion+" area "+d.Get("area_id").(string))
 	} else {
-		configSet = append(configSet, "delete routing-instances "+d.Get("routing_instance").(string)+
+		configSet = append(configSet, delRoutingInstances+d.Get("routing_instance").(string)+
 			" protocols "+ospfVersion+" area "+d.Get("area_id").(string))
 	}
 

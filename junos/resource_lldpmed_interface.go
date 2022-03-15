@@ -319,7 +319,7 @@ func resourceLldpMedInterfaceImport(d *schema.ResourceData, m interface{}) ([]*s
 func checkLldpMedInterfaceExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(
-		"show configuration protocols lldp-med interface "+name+" | display set", jnprSess)
+		cmdShowConfig+"protocols lldp-med interface "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -390,7 +390,7 @@ func readLldpMedInterface(name string, m interface{}, jnprSess *NetconfObject,
 	var confRead lldpMedInterfaceOptions
 
 	showConfig, err := sess.command(
-		"show configuration protocols lldp-med interface "+name+" | display set relative", jnprSess)
+		cmdShowConfig+"protocols lldp-med interface "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

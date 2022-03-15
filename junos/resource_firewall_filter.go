@@ -463,8 +463,8 @@ func resourceFirewallFilterImport(d *schema.ResourceData, m interface{}) ([]*sch
 
 func checkFirewallFilterExists(name, family string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" firewall family "+family+" filter "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"firewall family "+family+" filter "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -514,8 +514,8 @@ func readFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfO
 	sess := m.(*Session)
 	var confRead filterOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" firewall family "+family+" filter "+filter+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"firewall family "+family+" filter "+filter+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

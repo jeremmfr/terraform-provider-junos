@@ -262,8 +262,8 @@ func resourceSecurityNatDestinationPoolImport(d *schema.ResourceData, m interfac
 
 func checkSecurityNatDestinationPoolExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security nat destination pool "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security nat destination pool "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -301,8 +301,8 @@ func readSecurityNatDestinationPool(name string,
 	sess := m.(*Session)
 	var confRead natDestinationPoolOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security nat destination pool "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security nat destination pool "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

@@ -358,8 +358,8 @@ func resourceApplicationImport(d *schema.ResourceData, m interface{}) ([]*schema
 
 func checkApplicationExists(application string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" applications application "+application+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"applications application "+application+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -469,8 +469,8 @@ func readApplication(application string, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 	var confRead applicationOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" applications application "+application+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"applications application "+application+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

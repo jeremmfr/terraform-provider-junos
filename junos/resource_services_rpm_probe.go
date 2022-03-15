@@ -510,7 +510,7 @@ func resourceServicesRpmProbeImport(
 
 func checkServicesRpmProbeExists(probe string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration services rpm probe \""+probe+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"services rpm probe \""+probe+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -695,7 +695,7 @@ func readServicesRpmProbe(probe string, m interface{}, jnprSess *NetconfObject) 
 	sess := m.(*Session)
 	var confRead rpmProbeOptions
 
-	showConfig, err := sess.command("show configuration services rpm probe \""+probe+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"services rpm probe \""+probe+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

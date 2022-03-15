@@ -312,11 +312,11 @@ func checkVstpVlanGroupExists(name, routingInstance string, m interface{}, jnprS
 	var showConfig string
 	var err error
 	if routingInstance == defaultWord {
-		showConfig, err = sess.command(
-			"show configuration protocols vstp vlan-group group "+name+" | display set", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols vstp vlan-group group "+name+" | display set", jnprSess)
 	} else {
-		showConfig, err = sess.command("show configuration routing-instances "+routingInstance+
-			" protocols vstp vlan-group group "+name+" | display set", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+			"protocols vstp vlan-group group "+name+" | display set", jnprSess)
 	}
 	if err != nil {
 		return false, err
@@ -330,14 +330,13 @@ func checkVstpVlanGroupExists(name, routingInstance string, m interface{}, jnprS
 
 func setVstpVlanGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
-
-	var setPrefix string
-	if rI := d.Get("routing_instance").(string); rI == defaultWord {
-		setPrefix = "set protocols vstp vlan-group group " + d.Get("name").(string) + " "
-	} else {
-		setPrefix = "set routing-instances " + rI + " protocols vstp vlan-group group " + d.Get("name").(string) + " "
-	}
 	configSet := make([]string, 0)
+
+	setPrefix := setLineStart
+	if rI := d.Get("routing_instance").(string); rI != defaultWord {
+		setPrefix = setRoutingInstances + rI + " "
+	}
+	setPrefix += "protocols vstp vlan-group group " + d.Get("name").(string) + " "
 
 	for _, vlan := range sortSetOfString(d.Get("vlan").(*schema.Set).List()) {
 		configSet = append(configSet, setPrefix+"vlan "+vlan)
@@ -371,11 +370,11 @@ func readVstpVlanGroup(name, routingInstance string, m interface{}, jnprSess *Ne
 	var showConfig string
 	var err error
 	if routingInstance == defaultWord {
-		showConfig, err = sess.command(
-			"show configuration protocols vstp vlan-group group "+name+" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols vstp vlan-group group "+name+" | display set relative", jnprSess)
 	} else {
-		showConfig, err = sess.command("show configuration routing-instances "+routingInstance+
-			" protocols vstp vlan-group group "+name+" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+			"protocols vstp vlan-group group "+name+" | display set relative", jnprSess)
 	}
 	if err != nil {
 		return confRead, err
@@ -428,12 +427,12 @@ func readVstpVlanGroup(name, routingInstance string, m interface{}, jnprSess *Ne
 func delVstpVlanGroup(name, routingInstance string, deleteAll bool, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	delPrefix := deleteWord + " "
-	if routingInstance == defaultWord {
-		delPrefix += "protocols vstp vlan-group group " + name + " "
-	} else {
-		delPrefix += "routing-instances " + routingInstance + " protocols vstp vlan-group group " + name + " "
+	delPrefix := deleteLS
+	if routingInstance != defaultWord {
+		delPrefix = delRoutingInstances + routingInstance + " "
 	}
+	delPrefix += "protocols vstp vlan-group group " + name + " "
+
 	if deleteAll {
 		return sess.configSet([]string{delPrefix}, jnprSess)
 	}

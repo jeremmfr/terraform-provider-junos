@@ -274,11 +274,11 @@ func setVstp(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	setPrefix := setLineStart
-	if d.Get("routing_instance").(string) == defaultWord {
-		setPrefix += "protocols vstp "
-	} else {
-		setPrefix += "routing-instances " + d.Get("routing_instance").(string) + " protocols vstp "
+	if d.Get("routing_instance").(string) != defaultWord {
+		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
+	setPrefix += "protocols vstp "
+
 	if d.Get("bpdu_block_on_edge").(bool) {
 		configSet = append(configSet, setPrefix+"bpdu-block-on-edge")
 	}
@@ -317,15 +317,15 @@ func readVstp(routingInstance string, m interface{}, jnprSess *NetconfObject) (v
 	var showConfig string
 	if routingInstance == defaultWord {
 		var err error
-		showConfig, err = sess.command("show configuration "+
+		showConfig, err = sess.command(cmdShowConfig+
 			"protocols vstp | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
 		var err error
-		showConfig, err = sess.command("show configuration "+
-			"routing-instances "+routingInstance+" protocols vstp | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+			"protocols vstp | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
@@ -381,13 +381,12 @@ func readVstp(routingInstance string, m interface{}, jnprSess *NetconfObject) (v
 func delVstp(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	delPrefix := deleteWord + " "
-	if d.Get("routing_instance").(string) == defaultWord {
-		delPrefix += "protocols vstp "
-	} else {
-		delPrefix += "routing-instances " + d.Get("routing_instance").(string) +
-			" protocols vstp "
+	delPrefix := deleteLS
+	if d.Get("routing_instance").(string) != defaultWord {
+		delPrefix = delRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
+	delPrefix += "protocols vstp "
+
 	listLinesToDelete := []string{
 		"bpdu-block-on-edge",
 		"disable",

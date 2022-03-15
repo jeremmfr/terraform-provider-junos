@@ -245,14 +245,14 @@ func checkSecurityPolicyPairExists(zoneA, policyAtoB, zoneB, policyBtoA string,
 	m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 
-	showConfigPairAtoB, err := sess.command("show configuration"+
-		" security policies from-zone "+zoneA+" to-zone "+zoneB+" policy "+policyAtoB+
+	showConfigPairAtoB, err := sess.command(cmdShowConfig+
+		"security policies from-zone "+zoneA+" to-zone "+zoneB+" policy "+policyAtoB+
 		" then permit tunnel pair-policy | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	showConfigPairBtoA, err := sess.command("show configuration"+
-		" security policies from-zone "+zoneB+" to-zone "+zoneA+" policy "+policyBtoA+
+	showConfigPairBtoA, err := sess.command(cmdShowConfig+
+		"security policies from-zone "+zoneB+" to-zone "+zoneA+" policy "+policyBtoA+
 		" then permit tunnel pair-policy | display set", jnprSess)
 	if err != nil {
 		return false, err
@@ -291,8 +291,8 @@ func readSecurityPolicyTunnelPairPolicy(idRessource string,
 	sess := m.(*Session)
 	var confRead policyPairPolicyOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security policies from-zone "+zoneA+" to-zone "+zoneB+" policy "+policyAtoB+
+	showConfig, err := sess.command(cmdShowConfig+
+		"security policies from-zone "+zoneA+" to-zone "+zoneB+" policy "+policyAtoB+
 		" then permit tunnel pair-policy | display set", jnprSess)
 	if err != nil {
 		return confRead, err
@@ -314,8 +314,8 @@ func readSecurityPolicyTunnelPairPolicy(idRessource string,
 			}
 		}
 	}
-	showConfig, err = sess.command("show configuration"+
-		" security policies from-zone "+zoneB+" to-zone "+zoneA+" policy "+policyBtoA+
+	showConfig, err = sess.command(cmdShowConfig+
+		"security policies from-zone "+zoneB+" to-zone "+zoneA+" policy "+policyBtoA+
 		" then permit tunnel pair-policy | display set", jnprSess)
 	if err != nil {
 		return confRead, err

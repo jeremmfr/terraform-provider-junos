@@ -233,7 +233,7 @@ func resourcePolicyoptionsCommunityImport(d *schema.ResourceData, m interface{})
 
 func checkPolicyoptionsCommunityExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration policy-options community "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"policy-options community "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -263,8 +263,8 @@ func readPolicyoptionsCommunity(name string, m interface{}, jnprSess *NetconfObj
 	sess := m.(*Session)
 	var confRead communityOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" policy-options community "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"policy-options community "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

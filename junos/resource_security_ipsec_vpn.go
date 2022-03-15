@@ -384,7 +384,7 @@ func resourceIpsecVpnImport(d *schema.ResourceData, m interface{}) ([]*schema.Re
 
 func checkIpsecVpnExists(ipsecVpn string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration security ipsec vpn "+ipsecVpn+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"security ipsec vpn "+ipsecVpn+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -465,8 +465,8 @@ func readIpsecVpn(ipsecVpn string, m interface{}, jnprSess *NetconfObject) (ipse
 	sess := m.(*Session)
 	var confRead ipsecVpnOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security ipsec vpn "+ipsecVpn+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security ipsec vpn "+ipsecVpn+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

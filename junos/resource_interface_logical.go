@@ -977,7 +977,7 @@ func resourceInterfaceLogicalImport(d *schema.ResourceData, m interface{}) ([]*s
 func checkInterfaceLogicalNCEmpty(interFace string, m interface{}, jnprSess *NetconfObject) (
 	ncInt bool, emtyInt bool, justSet bool, _err error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+" | display set relative", jnprSess)
 	if err != nil {
 		return false, false, false, err
 	}
@@ -1127,22 +1127,19 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 			}
 		}
 	}
-	if d.Get("routing_instance").(string) != "" {
-		configSet = append(configSet, "set routing-instances "+d.Get("routing_instance").(string)+
-			" interface "+d.Get("name").(string))
+	if instance := d.Get("routing_instance").(string); instance != "" {
+		configSet = append(configSet, setRoutingInstances+instance+" interface "+d.Get("name").(string))
 	}
-	if d.Get("security_zone").(string) != "" {
-		configSet = append(configSet, "set security zones security-zone "+
-			d.Get("security_zone").(string)+" interfaces "+d.Get("name").(string))
+	if zone := d.Get("security_zone").(string); zone != "" {
+		configSet = append(configSet, "set security zones security-zone "+zone+
+			" interfaces "+d.Get("name").(string))
 		for _, v := range sortSetOfString(d.Get("security_inbound_protocols").(*schema.Set).List()) {
-			configSet = append(configSet, "set security zones security-zone "+
-				d.Get("security_zone").(string)+" interfaces "+d.Get("name").(string)+
-				" host-inbound-traffic protocols "+v)
+			configSet = append(configSet, "set security zones security-zone "+zone+
+				" interfaces "+d.Get("name").(string)+" host-inbound-traffic protocols "+v)
 		}
 		for _, v := range sortSetOfString(d.Get("security_inbound_services").(*schema.Set).List()) {
-			configSet = append(configSet, "set security zones security-zone "+
-				d.Get("security_zone").(string)+" interfaces "+d.Get("name").(string)+
-				" host-inbound-traffic system-services "+v)
+			configSet = append(configSet, "set security zones security-zone "+zone+
+				" interfaces "+d.Get("name").(string)+" host-inbound-traffic system-services "+v)
 		}
 	}
 	if d.Get("vlan_id").(int) != 0 {
@@ -1159,7 +1156,7 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 	sess := m.(*Session)
 	var confRead interfaceLogicalOptions
 
-	showConfig, err := sess.command("show configuration interfaces "+interFace+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -1352,8 +1349,7 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 			}
 		}
 	}
-	showConfigRoutingInstances, err := sess.command("show configuration routing-instances "+
-		"| display set relative", jnprSess)
+	showConfigRoutingInstances, err := sess.command(cmdShowConfig+routingInstancesW+"| display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -1362,13 +1358,13 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 		intMatch := regexpInt.MatchString(item)
 		if intMatch {
 			confRead.routingInstance = strings.TrimPrefix(strings.TrimSuffix(item, " interface "+interFace),
-				"set ")
+				setLineStart)
 
 			break
 		}
 	}
 	if checkCompatibilitySecurity(jnprSess) {
-		showConfigSecurityZones, err := sess.command("show configuration security zones | display set relative", jnprSess)
+		showConfigSecurityZones, err := sess.command(cmdShowConfig+"security zones | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
@@ -1394,8 +1390,8 @@ func readInterfaceLogicalSecurityInboundTraffic(interFace string, confRead *inte
 	m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 
-	showConfig, err := sess.command("show configuration"+
-		" security zones security-zone "+confRead.securityZone+" interfaces "+interFace+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security zones security-zone "+confRead.securityZone+" interfaces "+interFace+" | display set relative", jnprSess)
 	if err != nil {
 		return err
 	}
@@ -1477,7 +1473,7 @@ func delRoutingInstanceInterfaceLogical(instance string, d *schema.ResourceData,
 	m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete routing-instances "+instance+" interface "+d.Get("name").(string))
+	configSet = append(configSet, delRoutingInstances+instance+" interface "+d.Get("name").(string))
 
 	return sess.configSet(configSet, jnprSess)
 }

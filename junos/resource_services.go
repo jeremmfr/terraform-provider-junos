@@ -1268,7 +1268,7 @@ func readServices(m interface{}, jnprSess *NetconfObject) (servicesOptions, erro
 	sess := m.(*Session)
 	var confRead servicesOptions
 
-	showConfig, err := sess.command("show configuration services | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"services | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

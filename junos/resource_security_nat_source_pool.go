@@ -285,8 +285,8 @@ func resourceSecurityNatSourcePoolImport(d *schema.ResourceData, m interface{}) 
 
 func checkSecurityNatSourcePoolExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security nat source pool "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security nat source pool "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -345,8 +345,8 @@ func readSecurityNatSourcePool(name string, m interface{}, jnprSess *NetconfObje
 	sess := m.(*Session)
 	var confRead natSourcePoolOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security nat source pool "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security nat source pool "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

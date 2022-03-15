@@ -295,8 +295,8 @@ func resourceServicesSSLInitiationProfileImport(
 func checkServicesSSLInitiationProfileExists(
 	profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" services ssl initiation profile \""+profile+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"services ssl initiation profile \""+profile+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -361,8 +361,8 @@ func readServicesSSLInitiationProfile(profile string, m interface{}, jnprSess *N
 	sess := m.(*Session)
 	var confRead svcSSLInitiationProfileOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" services ssl initiation profile \""+profile+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"services ssl initiation profile \""+profile+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

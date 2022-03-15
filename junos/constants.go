@@ -7,6 +7,13 @@ const (
 	setWord      = "set"
 	setLineStart = setWord + " "
 	deleteWord   = "delete"
+	deleteLS     = deleteWord + " " // delete line start
+
+	cmdShowConfig = "show configuration "
+
+	routingInstancesW   = "routing-instances "
+	setRoutingInstances = setLineStart + routingInstancesW
+	delRoutingInstances = deleteLS + routingInstancesW
 
 	emptyWord  = "empty"
 	permitWord = "permit"

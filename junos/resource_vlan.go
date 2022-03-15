@@ -349,7 +349,7 @@ func resourceVlanImport(d *schema.ResourceData, m interface{}) ([]*schema.Resour
 
 func checkVlansExists(vlan string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration vlans "+vlan+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"vlans "+vlan+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -433,7 +433,7 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 	sess := m.(*Session)
 	var confRead vlanOptions
 
-	showConfig, err := sess.command("show configuration vlans "+vlan+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"vlans "+vlan+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -503,7 +503,7 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
 					}
 					if vxlan["vni"] != -1 {
-						showConfigEvpn, err := sess.command("show configuration protocols evpn | display set relative", jnprSess)
+						showConfigEvpn, err := sess.command(cmdShowConfig+"protocols evpn | display set relative", jnprSess)
 						if err != nil {
 							return confRead, err
 						}

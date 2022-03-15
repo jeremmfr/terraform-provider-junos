@@ -261,8 +261,8 @@ func resourceServicesUserIdentDeviceIdentityProfileImport(
 func checkServicesUserIdentDeviceIdentityProfileExists(
 	profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" services user-identification device-information end-user-profile profile-name "+profile+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"services user-identification device-information end-user-profile profile-name "+profile+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -301,8 +301,8 @@ func readServicesUserIdentDeviceIdentityProfile(profile string, m interface{}, j
 	sess := m.(*Session)
 	var confRead svcUserIdentDevIdentProfileOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" services user-identification device-information end-user-profile"+
+	showConfig, err := sess.command(cmdShowConfig+
+		"services user-identification device-information end-user-profile"+
 		" profile-name "+profile+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err

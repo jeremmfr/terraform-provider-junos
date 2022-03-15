@@ -670,14 +670,14 @@ func checkAccessAddressAssignPoolExists(name string, instance string, m interfac
 	var showConfig string
 	var err error
 	if instance == defaultWord {
-		showConfig, err = sess.command("show configuration"+
-			" access address-assignment pool "+name+" | display set", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+
+			"access address-assignment pool "+name+" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
-		showConfig, err = sess.command("show configuration routing-instances "+instance+
-			" access address-assignment pool "+name+" | display set", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+instance+" "+
+			"access address-assignment pool "+name+" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
@@ -694,13 +694,11 @@ func setAccessAddressAssignPool(d *schema.ResourceData, m interface{}, jnprSess 
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 
-	var setPrefix string
-	if d.Get("routing_instance").(string) == defaultWord {
-		setPrefix = "set access address-assignment pool " + d.Get("name").(string) + " "
-	} else {
-		setPrefix = "set routing-instances " + d.Get("routing_instance").(string) +
-			" access address-assignment pool " + d.Get("name").(string) + " "
+	setPrefix := setLineStart
+	if d.Get("routing_instance").(string) != defaultWord {
+		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
+	setPrefix += "access address-assignment pool " + d.Get("name").(string) + " "
 
 	for _, fi := range d.Get("family").([]interface{}) {
 		family := fi.(map[string]interface{})
@@ -1054,11 +1052,11 @@ func readAccessAddressAssignPool(name string, instance string, m interface{},
 	var err error
 
 	if instance == defaultWord {
-		showConfig, err = sess.command("show configuration"+
-			" access address-assignment pool "+name+" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+
+			"access address-assignment pool "+name+" | display set relative", jnprSess)
 	} else {
-		showConfig, err = sess.command("show configuration routing-instances "+instance+
-			" access address-assignment pool "+name+" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+instance+" "+
+			"access address-assignment pool "+name+" | display set relative", jnprSess)
 	}
 	if err != nil {
 		return confRead, err
@@ -1350,7 +1348,7 @@ func delAccessAddressAssignPool(name string, instance string, m interface{}, jnp
 	if instance == defaultWord {
 		configSet = append(configSet, "delete access address-assignment pool "+name)
 	} else {
-		configSet = append(configSet, "delete routing-instances "+instance+" access address-assignment pool "+name)
+		configSet = append(configSet, delRoutingInstances+instance+" access address-assignment pool "+name)
 	}
 
 	return sess.configSet(configSet, jnprSess)

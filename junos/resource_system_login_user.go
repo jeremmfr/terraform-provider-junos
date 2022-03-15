@@ -282,7 +282,7 @@ func resourceSystemLoginUserImport(d *schema.ResourceData, m interface{}) ([]*sc
 
 func checkSystemLoginUserExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration system login user "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system login user "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -362,7 +362,7 @@ func readSystemLoginUser(name, plainTextPassword string, m interface{}, jnprSess
 	sess := m.(*Session)
 	var confRead systemLoginUserOptions
 
-	showConfig, err := sess.command("show configuration system login user "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system login user "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

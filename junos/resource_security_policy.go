@@ -402,8 +402,8 @@ func resourceSecurityPolicyImport(d *schema.ResourceData, m interface{}) ([]*sch
 
 func checkSecurityPolicyExists(fromZone, toZone string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security policies from-zone "+fromZone+" to-zone "+toZone+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security policies from-zone "+fromZone+" to-zone "+toZone+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -502,8 +502,8 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 	var confRead policyOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security policies from-zone "+fromZone+" to-zone "+toZone+" | display set relative ", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security policies from-zone "+fromZone+" to-zone "+toZone+" | display set relative ", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -597,8 +597,8 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 func readSecurityPolicyTunnelPairPolicyLines(
 	listLines *[]string, fromZone string, toZone string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security policies from-zone "+fromZone+" to-zone "+toZone+" | display set ", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security policies from-zone "+fromZone+" to-zone "+toZone+" | display set ", jnprSess)
 	if err != nil {
 		return err
 	}

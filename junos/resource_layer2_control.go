@@ -321,7 +321,7 @@ func readLayer2Control(m interface{}, jnprSess *NetconfObject) (layer2ControlOpt
 	sess := m.(*Session)
 	var confRead layer2ControlOptions
 
-	showConfig, err := sess.command("show configuration "+
+	showConfig, err := sess.command(cmdShowConfig+
 		"protocols layer2-control | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
@@ -402,7 +402,7 @@ func readLayer2Control(m interface{}, jnprSess *NetconfObject) (layer2ControlOpt
 
 func delLayer2Control(m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
-	configSet := []string{deleteWord + " protocols layer2-control"}
+	configSet := []string{"delete protocols layer2-control"}
 
 	return sess.configSet(configSet, jnprSess)
 }

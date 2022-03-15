@@ -292,7 +292,7 @@ func readChassisRedundancy(m interface{}, jnprSess *NetconfObject) (chassisRedun
 	sess := m.(*Session)
 	var confRead chassisRedundancyOptions
 
-	showConfig, err := sess.command("show configuration chassis redundancy | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"chassis redundancy | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

@@ -271,7 +271,7 @@ func resourceIkePolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.R
 
 func checkIkePolicyExists(ikePolicy string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration security ike policy "+ikePolicy+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"security ike policy "+ikePolicy+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -313,8 +313,8 @@ func readIkePolicy(ikePolicy string, m interface{}, jnprSess *NetconfObject) (ik
 	sess := m.(*Session)
 	var confRead ikePolicyOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security ike policy "+ikePolicy+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security ike policy "+ikePolicy+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

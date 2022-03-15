@@ -252,8 +252,8 @@ func resourceIpsecProposalImport(d *schema.ResourceData, m interface{}) ([]*sche
 
 func checkIpsecProposalExists(ipsecProposal string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security ipsec proposal "+ipsecProposal+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security ipsec proposal "+ipsecProposal+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -292,8 +292,8 @@ func readIpsecProposal(ipsecProposal string, m interface{}, jnprSess *NetconfObj
 	sess := m.(*Session)
 	var confRead ipsecProposalOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security ipsec proposal "+ipsecProposal+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security ipsec proposal "+ipsecProposal+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

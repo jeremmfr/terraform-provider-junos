@@ -233,7 +233,7 @@ func resourceSnmpViewImport(d *schema.ResourceData, m interface{}) ([]*schema.Re
 
 func checkSnmpViewExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration snmp view \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"snmp view \""+name+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -264,7 +264,7 @@ func readSnmpView(name string, m interface{}, jnprSess *NetconfObject) (snmpView
 	sess := m.(*Session)
 	var confRead snmpViewOptions
 
-	showConfig, err := sess.command("show configuration snmp view \""+name+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"snmp view \""+name+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

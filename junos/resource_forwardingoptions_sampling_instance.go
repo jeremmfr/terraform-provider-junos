@@ -823,8 +823,8 @@ func resourceForwardingoptionsSamplingInstanceImport(d *schema.ResourceData,
 func checkForwardingoptionsSamplingInstanceExists(name string,
 	m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" forwarding-options sampling instance \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"forwarding-options sampling instance \""+name+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -1063,8 +1063,8 @@ func readForwardingoptionsSamplingInstance(name string,
 	sess := m.(*Session)
 	var confRead samplingInstanceOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" forwarding-options sampling instance \""+name+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"forwarding-options sampling instance \""+name+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

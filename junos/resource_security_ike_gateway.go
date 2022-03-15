@@ -461,7 +461,7 @@ func resourceIkeGatewayImport(d *schema.ResourceData, m interface{}) ([]*schema.
 
 func checkIkeGatewayExists(ikeGateway string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration security ike gateway "+ikeGateway+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"security ike gateway "+ikeGateway+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -604,8 +604,8 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 	sess := m.(*Session)
 	var confRead ikeGatewayOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security ike gateway "+ikeGateway+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security ike gateway "+ikeGateway+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

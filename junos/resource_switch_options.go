@@ -229,7 +229,7 @@ func readSwitchOptions(m interface{}, jnprSess *NetconfObject) (switchOptionsOpt
 	sess := m.(*Session)
 	var confRead switchOptionsOptions
 
-	showConfig, err := sess.command("show configuration switch-options | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"switch-options | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

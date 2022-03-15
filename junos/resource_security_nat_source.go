@@ -356,8 +356,8 @@ func resourceSecurityNatSourceImport(d *schema.ResourceData, m interface{}) ([]*
 
 func checkSecurityNatSourceExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security nat source rule-set "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security nat source rule-set "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -473,8 +473,8 @@ func readSecurityNatSource(name string, m interface{}, jnprSess *NetconfObject) 
 	sess := m.(*Session)
 	var confRead natSourceOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security nat source rule-set "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security nat source rule-set "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

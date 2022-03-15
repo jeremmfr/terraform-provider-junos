@@ -814,14 +814,14 @@ func checkBgpNeighborExists(ip, instance, group string, m interface{}, jnprSess 
 	var showConfig string
 	var err error
 	if instance == defaultWord {
-		showConfig, err = sess.command("show configuration"+
-			" protocols bgp group "+group+" neighbor "+ip+" | display set", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols bgp group "+group+" neighbor "+ip+" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
-		showConfig, err = sess.command("show configuration"+
-			" routing-instances "+instance+" protocols bgp group "+group+" neighbor "+ip+" | display set", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+instance+" "+
+			"protocols bgp group "+group+" neighbor "+ip+" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
@@ -835,14 +835,11 @@ func checkBgpNeighborExists(ip, instance, group string, m interface{}, jnprSess 
 
 func setBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	setPrefix := setLineStart
-	if d.Get("routing_instance").(string) == defaultWord {
-		setPrefix += "protocols bgp group " + d.Get("group").(string) +
-			" neighbor " + d.Get("ip").(string) + " "
-	} else {
-		setPrefix += "routing-instances " + d.Get("routing_instance").(string) +
-			" protocols bgp group " + d.Get("group").(string) +
-			" neighbor " + d.Get("ip").(string) + " "
+	if d.Get("routing_instance").(string) != defaultWord {
+		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
+	setPrefix += "protocols bgp group " + d.Get("group").(string) + " neighbor " + d.Get("ip").(string) + " "
+
 	if err := setBgpOptsSimple(setPrefix, d, m, jnprSess); err != nil {
 		return err
 	}
@@ -873,14 +870,14 @@ func readBgpNeighbor(ip, instance, group string, m interface{}, jnprSess *Netcon
 	confRead.preference = -1
 
 	if instance == defaultWord {
-		showConfig, err = sess.command("show configuration"+
-			" protocols bgp group "+group+" neighbor "+ip+" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols bgp group "+group+" neighbor "+ip+" | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
-		showConfig, err = sess.command("show configuration"+
-			" routing-instances "+instance+" protocols bgp group "+group+" neighbor "+ip+" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+instance+" "+
+			"protocols bgp group "+group+" neighbor "+ip+" | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
@@ -965,8 +962,7 @@ func delBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 			" group "+d.Get("group").(string)+
 			" neighbor "+d.Get("ip").(string))
 	} else {
-		configSet = append(configSet, deleteWord+
-			" routing-instances "+d.Get("routing_instance").(string)+
+		configSet = append(configSet, delRoutingInstances+d.Get("routing_instance").(string)+
 			" protocols bgp group "+d.Get("group").(string)+
 			" neighbor "+d.Get("ip").(string))
 	}

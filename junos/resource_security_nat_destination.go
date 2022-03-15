@@ -321,8 +321,8 @@ func resourceSecurityNatDestinationImport(d *schema.ResourceData, m interface{})
 
 func checkSecurityNatDestinationExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security nat destination rule-set "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security nat destination rule-set "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -412,8 +412,8 @@ func readSecurityNatDestination(name string, m interface{}, jnprSess *NetconfObj
 	sess := m.(*Session)
 	var confRead natDestinationOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security nat destination rule-set "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security nat destination rule-set "+name+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

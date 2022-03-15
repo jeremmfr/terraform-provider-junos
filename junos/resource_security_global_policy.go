@@ -433,7 +433,7 @@ func readSecurityGlobalPolicy(m interface{}, jnprSess *NetconfObject) (globalPol
 	sess := m.(*Session)
 	var confRead globalPolicyOptions
 
-	showConfig, err := sess.command("show configuration security policies global | display set relative ", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"security policies global | display set relative ", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

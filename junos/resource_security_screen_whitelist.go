@@ -235,7 +235,7 @@ func resourceSecurityScreenWhiteListImport(d *schema.ResourceData, m interface{}
 
 func checkSecurityScreenWhiteListExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration security screen white-list "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"security screen white-list "+name+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -266,8 +266,8 @@ func readSecurityScreenWhiteList(name string, m interface{}, jnprSess *NetconfOb
 	sess := m.(*Session)
 	var confRead screenWhiteListOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security screen white-list "+name+" | display set relative ", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security screen white-list "+name+" | display set relative ", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

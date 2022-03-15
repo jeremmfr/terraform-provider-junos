@@ -1008,8 +1008,8 @@ func resourceSecurityIdpCustomAttackImport(d *schema.ResourceData, m interface{}
 
 func checkSecurityIdpCustomAttackExists(customAttack string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security idp custom-attack \""+customAttack+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security idp custom-attack \""+customAttack+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -1525,8 +1525,8 @@ func readSecurityIdpCustomAttack(customAttack string, m interface{}, jnprSess *N
 	var confRead idpCustomAttackOptions
 	confRead.timeBindingCount = -1 // default to -1
 
-	showConfig, err := sess.command("show configuration"+
-		" security idp custom-attack \""+customAttack+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security idp custom-attack \""+customAttack+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

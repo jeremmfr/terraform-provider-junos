@@ -252,7 +252,7 @@ func resourceSnmpV3VacmSecurityToGroupImport(d *schema.ResourceData, m interface
 
 func checkSnmpV3VacmSecurityToGroupExists(model, name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration snmp v3 vacm security-to-group "+
+	showConfig, err := sess.command(cmdShowConfig+"snmp v3 vacm security-to-group "+
 		"security-model "+model+" security-name \""+name+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
@@ -285,7 +285,7 @@ func readSnmpV3VacmSecurityToGroup(model, name string, m interface{}, jnprSess *
 	sess := m.(*Session)
 	var confRead snmpV3VacmSecurityToGroupOptions
 
-	showConfig, err := sess.command("show configuration snmp v3 vacm security-to-group "+
+	showConfig, err := sess.command(cmdShowConfig+"snmp v3 vacm security-to-group "+
 		"security-model "+model+" security-name \""+name+"\"  | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err

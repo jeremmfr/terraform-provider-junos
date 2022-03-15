@@ -247,7 +247,7 @@ func resourceSystemNtpServerImport(d *schema.ResourceData, m interface{}) ([]*sc
 
 func checkSystemNtpServerExists(address string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration system ntp server "+address+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system ntp server "+address+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -284,7 +284,7 @@ func readSystemNtpServer(address string, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 	var confRead ntpServerOptions
 
-	showConfig, err := sess.command("show configuration system ntp server "+address+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system ntp server "+address+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

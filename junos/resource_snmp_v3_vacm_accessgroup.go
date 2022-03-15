@@ -316,7 +316,7 @@ func resourceSnmpV3VacmAccessGroupImport(d *schema.ResourceData, m interface{}) 
 
 func checkSnmpV3VacmAccessGroupExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration snmp v3 vacm access group \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"snmp v3 vacm access group \""+name+"\" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -408,8 +408,8 @@ func readSnmpV3VacmAccessGroup(name string, m interface{}, jnprSess *NetconfObje
 	sess := m.(*Session)
 	var confRead snmpV3VacmAccessGroupOptions
 
-	showConfig, err := sess.command(
-		"show configuration snmp v3 vacm access group \""+name+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"snmp v3 vacm access group \""+name+"\" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

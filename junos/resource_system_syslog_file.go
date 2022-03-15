@@ -420,7 +420,7 @@ func resourceSystemSyslogFileImport(d *schema.ResourceData, m interface{}) ([]*s
 
 func checkSystemSyslogFileExists(filename string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration system syslog file "+filename+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system syslog file "+filename+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -564,7 +564,7 @@ func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObjec
 	sess := m.(*Session)
 	var confRead syslogFileOptions
 
-	showConfig, err := sess.command("show configuration system syslog file "+filename+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system syslog file "+filename+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

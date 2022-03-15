@@ -463,8 +463,7 @@ func delChassisCluster(m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	for _, line := range listLinesToDelete {
-		configSet = append(configSet,
-			"delete "+line)
+		configSet = append(configSet, deleteLS+line)
 	}
 
 	return sess.configSet(configSet, jnprSess)
@@ -474,7 +473,7 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 	sess := m.(*Session)
 	var confRead chassisClusterOptions
 
-	showConfig, err := sess.command("show configuration chassis cluster | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"chassis cluster | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -619,7 +618,7 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 			}
 		}
 	}
-	showConfigFab0, err := sess.command("show configuration interfaces fab0 | display set relative", jnprSess)
+	showConfigFab0, err := sess.command(cmdShowConfig+"interfaces fab0 | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -647,7 +646,7 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 			}
 		}
 	}
-	showConfigFab1, err := sess.command("show configuration interfaces fab1 | display set relative", jnprSess)
+	showConfigFab1, err := sess.command(cmdShowConfig+"interfaces fab1 | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}

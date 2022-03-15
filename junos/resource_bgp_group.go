@@ -803,14 +803,14 @@ func checkBgpGroupExists(bgpGroup, instance string, m interface{}, jnprSess *Net
 	var showConfig string
 	var err error
 	if instance == defaultWord {
-		showConfig, err = sess.command("show configuration"+
-			" protocols bgp group "+bgpGroup+" | display set", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols bgp group "+bgpGroup+" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
-		showConfig, err = sess.command("show configuration"+
-			" routing-instances "+instance+" protocols bgp group "+bgpGroup+" | display set", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+instance+" "+
+			"protocols bgp group "+bgpGroup+" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
@@ -823,14 +823,14 @@ func checkBgpGroupExists(bgpGroup, instance string, m interface{}, jnprSess *Net
 }
 
 func setBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	setPrefix := setLineStart
-	if d.Get("routing_instance").(string) == defaultWord {
-		setPrefix += "protocols bgp group " + d.Get("name").(string) + " "
-	} else {
-		setPrefix += "routing-instances " + d.Get("routing_instance").(string) +
-			" protocols bgp group " + d.Get("name").(string) + " "
-	}
 	sess := m.(*Session)
+
+	setPrefix := setLineStart
+	if d.Get("routing_instance").(string) != defaultWord {
+		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
+	}
+	setPrefix += "protocols bgp group " + d.Get("name").(string) + " "
+
 	if err := sess.configSet([]string{setPrefix + "type " + d.Get("type").(string)}, jnprSess); err != nil {
 		return err
 	}
@@ -872,14 +872,14 @@ func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObj
 	confRead.preference = -1
 
 	if instance == defaultWord {
-		showConfig, err = sess.command("show configuration"+
-			" protocols bgp group "+bgpGroup+" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols bgp group "+bgpGroup+" | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
-		showConfig, err = sess.command("show configuration"+
-			" routing-instances "+instance+" protocols bgp group "+bgpGroup+" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+instance+" "+
+			"protocols bgp group "+bgpGroup+" | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
@@ -961,7 +961,7 @@ func delBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	if d.Get("routing_instance").(string) == defaultWord {
 		configSet = append(configSet, "delete protocols bgp group "+d.Get("name").(string))
 	} else {
-		configSet = append(configSet, "delete routing-instances "+d.Get("routing_instance").(string)+
+		configSet = append(configSet, delRoutingInstances+d.Get("routing_instance").(string)+
 			" protocols bgp group "+d.Get("name").(string))
 	}
 
