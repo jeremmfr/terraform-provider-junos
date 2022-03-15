@@ -24,6 +24,7 @@ type instanceOptions struct {
 	vtepSourceIf       string
 	instanceExport     []string
 	instanceImport     []string
+	interFace          []string // to data_source
 	vrfExport          []string
 	vrfImport          []string
 }
@@ -439,6 +440,9 @@ func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject
 				confRead.vrfTarget = strings.TrimPrefix(itemTrim, "vrf-target ")
 			case strings.HasPrefix(itemTrim, "vtep-source-interface "):
 				confRead.vtepSourceIf = strings.TrimPrefix(itemTrim, "vtep-source-interface ")
+			case strings.HasPrefix(itemTrim, "interface "):
+				confRead.interFace = append(confRead.interFace,
+					strings.Split(strings.TrimPrefix(itemTrim, "interface "), " ")[0])
 			}
 		}
 	}

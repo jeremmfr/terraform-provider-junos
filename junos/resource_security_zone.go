@@ -28,6 +28,7 @@ type zoneOptions struct {
 	addressBookRange                 []map[string]interface{}
 	addressBookSet                   []map[string]interface{}
 	addressBookWildcard              []map[string]interface{}
+	interFace                        []map[string]interface{} // to data_source
 }
 
 func resourceSecurityZone() *schema.Resource {
@@ -691,6 +692,24 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 				confRead.sourceIdentityLog = true
 			case itemTrim == "tcp-rst":
 				confRead.tcpRst = true
+			case strings.HasPrefix(itemTrim, "interfaces "):
+				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "interfaces "), " ")
+				interFace := map[string]interface{}{
+					"name":              itemTrimSplit[0],
+					"inbound_protocols": make([]string, 0),
+					"inbound_services":  make([]string, 0),
+				}
+				confRead.interFace = copyAndRemoveItemMapList("name", interFace, confRead.interFace)
+				itemTrimInterface := strings.TrimPrefix(itemTrim, "interfaces "+itemTrimSplit[0]+" ")
+				switch {
+				case strings.HasPrefix(itemTrimInterface, "host-inbound-traffic protocols "):
+					interFace["inbound_protocols"] = append(interFace["inbound_protocols"].([]string),
+						strings.TrimPrefix(itemTrimInterface, "host-inbound-traffic protocols "))
+				case strings.HasPrefix(itemTrimInterface, "host-inbound-traffic system-services "):
+					interFace["inbound_services"] = append(interFace["inbound_services"].([]string),
+						strings.TrimPrefix(itemTrimInterface, "host-inbound-traffic system-services "))
+				}
+				confRead.interFace = append(confRead.interFace, interFace)
 			}
 		}
 	}

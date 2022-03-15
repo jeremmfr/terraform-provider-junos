@@ -29,6 +29,10 @@ BUG FIXES:
 * resource/`junos_ospf`: fix read config from the device with an empty resource
 * resource/`junos_system_syslog_file`: fix reading `start_time` in `archive` block argument to remove timezone in value
 * resource/`junos_ospf_area`: add multiple new arguments to `interface` block (Fixes #348, #356)
+* add `junos_routing_instance` data source (to be able to read the list of interfaces in routing-instance)
+* add `junos_security_zone` data source (to be able to read the list of interfaces in security-zone)
+
+BUG FIXES:
 
 ## 1.24.1 (February 11, 2022)
 
