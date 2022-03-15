@@ -36,6 +36,6 @@ const (
 	actionMarkDiffServ       = "mark-diffserv"
 	authenticationLooseCheck = "authentication loose-check"
 	noAdaptation             = "no-adaptation"
-	localWord             = "local"
-	privacyNoneWord       = "privacy-none"
+	localWord                = "local"
+	privacyNoneWord          = "privacy-none"
 )
