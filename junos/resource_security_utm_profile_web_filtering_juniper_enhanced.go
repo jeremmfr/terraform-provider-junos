@@ -71,7 +71,7 @@ func resourceSecurityUtmProfileWebFilteringEnhanced() *schema.Resource {
 						"action": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitWord, "quarantine"}, false),
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitW, "quarantine"}, false),
 						},
 						"reputation_action": {
 							Type:     schema.TypeList,
@@ -88,7 +88,7 @@ func resourceSecurityUtmProfileWebFilteringEnhanced() *schema.Resource {
 									"action": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitWord, "quarantine"}, false),
+										ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitW, "quarantine"}, false),
 									},
 								},
 							},
@@ -103,7 +103,7 @@ func resourceSecurityUtmProfileWebFilteringEnhanced() *schema.Resource {
 			"default_action": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitWord, "quarantine"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitW, "quarantine"}, false),
 			},
 			"fallback_settings": {
 				Type:     schema.TypeList,
@@ -174,7 +174,7 @@ func resourceSecurityUtmProfileWebFilteringEnhanced() *schema.Resource {
 						"action": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitWord, "quarantine"}, false),
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitW, "quarantine"}, false),
 						},
 					},
 				},
@@ -390,7 +390,7 @@ func checkUtmProfileWebFEnhancedExists(profile string, m interface{}, jnprSess *
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -515,7 +515,7 @@ func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *Netconf
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = profile
 		categoryList := make([]map[string]interface{}, 0)
 		for _, item := range strings.Split(showConfig, "\n") {
@@ -525,7 +525,7 @@ func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *Netconf
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "block-message"):
 				if len(confRead.blockMessage) == 0 {

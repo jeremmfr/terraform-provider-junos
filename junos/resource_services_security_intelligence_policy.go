@@ -254,7 +254,7 @@ func checkServicesSecurityIntellPolicyExists(policy string, m interface{}, jnprS
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -293,7 +293,7 @@ func readServicesSecurityIntellPolicy(policy string, m interface{}, jnprSess *Ne
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = policy
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -302,7 +302,7 @@ func readServicesSecurityIntellPolicy(policy string, m interface{}, jnprSess *Ne
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")

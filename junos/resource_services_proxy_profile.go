@@ -242,7 +242,7 @@ func checkServicesProxyProfileExists(profile string, m interface{}, jnprSess *Ne
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -272,7 +272,7 @@ func readServicesProxyProfile(profile string, m interface{}, jnprSess *NetconfOb
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = profile
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -281,7 +281,7 @@ func readServicesProxyProfile(profile string, m interface{}, jnprSess *NetconfOb
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "protocol http host "):
 				confRead.protocolHTTPHost = strings.TrimPrefix(itemTrim, "protocol http host ")

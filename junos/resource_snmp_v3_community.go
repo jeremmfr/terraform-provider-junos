@@ -246,7 +246,7 @@ func checkSnmpV3CommunityExists(communityIndex string, m interface{}, jnprSess *
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -283,7 +283,7 @@ func readSnmpV3Community(communityIndex string, m interface{}, jnprSess *Netconf
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.communityIndex = communityIndex
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -292,7 +292,7 @@ func readSnmpV3Community(communityIndex string, m interface{}, jnprSess *Netconf
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "security-name "):
 				confRead.securityName = strings.Trim(strings.TrimPrefix(itemTrim, "security-name "), "\"")

@@ -67,7 +67,7 @@ func delBgpOpts(d *schema.ResourceData, typebgp string, m interface{}, jnprSess 
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	delPrefix := deleteLS
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		delPrefix = delRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
 	switch typebgp {
@@ -554,11 +554,11 @@ func setBgpOptsFamily(setPrefix, familyType string, familyOptsList []interface{}
 	configSet := make([]string, 0)
 	setPrefixFamily := setPrefix + "family "
 	switch familyType {
-	case evpnWord:
+	case evpnW:
 		setPrefixFamily += "evpn "
-	case inetWord:
+	case inetW:
 		setPrefixFamily += "inet "
-	case inet6Word:
+	case inet6W:
 		setPrefixFamily += "inet6 "
 	}
 	familyNlriTypeList := make([]string, 0)
@@ -566,11 +566,11 @@ func setBgpOptsFamily(setPrefix, familyType string, familyOptsList []interface{}
 		familyOptsM := familyOpts.(map[string]interface{})
 		if bchk.StringInSlice(familyOptsM["nlri_type"].(string), familyNlriTypeList) {
 			switch familyType {
-			case evpnWord:
+			case evpnW:
 				return fmt.Errorf("multiple blocks family_evpn with the same nlri_type %s", familyOptsM["nlri_type"].(string))
-			case inetWord:
+			case inetW:
 				return fmt.Errorf("multiple blocks family_inet with the same nlri_type %s", familyOptsM["nlri_type"].(string))
-			case inet6Word:
+			case inet6W:
 				return fmt.Errorf("multiple blocks family_inet6 with the same nlri_type %s", familyOptsM["nlri_type"].(string))
 			}
 		}
@@ -635,11 +635,11 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 	}
 	setPrefix := "family "
 	switch familyType {
-	case evpnWord:
+	case evpnW:
 		setPrefix += "evpn "
-	case inetWord:
+	case inetW:
 		setPrefix += "inet "
-	case inet6Word:
+	case inet6W:
 		setPrefix += "inet6 "
 	}
 	trimSplit := strings.Split(strings.TrimPrefix(item, setPrefix), " ")

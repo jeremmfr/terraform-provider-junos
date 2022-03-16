@@ -51,7 +51,7 @@ func resourceOspf() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          defaultWord,
+				Default:          defaultW,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"version": {
@@ -292,7 +292,7 @@ func resourceOspfCreate(ctx context.Context, d *schema.ResourceData, m interface
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -336,7 +336,7 @@ func resourceOspfRead(ctx context.Context, d *schema.ResourceData, m interface{}
 
 func resourceOspfReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			mutex.Unlock()
@@ -451,7 +451,7 @@ func resourceOspfImport(d *schema.ResourceData, m interface{}) ([]*schema.Resour
 	if idSplit[0] != "v2" && idSplit[0] != "v3" {
 		return nil, fmt.Errorf("%s is not a valid version", idSplit[0])
 	}
-	if idSplit[1] != defaultWord {
+	if idSplit[1] != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(idSplit[1], m, jnprSess)
 		if err != nil {
 			return nil, err
@@ -473,8 +473,8 @@ func resourceOspfImport(d *schema.ResourceData, m interface{}) ([]*schema.Resour
 func setOspf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
-	setPrefix := setLineStart
-	if d.Get("routing_instance").(string) != defaultWord {
+	setPrefix := setLS
+	if d.Get("routing_instance").(string) != defaultW {
 		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
 	ospfVersion := ospfV2
@@ -506,7 +506,7 @@ func setOspf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 		configSet = append(configSet, setPrefix+"disable")
 	}
 	if v := d.Get("domain_id").(string); v != "" {
-		if d.Get("routing_instance").(string) == defaultWord {
+		if d.Get("routing_instance").(string) == defaultW {
 			return fmt.Errorf("domain_id not compatible with routing_instance=default")
 		}
 		configSet = append(configSet, setPrefix+"domain-id \""+v+"\"")
@@ -635,7 +635,7 @@ func readOspf(version, routingInstance string,
 	if version == "v3" {
 		ospfVersion = ospfV3
 	}
-	if routingInstance == defaultWord {
+	if routingInstance == defaultW {
 		var err error
 		showConfig, err = sess.command(cmdShowConfig+
 			"protocols "+ospfVersion+" | display set relative", jnprSess)
@@ -644,7 +644,7 @@ func readOspf(version, routingInstance string,
 		}
 	} else {
 		var err error
-		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
 			"protocols "+ospfVersion+" | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
@@ -653,7 +653,7 @@ func readOspf(version, routingInstance string,
 
 	confRead.version = version
 	confRead.routingInstance = routingInstance
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
@@ -661,7 +661,7 @@ func readOspf(version, routingInstance string,
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "database-protection"):
 				if len(confRead.databaseProtection) == 0 {
@@ -868,7 +868,7 @@ func delOspf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 		ospfVersion = ospfV3
 	}
 	delPrefix := deleteLS
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		delPrefix = delRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
 	delPrefix += "protocols " + ospfVersion + " "

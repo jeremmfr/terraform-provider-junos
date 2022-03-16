@@ -375,7 +375,7 @@ func checkSystemLoginClassExists(name string, m interface{}, jnprSess *NetconfOb
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -471,7 +471,7 @@ func readSystemLoginClass(name string, m interface{}, jnprSess *NetconfObject) (
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -480,7 +480,7 @@ func readSystemLoginClass(name string, m interface{}, jnprSess *NetconfObject) (
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "access-end "):
 				accessSplit := strings.Split(strings.Trim(strings.TrimPrefix(itemTrim, "access-end "), "\""), " ")

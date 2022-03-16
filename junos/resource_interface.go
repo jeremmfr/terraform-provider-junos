@@ -887,8 +887,8 @@ func checkInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) 
 		showConfig == "set disable\nset description NC" {
 		return true, false, nil
 	}
-	if showConfig == setLineStart ||
-		showConfig == emptyWord {
+	if showConfig == setLS ||
+		showConfig == emptyW {
 		return false, true, nil
 	}
 
@@ -988,14 +988,14 @@ func setInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 	}
 	for _, address := range d.Get("inet_address").([]interface{}) {
 		var err error
-		configSet, err = setFamilyAddressOld(address, intCut, configSet, setName, inetWord)
+		configSet, err = setFamilyAddressOld(address, intCut, configSet, setName, inetW)
 		if err != nil {
 			return err
 		}
 	}
 	for _, address := range d.Get("inet6_address").([]interface{}) {
 		var err error
-		configSet, err = setFamilyAddressOld(address, intCut, configSet, setName, inet6Word)
+		configSet, err = setFamilyAddressOld(address, intCut, configSet, setName, inet6W)
 		if err != nil {
 			return err
 		}
@@ -1125,7 +1125,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 	inetAddress := make([]map[string]interface{}, 0)
 	inet6Address := make([]map[string]interface{}, 0)
 
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
 			if !strings.Contains(interFace, ".") && strings.Contains(item, " unit ") &&
 				!strings.Contains(item, "ethernet-switching") {
@@ -1137,7 +1137,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
@@ -1154,7 +1154,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 				confRead.inet6 = true
 				switch {
 				case strings.HasPrefix(itemTrim, "family inet6 address "):
-					inet6Address, err = readFamilyInetAddressOld(itemTrim, inet6Address, inet6Word)
+					inet6Address, err = readFamilyInetAddressOld(itemTrim, inet6Address, inet6W)
 					if err != nil {
 						return confRead, err
 					}
@@ -1186,7 +1186,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 				confRead.inet = true
 				switch {
 				case strings.HasPrefix(itemTrim, "family inet address "):
-					inetAddress, err = readFamilyInetAddressOld(itemTrim, inetAddress, inetWord)
+					inetAddress, err = readFamilyInetAddressOld(itemTrim, inetAddress, inetW)
 					if err != nil {
 						return confRead, err
 					}
@@ -1261,7 +1261,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 			}
 		}
 	}
-	showConfigRoutingInstances, err := sess.command(cmdShowConfig+routingInstancesW+"| display set relative", jnprSess)
+	showConfigRoutingInstances, err := sess.command(cmdShowConfig+routingInstancesWS+"| display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -1269,8 +1269,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 	for _, item := range strings.Split(showConfigRoutingInstances, "\n") {
 		intMatch := regexpInt.MatchString(item)
 		if intMatch {
-			confRead.routingInstances = strings.TrimPrefix(strings.TrimSuffix(item, " interface "+interFace),
-				setLineStart)
+			confRead.routingInstances = strings.TrimPrefix(strings.TrimSuffix(item, " interface "+interFace), setLS)
 
 			break
 		}
@@ -1554,10 +1553,10 @@ func readFamilyInetAddressOld(item string, inetAddress []map[string]interface{},
 	var addressConfig []string
 	var itemTrim string
 	switch family {
-	case inetWord:
+	case inetW:
 		addressConfig = strings.Split(strings.TrimPrefix(item, "family inet address "), " ")
 		itemTrim = strings.TrimPrefix(item, "family inet address "+addressConfig[0]+" ")
-	case inet6Word:
+	case inet6W:
 		addressConfig = strings.Split(strings.TrimPrefix(item, "family inet6 address "), " ")
 		itemTrim = strings.TrimPrefix(item, "family inet6 address "+addressConfig[0]+" ")
 	}
@@ -1660,7 +1659,7 @@ func readFamilyInetAddressOld(item string, inetAddress []map[string]interface{},
 
 func setFamilyAddressOld(inetAddress interface{}, intCut []string, configSet []string, setName string,
 	family string) ([]string, error) {
-	if family != inetWord && family != inet6Word {
+	if family != inetW && family != inet6W {
 		return configSet, fmt.Errorf("setFamilyAddressOld() unknown family %v", family)
 	}
 	inetAddressMap := inetAddress.(map[string]interface{})
@@ -1679,7 +1678,7 @@ func setFamilyAddressOld(inetAddress interface{}, intCut []string, configSet []s
 		}
 		var setNameAddVrrp string
 		switch family {
-		case inetWord:
+		case inetW:
 			setNameAddVrrp = "set interfaces " + setName + " family inet address " + inetAddressMap["address"].(string) +
 				" vrrp-group " + strconv.Itoa(vrrpGroupMap["identifier"].(int))
 			for _, ip := range vrrpGroupMap["virtual_address"].([]interface{}) {
@@ -1701,7 +1700,7 @@ func setFamilyAddressOld(inetAddress interface{}, intCut []string, configSet []s
 				configSet = append(configSet, setNameAddVrrp+" authentication-type "+
 					vrrpGroupMap["authentication_type"].(string))
 			}
-		case inet6Word:
+		case inet6W:
 			setNameAddVrrp = "set interfaces " + setName + " family inet6 address " + inetAddressMap["address"].(string) +
 				" vrrp-inet6-group " + strconv.Itoa(vrrpGroupMap["identifier"].(int))
 			for _, ip := range vrrpGroupMap["virtual_address"].([]interface{}) {
@@ -1762,7 +1761,7 @@ func aggregatedLastChild(ae, interFace string, m interface{}, jnprSess *NetconfO
 	lastAE := true
 	for _, item := range strings.Split(showConfig, "\n") {
 		if strings.HasSuffix(item, "ether-options 802.3ad "+ae) &&
-			!strings.HasPrefix(item, setLineStart+interFace+" ") {
+			!strings.HasPrefix(item, setLS+interFace+" ") {
 			lastAE = false
 		}
 	}
@@ -1837,11 +1836,11 @@ func genVRRPGroupOld(family string) map[string]interface{} {
 		"track_interface":          make([]map[string]interface{}, 0),
 		"track_route":              make([]map[string]interface{}, 0),
 	}
-	if family == inetWord {
+	if family == inetW {
 		vrrpGroup["authentication_key"] = ""
 		vrrpGroup["authentication_type"] = ""
 	}
-	if family == inet6Word {
+	if family == inet6W {
 		vrrpGroup["virtual_link_local_address"] = ""
 	}
 

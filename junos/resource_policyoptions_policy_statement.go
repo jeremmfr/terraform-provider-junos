@@ -239,7 +239,7 @@ func schemaPolicyoptionsPolicyStatementThen() map[string]*schema.Schema {
 					"action": {
 						Type:         schema.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice([]string{"add", deleteWord, setWord}, false),
+						ValidateFunc: validation.StringInSlice([]string{"add", deleteW, setW}, false),
 					},
 					"value": {
 						Type:     schema.TypeString,
@@ -671,7 +671,7 @@ func checkPolicyStatementExists(name string, m interface{}, jnprSess *NetconfObj
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -754,7 +754,7 @@ func readPolicyStatement(name string, m interface{}, jnprSess *NetconfObject) (p
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -763,7 +763,7 @@ func readPolicyStatement(name string, m interface{}, jnprSess *NetconfObject) (p
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "term "):
 				itemTermList := strings.Split(strings.TrimPrefix(itemTrim, "term "), " ")
@@ -841,7 +841,7 @@ func readPolicyStatementFwTableExport(policyName string,
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 	for _, item := range strings.Split(showConfig, "\n") {
@@ -851,7 +851,7 @@ func readPolicyStatementFwTableExport(policyName string,
 		if strings.Contains(item, "</configuration-output>") {
 			break
 		}
-		itemTrim := strings.TrimPrefix(item, setLineStart)
+		itemTrim := strings.TrimPrefix(item, setLS)
 		if itemTrim == policyName || itemTrim == policyName+" " {
 			return true, nil
 		}

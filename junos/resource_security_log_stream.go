@@ -317,7 +317,7 @@ func checkSecurityLogStreamExists(securityLogStream string, m interface{}, jnprS
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -385,7 +385,7 @@ func readSecurityLogStream(securityLogStream string, m interface{}, jnprSess *Ne
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = securityLogStream
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -394,7 +394,7 @@ func readSecurityLogStream(securityLogStream string, m interface{}, jnprSess *Ne
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "category "):
 				confRead.category = append(confRead.category, strings.TrimPrefix(itemTrim, "category "))

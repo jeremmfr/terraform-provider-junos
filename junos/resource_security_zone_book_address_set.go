@@ -282,7 +282,7 @@ func checkSecurityZoneBookAddressSetsExists(
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -322,7 +322,7 @@ func readSecurityZoneBookAddressSet(
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = addressSet
 		confRead.zone = zone
 		for _, item := range strings.Split(showConfig, "\n") {
@@ -332,7 +332,7 @@ func readSecurityZoneBookAddressSet(
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")

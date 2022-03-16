@@ -39,7 +39,7 @@ func resourceFirewallFilter() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice(
-					[]string{inetWord, inet6Word, "any", "ccc", "mpls", "vpls", "ethernet-switching"}, false),
+					[]string{inetW, inet6W, "any", "ccc", "mpls", "vpls", "ethernet-switching"}, false),
 			},
 			"interface_specific": {
 				Type:     schema.TypeBool,
@@ -468,7 +468,7 @@ func checkFirewallFilterExists(name, family string, m interface{}, jnprSess *Net
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -519,7 +519,7 @@ func readFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfO
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = filter
 		confRead.family = family
 		for _, item := range strings.Split(showConfig, "\n") {
@@ -529,7 +529,7 @@ func readFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfO
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case itemTrim == "interface-specific":
 				confRead.interfaceSpecific = true

@@ -64,8 +64,8 @@ func resourceSecurityPolicy() *schema.Resource {
 						"then": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Default:      permitWord,
-							ValidateFunc: validation.StringInSlice([]string{permitWord, "reject", "deny"}, false),
+							Default:      permitW,
+							ValidateFunc: validation.StringInSlice([]string{permitW, "reject", "deny"}, false),
 						},
 						"count": {
 							Type:     schema.TypeBool,
@@ -407,7 +407,7 @@ func checkSecurityPolicyExists(fromZone, toZone string, m interface{}, jnprSess 
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -467,7 +467,7 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			configSet = append(configSet, setPrefixPolicy+" match source-end-user-profile \""+v+"\"")
 		}
 		if policy["permit_tunnel_ipsec_vpn"].(string) != "" {
-			if policy["then"].(string) != permitWord {
+			if policy["then"].(string) != permitW {
 				return fmt.Errorf("conflict policy then %v and policy permit_tunnel_ipsec_vpn",
 					policy["then"].(string))
 			}
@@ -478,7 +478,7 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			if policy["permit_application_services"].([]interface{})[0] == nil {
 				return fmt.Errorf("permit_application_services block is empty")
 			}
-			if policy["then"].(string) != permitWord {
+			if policy["then"].(string) != permitW {
 				return fmt.Errorf("conflict policy then %v and policy permit_application_services",
 					policy["then"].(string))
 			}
@@ -508,7 +508,7 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 		return confRead, err
 	}
 	policyList := make([]map[string]interface{}, 0)
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.fromZone = fromZone
 		confRead.toZone = toZone
 		for _, item := range strings.Split(showConfig, "\n") {
@@ -518,7 +518,7 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			if strings.Contains(itemTrim, " match ") || strings.Contains(itemTrim, " then ") {
 				policyLineCut := strings.Split(itemTrim, " ")
 				policy := genMapPolicyWithName(policyLineCut[1])
@@ -546,7 +546,7 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 						itemTrimPolicy, "match source-end-user-profile "), "\"")
 				case strings.HasPrefix(itemTrimPolicy, "then "):
 					switch {
-					case strings.HasSuffix(itemTrimPolicy, permitWord),
+					case strings.HasSuffix(itemTrimPolicy, permitW),
 						strings.HasSuffix(itemTrimPolicy, "deny"),
 						strings.HasSuffix(itemTrimPolicy, "reject"):
 						policy["then"] = strings.TrimPrefix(itemTrimPolicy, "then ")
@@ -557,11 +557,11 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 					case itemTrimPolicy == "then log session-close":
 						policy["log_close"] = true
 					case strings.HasPrefix(itemTrimPolicy, "then permit tunnel ipsec-vpn "):
-						policy["then"] = permitWord
+						policy["then"] = permitW
 						policy["permit_tunnel_ipsec_vpn"] = strings.TrimPrefix(itemTrimPolicy,
 							"then permit tunnel ipsec-vpn ")
 					case strings.HasPrefix(itemTrimPolicy, "then permit application-services"):
-						policy["then"] = permitWord
+						policy["then"] = permitW
 						if len(policy["permit_application_services"].([]map[string]interface{})) == 0 {
 							policy["permit_application_services"] = append(
 								policy["permit_application_services"].([]map[string]interface{}),
@@ -602,7 +602,7 @@ func readSecurityPolicyTunnelPairPolicyLines(
 	if err != nil {
 		return err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue

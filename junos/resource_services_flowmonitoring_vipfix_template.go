@@ -333,7 +333,7 @@ func checkServicesFlowMonitoringVIPFixTemplateExists(
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -413,7 +413,7 @@ func readServicesFlowMonitoringVIPFixTemplate(template string, m interface{}, jn
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = template
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -422,7 +422,7 @@ func readServicesFlowMonitoringVIPFixTemplate(template string, m interface{}, jn
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case bchk.StringInSlice(itemTrim, []string{"ipv4-template", "ipv6-template", "mpls-template"}):
 				confRead.typeTemplate = itemTrim

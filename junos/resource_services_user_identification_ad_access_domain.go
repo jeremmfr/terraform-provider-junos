@@ -327,7 +327,7 @@ func checkServicesUserIdentAdAccessDomainExists(domain string,
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -398,7 +398,7 @@ func readServicesUserIdentAdAccessDomain(domain string,
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = domain
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -407,7 +407,7 @@ func readServicesUserIdentAdAccessDomain(domain string,
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "user password "):
 				var err error

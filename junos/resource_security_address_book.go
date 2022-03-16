@@ -371,7 +371,7 @@ func checkSecurityAddressBookExists(addrBook string, m interface{}, jnprSess *Ne
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -478,7 +478,7 @@ func readSecurityAddressBook(addrBook string, m interface{}, jnprSess *NetconfOb
 		return confRead, err
 	}
 	descMap := make(map[string]string)
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = addrBook
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -487,7 +487,7 @@ func readSecurityAddressBook(addrBook string, m interface{}, jnprSess *NetconfOb
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")

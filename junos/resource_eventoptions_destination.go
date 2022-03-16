@@ -257,7 +257,7 @@ func checkEventoptionsDestinationExists(name string, m interface{}, jnprSess *Ne
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -299,7 +299,7 @@ func readEventoptionsDestination(
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -308,7 +308,7 @@ func readEventoptionsDestination(
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "archive-sites "):
 				itemTrimSplit := strings.Split(itemTrim, " ")

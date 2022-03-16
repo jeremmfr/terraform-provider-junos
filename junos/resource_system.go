@@ -1824,7 +1824,7 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
@@ -1832,7 +1832,7 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "archival configuration "):
 				if len(confRead.archivalConfiguration) == 0 {

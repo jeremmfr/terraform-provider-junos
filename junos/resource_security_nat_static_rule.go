@@ -93,7 +93,7 @@ func resourceSecurityNatStaticRule() *schema.Resource {
 						"type": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{inetWord, "prefix", "prefix-name"}, false),
+							ValidateFunc: validation.StringInSlice([]string{inetW, "prefix", "prefix-name"}, false),
 						},
 						"mapped_port": {
 							Type:         schema.TypeInt,
@@ -342,7 +342,7 @@ func checkSecurityNatStaticRuleExists(ruleSet, name string, m interface{}, jnprS
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -388,7 +388,7 @@ func setSecurityNatStaticRule(d *schema.ResourceData, m interface{}, jnprSess *N
 	}
 	for _, v := range d.Get("then").([]interface{}) {
 		then := v.(map[string]interface{})
-		if then["type"].(string) == inetWord {
+		if then["type"].(string) == inetW {
 			if then["routing_instance"].(string) == "" {
 				return fmt.Errorf("missing routing_instance with type = inet")
 			}
@@ -445,7 +445,7 @@ func readSecurityNatStaticRule(ruleSet, name string,
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		confRead.ruleSet = ruleSet
 		for _, item := range strings.Split(showConfig, "\n") {
@@ -455,7 +455,7 @@ func readSecurityNatStaticRule(ruleSet, name string,
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "match destination-address "):
 				confRead.destinationAddress = strings.TrimPrefix(itemTrim, "match destination-address ")
@@ -523,7 +523,7 @@ func readSecurityNatStaticRule(ruleSet, name string,
 						ruleThenOptions["prefix"] = strings.Trim(itemThen, "\"")
 					}
 				case strings.HasPrefix(itemThen, "inet "):
-					ruleThenOptions["type"] = inetWord
+					ruleThenOptions["type"] = inetW
 					ruleThenOptions["routing_instance"] = strings.TrimPrefix(itemThen, "inet routing-instance ")
 				}
 			}

@@ -257,7 +257,7 @@ func checkSecurityPolicyPairExists(zoneA, policyAtoB, zoneB, policyBtoA string,
 	if err != nil {
 		return false, err
 	}
-	if showConfigPairAtoB == emptyWord && showConfigPairBtoA == emptyWord {
+	if showConfigPairAtoB == emptyW && showConfigPairBtoA == emptyW {
 		return false, nil
 	}
 
@@ -297,7 +297,7 @@ func readSecurityPolicyTunnelPairPolicy(idRessource string,
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.zoneA = zoneA
 		confRead.zoneB = zoneB
 		for _, item := range strings.Split(showConfig, "\n") {
@@ -320,7 +320,7 @@ func readSecurityPolicyTunnelPairPolicy(idRessource string,
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.zoneA = zoneA
 		confRead.zoneB = zoneB
 		for _, item := range strings.Split(showConfig, "\n") {

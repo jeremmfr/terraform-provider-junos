@@ -229,7 +229,7 @@ func checkApplicationSetExists(applicationSet string, m interface{}, jnprSess *N
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -257,7 +257,7 @@ func readApplicationSet(applicationSet string, m interface{}, jnprSess *NetconfO
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = applicationSet
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -266,7 +266,7 @@ func readApplicationSet(applicationSet string, m interface{}, jnprSess *NetconfO
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			if strings.HasPrefix(itemTrim, "application ") {
 				confRead.applications = append(confRead.applications, strings.TrimPrefix(itemTrim, "application "))
 			}

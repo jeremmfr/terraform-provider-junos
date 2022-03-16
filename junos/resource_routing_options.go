@@ -492,7 +492,7 @@ func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsO
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
@@ -500,7 +500,7 @@ func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsO
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "autonomous-system "):
 				if len(confRead.autonomousSystem) == 0 {

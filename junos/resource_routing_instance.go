@@ -326,11 +326,11 @@ func resourceRoutingInstanceImport(d *schema.ResourceData, m interface{}) ([]*sc
 
 func checkRoutingInstanceExists(instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+routingInstancesW+instance+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+routingInstancesWS+instance+" | display set", jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -397,11 +397,11 @@ func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject
 	sess := m.(*Session)
 	var confRead instanceOptions
 
-	showConfig, err := sess.command(cmdShowConfig+routingInstancesW+instance+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+routingInstancesWS+instance+" | display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = instance
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -410,7 +410,7 @@ func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")

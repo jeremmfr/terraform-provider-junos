@@ -61,7 +61,7 @@ func resourceStaticRoute() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          defaultWord,
+				Default:          defaultW,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"active": {
@@ -223,7 +223,7 @@ func resourceStaticRouteCreate(ctx context.Context, d *schema.ResourceData, m in
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -416,7 +416,7 @@ func checkStaticRouteExists(destination string, instance string, m interface{}, 
 	sess := m.(*Session)
 	var showConfig string
 	var err error
-	if instance == defaultWord {
+	if instance == defaultW {
 		if !strings.Contains(destination, ":") {
 			showConfig, err = sess.command(cmdShowConfig+
 				"routing-options static route "+destination+" | display set", jnprSess)
@@ -432,13 +432,13 @@ func checkStaticRouteExists(destination string, instance string, m interface{}, 
 		}
 	} else {
 		if !strings.Contains(destination, ":") {
-			showConfig, err = sess.command(cmdShowConfig+routingInstancesW+instance+" "+
+			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
 				"routing-options static route "+destination+" | display set", jnprSess)
 			if err != nil {
 				return false, err
 			}
 		} else {
-			showConfig, err = sess.command(cmdShowConfig+routingInstancesW+instance+" "+
+			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
 				"routing-options rib "+instance+".inet6.0 static route "+destination+" | display set", jnprSess)
 			if err != nil {
 				return false, err
@@ -446,7 +446,7 @@ func checkStaticRouteExists(destination string, instance string, m interface{}, 
 		}
 	}
 
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -458,7 +458,7 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	configSet := make([]string, 0)
 
 	var setPrefix string
-	if d.Get("routing_instance").(string) == defaultWord {
+	if d.Get("routing_instance").(string) == defaultW {
 		if !strings.Contains(d.Get("destination").(string), ":") {
 			setPrefix = "set routing-options static route " + d.Get("destination").(string)
 		} else {
@@ -579,7 +579,7 @@ func readStaticRoute(destination string, instance string, m interface{},
 	var showConfig string
 	var err error
 
-	if instance == defaultWord {
+	if instance == defaultW {
 		if !strings.Contains(destination, ":") {
 			showConfig, err = sess.command(cmdShowConfig+
 				"routing-options static route "+destination+" | display set relative", jnprSess)
@@ -589,10 +589,10 @@ func readStaticRoute(destination string, instance string, m interface{},
 		}
 	} else {
 		if !strings.Contains(destination, ":") {
-			showConfig, err = sess.command(cmdShowConfig+routingInstancesW+instance+" "+
+			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
 				"routing-options static route "+destination+" | display set relative", jnprSess)
 		} else {
-			showConfig, err = sess.command(cmdShowConfig+routingInstancesW+instance+" "+
+			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
 				"routing-options rib "+instance+".inet6.0 static route "+destination+" | display set relative", jnprSess)
 		}
 	}
@@ -600,7 +600,7 @@ func readStaticRoute(destination string, instance string, m interface{},
 		return confRead, err
 	}
 
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.destination = destination
 		confRead.routingInstance = instance
 		for _, item := range strings.Split(showConfig, "\n") {
@@ -610,7 +610,7 @@ func readStaticRoute(destination string, instance string, m interface{},
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case itemTrim == "active":
 				confRead.active = true
@@ -703,14 +703,14 @@ func delStaticRoute(destination string, instance string, m interface{}, jnprSess
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	switch {
-	case instance == defaultWord && !strings.Contains(destination, ":"):
+	case instance == defaultW && !strings.Contains(destination, ":"):
 		configSet = append(configSet, "delete routing-options static route "+destination)
-	case instance == defaultWord && strings.Contains(destination, ":"):
+	case instance == defaultW && strings.Contains(destination, ":"):
 		configSet = append(configSet, "delete routing-options rib inet6.0 static route "+destination)
-	case instance != defaultWord && !strings.Contains(destination, ":"):
+	case instance != defaultW && !strings.Contains(destination, ":"):
 		configSet = append(configSet, delRoutingInstances+instance+" "+
 			"routing-options static route "+destination)
-	case instance != defaultWord && strings.Contains(destination, ":"):
+	case instance != defaultW && strings.Contains(destination, ":"):
 		configSet = append(configSet, delRoutingInstances+instance+" "+
 			"routing-options rib "+instance+".inet6.0 static route "+destination)
 	}

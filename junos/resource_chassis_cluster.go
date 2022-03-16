@@ -477,7 +477,7 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
@@ -485,7 +485,7 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "redundancy-group "):
 				itemRGTrim := strings.TrimPrefix(itemTrim, "redundancy-group ")
@@ -622,7 +622,7 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 	if err != nil {
 		return confRead, err
 	}
-	if showConfigFab0 != emptyWord {
+	if showConfigFab0 != emptyW {
 		if len(confRead.fab0) == 0 {
 			confRead.fab0 = append(confRead.fab0, map[string]interface{}{
 				"member_interfaces": make([]string, 0),
@@ -636,7 +636,7 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.fab0[0]["description"] = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
@@ -650,7 +650,7 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 	if err != nil {
 		return confRead, err
 	}
-	if showConfigFab1 != emptyWord {
+	if showConfigFab1 != emptyW {
 		if len(confRead.fab1) == 0 {
 			confRead.fab1 = append(confRead.fab1, map[string]interface{}{
 				"member_interfaces": make([]string, 0),
@@ -664,7 +664,7 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.fab1[0]["description"] = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")

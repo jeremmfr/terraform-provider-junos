@@ -62,7 +62,7 @@ func resourceSystemServicesDhcpLocalServerGroup() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          defaultWord,
+				Default:          defaultW,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"version": {
@@ -750,7 +750,7 @@ func resourceSystemServicesDhcpLocalServerGroupCreate(ctx context.Context,
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -981,8 +981,8 @@ func checkSystemServicesDhcpLocalServerGroupExists(name, instance, version strin
 	var showConfig string
 	var err error
 	showCmd := cmdShowConfig
-	if instance != defaultWord {
-		showCmd += routingInstancesW + instance + " "
+	if instance != defaultW {
+		showCmd += routingInstancesWS + instance + " "
 	}
 	showCmd += "system services dhcp-local-server "
 	if version == "v6" {
@@ -996,7 +996,7 @@ func checkSystemServicesDhcpLocalServerGroupExists(name, instance, version strin
 		return false, err
 	}
 
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -1007,8 +1007,8 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, m interface{}
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 
-	setPrefix := setLineStart
-	if d.Get("routing_instance").(string) != defaultWord {
+	setPrefix := setLS
+	if d.Get("routing_instance").(string) != defaultW {
 		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
 	if d.Get("version").(string) == "v6" {
@@ -1502,8 +1502,8 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 	var showConfig string
 	var err error
 	showCmd := cmdShowConfig
-	if instance != defaultWord {
-		showCmd += routingInstancesW + instance + " "
+	if instance != defaultW {
+		showCmd += routingInstancesWS + instance + " "
 	}
 	showCmd += "system services dhcp-local-server "
 	if version == "v6" {
@@ -1517,7 +1517,7 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 		return confRead, err
 	}
 
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		confRead.routingInstance = instance
 		confRead.version = version
@@ -1528,7 +1528,7 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "access-profile "):
 				confRead.accessProfile = strings.Trim(strings.TrimPrefix(itemTrim, "access-profile "), "\"")
@@ -2045,14 +2045,14 @@ func delSystemServicesDhcpLocalServerGroup(
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	switch {
-	case instance == defaultWord && version == "v6":
+	case instance == defaultW && version == "v6":
 		configSet = append(configSet, "delete system services dhcp-local-server dhcpv6 group "+name)
-	case instance == defaultWord && version == "v4":
+	case instance == defaultW && version == "v4":
 		configSet = append(configSet, "delete system services dhcp-local-server group "+name)
-	case instance != defaultWord && version == "v6":
+	case instance != defaultW && version == "v6":
 		configSet = append(configSet, delRoutingInstances+instance+" "+
 			"system services dhcp-local-server dhcpv6 group "+name)
-	case instance != defaultWord && version == "v4":
+	case instance != defaultW && version == "v4":
 		configSet = append(configSet, delRoutingInstances+instance+" "+
 			"system services dhcp-local-server group "+name)
 	}

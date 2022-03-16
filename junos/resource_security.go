@@ -1784,7 +1784,7 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
@@ -1792,7 +1792,7 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesSecurityAlg()):
 				readSecurityAlg(&confRead, itemTrim)

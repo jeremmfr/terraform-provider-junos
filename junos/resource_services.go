@@ -1272,7 +1272,7 @@ func readServices(m interface{}, jnprSess *NetconfObject) (servicesOptions, erro
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
@@ -1280,7 +1280,7 @@ func readServices(m interface{}, jnprSess *NetconfObject) (servicesOptions, erro
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesServicesAdvancedAntiMalware()) ||
 				strings.HasPrefix(itemTrim, "advanced-anti-malware connection"):

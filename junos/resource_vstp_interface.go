@@ -55,7 +55,7 @@ func resourceVstpInterface() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          defaultWord,
+				Default:          defaultW,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"vlan": {
@@ -203,7 +203,7 @@ func resourceVstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 	vstpInterfaceVIdType, name, _, routingInstance := resourceVstpInterfaceReadID(resourceVstpInterfaceNewID(d))
 	vlan := d.Get("vlan").(string)
 	vlanGroup := d.Get("vlan_group").(string)
-	if routingInstance != defaultWord {
+	if routingInstance != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(routingInstance, m, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -226,7 +226,7 @@ func resourceVstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 		}
 		if !vstpVlanExists {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
-			if routingInstance == defaultWord {
+			if routingInstance == defaultW {
 				return append(diagWarns,
 					diag.FromErr(fmt.Errorf("protocol vstp vlan %v doesn't exist", vlan))...)
 			}
@@ -244,7 +244,7 @@ func resourceVstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 		}
 		if !vstpVlanGroupExists {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
-			if routingInstance == defaultWord {
+			if routingInstance == defaultW {
 				return append(diagWarns,
 					diag.FromErr(fmt.Errorf("protocol vstp vlan-group group %v doesn't exist", vlanGroup))...)
 			}
@@ -264,7 +264,7 @@ func resourceVstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 		switch vstpInterfaceVIdType {
 		case vstpInterfaceVIdTypeNone:
-			if routingInstance == defaultWord {
+			if routingInstance == defaultW {
 				return append(diagWarns, diag.FromErr(fmt.Errorf("protocols vstp interface %v already exists",
 					name))...)
 			}
@@ -272,7 +272,7 @@ func resourceVstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 			return append(diagWarns, diag.FromErr(fmt.Errorf(
 				"protocols vstp interface %v already exists in routing-instance %v", name, routingInstance))...)
 		case vstpInterfaceVIdTypeVlan:
-			if routingInstance == defaultWord {
+			if routingInstance == defaultW {
 				return append(diagWarns, diag.FromErr(fmt.Errorf("protocols vstp interface %v in vlan %v already exists",
 					name, vlan))...)
 			}
@@ -281,7 +281,7 @@ func resourceVstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 				"protocols vstp interface %v already exists in vlan %s in routing-instance %v",
 				name, vlan, routingInstance))...)
 		case vstpInterfaceVIdTypeVlanGroup:
-			if routingInstance == defaultWord {
+			if routingInstance == defaultW {
 				return append(diagWarns, diag.FromErr(fmt.Errorf("protocols vstp interface %v in vlan-group %v already exists",
 					name, vlanGroup))...)
 			}
@@ -312,7 +312,7 @@ func resourceVstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 	} else {
 		switch vstpInterfaceVIdType {
 		case vstpInterfaceVIdTypeNone:
-			if routingInstance == defaultWord {
+			if routingInstance == defaultW {
 				return append(diagWarns, diag.FromErr(fmt.Errorf("protocols vstp interface %v not exists after commit "+
 					"=> check your config", name))...)
 			}
@@ -321,7 +321,7 @@ func resourceVstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 				"protocols vstp interface %v not exists in routing-instance %v after commit "+
 					"=> check your config", name, routingInstance))...)
 		case vstpInterfaceVIdTypeVlan:
-			if routingInstance == defaultWord {
+			if routingInstance == defaultW {
 				return append(diagWarns, diag.FromErr(fmt.Errorf(
 					"protocols vstp interface %v in vlan %v not exists after commit "+
 						"=> check your config", name, vlan))...)
@@ -331,7 +331,7 @@ func resourceVstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 				"protocols vstp interface %v not exists in vlan %v in routing-instance %v after commit "+
 					"=> check your config", name, vlan, routingInstance))...)
 		case vstpInterfaceVIdTypeVlanGroup:
-			if routingInstance == defaultWord {
+			if routingInstance == defaultW {
 				return append(diagWarns, diag.FromErr(fmt.Errorf(
 					"protocols vstp interface %v in vlan-group %v not exists after commit "+
 						"=> check your config", name, vlanGroup))...)
@@ -524,7 +524,7 @@ func checkVstpInterfaceExists(name, routingInstance, vlan, vlanGroup string, m i
 	if vlan != "" && vlanGroup != "" {
 		return false, fmt.Errorf("internal error: checkVstpInterfaceExists called with vlan and vlanGroup")
 	}
-	if routingInstance == defaultWord {
+	if routingInstance == defaultW {
 		switch {
 		case vlan != "":
 			showConfig, err = sess.command(cmdShowConfig+
@@ -539,20 +539,20 @@ func checkVstpInterfaceExists(name, routingInstance, vlan, vlanGroup string, m i
 	} else {
 		switch {
 		case vlan != "":
-			showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
 				"protocols vstp vlan "+vlan+" interface "+name+" | display set", jnprSess)
 		case vlanGroup != "":
-			showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
 				"protocols vstp vlan-group group "+vlanGroup+" interface "+name+" | display set", jnprSess)
 		default:
-			showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
 				"protocols vstp interface "+name+" | display set", jnprSess)
 		}
 	}
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -566,8 +566,8 @@ func setVstpInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 	name := d.Get("name").(string)
 	vlan := d.Get("vlan").(string)
 	vlanGroup := d.Get("vlan_group").(string)
-	setPrefix := setLineStart
-	if rI := d.Get("routing_instance").(string); rI != defaultWord {
+	setPrefix := setLS
+	if rI := d.Get("routing_instance").(string); rI != defaultW {
 		setPrefix = setRoutingInstances + rI + " "
 	}
 	switch {
@@ -618,7 +618,7 @@ func readVstpInterface(name, routingInstance, vlan, vlanGroup string, m interfac
 	confRead.priority = -1 // default -1
 	var showConfig string
 	var err error
-	if routingInstance == defaultWord {
+	if routingInstance == defaultW {
 		switch {
 		case vlan != "":
 			showConfig, err = sess.command(cmdShowConfig+
@@ -633,20 +633,20 @@ func readVstpInterface(name, routingInstance, vlan, vlanGroup string, m interfac
 	} else {
 		switch {
 		case vlan != "":
-			showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
 				"protocols vstp vlan "+vlan+" interface "+name+" | display set relative", jnprSess)
 		case vlanGroup != "":
-			showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
 				"protocols vstp vlan-group group "+vlanGroup+" interface "+name+" | display set relative", jnprSess)
 		default:
-			showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
 				"protocols vstp interface "+name+" | display set relative", jnprSess)
 		}
 	}
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		confRead.routingInstance = routingInstance
 		confRead.vlan = vlan
@@ -658,7 +658,7 @@ func readVstpInterface(name, routingInstance, vlan, vlanGroup string, m interfac
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case itemTrim == "access-trunk":
 				confRead.accessTrunk = true
@@ -697,7 +697,7 @@ func delVstpInterface(name, routingInstance, vlan, vlanGroup string, m interface
 	if vlan != "" && vlanGroup != "" {
 		return fmt.Errorf("internal error: delVstpInterface called with vlan and vlanGroup")
 	}
-	if routingInstance == defaultWord {
+	if routingInstance == defaultW {
 		switch {
 		case vlan != "":
 			configSet = append(configSet, "delete protocols vstp vlan "+vlan+" interface "+name)

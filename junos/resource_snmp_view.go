@@ -237,7 +237,7 @@ func checkSnmpViewExists(name string, m interface{}, jnprSess *NetconfObject) (b
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -268,7 +268,7 @@ func readSnmpView(name string, m interface{}, jnprSess *NetconfObject) (snmpView
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -277,7 +277,7 @@ func readSnmpView(name string, m interface{}, jnprSess *NetconfObject) (snmpView
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			itemTrimSplit := strings.Split(itemTrim, " ")
 			switch {
 			case strings.HasPrefix(itemTrim, "oid ") && strings.HasSuffix(itemTrim, " include"):

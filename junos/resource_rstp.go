@@ -45,7 +45,7 @@ func resourceRstp() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          defaultWord,
+				Default:          defaultW,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"backup_bridge_priority": {
@@ -151,7 +151,7 @@ func resourceRstpCreate(ctx context.Context, d *schema.ResourceData, m interface
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -195,7 +195,7 @@ func resourceRstpRead(ctx context.Context, d *schema.ResourceData, m interface{}
 
 func resourceRstpReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			mutex.Unlock()
@@ -301,7 +301,7 @@ func resourceRstpImport(d *schema.ResourceData, m interface{}) ([]*schema.Resour
 		return nil, err
 	}
 	defer sess.closeSession(jnprSess)
-	if d.Id() != defaultWord {
+	if d.Id() != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Id(), m, jnprSess)
 		if err != nil {
 			return nil, err
@@ -324,8 +324,8 @@ func resourceRstpImport(d *schema.ResourceData, m interface{}) ([]*schema.Resour
 func setRstp(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
-	setPrefix := setLineStart
-	if d.Get("routing_instance").(string) != defaultWord {
+	setPrefix := setLS
+	if d.Get("routing_instance").(string) != defaultW {
 		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
 	setPrefix += "protocols rstp "
@@ -391,7 +391,7 @@ func readRstp(routingInstance string, m interface{}, jnprSess *NetconfObject) (r
 	confRead.extendedSystemID = -1
 
 	var showConfig string
-	if routingInstance == defaultWord {
+	if routingInstance == defaultW {
 		var err error
 		showConfig, err = sess.command(cmdShowConfig+
 			"protocols rstp | display set relative", jnprSess)
@@ -400,7 +400,7 @@ func readRstp(routingInstance string, m interface{}, jnprSess *NetconfObject) (r
 		}
 	} else {
 		var err error
-		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
 			"protocols rstp | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
@@ -408,7 +408,7 @@ func readRstp(routingInstance string, m interface{}, jnprSess *NetconfObject) (r
 	}
 
 	confRead.routingInstance = routingInstance
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
@@ -416,7 +416,7 @@ func readRstp(routingInstance string, m interface{}, jnprSess *NetconfObject) (r
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "backup-bridge-priority "):
 				confRead.backupBridgePriority = strings.TrimPrefix(itemTrim, "backup-bridge-priority ")
@@ -491,7 +491,7 @@ func delRstp(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	delPrefix := deleteLS
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		delPrefix = delRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
 	delPrefix += "protocols rstp "

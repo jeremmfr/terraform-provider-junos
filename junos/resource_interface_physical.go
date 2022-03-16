@@ -788,7 +788,7 @@ func checkInterfacePhysicalNCEmpty(interFace string, m interface{}, jnprSess *Ne
 		showConfig == "set disable\nset description NC" {
 		return true, false, nil
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, true, nil
 	}
 
@@ -1200,7 +1200,7 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, " unit ") && !strings.Contains(item, "ethernet-switching") {
 				continue
@@ -1211,7 +1211,7 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "aggregated-ether-options lacp "):
 				confRead.aeLacp = strings.TrimPrefix(itemTrim, "aggregated-ether-options lacp ")
@@ -1755,7 +1755,7 @@ func interfaceAggregatedLastChild(ae, interFace string, m interface{}, jnprSess 
 	lastAE := true
 	for _, item := range strings.Split(showConfig, "\n") {
 		if strings.HasSuffix(item, "ether-options 802.3ad "+ae) &&
-			!strings.HasPrefix(item, setLineStart+interFace+" ") {
+			!strings.HasPrefix(item, setLS+interFace+" ") {
 			lastAE = false
 		}
 	}

@@ -237,7 +237,7 @@ func checkPolicyoptionsCommunityExists(name string, m interface{}, jnprSess *Net
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -268,7 +268,7 @@ func readPolicyoptionsCommunity(name string, m interface{}, jnprSess *NetconfObj
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -277,7 +277,7 @@ func readPolicyoptionsCommunity(name string, m interface{}, jnprSess *NetconfObj
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "members "):
 				confRead.members = append(confRead.members, strings.TrimPrefix(itemTrim, "members "))

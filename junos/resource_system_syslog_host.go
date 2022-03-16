@@ -380,7 +380,7 @@ func checkSystemSyslogHostExists(host string, m interface{}, jnprSess *NetconfOb
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -486,7 +486,7 @@ func readSystemSyslogHost(host string, m interface{}, jnprSess *NetconfObject) (
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.host = host
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -495,7 +495,7 @@ func readSystemSyslogHost(host string, m interface{}, jnprSess *NetconfObject) (
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case itemTrim == "allow-duplicates":
 				confRead.allowDuplicates = true

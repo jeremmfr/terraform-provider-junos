@@ -2,30 +2,30 @@ package junos
 
 const (
 	idSeparator = "_-_"
-	defaultWord = "default"
+	defaultW    = "default"
 
-	setWord      = "set"
-	setLineStart = setWord + " "
-	deleteWord   = "delete"
-	deleteLS     = deleteWord + " " // delete line start
+	setW     = "set"
+	setLS    = setW + " " // set line start
+	deleteW  = "delete"
+	deleteLS = deleteW + " " // delete line start
 
 	cmdShowConfig = "show configuration "
 
-	routingInstancesW   = "routing-instances "
-	setRoutingInstances = setLineStart + routingInstancesW
-	delRoutingInstances = deleteLS + routingInstancesW
+	routingInstancesWS  = "routing-instances " // routing-instances word + space
+	setRoutingInstances = setLS + routingInstancesWS
+	delRoutingInstances = deleteLS + routingInstancesWS
 
-	emptyWord  = "empty"
-	permitWord = "permit"
-	discardW   = "discard"
-	disableW   = "disable"
+	emptyW   = "empty"
+	permitW  = "permit"
+	discardW = "discard"
+	disableW = "disable"
 
 	st0Word = "st0"
 
-	evpnWord  = "evpn"
-	inetWord  = "inet"
-	inet6Word = "inet6"
-	mplsWord  = "mpls"
-	ospfV2    = "ospf"
-	ospfV3    = "ospf3"
+	evpnW  = "evpn"
+	inetW  = "inet"
+	inet6W = "inet6"
+	mplsW  = "mpls"
+	ospfV2 = "ospf"
+	ospfV3 = "ospf3"
 )

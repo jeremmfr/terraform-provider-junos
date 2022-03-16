@@ -451,7 +451,7 @@ func checkSecurityZonesExists(zone string, m interface{}, jnprSess *NetconfObjec
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -593,7 +593,7 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 		return confRead, err
 	}
 	descAddressBookMap := make(map[string]string)
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = zone
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -602,7 +602,7 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "address-book address "):
 				addressSplit := strings.Split(strings.TrimPrefix(itemTrim, "address-book address "), " ")

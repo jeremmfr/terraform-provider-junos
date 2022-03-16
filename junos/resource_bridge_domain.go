@@ -46,7 +46,7 @@ func resourceBridgeDomain() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          defaultWord,
+				Default:          defaultW,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"community_vlans": {
@@ -170,7 +170,7 @@ func resourceBridgeDomainCreate(ctx context.Context, d *schema.ResourceData, m i
 	}
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -383,21 +383,21 @@ func checkBridgeDomainExists(name string, instance string, m interface{},
 	sess := m.(*Session)
 	var showConfig string
 	var err error
-	if instance == defaultWord {
+	if instance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
 			"bridge-domains \""+name+"\" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
-		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+instance+" "+
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
 			"bridge-domains \""+name+"\" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
 	}
 
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -408,8 +408,8 @@ func setBridgeDomain(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 
-	setPrefix := setLineStart
-	if d.Get("routing_instance").(string) != defaultWord {
+	setPrefix := setLS
+	if d.Get("routing_instance").(string) != defaultW {
 		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
 	setPrefix += "bridge-domains \"" + d.Get("name").(string) + "\" "
@@ -446,7 +446,7 @@ func setBridgeDomain(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 		configSet = append(configSet, setPrefix+"vxlan vni "+strconv.Itoa(vxlan["vni"].(int)))
 
 		if vxlan["vni_extend_evpn"].(bool) {
-			if d.Get("routing_instance").(string) == defaultWord {
+			if d.Get("routing_instance").(string) == defaultW {
 				configSet = append(configSet, "set protocols evpn extended-vni-list "+strconv.Itoa(vxlan["vni"].(int)))
 			} else {
 				configSet = append(configSet, setRoutingInstances+d.Get("routing_instance").(string)+
@@ -484,18 +484,18 @@ func readBridgeDomain(name string, instance string, m interface{},
 	var showConfig string
 	var err error
 
-	if instance == defaultWord {
+	if instance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
 			"bridge-domains \""+name+"\" | display set relative", jnprSess)
 	} else {
-		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+instance+" "+
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
 			"bridge-domains \""+name+"\" | display set relative", jnprSess)
 	}
 	if err != nil {
 		return confRead, err
 	}
 
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		confRead.routingInstance = instance
 		for _, item := range strings.Split(showConfig, "\n") {
@@ -505,7 +505,7 @@ func readBridgeDomain(name string, instance string, m interface{},
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "community-vlans "):
 				confRead.communityVlans = append(confRead.communityVlans, strings.TrimPrefix(itemTrim, "community-vlans "))
@@ -564,19 +564,19 @@ func readBridgeDomain(name string, instance string, m interface{},
 					if vxlan["vni"] != -1 {
 						var showConfigEvpn string
 						var err error
-						if confRead.routingInstance == defaultWord {
+						if confRead.routingInstance == defaultW {
 							showConfigEvpn, err = sess.command(cmdShowConfig+"protocols evpn | display set relative", jnprSess)
 							if err != nil {
 								return confRead, err
 							}
 						} else {
-							showConfigEvpn, err = sess.command(cmdShowConfig+routingInstancesW+instance+" "+
+							showConfigEvpn, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
 								"protocols evpn | display set relative", jnprSess)
 							if err != nil {
 								return confRead, err
 							}
 						}
-						if showConfigEvpn != emptyWord {
+						if showConfigEvpn != emptyW {
 							for _, item := range strings.Split(showConfigEvpn, "\n") {
 								if strings.Contains(item, "<configuration-output>") {
 									continue
@@ -584,7 +584,7 @@ func readBridgeDomain(name string, instance string, m interface{},
 								if strings.Contains(item, "</configuration-output>") {
 									break
 								}
-								itemTrim := strings.TrimPrefix(item, setLineStart)
+								itemTrim := strings.TrimPrefix(item, setLS)
 								if strings.HasPrefix(itemTrim, "extended-vni-list "+strconv.Itoa(vxlan["vni"].(int))) {
 									vxlan["vni_extend_evpn"] = true
 								}
@@ -620,7 +620,7 @@ func delBridgeDomainOpts(
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	delPrefix := deleteLS
-	if instance != defaultWord {
+	if instance != defaultW {
 		delPrefix = delRoutingInstances + instance + " "
 	}
 	delPrefix += "bridge-domains \"" + name + "\" "
@@ -640,7 +640,7 @@ func delBridgeDomainOpts(
 	for _, v := range vxlan {
 		vxlanParams := v.(map[string]interface{})
 		if vxlanParams["vni_extend_evpn"].(bool) {
-			if instance == defaultWord {
+			if instance == defaultW {
 				configSet = append(configSet, deleteLS+
 					"protocols evpn extended-vni-list "+strconv.Itoa(vxlanParams["vni"].(int)))
 			} else {
@@ -656,7 +656,7 @@ func delBridgeDomainOpts(
 func delBridgeDomain(name string, instance string, vxlan []interface{}, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	if instance == defaultWord {
+	if instance == defaultW {
 		configSet = append(configSet, "delete bridge-domains \""+name+"\"")
 	} else {
 		configSet = append(configSet, delRoutingInstances+instance+" bridge-domains \""+name+"\"")
@@ -664,7 +664,7 @@ func delBridgeDomain(name string, instance string, vxlan []interface{}, m interf
 	for _, v := range vxlan {
 		vxlanParams := v.(map[string]interface{})
 		if vxlanParams["vni_extend_evpn"].(bool) {
-			if instance == defaultWord {
+			if instance == defaultW {
 				configSet = append(configSet, deleteLS+
 					"protocols evpn extended-vni-list "+strconv.Itoa(vxlanParams["vni"].(int)))
 			} else {

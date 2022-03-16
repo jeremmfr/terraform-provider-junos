@@ -34,7 +34,7 @@ func resourceEvpn() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          defaultWord,
+				Default:          defaultW,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"routing_instance_evpn": {
@@ -127,7 +127,7 @@ func resourceEvpnCreate(ctx context.Context, d *schema.ResourceData, m interface
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -171,7 +171,7 @@ func resourceEvpnRead(ctx context.Context, d *schema.ResourceData, m interface{}
 
 func resourceEvpnReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			mutex.Unlock()
@@ -284,7 +284,7 @@ func resourceEvpnImport(d *schema.ResourceData, m interface{}) ([]*schema.Resour
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
 	idList := strings.Split(d.Id(), idSeparator)
-	if idList[0] != defaultWord {
+	if idList[0] != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(idList[0], m, jnprSess)
 		if err != nil {
 			return nil, err
@@ -302,7 +302,7 @@ func resourceEvpnImport(d *schema.ResourceData, m interface{}) ([]*schema.Resour
 			"(id must be <routing_instance>)", d.Id())
 	}
 	fillEvpnData(d, evpnOptions)
-	if len(idList) > 1 || idList[0] == defaultWord {
+	if len(idList) > 1 || idList[0] == defaultW {
 		if tfErr := d.Set("switch_or_ri_options", evpnOptions.switchOrRIOptions); tfErr != nil {
 			panic(tfErr)
 		}
@@ -315,17 +315,17 @@ func resourceEvpnImport(d *schema.ResourceData, m interface{}) ([]*schema.Resour
 func setEvpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
-	setPrefix := setLineStart
-	setPrefixSwitchRIVRF := setLineStart
-	if d.Get("routing_instance").(string) == defaultWord {
+	setPrefix := setLS
+	setPrefixSwitchRIVRF := setLS
+	if d.Get("routing_instance").(string) == defaultW {
 		if len(d.Get("switch_or_ri_options").([]interface{})) == 0 {
-			return fmt.Errorf("`switch_or_ri_options` required if `routing_instance` = %s", defaultWord)
+			return fmt.Errorf("`switch_or_ri_options` required if `routing_instance` = %s", defaultW)
 		}
 		if d.Get("routing_instance_evpn").(bool) {
-			return fmt.Errorf("`routing_instance_evpn` incompatible if `routing_instance` = %s", defaultWord)
+			return fmt.Errorf("`routing_instance_evpn` incompatible if `routing_instance` = %s", defaultW)
 		}
 		if v := d.Get("default_gateway").(string); v != "" {
-			return fmt.Errorf("`default_gateway` incompatible if `routing_instance` = %s", defaultWord)
+			return fmt.Errorf("`default_gateway` incompatible if `routing_instance` = %s", defaultW)
 		}
 		setPrefix += "protocols evpn "
 		setPrefixSwitchRIVRF += "switch-options "
@@ -382,7 +382,7 @@ func readEvpn(routingInstance string,
 	var showConfig string
 	var showConfigSwitchRI string
 
-	if routingInstance == defaultWord {
+	if routingInstance == defaultW {
 		var err error
 		showConfig, err = sess.command(cmdShowConfig+"protocols evpn | display set relative", jnprSess)
 		if err != nil {
@@ -394,19 +394,19 @@ func readEvpn(routingInstance string,
 		}
 	} else {
 		var err error
-		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
 			"protocols evpn | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
-		showConfigSwitchRI, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+
+		showConfigSwitchRI, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+
 			" | display set relative", jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	}
 
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.routingInstance = routingInstance
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -415,7 +415,7 @@ func readEvpn(routingInstance string,
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "default-gateway "):
 				confRead.defaultGateway = strings.TrimPrefix(itemTrim, "default-gateway ")
@@ -426,7 +426,7 @@ func readEvpn(routingInstance string,
 			}
 		}
 	}
-	if showConfigSwitchRI != emptyWord {
+	if showConfigSwitchRI != emptyW {
 		for _, item := range strings.Split(showConfigSwitchRI, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
@@ -434,7 +434,7 @@ func readEvpn(routingInstance string,
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case itemTrim == "instance-type evpn":
 				confRead.routingInstanceEvpn = true
@@ -484,7 +484,7 @@ func delEvpn(destroy bool, d *schema.ResourceData, m interface{}, jnprSess *Netc
 
 	delPrefix := "delete protocols evpn "
 	delPrefixSwitchRIVRF := "delete switch-options "
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		delPrefix = delRoutingInstances + d.Get("routing_instance").(string) + " protocols evpn "
 		delPrefixSwitchRIVRF = delRoutingInstances + d.Get("routing_instance").(string) + " "
 	}

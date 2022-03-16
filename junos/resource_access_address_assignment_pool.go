@@ -42,7 +42,7 @@ func resourceAccessAddressAssignPool() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          defaultWord,
+				Default:          defaultW,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"family": {
@@ -54,7 +54,7 @@ func resourceAccessAddressAssignPool() *schema.Resource {
 						"type": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{inetWord, inet6Word}, false),
+							ValidateFunc: validation.StringInSlice([]string{inetW, inet6W}, false),
 						},
 						"network": {
 							Type:         schema.TypeString,
@@ -467,7 +467,7 @@ func resourceAccessAddressAssignPoolCreate(ctx context.Context,
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -669,21 +669,21 @@ func checkAccessAddressAssignPoolExists(name string, instance string, m interfac
 	sess := m.(*Session)
 	var showConfig string
 	var err error
-	if instance == defaultWord {
+	if instance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
 			"access address-assignment pool "+name+" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
-		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+instance+" "+
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
 			"access address-assignment pool "+name+" | display set", jnprSess)
 		if err != nil {
 			return false, err
 		}
 	}
 
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -694,8 +694,8 @@ func setAccessAddressAssignPool(d *schema.ResourceData, m interface{}, jnprSess 
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 
-	setPrefix := setLineStart
-	if d.Get("routing_instance").(string) != defaultWord {
+	setPrefix := setLS
+	if d.Get("routing_instance").(string) != defaultW {
 		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
 	setPrefix += "access address-assignment pool " + d.Get("name").(string) + " "
@@ -728,9 +728,9 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 	setPrefixFamily := setPrefix + "family inet "
 
 	switch family["type"].(string) {
-	case inetWord:
+	case inetW:
 		configSet = append(configSet, setPrefixFamily+"network "+family["network"].(string))
-	case inet6Word:
+	case inet6W:
 		setPrefixFamily = setPrefix + "family inet6 "
 		configSet = append(configSet, setPrefixFamily+"prefix "+family["network"].(string))
 	}
@@ -747,11 +747,11 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 	}
 	for _, v := range sortSetOfString(family["excluded_address"].(*schema.Set).List()) {
 		switch family["type"].(string) {
-		case inetWord:
+		case inetW:
 			if _, errs := validation.IsIPv4Address(v, "family.0.excluded_address"); len(errs) > 0 {
 				return configSet, errs[0]
 			}
-		case inet6Word:
+		case inet6W:
 			if _, errs := validateIsIPv6Address(v, "family.0.excluded_address"); len(errs) > 0 {
 				return configSet, errs[0]
 			}
@@ -772,7 +772,7 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 	}
 	hostNameList := make([]string, 0)
 	for _, v := range family["host"].([]interface{}) {
-		if family["type"].(string) == inet6Word {
+		if family["type"].(string) == inet6W {
 			return configSet, fmt.Errorf("host not compatible when type = inet6")
 		}
 		host := v.(map[string]interface{})
@@ -787,7 +787,7 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 	}
 	rangeNameList := make([]string, 0)
 	switch family["type"].(string) {
-	case inetWord:
+	case inetW:
 		if len(family["inet6_range"].([]interface{})) > 0 {
 			return configSet, fmt.Errorf("inet6_range not compatible when type = inet")
 		}
@@ -802,7 +802,7 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 			configSet = append(configSet,
 				setPrefixFamily+"range "+rangeBlck["name"].(string)+" high "+rangeBlck["high"].(string))
 		}
-	case inet6Word:
+	case inet6W:
 		if len(family["inet_range"].([]interface{})) > 0 {
 			return configSet, fmt.Errorf("inet_range not compatible when type = inet6")
 		}
@@ -831,7 +831,7 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 		}
 	}
 	if v := family["xauth_attributes_primary_dns"].(string); v != "" {
-		if family["type"].(string) == inet6Word {
+		if family["type"].(string) == inet6W {
 			return configSet, fmt.Errorf("xauth_attributes_primary_dns not compatible when type = inet6")
 		}
 		if _, errs := validation.IsIPv4Address(strings.Split(v, "/")[0], ""); len(errs) > 0 {
@@ -840,7 +840,7 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 		configSet = append(configSet, setPrefixFamily+"xauth-attributes primary-dns "+v)
 	}
 	if v := family["xauth_attributes_primary_wins"].(string); v != "" {
-		if family["type"].(string) == inet6Word {
+		if family["type"].(string) == inet6W {
 			return configSet, fmt.Errorf("xauth_attributes_primary_wins not compatible when type = inet6")
 		}
 		if _, errs := validation.IsIPv4Address(strings.Split(v, "/")[0], ""); len(errs) > 0 {
@@ -849,7 +849,7 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 		configSet = append(configSet, setPrefixFamily+"xauth-attributes primary-wins "+v)
 	}
 	if v := family["xauth_attributes_secondary_dns"].(string); v != "" {
-		if family["type"].(string) == inet6Word {
+		if family["type"].(string) == inet6W {
 			return configSet, fmt.Errorf("xauth_attributes_secondary_dns not compatible when type = inet6")
 		}
 		if _, errs := validation.IsIPv4Address(strings.Split(v, "/")[0], ""); len(errs) > 0 {
@@ -858,7 +858,7 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 		configSet = append(configSet, setPrefixFamily+"xauth-attributes secondary-dns "+v)
 	}
 	if v := family["xauth_attributes_secondary_wins"].(string); v != "" {
-		if family["type"].(string) == inet6Word {
+		if family["type"].(string) == inet6W {
 			return configSet, fmt.Errorf("xauth_attributes_secondary_wins not compatible when type = inet6")
 		}
 		if _, errs := validation.IsIPv4Address(strings.Split(v, "/")[0], ""); len(errs) > 0 {
@@ -881,7 +881,7 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(
 		configSet = append(configSet, setPrefix+"boot-server "+v)
 	}
 	for _, v := range dhcpAttr["dns_server"].([]interface{}) {
-		if familyType == inetWord {
+		if familyType == inetW {
 			return configSet, fmt.Errorf("dhcp_attributes.0.dns_server not compatible when type = inet")
 		}
 		if _, errs := validateIsIPv6Address(v, "dhcp_attributes.0.dns_server"); len(errs) > 0 {
@@ -894,7 +894,7 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(
 		configSet = append(configSet, setPrefix+"domain-name "+v)
 	}
 	if v := dhcpAttr["exclude_prefix_len"].(int); v != 0 {
-		if familyType == inetWord {
+		if familyType == inetW {
 			return configSet, fmt.Errorf("dhcp_attributes.0.exclude_prefix_len not compatible when type = inet")
 		}
 		configSet = append(configSet, setPrefix+"exclude-prefix-len "+strconv.Itoa(v))
@@ -954,13 +954,13 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(
 				"remote-id \""+opt["value"].(string)+"\" range \""+opt["range"].(string)+"\"")
 	}
 	if v := dhcpAttr["preferred_lifetime"].(int); v != -1 {
-		if familyType == inetWord {
+		if familyType == inetW {
 			return configSet, fmt.Errorf("dhcp_attributes.0.preferred_lifetime not compatible when type = inet")
 		}
 		configSet = append(configSet, setPrefix+"preferred-lifetime "+strconv.Itoa(v))
 	}
 	if dhcpAttr["preferred_lifetime_infinite"].(bool) {
-		if familyType == inetWord {
+		if familyType == inetW {
 			return configSet, fmt.Errorf("dhcp_attributes.0.preferred_lifetime_infinite not compatible when type = inet")
 		}
 		configSet = append(configSet, setPrefix+"preferred-lifetime infinite")
@@ -987,7 +987,7 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(
 		configSet = append(configSet, setPrefix+"sip-server ip-address "+v.(string))
 	}
 	for _, v := range dhcpAttr["sip_server_inet6_address"].([]interface{}) {
-		if familyType == inetWord {
+		if familyType == inetW {
 			return configSet, fmt.Errorf("dhcp_attributes.0.sip_server_inet6_address not compatible when type = inet")
 		}
 		if _, errs := validateIsIPv6Address(v.(string), "dhcp_attributes.0.sip_server_inet6_address"); len(errs) > 0 {
@@ -999,7 +999,7 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(
 		configSet = append(configSet, setPrefix+"sip-server name \""+v.(string)+"\"")
 	}
 	if v := dhcpAttr["sip_server_inet6_domain_name"].(string); v != "" {
-		if familyType == inetWord {
+		if familyType == inetW {
 			return configSet, fmt.Errorf("dhcp_attributes.0.sip_server_inet6_domain_name not compatible when type = inet")
 		}
 		configSet = append(configSet, setPrefix+"sip-server-domain-name \""+v+"\"")
@@ -1020,13 +1020,13 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(
 		configSet = append(configSet, setPrefix+"tftp-server "+v)
 	}
 	if v := dhcpAttr["valid_lifetime"].(int); v != -1 {
-		if familyType == inetWord {
+		if familyType == inetW {
 			return configSet, fmt.Errorf("dhcp_attributes.0.valid_lifetime not compatible when type = inet")
 		}
 		configSet = append(configSet, setPrefix+"valid-lifetime "+strconv.Itoa(v))
 	}
 	if dhcpAttr["valid_lifetime_infinite"].(bool) {
-		if familyType == inetWord {
+		if familyType == inetW {
 			return configSet, fmt.Errorf("dhcp_attributes.0.valid_lifetime_infinite not compatible when type = inet")
 		}
 		configSet = append(configSet, setPrefix+"valid-lifetime infinite")
@@ -1051,18 +1051,18 @@ func readAccessAddressAssignPool(name string, instance string, m interface{},
 	var showConfig string
 	var err error
 
-	if instance == defaultWord {
+	if instance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
 			"access address-assignment pool "+name+" | display set relative", jnprSess)
 	} else {
-		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+instance+" "+
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
 			"access address-assignment pool "+name+" | display set relative", jnprSess)
 	}
 	if err != nil {
 		return confRead, err
 	}
 
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		confRead.routingInstance = instance
 		for _, item := range strings.Split(showConfig, "\n") {
@@ -1072,7 +1072,7 @@ func readAccessAddressAssignPool(name string, instance string, m interface{},
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "family "):
 				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "family "), " ")
@@ -1288,7 +1288,7 @@ func readAccessAddressAssignPoolFamily(itemTrim string, family map[string]interf
 		}
 		family["host"] = append(family["host"].([]map[string]interface{}), familyHost)
 	case strings.HasPrefix(itemTrim, "range "):
-		if family["type"] == inetWord {
+		if family["type"] == inetW {
 			itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "range "), " ")
 			familyInetRange := map[string]interface{}{
 				"name": itemTrimSplit[0],
@@ -1305,7 +1305,7 @@ func readAccessAddressAssignPoolFamily(itemTrim string, family map[string]interf
 				familyInetRange["high"] = strings.TrimPrefix(itemTrimRange, "high ")
 			}
 			family["inet_range"] = append(family["inet_range"].([]map[string]interface{}), familyInetRange)
-		} else if family["type"] == inet6Word {
+		} else if family["type"] == inet6W {
 			itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "range "), " ")
 			familyInet6Range := map[string]interface{}{
 				"name":          itemTrimSplit[0],
@@ -1345,7 +1345,7 @@ func readAccessAddressAssignPoolFamily(itemTrim string, family map[string]interf
 func delAccessAddressAssignPool(name string, instance string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	if instance == defaultWord {
+	if instance == defaultW {
 		configSet = append(configSet, "delete access address-assignment pool "+name)
 	} else {
 		configSet = append(configSet, delRoutingInstances+instance+" access address-assignment pool "+name)

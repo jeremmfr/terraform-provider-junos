@@ -257,7 +257,7 @@ func checkSnmpV3VacmSecurityToGroupExists(model, name string, m interface{}, jnp
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -290,7 +290,7 @@ func readSnmpV3VacmSecurityToGroup(model, name string, m interface{}, jnprSess *
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.model = model
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
@@ -300,8 +300,8 @@ func readSnmpV3VacmSecurityToGroup(model, name string, m interface{}, jnprSess *
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			if strings.HasPrefix(item, setLineStart+"group ") {
-				confRead.group = strings.Trim(strings.TrimPrefix(item, setLineStart+"group "), "\"")
+			if strings.HasPrefix(item, setLS+"group ") {
+				confRead.group = strings.Trim(strings.TrimPrefix(item, setLS+"group "), "\"")
 			}
 		}
 	}

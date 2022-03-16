@@ -41,7 +41,7 @@ func resourceSecurityUtmProfileWebFilteringLocal() *schema.Resource {
 			"default_action": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitWord}, false),
+				ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitW}, false),
 			},
 			"fallback_settings": {
 				Type:     schema.TypeList,
@@ -283,7 +283,7 @@ func checkUtmProfileWebFLocalExists(profile string, m interface{}, jnprSess *Net
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -342,7 +342,7 @@ func readUtmProfileWebFLocal(profile string, m interface{}, jnprSess *NetconfObj
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = profile
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -351,7 +351,7 @@ func readUtmProfileWebFLocal(profile string, m interface{}, jnprSess *NetconfObj
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "custom-block-message "):
 				confRead.customBlockMessage = strings.Trim(strings.TrimPrefix(itemTrim, "custom-block-message "), "\"")

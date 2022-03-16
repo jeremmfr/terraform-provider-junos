@@ -77,7 +77,7 @@ func (sess *Session) command(cmd string, jnpr *NetconfObject) (string, error) {
 	sess.logFile(fmt.Sprintf("[command] cmd: %q", cmd))
 	sess.logFile(fmt.Sprintf("[command] read: %q", read))
 	sleepShort(sess.junosSleepShort)
-	if err != nil && read != emptyWord {
+	if err != nil && read != emptyW {
 		sess.logFile(fmt.Sprintf("[command] err: %q", err))
 
 		return "", err

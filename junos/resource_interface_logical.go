@@ -1013,9 +1013,9 @@ func checkInterfaceLogicalNCEmpty(interFace string, m interface{}, jnprSess *Net
 		return true, false, false, nil
 	}
 	switch {
-	case showConfig == setLineStart:
+	case showConfig == setLS:
 		return false, true, true, nil
-	case showConfig == emptyWord:
+	case showConfig == emptyW:
 		return false, true, false, nil
 	default:
 		return false, false, false, nil
@@ -1038,7 +1038,7 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 		configSet = append(configSet, setPrefix+"family inet")
 		if v != nil {
 			familyInet := v.(map[string]interface{})
-			configSetFamilyInet, err := setFamilyAddress(familyInet, setPrefix, inetWord)
+			configSetFamilyInet, err := setFamilyAddress(familyInet, setPrefix, inetW)
 			if err != nil {
 				return err
 			}
@@ -1083,7 +1083,7 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 		configSet = append(configSet, setPrefix+"family inet6")
 		if v != nil {
 			familyInet6 := v.(map[string]interface{})
-			configSetFamilyInet6, err := setFamilyAddress(familyInet6, setPrefix, inet6Word)
+			configSetFamilyInet6, err := setFamilyAddress(familyInet6, setPrefix, inet6W)
 			if err != nil {
 				return err
 			}
@@ -1161,7 +1161,7 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 		return confRead, err
 	}
 
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
 			// exclude ethernet-switching (parameters in junos_interface_physical)
 			if strings.Contains(item, "ethernet-switching") {
@@ -1173,7 +1173,7 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
@@ -1195,7 +1195,7 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 				case strings.HasPrefix(itemTrim, "family inet6 address "):
 					var err error
 					confRead.familyInet6[0]["address"], err = readFamilyInetAddress(
-						itemTrim, confRead.familyInet6[0]["address"].([]map[string]interface{}), inet6Word)
+						itemTrim, confRead.familyInet6[0]["address"].([]map[string]interface{}), inet6W)
 					if err != nil {
 						return confRead, err
 					}
@@ -1270,7 +1270,7 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 				case strings.HasPrefix(itemTrim, "family inet address "):
 					var err error
 					confRead.familyInet[0]["address"], err = readFamilyInetAddress(
-						itemTrim, confRead.familyInet[0]["address"].([]map[string]interface{}), inetWord)
+						itemTrim, confRead.familyInet[0]["address"].([]map[string]interface{}), inetW)
 					if err != nil {
 						return confRead, err
 					}
@@ -1349,7 +1349,7 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 			}
 		}
 	}
-	showConfigRoutingInstances, err := sess.command(cmdShowConfig+routingInstancesW+"| display set relative", jnprSess)
+	showConfigRoutingInstances, err := sess.command(cmdShowConfig+routingInstancesWS+"| display set relative", jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -1357,8 +1357,7 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 	for _, item := range strings.Split(showConfigRoutingInstances, "\n") {
 		intMatch := regexpInt.MatchString(item)
 		if intMatch {
-			confRead.routingInstance = strings.TrimPrefix(strings.TrimSuffix(item, " interface "+interFace),
-				setLineStart)
+			confRead.routingInstance = strings.TrimPrefix(strings.TrimSuffix(item, " interface "+interFace), setLS)
 
 			break
 		}
@@ -1396,7 +1395,7 @@ func readInterfaceLogicalSecurityInboundTraffic(interFace string, confRead *inte
 		return err
 	}
 
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
@@ -1404,7 +1403,7 @@ func readInterfaceLogicalSecurityInboundTraffic(interFace string, confRead *inte
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "host-inbound-traffic protocols "):
 				confRead.securityInboundProtocols = append(confRead.securityInboundProtocols,
@@ -1510,10 +1509,10 @@ func readFamilyInetAddress(item string, inetAddress []map[string]interface{},
 	var addressConfig []string
 	var itemTrim string
 	switch family {
-	case inetWord:
+	case inetW:
 		addressConfig = strings.Split(strings.TrimPrefix(item, "family inet address "), " ")
 		itemTrim = strings.TrimPrefix(item, "family inet address "+addressConfig[0]+" ")
-	case inet6Word:
+	case inet6W:
 		addressConfig = strings.Split(strings.TrimPrefix(item, "family inet6 address "), " ")
 		itemTrim = strings.TrimPrefix(item, "family inet6 address "+addressConfig[0]+" ")
 	}
@@ -1733,18 +1732,18 @@ func readFamilyInet6Dhcpv6Client(item string, dhcp map[string]interface{}) error
 
 func setFamilyAddress(inetAddress map[string]interface{}, setPrefix string, family string) ([]string, error) {
 	configSet := make([]string, 0)
-	if family != inetWord && family != inet6Word {
+	if family != inetW && family != inet6W {
 		panic(fmt.Sprintf("setFamilyAddress() unknown family %v", family))
 	}
 	addressCIDRIPList := make([]string, 0)
 	for _, address := range inetAddress["address"].([]interface{}) {
 		addressMap := address.(map[string]interface{})
 		if bchk.StringInSlice(addressMap["cidr_ip"].(string), addressCIDRIPList) {
-			if family == inetWord {
+			if family == inetW {
 				return configSet, fmt.Errorf("multiple blocks family_inet with the same cidr_ip %s",
 					addressMap["cidr_ip"].(string))
 			}
-			if family == inet6Word {
+			if family == inet6W {
 				return configSet, fmt.Errorf("multiple blocks family_inet6 with the same cidr_ip %s",
 					addressMap["cidr_ip"].(string))
 			}
@@ -1777,7 +1776,7 @@ func setFamilyAddress(inetAddress map[string]interface{}, setPrefix string, fami
 			vrrpGroupIDList = append(vrrpGroupIDList, vrrpGroupMap["identifier"].(int))
 			var setNameAddVrrp string
 			switch family {
-			case inetWord:
+			case inetW:
 				setNameAddVrrp = setPrefixAddress + " vrrp-group " + strconv.Itoa(vrrpGroupMap["identifier"].(int))
 				for _, ip := range vrrpGroupMap["virtual_address"].([]interface{}) {
 					_, errs := validation.IsIPAddress(ip, "virtual_address")
@@ -1798,7 +1797,7 @@ func setFamilyAddress(inetAddress map[string]interface{}, setPrefix string, fami
 					configSet = append(configSet, setNameAddVrrp+" authentication-type "+
 						vrrpGroupMap["authentication_type"].(string))
 				}
-			case inet6Word:
+			case inet6W:
 				setNameAddVrrp = setPrefixAddress + " vrrp-inet6-group " + strconv.Itoa(vrrpGroupMap["identifier"].(int))
 				for _, ip := range vrrpGroupMap["virtual_address"].([]interface{}) {
 					_, errs := validation.IsIPAddress(ip, "virtual_address")
@@ -1991,11 +1990,11 @@ func genVRRPGroup(family string) map[string]interface{} {
 		"track_interface":          make([]map[string]interface{}, 0),
 		"track_route":              make([]map[string]interface{}, 0),
 	}
-	if family == inetWord {
+	if family == inetW {
 		vrrpGroup["authentication_key"] = ""
 		vrrpGroup["authentication_type"] = ""
 	}
-	if family == inet6Word {
+	if family == inet6W {
 		vrrpGroup["virtual_link_local_address"] = ""
 	}
 

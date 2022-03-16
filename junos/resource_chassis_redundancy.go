@@ -296,7 +296,7 @@ func readChassisRedundancy(m interface{}, jnprSess *NetconfObject) (chassisRedun
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
@@ -304,7 +304,7 @@ func readChassisRedundancy(m interface{}, jnprSess *NetconfObject) (chassisRedun
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "failover disk-read-threshold "):
 				var err error

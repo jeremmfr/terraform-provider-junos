@@ -116,7 +116,7 @@ func resourceSecurityNatStatic() *schema.Resource {
 									"type": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validation.StringInSlice([]string{inetWord, "prefix", "prefix-name"}, false),
+										ValidateFunc: validation.StringInSlice([]string{inetW, "prefix", "prefix-name"}, false),
 									},
 									"mapped_port": {
 										Type:         schema.TypeInt,
@@ -388,7 +388,7 @@ func checkSecurityNatStaticExists(name string, m interface{}, jnprSess *NetconfO
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -454,7 +454,7 @@ func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *Netco
 			}
 			for _, thenV := range rule["then"].([]interface{}) {
 				then := thenV.(map[string]interface{})
-				if then["type"].(string) == inetWord {
+				if then["type"].(string) == inetW {
 					if then["routing_instance"].(string) == "" {
 						return fmt.Errorf("missing routing_instance in rule %s with type = inet", rule["name"].(string))
 					}
@@ -515,7 +515,7 @@ func readSecurityNatStatic(name string, m interface{}, jnprSess *NetconfObject) 
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -524,7 +524,7 @@ func readSecurityNatStatic(name string, m interface{}, jnprSess *NetconfObject) 
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "from "):
 				fromWords := strings.Split(strings.TrimPrefix(itemTrim, "from "), " ")
@@ -621,7 +621,7 @@ func readSecurityNatStatic(name string, m interface{}, jnprSess *NetconfObject) 
 							ruleThenOptions["prefix"] = strings.Trim(itemThen, "\"")
 						}
 					case strings.HasPrefix(itemThen, "inet "):
-						ruleThenOptions["type"] = inetWord
+						ruleThenOptions["type"] = inetW
 						ruleThenOptions["routing_instance"] = strings.TrimPrefix(itemThen, "inet routing-instance ")
 					}
 				}

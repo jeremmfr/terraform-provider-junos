@@ -349,7 +349,7 @@ func checkSnmpV3UsmUserExists(name, engineType, engineID string, m interface{}, 
 		if err != nil {
 			return false, err
 		}
-		if showConfig == emptyWord {
+		if showConfig == emptyW {
 			return false, nil
 		}
 	} else {
@@ -358,7 +358,7 @@ func checkSnmpV3UsmUserExists(name, engineType, engineID string, m interface{}, 
 		if err != nil {
 			return false, err
 		}
-		if showConfig == emptyWord {
+		if showConfig == emptyW {
 			return false, nil
 		}
 	}
@@ -443,7 +443,7 @@ func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, m interface{}, jnprSess *Ne
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = confSrc.name
 		confRead.engineType = confSrc.engineType
 		confRead.engineID = confSrc.engineID
@@ -454,7 +454,7 @@ func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, m interface{}, jnprSess *Ne
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "authentication-md5 authentication-key "):
 				confRead.authenticationType = "authentication-md5"

@@ -328,7 +328,7 @@ func checkUtmPolicysExists(policy string, m interface{}, jnprSess *NetconfObject
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -440,7 +440,7 @@ func readUtmPolicy(policy string, m interface{}, jnprSess *NetconfObject) (
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = policy
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -449,7 +449,7 @@ func readUtmPolicy(policy string, m interface{}, jnprSess *NetconfObject) (
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "anti-spam smtp-profile "):
 				confRead.antiSpamSMTPProfile = strings.Trim(strings.TrimPrefix(itemTrim, "anti-spam smtp-profile "), "\"")

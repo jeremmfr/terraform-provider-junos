@@ -241,7 +241,7 @@ func checkUtmCustomURLCategorysExists(urlCategory string, m interface{}, jnprSes
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -270,7 +270,7 @@ func readUtmCustomURLCategory(urlCategory string, m interface{}, jnprSess *Netco
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = urlCategory
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -279,7 +279,7 @@ func readUtmCustomURLCategory(urlCategory string, m interface{}, jnprSess *Netco
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			if strings.HasPrefix(itemTrim, "value ") {
 				confRead.value = append(confRead.value, strings.TrimPrefix(itemTrim, "value "))
 			}

@@ -314,7 +314,7 @@ func checkSystemRadiusServerExists(address string, m interface{}, jnprSess *Netc
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -390,7 +390,7 @@ func readSystemRadiusServer(address string, m interface{}, jnprSess *NetconfObje
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.address = address
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -399,7 +399,7 @@ func readSystemRadiusServer(address string, m interface{}, jnprSess *NetconfObje
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "accounting-port "):
 				var err error

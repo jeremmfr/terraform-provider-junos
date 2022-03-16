@@ -44,7 +44,7 @@ func resourceVstpVlan() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          defaultWord,
+				Default:          defaultW,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"backup_bridge_priority": {
@@ -102,7 +102,7 @@ func resourceVstpVlanCreate(ctx context.Context, d *schema.ResourceData, m inter
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if routingInstance != defaultWord {
+	if routingInstance != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(routingInstance, m, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -124,7 +124,7 @@ func resourceVstpVlanCreate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	if vstpVlanExists {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
-		if routingInstance != defaultWord {
+		if routingInstance != defaultW {
 			return append(diagWarns, diag.FromErr(fmt.Errorf(
 				"protocols vstp vlan %v already exists in routing-instance %v", vlanID, routingInstance))...)
 		}
@@ -150,7 +150,7 @@ func resourceVstpVlanCreate(ctx context.Context, d *schema.ResourceData, m inter
 	if vstpVlanExists {
 		d.SetId(vlanID + idSeparator + routingInstance)
 	} else {
-		if routingInstance != defaultWord {
+		if routingInstance != defaultW {
 			return append(diagWarns, diag.FromErr(fmt.Errorf(
 				"protocols vstp vlan %v not exists in routing-instance %v after commit "+
 					"=> check your config", vlanID, routingInstance))...)
@@ -302,17 +302,17 @@ func checkVstpVlanExists(vlanID, routingInstance string, m interface{}, jnprSess
 	sess := m.(*Session)
 	var showConfig string
 	var err error
-	if routingInstance == defaultWord {
+	if routingInstance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
 			"protocols vstp vlan "+vlanID+" | display set", jnprSess)
 	} else {
-		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
 			"protocols vstp vlan "+vlanID+" | display set", jnprSess)
 	}
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -323,8 +323,8 @@ func setVstpVlan(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 
-	setPrefix := setLineStart
-	if rI := d.Get("routing_instance").(string); rI != defaultWord {
+	setPrefix := setLS
+	if rI := d.Get("routing_instance").(string); rI != defaultW {
 		setPrefix = setRoutingInstances + rI + " "
 	}
 	setPrefix += "protocols vstp vlan " + d.Get("vlan_id").(string) + " "
@@ -358,17 +358,17 @@ func readVstpVlan(vlanID, routingInstance string, m interface{}, jnprSess *Netco
 	var confRead vstpVlanOptions
 	var showConfig string
 	var err error
-	if routingInstance == defaultWord {
+	if routingInstance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
 			"protocols vstp vlan "+vlanID+" | display set relative", jnprSess)
 	} else {
-		showConfig, err = sess.command(cmdShowConfig+routingInstancesW+routingInstance+" "+
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
 			"protocols vstp vlan "+vlanID+" | display set relative", jnprSess)
 	}
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.vlanID = vlanID
 		confRead.routingInstance = routingInstance
 		for _, item := range strings.Split(showConfig, "\n") {
@@ -378,7 +378,7 @@ func readVstpVlan(vlanID, routingInstance string, m interface{}, jnprSess *Netco
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "backup-bridge-priority "):
 				confRead.backupBridgePriority = strings.TrimPrefix(itemTrim, "backup-bridge-priority ")
@@ -415,7 +415,7 @@ func delVstpVlan(vlanID, routingInstance string, deleteAll bool, m interface{}, 
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	delPrefix := deleteLS
-	if routingInstance != defaultWord {
+	if routingInstance != defaultW {
 		delPrefix = delRoutingInstances + routingInstance + " "
 	}
 	delPrefix += "protocols vstp vlan " + vlanID + " "

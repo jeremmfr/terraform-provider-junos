@@ -1013,7 +1013,7 @@ func checkSecurityIdpCustomAttackExists(customAttack string, m interface{}, jnpr
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -1530,7 +1530,7 @@ func readSecurityIdpCustomAttack(customAttack string, m interface{}, jnprSess *N
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = customAttack
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -1539,7 +1539,7 @@ func readSecurityIdpCustomAttack(customAttack string, m interface{}, jnprSess *N
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "recommended-action "):
 				confRead.recommendedAction = strings.TrimPrefix(itemTrim, "recommended-action ")

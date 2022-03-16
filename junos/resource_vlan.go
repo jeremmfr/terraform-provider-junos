@@ -353,7 +353,7 @@ func checkVlansExists(vlan string, m interface{}, jnprSess *NetconfObject) (bool
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -437,7 +437,7 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = vlan
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -446,7 +446,7 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "community-vlans "):
 				commVlan, err := strconv.Atoi(strings.TrimPrefix(itemTrim, "community-vlans "))
@@ -507,7 +507,7 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 						if err != nil {
 							return confRead, err
 						}
-						if showConfigEvpn != emptyWord {
+						if showConfigEvpn != emptyW {
 							for _, item := range strings.Split(showConfigEvpn, "\n") {
 								if strings.Contains(item, "<configuration-output>") {
 									continue
@@ -515,7 +515,7 @@ func readVlan(vlan string, m interface{}, jnprSess *NetconfObject) (vlanOptions,
 								if strings.Contains(item, "</configuration-output>") {
 									break
 								}
-								itemTrim := strings.TrimPrefix(item, setLineStart)
+								itemTrim := strings.TrimPrefix(item, setLS)
 								if strings.HasPrefix(itemTrim, "extended-vni-list "+strconv.Itoa(vxlan["vni"].(int))) {
 									vxlan["vni_extend_evpn"] = true
 								}

@@ -320,7 +320,7 @@ func checkSnmpV3VacmAccessGroupExists(name string, m interface{}, jnprSess *Netc
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -413,7 +413,7 @@ func readSnmpV3VacmAccessGroup(name string, m interface{}, jnprSess *NetconfObje
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
@@ -422,7 +422,7 @@ func readSnmpV3VacmAccessGroup(name string, m interface{}, jnprSess *NetconfObje
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "default-context-prefix security-model ") &&
 				strings.Contains(itemTrim, " security-level "):

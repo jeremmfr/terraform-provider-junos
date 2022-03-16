@@ -202,7 +202,7 @@ func (j *NetconfObject) netconfCommand(cmd string) (string, error) {
 		}
 	}
 	if reply.Data == "" || strings.Count(reply.Data, "") <= 2 {
-		return emptyWord, errors.New("no output available - please check the syntax of your command")
+		return emptyW, errors.New("no output available - please check the syntax of your command")
 	}
 	var output commandXMLConfig
 	if err := xml.Unmarshal([]byte(reply.Data), &output); err != nil {

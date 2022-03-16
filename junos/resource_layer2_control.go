@@ -267,7 +267,7 @@ func resourceLayer2ControlImport(d *schema.ResourceData, m interface{}) ([]*sche
 func setLayer2Control(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
-	setPrefix := setLineStart + "protocols layer2-control "
+	setPrefix := "set protocols layer2-control "
 
 	for _, mBpduBlock := range d.Get("bpdu_block").([]interface{}) {
 		configSet = append(configSet, setPrefix+"bpdu-block")
@@ -327,7 +327,7 @@ func readLayer2Control(m interface{}, jnprSess *NetconfObject) (layer2ControlOpt
 		return confRead, err
 	}
 
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, "<configuration-output>") {
 				continue
@@ -335,7 +335,7 @@ func readLayer2Control(m interface{}, jnprSess *NetconfObject) (layer2ControlOpt
 			if strings.Contains(item, "</configuration-output>") {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "bpdu-block"):
 				if len(confRead.bpduBlock) == 0 {
