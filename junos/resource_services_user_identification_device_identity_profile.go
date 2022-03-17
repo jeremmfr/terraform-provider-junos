@@ -262,7 +262,7 @@ func checkServicesUserIdentDeviceIdentityProfileExists(
 	profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"services user-identification device-information end-user-profile profile-name "+profile+" | display set", jnprSess)
+		"services user-identification device-information end-user-profile profile-name "+profile+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -303,17 +303,17 @@ func readServicesUserIdentDeviceIdentityProfile(profile string, m interface{}, j
 
 	showConfig, err := sess.command(cmdShowConfig+
 		"services user-identification device-information end-user-profile"+
-		" profile-name "+profile+" | display set relative", jnprSess)
+		" profile-name "+profile+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = profile
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

@@ -313,10 +313,10 @@ func checkVstpVlanGroupExists(name, routingInstance string, m interface{}, jnprS
 	var err error
 	if routingInstance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
-			"protocols vstp vlan-group group "+name+" | display set", jnprSess)
+			"protocols vstp vlan-group group "+name+pipeDisplaySet, jnprSess)
 	} else {
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
-			"protocols vstp vlan-group group "+name+" | display set", jnprSess)
+			"protocols vstp vlan-group group "+name+pipeDisplaySet, jnprSess)
 	}
 	if err != nil {
 		return false, err
@@ -371,10 +371,10 @@ func readVstpVlanGroup(name, routingInstance string, m interface{}, jnprSess *Ne
 	var err error
 	if routingInstance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
-			"protocols vstp vlan-group group "+name+" | display set relative", jnprSess)
+			"protocols vstp vlan-group group "+name+pipeDisplaySetRelative, jnprSess)
 	} else {
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
-			"protocols vstp vlan-group group "+name+" | display set relative", jnprSess)
+			"protocols vstp vlan-group group "+name+pipeDisplaySetRelative, jnprSess)
 	}
 	if err != nil {
 		return confRead, err
@@ -383,10 +383,10 @@ func readVstpVlanGroup(name, routingInstance string, m interface{}, jnprSess *Ne
 		confRead.name = name
 		confRead.routingInstance = routingInstance
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -401,19 +401,19 @@ func readVstpVlanGroup(name, routingInstance string, m interface{}, jnprSess *Ne
 				var err error
 				confRead.forwardDelay, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "forward-delay "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "hello-time "):
 				var err error
 				confRead.helloTime, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "hello-time "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "max-age "):
 				var err error
 				confRead.maxAge, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-age "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "system-identifier "):
 				confRead.systemIdentifier = strings.TrimPrefix(itemTrim, "system-identifier ")

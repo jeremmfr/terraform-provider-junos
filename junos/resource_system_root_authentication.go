@@ -208,16 +208,16 @@ func readSystemRootAuthentication(m interface{}, jnprSess *NetconfObject) (syste
 	sess := m.(*Session)
 	var confRead systemRootAuthOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"system root-authentication | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system root-authentication"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

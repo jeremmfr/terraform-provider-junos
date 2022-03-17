@@ -319,10 +319,10 @@ func checkRstpInterfaceExists(name, routingInstance string, m interface{}, jnprS
 	var err error
 	if routingInstance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
-			"protocols rstp interface "+name+" | display set", jnprSess)
+			"protocols rstp interface "+name+pipeDisplaySet, jnprSess)
 	} else {
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
-			"protocols rstp interface "+name+" | display set", jnprSess)
+			"protocols rstp interface "+name+pipeDisplaySet, jnprSess)
 	}
 	if err != nil {
 		return false, err
@@ -382,10 +382,10 @@ func readRstpInterface(name, routingInstance string, m interface{}, jnprSess *Ne
 	var err error
 	if routingInstance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
-			"protocols rstp interface "+name+" | display set relative", jnprSess)
+			"protocols rstp interface "+name+pipeDisplaySetRelative, jnprSess)
 	} else {
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
-			"protocols rstp interface "+name+" | display set relative", jnprSess)
+			"protocols rstp interface "+name+pipeDisplaySetRelative, jnprSess)
 	}
 	if err != nil {
 		return confRead, err
@@ -394,10 +394,10 @@ func readRstpInterface(name, routingInstance string, m interface{}, jnprSess *Ne
 		confRead.name = name
 		confRead.routingInstance = routingInstance
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -412,7 +412,7 @@ func readRstpInterface(name, routingInstance string, m interface{}, jnprSess *Ne
 				var err error
 				confRead.cost, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "cost "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "edge":
 				confRead.edge = true
@@ -424,7 +424,7 @@ func readRstpInterface(name, routingInstance string, m interface{}, jnprSess *Ne
 				var err error
 				confRead.priority, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "priority "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}

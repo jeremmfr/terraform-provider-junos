@@ -282,7 +282,7 @@ func resourceFirewallPolicerImport(d *schema.ResourceData, m interface{}) ([]*sc
 
 func checkFirewallPolicerExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+"firewall policer "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"firewall policer "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -343,17 +343,17 @@ func readFirewallPolicer(name string, m interface{}, jnprSess *NetconfObject) (p
 	sess := m.(*Session)
 	var confRead policerOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"firewall policer "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"firewall policer "+name+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -375,7 +375,7 @@ func readFirewallPolicer(name string, m interface{}, jnprSess *NetconfObject) (p
 					confRead.ifExceeding[0]["bandwidth_percent"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrim, "if-exceeding bandwidth-percent "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "if-exceeding bandwidth-limit "):
 					confRead.ifExceeding[0]["bandwidth_limit"] = strings.TrimPrefix(itemTrim, "if-exceeding bandwidth-limit ")

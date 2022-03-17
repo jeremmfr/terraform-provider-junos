@@ -376,10 +376,10 @@ func checkIgmpSnoopingVlanExists(name, routingInstance string, m interface{}, jn
 	var err error
 	if routingInstance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
-			"protocols igmp-snooping vlan "+name+" | display set", jnprSess)
+			"protocols igmp-snooping vlan "+name+pipeDisplaySet, jnprSess)
 	} else {
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
-			"protocols igmp-snooping vlan "+name+" | display set", jnprSess)
+			"protocols igmp-snooping vlan "+name+pipeDisplaySet, jnprSess)
 	}
 	if err != nil {
 		return false, err
@@ -474,10 +474,10 @@ func readIgmpSnoopingVlan(name, routingInstance string, m interface{}, jnprSess 
 	var err error
 	if routingInstance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
-			"protocols igmp-snooping vlan "+name+" | display set relative", jnprSess)
+			"protocols igmp-snooping vlan "+name+pipeDisplaySetRelative, jnprSess)
 	} else {
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
-			"protocols igmp-snooping vlan "+name+" | display set relative", jnprSess)
+			"protocols igmp-snooping vlan "+name+pipeDisplaySetRelative, jnprSess)
 	}
 	if err != nil {
 		return confRead, err
@@ -486,10 +486,10 @@ func readIgmpSnoopingVlan(name, routingInstance string, m interface{}, jnprSess 
 		confRead.name = name
 		confRead.routingInstance = routingInstance
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -513,7 +513,7 @@ func readIgmpSnoopingVlan(name, routingInstance string, m interface{}, jnprSess 
 					var err error
 					intFace["group_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrimIntface, "group-limit "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case itemTrimIntface == "host-only-interface":
 					intFace["host_only_interface"] = true
@@ -546,7 +546,7 @@ func readIgmpSnoopingVlan(name, routingInstance string, m interface{}, jnprSess 
 				var err error
 				confRead.queryInterval, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "query-interval "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "query-last-member-interval "):
 				confRead.queryLastMemberInterval = strings.TrimPrefix(itemTrim, "query-last-member-interval ")
@@ -556,7 +556,7 @@ func readIgmpSnoopingVlan(name, routingInstance string, m interface{}, jnprSess 
 				var err error
 				confRead.robustCount, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "robust-count "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}

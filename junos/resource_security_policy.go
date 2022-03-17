@@ -403,7 +403,7 @@ func resourceSecurityPolicyImport(d *schema.ResourceData, m interface{}) ([]*sch
 func checkSecurityPolicyExists(fromZone, toZone string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"security policies from-zone "+fromZone+" to-zone "+toZone+" | display set", jnprSess)
+		"security policies from-zone "+fromZone+" to-zone "+toZone+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -503,7 +503,7 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 	var confRead policyOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security policies from-zone "+fromZone+" to-zone "+toZone+" | display set relative ", jnprSess)
+		"security policies from-zone "+fromZone+" to-zone "+toZone+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -512,10 +512,10 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 		confRead.fromZone = fromZone
 		confRead.toZone = toZone
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -598,16 +598,16 @@ func readSecurityPolicyTunnelPairPolicyLines(
 	listLines *[]string, fromZone string, toZone string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"security policies from-zone "+fromZone+" to-zone "+toZone+" | display set ", jnprSess)
+		"security policies from-zone "+fromZone+" to-zone "+toZone+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return err
 	}
 	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			if strings.Contains(item, "then permit tunnel pair-policy ") {

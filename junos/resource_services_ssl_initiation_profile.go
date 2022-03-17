@@ -296,7 +296,7 @@ func checkServicesSSLInitiationProfileExists(
 	profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"services ssl initiation profile \""+profile+"\" | display set", jnprSess)
+		"services ssl initiation profile \""+profile+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -362,17 +362,17 @@ func readServicesSSLInitiationProfile(profile string, m interface{}, jnprSess *N
 	var confRead svcSSLInitiationProfileOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"services ssl initiation profile \""+profile+"\" | display set relative", jnprSess)
+		"services ssl initiation profile \""+profile+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = profile
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

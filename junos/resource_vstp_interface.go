@@ -528,25 +528,25 @@ func checkVstpInterfaceExists(name, routingInstance, vlan, vlanGroup string, m i
 		switch {
 		case vlan != "":
 			showConfig, err = sess.command(cmdShowConfig+
-				"protocols vstp vlan "+vlan+" interface "+name+" | display set", jnprSess)
+				"protocols vstp vlan "+vlan+" interface "+name+pipeDisplaySet, jnprSess)
 		case vlanGroup != "":
 			showConfig, err = sess.command(cmdShowConfig+
-				"protocols vstp vlan-group group "+vlanGroup+" interface "+name+" | display set", jnprSess)
+				"protocols vstp vlan-group group "+vlanGroup+" interface "+name+pipeDisplaySet, jnprSess)
 		default:
 			showConfig, err = sess.command(cmdShowConfig+
-				"protocols vstp interface "+name+" | display set", jnprSess)
+				"protocols vstp interface "+name+pipeDisplaySet, jnprSess)
 		}
 	} else {
 		switch {
 		case vlan != "":
 			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
-				"protocols vstp vlan "+vlan+" interface "+name+" | display set", jnprSess)
+				"protocols vstp vlan "+vlan+" interface "+name+pipeDisplaySet, jnprSess)
 		case vlanGroup != "":
 			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
-				"protocols vstp vlan-group group "+vlanGroup+" interface "+name+" | display set", jnprSess)
+				"protocols vstp vlan-group group "+vlanGroup+" interface "+name+pipeDisplaySet, jnprSess)
 		default:
 			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
-				"protocols vstp interface "+name+" | display set", jnprSess)
+				"protocols vstp interface "+name+pipeDisplaySet, jnprSess)
 		}
 	}
 	if err != nil {
@@ -622,25 +622,25 @@ func readVstpInterface(name, routingInstance, vlan, vlanGroup string, m interfac
 		switch {
 		case vlan != "":
 			showConfig, err = sess.command(cmdShowConfig+
-				"protocols vstp vlan "+vlan+" interface "+name+" | display set relative", jnprSess)
+				"protocols vstp vlan "+vlan+" interface "+name+pipeDisplaySetRelative, jnprSess)
 		case vlanGroup != "":
 			showConfig, err = sess.command(cmdShowConfig+
-				"protocols vstp vlan-group group "+vlanGroup+" interface "+name+" | display set relative", jnprSess)
+				"protocols vstp vlan-group group "+vlanGroup+" interface "+name+pipeDisplaySetRelative, jnprSess)
 		default:
 			showConfig, err = sess.command(cmdShowConfig+
-				"protocols vstp interface "+name+" | display set relative", jnprSess)
+				"protocols vstp interface "+name+pipeDisplaySetRelative, jnprSess)
 		}
 	} else {
 		switch {
 		case vlan != "":
 			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
-				"protocols vstp vlan "+vlan+" interface "+name+" | display set relative", jnprSess)
+				"protocols vstp vlan "+vlan+" interface "+name+pipeDisplaySetRelative, jnprSess)
 		case vlanGroup != "":
 			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
-				"protocols vstp vlan-group group "+vlanGroup+" interface "+name+" | display set relative", jnprSess)
+				"protocols vstp vlan-group group "+vlanGroup+" interface "+name+pipeDisplaySetRelative, jnprSess)
 		default:
 			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
-				"protocols vstp interface "+name+" | display set relative", jnprSess)
+				"protocols vstp interface "+name+pipeDisplaySetRelative, jnprSess)
 		}
 	}
 	if err != nil {
@@ -652,10 +652,10 @@ func readVstpInterface(name, routingInstance, vlan, vlanGroup string, m interfac
 		confRead.vlan = vlan
 		confRead.vlanGroup = vlanGroup
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -670,7 +670,7 @@ func readVstpInterface(name, routingInstance, vlan, vlanGroup string, m interfac
 				var err error
 				confRead.cost, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "cost "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "edge":
 				confRead.edge = true
@@ -682,7 +682,7 @@ func readVstpInterface(name, routingInstance, vlan, vlanGroup string, m interfac
 				var err error
 				confRead.priority, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "priority "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}

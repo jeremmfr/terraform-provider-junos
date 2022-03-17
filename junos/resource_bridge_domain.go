@@ -385,13 +385,13 @@ func checkBridgeDomainExists(name string, instance string, m interface{},
 	var err error
 	if instance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
-			"bridge-domains \""+name+"\" | display set", jnprSess)
+			"bridge-domains \""+name+"\""+pipeDisplaySet, jnprSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-			"bridge-domains \""+name+"\" | display set", jnprSess)
+			"bridge-domains \""+name+"\""+pipeDisplaySet, jnprSess)
 		if err != nil {
 			return false, err
 		}
@@ -486,10 +486,10 @@ func readBridgeDomain(name string, instance string, m interface{},
 
 	if instance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
-			"bridge-domains \""+name+"\" | display set relative", jnprSess)
+			"bridge-domains \""+name+"\""+pipeDisplaySetRelative, jnprSess)
 	} else {
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-			"bridge-domains \""+name+"\" | display set relative", jnprSess)
+			"bridge-domains \""+name+"\""+pipeDisplaySetRelative, jnprSess)
 	}
 	if err != nil {
 		return confRead, err
@@ -499,10 +499,10 @@ func readBridgeDomain(name string, instance string, m interface{},
 		confRead.name = name
 		confRead.routingInstance = instance
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -515,7 +515,7 @@ func readBridgeDomain(name string, instance string, m interface{},
 				var err error
 				confRead.domainID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "domain-id "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "domain-type bridge":
 				confRead.domainTypeBridge = true
@@ -523,7 +523,7 @@ func readBridgeDomain(name string, instance string, m interface{},
 				var err error
 				confRead.isolatedVlan, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "isolated-vlan "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "routing-interface "):
 				confRead.routingInterface = strings.TrimPrefix(itemTrim, "routing-interface ")
@@ -531,13 +531,13 @@ func readBridgeDomain(name string, instance string, m interface{},
 				var err error
 				confRead.serviceID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "service-id "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "vlan-id "):
 				var err error
 				confRead.vlanID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vlan-id "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "vlan-id-list "):
 				confRead.vlanIDList = append(confRead.vlanIDList, strings.TrimPrefix(itemTrim, "vlan-id-list "))
@@ -559,29 +559,29 @@ func readBridgeDomain(name string, instance string, m interface{},
 				case strings.HasPrefix(itemTrim, "vxlan vni "):
 					vxlan["vni"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vxlan vni "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 					if vxlan["vni"] != -1 {
 						var showConfigEvpn string
 						var err error
 						if confRead.routingInstance == defaultW {
-							showConfigEvpn, err = sess.command(cmdShowConfig+"protocols evpn | display set relative", jnprSess)
+							showConfigEvpn, err = sess.command(cmdShowConfig+"protocols evpn"+pipeDisplaySetRelative, jnprSess)
 							if err != nil {
 								return confRead, err
 							}
 						} else {
 							showConfigEvpn, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-								"protocols evpn | display set relative", jnprSess)
+								"protocols evpn"+pipeDisplaySetRelative, jnprSess)
 							if err != nil {
 								return confRead, err
 							}
 						}
 						if showConfigEvpn != emptyW {
 							for _, item := range strings.Split(showConfigEvpn, "\n") {
-								if strings.Contains(item, "<configuration-output>") {
+								if strings.Contains(item, xmlStartTagConfigOut) {
 									continue
 								}
-								if strings.Contains(item, "</configuration-output>") {
+								if strings.Contains(item, xmlEndTagConfigOut) {
 									break
 								}
 								itemTrim := strings.TrimPrefix(item, setLS)
@@ -605,7 +605,7 @@ func readBridgeDomain(name string, instance string, m interface{},
 					vxlan["unreachable_vtep_aging_timer"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 						"vxlan unreachable-vtep-aging-timer "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			}

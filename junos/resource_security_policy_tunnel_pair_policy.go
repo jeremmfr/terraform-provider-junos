@@ -247,13 +247,13 @@ func checkSecurityPolicyPairExists(zoneA, policyAtoB, zoneB, policyBtoA string,
 
 	showConfigPairAtoB, err := sess.command(cmdShowConfig+
 		"security policies from-zone "+zoneA+" to-zone "+zoneB+" policy "+policyAtoB+
-		" then permit tunnel pair-policy | display set", jnprSess)
+		" then permit tunnel pair-policy"+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
 	showConfigPairBtoA, err := sess.command(cmdShowConfig+
 		"security policies from-zone "+zoneB+" to-zone "+zoneA+" policy "+policyBtoA+
-		" then permit tunnel pair-policy | display set", jnprSess)
+		" then permit tunnel pair-policy"+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -293,7 +293,7 @@ func readSecurityPolicyTunnelPairPolicy(idRessource string,
 
 	showConfig, err := sess.command(cmdShowConfig+
 		"security policies from-zone "+zoneA+" to-zone "+zoneB+" policy "+policyAtoB+
-		" then permit tunnel pair-policy | display set", jnprSess)
+		" then permit tunnel pair-policy"+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -301,10 +301,10 @@ func readSecurityPolicyTunnelPairPolicy(idRessource string,
 		confRead.zoneA = zoneA
 		confRead.zoneB = zoneB
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			if strings.Contains(item, " tunnel pair-policy ") {
@@ -316,7 +316,7 @@ func readSecurityPolicyTunnelPairPolicy(idRessource string,
 	}
 	showConfig, err = sess.command(cmdShowConfig+
 		"security policies from-zone "+zoneB+" to-zone "+zoneA+" policy "+policyBtoA+
-		" then permit tunnel pair-policy | display set", jnprSess)
+		" then permit tunnel pair-policy"+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -324,10 +324,10 @@ func readSecurityPolicyTunnelPairPolicy(idRessource string,
 		confRead.zoneA = zoneA
 		confRead.zoneB = zoneB
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			if strings.Contains(item, " tunnel pair-policy ") {

@@ -488,16 +488,16 @@ func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsO
 	var confRead routingOptionsOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"routing-options"+" | display set relative", jnprSess)
+		"routing-options"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -516,7 +516,7 @@ func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsO
 					confRead.autonomousSystem[0]["loops"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrim, "autonomous-system loops "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case itemTrim == "autonomous-system asdot-notation":
 					confRead.autonomousSystem[0]["asdot_notation"] = true
@@ -548,7 +548,7 @@ func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsO
 					confRead.forwardingTable[0]["chain_composite_max_label_count"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrim, "forwarding-table chain-composite-max-label-count "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "forwarding-table chained-composite-next-hop ingress "):
 					confRead.forwardingTable[0]["chained_composite_next_hop_ingress"] = append(
@@ -580,14 +580,14 @@ func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsO
 					confRead.forwardingTable[0]["krt_nexthop_ack_timeout"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrim, "forwarding-table krt-nexthop-ack-timeout "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "forwarding-table remnant-holdtime "):
 					var err error
 					confRead.forwardingTable[0]["remnant_holdtime"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrim, "forwarding-table remnant-holdtime "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "forwarding-table unicast-reverse-path "):
 					confRead.forwardingTable[0]["unicast_reverse_path"] = strings.TrimPrefix(
@@ -608,7 +608,7 @@ func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsO
 					confRead.gracefulRestart[0]["restart_duration"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrim, "graceful-restart restart-duration "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case strings.HasPrefix(itemTrim, "instance-export "):

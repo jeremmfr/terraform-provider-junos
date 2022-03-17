@@ -243,7 +243,7 @@ func resourceIpsecPolicyImport(d *schema.ResourceData, m interface{}) ([]*schema
 func checkIpsecPolicyExists(ipsecPolicy string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"security ipsec policy "+ipsecPolicy+" | display set", jnprSess)
+		"security ipsec policy "+ipsecPolicy+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -277,17 +277,17 @@ func readIpsecPolicy(ipsecPolicy string, m interface{}, jnprSess *NetconfObject)
 	var confRead ipsecPolicyOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security ipsec policy "+ipsecPolicy+" | display set relative", jnprSess)
+		"security ipsec policy "+ipsecPolicy+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = ipsecPolicy
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

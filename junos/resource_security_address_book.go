@@ -367,7 +367,7 @@ func checkSecurityAddressBookExists(addrBook string, m interface{}, jnprSess *Ne
 	sess := m.(*Session)
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security address-book "+addrBook+" | display set", jnprSess)
+		"security address-book "+addrBook+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -473,7 +473,7 @@ func readSecurityAddressBook(addrBook string, m interface{}, jnprSess *NetconfOb
 	var confRead addressBookOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security address-book "+addrBook+" | display set relative", jnprSess)
+		"security address-book "+addrBook+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -481,10 +481,10 @@ func readSecurityAddressBook(addrBook string, m interface{}, jnprSess *NetconfOb
 	if showConfig != emptyW {
 		confRead.name = addrBook
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

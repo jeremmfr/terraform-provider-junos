@@ -307,7 +307,7 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 		var err error
 		confRead.holdTime, err = strconv.Atoi(strings.TrimPrefix(item, "hold-time "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+			return fmt.Errorf(failedConvAtoiError, item, err)
 		}
 	case strings.HasPrefix(item, "import "):
 		confRead.importPolicy = append(confRead.importPolicy, strings.TrimPrefix(item, "import "))
@@ -329,7 +329,7 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 			var err error
 			confRead.localAsLoops, err = strconv.Atoi(strings.TrimPrefix(item, "local-as loops "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+				return fmt.Errorf(failedConvAtoiError, item, err)
 			}
 		default:
 			confRead.localAs = strings.TrimPrefix(item, "local-as ")
@@ -340,7 +340,7 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 		var err error
 		confRead.localPreference, err = strconv.Atoi(strings.TrimPrefix(item, "local-preference "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+			return fmt.Errorf(failedConvAtoiError, item, err)
 		}
 	case item == "log-updown":
 		confRead.logUpdown = true
@@ -349,7 +349,7 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 			var err error
 			confRead.metricOut, err = strconv.Atoi(strings.TrimPrefix(item, "metric-out "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+				return fmt.Errorf(failedConvAtoiError, item, err)
 			}
 		} else {
 			if strings.HasPrefix(item, "metric-out igp") {
@@ -360,7 +360,7 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 					var err error
 					confRead.metricOutIgpOffset, err = strconv.Atoi(strings.TrimPrefix(item, "metric-out igp "))
 					if err != nil {
-						return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+						return fmt.Errorf(failedConvAtoiError, item, err)
 					}
 				}
 			} else {
@@ -369,7 +369,7 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 					var err error
 					confRead.metricOutMinimumIgpOffset, err = strconv.Atoi(strings.TrimPrefix(item, "metric-out minimum-igp "))
 					if err != nil {
-						return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+						return fmt.Errorf(failedConvAtoiError, item, err)
 					}
 				}
 			}
@@ -401,7 +401,7 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 		var err error
 		confRead.outDelay, err = strconv.Atoi(strings.TrimPrefix(item, "out-delay "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+			return fmt.Errorf(failedConvAtoiError, item, err)
 		}
 	case item == "passive":
 		confRead.passive = true
@@ -411,7 +411,7 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 		var err error
 		confRead.preference, err = strconv.Atoi(strings.TrimPrefix(item, "preference "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+			return fmt.Errorf(failedConvAtoiError, item, err)
 		}
 	case item == "remove-private":
 		confRead.removePrivate = true
@@ -499,31 +499,31 @@ func readBgpOptsBfd(item string, bfdRead map[string]interface{}) error {
 		var err error
 		bfdRead["detection_time_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "detection-time threshold "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "holddown-interval "):
 		var err error
 		bfdRead["holddown_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "holddown-interval "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "minimum-interval "):
 		var err error
 		bfdRead["minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-interval "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "minimum-receive-interval "):
 		var err error
 		bfdRead["minimum_receive_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-receive-interval "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "multiplier "):
 		var err error
 		bfdRead["multiplier"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "multiplier "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "session-mode "):
 		bfdRead["session_mode"] = strings.TrimPrefix(itemTrim, "session-mode ")
@@ -532,14 +532,14 @@ func readBgpOptsBfd(item string, bfdRead map[string]interface{}) error {
 		bfdRead["transmit_interval_threshold"], err = strconv.Atoi(
 			strings.TrimPrefix(itemTrim, "transmit-interval threshold "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "transmit-interval minimum-interval "):
 		var err error
 		bfdRead["transmit_interval_minimum_interval"], err = strconv.Atoi(
 			strings.TrimPrefix(itemTrim, "transmit-interval minimum-interval "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "version "):
 		bfdRead["version"] = strings.TrimPrefix(itemTrim, "version ")
@@ -663,7 +663,7 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 			var err error
 			readOptsPL["maximum"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "accepted-prefix-limit maximum "))
 			if err != nil {
-				return append(opts, readOpts), fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return append(opts, readOpts), fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 
 		case strings.HasPrefix(itemTrim, "accepted-prefix-limit teardown idle-timeout "):
@@ -672,7 +672,7 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 				readOptsPL["teardown_idle_timeout"], err = strconv.Atoi(
 					strings.TrimPrefix(itemTrim, "accepted-prefix-limit teardown idle-timeout "))
 				if err != nil {
-					return append(opts, readOpts), fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return append(opts, readOpts), fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			} else {
 				readOptsPL["teardown_idle_timeout_forever"] = true
@@ -681,7 +681,7 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 			var err error
 			readOptsPL["teardown"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "accepted-prefix-limit teardown "))
 			if err != nil {
-				return append(opts, readOpts), fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return append(opts, readOpts), fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case strings.HasPrefix(itemTrim, "prefix-limit "):
@@ -700,7 +700,7 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 			var err error
 			readOptsPL["maximum"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "prefix-limit maximum "))
 			if err != nil {
-				return append(opts, readOpts), fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return append(opts, readOpts), fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "prefix-limit teardown idle-timeout "):
 			var err error
@@ -708,7 +708,7 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 				readOptsPL["teardown_idle_timeout"], err = strconv.Atoi(
 					strings.TrimPrefix(itemTrim, "prefix-limit teardown idle-timeout "))
 				if err != nil {
-					return append(opts, readOpts), fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return append(opts, readOpts), fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			} else {
 				readOptsPL["teardown_idle_timeout_forever"] = true
@@ -717,7 +717,7 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 			var err error
 			readOptsPL["teardown"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "prefix-limit teardown "))
 			if err != nil {
-				return append(opts, readOpts), fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return append(opts, readOpts), fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	}
@@ -765,13 +765,13 @@ func readBgpOptsGracefulRestart(item string, grRead map[string]interface{}) erro
 		var err error
 		grRead["restart_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "restart-time "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "stale-routes-time "):
 		var err error
 		grRead["stale_route_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "stale-routes-time "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	}
 

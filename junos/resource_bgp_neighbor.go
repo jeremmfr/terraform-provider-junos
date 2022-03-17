@@ -815,13 +815,13 @@ func checkBgpNeighborExists(ip, instance, group string, m interface{}, jnprSess 
 	var err error
 	if instance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
-			"protocols bgp group "+group+" neighbor "+ip+" | display set", jnprSess)
+			"protocols bgp group "+group+" neighbor "+ip+pipeDisplaySet, jnprSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-			"protocols bgp group "+group+" neighbor "+ip+" | display set", jnprSess)
+			"protocols bgp group "+group+" neighbor "+ip+pipeDisplaySet, jnprSess)
 		if err != nil {
 			return false, err
 		}
@@ -871,13 +871,13 @@ func readBgpNeighbor(ip, instance, group string, m interface{}, jnprSess *Netcon
 
 	if instance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
-			"protocols bgp group "+group+" neighbor "+ip+" | display set relative", jnprSess)
+			"protocols bgp group "+group+" neighbor "+ip+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-			"protocols bgp group "+group+" neighbor "+ip+" | display set relative", jnprSess)
+			"protocols bgp group "+group+" neighbor "+ip+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
@@ -887,10 +887,10 @@ func readBgpNeighbor(ip, instance, group string, m interface{}, jnprSess *Netcon
 		confRead.routingInstance = instance
 		confRead.name = group
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

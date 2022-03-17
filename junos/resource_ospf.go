@@ -638,14 +638,14 @@ func readOspf(version, routingInstance string,
 	if routingInstance == defaultW {
 		var err error
 		showConfig, err = sess.command(cmdShowConfig+
-			"protocols "+ospfVersion+" | display set relative", jnprSess)
+			"protocols "+ospfVersion+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
 		var err error
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
-			"protocols "+ospfVersion+" | display set relative", jnprSess)
+			"protocols "+ospfVersion+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
@@ -655,10 +655,10 @@ func readOspf(version, routingInstance string,
 	confRead.routingInstance = routingInstance
 	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -681,25 +681,25 @@ func readOspf(version, routingInstance string,
 					var err error
 					dbPro["ignore_count"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDP, "ignore-count "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrimDP, "ignore-time "):
 					var err error
 					dbPro["ignore_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDP, "ignore-time "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrimDP, "maximum-lsa "):
 					var err error
 					dbPro["maximum_lsa"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDP, "maximum-lsa "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrimDP, "reset-time "):
 					var err error
 					dbPro["reset_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDP, "reset-time "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case itemTrimDP == "warning-only":
 					dbPro["warning_only"] = true
@@ -707,7 +707,7 @@ func readOspf(version, routingInstance string,
 					var err error
 					dbPro["warning_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDP, "warning-threshold "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case itemTrim == "disable":
@@ -720,7 +720,7 @@ func readOspf(version, routingInstance string,
 				var err error
 				confRead.externalPreference, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "external-preference "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "forwarding-address-to-broadcast":
 				confRead.forwardingAddressToBroadcast = true
@@ -750,13 +750,13 @@ func readOspf(version, routingInstance string,
 					var err error
 					grR["notify_duration"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "graceful-restart notify-duration "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "graceful-restart restart-duration "):
 					var err error
 					grR["restart_duration"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "graceful-restart restart-duration "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case strings.HasPrefix(itemTrim, "import "):
@@ -765,13 +765,13 @@ func readOspf(version, routingInstance string,
 				var err error
 				confRead.labeledPreference, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "labeled-preference "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "lsa-refresh-interval "):
 				var err error
 				confRead.lsaRefreshInterval, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "lsa-refresh-interval "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "no-nssa-abr":
 				confRead.noNssaAbr = true
@@ -797,20 +797,20 @@ func readOspf(version, routingInstance string,
 					var err error
 					confRead.overload[0]["timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "overload timeout "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case strings.HasPrefix(itemTrim, "preference "):
 				var err error
 				confRead.preference, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "preference "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "prefix-export-limit "):
 				var err error
 				confRead.prefixExportLimit, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "prefix-export-limit "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "reference-bandwidth "):
 				confRead.referenceBandwidth = strings.TrimPrefix(itemTrim, "reference-bandwidth ")
@@ -835,13 +835,13 @@ func readOspf(version, routingInstance string,
 					var err error
 					confRead.spfOptions[0]["delay"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "spf-options delay "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "spf-options holddown "):
 					var err error
 					confRead.spfOptions[0]["holddown"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "spf-options holddown "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case itemTrim == "spf-options no-ignore-our-externals":
 					confRead.spfOptions[0]["no_ignore_our_externals"] = true
@@ -849,7 +849,7 @@ func readOspf(version, routingInstance string,
 					var err error
 					confRead.spfOptions[0]["rapid_runs"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "spf-options rapid-runs "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			}

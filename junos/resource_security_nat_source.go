@@ -357,7 +357,7 @@ func resourceSecurityNatSourceImport(d *schema.ResourceData, m interface{}) ([]*
 func checkSecurityNatSourceExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"security nat source rule-set "+name+" | display set", jnprSess)
+		"security nat source rule-set "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -474,17 +474,17 @@ func readSecurityNatSource(name string, m interface{}, jnprSess *NetconfObject) 
 	var confRead natSourceOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security nat source rule-set "+name+" | display set relative", jnprSess)
+		"security nat source rule-set "+name+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

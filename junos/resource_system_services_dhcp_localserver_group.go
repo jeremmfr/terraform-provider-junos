@@ -991,7 +991,7 @@ func checkSystemServicesDhcpLocalServerGroupExists(name, instance, version strin
 		showCmd += "group " + name
 	}
 
-	showConfig, err = sess.command(showCmd+" | display set", jnprSess)
+	showConfig, err = sess.command(showCmd+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -1512,7 +1512,7 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 		showCmd += "group " + name
 	}
 
-	showConfig, err = sess.command(showCmd+" | display set relative", jnprSess)
+	showConfig, err = sess.command(showCmd+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -1522,10 +1522,10 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 		confRead.routingInstance = instance
 		confRead.version = version
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -1653,7 +1653,7 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 					confRead.leaseTimeValidation[0]["lease_time_threshold"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrim, "lease-time-validation lease-time-threshold "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "lease-time-validation violation-action "):
 					confRead.leaseTimeValidation[0]["violation_action"] = strings.TrimPrefix(
@@ -1709,7 +1709,7 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 					confRead.livenessDetectionMethodBfd[0]["version"] = strings.TrimPrefix(itemTrimLiveDetMethBfd, "version ")
 				}
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "liveness-detection method layer2-liveness-detection "):
 				if len(confRead.livenessDetectionMethodLayer2) == 0 {
@@ -1728,7 +1728,7 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 						itemTrim, "liveness-detection method layer2-liveness-detection transmit-interval "))
 				}
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "overrides "):
 				if version == "v4" {
@@ -1784,7 +1784,7 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 						confRead.reconfigure[0]["trigger_radius_disconnect"] = true
 					}
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case itemTrim == "remote-id-mismatch disconnect":
@@ -1802,14 +1802,14 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 				confRead.shortCycleProtectionLockoutMaxTime, err = strconv.Atoi(strings.TrimPrefix(
 					itemTrim, "short-cycle-protection lockout-max-time "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "short-cycle-protection lockout-min-time "):
 				var err error
 				confRead.shortCycleProtectionLockoutMinTime, err = strconv.Atoi(strings.TrimPrefix(
 					itemTrim, "short-cycle-protection lockout-min-time "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}
@@ -1881,7 +1881,7 @@ func readSystemServicesDhcpLocalServerGroupInterface(itemTrim, version string, i
 		interFace["upto"] = strings.TrimPrefix(itemTrim, "upto ")
 	}
 	if err != nil {
-		return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 	}
 
 	return nil
@@ -1974,7 +1974,7 @@ func readSystemServicesDhcpLocalServerGroupOverridesV4(itemTrim string, override
 		overrides["protocol_attributes"] = strings.Trim(strings.TrimPrefix(itemTrim, "protocol-attributes "), "\"")
 	}
 	if err != nil {
-		return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 	}
 
 	return nil
@@ -2034,7 +2034,7 @@ func readSystemServicesDhcpLocalServerGroupOverridesV6(itemTrim string, override
 		overrides["top_level_status_code"] = true
 	}
 	if err != nil {
-		return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 	}
 
 	return nil

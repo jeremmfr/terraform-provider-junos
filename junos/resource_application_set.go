@@ -225,7 +225,7 @@ func resourceApplicationSetImport(d *schema.ResourceData, m interface{}) ([]*sch
 func checkApplicationSetExists(applicationSet string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"applications application-set "+applicationSet+" | display set", jnprSess)
+		"applications application-set "+applicationSet+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -253,17 +253,17 @@ func readApplicationSet(applicationSet string, m interface{}, jnprSess *NetconfO
 	var confRead applicationSetOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"applications application-set "+applicationSet+" | display set relative", jnprSess)
+		"applications application-set "+applicationSet+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = applicationSet
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

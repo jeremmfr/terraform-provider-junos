@@ -464,7 +464,7 @@ func resourceFirewallFilterImport(d *schema.ResourceData, m interface{}) ([]*sch
 func checkFirewallFilterExists(name, family string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"firewall family "+family+" filter "+name+" | display set", jnprSess)
+		"firewall family "+family+" filter "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -515,7 +515,7 @@ func readFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfO
 	var confRead filterOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"firewall family "+family+" filter "+filter+" | display set relative", jnprSess)
+		"firewall family "+family+" filter "+filter+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -523,10 +523,10 @@ func readFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfO
 		confRead.name = filter
 		confRead.family = family
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

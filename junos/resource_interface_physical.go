@@ -753,7 +753,7 @@ func resourceInterfacePhysicalImport(d *schema.ResourceData, m interface{}) ([]*
 func checkInterfacePhysicalNCEmpty(interFace string, m interface{}, jnprSess *NetconfObject) (
 	ncInt bool, emtyInt bool, errFunc error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return false, false, err
 	}
@@ -764,10 +764,10 @@ func checkInterfacePhysicalNCEmpty(interFace string, m interface{}, jnprSess *Ne
 		if strings.HasPrefix(item, "set unit") && !strings.Contains(item, "ethernet-switching") {
 			continue
 		}
-		if strings.Contains(item, "<configuration-output>") {
+		if strings.Contains(item, xmlStartTagConfigOut) {
 			continue
 		}
-		if strings.Contains(item, "</configuration-output>") {
+		if strings.Contains(item, xmlEndTagConfigOut) {
 			break
 		}
 		if item == "" {
@@ -1196,7 +1196,7 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 	sess := m.(*Session)
 	var confRead interfacePhysicalOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -1205,10 +1205,10 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 			if strings.Contains(item, " unit ") && !strings.Contains(item, "ethernet-switching") {
 				continue
 			}
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -1229,7 +1229,7 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 				confRead.aeMinLink, err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 					"aggregated-ether-options minimum-links "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 				if err := readInterfacePhysicalParentEtherOpts(&confRead,
 					strings.TrimPrefix(itemTrim, "aggregated-ether-options ")); err != nil {
@@ -1258,7 +1258,7 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 			case strings.HasPrefix(itemTrim, "native-vlan-id"):
 				confRead.vlanNative, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "native-vlan-id "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "unit 0 family ethernet-switching interface-mode trunk":
 				confRead.trunk = true
@@ -1433,34 +1433,34 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 			parentEtherOptsBFDLiveDetect["detection_time_threshold"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrimBfdLiveDet, "detection-time threshold "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "holddown-interval "):
 			var err error
 			parentEtherOptsBFDLiveDetect["holddown_interval"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrimBfdLiveDet, "holddown-interval "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "minimum-interval "):
 			var err error
 			parentEtherOptsBFDLiveDetect["minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrimBfdLiveDet, "minimum-interval "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "minimum-receive-interval "):
 			var err error
 			parentEtherOptsBFDLiveDetect["minimum_receive_interval"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrimBfdLiveDet, "minimum-receive-interval "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "multiplier "):
 			var err error
 			parentEtherOptsBFDLiveDetect["multiplier"], err = strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "multiplier "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "neighbor "):
 			parentEtherOptsBFDLiveDetect["neighbor"] = strings.TrimPrefix(itemTrimBfdLiveDet, "neighbor ")
@@ -1471,14 +1471,14 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 			parentEtherOptsBFDLiveDetect["transmit_interval_minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrimBfdLiveDet, "transmit-interval minimum-interval "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "transmit-interval threshold "):
 			var err error
 			parentEtherOptsBFDLiveDetect["transmit_interval_threshold"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrimBfdLiveDet, "transmit-interval threshold "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimBfdLiveDet, "version "):
 			parentEtherOptsBFDLiveDetect["version"] = strings.TrimPrefix(itemTrimBfdLiveDet, "version ")
@@ -1508,7 +1508,7 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 			var err error
 			lacp["admin_key"], err = strconv.Atoi(strings.TrimPrefix(itemTrimLacp, "admin-key "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimLacp, "periodic "):
 			lacp["periodic"] = strings.TrimPrefix(itemTrimLacp, "periodic ")
@@ -1520,7 +1520,7 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 			var err error
 			lacp["system_priority"], err = strconv.Atoi(strings.TrimPrefix(itemTrimLacp, "system-priority "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case itemTrim == "loopback":
@@ -1539,13 +1539,13 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 		var err error
 		confRead.parentEtherOpts[0]["minimum_links"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-links "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "redundancy-group "):
 		var err error
 		confRead.parentEtherOpts[0]["redundancy_group"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "redundancy-group "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "source-address-filter "):
 		confRead.parentEtherOpts[0]["source_address_filter"] = append(
@@ -1634,15 +1634,15 @@ func delInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 
 func checkInterfacePhysicalContainsUnit(interFace string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return false, err
 	}
 	for _, item := range strings.Split(showConfig, "\n") {
-		if strings.Contains(item, "<configuration-output>") {
+		if strings.Contains(item, xmlStartTagConfigOut) {
 			continue
 		}
-		if strings.Contains(item, "</configuration-output>") {
+		if strings.Contains(item, xmlEndTagConfigOut) {
 			break
 		}
 		if strings.HasPrefix(item, "set unit") {
@@ -1748,7 +1748,7 @@ func fillInterfacePhysicalData(d *schema.ResourceData, interfaceOpt interfacePhy
 
 func interfaceAggregatedLastChild(ae, interFace string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+"interfaces | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"interfaces"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -1771,7 +1771,7 @@ func interfaceAggregatedCountSearchMax(
 	if err != nil {
 		return "", fmt.Errorf("failed to convert ae interaface '%v' to integer : %w", newAE, err)
 	}
-	showConfig, err := sess.command(cmdShowConfig+"interfaces | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"interfaces"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return "", err
 	}

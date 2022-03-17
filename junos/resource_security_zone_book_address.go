@@ -311,7 +311,7 @@ func resourceSecurityZoneBookAddressImport(d *schema.ResourceData, m interface{}
 func checkSecurityZoneBookAddresssExists(zone, address string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"security zones security-zone "+zone+" address-book address "+address+" | display set", jnprSess)
+		"security zones security-zone "+zone+" address-book address "+address+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -360,7 +360,7 @@ func readSecurityZoneBookAddress(
 	var confRead zoneBookAddressOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security zones security-zone "+zone+" address-book address "+address+" | display set relative", jnprSess)
+		"security zones security-zone "+zone+" address-book address "+address+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -368,10 +368,10 @@ func readSecurityZoneBookAddress(
 		confRead.name = address
 		confRead.zone = zone
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

@@ -770,7 +770,7 @@ func resourceSecurityScreenImport(d *schema.ResourceData, m interface{}) ([]*sch
 
 func checkSecurityScreenExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+"security screen ids-option \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"security screen ids-option \""+name+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -1244,17 +1244,17 @@ func readSecurityScreen(name string, m interface{}, jnprSess *NetconfObject) (sc
 	var confRead screenOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security screen ids-option \""+name+"\" | display set relative ", jnprSess)
+		"security screen ids-option \""+name+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -1284,14 +1284,14 @@ func readSecurityScreen(name string, m interface{}, jnprSess *NetconfObject) (sc
 					confRead.limitSession[0]["destination_ip_based"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrim, "limit-session destination-ip-based "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "limit-session source-ip-based "):
 					var err error
 					confRead.limitSession[0]["source_ip_based"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrim, "limit-session source-ip-based "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case strings.HasPrefix(itemTrim, "tcp"):
@@ -1332,7 +1332,7 @@ func readSecurityScreenIcmp(confRead *screenOptions, itemTrim string) error {
 			confRead.icmp[0]["flood"].([]map[string]interface{})[0]["threshold"], err = strconv.Atoi(
 				strings.TrimPrefix(itemTrim, "icmp flood threshold "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case itemTrim == "icmp fragment":
@@ -1354,7 +1354,7 @@ func readSecurityScreenIcmp(confRead *screenOptions, itemTrim string) error {
 			confRead.icmp[0]["sweep"].([]map[string]interface{})[0]["threshold"], err = strconv.Atoi(
 				strings.TrimPrefix(itemTrim, "icmp ip-sweep threshold "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	}
@@ -1493,7 +1493,7 @@ func readSecurityScreenIP(confRead *screenOptions, itemTrim string) error {
 		confRead.ip[0]["ipv6_extension_header_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 			"ip ipv6-extension-header-limit "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "ip ipv6-malformed-header":
 		confRead.ip[0]["ipv6_malformed_header"] = true
@@ -1627,7 +1627,7 @@ func readSecurityScreenTCP(confRead *screenOptions, itemTrim string) error {
 			confRead.tcp[0]["port_scan"].([]map[string]interface{})[0]["threshold"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "tcp port-scan threshold "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case strings.HasPrefix(itemTrim, "tcp tcp-sweep"):
@@ -1642,7 +1642,7 @@ func readSecurityScreenTCP(confRead *screenOptions, itemTrim string) error {
 			confRead.tcp[0]["sweep"].([]map[string]interface{})[0]["threshold"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "tcp tcp-sweep threshold "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case strings.HasPrefix(itemTrim, "tcp syn-ack-ack-proxy"):
@@ -1658,7 +1658,7 @@ func readSecurityScreenTCP(confRead *screenOptions, itemTrim string) error {
 			synAckAckProxy["threshold"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "tcp syn-ack-ack-proxy threshold "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case itemTrim == "tcp syn-fin":
@@ -1681,32 +1681,32 @@ func readSecurityScreenTCP(confRead *screenOptions, itemTrim string) error {
 			var err error
 			synFlood["alarm_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "tcp syn-flood alarm-threshold "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "tcp syn-flood attack-threshold "):
 			var err error
 			synFlood["attack_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "tcp syn-flood attack-threshold "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "tcp syn-flood destination-threshold "):
 			var err error
 			synFlood["destination_threshold"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "tcp syn-flood destination-threshold "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "tcp syn-flood source-threshold "):
 			var err error
 			synFlood["source_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "tcp syn-flood source-threshold "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "tcp syn-flood timeout "):
 			var err error
 			synFlood["timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "tcp syn-flood timeout "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "tcp syn-flood white-list "):
 			whiteListLineCut := strings.Split(strings.TrimPrefix(itemTrim, "tcp syn-flood white-list "), " ")
@@ -1759,7 +1759,7 @@ func readSecurityScreenUDP(confRead *screenOptions, itemTrim string) error {
 			var err error
 			flood["threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "udp flood threshold "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "udp flood white-list "):
 			flood["whitelist"] = append(flood["whitelist"].([]string), strings.TrimPrefix(itemTrim, "udp flood white-list "))
@@ -1776,7 +1776,7 @@ func readSecurityScreenUDP(confRead *screenOptions, itemTrim string) error {
 			var err error
 			portScan["threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "udp port-scan threshold "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case strings.HasPrefix(itemTrim, "udp udp-sweep"):
@@ -1791,7 +1791,7 @@ func readSecurityScreenUDP(confRead *screenOptions, itemTrim string) error {
 			var err error
 			sweep["threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "udp udp-sweep threshold "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	}

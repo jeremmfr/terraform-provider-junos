@@ -311,7 +311,7 @@ func resourceServicesSecurityIntellProfileImport(
 func checkServicesSecurityIntellProfileExists(profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"services security-intelligence profile \""+profile+"\" | display set", jnprSess)
+		"services security-intelligence profile \""+profile+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -373,17 +373,17 @@ func readServicesSecurityIntellProfile(profile string, m interface{}, jnprSess *
 	var confRead securityIntellProfileOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"services security-intelligence profile \""+profile+"\" | display set relative", jnprSess)
+		"services security-intelligence profile \""+profile+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = profile
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -442,7 +442,7 @@ func readServicesSecurityIntellProfileRule(itemTrimPolicyRule string, ruleMap ma
 		case strings.HasPrefix(itemTrimPolicyRule, "match threat-level "):
 			threatLevel, err := strconv.Atoi(strings.TrimPrefix(itemTrimPolicyRule, "match threat-level "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimPolicyRule, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrimPolicyRule, err)
 			}
 			ruleMap["match"].([]map[string]interface{})[0]["threat_level"] = append(
 				ruleMap["match"].([]map[string]interface{})[0]["threat_level"].([]int), threatLevel)

@@ -420,7 +420,7 @@ func resourceSystemSyslogFileImport(d *schema.ResourceData, m interface{}) ([]*s
 
 func checkSystemSyslogFileExists(filename string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+"system syslog file "+filename+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system syslog file "+filename+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -564,17 +564,17 @@ func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObjec
 	sess := m.(*Session)
 	var confRead syslogFileOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"system syslog file "+filename+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system syslog file "+filename+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.filename = filename
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -654,20 +654,20 @@ func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObjec
 					var err error
 					confRead.archive[0]["files"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "archive files "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "archive size "):
 					var err error
 					confRead.archive[0]["size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "archive size "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "archive transfer-interval "):
 					var err error
 					confRead.archive[0]["transfer_interval"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrim, "archive transfer-interval "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "archive start-time "):
 					confRead.archive[0]["start_time"] = strings.Split(strings.Trim(strings.TrimPrefix(

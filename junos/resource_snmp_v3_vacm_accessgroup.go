@@ -316,7 +316,7 @@ func resourceSnmpV3VacmAccessGroupImport(d *schema.ResourceData, m interface{}) 
 
 func checkSnmpV3VacmAccessGroupExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+"snmp v3 vacm access group \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"snmp v3 vacm access group \""+name+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -409,17 +409,17 @@ func readSnmpV3VacmAccessGroup(name string, m interface{}, jnprSess *NetconfObje
 	var confRead snmpV3VacmAccessGroupOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"snmp v3 vacm access group \""+name+"\" | display set relative", jnprSess)
+		"snmp v3 vacm access group \""+name+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

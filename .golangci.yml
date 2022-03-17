@@ -28,6 +28,8 @@ linters-settings:
   goconst:
     # Minimum occurrences of constant string count to trigger issue.
     min-occurrences: 10
+    # Ignore test files.
+    ignore-tests: true
   gocyclo:
     # minimal code complexity to report, 30 by default
     min-complexity: 90

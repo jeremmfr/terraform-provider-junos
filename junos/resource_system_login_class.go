@@ -371,7 +371,7 @@ func resourceSystemLoginClassImport(d *schema.ResourceData, m interface{}) ([]*s
 
 func checkSystemLoginClassExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+"system login class "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system login class "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -467,17 +467,17 @@ func readSystemLoginClass(name string, m interface{}, jnprSess *NetconfObject) (
 	sess := m.(*Session)
 	var confRead systemLoginClassOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"system login class "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system login class "+name+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -523,7 +523,7 @@ func readSystemLoginClass(name string, m interface{}, jnprSess *NetconfObject) (
 				var err error
 				confRead.idleTimeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "idle-timeout "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "logical-system "):
 				confRead.logicalSystem = strings.Trim(strings.TrimPrefix(itemTrim, "logical-system "), "\"")

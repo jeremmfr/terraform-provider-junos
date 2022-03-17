@@ -253,7 +253,7 @@ func resourceIpsecProposalImport(d *schema.ResourceData, m interface{}) ([]*sche
 func checkIpsecProposalExists(ipsecProposal string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"security ipsec proposal "+ipsecProposal+" | display set", jnprSess)
+		"security ipsec proposal "+ipsecProposal+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -293,17 +293,17 @@ func readIpsecProposal(ipsecProposal string, m interface{}, jnprSess *NetconfObj
 	var confRead ipsecProposalOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security ipsec proposal "+ipsecProposal+" | display set relative", jnprSess)
+		"security ipsec proposal "+ipsecProposal+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = ipsecProposal
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -315,12 +315,12 @@ func readIpsecProposal(ipsecProposal string, m interface{}, jnprSess *NetconfObj
 			case strings.HasPrefix(itemTrim, "lifetime-kilobytes "):
 				confRead.lifetimeKilobytes, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "lifetime-kilobytes "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "lifetime-seconds "):
 				confRead.lifetimeSeconds, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "lifetime-seconds "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "protocol "):
 				confRead.protocol = strings.TrimPrefix(itemTrim, "protocol ")

@@ -510,7 +510,7 @@ func resourceServicesRpmProbeImport(
 
 func checkServicesRpmProbeExists(probe string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+"services rpm probe \""+probe+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"services rpm probe \""+probe+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -695,17 +695,17 @@ func readServicesRpmProbe(probe string, m interface{}, jnprSess *NetconfObject) 
 	sess := m.(*Session)
 	var confRead rpmProbeOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"services rpm probe \""+probe+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"services rpm probe \""+probe+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = probe
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -767,14 +767,14 @@ func readServicesRpmProbeTest(itemTrim string, test map[string]interface{}) erro
 	case strings.HasPrefix(itemTrim, "data-size "):
 		test["data_size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "data-size "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "destination-interface "):
 		test["destination_interface"] = strings.TrimPrefix(itemTrim, "destination-interface ")
 	case strings.HasPrefix(itemTrim, "destination-port "):
 		test["destination_port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "destination-port "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "dscp-code-points "):
 		test["dscp_code_points"] = strings.TrimPrefix(itemTrim, "dscp-code-points ")
@@ -783,26 +783,26 @@ func readServicesRpmProbeTest(itemTrim string, test map[string]interface{}) erro
 	case strings.HasPrefix(itemTrim, "history-size "):
 		test["history_size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "history-size "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "inet6-options source-address "):
 		test["inet6_source_address"] = strings.TrimPrefix(itemTrim, "inet6-options source-address ")
 	case strings.HasPrefix(itemTrim, "moving-average-size "):
 		test["moving_average_size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "moving-average-size "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "one-way-hardware-timestamp":
 		test["one_way_hardware_timestamp"] = true
 	case strings.HasPrefix(itemTrim, "probe-count "):
 		test["probe_count"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "probe-count "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "probe-interval "):
 		test["probe_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "probe-interval "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "probe-type "):
 		test["probe_type"] = strings.TrimPrefix(itemTrim, "probe-type ")
@@ -834,7 +834,7 @@ func readServicesRpmProbeTest(itemTrim string, test map[string]interface{}) erro
 		case strings.HasPrefix(itemTrimRpmScale, "tests-count "):
 			rpmScale["tests_count"], err = strconv.Atoi(strings.TrimPrefix(itemTrimRpmScale, "tests-count "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimRpmScale, "destination interface "):
 			rpmScale["destination_interface"] = strings.TrimPrefix(itemTrimRpmScale, "destination interface ")
@@ -842,14 +842,14 @@ func readServicesRpmProbeTest(itemTrim string, test map[string]interface{}) erro
 			rpmScale["destination_subunit_cnt"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrimRpmScale, "destination subunit-cnt "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimRpmScale, "source address-base "):
 			rpmScale["source_address_base"] = strings.TrimPrefix(itemTrimRpmScale, "source address-base ")
 		case strings.HasPrefix(itemTrimRpmScale, "source count "):
 			rpmScale["source_count"], err = strconv.Atoi(strings.TrimPrefix(itemTrimRpmScale, "source count "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimRpmScale, "source step "):
 			rpmScale["source_step"] = strings.TrimPrefix(itemTrimRpmScale, "source step ")
@@ -858,7 +858,7 @@ func readServicesRpmProbeTest(itemTrim string, test map[string]interface{}) erro
 		case strings.HasPrefix(itemTrimRpmScale, "source-inet6 count "):
 			rpmScale["source_inet6_count"], err = strconv.Atoi(strings.TrimPrefix(itemTrimRpmScale, "source-inet6 count "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimRpmScale, "source-inet6 step "):
 			rpmScale["source_inet6_step"] = strings.TrimPrefix(itemTrimRpmScale, "source-inet6 step ")
@@ -867,7 +867,7 @@ func readServicesRpmProbeTest(itemTrim string, test map[string]interface{}) erro
 		case strings.HasPrefix(itemTrimRpmScale, "target count "):
 			rpmScale["target_count"], err = strconv.Atoi(strings.TrimPrefix(itemTrimRpmScale, "target count "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimRpmScale, "target step "):
 			rpmScale["target_step"] = strings.TrimPrefix(itemTrimRpmScale, "target step ")
@@ -876,7 +876,7 @@ func readServicesRpmProbeTest(itemTrim string, test map[string]interface{}) erro
 		case strings.HasPrefix(itemTrimRpmScale, "target-inet6 count "):
 			rpmScale["target_inet6_count"], err = strconv.Atoi(strings.TrimPrefix(itemTrimRpmScale, "target-inet6 count "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimRpmScale, "target-inet6 step "):
 			rpmScale["target_inet6_step"] = strings.TrimPrefix(itemTrimRpmScale, "target-inet6 step ")
@@ -886,7 +886,7 @@ func readServicesRpmProbeTest(itemTrim string, test map[string]interface{}) erro
 	case strings.HasPrefix(itemTrim, "test-interval "):
 		test["test_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "test-interval "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "thresholds"):
 		if len(test["thresholds"].([]map[string]interface{})) == 0 {
@@ -909,57 +909,57 @@ func readServicesRpmProbeTest(itemTrim string, test map[string]interface{}) erro
 		case strings.HasPrefix(itemTrim, "thresholds egress-time "):
 			thresholds["egress_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds egress-time "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "thresholds ingress-time "):
 			thresholds["ingress_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds ingress-time "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "thresholds jitter-egress "):
 			thresholds["jitter_egress"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds jitter-egress "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "thresholds jitter-ingress "):
 			thresholds["jitter_ingress"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds jitter-ingress "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "thresholds jitter-rtt "):
 			thresholds["jitter_rtt"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds jitter-rtt "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "thresholds rtt "):
 			thresholds["rtt"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds rtt "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "thresholds std-dev-egress "):
 			thresholds["std_dev_egress"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds std-dev-egress "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "thresholds std-dev-ingress "):
 			thresholds["std_dev_ingress"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds std-dev-ingress "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "thresholds std-dev-rtt "):
 			thresholds["std_dev_rtt"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds std-dev-rtt "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "thresholds successive-loss "):
 			thresholds["successive_loss"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds successive-loss "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "thresholds total-loss "):
 			thresholds["total_loss"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds total-loss "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case strings.HasPrefix(itemTrim, "traps "):
@@ -967,7 +967,7 @@ func readServicesRpmProbeTest(itemTrim string, test map[string]interface{}) erro
 	case strings.HasPrefix(itemTrim, "ttl "):
 		test["ttl"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "ttl "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	}
 

@@ -473,16 +473,16 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 	sess := m.(*Session)
 	var confRead chassisClusterOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"chassis cluster | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"chassis cluster"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -492,7 +492,7 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 				itemRGTrimSplit := strings.Split(itemRGTrim, " ")
 				number, err := strconv.Atoi(itemRGTrimSplit[0])
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGTrimSplit[0], err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemRGTrimSplit[0], err)
 				}
 				if len(confRead.redundancyGroup) < number+1 {
 					for i := len(confRead.redundancyGroup); i < number+1; i++ {
@@ -516,34 +516,34 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 					confRead.redundancyGroup[number]["node0_priority"], err = strconv.Atoi(strings.TrimPrefix(
 						itemRGNbTrim, "node 0 priority "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGNbTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemRGNbTrim, err)
 					}
 				case strings.HasPrefix(itemRGNbTrim, "node 1 priority "):
 					var err error
 					confRead.redundancyGroup[number]["node1_priority"], err = strconv.Atoi(strings.TrimPrefix(
 						itemRGNbTrim, "node 1 priority "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGNbTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemRGNbTrim, err)
 					}
 				case strings.HasPrefix(itemRGNbTrim, "gratuitous-arp-count "):
 					var err error
 					confRead.redundancyGroup[number]["gratuitous_arp_count"], err = strconv.Atoi(strings.TrimPrefix(
 						itemRGNbTrim, "gratuitous-arp-count "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGNbTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemRGNbTrim, err)
 					}
 				case strings.HasPrefix(itemRGNbTrim, "hold-down-interval "):
 					var err error
 					confRead.redundancyGroup[number]["hold_down_interval"], err = strconv.Atoi(strings.TrimPrefix(
 						itemRGNbTrim, "hold-down-interval "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGNbTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemRGNbTrim, err)
 					}
 				case strings.HasPrefix(itemRGNbTrim, "interface-monitor "):
 					name := strings.Split(strings.TrimPrefix(itemRGNbTrim, "interface-monitor "), " ")[0]
 					weight, err := strconv.Atoi(strings.TrimPrefix(itemRGNbTrim, "interface-monitor "+name+" weight "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGNbTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemRGNbTrim, err)
 					}
 					confRead.redundancyGroup[number]["interface_monitor"] = append(
 						confRead.redundancyGroup[number]["interface_monitor"].([]map[string]interface{}),
@@ -559,21 +559,21 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 						confRead.redundancyGroup[number]["preempt_delay"], err = strconv.Atoi(strings.TrimPrefix(
 							itemRGNbTrim, "preempt delay "))
 						if err != nil {
-							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGNbTrim, err)
+							return confRead, fmt.Errorf(failedConvAtoiError, itemRGNbTrim, err)
 						}
 					case strings.HasPrefix(itemRGNbTrim, "preempt limit "):
 						var err error
 						confRead.redundancyGroup[number]["preempt_limit"], err = strconv.Atoi(strings.TrimPrefix(
 							itemRGNbTrim, "preempt limit "))
 						if err != nil {
-							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGNbTrim, err)
+							return confRead, fmt.Errorf(failedConvAtoiError, itemRGNbTrim, err)
 						}
 					case strings.HasPrefix(itemRGNbTrim, "preempt period "):
 						var err error
 						confRead.redundancyGroup[number]["preempt_period"], err = strconv.Atoi(strings.TrimPrefix(
 							itemRGNbTrim, "preempt period "))
 						if err != nil {
-							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemRGNbTrim, err)
+							return confRead, fmt.Errorf(failedConvAtoiError, itemRGNbTrim, err)
 						}
 					}
 				}
@@ -581,7 +581,7 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 				var err error
 				confRead.rethCount, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "reth-count "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "configuration-synchronize no-secondary-bootup-auto":
 				confRead.configSyncNoSecBootAuto = true
@@ -594,11 +594,11 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 				var err error
 				controlPort["fpc"], err = strconv.Atoi(itemTrimSplit[0])
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimSplit[0], err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrimSplit[0], err)
 				}
 				controlPort["port"], err = strconv.Atoi(itemTrimSplit[2])
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimSplit[2], err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrimSplit[2], err)
 				}
 				confRead.controlPorts = append(confRead.controlPorts, controlPort)
 			case itemTrim == "control-link-recovery":
@@ -607,18 +607,18 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 				var err error
 				confRead.heartbeatInterval, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "heartbeat-interval "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "heartbeat-threshold "):
 				var err error
 				confRead.heartbeatThreshold, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "heartbeat-threshold "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}
 	}
-	showConfigFab0, err := sess.command(cmdShowConfig+"interfaces fab0 | display set relative", jnprSess)
+	showConfigFab0, err := sess.command(cmdShowConfig+"interfaces fab0"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -630,10 +630,10 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 			})
 		}
 		for _, item := range strings.Split(showConfigFab0, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -646,7 +646,7 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 			}
 		}
 	}
-	showConfigFab1, err := sess.command(cmdShowConfig+"interfaces fab1 | display set relative", jnprSess)
+	showConfigFab1, err := sess.command(cmdShowConfig+"interfaces fab1"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -658,10 +658,10 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 			})
 		}
 		for _, item := range strings.Split(showConfigFab1, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

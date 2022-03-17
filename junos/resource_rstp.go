@@ -394,14 +394,14 @@ func readRstp(routingInstance string, m interface{}, jnprSess *NetconfObject) (r
 	if routingInstance == defaultW {
 		var err error
 		showConfig, err = sess.command(cmdShowConfig+
-			"protocols rstp | display set relative", jnprSess)
+			"protocols rstp"+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
 		var err error
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
-			"protocols rstp | display set relative", jnprSess)
+			"protocols rstp"+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
@@ -410,10 +410,10 @@ func readRstp(routingInstance string, m interface{}, jnprSess *NetconfObject) (r
 	confRead.routingInstance = routingInstance
 	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -432,7 +432,7 @@ func readRstp(routingInstance string, m interface{}, jnprSess *NetconfObject) (r
 				var err error
 				confRead.extendedSystemID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "extended-system-id "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "force-version stp":
 				confRead.forceVersionStp = true
@@ -440,25 +440,25 @@ func readRstp(routingInstance string, m interface{}, jnprSess *NetconfObject) (r
 				var err error
 				confRead.forwardDelay, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "forward-delay "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "hello-time "):
 				var err error
 				confRead.helloTime, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "hello-time "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "max-age "):
 				var err error
 				confRead.maxAge, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-age "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "priority-hold-time "):
 				var err error
 				confRead.priorityHoldTime, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "priority-hold-time "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "system-id "):
 				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "system-id "), " ")

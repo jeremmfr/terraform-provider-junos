@@ -671,13 +671,13 @@ func checkAccessAddressAssignPoolExists(name string, instance string, m interfac
 	var err error
 	if instance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
-			"access address-assignment pool "+name+" | display set", jnprSess)
+			"access address-assignment pool "+name+pipeDisplaySet, jnprSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-			"access address-assignment pool "+name+" | display set", jnprSess)
+			"access address-assignment pool "+name+pipeDisplaySet, jnprSess)
 		if err != nil {
 			return false, err
 		}
@@ -1053,10 +1053,10 @@ func readAccessAddressAssignPool(name string, instance string, m interface{},
 
 	if instance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
-			"access address-assignment pool "+name+" | display set relative", jnprSess)
+			"access address-assignment pool "+name+pipeDisplaySetRelative, jnprSess)
 	} else {
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-			"access address-assignment pool "+name+" | display set relative", jnprSess)
+			"access address-assignment pool "+name+pipeDisplaySetRelative, jnprSess)
 	}
 	if err != nil {
 		return confRead, err
@@ -1066,10 +1066,10 @@ func readAccessAddressAssignPool(name string, instance string, m interface{},
 		confRead.name = name
 		confRead.routingInstance = instance
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -1336,7 +1336,7 @@ func readAccessAddressAssignPoolFamily(itemTrim string, family map[string]interf
 		family["xauth_attributes_secondary_wins"] = strings.TrimPrefix(itemTrim, "xauth-attributes secondary-wins ")
 	}
 	if err != nil {
-		return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 	}
 
 	return nil

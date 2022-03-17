@@ -286,7 +286,7 @@ func resourceSecurityNatSourcePoolImport(d *schema.ResourceData, m interface{}) 
 func checkSecurityNatSourcePoolExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"security nat source pool "+name+" | display set", jnprSess)
+		"security nat source pool "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -346,7 +346,7 @@ func readSecurityNatSourcePool(name string, m interface{}, jnprSess *NetconfObje
 	var confRead natSourcePoolOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security nat source pool "+name+" | display set relative", jnprSess)
+		"security nat source pool "+name+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -354,10 +354,10 @@ func readSecurityNatSourcePool(name string, m interface{}, jnprSess *NetconfObje
 		confRead.name = name
 		var portRange string
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -372,13 +372,13 @@ func readSecurityNatSourcePool(name string, m interface{}, jnprSess *NetconfObje
 				confRead.poolUtilizationAlarmClearThreshold, err = strconv.Atoi(
 					strings.TrimPrefix(itemTrim, "pool-utilization-alarm clear-threshold "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "pool-utilization-alarm raise-threshold "):
 				confRead.poolUtilizationAlarmRaiseThreshold, err = strconv.Atoi(
 					strings.TrimPrefix(itemTrim, "pool-utilization-alarm raise-threshold "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "port no-translation":
 				confRead.portNoTranslation = true
@@ -386,7 +386,7 @@ func readSecurityNatSourcePool(name string, m interface{}, jnprSess *NetconfObje
 				confRead.portOverloadingFactor, err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 					"port port-overloading-factor "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "port range to"):
 				portRange += "-" + strings.TrimPrefix(itemTrim, "port range to ")

@@ -1268,16 +1268,16 @@ func readServices(m interface{}, jnprSess *NetconfObject) (servicesOptions, erro
 	sess := m.(*Session)
 	var confRead servicesOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"services | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"services"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -1497,7 +1497,7 @@ func readServicesApplicationIdentification(confRead *servicesOptions, itemTrimAp
 		confRead.appIdent[0]["application_system_cache_timeout"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "application-system-cache-timeout "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "application-system-cache"):
 		if len(confRead.appIdent[0]["application_system_cache"].([]map[string]interface{})) == 0 {
@@ -1534,7 +1534,7 @@ func readServicesApplicationIdentification(confRead *servicesOptions, itemTrimAp
 			var err error
 			download["automatic_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "download automatic interval "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "download automatic start-time "):
 			download["automatic_start_time"] = strings.TrimPrefix(itemTrim, "download automatic start-time ")
@@ -1558,7 +1558,7 @@ func readServicesApplicationIdentification(confRead *servicesOptions, itemTrimAp
 			enablePerfMode["max_packet_threshold"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "enable-performance-mode max-packet-threshold "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case strings.HasPrefix(itemTrim, "global-offload-byte-limit "):
@@ -1566,19 +1566,19 @@ func readServicesApplicationIdentification(confRead *servicesOptions, itemTrimAp
 		confRead.appIdent[0]["global_offload_byte_limit"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "global-offload-byte-limit "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "imap-cache-size "):
 		var err error
 		confRead.appIdent[0]["imap_cache_size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "imap-cache-size "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "imap-cache-timeout "):
 		var err error
 		confRead.appIdent[0]["imap_cache_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "imap-cache-timeout "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "inspection-limit tcp"):
 		if len(confRead.appIdent[0]["inspection_limit_tcp"].([]map[string]interface{})) == 0 {
@@ -1594,13 +1594,13 @@ func readServicesApplicationIdentification(confRead *servicesOptions, itemTrimAp
 			var err error
 			inspLimitTCP["byte_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "inspection-limit tcp byte-limit "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "inspection-limit tcp packet-limit "):
 			var err error
 			inspLimitTCP["packet_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "inspection-limit tcp packet-limit "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case strings.HasPrefix(itemTrim, "inspection-limit udp"):
@@ -1617,26 +1617,26 @@ func readServicesApplicationIdentification(confRead *servicesOptions, itemTrimAp
 			var err error
 			inspLimitUDP["byte_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "inspection-limit udp byte-limit "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "inspection-limit udp packet-limit "):
 			var err error
 			inspLimitUDP["packet_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "inspection-limit udp packet-limit "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case strings.HasPrefix(itemTrim, "max-memory "):
 		var err error
 		confRead.appIdent[0]["max_memory"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-memory "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "max-transactions "):
 		var err error
 		confRead.appIdent[0]["max_transactions"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-transactions "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "micro-apps":
 		confRead.appIdent[0]["micro_apps"] = true
@@ -1644,7 +1644,7 @@ func readServicesApplicationIdentification(confRead *servicesOptions, itemTrimAp
 		var err error
 		confRead.appIdent[0]["statistics_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "statistics interval "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	}
 
@@ -1682,7 +1682,7 @@ func readServicesUserIdentification(confRead *servicesOptions, itemTrimUserIdent
 			adAccess["auth_entry_timeout"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "active-directory-access authentication-entry-timeout "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "active-directory-access filter exclude "):
 			adAccess["filter_exclude"] = append(adAccess["filter_exclude"].([]string), strings.TrimPrefix(
@@ -1695,14 +1695,14 @@ func readServicesUserIdentification(confRead *servicesOptions, itemTrimUserIdent
 			adAccess["firewall_auth_forced_timeout"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "active-directory-access firewall-authentication-forced-timeout "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "active-directory-access invalid-authentication-entry-timeout "):
 			var err error
 			adAccess["invalid_auth_entry_timeout"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "active-directory-access invalid-authentication-entry-timeout "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case itemTrim == "active-directory-access no-on-demand-probe":
 			adAccess["no_on_demand_probe"] = true
@@ -1710,7 +1710,7 @@ func readServicesUserIdentification(confRead *servicesOptions, itemTrimUserIdent
 			var err error
 			adAccess["wmi_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "active-directory-access wmi-timeout "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case strings.HasPrefix(itemTrim, "device-information authentication-source "):
@@ -1743,21 +1743,21 @@ func readServicesUserIdentification(confRead *servicesOptions, itemTrimUserIdent
 			userIdentIdentityMgmt["authentication_entry_timeout"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrimIdentMgmt, "authentication-entry-timeout "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimIdentMgmt, "batch-query items-per-batch "):
 			var err error
 			userIdentIdentityMgmt["batch_query_items_per_batch"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrimIdentMgmt, "batch-query items-per-batch "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimIdentMgmt, "batch-query query-interval "):
 			var err error
 			userIdentIdentityMgmt["batch_query_interval"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrimIdentMgmt, "batch-query query-interval "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimIdentMgmt, "connection "):
 			if len(userIdentIdentityMgmt["connection"].([]map[string]interface{})) == 0 {
@@ -1798,7 +1798,7 @@ func readServicesUserIdentification(confRead *servicesOptions, itemTrimUserIdent
 				var err error
 				userIdentIdentityMgmtConnect["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrimIdentMgmt, "connection port "))
 				if err != nil {
-					return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrimIdentMgmt, "connection primary ca-certificate "):
 				userIdentIdentityMgmtConnect["primary_ca_certificate"] = strings.Trim(strings.TrimPrefix(
@@ -1846,7 +1846,7 @@ func readServicesUserIdentification(confRead *servicesOptions, itemTrimUserIdent
 			userIdentIdentityMgmt["invalid_authentication_entry_timeout"], err = strconv.Atoi(
 				strings.TrimPrefix(itemTrimIdentMgmt, "invalid-authentication-entry-timeout "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case itemTrimIdentMgmt == "ip-query no-ip-query":
 			userIdentIdentityMgmt["ip_query_disable"] = true
@@ -1855,7 +1855,7 @@ func readServicesUserIdentification(confRead *servicesOptions, itemTrimUserIdent
 			userIdentIdentityMgmt["ip_query_delay_time"], err = strconv.Atoi(
 				strings.TrimPrefix(itemTrimIdentMgmt, "ip-query query-delay-time "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	}

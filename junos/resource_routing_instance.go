@@ -326,7 +326,7 @@ func resourceRoutingInstanceImport(d *schema.ResourceData, m interface{}) ([]*sc
 
 func checkRoutingInstanceExists(instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+routingInstancesWS+instance+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+routingInstancesWS+instance+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -397,17 +397,17 @@ func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject
 	sess := m.(*Session)
 	var confRead instanceOptions
 
-	showConfig, err := sess.command(cmdShowConfig+routingInstancesWS+instance+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+routingInstancesWS+instance+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = instance
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

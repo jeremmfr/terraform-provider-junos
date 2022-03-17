@@ -9,7 +9,9 @@ const (
 	deleteW  = "delete"
 	deleteLS = deleteW + " " // delete line start
 
-	cmdShowConfig = "show configuration "
+	cmdShowConfig          = "show configuration "
+	pipeDisplaySet         = " | display set"
+	pipeDisplaySetRelative = pipeDisplaySet + " relative"
 
 	routingInstancesWS  = "routing-instances " // routing-instances word + space
 	setRoutingInstances = setLS + routingInstancesWS
@@ -28,4 +30,6 @@ const (
 	mplsW  = "mpls"
 	ospfV2 = "ospf"
 	ospfV3 = "ospf3"
+
+	failedConvAtoiError = "failed to convert value from '%s' to integer : %w"
 )

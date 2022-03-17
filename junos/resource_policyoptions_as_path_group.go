@@ -249,7 +249,7 @@ func resourcePolicyoptionsAsPathGroupImport(d *schema.ResourceData, m interface{
 func checkPolicyoptionsAsPathGroupExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"policy-options as-path-group "+name+" | display set", jnprSess)
+		"policy-options as-path-group "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -288,17 +288,17 @@ func readPolicyoptionsAsPathGroup(name string, m interface{}, jnprSess *NetconfO
 	var confRead asPathGroupOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"policy-options as-path-group "+name+" | display set relative", jnprSess)
+		"policy-options as-path-group "+name+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

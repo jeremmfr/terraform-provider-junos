@@ -253,7 +253,7 @@ func resourceEventoptionsDestinationImport(d *schema.ResourceData, m interface{}
 
 func checkEventoptionsDestinationExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+"event-options destinations \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"event-options destinations \""+name+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -295,17 +295,17 @@ func readEventoptionsDestination(
 	confRead.transferDelay = -1 // default value
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"event-options destinations \""+name+"\" | display set relative", jnprSess)
+		"event-options destinations \""+name+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -331,7 +331,7 @@ func readEventoptionsDestination(
 				var err error
 				confRead.transferDelay, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "transfer-delay "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}

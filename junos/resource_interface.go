@@ -851,7 +851,7 @@ func resourceInterfaceImport(d *schema.ResourceData, m interface{}) ([]*schema.R
 func checkInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) (
 	ncInt bool, emtyInt bool, errFunc error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return false, false, err
 	}
@@ -863,10 +863,10 @@ func checkInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) 
 			!strings.Contains(item, "ethernet-switching") {
 			continue
 		}
-		if strings.Contains(item, "<configuration-output>") {
+		if strings.Contains(item, xmlStartTagConfigOut) {
 			continue
 		}
-		if strings.Contains(item, "</configuration-output>") {
+		if strings.Contains(item, xmlEndTagConfigOut) {
 			break
 		}
 		if item == "" {
@@ -1118,7 +1118,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 	sess := m.(*Session)
 	var confRead interfaceOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -1131,10 +1131,10 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 				!strings.Contains(item, "ethernet-switching") {
 				continue
 			}
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -1148,7 +1148,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 				var err error
 				confRead.vlanTaggingID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vlan-id "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "family inet6"):
 				confRead.inet6 = true
@@ -1161,7 +1161,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 				case strings.HasPrefix(itemTrim, "family inet6 mtu"):
 					confRead.inet6Mtu, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "family inet6 mtu "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "family inet6 filter input "):
 					confRead.inet6FilterInput = strings.TrimPrefix(itemTrim, "family inet6 filter input ")
@@ -1193,7 +1193,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 				case strings.HasPrefix(itemTrim, "family inet mtu "):
 					confRead.inetMtu, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "family inet mtu "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "family inet filter input "):
 					confRead.inetFilterInput = strings.TrimPrefix(itemTrim, "family inet filter input ")
@@ -1226,7 +1226,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 			case strings.HasPrefix(itemTrim, "native-vlan-id"):
 				confRead.vlanNative, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "native-vlan-id "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "aggregated-ether-options lacp "):
 				confRead.aeLacp = strings.TrimPrefix(itemTrim, "aggregated-ether-options lacp ")
@@ -1236,7 +1236,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 				confRead.aeMinLink, err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 					"aggregated-ether-options minimum-links "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			default:
 				continue
@@ -1246,7 +1246,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 		confRead.inet6Address = inet6Address
 	}
 	if checkCompatibilitySecurity(jnprSess) {
-		showConfigSecurityZones, err := sess.command(cmdShowConfig+"security zones | display set relative", jnprSess)
+		showConfigSecurityZones, err := sess.command(cmdShowConfig+"security zones"+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
@@ -1261,7 +1261,7 @@ func readInterface(interFace string, m interface{}, jnprSess *NetconfObject) (in
 			}
 		}
 	}
-	showConfigRoutingInstances, err := sess.command(cmdShowConfig+routingInstancesWS+"| display set relative", jnprSess)
+	showConfigRoutingInstances, err := sess.command(cmdShowConfig+"routing-instances"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -1376,15 +1376,15 @@ func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 
 func checkInterfaceContainsUnit(interFace string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return err
 	}
 	for _, item := range strings.Split(showConfig, "\n") {
-		if strings.Contains(item, "<configuration-output>") {
+		if strings.Contains(item, xmlStartTagConfigOut) {
 			continue
 		}
-		if strings.Contains(item, "</configuration-output>") {
+		if strings.Contains(item, xmlEndTagConfigOut) {
 			break
 		}
 		if strings.HasPrefix(item, "set unit") {
@@ -1568,7 +1568,7 @@ func readFamilyInetAddressOld(item string, inetAddress []map[string]interface{},
 		vrrpGroup := genVRRPGroupOld(family)
 		vrrpID, err := strconv.Atoi(addressConfig[2])
 		if err != nil {
-			return inetAddress, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 		itemTrimVrrp := strings.TrimPrefix(itemTrim, "vrrp-group "+strconv.Itoa(vrrpID)+" ")
 		if strings.HasPrefix(itemTrim, "vrrp-inet6-group ") {
@@ -1593,19 +1593,19 @@ func readFamilyInetAddressOld(item string, inetAddress []map[string]interface{},
 			vrrpGroup["advertise_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVrrp,
 				"advertise-interval "))
 			if err != nil {
-				return inetAddress, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimVrrp, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrimVrrp, err)
 			}
 		case strings.HasPrefix(itemTrimVrrp, "inet6-advertise-interval "):
 			vrrpGroup["advertise_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVrrp,
 				"inet6-advertise-interval "))
 			if err != nil {
-				return inetAddress, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimVrrp, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrimVrrp, err)
 			}
 		case strings.HasPrefix(itemTrimVrrp, "advertisements-threshold "):
 			vrrpGroup["advertisements_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVrrp,
 				"advertisements-threshold "))
 			if err != nil {
-				return inetAddress, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimVrrp, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrimVrrp, err)
 			}
 		case strings.HasPrefix(itemTrimVrrp, "authentication-key "):
 			vrrpGroup["authentication_key"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrimVrrp,
@@ -1624,13 +1624,13 @@ func readFamilyInetAddressOld(item string, inetAddress []map[string]interface{},
 		case strings.HasPrefix(itemTrimVrrp, "priority"):
 			vrrpGroup["priority"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVrrp, "priority "))
 			if err != nil {
-				return inetAddress, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimVrrp, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrimVrrp, err)
 			}
 		case strings.HasPrefix(itemTrimVrrp, "track interface "):
 			vrrpSlit := strings.Split(itemTrimVrrp, " ")
 			cost, err := strconv.Atoi(vrrpSlit[len(vrrpSlit)-1])
 			if err != nil {
-				return inetAddress, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimVrrp, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrimVrrp, err)
 			}
 			trackInt := map[string]interface{}{
 				"interface":     vrrpSlit[2],
@@ -1641,7 +1641,7 @@ func readFamilyInetAddressOld(item string, inetAddress []map[string]interface{},
 			vrrpSlit := strings.Split(itemTrimVrrp, " ")
 			cost, err := strconv.Atoi(vrrpSlit[len(vrrpSlit)-1])
 			if err != nil {
-				return inetAddress, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimVrrp, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrimVrrp, err)
 			}
 			trackRoute := map[string]interface{}{
 				"route":            vrrpSlit[2],
@@ -1754,7 +1754,7 @@ func setFamilyAddressOld(inetAddress interface{}, intCut []string, configSet []s
 
 func aggregatedLastChild(ae, interFace string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+"interfaces | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"interfaces"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return false, err
 	}

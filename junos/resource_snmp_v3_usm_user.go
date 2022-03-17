@@ -345,7 +345,7 @@ func checkSnmpV3UsmUserExists(name, engineType, engineID string, m interface{}, 
 	sess := m.(*Session)
 	if engineType == "local" {
 		showConfig, err := sess.command(cmdShowConfig+
-			"snmp v3 usm local-engine user \""+name+"\" | display set", jnprSess)
+			"snmp v3 usm local-engine user \""+name+"\""+pipeDisplaySet, jnprSess)
 		if err != nil {
 			return false, err
 		}
@@ -354,7 +354,7 @@ func checkSnmpV3UsmUserExists(name, engineType, engineID string, m interface{}, 
 		}
 	} else {
 		showConfig, err := sess.command(cmdShowConfig+
-			"snmp v3 usm remote-engine \""+engineID+"\" user \""+name+"\" | display set", jnprSess)
+			"snmp v3 usm remote-engine \""+engineID+"\" user \""+name+"\""+pipeDisplaySet, jnprSess)
 		if err != nil {
 			return false, err
 		}
@@ -434,10 +434,10 @@ func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, m interface{}, jnprSess *Ne
 	sess := m.(*Session)
 	var confRead snmpV3UsmUserOptions
 
-	showCommand := cmdShowConfig + "snmp v3 usm local-engine user \"" + confSrc.name + "\" | display set relative"
+	showCommand := cmdShowConfig + "snmp v3 usm local-engine user \"" + confSrc.name + "\"" + pipeDisplaySetRelative
 	if confSrc.engineType != "local" {
 		showCommand = cmdShowConfig + "snmp v3 usm remote-engine \"" + confSrc.engineID +
-			"\" user \"" + confSrc.name + "\" | display set relative"
+			"\" user \"" + confSrc.name + "\"" + pipeDisplaySetRelative
 	}
 	showConfig, err := sess.command(showCommand, jnprSess)
 	if err != nil {
@@ -448,10 +448,10 @@ func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, m interface{}, jnprSess *Ne
 		confRead.engineType = confSrc.engineType
 		confRead.engineID = confSrc.engineID
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

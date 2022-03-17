@@ -804,13 +804,13 @@ func checkBgpGroupExists(bgpGroup, instance string, m interface{}, jnprSess *Net
 	var err error
 	if instance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
-			"protocols bgp group "+bgpGroup+" | display set", jnprSess)
+			"protocols bgp group "+bgpGroup+pipeDisplaySet, jnprSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-			"protocols bgp group "+bgpGroup+" | display set", jnprSess)
+			"protocols bgp group "+bgpGroup+pipeDisplaySet, jnprSess)
 		if err != nil {
 			return false, err
 		}
@@ -873,13 +873,13 @@ func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObj
 
 	if instance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
-			"protocols bgp group "+bgpGroup+" | display set relative", jnprSess)
+			"protocols bgp group "+bgpGroup+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-			"protocols bgp group "+bgpGroup+" | display set relative", jnprSess)
+			"protocols bgp group "+bgpGroup+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
@@ -888,10 +888,10 @@ func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObj
 		confRead.name = bgpGroup
 		confRead.routingInstance = instance
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

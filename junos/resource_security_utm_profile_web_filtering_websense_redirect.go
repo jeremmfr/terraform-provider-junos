@@ -303,7 +303,7 @@ func resourceSecurityUtmProfileWebFilteringWebsenseImport(
 func checkUtmProfileWebFWebsenseExists(profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"security utm feature-profile web-filtering websense-redirect profile \""+profile+"\" | display set", jnprSess)
+		"security utm feature-profile web-filtering websense-redirect profile \""+profile+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -380,17 +380,17 @@ func readUtmProfileWebFWebsense(profile string, m interface{}, jnprSess *Netconf
 
 	showConfig, err := sess.command(cmdShowConfig+
 		"security utm feature-profile web-filtering websense-redirect"+
-		" profile \""+profile+"\" | display set relative", jnprSess)
+		" profile \""+profile+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = profile
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -433,20 +433,20 @@ func readUtmProfileWebFWebsense(profile string, m interface{}, jnprSess *Netconf
 					var err error
 					confRead.server[0]["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "server port "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case strings.HasPrefix(itemTrim, "sockets "):
 				var err error
 				confRead.sockets, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "sockets "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "timeout "):
 				var err error
 				confRead.timeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "timeout "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}

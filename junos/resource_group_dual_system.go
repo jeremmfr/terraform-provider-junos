@@ -407,7 +407,7 @@ func resourceGroupDualSystemImport(d *schema.ResourceData, m interface{}) ([]*sc
 
 func checkGroupDualSystemExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+"groups "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"groups "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -535,17 +535,17 @@ func readGroupDualSystem(group string, m interface{}, jnprSess *NetconfObject) (
 	sess := m.(*Session)
 	var confRead groupDualSystemOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"groups "+group+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"groups "+group+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = group
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -661,17 +661,17 @@ func readGroupDualSystem(group string, m interface{}, jnprSess *NetconfObject) (
 			}
 		}
 	}
-	showConfigApplyGroups, err := sess.command(cmdShowConfig+"apply-groups | display set relative", jnprSess)
+	showConfigApplyGroups, err := sess.command(cmdShowConfig+"apply-groups"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfigApplyGroups != emptyW {
 		confRead.name = group
 		for _, item := range strings.Split(showConfigApplyGroups, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			switch {

@@ -27,6 +27,9 @@ const (
 	rpcClose           = "<close-session/>"
 
 	rpcGetInterfaceInformationTerse = `<get-interface-information><terse/></get-interface-information>`
+
+	xmlStartTagConfigOut = "<configuration-output>"
+	xmlEndTagConfigOut   = "</configuration-output>"
 )
 
 // NetconfObject : store Junos device info and session.

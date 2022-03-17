@@ -384,7 +384,7 @@ func resourceSecurityNatStaticImport(d *schema.ResourceData, m interface{}) ([]*
 func checkSecurityNatStaticExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"security nat static rule-set "+name+" | display set", jnprSess)
+		"security nat static rule-set "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -511,17 +511,17 @@ func readSecurityNatStatic(name string, m interface{}, jnprSess *NetconfObject) 
 	var confRead natStaticOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security nat static rule-set "+name+" | display set relative", jnprSess)
+		"security nat static rule-set "+name+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -561,14 +561,14 @@ func readSecurityNatStatic(name string, m interface{}, jnprSess *NetconfObject) 
 					ruleOptions["destination_port_to"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 						"rule "+ruleConfig[0]+" match destination-port to "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-port "):
 					var err error
 					ruleOptions["destination_port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 						"rule "+ruleConfig[0]+" match destination-port "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-address "):
 					ruleOptions["source_address"] = append(ruleOptions["source_address"].([]string),
@@ -609,13 +609,13 @@ func readSecurityNatStatic(name string, m interface{}, jnprSess *NetconfObject) 
 							var err error
 							ruleThenOptions["mapped_port_to"], err = strconv.Atoi(strings.TrimPrefix(itemThen, "mapped-port to "))
 							if err != nil {
-								return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+								return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 							}
 						case strings.HasPrefix(itemThen, "mapped-port "):
 							var err error
 							ruleThenOptions["mapped_port"], err = strconv.Atoi(strings.TrimPrefix(itemThen, "mapped-port "))
 							if err != nil {
-								return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+								return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 							}
 						default:
 							ruleThenOptions["prefix"] = strings.Trim(itemThen, "\"")

@@ -384,23 +384,23 @@ func readEvpn(routingInstance string,
 
 	if routingInstance == defaultW {
 		var err error
-		showConfig, err = sess.command(cmdShowConfig+"protocols evpn | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+"protocols evpn"+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
-		showConfigSwitchRI, err = sess.command(cmdShowConfig+"switch-options | display set relative", jnprSess)
+		showConfigSwitchRI, err = sess.command(cmdShowConfig+"switch-options"+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
 		var err error
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
-			"protocols evpn | display set relative", jnprSess)
+			"protocols evpn"+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 		showConfigSwitchRI, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+
-			" | display set relative", jnprSess)
+			pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
@@ -409,10 +409,10 @@ func readEvpn(routingInstance string,
 	if showConfig != emptyW {
 		confRead.routingInstance = routingInstance
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -428,10 +428,10 @@ func readEvpn(routingInstance string,
 	}
 	if showConfigSwitchRI != emptyW {
 		for _, item := range strings.Split(showConfigSwitchRI, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

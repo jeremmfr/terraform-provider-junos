@@ -318,14 +318,14 @@ func readVstp(routingInstance string, m interface{}, jnprSess *NetconfObject) (v
 	if routingInstance == defaultW {
 		var err error
 		showConfig, err = sess.command(cmdShowConfig+
-			"protocols vstp | display set relative", jnprSess)
+			"protocols vstp"+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
 		var err error
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
-			"protocols vstp | display set relative", jnprSess)
+			"protocols vstp"+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
@@ -333,10 +333,10 @@ func readVstp(routingInstance string, m interface{}, jnprSess *NetconfObject) (v
 	confRead.routingInstance = routingInstance
 	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -351,7 +351,7 @@ func readVstp(routingInstance string, m interface{}, jnprSess *NetconfObject) (v
 				var err error
 				confRead.priorityHoldTime, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "priority-hold-time "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "system-id "):
 				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "system-id "), " ")

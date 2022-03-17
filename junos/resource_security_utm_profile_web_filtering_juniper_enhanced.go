@@ -386,7 +386,7 @@ func resourceSecurityUtmProfileWebFilteringEnhancedImport(
 func checkUtmProfileWebFEnhancedExists(profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"security utm feature-profile web-filtering juniper-enhanced profile \""+profile+"\" | display set", jnprSess)
+		"security utm feature-profile web-filtering juniper-enhanced profile \""+profile+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -511,7 +511,7 @@ func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *Netconf
 
 	showConfig, err := sess.command(cmdShowConfig+
 		"security utm feature-profile web-filtering juniper-enhanced"+
-		" profile \""+profile+"\" | display set relative", jnprSess)
+		" profile \""+profile+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -519,10 +519,10 @@ func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *Netconf
 		confRead.name = profile
 		categoryList := make([]map[string]interface{}, 0)
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -611,7 +611,7 @@ func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *Netconf
 				var err error
 				confRead.timeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "timeout "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}

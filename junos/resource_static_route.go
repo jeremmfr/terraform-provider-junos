@@ -419,13 +419,13 @@ func checkStaticRouteExists(destination string, instance string, m interface{}, 
 	if instance == defaultW {
 		if !strings.Contains(destination, ":") {
 			showConfig, err = sess.command(cmdShowConfig+
-				"routing-options static route "+destination+" | display set", jnprSess)
+				"routing-options static route "+destination+pipeDisplaySet, jnprSess)
 			if err != nil {
 				return false, err
 			}
 		} else {
 			showConfig, err = sess.command(cmdShowConfig+
-				"routing-options rib inet6.0 static route "+destination+" | display set", jnprSess)
+				"routing-options rib inet6.0 static route "+destination+pipeDisplaySet, jnprSess)
 			if err != nil {
 				return false, err
 			}
@@ -433,13 +433,13 @@ func checkStaticRouteExists(destination string, instance string, m interface{}, 
 	} else {
 		if !strings.Contains(destination, ":") {
 			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-				"routing-options static route "+destination+" | display set", jnprSess)
+				"routing-options static route "+destination+pipeDisplaySet, jnprSess)
 			if err != nil {
 				return false, err
 			}
 		} else {
 			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-				"routing-options rib "+instance+".inet6.0 static route "+destination+" | display set", jnprSess)
+				"routing-options rib "+instance+".inet6.0 static route "+destination+pipeDisplaySet, jnprSess)
 			if err != nil {
 				return false, err
 			}
@@ -582,18 +582,18 @@ func readStaticRoute(destination string, instance string, m interface{},
 	if instance == defaultW {
 		if !strings.Contains(destination, ":") {
 			showConfig, err = sess.command(cmdShowConfig+
-				"routing-options static route "+destination+" | display set relative", jnprSess)
+				"routing-options static route "+destination+pipeDisplaySetRelative, jnprSess)
 		} else {
 			showConfig, err = sess.command(cmdShowConfig+
-				"routing-options rib inet6.0 static route "+destination+" | display set relative", jnprSess)
+				"routing-options rib inet6.0 static route "+destination+pipeDisplaySetRelative, jnprSess)
 		}
 	} else {
 		if !strings.Contains(destination, ":") {
 			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-				"routing-options static route "+destination+" | display set relative", jnprSess)
+				"routing-options static route "+destination+pipeDisplaySetRelative, jnprSess)
 		} else {
 			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-				"routing-options rib "+instance+".inet6.0 static route "+destination+" | display set relative", jnprSess)
+				"routing-options rib "+instance+".inet6.0 static route "+destination+pipeDisplaySetRelative, jnprSess)
 		}
 	}
 	if err != nil {
@@ -604,10 +604,10 @@ func readStaticRoute(destination string, instance string, m interface{},
 		confRead.destination = destination
 		confRead.routingInstance = instance
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -635,7 +635,7 @@ func readStaticRoute(destination string, instance string, m interface{},
 			case strings.HasPrefix(itemTrim, "metric "):
 				confRead.metric, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "metric "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "next-hop "):
 				confRead.nextHop = append(confRead.nextHop, strings.TrimPrefix(itemTrim, "next-hop "))
@@ -646,7 +646,7 @@ func readStaticRoute(destination string, instance string, m interface{},
 			case strings.HasPrefix(itemTrim, "preference "):
 				confRead.preference, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "preference "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "qualified-next-hop "):
 				nextHop := strings.TrimPrefix(itemTrim, "qualified-next-hop ")
@@ -666,13 +666,13 @@ func readStaticRoute(destination string, instance string, m interface{},
 					qualifiedNextHopOptions["metric"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimQnh, "metric "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimQnh, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimQnh, err)
 					}
 				case strings.HasPrefix(itemTrimQnh, "preference "):
 					qualifiedNextHopOptions["preference"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimQnh, "preference "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimQnh, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimQnh, err)
 					}
 				}
 				confRead.qualifiedNextHop = append(confRead.qualifiedNextHop, qualifiedNextHopOptions)

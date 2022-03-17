@@ -433,17 +433,17 @@ func readSecurityGlobalPolicy(m interface{}, jnprSess *NetconfObject) (globalPol
 	sess := m.(*Session)
 	var confRead globalPolicyOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"security policies global | display set relative ", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"security policies global"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	policyList := make([]map[string]interface{}, 0)
 	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

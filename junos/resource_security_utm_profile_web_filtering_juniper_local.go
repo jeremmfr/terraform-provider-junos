@@ -279,7 +279,7 @@ func resourceSecurityUtmProfileWebFilteringLocalImport(
 func checkUtmProfileWebFLocalExists(profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"security utm feature-profile web-filtering juniper-local profile \""+profile+"\" | display set", jnprSess)
+		"security utm feature-profile web-filtering juniper-local profile \""+profile+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -338,17 +338,17 @@ func readUtmProfileWebFLocal(profile string, m interface{}, jnprSess *NetconfObj
 	var confRead utmProfileWebFilteringLocalOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security utm feature-profile web-filtering juniper-local profile \""+profile+"\" | display set relative", jnprSess)
+		"security utm feature-profile web-filtering juniper-local profile \""+profile+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = profile
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -381,7 +381,7 @@ func readUtmProfileWebFLocal(profile string, m interface{}, jnprSess *NetconfObj
 				var err error
 				confRead.timeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "timeout "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}

@@ -447,7 +447,7 @@ func resourceSecurityZoneImport(d *schema.ResourceData, m interface{}) ([]*schem
 
 func checkSecurityZonesExists(zone string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+"security zones security-zone "+zone+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"security zones security-zone "+zone+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -588,7 +588,7 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 	var confRead zoneOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security zones security-zone "+zone+" | display set relative", jnprSess)
+		"security zones security-zone "+zone+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -596,10 +596,10 @@ func readSecurityZone(zone string, m interface{}, jnprSess *NetconfObject) (zone
 	if showConfig != emptyW {
 		confRead.name = zone
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

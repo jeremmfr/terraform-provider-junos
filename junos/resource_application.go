@@ -359,7 +359,7 @@ func resourceApplicationImport(d *schema.ResourceData, m interface{}) ([]*schema
 func checkApplicationExists(application string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"applications application "+application+" | display set", jnprSess)
+		"applications application "+application+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -470,17 +470,17 @@ func readApplication(application string, m interface{}, jnprSess *NetconfObject)
 	var confRead applicationOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"applications application "+application+" | display set relative", jnprSess)
+		"applications application "+application+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = application
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -499,7 +499,7 @@ func readApplication(application string, m interface{}, jnprSess *NetconfObject)
 				var err error
 				confRead.inactivityTimeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "inactivity-timeout "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "protocol "):
 				confRead.protocol = strings.TrimPrefix(itemTrim, "protocol ")
@@ -560,7 +560,7 @@ func readApplicationTerm(itemTrim string, term map[string]interface{}) error {
 		var err error
 		term["inactivity_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "inactivity-timeout "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "rpc-program-number "):
 		term["rpc_program_number"] = strings.TrimPrefix(itemTrim, "rpc-program-number ")

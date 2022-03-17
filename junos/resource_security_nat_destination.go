@@ -322,7 +322,7 @@ func resourceSecurityNatDestinationImport(d *schema.ResourceData, m interface{})
 func checkSecurityNatDestinationExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"security nat destination rule-set "+name+" | display set", jnprSess)
+		"security nat destination rule-set "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -413,17 +413,17 @@ func readSecurityNatDestination(name string, m interface{}, jnprSess *NetconfObj
 	var confRead natDestinationOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security nat destination rule-set "+name+" | display set relative", jnprSess)
+		"security nat destination rule-set "+name+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

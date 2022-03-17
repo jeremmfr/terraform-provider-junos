@@ -242,7 +242,7 @@ func resourceSnmpV3CommunityImport(d *schema.ResourceData, m interface{}) ([]*sc
 func checkSnmpV3CommunityExists(communityIndex string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"snmp v3 snmp-community \""+communityIndex+"\" | display set", jnprSess)
+		"snmp v3 snmp-community \""+communityIndex+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -279,17 +279,17 @@ func readSnmpV3Community(communityIndex string, m interface{}, jnprSess *Netconf
 	var confRead snmpV3CommunityOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"snmp v3 snmp-community \""+communityIndex+"\" | display set relative", jnprSess)
+		"snmp v3 snmp-community \""+communityIndex+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.communityIndex = communityIndex
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

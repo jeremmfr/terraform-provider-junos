@@ -322,17 +322,17 @@ func readLayer2Control(m interface{}, jnprSess *NetconfObject) (layer2ControlOpt
 	var confRead layer2ControlOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"protocols layer2-control | display set relative", jnprSess)
+		"protocols layer2-control"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 
 	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -350,7 +350,7 @@ func readLayer2Control(m interface{}, jnprSess *NetconfObject) (layer2ControlOpt
 					confRead.bpduBlock[0]["disable_timeout"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrim, "bpdu-block disable-timeout "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "bpdu-block interface "):
 					itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "bpdu-block interface "), " ")

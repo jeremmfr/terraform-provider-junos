@@ -329,7 +329,7 @@ func checkServicesFlowMonitoringVIPFixTemplateExists(
 	template string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"services flow-monitoring version-ipfix template \""+template+"\" | display set", jnprSess)
+		"services flow-monitoring version-ipfix template \""+template+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -409,17 +409,17 @@ func readServicesFlowMonitoringVIPFixTemplate(template string, m interface{}, jn
 	confRead.observationDomainID = -1
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"services flow-monitoring version-ipfix template \""+template+"\" | display set relative", jnprSess)
+		"services flow-monitoring version-ipfix template \""+template+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = template
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -436,13 +436,13 @@ func readServicesFlowMonitoringVIPFixTemplate(template string, m interface{}, jn
 				var err error
 				confRead.flowActiveTimeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "flow-active-timeout "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "flow-inactive-timeout "):
 				var err error
 				confRead.flowInactiveTimeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "flow-inactive-timeout "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "flow-key flow-direction":
 				confRead.flowKeyFlowDirection = true
@@ -456,7 +456,7 @@ func readServicesFlowMonitoringVIPFixTemplate(template string, m interface{}, jn
 				var err error
 				confRead.observationDomainID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "observation-domain-id "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "option-refresh-rate"):
 				if len(confRead.optionRefreshRate) == 0 {
@@ -471,27 +471,27 @@ func readServicesFlowMonitoringVIPFixTemplate(template string, m interface{}, jn
 					confRead.optionRefreshRate[0]["packets"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrim, "option-refresh-rate packets "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "option-refresh-rate seconds "):
 					var err error
 					confRead.optionRefreshRate[0]["seconds"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrim, "option-refresh-rate seconds "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case strings.HasPrefix(itemTrim, "option-template-id "):
 				var err error
 				confRead.optionTemplateID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "option-template-id "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "template-id "):
 				var err error
 				confRead.templateID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "template-id "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "tunnel-observation ipv4":
 				confRead.tunnelObservationIPv4 = true

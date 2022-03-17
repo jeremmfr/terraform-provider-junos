@@ -1780,16 +1780,16 @@ func readSecurity(m interface{}, jnprSess *NetconfObject) (securityOptions, erro
 	sess := m.(*Session)
 	var confRead securityOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"security | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"security"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -1974,21 +1974,21 @@ func readSecurityFlow(confRead *securityOptions, itemTrimFlow string) error {
 			confRead.flow[0]["aging"].([]map[string]interface{})[0]["early_ageout"], err = strconv.Atoi(
 				strings.TrimPrefix(itemTrim, "aging early-ageout "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "aging high-watermark"):
 			var err error
 			confRead.flow[0]["aging"].([]map[string]interface{})[0]["high_watermark"], err = strconv.Atoi(
 				strings.TrimPrefix(itemTrim, "aging high-watermark "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "aging low-watermark"):
 			var err error
 			confRead.flow[0]["aging"].([]map[string]interface{})[0]["low_watermark"], err = strconv.Atoi(
 				strings.TrimPrefix(itemTrim, "aging low-watermark "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case itemTrim == "allow-dns-reply":
@@ -2043,7 +2043,7 @@ func readSecurityFlow(confRead *securityOptions, itemTrimFlow string) error {
 		confRead.flow[0]["route_change_timeout"], err = strconv.Atoi(
 			strings.TrimPrefix(itemTrim, "route-change-timeout "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "syn-flood-protection-mode "):
 		confRead.flow[0]["syn_flood_protection_mode"] = strings.TrimPrefix(itemTrim, "syn-flood-protection-mode ")
@@ -2065,7 +2065,7 @@ func readSecurityFlow(confRead *securityOptions, itemTrimFlow string) error {
 			confRead.flow[0]["tcp_mss"].([]map[string]interface{})[0]["all_tcp_mss"], err = strconv.Atoi(
 				strings.TrimPrefix(itemTrim, "tcp-mss all-tcp mss "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "tcp-mss gre-in"):
 			if len(confRead.flow[0]["tcp_mss"].([]map[string]interface{})[0]["gre_in"].([]map[string]interface{})) == 0 {
@@ -2080,7 +2080,7 @@ func readSecurityFlow(confRead *securityOptions, itemTrimFlow string) error {
 				confRead.flow[0]["tcp_mss"].([]map[string]interface{})[0]["gre_in"].([]map[string]interface{})[0]["mss"],
 					err = strconv.Atoi(strings.TrimPrefix(itemTrim, "tcp-mss gre-in mss "))
 				if err != nil {
-					return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		case strings.HasPrefix(itemTrim, "tcp-mss gre-out"):
@@ -2096,7 +2096,7 @@ func readSecurityFlow(confRead *securityOptions, itemTrimFlow string) error {
 				confRead.flow[0]["tcp_mss"].([]map[string]interface{})[0]["gre_out"].([]map[string]interface{})[0]["mss"],
 					err = strconv.Atoi(strings.TrimPrefix(itemTrim, "tcp-mss gre-out mss "))
 				if err != nil {
-					return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		case strings.HasPrefix(itemTrim, "tcp-mss ipsec-vpn"):
@@ -2112,7 +2112,7 @@ func readSecurityFlow(confRead *securityOptions, itemTrimFlow string) error {
 				confRead.flow[0]["tcp_mss"].([]map[string]interface{})[0]["ipsec_vpn"].([]map[string]interface{})[0]["mss"],
 					err = strconv.Atoi(strings.TrimPrefix(itemTrim, "tcp-mss ipsec-vpn mss "))
 				if err != nil {
-					return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}
@@ -2155,7 +2155,7 @@ func readSecurityFlow(confRead *securityOptions, itemTrimFlow string) error {
 			flowTCPSession["tcp_initial_timeout"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "tcp-session tcp-initial-timeout "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "tcp-session time-wait-state"):
 			if len(flowTCPSession["time_wait_state"].([]map[string]interface{})) == 0 {
@@ -2177,7 +2177,7 @@ func readSecurityFlow(confRead *securityOptions, itemTrimFlow string) error {
 				timeWaitState["session_timeout"], err = strconv.Atoi(strings.TrimPrefix(
 					itemTrim, "tcp-session time-wait-state session-timeout "))
 				if err != nil {
-					return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}
@@ -2226,7 +2226,7 @@ func readSecurityIdpSecurityPackage(confRead *securityOptions, itemTrimIdpSecuri
 		confRead.idpSecurityPackage[0]["automatic_interval"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "automatic interval "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "automatic start-time "):
 		confRead.idpSecurityPackage[0]["automatic_start_time"] = strings.Split(strings.Trim(strings.TrimPrefix(
@@ -2259,7 +2259,7 @@ func readSecurityIdpSensorConfig(confRead *securityOptions, itemTrimIdpSensorCon
 		var err error
 		confRead.idpSensorConfig[0]["log_cache_size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "log cache-size "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "log suppression"):
 		if len(confRead.idpSensorConfig[0]["log_suppression"].([]map[string]interface{})) == 0 {
@@ -2285,19 +2285,19 @@ func readSecurityIdpSensorConfig(confRead *securityOptions, itemTrimIdpSensorCon
 			var err error
 			logSupp["max_logs_operate"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "log suppression max-logs-operate "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "log suppression max-time-report "):
 			var err error
 			logSupp["max_time_report"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "log suppression max-time-report "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "log suppression start-log "):
 			var err error
 			logSupp["start_log"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "log suppression start-log "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case strings.HasPrefix(itemTrim, "packet-log "):
@@ -2320,7 +2320,7 @@ func readSecurityIdpSensorConfig(confRead *securityOptions, itemTrimIdpSensorCon
 			var err error
 			packetLog["host_port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "packet-log host port "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "packet-log host "):
 			packetLog["host_address"] = strings.TrimPrefix(itemTrim, "packet-log host ")
@@ -2328,20 +2328,20 @@ func readSecurityIdpSensorConfig(confRead *securityOptions, itemTrimIdpSensorCon
 			var err error
 			packetLog["max_sessions"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "packet-log max-sessions "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "packet-log threshold-logging-interval "):
 			var err error
 			packetLog["threshold_logging_interval"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "packet-log threshold-logging-interval "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "packet-log total-memory "):
 			var err error
 			packetLog["total_memory"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "packet-log total-memory "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case strings.HasPrefix(itemTrim, "security-configuration protection-mode "):
@@ -2381,7 +2381,7 @@ func readSecurityIkeTraceOptions(confRead *securityOptions, itemTrimIkeTraceOpts
 			var err error
 			file["files"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file files "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "file match"):
 			file["match"] = strings.Trim(strings.TrimPrefix(itemTrim, "file match "), "\"")
@@ -2401,7 +2401,7 @@ func readSecurityIkeTraceOptions(confRead *securityOptions, itemTrimIkeTraceOpts
 				file["size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file size "))
 			}
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case itemTrim == "file world-readable":
 			file["world_readable"] = true
@@ -2421,7 +2421,7 @@ func readSecurityIkeTraceOptions(confRead *securityOptions, itemTrimIkeTraceOpts
 		confRead.ikeTraceoptions[0]["rate_limit"], err = strconv.Atoi(
 			strings.TrimPrefix(itemTrim, "rate-limit "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	}
 
@@ -2454,7 +2454,7 @@ func readSecurityLog(confRead *securityOptions, itemTrimLog string) error {
 		var err error
 		confRead.log[0]["event_rate"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "event-rate "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "facility-override "):
 		confRead.log[0]["facility_override"] = strings.TrimPrefix(itemTrim, "facility-override ")
@@ -2473,7 +2473,7 @@ func readSecurityLog(confRead *securityOptions, itemTrimLog string) error {
 			var err error
 			file["files"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file files "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "file name "):
 			file["name"] = strings.TrimPrefix(itemTrim, "file name ")
@@ -2483,7 +2483,7 @@ func readSecurityLog(confRead *securityOptions, itemTrimLog string) error {
 			var err error
 			file["size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file size "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case strings.HasPrefix(itemTrim, "format "):
@@ -2492,7 +2492,7 @@ func readSecurityLog(confRead *securityOptions, itemTrimLog string) error {
 		var err error
 		confRead.log[0]["max_database_record"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-database-record "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "mode "):
 		confRead.log[0]["mode"] = strings.TrimPrefix(itemTrim, "mode ")
@@ -2500,7 +2500,7 @@ func readSecurityLog(confRead *securityOptions, itemTrimLog string) error {
 		var err error
 		confRead.log[0]["rate_cap"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "rate-cap "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "report":
 		confRead.log[0]["report"] = true
@@ -2525,7 +2525,7 @@ func readSecurityLog(confRead *securityOptions, itemTrimLog string) error {
 			var err error
 			transport["tcp_connections"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "transport tcp-connections "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "transport tls-profile "):
 			transport["tls_profile"] = strings.TrimPrefix(itemTrim, "transport tls-profile ")
@@ -2567,7 +2567,7 @@ func readSecurityUserIdentAuthSource(confRead *securityOptions, itemTrimUserIden
 			itemTrim, "unified-access-control priority "))
 	}
 	if err != nil {
-		return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 	}
 
 	return nil
@@ -2604,7 +2604,7 @@ func readSecurityUtm(confRead *securityOptions, itemTrimUtm string) error {
 			var err error
 			utmFeatProfWebFiltJunEnhServer["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrimServer, " port "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimUtm, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrimUtm, err)
 			}
 		case strings.HasPrefix(itemTrimServer, " proxy-profile "):
 			utmFeatProfWebFiltJunEnhServer["proxy_profile"] = strings.Trim(strings.TrimPrefix(

@@ -342,13 +342,13 @@ func checkAggregateRouteExists(destination string, instance string, m interface{
 	if instance == defaultW {
 		if !strings.Contains(destination, ":") {
 			showConfig, err = sess.command(cmdShowConfig+
-				"routing-options aggregate route "+destination+" | display set", jnprSess)
+				"routing-options aggregate route "+destination+pipeDisplaySet, jnprSess)
 			if err != nil {
 				return false, err
 			}
 		} else {
 			showConfig, err = sess.command(cmdShowConfig+
-				"routing-options rib inet6.0 aggregate route "+destination+" | display set", jnprSess)
+				"routing-options rib inet6.0 aggregate route "+destination+pipeDisplaySet, jnprSess)
 			if err != nil {
 				return false, err
 			}
@@ -356,13 +356,13 @@ func checkAggregateRouteExists(destination string, instance string, m interface{
 	} else {
 		if !strings.Contains(destination, ":") {
 			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-				"routing-options aggregate route "+destination+" | display set", jnprSess)
+				"routing-options aggregate route "+destination+pipeDisplaySet, jnprSess)
 			if err != nil {
 				return false, err
 			}
 		} else {
 			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-				"routing-options rib "+instance+".inet6.0 aggregate route "+destination+" | display set", jnprSess)
+				"routing-options rib "+instance+".inet6.0 aggregate route "+destination+pipeDisplaySet, jnprSess)
 			if err != nil {
 				return false, err
 			}
@@ -454,18 +454,18 @@ func readAggregateRoute(destination string, instance string, m interface{},
 	if instance == defaultW {
 		if !strings.Contains(destination, ":") {
 			showConfig, err = sess.command(cmdShowConfig+
-				"routing-options aggregate route "+destination+" | display set relative", jnprSess)
+				"routing-options aggregate route "+destination+pipeDisplaySetRelative, jnprSess)
 		} else {
 			showConfig, err = sess.command(cmdShowConfig+
-				"routing-options rib inet6.0 aggregate route "+destination+" | display set relative", jnprSess)
+				"routing-options rib inet6.0 aggregate route "+destination+pipeDisplaySetRelative, jnprSess)
 		}
 	} else {
 		if !strings.Contains(destination, ":") {
 			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-				"routing-options aggregate route "+destination+" | display set relative", jnprSess)
+				"routing-options aggregate route "+destination+pipeDisplaySetRelative, jnprSess)
 		} else {
 			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-				"routing-options rib "+instance+".inet6.0 aggregate route "+destination+" | display set relative", jnprSess)
+				"routing-options rib "+instance+".inet6.0 aggregate route "+destination+pipeDisplaySetRelative, jnprSess)
 		}
 	}
 	if err != nil {
@@ -476,10 +476,10 @@ func readAggregateRoute(destination string, instance string, m interface{},
 		confRead.destination = destination
 		confRead.routingInstance = instance
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -507,7 +507,7 @@ func readAggregateRoute(destination string, instance string, m interface{},
 			case strings.HasPrefix(itemTrim, "metric "):
 				confRead.metric, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "metric "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "passive":
 				confRead.passive = true
@@ -516,7 +516,7 @@ func readAggregateRoute(destination string, instance string, m interface{},
 			case strings.HasPrefix(itemTrim, "preference "):
 				confRead.preference, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "preference "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}

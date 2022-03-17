@@ -263,7 +263,7 @@ func resourceSecurityNatDestinationPoolImport(d *schema.ResourceData, m interfac
 func checkSecurityNatDestinationPoolExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"security nat destination pool "+name+" | display set", jnprSess)
+		"security nat destination pool "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -302,17 +302,17 @@ func readSecurityNatDestinationPool(name string,
 	var confRead natDestinationPoolOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security nat destination pool "+name+" | display set relative", jnprSess)
+		"security nat destination pool "+name+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -320,7 +320,7 @@ func readSecurityNatDestinationPool(name string,
 			case strings.HasPrefix(itemTrim, "address port"):
 				confRead.addressPort, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "address port "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "address to"):
 				confRead.addressTo = strings.TrimPrefix(itemTrim, "address to ")

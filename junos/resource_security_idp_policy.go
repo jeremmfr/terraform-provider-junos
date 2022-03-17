@@ -469,7 +469,7 @@ func resourceSecurityIdpPolicyImport(d *schema.ResourceData, m interface{}) ([]*
 func checkSecurityIdpPolicyExists(policy string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"security idp idp-policy \""+policy+"\" | display set", jnprSess)
+		"security idp idp-policy \""+policy+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -738,17 +738,17 @@ func readSecurityIdpPolicy(policy string, m interface{}, jnprSess *NetconfObject
 	var confRead idpPolicyOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security idp idp-policy \""+policy+"\" | display set relative", jnprSess)
+		"security idp idp-policy \""+policy+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = policy
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -920,16 +920,16 @@ func readSecurityIdpPolicy(policy string, m interface{}, jnprSess *NetconfObject
 								then["action_dscp_code_point"], err = strconv.Atoi(strings.TrimPrefix(
 									itemTrimRuleAction, "class-of-service dscp-code-point "))
 								if err != nil {
-									return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+									return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 								}
 							}
-						case strings.HasPrefix(itemTrimRuleAction, "mark-diffserv"+" "):
+						case strings.HasPrefix(itemTrimRuleAction, "mark-diffserv "):
 							then["action"] = "mark-diffserv"
 							var err error
 							then["action_dscp_code_point"], err = strconv.Atoi(strings.TrimPrefix(
-								itemTrimRuleAction, "mark-diffserv"+" "))
+								itemTrimRuleAction, "mark-diffserv "))
 							if err != nil {
-								return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+								return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 							}
 						default:
 							then["action"] = itemTrimRuleAction
@@ -948,7 +948,7 @@ func readSecurityIdpPolicy(policy string, m interface{}, jnprSess *NetconfObject
 							var err error
 							then["ip_action_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrimRule, "then ip-action timeout "))
 							if err != nil {
-								return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+								return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 							}
 						default:
 							then["ip_action"] = strings.TrimPrefix(itemTrimRule, "then ip-action ")
@@ -976,7 +976,7 @@ func readSecurityIdpPolicy(policy string, m interface{}, jnprSess *NetconfObject
 									itemTrimRule, "then notification packet-log pre-attack "))
 							}
 							if err != nil {
-								return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+								return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 							}
 						}
 					case strings.HasPrefix(itemTrimRule, "then severity "):

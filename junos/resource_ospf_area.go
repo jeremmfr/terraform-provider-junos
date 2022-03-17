@@ -543,13 +543,13 @@ func checkOspfAreaExists(idArea, version, routingInstance string,
 	}
 	if routingInstance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
-			"protocols "+ospfVersion+" area "+idArea+" | display set", jnprSess)
+			"protocols "+ospfVersion+" area "+idArea+pipeDisplaySet, jnprSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
-			"protocols "+ospfVersion+" area "+idArea+" | display set", jnprSess)
+			"protocols "+ospfVersion+" area "+idArea+pipeDisplaySet, jnprSess)
 		if err != nil {
 			return false, err
 		}
@@ -802,13 +802,13 @@ func readOspfArea(idArea, version, routingInstance string,
 	}
 	if routingInstance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
-			"protocols "+ospfVersion+" area "+idArea+" | display set relative", jnprSess)
+			"protocols "+ospfVersion+" area "+idArea+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
-			"protocols "+ospfVersion+" area "+idArea+" | display set relative", jnprSess)
+			"protocols "+ospfVersion+" area "+idArea+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
@@ -819,10 +819,10 @@ func readOspfArea(idArea, version, routingInstance string,
 		confRead.version = version
 		confRead.routingInstance = routingInstance
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
@@ -881,7 +881,7 @@ func readOspfArea(idArea, version, routingInstance string,
 					itemTrimInterfaceSplit := strings.Split(strings.TrimPrefix(itemTrimInterface, "authentication md5 "), " ")
 					keyID, err := strconv.Atoi(itemTrimInterfaceSplit[0])
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterfaceSplit[0], err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterfaceSplit[0], err)
 					}
 					authMD5 := map[string]interface{}{
 						"key_id":     keyID,
@@ -913,7 +913,7 @@ func readOspfArea(idArea, version, routingInstance string,
 					}
 					metric, err := strconv.Atoi(itemTrimInterfaceSplit[2])
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterfaceSplit[2], err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterfaceSplit[2], err)
 					}
 					interfaceOptions["bandwidth_based_metrics"] = append(
 						interfaceOptions["bandwidth_based_metrics"].([]map[string]interface{}), map[string]interface{}{
@@ -947,7 +947,7 @@ func readOspfArea(idArea, version, routingInstance string,
 					interfaceOptions["dead_interval"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "dead-interval "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 					}
 				case itemTrimInterface == "demand-circuit":
 					interfaceOptions["demand_circuit"] = true
@@ -961,7 +961,7 @@ func readOspfArea(idArea, version, routingInstance string,
 					interfaceOptions["hello_interval"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "hello-interval "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 					}
 				case strings.HasPrefix(itemTrimInterface, "interface-type "):
 					interfaceOptions["interface_type"] = strings.TrimPrefix(itemTrimInterface, "interface-type ")
@@ -987,13 +987,13 @@ func readOspfArea(idArea, version, routingInstance string,
 					interfaceOptions["metric"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "metric "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 					}
 				case strings.HasPrefix(itemTrimInterface, "mtu "):
 					interfaceOptions["mtu"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "mtu "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 					}
 				case strings.HasPrefix(itemTrimInterface, "neighbor "):
 					itemTrimInterfaceSplit := strings.Split(strings.TrimPrefix(itemTrimInterface, "neighbor "), " ")
@@ -1037,19 +1037,19 @@ func readOspfArea(idArea, version, routingInstance string,
 					interfaceOptions["poll_interval"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "poll-interval "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 					}
 				case strings.HasPrefix(itemTrimInterface, "priority "):
 					interfaceOptions["priority"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "priority "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 					}
 				case strings.HasPrefix(itemTrimInterface, "retransmit-interval "):
 					interfaceOptions["retransmit_interval"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "retransmit-interval "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 					}
 				case itemTrimInterface == "secondary":
 					interfaceOptions["secondary"] = true
@@ -1059,13 +1059,13 @@ func readOspfArea(idArea, version, routingInstance string,
 					interfaceOptions["te_metric"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "te-metric "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 					}
 				case strings.HasPrefix(itemTrimInterface, "transit-delay "):
 					interfaceOptions["transit_delay"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "transit-delay "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 					}
 				}
 				confRead.interFace = append(confRead.interFace, interfaceOptions)
@@ -1088,7 +1088,7 @@ func readOspfAreaInterfaceBfd(itemTrim string, bfd map[string]interface{}) error
 		var err error
 		bfd["detection_time_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "detection-time threshold "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "full-neighbors-only":
 		bfd["full_neighbors_only"] = true
@@ -1096,25 +1096,25 @@ func readOspfAreaInterfaceBfd(itemTrim string, bfd map[string]interface{}) error
 		var err error
 		bfd["holddown_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "holddown-interval "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "minimum-interval "):
 		var err error
 		bfd["minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-interval "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "minimum-receive-interval "):
 		var err error
 		bfd["minimum_receive_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-receive-interval "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "multiplier "):
 		var err error
 		bfd["multiplier"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "multiplier "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "no-adaptation":
 		bfd["no_adaptation"] = true
@@ -1123,14 +1123,14 @@ func readOspfAreaInterfaceBfd(itemTrim string, bfd map[string]interface{}) error
 		bfd["transmit_interval_minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "transmit-interval minimum-interval "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "transmit-interval threshold "):
 		var err error
 		bfd["transmit_interval_threshold"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "transmit-interval threshold "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "version "):
 		bfd["version"] = strings.TrimPrefix(itemTrim, "version ")

@@ -271,7 +271,7 @@ func resourceIkePolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.R
 
 func checkIkePolicyExists(ikePolicy string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+"security ike policy "+ikePolicy+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"security ike policy "+ikePolicy+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -314,17 +314,17 @@ func readIkePolicy(ikePolicy string, m interface{}, jnprSess *NetconfObject) (ik
 	var confRead ikePolicyOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security ike policy "+ikePolicy+" | display set relative", jnprSess)
+		"security ike policy "+ikePolicy+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	if showConfig != emptyW {
 		confRead.name = ikePolicy
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)

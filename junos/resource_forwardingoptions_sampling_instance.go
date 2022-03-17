@@ -824,7 +824,7 @@ func checkForwardingoptionsSamplingInstanceExists(name string,
 	m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
-		"forwarding-options sampling instance \""+name+"\" | display set", jnprSess)
+		"forwarding-options sampling instance \""+name+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
@@ -1064,7 +1064,7 @@ func readForwardingoptionsSamplingInstance(name string,
 	var confRead samplingInstanceOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"forwarding-options sampling instance \""+name+"\" | display set relative", jnprSess)
+		"forwarding-options sampling instance \""+name+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -1072,10 +1072,10 @@ func readForwardingoptionsSamplingInstance(name string,
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
 			itemTrim := strings.TrimPrefix(item, setLS)
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			switch {
@@ -1196,25 +1196,25 @@ func readForwardingoptionsSamplingInstanceInput(inputRead map[string]interface{}
 		var err error
 		inputRead["max_packets_per_second"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-packets-per-second "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "maximum-packet-length "):
 		var err error
 		inputRead["maximum_packet_length"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "maximum-packet-length "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "rate "):
 		var err error
 		inputRead["rate"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "rate "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "run-length "):
 		var err error
 		inputRead["run_length"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "run-length "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	}
 
@@ -1229,7 +1229,7 @@ func readForwardingoptionsSamplingInstanceOutput(
 		outputRead["aggregate_export_interval"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "aggregate-export-interval "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "extension-service "):
 		outputRead["extension_service"] = append(outputRead["extension_service"].([]string),
@@ -1238,13 +1238,13 @@ func readForwardingoptionsSamplingInstanceOutput(
 		var err error
 		outputRead["flow_active_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "flow-active-timeout "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "flow-inactive-timeout "):
 		var err error
 		outputRead["flow_inactive_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "flow-inactive-timeout "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "flow-server "):
 		flowServerLineCut := strings.Split(itemTrim, " ")
@@ -1278,7 +1278,7 @@ func readForwardingoptionsSamplingInstanceOutput(
 			var err error
 			flowServer["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrimFlowServer, "port "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimFlowServer, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrimFlowServer, err)
 			}
 		case itemTrimFlowServer == "aggregation autonomous-system":
 			flowServer["aggregation_autonomous_system"] = true
@@ -1299,7 +1299,7 @@ func readForwardingoptionsSamplingInstanceOutput(
 			var err error
 			flowServer["dscp"], err = strconv.Atoi(strings.TrimPrefix(itemTrimFlowServer, "dscp "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimFlowServer, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrimFlowServer, err)
 			}
 		case strings.HasPrefix(itemTrimFlowServer, "forwarding-class "):
 			flowServer["forwarding_class"] = strings.TrimPrefix(itemTrimFlowServer, "forwarding-class ")
@@ -1315,7 +1315,7 @@ func readForwardingoptionsSamplingInstanceOutput(
 			var err error
 			flowServer["version"], err = strconv.Atoi(strings.TrimPrefix(itemTrimFlowServer, "version "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimFlowServer, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrimFlowServer, err)
 			}
 		case strings.HasPrefix(itemTrimFlowServer, "version-ipfix template "):
 			flowServer["version_ipfix_template"] = strings.Trim(strings.TrimPrefix(
@@ -1329,7 +1329,7 @@ func readForwardingoptionsSamplingInstanceOutput(
 		outputRead["inline_jflow_export_rate"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "inline-jflow flow-export-rate "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "inline-jflow source-address "):
 		outputRead["inline_jflow_source_address"] = strings.TrimPrefix(itemTrim, "inline-jflow source-address ")
@@ -1349,13 +1349,13 @@ func readForwardingoptionsSamplingInstanceOutput(
 			var err error
 			iFace["engine_id"], err = strconv.Atoi(strings.TrimPrefix(itemTrimInterface, "engine-id "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 			}
 		case strings.HasPrefix(itemTrimInterface, "engine-type "):
 			var err error
 			iFace["engine_type"], err = strconv.Atoi(strings.TrimPrefix(itemTrimInterface, "engine-type "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 			}
 		case strings.HasPrefix(itemTrimInterface, "source-address "):
 			iFace["source_address"] = strings.TrimPrefix(itemTrimInterface, "source-address ")
