@@ -250,12 +250,12 @@ func resourceIkeProposalImport(d *schema.ResourceData, m interface{}) ([]*schema
 
 func checkIkeProposalExists(ikeProposal string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security ike proposal "+ikeProposal+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security ike proposal "+ikeProposal+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -290,21 +290,21 @@ func readIkeProposal(ikeProposal string, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 	var confRead ikeProposalOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security ike proposal "+ikeProposal+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security ike proposal "+ikeProposal+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = ikeProposal
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "authentication-algorithm "):
 				confRead.authenticationAlgorithm = strings.TrimPrefix(itemTrim, "authentication-algorithm ")
@@ -317,7 +317,7 @@ func readIkeProposal(ikeProposal string, m interface{}, jnprSess *NetconfObject)
 			case strings.HasPrefix(itemTrim, "lifetime-seconds"):
 				confRead.lifetimeSeconds, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "lifetime-seconds "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}

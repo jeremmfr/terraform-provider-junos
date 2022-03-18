@@ -3,6 +3,7 @@ package junos
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -20,6 +21,7 @@ type snmpOptions struct {
 	routingInstanceAccess       bool
 	contact                     string
 	description                 string
+	engineID                    string
 	location                    string
 	filterInterfaces            []string
 	interFace                   []string
@@ -57,6 +59,13 @@ func resourceSnmp() *schema.Resource {
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
+			},
+			"engine_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(
+					`^(use-default-ip-address|use-mac-address|local .+)$`),
+					"must have 'use-default-ip-address', 'use-mac-address' or 'local ...'"),
 			},
 			"filter_duplicates": {
 				Type:     schema.TypeBool,
@@ -318,6 +327,9 @@ func setSnmp(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	if v := d.Get("description").(string); v != "" {
 		configSet = append(configSet, setPrefix+"description \""+v+"\"")
 	}
+	if v := d.Get("engine_id").(string); v != "" {
+		configSet = append(configSet, setPrefix+"engine-id "+v)
+	}
 	if d.Get("filter_duplicates").(bool) {
 		configSet = append(configSet, setPrefix+"filter-duplicates")
 	}
@@ -378,6 +390,7 @@ func delSnmp(m interface{}, jnprSess *NetconfObject) error {
 		"arp",
 		"contact",
 		"description",
+		"engine-id",
 		"filter-duplicates",
 		"filter-interfaces",
 		"health-monitor",
@@ -401,19 +414,19 @@ func readSnmp(m interface{}, jnprSess *NetconfObject) (snmpOptions, error) {
 	sess := m.(*Session)
 	var confRead snmpOptions
 
-	showConfig, err := sess.command("show configuration snmp | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"snmp"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case itemTrim == "arp":
 				confRead.arp = true
@@ -424,6 +437,8 @@ func readSnmp(m interface{}, jnprSess *NetconfObject) (snmpOptions, error) {
 				confRead.contact = strings.Trim(strings.TrimPrefix(itemTrim, "contact "), "\"")
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
+			case strings.HasPrefix(itemTrim, "engine-id "):
+				confRead.engineID = strings.TrimPrefix(itemTrim, "engine-id ")
 			case itemTrim == "filter-duplicates":
 				confRead.filterDuplicates = true
 			case strings.HasPrefix(itemTrim, "filter-interfaces interfaces "):
@@ -449,7 +464,7 @@ func readSnmp(m interface{}, jnprSess *NetconfObject) (snmpOptions, error) {
 					confRead.healthMonitor[0]["falling_threshold"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrim, "health-monitor falling-threshold "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case itemTrim == "health-monitor idp":
 					confRead.healthMonitor[0]["idp"] = true
@@ -459,7 +474,7 @@ func readSnmp(m interface{}, jnprSess *NetconfObject) (snmpOptions, error) {
 					confRead.healthMonitor[0]["idp_falling_threshold"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrim, "health-monitor idp falling-threshold "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "health-monitor idp interval "):
 					confRead.healthMonitor[0]["idp"] = true
@@ -467,7 +482,7 @@ func readSnmp(m interface{}, jnprSess *NetconfObject) (snmpOptions, error) {
 					confRead.healthMonitor[0]["idp_interval"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrim, "health-monitor idp interval "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "health-monitor idp rising-threshold "):
 					confRead.healthMonitor[0]["idp"] = true
@@ -475,20 +490,20 @@ func readSnmp(m interface{}, jnprSess *NetconfObject) (snmpOptions, error) {
 					confRead.healthMonitor[0]["idp_rising_threshold"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrim, "health-monitor idp rising-threshold "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "health-monitor interval "):
 					var err error
 					confRead.healthMonitor[0]["interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "health-monitor interval "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "health-monitor rising-threshold "):
 					var err error
 					confRead.healthMonitor[0]["rising_threshold"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrim, "health-monitor rising-threshold "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case itemTrim == "if-count-with-filter-interfaces":
@@ -521,6 +536,9 @@ func fillSnmp(d *schema.ResourceData, snmpOptions snmpOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("description", snmpOptions.description); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("engine_id", snmpOptions.engineID); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("filter_duplicates", snmpOptions.filterDuplicates); tfErr != nil {

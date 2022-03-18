@@ -356,12 +356,12 @@ func resourceSecurityNatSourceImport(d *schema.ResourceData, m interface{}) ([]*
 
 func checkSecurityNatSourceExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security nat source rule-set "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security nat source rule-set "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -394,7 +394,7 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 		}
 		ruleNameList = append(ruleNameList, rule["name"].(string))
 		setPrefixRule := setPrefix + " rule " + rule["name"].(string)
-		for _, matchV := range rule[matchWord].([]interface{}) {
+		for _, matchV := range rule["match"].([]interface{}) {
 			if matchV == nil {
 				return fmt.Errorf("match block in rule %s need to have an argument", rule["name"].(string))
 			}
@@ -445,7 +445,7 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				configSet = append(configSet, setPrefixRule+" match source-port "+vv)
 			}
 		}
-		for _, thenV := range rule[thenWord].([]interface{}) {
+		for _, thenV := range rule["then"].([]interface{}) {
 			then := thenV.(map[string]interface{})
 			if then["type"].(string) == "interface" {
 				configSet = append(configSet, setPrefixRule+" then source-nat interface")
@@ -473,21 +473,21 @@ func readSecurityNatSource(name string, m interface{}, jnprSess *NetconfObject) 
 	sess := m.(*Session)
 	var confRead natSourceOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security nat source rule-set "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security nat source rule-set "+name+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "from "):
 				fromWords := strings.Split(strings.TrimPrefix(itemTrim, "from "), " ")

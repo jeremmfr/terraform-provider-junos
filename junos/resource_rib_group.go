@@ -270,11 +270,11 @@ func resourceRibGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.Re
 
 func checkRibGroupExists(group string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration routing-options rib-groups "+group+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"routing-options rib-groups "+group+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -303,21 +303,21 @@ func readRibGroup(group string, m interface{}, jnprSess *NetconfObject) (ribGrou
 	sess := m.(*Session)
 	var confRead ribGroupOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" routing-options rib-groups "+group+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"routing-options rib-groups "+group+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = group
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "import-policy "):
 				confRead.importPolicy = append(confRead.importPolicy, strings.TrimPrefix(itemTrim, "import-policy "))

@@ -5,10 +5,18 @@ jobs:
     name: golangci-lint
     runs-on: ubuntu-latest
     steps:
+      - name: Set up Go 1.17
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.17
+        id: go
+      - name: Disable cgo
+        run: |
+          echo "CGO_ENABLED=0" >> $GITHUB_ENV
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v2
+        uses: golangci/golangci-lint-action@v3.1.0
         with:
           version: v1.44
           args: -c .golangci.yml -v
@@ -18,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Markdown files linting
       uses: avto-dev/markdown-lint@v1
@@ -30,16 +38,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go 1.17
-        uses: actions/setup-go@v2.1.5
+        uses: actions/setup-go@v3
         with:
           go-version: 1.17
         id: go
       - name: Show version
         run: go version
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Check out terrafmt code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: katbyte/terrafmt
           ref: v0.3.0
@@ -64,19 +72,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go 1.17
-        uses: actions/setup-go@v2.1.5
+        uses: actions/setup-go@v3
         with:
           go-version: 1.17
         id: go
       - name: Show version
         run: go version
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Check out tfproviderlint code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: bflad/tfproviderlint
-          ref: v0.28.0
+          ref: v0.28.1
           path: tfproviderlint
       - name: Build tfproviderlint bin
         run: cd tfproviderlint && go install ./... && cd ${GITHUB_WORKSPACE}

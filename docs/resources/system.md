@@ -144,6 +144,9 @@ The following arguments are supported:
   MSCHAP version 2 for password protocol used in RADIUS packets.
 - **services** (Optional, Block)  
   Declare `services` configuration.
+  - **netconf_ssh** (Optional, Block)  
+    Declare `netconf ssh` configuration.  
+    See [below for nested schema](#netconf_ssh-arguments-for-services).
   - **netconf_traceoptions** (Optional, Block)  
     Declare `netconf traceoptions` configuration.  
     See [below for nested schema](#netconf_traceoptions-arguments-for-services).
@@ -307,6 +310,19 @@ The following arguments are supported:
     Minimum total connection time if all attempts fail (20..60).
   - **tries_before_disconnect** (Optional, Number)  
     Number of times user is allowed to try password (2..10).
+
+---
+
+### netconf_ssh arguments for services
+
+- **client_alive_count_max** (Optional, Number)  
+  Threshold of missing client-alive responses that triggers a disconnect (0..255).
+- **client_alive_interval** (Optional, Number)  
+  Frequency of client-alive requests (0..65535 seconds).
+- **connection_limit** (Optional, Number)  
+  Limit number of simultaneous connections (1..250 connections).
+- **rate_limit** (Optional, Number)  
+  Limit incoming connection rate (1..250 connections per minute).
 
 ---
 

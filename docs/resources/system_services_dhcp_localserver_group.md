@@ -37,7 +37,7 @@ The following arguments are supported:
   Group name.
 - **routing_instance** (Optional, String, Forces new resource)  
   Routing instance for pool.  
-  Need to be default or name of routing instance.  
+  Need to be `default` or name of routing instance.  
   Defaults to `default`
 - **version** (Optional, String, Forces new resource)  
   Version for DHCP or DHCPv6.  

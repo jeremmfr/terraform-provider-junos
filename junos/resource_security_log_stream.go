@@ -312,12 +312,12 @@ func resourceSecurityLogStreamImport(d *schema.ResourceData, m interface{}) ([]*
 
 func checkSecurityLogStreamExists(securityLogStream string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security log stream \""+securityLogStream+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security log stream \""+securityLogStream+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -380,21 +380,21 @@ func readSecurityLogStream(securityLogStream string, m interface{}, jnprSess *Ne
 	sess := m.(*Session)
 	var confRead securityLogStreamOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security log stream \""+securityLogStream+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security log stream \""+securityLogStream+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = securityLogStream
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "category "):
 				confRead.category = append(confRead.category, strings.TrimPrefix(itemTrim, "category "))
@@ -416,13 +416,13 @@ func readSecurityLogStream(securityLogStream string, m interface{}, jnprSess *Ne
 					var err error
 					confRead.file[0]["rotation"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file rotation "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "file size "):
 					var err error
 					confRead.file[0]["size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file size "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case itemTrim == "filter threat-attack":
@@ -442,7 +442,7 @@ func readSecurityLogStream(securityLogStream string, m interface{}, jnprSess *Ne
 					var err error
 					confRead.host[0]["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "host port "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "host routing-instance "):
 					confRead.host[0]["routing_instance"] = strings.TrimPrefix(itemTrim, "host routing-instance ")
@@ -453,7 +453,7 @@ func readSecurityLogStream(securityLogStream string, m interface{}, jnprSess *Ne
 				var err error
 				confRead.rateLimit, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "rate-limit "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "severity "):
 				confRead.severity = strings.TrimPrefix(itemTrim, "severity ")

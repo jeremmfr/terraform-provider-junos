@@ -654,11 +654,11 @@ func resourceEventoptionsPolicyImport(d *schema.ResourceData, m interface{}) ([]
 
 func checkEventoptionsPolicyExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration event-options policy \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"event-options policy \""+name+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -873,21 +873,21 @@ func readEventoptionsPolicy(name string, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 	var confRead eventoptionsPolicyOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" event-options policy \""+name+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"event-options policy \""+name+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "events "):
 				confRead.events = append(confRead.events, strings.Trim(strings.TrimPrefix(itemTrim, "events "), "\""))
@@ -921,7 +921,7 @@ func readEventoptionsPolicy(name string, m interface{}, jnprSess *NetconfObject)
 				itemTrimSplit := strings.Split(itemTrim, " ")
 				withinSeconds, err := strconv.Atoi(itemTrimSplit[1])
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 				within := map[string]interface{}{
 					"time_interval": withinSeconds,
@@ -947,7 +947,7 @@ func readEventoptionsPolicy(name string, m interface{}, jnprSess *NetconfObject)
 					default:
 						within["trigger_count"], err = strconv.Atoi(trigger)
 						if err != nil {
-							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+							return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 						}
 					}
 				}
@@ -998,13 +998,13 @@ func readEventoptionsPolicyThen(then map[string]interface{}, itemTrim string) er
 			changeConfiguration["retry_count"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "then change-configuration retry count "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "then change-configuration retry interval "):
 			changeConfiguration["retry_interval"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "then change-configuration retry interval "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "then change-configuration user-name "):
 			changeConfiguration["user_name"] = strings.TrimPrefix(itemTrim, "then change-configuration user-name ")
@@ -1048,17 +1048,17 @@ func readEventoptionsPolicyThen(then map[string]interface{}, itemTrim string) er
 				destination["retry_interval"], err = strconv.Atoi(strings.TrimPrefix(
 					itemTrimDestination, "retry-count retry-interval "))
 				if err != nil {
-					return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrimDestination, "retry-count "):
 				destination["retry_count"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDestination, "retry-count "))
 				if err != nil {
-					return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrimDestination, "transfer-delay "):
 				destination["transfer_delay"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDestination, "transfer-delay "))
 				if err != nil {
-					return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		case strings.HasPrefix(itemTrimEventScript, "output-filename "):
@@ -1104,17 +1104,17 @@ func readEventoptionsPolicyThen(then map[string]interface{}, itemTrim string) er
 				destination["retry_interval"], err = strconv.Atoi(strings.TrimPrefix(
 					itemTrimDestination, "retry-count retry-interval "))
 				if err != nil {
-					return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrimDestination, "retry-count "):
 				destination["retry_count"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDestination, "retry-count "))
 				if err != nil {
-					return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrimDestination, "transfer-delay "):
 				destination["transfer_delay"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDestination, "transfer-delay "))
 				if err != nil {
-					return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		case strings.HasPrefix(itemTrimExecCommands, "output-filename "):
@@ -1145,34 +1145,26 @@ func readEventoptionsPolicyThen(then map[string]interface{}, itemTrim string) er
 			"transfer_delay": -1,
 			"user_name":      "",
 		}
-		for i, element := range then["upload"].([]map[string]interface{}) {
-			if element["filename"] == upload["filename"] && element["destination"] == upload["destination"] {
-				for key, value := range element {
-					upload[key] = value
-				}
-				then["upload"] = append(then["upload"].([]map[string]interface{})[:i],
-					then["upload"].([]map[string]interface{})[i+1:]...)
 
-				break
-			}
-		}
+		then["upload"] = copyAndRemoveItemMapList2(
+			"filename", "destination", upload, then["upload"].([]map[string]interface{}))
 		itemTrimUpload := strings.TrimPrefix(
 			itemTrim, "then upload filename "+itemTrimSplit[3]+" destination "+itemTrimSplit[5]+" ")
 		switch {
 		case strings.HasPrefix(itemTrimUpload, "retry-count retry-interval "):
 			upload["retry_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrimUpload, "retry-count retry-interval "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimUpload, "retry-count "):
 			upload["retry_count"], err = strconv.Atoi(strings.TrimPrefix(itemTrimUpload, "retry-count "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimUpload, "transfer-delay "):
 			upload["transfer_delay"], err = strconv.Atoi(strings.TrimPrefix(itemTrimUpload, "transfer-delay "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrimUpload, "user-name "):
 			upload["user_name"] = strings.TrimPrefix(itemTrimUpload, "user-name ")

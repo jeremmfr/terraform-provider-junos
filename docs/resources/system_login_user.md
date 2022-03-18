@@ -32,9 +32,20 @@ The following arguments are supported:
 - **authentication** (Optional, Block)  
   Declare `authentication` configuration.
   - **encrypted_password** (Optional, String)  
-    Encrypted password string.
+    Encrypted password string.  
+    Conflict with `plain_text_password`.  
+    If the encrypted password is present on Junos device and `plain_text_password` is used
+    in Terraform config, the value of this argument is left blank to avoid conflict.
   - **no_public_keys** (Optional, Boolean)  
     Disables ssh public key based authentication.
+  - **plain_text_password** (Optional, String, Sensitive)  
+    Plain text password (auto encrypted by Junos device)  
+    Due to encryption, when Terraform refreshes the resource, the plain text password can't be read,
+    so the provider only checks if it exists and can't detect a change of the password itself
+    outside of Terraform.  
+    To be able to detect a change of the password outside of Terraform,
+    preferably use `encrypted_password` argument.  
+    Conflict with `encrypted_password`.
   - **ssh_public_keys** (Optional, Set of String)  
     Secure shell (ssh) public key string.
 - **cli_prompt** (Optional, String)  

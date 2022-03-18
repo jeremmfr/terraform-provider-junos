@@ -51,7 +51,7 @@ func resourceOspf() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          defaultWord,
+				Default:          defaultW,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"version": {
@@ -292,7 +292,7 @@ func resourceOspfCreate(ctx context.Context, d *schema.ResourceData, m interface
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -336,7 +336,7 @@ func resourceOspfRead(ctx context.Context, d *schema.ResourceData, m interface{}
 
 func resourceOspfReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			mutex.Unlock()
@@ -451,13 +451,13 @@ func resourceOspfImport(d *schema.ResourceData, m interface{}) ([]*schema.Resour
 	if idSplit[0] != "v2" && idSplit[0] != "v3" {
 		return nil, fmt.Errorf("%s is not a valid version", idSplit[0])
 	}
-	if idSplit[1] != defaultWord {
+	if idSplit[1] != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(idSplit[1], m, jnprSess)
 		if err != nil {
 			return nil, err
 		}
 		if !instanceExists {
-			return nil, fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string))
+			return nil, fmt.Errorf("routing instance %v doesn't exist", idSplit[1])
 		}
 	}
 	ospfOptions, err := readOspf(idSplit[0], idSplit[1], m, jnprSess)
@@ -473,17 +473,16 @@ func resourceOspfImport(d *schema.ResourceData, m interface{}) ([]*schema.Resour
 func setOspf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
-	setPrefix := setLineStart
+	setPrefix := setLS
+	if d.Get("routing_instance").(string) != defaultW {
+		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
+	}
 	ospfVersion := ospfV2
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = ospfV3
 	}
-	if d.Get("routing_instance").(string) == defaultWord {
-		setPrefix += "protocols " + ospfVersion + " "
-	} else {
-		setPrefix += "routing-instances " + d.Get("routing_instance").(string) +
-			" protocols " + ospfVersion + " "
-	}
+	setPrefix += "protocols " + ospfVersion + " "
+
 	for _, dbPro := range d.Get("database_protection").([]interface{}) {
 		dbProM := dbPro.(map[string]interface{})
 		configSet = append(configSet, setPrefix+"database-protection maximum-lsa "+strconv.Itoa(dbProM["maximum_lsa"].(int)))
@@ -507,7 +506,7 @@ func setOspf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 		configSet = append(configSet, setPrefix+"disable")
 	}
 	if v := d.Get("domain_id").(string); v != "" {
-		if d.Get("routing_instance").(string) == defaultWord {
+		if d.Get("routing_instance").(string) == defaultW {
 			return fmt.Errorf("domain_id not compatible with routing_instance=default")
 		}
 		configSet = append(configSet, setPrefix+"domain-id \""+v+"\"")
@@ -636,33 +635,33 @@ func readOspf(version, routingInstance string,
 	if version == "v3" {
 		ospfVersion = ospfV3
 	}
-	if routingInstance == defaultWord {
+	if routingInstance == defaultW {
 		var err error
-		showConfig, err = sess.command("show configuration"+
-			" protocols "+ospfVersion+" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols "+ospfVersion+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
 		var err error
-		showConfig, err = sess.command("show configuration"+
-			" routing-instances "+routingInstance+" protocols "+ospfVersion+" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
+			"protocols "+ospfVersion+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	}
 
-	if showConfig != emptyWord {
-		confRead.version = version
-		confRead.routingInstance = routingInstance
+	confRead.version = version
+	confRead.routingInstance = routingInstance
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "database-protection"):
 				if len(confRead.databaseProtection) == 0 {
@@ -682,25 +681,25 @@ func readOspf(version, routingInstance string,
 					var err error
 					dbPro["ignore_count"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDP, "ignore-count "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrimDP, "ignore-time "):
 					var err error
 					dbPro["ignore_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDP, "ignore-time "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrimDP, "maximum-lsa "):
 					var err error
 					dbPro["maximum_lsa"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDP, "maximum-lsa "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrimDP, "reset-time "):
 					var err error
 					dbPro["reset_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDP, "reset-time "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case itemTrimDP == "warning-only":
 					dbPro["warning_only"] = true
@@ -708,7 +707,7 @@ func readOspf(version, routingInstance string,
 					var err error
 					dbPro["warning_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDP, "warning-threshold "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case itemTrim == "disable":
@@ -721,7 +720,7 @@ func readOspf(version, routingInstance string,
 				var err error
 				confRead.externalPreference, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "external-preference "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "forwarding-address-to-broadcast":
 				confRead.forwardingAddressToBroadcast = true
@@ -751,13 +750,13 @@ func readOspf(version, routingInstance string,
 					var err error
 					grR["notify_duration"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "graceful-restart notify-duration "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "graceful-restart restart-duration "):
 					var err error
 					grR["restart_duration"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "graceful-restart restart-duration "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case strings.HasPrefix(itemTrim, "import "):
@@ -766,13 +765,13 @@ func readOspf(version, routingInstance string,
 				var err error
 				confRead.labeledPreference, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "labeled-preference "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "lsa-refresh-interval "):
 				var err error
 				confRead.lsaRefreshInterval, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "lsa-refresh-interval "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "no-nssa-abr":
 				confRead.noNssaAbr = true
@@ -798,20 +797,20 @@ func readOspf(version, routingInstance string,
 					var err error
 					confRead.overload[0]["timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "overload timeout "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case strings.HasPrefix(itemTrim, "preference "):
 				var err error
 				confRead.preference, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "preference "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "prefix-export-limit "):
 				var err error
 				confRead.prefixExportLimit, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "prefix-export-limit "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "reference-bandwidth "):
 				confRead.referenceBandwidth = strings.TrimPrefix(itemTrim, "reference-bandwidth ")
@@ -836,13 +835,13 @@ func readOspf(version, routingInstance string,
 					var err error
 					confRead.spfOptions[0]["delay"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "spf-options delay "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "spf-options holddown "):
 					var err error
 					confRead.spfOptions[0]["holddown"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "spf-options holddown "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case itemTrim == "spf-options no-ignore-our-externals":
 					confRead.spfOptions[0]["no_ignore_our_externals"] = true
@@ -850,7 +849,7 @@ func readOspf(version, routingInstance string,
 					var err error
 					confRead.spfOptions[0]["rapid_runs"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "spf-options rapid-runs "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			}
@@ -863,17 +862,17 @@ func readOspf(version, routingInstance string,
 func delOspf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	delPrefix := deleteWord + " "
+
 	ospfVersion := ospfV2
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = ospfV3
 	}
-	if d.Get("routing_instance").(string) == defaultWord {
-		delPrefix += "protocols " + ospfVersion + " "
-	} else {
-		delPrefix += "routing-instances " + d.Get("routing_instance").(string) +
-			" protocols " + ospfVersion + " "
+	delPrefix := deleteLS
+	if d.Get("routing_instance").(string) != defaultW {
+		delPrefix = delRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
+	delPrefix += "protocols " + ospfVersion + " "
+
 	listLinesToDelete := []string{
 		"database-protection",
 		"disable",

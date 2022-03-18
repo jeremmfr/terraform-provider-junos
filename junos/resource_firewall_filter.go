@@ -39,7 +39,7 @@ func resourceFirewallFilter() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice(
-					[]string{inetWord, inet6Word, "any", "ccc", "mpls", "vpls", "ethernet-switching"}, false),
+					[]string{inetW, inet6W, "any", "ccc", "mpls", "vpls", "ethernet-switching"}, false),
 			},
 			"interface_specific": {
 				Type:     schema.TypeBool,
@@ -231,6 +231,10 @@ func resourceFirewallFilter() *schema.Resource {
 										Optional: true,
 									},
 									"log": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"packet_mode": {
 										Type:     schema.TypeBool,
 										Optional: true,
 									},
@@ -459,12 +463,12 @@ func resourceFirewallFilterImport(d *schema.ResourceData, m interface{}) ([]*sch
 
 func checkFirewallFilterExists(name, family string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" firewall family "+family+" filter "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"firewall family "+family+" filter "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -510,22 +514,22 @@ func readFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfO
 	sess := m.(*Session)
 	var confRead filterOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" firewall family "+family+" filter "+filter+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"firewall family "+family+" filter "+filter+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = filter
 		confRead.family = family
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case itemTrim == "interface-specific":
 				confRead.interfaceSpecific = true
@@ -751,6 +755,9 @@ func setFirewallFilterOptsThen(setPrefixTermThen string, configSet []string, the
 	if thenMap["log"].(bool) {
 		configSet = append(configSet, setPrefixTermThen+"log")
 	}
+	if thenMap["packet_mode"].(bool) {
+		configSet = append(configSet, setPrefixTermThen+"packet-mode")
+	}
 	if thenMap["policer"].(string) != "" {
 		configSet = append(configSet, setPrefixTermThen+"policer "+thenMap["policer"].(string))
 	}
@@ -884,6 +891,8 @@ func readFirewallFilterOptsThen(item string, thenMap map[string]interface{}) {
 		thenMap["count"] = strings.TrimPrefix(item, "count ")
 	case item == "log":
 		thenMap["log"] = true
+	case item == "packet-mode":
+		thenMap["packet_mode"] = true
 	case strings.HasPrefix(item, "policer "):
 		thenMap["policer"] = strings.TrimPrefix(item, "policer ")
 	case item == "port-mirror":
@@ -939,6 +948,7 @@ func genMapFirewallFilterOptsThen() map[string]interface{} {
 		"action":             "",
 		"count":              "",
 		"log":                false,
+		"packet_mode":        false,
 		"policer":            "",
 		"port_mirror":        false,
 		"routing_instance":   "",

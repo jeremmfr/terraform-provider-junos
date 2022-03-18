@@ -240,11 +240,11 @@ func resourcePolicyoptionsPrefixListImport(d *schema.ResourceData, m interface{}
 
 func checkPolicyoptionsPrefixListExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration policy-options prefix-list "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"policy-options prefix-list "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -280,19 +280,19 @@ func readPolicyoptionsPrefixList(name string, m interface{}, jnprSess *NetconfOb
 	sess := m.(*Session)
 	var confRead prefixListOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" policy-options prefix-list "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"policy-options prefix-list "+name+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			itemTrim := strings.TrimPrefix(item, setLineStart)
-			if strings.Contains(item, "<configuration-output>") {
+			itemTrim := strings.TrimPrefix(item, setLS)
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			switch {
@@ -300,7 +300,7 @@ func readPolicyoptionsPrefixList(name string, m interface{}, jnprSess *NetconfOb
 				replaceSign := strings.ReplaceAll(strings.Trim(strings.TrimPrefix(itemTrim, "apply-path "), "\""), "&lt;", "<")
 				replaceSign = strings.ReplaceAll(replaceSign, "&gt;", ">")
 				confRead.applyPath = replaceSign
-			case itemTrim == dynamicDB:
+			case itemTrim == "dynamic-db":
 				confRead.dynamicDB = true
 			case strings.Contains(itemTrim, "/"):
 				confRead.prefix = append(confRead.prefix, itemTrim)

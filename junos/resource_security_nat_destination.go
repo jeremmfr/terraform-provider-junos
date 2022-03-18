@@ -321,12 +321,12 @@ func resourceSecurityNatDestinationImport(d *schema.ResourceData, m interface{})
 
 func checkSecurityNatDestinationExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security nat destination rule-set "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security nat destination rule-set "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -387,7 +387,7 @@ func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *
 		for _, vv := range sortSetOfString(rule["source_address_name"].(*schema.Set).List()) {
 			configSet = append(configSet, setPrefixRule+" match source-address-name \""+vv+"\"")
 		}
-		for _, thenV := range rule[thenWord].([]interface{}) {
+		for _, thenV := range rule["then"].([]interface{}) {
 			then := thenV.(map[string]interface{})
 			if then["type"].(string) == "off" {
 				configSet = append(configSet, setPrefixRule+" then destination-nat off")
@@ -412,21 +412,21 @@ func readSecurityNatDestination(name string, m interface{}, jnprSess *NetconfObj
 	sess := m.(*Session)
 	var confRead natDestinationOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security nat destination rule-set "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security nat destination rule-set "+name+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "from "):
 				fromWords := strings.Split(strings.TrimPrefix(itemTrim, "from "), " ")

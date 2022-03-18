@@ -277,6 +277,28 @@ func copyAndRemoveItemMapList(identifier string,
 	return list
 }
 
+func copyAndRemoveItemMapList2(identifier, identifier2 string,
+	m map[string]interface{}, list []map[string]interface{}) []map[string]interface{} {
+	if m[identifier] == nil {
+		panic(fmt.Errorf("internal error: can't find identifier %s in map", identifier))
+	}
+	if m[identifier2] == nil {
+		panic(fmt.Errorf("internal error: can't find identifier %s in map", identifier2))
+	}
+	for i, element := range list {
+		if element[identifier] == m[identifier] && element[identifier2] == m[identifier2] {
+			for key, value := range element {
+				m[key] = value
+			}
+			list = append(list[:i], list[i+1:]...)
+
+			break
+		}
+	}
+
+	return list
+}
+
 func checkCompatibilitySecurity(jnprSess *NetconfObject) bool {
 	if strings.HasPrefix(strings.ToLower(jnprSess.SystemInformation.HardwareModel), "srx") {
 		return true
@@ -342,4 +364,30 @@ func validateIsIPv6Address(i interface{}, k string) (warnings []string, errors [
 	}
 
 	return warnings, errors
+}
+
+func stringLenBetweenSensitive(min, max int) schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
+		v, ok := i.(string)
+		if !ok {
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       "expected type to be string",
+				AttributePath: path,
+			})
+
+			return diags
+		}
+
+		if len(v) < min || len(v) > max {
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("expected length to be in the range (%d - %d), got %d", min, max, len(v)),
+				AttributePath: path,
+			})
+		}
+
+		return diags
+	}
 }

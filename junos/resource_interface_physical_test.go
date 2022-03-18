@@ -8,25 +8,23 @@ import (
 )
 
 // export TESTACC_INTERFACE=<inteface> for choose interface available else it's ge-0/0/3.
+// export TESTACC_INTERFACE2=<interface> for choose 2nd interface available else it's ge-0/0/4.
 // export TESTACC_INTERFACE_AE=ae<num> for choose interface aggregate test else it's ae0.
 func TestAccJunosInterfacePhysical_basic(t *testing.T) {
-	var testaccInterface string
-	var testaccInterface2 string
-	var testaccInterfaceAE string
-	if os.Getenv("TESTACC_INTERFACE") != "" {
-		testaccInterface = os.Getenv("TESTACC_INTERFACE")
-	} else {
-		testaccInterface = defaultInterfaceTestAcc
+	testaccInterface := defaultInterfaceTestAcc
+	testaccInterface2 := defaultInterfaceTestAcc2
+	testaccInterfaceAE := "ae0"
+	if os.Getenv("TESTACC_SWITCH") != "" {
+		testaccInterface = defaultInterfaceSwitchTestAcc
 	}
-	if os.Getenv("TESTACC_INTERFACE_AE") != "" {
-		testaccInterfaceAE = os.Getenv("TESTACC_INTERFACE_AE")
-	} else {
-		testaccInterfaceAE = "ae0"
+	if iface := os.Getenv("TESTACC_INTERFACE"); iface != "" {
+		testaccInterface = iface
 	}
-	if os.Getenv("TESTACC_INTERFACE2") != "" {
-		testaccInterface2 = os.Getenv("TESTACC_INTERFACE2")
-	} else {
-		testaccInterface2 = defaultInterfaceTestAcc2
+	if iface := os.Getenv("TESTACC_INTERFACE_AE"); iface != "" {
+		testaccInterfaceAE = iface
+	}
+	if iface := os.Getenv("TESTACC_INTERFACE2"); iface != "" {
+		testaccInterface2 = iface
 	}
 	if os.Getenv("TESTACC_SWITCH") != "" {
 		resource.Test(t, resource.TestCase{

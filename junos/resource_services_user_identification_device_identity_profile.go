@@ -261,12 +261,12 @@ func resourceServicesUserIdentDeviceIdentityProfileImport(
 func checkServicesUserIdentDeviceIdentityProfileExists(
 	profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" services user-identification device-information end-user-profile profile-name "+profile+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"services user-identification device-information end-user-profile profile-name "+profile+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -301,22 +301,22 @@ func readServicesUserIdentDeviceIdentityProfile(profile string, m interface{}, j
 	sess := m.(*Session)
 	var confRead svcUserIdentDevIdentProfileOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" services user-identification device-information end-user-profile"+
-		" profile-name "+profile+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"services user-identification device-information end-user-profile"+
+		" profile-name "+profile+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = profile
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "domain-name "):
 				confRead.domain = strings.TrimPrefix(itemTrim, "domain-name ")

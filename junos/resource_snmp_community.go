@@ -273,11 +273,11 @@ func resourceSnmpCommunityImport(d *schema.ResourceData, m interface{}) ([]*sche
 
 func checkSnmpCommunityExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration snmp community \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"snmp community \""+name+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -334,20 +334,20 @@ func readSnmpCommunity(name string, m interface{}, jnprSess *NetconfObject) (snm
 	sess := m.(*Session)
 	var confRead snmpCommunityOptions
 
-	showConfig, err := sess.command("show configuration snmp community \""+name+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"snmp community \""+name+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case itemTrim == "authorization read-only":
 				confRead.authReadOnly = true

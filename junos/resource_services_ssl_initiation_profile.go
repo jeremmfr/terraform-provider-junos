@@ -295,12 +295,12 @@ func resourceServicesSSLInitiationProfileImport(
 func checkServicesSSLInitiationProfileExists(
 	profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" services ssl initiation profile \""+profile+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"services ssl initiation profile \""+profile+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -361,21 +361,21 @@ func readServicesSSLInitiationProfile(profile string, m interface{}, jnprSess *N
 	sess := m.(*Session)
 	var confRead svcSSLInitiationProfileOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" services ssl initiation profile \""+profile+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"services ssl initiation profile \""+profile+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = profile
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "actions "):
 				if len(confRead.actions) == 0 {

@@ -277,12 +277,12 @@ func resourceSecurityZoneBookAddressSetImport(d *schema.ResourceData, m interfac
 func checkSecurityZoneBookAddressSetsExists(
 	zone, addressSet string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security zones security-zone "+zone+" address-book address-set "+addressSet+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security zones security-zone "+zone+" address-book address-set "+addressSet+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -317,22 +317,22 @@ func readSecurityZoneBookAddressSet(
 	sess := m.(*Session)
 	var confRead zoneBookAddressSetOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security zones security-zone "+zone+" address-book address-set "+addressSet+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security zones security-zone "+zone+" address-book address-set "+addressSet+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = addressSet
 		confRead.zone = zone
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")

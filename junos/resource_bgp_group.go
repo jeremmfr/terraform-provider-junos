@@ -30,7 +30,7 @@ func resourceBgpGroup() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          defaultWord,
+				Default:          defaultW,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"type": {
@@ -614,7 +614,7 @@ func resourceBgpGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -802,20 +802,20 @@ func checkBgpGroupExists(bgpGroup, instance string, m interface{}, jnprSess *Net
 	sess := m.(*Session)
 	var showConfig string
 	var err error
-	if instance == defaultWord {
-		showConfig, err = sess.command("show configuration"+
-			" protocols bgp group "+bgpGroup+" | display set", jnprSess)
+	if instance == defaultW {
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols bgp group "+bgpGroup+pipeDisplaySet, jnprSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
-		showConfig, err = sess.command("show configuration"+
-			" routing-instances "+instance+" protocols bgp group "+bgpGroup+" | display set", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
+			"protocols bgp group "+bgpGroup+pipeDisplaySet, jnprSess)
 		if err != nil {
 			return false, err
 		}
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -823,14 +823,14 @@ func checkBgpGroupExists(bgpGroup, instance string, m interface{}, jnprSess *Net
 }
 
 func setBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	setPrefix := setLineStart
-	if d.Get("routing_instance").(string) == defaultWord {
-		setPrefix += "protocols bgp group " + d.Get("name").(string) + " "
-	} else {
-		setPrefix += "routing-instances " + d.Get("routing_instance").(string) +
-			" protocols bgp group " + d.Get("name").(string) + " "
-	}
 	sess := m.(*Session)
+
+	setPrefix := setLS
+	if d.Get("routing_instance").(string) != defaultW {
+		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
+	}
+	setPrefix += "protocols bgp group " + d.Get("name").(string) + " "
+
 	if err := sess.configSet([]string{setPrefix + "type " + d.Get("type").(string)}, jnprSess); err != nil {
 		return err
 	}
@@ -851,10 +851,10 @@ func setBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	if err := setBgpOptsFamily(setPrefix, "evpn", d.Get("family_evpn").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
-	if err := setBgpOptsFamily(setPrefix, inetWord, d.Get("family_inet").([]interface{}), m, jnprSess); err != nil {
+	if err := setBgpOptsFamily(setPrefix, inetW, d.Get("family_inet").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
-	if err := setBgpOptsFamily(setPrefix, inet6Word, d.Get("family_inet6").([]interface{}), m, jnprSess); err != nil {
+	if err := setBgpOptsFamily(setPrefix, inet6W, d.Get("family_inet6").([]interface{}), m, jnprSess); err != nil {
 		return err
 	}
 
@@ -871,30 +871,30 @@ func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObj
 	confRead.metricOut = -1
 	confRead.preference = -1
 
-	if instance == defaultWord {
-		showConfig, err = sess.command("show configuration"+
-			" protocols bgp group "+bgpGroup+" | display set relative", jnprSess)
+	if instance == defaultW {
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols bgp group "+bgpGroup+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
-		showConfig, err = sess.command("show configuration"+
-			" routing-instances "+instance+" protocols bgp group "+bgpGroup+" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
+			"protocols bgp group "+bgpGroup+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = bgpGroup
 		confRead.routingInstance = instance
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "bfd-liveness-detection "):
 				if len(confRead.bfdLivenessDetection) == 0 {
@@ -923,12 +923,12 @@ func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObj
 					return confRead, err
 				}
 			case strings.HasPrefix(itemTrim, "family inet "):
-				confRead.familyInet, err = readBgpOptsFamily(itemTrim, inetWord, confRead.familyInet)
+				confRead.familyInet, err = readBgpOptsFamily(itemTrim, inetW, confRead.familyInet)
 				if err != nil {
 					return confRead, err
 				}
 			case strings.HasPrefix(itemTrim, "family inet6 "):
-				confRead.familyInet6, err = readBgpOptsFamily(itemTrim, inet6Word, confRead.familyInet6)
+				confRead.familyInet6, err = readBgpOptsFamily(itemTrim, inet6W, confRead.familyInet6)
 				if err != nil {
 					return confRead, err
 				}
@@ -958,10 +958,10 @@ func readBgpGroup(bgpGroup, instance string, m interface{}, jnprSess *NetconfObj
 func delBgpGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	if d.Get("routing_instance").(string) == defaultWord {
+	if d.Get("routing_instance").(string) == defaultW {
 		configSet = append(configSet, "delete protocols bgp group "+d.Get("name").(string))
 	} else {
-		configSet = append(configSet, "delete routing-instances "+d.Get("routing_instance").(string)+
+		configSet = append(configSet, delRoutingInstances+d.Get("routing_instance").(string)+
 			" protocols bgp group "+d.Get("name").(string))
 	}
 

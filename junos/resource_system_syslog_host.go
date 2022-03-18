@@ -376,11 +376,11 @@ func resourceSystemSyslogHostImport(d *schema.ResourceData, m interface{}) ([]*s
 
 func checkSystemSyslogHostExists(host string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration system syslog host "+host+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system syslog host "+host+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -482,20 +482,20 @@ func readSystemSyslogHost(host string, m interface{}, jnprSess *NetconfObject) (
 	sess := m.(*Session)
 	var confRead syslogHostOptions
 
-	showConfig, err := sess.command("show configuration system syslog host "+host+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system syslog host "+host+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.host = host
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case itemTrim == "allow-duplicates":
 				confRead.allowDuplicates = true
@@ -516,7 +516,7 @@ func readSystemSyslogHost(host string, m interface{}, jnprSess *NetconfObject) (
 				var err error
 				confRead.port, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "port "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "source-address "):
 				confRead.sourceAddress = strings.TrimPrefix(itemTrim, "source-address ")

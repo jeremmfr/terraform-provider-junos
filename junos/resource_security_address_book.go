@@ -366,12 +366,12 @@ func resourceSecurityAddressBookImport(d *schema.ResourceData, m interface{}) ([
 func checkSecurityAddressBookExists(addrBook string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 
-	showConfig, err := sess.command("show configuration"+
-		" security address-book "+addrBook+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security address-book "+addrBook+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -472,22 +472,22 @@ func readSecurityAddressBook(addrBook string, m interface{}, jnprSess *NetconfOb
 	sess := m.(*Session)
 	var confRead addressBookOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security address-book "+addrBook+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security address-book "+addrBook+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	descMap := make(map[string]string)
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = addrBook
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")

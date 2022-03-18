@@ -310,12 +310,12 @@ func resourceServicesSecurityIntellProfileImport(
 
 func checkServicesSecurityIntellProfileExists(profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" services security-intelligence profile \""+profile+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"services security-intelligence profile \""+profile+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -372,21 +372,21 @@ func readServicesSecurityIntellProfile(profile string, m interface{}, jnprSess *
 	sess := m.(*Session)
 	var confRead securityIntellProfileOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" services security-intelligence profile \""+profile+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"services security-intelligence profile \""+profile+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = profile
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "category "):
 				confRead.category = strings.TrimPrefix(itemTrim, "category ")
@@ -442,7 +442,7 @@ func readServicesSecurityIntellProfileRule(itemTrimPolicyRule string, ruleMap ma
 		case strings.HasPrefix(itemTrimPolicyRule, "match threat-level "):
 			threatLevel, err := strconv.Atoi(strings.TrimPrefix(itemTrimPolicyRule, "match threat-level "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimPolicyRule, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrimPolicyRule, err)
 			}
 			ruleMap["match"].([]map[string]interface{})[0]["threat_level"] = append(
 				ruleMap["match"].([]map[string]interface{})[0]["threat_level"].([]int), threatLevel)

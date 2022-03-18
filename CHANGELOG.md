@@ -5,6 +5,42 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+## 1.25.0 (March 18, 2022)
+
+FEATURES:
+
+* add `junos_chassis_redundancy` resource
+* add `junos_igmp_snooping_vlan` resource (Fixes parts of [#340](https://github.com/jeremmfr/terraform-provider-junos/issues/340))
+* add `junos_layer2_control` resource (Fixes parts of [#340](https://github.com/jeremmfr/terraform-provider-junos/issues/340))
+* add `junos_lldp_interface` resource (Fixes parts of [#340](https://github.com/jeremmfr/terraform-provider-junos/issues/340))
+* add `junos_lldpmed_interface` resource (Fixes parts of [#340](https://github.com/jeremmfr/terraform-provider-junos/issues/340))
+* add `junos_rstp` resource (Fixes parts of [#340](https://github.com/jeremmfr/terraform-provider-junos/issues/340))
+* add `junos_rstp_interface` resource (Fixes parts of [#340](https://github.com/jeremmfr/terraform-provider-junos/issues/340))
+* add `junos_snmp_v3_community` resource
+* add `junos_snmp_v3_usm_user` resource (Fixes parts of [#339](https://github.com/jeremmfr/terraform-provider-junos/issues/339))
+* add `junos_snmp_v3_vacm_accessgroup` resource (Fixes parts of [#339](https://github.com/jeremmfr/terraform-provider-junos/issues/339))
+* add `junos_snmp_v3_vacm_securitytogroup` resource (Fixes parts of [#339](https://github.com/jeremmfr/terraform-provider-junos/issues/339))
+* add `junos_vstp` resource
+* add `junos_vstp_interface` resource (Fixes parts of [#340](https://github.com/jeremmfr/terraform-provider-junos/issues/340))
+* add `junos_vstp_vlan` resource
+* add `junos_vstp_vlan_group` resource
+* add `junos_routing_instance` data source (to be able to read the list of interfaces in routing-instance)
+* add `junos_security_zone` data source (to be able to read the list of interfaces in security-zone)
+
+ENHANCEMENTS:
+
+* resource/`junos_firewall_filter`: add `packet_mode` argument inside `then` arguments for `term` (Fixes [#341](https://github.com/jeremmfr/terraform-provider-junos/issues/341))
+* resource/`junos_ospf_area`: add multiple new arguments to `interface` block (Fixes [#348](https://github.com/jeremmfr/terraform-provider-junos/issues/348), [#356](https://github.com/jeremmfr/terraform-provider-junos/issues/356))
+* resource/`junos_snmp`: add `engine_id` argument (Fixes parts of [#339](https://github.com/jeremmfr/terraform-provider-junos/issues/339))
+* resource/`junos_system`: add `netconf_ssh` block argument inside `services` block argument (Fixes [#335](https://github.com/jeremmfr/terraform-provider-junos/issues/335))
+* resource/`junos_system_login_user`: add `plain_text_password` argument inside `authentication` block argument to be able to set password in plain text format (Fixes [#338](https://github.com/jeremmfr/terraform-provider-junos/issues/338))
+
+BUG FIXES:
+
+* resource/`junos_evpn`: generate an error when import and delete the state of resource when there isn't evpn config on the device
+* resource/`junos_ospf`: fix read config from the device with an empty resource
+* resource/`junos_system_syslog_file`: fix reading `start_time` in `archive` block argument to remove timezone in value
+
 ## 1.24.1 (February 11, 2022)
 
 BUG FIXES:

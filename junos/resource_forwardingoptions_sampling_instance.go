@@ -823,12 +823,12 @@ func resourceForwardingoptionsSamplingInstanceImport(d *schema.ResourceData,
 func checkForwardingoptionsSamplingInstanceExists(name string,
 	m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" forwarding-options sampling instance \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"forwarding-options sampling instance \""+name+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -845,7 +845,7 @@ func setForwardingoptionsSamplingInstance(d *schema.ResourceData, m interface{},
 	}
 	for _, v := range d.Get("family_inet_input").([]interface{}) {
 		if err := setForwardingoptionsSamplingInstanceInput(setPrefix,
-			v.(map[string]interface{}), inetWord, sess, jnprSess); err != nil {
+			v.(map[string]interface{}), inetW, sess, jnprSess); err != nil {
 			return err
 		}
 	}
@@ -854,13 +854,13 @@ func setForwardingoptionsSamplingInstance(d *schema.ResourceData, m interface{},
 			return fmt.Errorf("family_inet_output block is empty")
 		}
 		if err := setForwardingoptionsSamplingInstanceOutput(setPrefix,
-			v.(map[string]interface{}), inetWord, sess, jnprSess); err != nil {
+			v.(map[string]interface{}), inetW, sess, jnprSess); err != nil {
 			return err
 		}
 	}
 	for _, v := range d.Get("family_inet6_input").([]interface{}) {
 		if err := setForwardingoptionsSamplingInstanceInput(setPrefix,
-			v.(map[string]interface{}), inet6Word, sess, jnprSess); err != nil {
+			v.(map[string]interface{}), inet6W, sess, jnprSess); err != nil {
 			return err
 		}
 	}
@@ -869,13 +869,13 @@ func setForwardingoptionsSamplingInstance(d *schema.ResourceData, m interface{},
 			return fmt.Errorf("family_inet6_output block is empty")
 		}
 		if err := setForwardingoptionsSamplingInstanceOutput(setPrefix,
-			v.(map[string]interface{}), inet6Word, sess, jnprSess); err != nil {
+			v.(map[string]interface{}), inet6W, sess, jnprSess); err != nil {
 			return err
 		}
 	}
 	for _, v := range d.Get("family_mpls_input").([]interface{}) {
 		if err := setForwardingoptionsSamplingInstanceInput(setPrefix,
-			v.(map[string]interface{}), mplsWord, sess, jnprSess); err != nil {
+			v.(map[string]interface{}), mplsW, sess, jnprSess); err != nil {
 			return err
 		}
 	}
@@ -884,7 +884,7 @@ func setForwardingoptionsSamplingInstance(d *schema.ResourceData, m interface{},
 			return fmt.Errorf("family_mpls_output block is empty")
 		}
 		if err := setForwardingoptionsSamplingInstanceOutput(setPrefix,
-			v.(map[string]interface{}), mplsWord, sess, jnprSess); err != nil {
+			v.(map[string]interface{}), mplsW, sess, jnprSess); err != nil {
 			return err
 		}
 	}
@@ -902,11 +902,11 @@ func setForwardingoptionsSamplingInstanceInput(
 	setPrefix string, input map[string]interface{}, family string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 	switch family {
-	case inetWord:
+	case inetW:
 		setPrefix += "family inet input "
-	case inet6Word:
+	case inet6W:
 		setPrefix += "family inet6 input "
-	case mplsWord:
+	case mplsW:
 		setPrefix += "family mpls input "
 	default:
 		setPrefix += "input "
@@ -925,11 +925,11 @@ func setForwardingoptionsSamplingInstanceInput(
 	}
 	if len(configSet) == 0 {
 		switch family {
-		case inetWord:
+		case inetW:
 			return fmt.Errorf("family_inet_input block is empty")
-		case inet6Word:
+		case inet6W:
 			return fmt.Errorf("family_inet6_input block is empty")
-		case mplsWord:
+		case mplsW:
 			return fmt.Errorf("family_mpls_input block is empty")
 		default:
 			return fmt.Errorf("input block is empty")
@@ -943,11 +943,11 @@ func setForwardingoptionsSamplingInstanceOutput(
 	setPrefix string, output map[string]interface{}, family string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 	switch family {
-	case inetWord:
+	case inetW:
 		setPrefix += "family inet output "
-	case inet6Word:
+	case inet6W:
 		setPrefix += "family inet6 output "
-	case mplsWord:
+	case mplsW:
 		setPrefix += "family mpls output "
 	default:
 		return fmt.Errorf("internal error: setForwardingoptionsSamplingInstanceOutput call with bad family")
@@ -955,7 +955,7 @@ func setForwardingoptionsSamplingInstanceOutput(
 	if v := output["aggregate_export_interval"].(int); v != 0 {
 		configSet = append(configSet, setPrefix+"aggregate-export-interval "+strconv.Itoa(v))
 	}
-	if family == inetWord || family == inet6Word {
+	if family == inetW || family == inet6W {
 		for _, v := range output["extension_service"].([]interface{}) {
 			configSet = append(configSet, setPrefix+"extension-service \""+v.(string)+"\"")
 		}
@@ -1017,7 +1017,7 @@ func setForwardingoptionsSamplingInstanceOutput(
 		if v := flowServer["source_address"].(string); v != "" {
 			configSet = append(configSet, setPrefixFlowServer+"source-address "+v)
 		}
-		if family == inetWord {
+		if family == inetW {
 			if v := flowServer["version"].(int); v != 0 {
 				configSet = append(configSet, setPrefixFlowServer+"version "+strconv.Itoa(v))
 			}
@@ -1063,23 +1063,23 @@ func readForwardingoptionsSamplingInstance(name string,
 	sess := m.(*Session)
 	var confRead samplingInstanceOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" forwarding-options sampling instance \""+name+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"forwarding-options sampling instance \""+name+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			itemTrim := strings.TrimPrefix(item, setLineStart)
-			if strings.Contains(item, "<configuration-output>") {
+			itemTrim := strings.TrimPrefix(item, setLS)
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			switch {
-			case itemTrim == "disable":
+			case itemTrim == disableW:
 				confRead.disable = true
 			case strings.HasPrefix(itemTrim, "family inet input "):
 				if len(confRead.familyInetInput) == 0 {
@@ -1147,7 +1147,7 @@ func readForwardingoptionsSamplingInstance(name string,
 					})
 				}
 				if err := readForwardingoptionsSamplingInstanceOutput(confRead.familyInetOutput[0],
-					strings.TrimPrefix(itemTrim, "family inet output "), inetWord); err != nil {
+					strings.TrimPrefix(itemTrim, "family inet output "), inetW); err != nil {
 					return confRead, err
 				}
 			case strings.HasPrefix(itemTrim, "family inet6 output "):
@@ -1164,7 +1164,7 @@ func readForwardingoptionsSamplingInstance(name string,
 					})
 				}
 				if err := readForwardingoptionsSamplingInstanceOutput(confRead.familyInet6Output[0],
-					strings.TrimPrefix(itemTrim, "family inet6 output "), inet6Word); err != nil {
+					strings.TrimPrefix(itemTrim, "family inet6 output "), inet6W); err != nil {
 					return confRead, err
 				}
 			case strings.HasPrefix(itemTrim, "family mpls output "):
@@ -1180,7 +1180,7 @@ func readForwardingoptionsSamplingInstance(name string,
 					})
 				}
 				if err := readForwardingoptionsSamplingInstanceOutput(confRead.familyMplsOutput[0],
-					strings.TrimPrefix(itemTrim, "family mpls output "), mplsWord); err != nil {
+					strings.TrimPrefix(itemTrim, "family mpls output "), mplsW); err != nil {
 					return confRead, err
 				}
 			}
@@ -1196,25 +1196,25 @@ func readForwardingoptionsSamplingInstanceInput(inputRead map[string]interface{}
 		var err error
 		inputRead["max_packets_per_second"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-packets-per-second "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "maximum-packet-length "):
 		var err error
 		inputRead["maximum_packet_length"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "maximum-packet-length "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "rate "):
 		var err error
 		inputRead["rate"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "rate "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "run-length "):
 		var err error
 		inputRead["run_length"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "run-length "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	}
 
@@ -1229,7 +1229,7 @@ func readForwardingoptionsSamplingInstanceOutput(
 		outputRead["aggregate_export_interval"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "aggregate-export-interval "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "extension-service "):
 		outputRead["extension_service"] = append(outputRead["extension_service"].([]string),
@@ -1238,13 +1238,13 @@ func readForwardingoptionsSamplingInstanceOutput(
 		var err error
 		outputRead["flow_active_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "flow-active-timeout "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "flow-inactive-timeout "):
 		var err error
 		outputRead["flow_inactive_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "flow-inactive-timeout "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "flow-server "):
 		flowServerLineCut := strings.Split(itemTrim, " ")
@@ -1267,7 +1267,7 @@ func readForwardingoptionsSamplingInstanceOutput(
 			"version_ipfix_template":                                "",
 			"version9_template":                                     "",
 		}
-		if family == inetWord {
+		if family == inetW {
 			flowServer["version"] = 0
 		}
 		outputRead["flow_server"] = copyAndRemoveItemMapList(
@@ -1278,7 +1278,7 @@ func readForwardingoptionsSamplingInstanceOutput(
 			var err error
 			flowServer["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrimFlowServer, "port "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimFlowServer, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrimFlowServer, err)
 			}
 		case itemTrimFlowServer == "aggregation autonomous-system":
 			flowServer["aggregation_autonomous_system"] = true
@@ -1299,7 +1299,7 @@ func readForwardingoptionsSamplingInstanceOutput(
 			var err error
 			flowServer["dscp"], err = strconv.Atoi(strings.TrimPrefix(itemTrimFlowServer, "dscp "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimFlowServer, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrimFlowServer, err)
 			}
 		case strings.HasPrefix(itemTrimFlowServer, "forwarding-class "):
 			flowServer["forwarding_class"] = strings.TrimPrefix(itemTrimFlowServer, "forwarding-class ")
@@ -1315,7 +1315,7 @@ func readForwardingoptionsSamplingInstanceOutput(
 			var err error
 			flowServer["version"], err = strconv.Atoi(strings.TrimPrefix(itemTrimFlowServer, "version "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimFlowServer, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrimFlowServer, err)
 			}
 		case strings.HasPrefix(itemTrimFlowServer, "version-ipfix template "):
 			flowServer["version_ipfix_template"] = strings.Trim(strings.TrimPrefix(
@@ -1329,7 +1329,7 @@ func readForwardingoptionsSamplingInstanceOutput(
 		outputRead["inline_jflow_export_rate"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "inline-jflow flow-export-rate "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "inline-jflow source-address "):
 		outputRead["inline_jflow_source_address"] = strings.TrimPrefix(itemTrim, "inline-jflow source-address ")
@@ -1349,13 +1349,13 @@ func readForwardingoptionsSamplingInstanceOutput(
 			var err error
 			iFace["engine_id"], err = strconv.Atoi(strings.TrimPrefix(itemTrimInterface, "engine-id "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 			}
 		case strings.HasPrefix(itemTrimInterface, "engine-type "):
 			var err error
 			iFace["engine_type"], err = strconv.Atoi(strings.TrimPrefix(itemTrimInterface, "engine-type "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 			}
 		case strings.HasPrefix(itemTrimInterface, "source-address "):
 			iFace["source_address"] = strings.TrimPrefix(itemTrimInterface, "source-address ")

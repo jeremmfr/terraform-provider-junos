@@ -26,7 +26,7 @@ The following arguments are supported:
   Name of group.
 - **routing_instance** (Optional, String, Forces new resource)  
   Routing instance for bgp protocol.  
-  Need to be default or name of routing instance.  
+  Need to be `default` or name of routing instance.  
   Defaults to `default`.
 - **type** (Optional, String, Forces new resource)  
   Type of peer group.  

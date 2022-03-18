@@ -86,14 +86,14 @@ func resourceSecurityIdpPolicy() *schema.Resource {
 										Type:     schema.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											actionCos,
+											"class-of-service",
 											"close-client",
 											"close-client-and-server",
 											"close-server",
 											"drop-connection",
 											"drop-packet",
 											"ignore-connection",
-											actionMarkDiffServ,
+											"mark-diffserv",
 											"no-action",
 											"recommended",
 										}, false),
@@ -468,12 +468,12 @@ func resourceSecurityIdpPolicyImport(d *schema.ResourceData, m interface{}) ([]*
 
 func checkSecurityIdpPolicyExists(policy string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security idp idp-policy \""+policy+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security idp idp-policy \""+policy+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -634,25 +634,25 @@ func setSecurityIdpPolicyIpsRule(setPrefix string, rule map[string]interface{}) 
 		then := et.(map[string]interface{})
 		configSet = append(configSet, setPrefixIpsRule+"then action "+then["action"].(string))
 		if v := then["action_cos_forwarding_class"].(string); v != "" {
-			if then["action"].(string) != actionCos {
+			if then["action"].(string) != "class-of-service" {
 				return configSet, fmt.Errorf("action_cos_forwarding_class can't set "+
 					"if action is not 'class-of-service' in ips rule '%s'", rule["name"].(string))
 			}
 			configSet = append(configSet, setPrefixIpsRule+"then action "+then["action"].(string)+" forwarding-class \""+v+"\"")
 		}
 		if v := then["action_dscp_code_point"].(int); v != -1 {
-			if then["action"].(string) != actionCos && then["action"].(string) != actionMarkDiffServ {
+			if then["action"].(string) != "class-of-service" && then["action"].(string) != "mark-diffserv" {
 				return configSet, fmt.Errorf("action_dscp_code_point can't set "+
 					"if action is not 'class-of-service' or 'mark-diffserv' in ips rule '%s'", rule["name"].(string))
 			}
 			switch {
-			case then["action"].(string) == actionCos:
+			case then["action"].(string) == "class-of-service":
 				configSet = append(configSet,
 					setPrefixIpsRule+"then action "+then["action"].(string)+" dscp-code-point "+strconv.Itoa(v))
-			case then["action"].(string) == actionMarkDiffServ:
+			case then["action"].(string) == "mark-diffserv":
 				configSet = append(configSet, setPrefixIpsRule+"then action "+then["action"].(string)+" "+strconv.Itoa(v))
 			}
-		} else if then["action"].(string) == actionMarkDiffServ {
+		} else if then["action"].(string) == "mark-diffserv" {
 			return configSet, fmt.Errorf("action_dscp_code_point need to be set "+
 				"if action == 'mark-diffserv' in rule '%s'", rule["name"].(string))
 		}
@@ -737,21 +737,21 @@ func readSecurityIdpPolicy(policy string, m interface{}, jnprSess *NetconfObject
 	sess := m.(*Session)
 	var confRead idpPolicyOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security idp idp-policy \""+policy+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security idp idp-policy \""+policy+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = policy
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "rulebase-exempt rule "):
 				policyLineCut := strings.Split(strings.TrimPrefix(itemTrim, "rulebase-exempt rule "), " ")
@@ -909,27 +909,27 @@ func readSecurityIdpPolicy(policy string, m interface{}, jnprSess *NetconfObject
 					case strings.HasPrefix(itemTrimRule, "then action "):
 						itemTrimRuleAction := strings.TrimPrefix(itemTrimRule, "then action ")
 						switch {
-						case strings.HasPrefix(itemTrimRuleAction, actionCos+" "):
-							then["action"] = actionCos
+						case strings.HasPrefix(itemTrimRuleAction, "class-of-service "):
+							then["action"] = "class-of-service"
 							switch {
-							case strings.HasPrefix(itemTrimRuleAction, actionCos+" forwarding-class "):
+							case strings.HasPrefix(itemTrimRuleAction, "class-of-service forwarding-class "):
 								then["action_cos_forwarding_class"] = strings.Trim(strings.TrimPrefix(
-									itemTrimRuleAction, actionCos+" forwarding-class "), "\"")
-							case strings.HasPrefix(itemTrimRuleAction, actionCos+" dscp-code-point "):
+									itemTrimRuleAction, "class-of-service forwarding-class "), "\"")
+							case strings.HasPrefix(itemTrimRuleAction, "class-of-service dscp-code-point "):
 								var err error
 								then["action_dscp_code_point"], err = strconv.Atoi(strings.TrimPrefix(
-									itemTrimRuleAction, actionCos+" dscp-code-point "))
+									itemTrimRuleAction, "class-of-service dscp-code-point "))
 								if err != nil {
-									return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+									return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 								}
 							}
-						case strings.HasPrefix(itemTrimRuleAction, actionMarkDiffServ+" "):
-							then["action"] = actionMarkDiffServ
+						case strings.HasPrefix(itemTrimRuleAction, "mark-diffserv "):
+							then["action"] = "mark-diffserv"
 							var err error
 							then["action_dscp_code_point"], err = strconv.Atoi(strings.TrimPrefix(
-								itemTrimRuleAction, actionMarkDiffServ+" "))
+								itemTrimRuleAction, "mark-diffserv "))
 							if err != nil {
-								return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+								return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 							}
 						default:
 							then["action"] = itemTrimRuleAction
@@ -948,7 +948,7 @@ func readSecurityIdpPolicy(policy string, m interface{}, jnprSess *NetconfObject
 							var err error
 							then["ip_action_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrimRule, "then ip-action timeout "))
 							if err != nil {
-								return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+								return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 							}
 						default:
 							then["ip_action"] = strings.TrimPrefix(itemTrimRule, "then ip-action ")
@@ -976,7 +976,7 @@ func readSecurityIdpPolicy(policy string, m interface{}, jnprSess *NetconfObject
 									itemTrimRule, "then notification packet-log pre-attack "))
 							}
 							if err != nil {
-								return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+								return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 							}
 						}
 					case strings.HasPrefix(itemTrimRule, "then severity "):

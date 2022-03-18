@@ -1,37 +1,35 @@
 package junos
 
 const (
-	idSeparator           = "_-_"
-	defaultWord           = "default"
-	evpnWord              = "evpn"
-	inetWord              = "inet"
-	inet6Word             = "inet6"
-	mplsWord              = "mpls"
-	emptyWord             = "empty"
-	matchWord             = "match"
-	permitWord            = "permit"
-	thenWord              = "then"
-	prefixWord            = "prefix"
-	prefixNameWord        = "prefix-name"
-	actionNoneWord        = "none"
-	addWord               = "add"
-	deleteWord            = "delete"
-	setWord               = "set"
-	setLineStart          = setWord + " "
-	st0Word               = "st0"
-	ospfV2                = "ospf"
-	ospfV3                = "ospf3"
-	activeW               = "active"
-	asPathAtomicAggregate = "as-path atomic-aggregate"
-	passiveW              = "passive"
-	discardW              = "discard"
-	disableW              = "disable"
-	dynamicDB             = "dynamic-db"
-	preemptWord           = "preempt"
-	flowControlWords      = "flow-control"
-	noFlowControlWords    = "no-flow-control"
-	loopbackWord          = "loopback"
-	noLoopbackWord        = "no-loopback"
-	actionCos             = "class-of-service"
-	actionMarkDiffServ    = "mark-diffserv"
+	idSeparator = "_-_"
+	defaultW    = "default"
+
+	setW     = "set"
+	setLS    = setW + " " // set line start
+	deleteW  = "delete"
+	deleteLS = deleteW + " " // delete line start
+
+	cmdShowConfig          = "show configuration "
+	pipeDisplaySet         = " | display set"
+	pipeDisplaySetRelative = pipeDisplaySet + " relative"
+
+	routingInstancesWS  = "routing-instances " // routing-instances word + space
+	setRoutingInstances = setLS + routingInstancesWS
+	delRoutingInstances = deleteLS + routingInstancesWS
+
+	emptyW   = "empty"
+	permitW  = "permit"
+	discardW = "discard"
+	disableW = "disable"
+
+	st0Word = "st0"
+
+	evpnW  = "evpn"
+	inetW  = "inet"
+	inet6W = "inet6"
+	mplsW  = "mpls"
+	ospfV2 = "ospf"
+	ospfV3 = "ospf3"
+
+	failedConvAtoiError = "failed to convert value from '%s' to integer : %w"
 )

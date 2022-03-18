@@ -235,12 +235,12 @@ func resourceSecurityIdpCustomAttackGroupImport(d *schema.ResourceData, m interf
 func checkSecurityIdpCustomAttackGroupExists(
 	customAttackGroup string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security idp custom-attack-group \""+customAttackGroup+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security idp custom-attack-group \""+customAttackGroup+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -265,21 +265,21 @@ func readSecurityIdpCustomAttackGroup(customAttackGroup string, m interface{}, j
 	sess := m.(*Session)
 	var confRead idpCustomAttackGroupOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security idp custom-attack-group \""+customAttackGroup+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security idp custom-attack-group \""+customAttackGroup+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = customAttackGroup
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			if strings.HasPrefix(itemTrim, "group-members ") {
 				confRead.member = append(confRead.member, strings.Trim(strings.TrimPrefix(itemTrim, "group-members "), "\""))
 			}

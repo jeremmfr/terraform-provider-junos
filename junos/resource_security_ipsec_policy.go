@@ -242,12 +242,12 @@ func resourceIpsecPolicyImport(d *schema.ResourceData, m interface{}) ([]*schema
 
 func checkIpsecPolicyExists(ipsecPolicy string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security ipsec policy "+ipsecPolicy+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security ipsec policy "+ipsecPolicy+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -276,21 +276,21 @@ func readIpsecPolicy(ipsecPolicy string, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 	var confRead ipsecPolicyOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security ipsec policy "+ipsecPolicy+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security ipsec policy "+ipsecPolicy+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = ipsecPolicy
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "perfect-forward-secrecy keys "):
 				confRead.pfsKeys = strings.TrimPrefix(itemTrim, "perfect-forward-secrecy keys ")

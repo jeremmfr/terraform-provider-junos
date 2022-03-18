@@ -322,12 +322,12 @@ func resourceServicesUserIdentAdAccessDomainImport(
 func checkServicesUserIdentAdAccessDomainExists(domain string,
 	m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" services user-identification active-directory-access domain "+domain+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"services user-identification active-directory-access domain "+domain+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -393,21 +393,21 @@ func readServicesUserIdentAdAccessDomain(domain string,
 	sess := m.(*Session)
 	var confRead svcUserIdentAdAccessDomainOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" services user-identification active-directory-access domain "+domain+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"services user-identification active-directory-access domain "+domain+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = domain
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "user password "):
 				var err error
@@ -437,14 +437,14 @@ func readServicesUserIdentAdAccessDomain(domain string,
 					confRead.ipUserMappingDiscoveryWmi[0]["event_log_scanning_interval"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrim, "ip-user-mapping discovery-method wmi event-log-scanning-interval "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "ip-user-mapping discovery-method wmi initial-event-log-timespan "):
 					var err error
 					confRead.ipUserMappingDiscoveryWmi[0]["initial_event_log_timespan"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrim, "ip-user-mapping discovery-method wmi initial-event-log-timespan "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case strings.HasPrefix(itemTrim, "user-group-mapping ldap "):
