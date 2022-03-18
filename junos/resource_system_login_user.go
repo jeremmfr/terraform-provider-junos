@@ -282,11 +282,11 @@ func resourceSystemLoginUserImport(d *schema.ResourceData, m interface{}) ([]*sc
 
 func checkSystemLoginUserExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration system login user "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system login user "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -362,20 +362,20 @@ func readSystemLoginUser(name, plainTextPassword string, m interface{}, jnprSess
 	sess := m.(*Session)
 	var confRead systemLoginUserOptions
 
-	showConfig, err := sess.command("show configuration system login user "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system login user "+name+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "class "):
 				confRead.class = strings.TrimPrefix(itemTrim, "class ")
@@ -383,7 +383,7 @@ func readSystemLoginUser(name, plainTextPassword string, m interface{}, jnprSess
 				var err error
 				confRead.uid, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "uid "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "authentication "):
 				if len(confRead.authentication) == 0 {

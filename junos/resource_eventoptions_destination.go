@@ -253,11 +253,11 @@ func resourceEventoptionsDestinationImport(d *schema.ResourceData, m interface{}
 
 func checkEventoptionsDestinationExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration event-options destinations \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"event-options destinations \""+name+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -294,21 +294,21 @@ func readEventoptionsDestination(
 	var confRead eventoptionsDestinationOptions
 	confRead.transferDelay = -1 // default value
 
-	showConfig, err := sess.command("show configuration"+
-		" event-options destinations \""+name+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"event-options destinations \""+name+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "archive-sites "):
 				itemTrimSplit := strings.Split(itemTrim, " ")
@@ -331,7 +331,7 @@ func readEventoptionsDestination(
 				var err error
 				confRead.transferDelay, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "transfer-delay "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}

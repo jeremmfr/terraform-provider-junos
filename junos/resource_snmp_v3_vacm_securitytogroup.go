@@ -252,12 +252,12 @@ func resourceSnmpV3VacmSecurityToGroupImport(d *schema.ResourceData, m interface
 
 func checkSnmpV3VacmSecurityToGroupExists(model, name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration snmp v3 vacm security-to-group "+
-		"security-model "+model+" security-name \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"snmp v3 vacm security-to-group "+
+		"security-model "+model+" security-name \""+name+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -285,23 +285,23 @@ func readSnmpV3VacmSecurityToGroup(model, name string, m interface{}, jnprSess *
 	sess := m.(*Session)
 	var confRead snmpV3VacmSecurityToGroupOptions
 
-	showConfig, err := sess.command("show configuration snmp v3 vacm security-to-group "+
-		"security-model "+model+" security-name \""+name+"\"  | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"snmp v3 vacm security-to-group "+
+		"security-model "+model+" security-name \""+name+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.model = model
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			if strings.HasPrefix(item, setLineStart+"group ") {
-				confRead.group = strings.Trim(strings.TrimPrefix(item, setLineStart+"group "), "\"")
+			if strings.HasPrefix(item, setLS+"group ") {
+				confRead.group = strings.Trim(strings.TrimPrefix(item, setLS+"group "), "\"")
 			}
 		}
 	}

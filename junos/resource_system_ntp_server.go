@@ -247,11 +247,11 @@ func resourceSystemNtpServerImport(d *schema.ResourceData, m interface{}) ([]*sc
 
 func checkSystemNtpServerExists(address string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration system ntp server "+address+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system ntp server "+address+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -284,26 +284,26 @@ func readSystemNtpServer(address string, m interface{}, jnprSess *NetconfObject)
 	sess := m.(*Session)
 	var confRead ntpServerOptions
 
-	showConfig, err := sess.command("show configuration system ntp server "+address+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system ntp server "+address+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.address = address
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "key "):
 				var err error
 				confRead.key, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "key "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "prefer":
 				confRead.prefer = true
@@ -313,7 +313,7 @@ func readSystemNtpServer(address string, m interface{}, jnprSess *NetconfObject)
 				var err error
 				confRead.version, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "version "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}

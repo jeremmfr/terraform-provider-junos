@@ -290,12 +290,12 @@ func resourceSecurityDynamicAddressFeedServerImport(
 
 func checkSecurityDynamicAddressFeedServersExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security dynamic-address feed-server "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security dynamic-address feed-server "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -349,21 +349,21 @@ func readSecurityDynamicAddressFeedServer(
 	// default -1
 	confRead.holdInterval = -1
 
-	showConfig, err := sess.command("show configuration"+
-		" security dynamic-address feed-server "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security dynamic-address feed-server "+name+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "hostname "):
 				confRead.hostname = strings.Trim(strings.TrimPrefix(itemTrim, "hostname "), "\"")
@@ -389,13 +389,13 @@ func readSecurityDynamicAddressFeedServer(
 					var err error
 					feedName["hold_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrimFeedName, "hold-interval "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrimFeedName, "update-interval "):
 					var err error
 					feedName["update_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrimFeedName, "update-interval "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 				confRead.feedName = append(confRead.feedName, feedName)
@@ -403,13 +403,13 @@ func readSecurityDynamicAddressFeedServer(
 				var err error
 				confRead.holdInterval, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "hold-interval "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "update-interval "):
 				var err error
 				confRead.updateInterval, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "update-interval "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}

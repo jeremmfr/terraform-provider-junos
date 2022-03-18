@@ -116,7 +116,7 @@ func resourceSecurityNatStatic() *schema.Resource {
 									"type": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validation.StringInSlice([]string{inetWord, prefixWord, prefixNameWord}, false),
+										ValidateFunc: validation.StringInSlice([]string{inetW, "prefix", "prefix-name"}, false),
 									},
 									"mapped_port": {
 										Type:         schema.TypeInt,
@@ -383,12 +383,12 @@ func resourceSecurityNatStaticImport(d *schema.ResourceData, m interface{}) ([]*
 
 func checkSecurityNatStaticExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security nat static rule-set "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security nat static rule-set "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -452,9 +452,9 @@ func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				}
 				configSet = append(configSet, setPrefixRule+" match source-port "+vv)
 			}
-			for _, thenV := range rule[thenWord].([]interface{}) {
+			for _, thenV := range rule["then"].([]interface{}) {
 				then := thenV.(map[string]interface{})
-				if then["type"].(string) == inetWord {
+				if then["type"].(string) == inetW {
 					if then["routing_instance"].(string) == "" {
 						return fmt.Errorf("missing routing_instance in rule %s with type = inet", rule["name"].(string))
 					}
@@ -466,9 +466,9 @@ func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *Netco
 					configSet = append(configSet, setPrefixRule+" then static-nat inet routing-instance "+
 						then["routing_instance"].(string))
 				}
-				if then["type"].(string) == prefixWord || then["type"].(string) == prefixNameWord {
+				if then["type"].(string) == "prefix" || then["type"].(string) == "prefix-name" {
 					setPrefixRuleThenStaticNat := setPrefixRule + " then static-nat "
-					if then["type"].(string) == prefixWord {
+					if then["type"].(string) == "prefix" {
 						setPrefixRuleThenStaticNat += "prefix "
 						if then["prefix"].(string) == "" {
 							return fmt.Errorf("missing prefix in rule %s with type = prefix", rule["name"].(string))
@@ -477,7 +477,7 @@ func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *Netco
 							return err
 						}
 					}
-					if then["type"].(string) == prefixNameWord {
+					if then["type"].(string) == "prefix-name" {
 						setPrefixRuleThenStaticNat += "prefix-name "
 						if then["prefix"].(string) == "" {
 							return fmt.Errorf("missing prefix in rule %s with type = prefix-name", rule["name"].(string))
@@ -510,21 +510,21 @@ func readSecurityNatStatic(name string, m interface{}, jnprSess *NetconfObject) 
 	sess := m.(*Session)
 	var confRead natStaticOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security nat static rule-set "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security nat static rule-set "+name+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "from "):
 				fromWords := strings.Split(strings.TrimPrefix(itemTrim, "from "), " ")
@@ -561,14 +561,14 @@ func readSecurityNatStatic(name string, m interface{}, jnprSess *NetconfObject) 
 					ruleOptions["destination_port_to"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 						"rule "+ruleConfig[0]+" match destination-port to "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-port "):
 					var err error
 					ruleOptions["destination_port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 						"rule "+ruleConfig[0]+" match destination-port "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-address "):
 					ruleOptions["source_address"] = append(ruleOptions["source_address"].([]string),
@@ -595,11 +595,11 @@ func readSecurityNatStatic(name string, m interface{}, jnprSess *NetconfObject) 
 					switch {
 					case strings.HasPrefix(itemThen, "prefix ") || strings.HasPrefix(itemThen, "prefix-name "):
 						if strings.HasPrefix(itemThen, "prefix ") {
-							ruleThenOptions["type"] = prefixWord
+							ruleThenOptions["type"] = "prefix"
 							itemThen = strings.TrimPrefix(itemThen, "prefix ")
 						}
 						if strings.HasPrefix(itemThen, "prefix-name ") {
-							ruleThenOptions["type"] = prefixNameWord
+							ruleThenOptions["type"] = "prefix-name"
 							itemThen = strings.TrimPrefix(itemThen, "prefix-name ")
 						}
 						switch {
@@ -609,19 +609,19 @@ func readSecurityNatStatic(name string, m interface{}, jnprSess *NetconfObject) 
 							var err error
 							ruleThenOptions["mapped_port_to"], err = strconv.Atoi(strings.TrimPrefix(itemThen, "mapped-port to "))
 							if err != nil {
-								return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+								return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 							}
 						case strings.HasPrefix(itemThen, "mapped-port "):
 							var err error
 							ruleThenOptions["mapped_port"], err = strconv.Atoi(strings.TrimPrefix(itemThen, "mapped-port "))
 							if err != nil {
-								return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+								return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 							}
 						default:
 							ruleThenOptions["prefix"] = strings.Trim(itemThen, "\"")
 						}
 					case strings.HasPrefix(itemThen, "inet "):
-						ruleThenOptions["type"] = inetWord
+						ruleThenOptions["type"] = inetW
 						ruleThenOptions["routing_instance"] = strings.TrimPrefix(itemThen, "inet routing-instance ")
 					}
 				}

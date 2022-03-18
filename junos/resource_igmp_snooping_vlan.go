@@ -46,7 +46,7 @@ func resourceIgmpSnoopingVlan() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          defaultWord,
+				Default:          defaultW,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"immediate_leave": {
@@ -169,7 +169,7 @@ func resourceIgmpSnoopingVlanCreate(ctx context.Context, d *schema.ResourceData,
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -192,7 +192,7 @@ func resourceIgmpSnoopingVlanCreate(ctx context.Context, d *schema.ResourceData,
 	}
 	if igmpSnoopingVlanExists {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
-		if d.Get("routing_instance").(string) == defaultWord {
+		if d.Get("routing_instance").(string) == defaultW {
 			return append(diagWarns, diag.FromErr(fmt.Errorf("protocols igmp-snooping vlan %v already exists",
 				d.Get("name").(string)))...)
 		}
@@ -222,7 +222,7 @@ func resourceIgmpSnoopingVlanCreate(ctx context.Context, d *schema.ResourceData,
 	if igmpSnoopingVlanExists {
 		d.SetId(d.Get("name").(string) + idSeparator + d.Get("routing_instance").(string))
 	} else {
-		if d.Get("routing_instance").(string) == defaultWord {
+		if d.Get("routing_instance").(string) == defaultW {
 			return append(diagWarns, diag.FromErr(fmt.Errorf("protocols igmp-snooping vlan %v not exists after commit "+
 				"=> check your config", d.Get("name").(string)))...)
 		}
@@ -374,17 +374,17 @@ func checkIgmpSnoopingVlanExists(name, routingInstance string, m interface{}, jn
 	sess := m.(*Session)
 	var showConfig string
 	var err error
-	if routingInstance == defaultWord {
-		showConfig, err = sess.command(
-			"show configuration protocols igmp-snooping vlan "+name+" | display set", jnprSess)
+	if routingInstance == defaultW {
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols igmp-snooping vlan "+name+pipeDisplaySet, jnprSess)
 	} else {
-		showConfig, err = sess.command("show configuration routing-instances "+routingInstance+
-			" protocols igmp-snooping vlan "+name+" | display set", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
+			"protocols igmp-snooping vlan "+name+pipeDisplaySet, jnprSess)
 	}
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -393,12 +393,13 @@ func checkIgmpSnoopingVlanExists(name, routingInstance string, m interface{}, jn
 
 func setIgmpSnoopingVlan(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
-
-	setPrefix := "set protocols igmp-snooping vlan " + d.Get("name").(string) + " "
-	if rI := d.Get("routing_instance").(string); rI != defaultWord {
-		setPrefix = "set routing-instances " + rI + " protocols igmp-snooping vlan " + d.Get("name").(string) + " "
-	}
 	configSet := make([]string, 0)
+
+	setPrefix := setLS
+	if rI := d.Get("routing_instance").(string); rI != defaultW {
+		setPrefix = setRoutingInstances + rI + " "
+	}
+	setPrefix += "protocols igmp-snooping vlan " + d.Get("name").(string) + " "
 
 	configSet = append(configSet, setPrefix)
 	if d.Get("immediate_leave").(bool) {
@@ -471,27 +472,27 @@ func readIgmpSnoopingVlan(name, routingInstance string, m interface{}, jnprSess 
 	var confRead igmpSnoopingVlanOptions
 	var showConfig string
 	var err error
-	if routingInstance == defaultWord {
-		showConfig, err = sess.command(
-			"show configuration protocols igmp-snooping vlan "+name+" | display set relative", jnprSess)
+	if routingInstance == defaultW {
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols igmp-snooping vlan "+name+pipeDisplaySetRelative, jnprSess)
 	} else {
-		showConfig, err = sess.command("show configuration routing-instances "+routingInstance+
-			" protocols igmp-snooping vlan "+name+" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
+			"protocols igmp-snooping vlan "+name+pipeDisplaySetRelative, jnprSess)
 	}
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		confRead.routingInstance = routingInstance
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case itemTrim == "immediate-leave":
 				confRead.immediateLeave = true
@@ -512,7 +513,7 @@ func readIgmpSnoopingVlan(name, routingInstance string, m interface{}, jnprSess 
 					var err error
 					intFace["group_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrimIntface, "group-limit "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case itemTrimIntface == "host-only-interface":
 					intFace["host_only_interface"] = true
@@ -545,7 +546,7 @@ func readIgmpSnoopingVlan(name, routingInstance string, m interface{}, jnprSess 
 				var err error
 				confRead.queryInterval, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "query-interval "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "query-last-member-interval "):
 				confRead.queryLastMemberInterval = strings.TrimPrefix(itemTrim, "query-last-member-interval ")
@@ -555,7 +556,7 @@ func readIgmpSnoopingVlan(name, routingInstance string, m interface{}, jnprSess 
 				var err error
 				confRead.robustCount, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "robust-count "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}
@@ -568,10 +569,10 @@ func delIgmpSnoopingVlan(name, routingInstance string, m interface{}, jnprSess *
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 
-	if routingInstance == defaultWord {
+	if routingInstance == defaultW {
 		configSet = append(configSet, "delete protocols igmp-snooping vlan "+name)
 	} else {
-		configSet = append(configSet, "delete routing-instances "+routingInstance+" protocols igmp-snooping vlan "+name)
+		configSet = append(configSet, delRoutingInstances+routingInstance+" protocols igmp-snooping vlan "+name)
 	}
 
 	return sess.configSet(configSet, jnprSess)

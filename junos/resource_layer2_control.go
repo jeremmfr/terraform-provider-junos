@@ -267,7 +267,7 @@ func resourceLayer2ControlImport(d *schema.ResourceData, m interface{}) ([]*sche
 func setLayer2Control(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
-	setPrefix := setLineStart + "protocols layer2-control "
+	setPrefix := "set protocols layer2-control "
 
 	for _, mBpduBlock := range d.Get("bpdu_block").([]interface{}) {
 		configSet = append(configSet, setPrefix+"bpdu-block")
@@ -321,21 +321,21 @@ func readLayer2Control(m interface{}, jnprSess *NetconfObject) (layer2ControlOpt
 	sess := m.(*Session)
 	var confRead layer2ControlOptions
 
-	showConfig, err := sess.command("show configuration "+
-		"protocols layer2-control | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"protocols layer2-control"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "bpdu-block"):
 				if len(confRead.bpduBlock) == 0 {
@@ -350,7 +350,7 @@ func readLayer2Control(m interface{}, jnprSess *NetconfObject) (layer2ControlOpt
 					confRead.bpduBlock[0]["disable_timeout"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrim, "bpdu-block disable-timeout "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "bpdu-block interface "):
 					itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "bpdu-block interface "), " ")
@@ -402,7 +402,7 @@ func readLayer2Control(m interface{}, jnprSess *NetconfObject) (layer2ControlOpt
 
 func delLayer2Control(m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
-	configSet := []string{deleteWord + " protocols layer2-control"}
+	configSet := []string{"delete protocols layer2-control"}
 
 	return sess.configSet(configSet, jnprSess)
 }

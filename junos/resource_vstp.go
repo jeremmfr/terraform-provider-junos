@@ -36,7 +36,7 @@ func resourceVstp() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          defaultWord,
+				Default:          defaultW,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"bpdu_block_on_edge": {
@@ -100,7 +100,7 @@ func resourceVstpCreate(ctx context.Context, d *schema.ResourceData, m interface
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -144,7 +144,7 @@ func resourceVstpRead(ctx context.Context, d *schema.ResourceData, m interface{}
 
 func resourceVstpReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			mutex.Unlock()
@@ -250,7 +250,7 @@ func resourceVstpImport(d *schema.ResourceData, m interface{}) ([]*schema.Resour
 		return nil, err
 	}
 	defer sess.closeSession(jnprSess)
-	if d.Id() != defaultWord {
+	if d.Id() != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Id(), m, jnprSess)
 		if err != nil {
 			return nil, err
@@ -273,12 +273,12 @@ func resourceVstpImport(d *schema.ResourceData, m interface{}) ([]*schema.Resour
 func setVstp(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
-	setPrefix := setLineStart
-	if d.Get("routing_instance").(string) == defaultWord {
-		setPrefix += "protocols vstp "
-	} else {
-		setPrefix += "routing-instances " + d.Get("routing_instance").(string) + " protocols vstp "
+	setPrefix := setLS
+	if d.Get("routing_instance").(string) != defaultW {
+		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
+	setPrefix += "protocols vstp "
+
 	if d.Get("bpdu_block_on_edge").(bool) {
 		configSet = append(configSet, setPrefix+"bpdu-block-on-edge")
 	}
@@ -315,31 +315,31 @@ func readVstp(routingInstance string, m interface{}, jnprSess *NetconfObject) (v
 	var confRead vstpOptions
 
 	var showConfig string
-	if routingInstance == defaultWord {
+	if routingInstance == defaultW {
 		var err error
-		showConfig, err = sess.command("show configuration "+
-			"protocols vstp | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols vstp"+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
 		var err error
-		showConfig, err = sess.command("show configuration "+
-			"routing-instances "+routingInstance+" protocols vstp | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
+			"protocols vstp"+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	}
 	confRead.routingInstance = routingInstance
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case itemTrim == "bpdu-block-on-edge":
 				confRead.bpduBlockOnEdge = true
@@ -351,7 +351,7 @@ func readVstp(routingInstance string, m interface{}, jnprSess *NetconfObject) (v
 				var err error
 				confRead.priorityHoldTime, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "priority-hold-time "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "system-id "):
 				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "system-id "), " ")
@@ -381,13 +381,12 @@ func readVstp(routingInstance string, m interface{}, jnprSess *NetconfObject) (v
 func delVstp(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	delPrefix := deleteWord + " "
-	if d.Get("routing_instance").(string) == defaultWord {
-		delPrefix += "protocols vstp "
-	} else {
-		delPrefix += "routing-instances " + d.Get("routing_instance").(string) +
-			" protocols vstp "
+	delPrefix := deleteLS
+	if d.Get("routing_instance").(string) != defaultW {
+		delPrefix = delRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
+	delPrefix += "protocols vstp "
+
 	listLinesToDelete := []string{
 		"bpdu-block-on-edge",
 		"disable",

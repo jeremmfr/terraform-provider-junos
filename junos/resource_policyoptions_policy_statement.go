@@ -239,7 +239,7 @@ func schemaPolicyoptionsPolicyStatementThen() map[string]*schema.Schema {
 					"action": {
 						Type:         schema.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice([]string{addWord, deleteWord, setWord}, false),
+						ValidateFunc: validation.StringInSlice([]string{"add", deleteW, setW}, false),
 					},
 					"value": {
 						Type:     schema.TypeString,
@@ -267,7 +267,7 @@ func schemaPolicyoptionsPolicyStatementThen() map[string]*schema.Schema {
 					"action": {
 						Type:         schema.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice([]string{addWord, "subtract", actionNoneWord}, false),
+						ValidateFunc: validation.StringInSlice([]string{"add", "subtract", "none"}, false),
 					},
 					"value": {
 						Type:     schema.TypeInt,
@@ -294,7 +294,7 @@ func schemaPolicyoptionsPolicyStatementThen() map[string]*schema.Schema {
 					"action": {
 						Type:         schema.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice([]string{"add", "subtract", actionNoneWord}, false),
+						ValidateFunc: validation.StringInSlice([]string{"add", "subtract", "none"}, false),
 					},
 					"value": {
 						Type:     schema.TypeInt,
@@ -316,7 +316,7 @@ func schemaPolicyoptionsPolicyStatementThen() map[string]*schema.Schema {
 					"action": {
 						Type:         schema.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice([]string{"add", "subtract", actionNoneWord}, false),
+						ValidateFunc: validation.StringInSlice([]string{"add", "subtract", "none"}, false),
 					},
 					"value": {
 						Type:     schema.TypeInt,
@@ -666,12 +666,12 @@ func resourcePolicyoptionsPolicyStatementImport(d *schema.ResourceData, m interf
 
 func checkPolicyStatementExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" policy-options policy-statement "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"policy-options policy-statement "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -749,21 +749,21 @@ func readPolicyStatement(name string, m interface{}, jnprSess *NetconfObject) (p
 	sess := m.(*Session)
 	var confRead policyStatementOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" policy-options policy-statement "+name+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"policy-options policy-statement "+name+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "term "):
 				itemTermList := strings.Split(strings.TrimPrefix(itemTrim, "term "), " ")
@@ -836,22 +836,22 @@ func readPolicyStatement(name string, m interface{}, jnprSess *NetconfObject) (p
 func readPolicyStatementFwTableExport(policyName string,
 	m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" routing-options forwarding-table export | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"routing-options forwarding-table export"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 	for _, item := range strings.Split(showConfig, "\n") {
-		if strings.Contains(item, "<configuration-output>") {
+		if strings.Contains(item, xmlStartTagConfigOut) {
 			continue
 		}
-		if strings.Contains(item, "</configuration-output>") {
+		if strings.Contains(item, xmlEndTagConfigOut) {
 			break
 		}
-		itemTrim := strings.TrimPrefix(item, setLineStart)
+		itemTrim := strings.TrimPrefix(item, setLS)
 		if itemTrim == policyName || itemTrim == policyName+" " {
 			return true, nil
 		}
@@ -996,7 +996,7 @@ func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) (
 	}
 	for _, v := range opts["local_preference"].([]interface{}) {
 		localPreference := v.(map[string]interface{})
-		if localPreference["action"] == actionNoneWord {
+		if localPreference["action"] == "none" {
 			configSet = append(configSet, setPrefixThen+
 				"local-preference "+strconv.Itoa(localPreference["value"].(int)))
 		} else {
@@ -1013,7 +1013,7 @@ func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) (
 	}
 	for _, v := range opts["metric"].([]interface{}) {
 		metric := v.(map[string]interface{})
-		if metric["action"] == actionNoneWord {
+		if metric["action"] == "none" {
 			configSet = append(configSet, setPrefixThen+
 				"metric "+strconv.Itoa(metric["value"].(int)))
 		} else {
@@ -1027,7 +1027,7 @@ func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) (
 	}
 	for _, v := range opts["preference"].([]interface{}) {
 		preference := v.(map[string]interface{})
-		if preference["action"] == actionNoneWord {
+		if preference["action"] == "none" {
 			configSet = append(configSet, setPrefixThen+
 				"preference "+strconv.Itoa(preference["value"].(int)))
 		} else {
@@ -1112,7 +1112,7 @@ func readPolicyStatementOptsFrom(item string, fromMap map[string]interface{}) er
 		var err error
 		fromMap["local_preference"], err = strconv.Atoi(strings.TrimPrefix(item, "local-preference "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+			return fmt.Errorf(failedConvAtoiError, item, err)
 		}
 	case strings.HasPrefix(item, "instance "):
 		fromMap["routing_instance"] = strings.TrimPrefix(item, "instance ")
@@ -1122,7 +1122,7 @@ func readPolicyStatementOptsFrom(item string, fromMap map[string]interface{}) er
 		var err error
 		fromMap["metric"], err = strconv.Atoi(strings.TrimPrefix(item, "metric "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+			return fmt.Errorf(failedConvAtoiError, item, err)
 		}
 	case strings.HasPrefix(item, "neighbor "):
 		fromMap["neighbor"] = append(fromMap["neighbor"].([]string), strings.TrimPrefix(item, "neighbor "))
@@ -1136,7 +1136,7 @@ func readPolicyStatementOptsFrom(item string, fromMap map[string]interface{}) er
 		var err error
 		fromMap["preference"], err = strconv.Atoi(strings.TrimPrefix(item, "preference "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+			return fmt.Errorf(failedConvAtoiError, item, err)
 		}
 	case strings.HasPrefix(item, "prefix-list "):
 		fromMap["prefix_list"] = append(fromMap["prefix_list"].([]string), strings.TrimPrefix(item, "prefix-list "))
@@ -1190,16 +1190,16 @@ func readPolicyStatementOptsThen(item string, thenMap map[string]interface{}) er
 		itemSplit := strings.Split(item, " ")
 		var err error
 		if len(itemSplit) == 2 {
-			localPreferenceMap["action"] = actionNoneWord
+			localPreferenceMap["action"] = "none"
 			localPreferenceMap["value"], err = strconv.Atoi(itemSplit[1])
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+				return fmt.Errorf(failedConvAtoiError, item, err)
 			}
 		} else {
 			localPreferenceMap["action"] = itemSplit[1]
 			localPreferenceMap["value"], err = strconv.Atoi(itemSplit[2])
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+				return fmt.Errorf(failedConvAtoiError, item, err)
 			}
 		}
 
@@ -1216,16 +1216,16 @@ func readPolicyStatementOptsThen(item string, thenMap map[string]interface{}) er
 		itemSplit := strings.Split(item, " ")
 		var err error
 		if len(itemSplit) == 2 {
-			metricMap["action"] = actionNoneWord
+			metricMap["action"] = "none"
 			metricMap["value"], err = strconv.Atoi(itemSplit[1])
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+				return fmt.Errorf(failedConvAtoiError, item, err)
 			}
 		} else {
 			metricMap["action"] = itemSplit[1]
 			metricMap["value"], err = strconv.Atoi(itemSplit[2])
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+				return fmt.Errorf(failedConvAtoiError, item, err)
 			}
 		}
 		thenMap["metric"] = append(thenMap["metric"].([]map[string]interface{}), metricMap)
@@ -1239,16 +1239,16 @@ func readPolicyStatementOptsThen(item string, thenMap map[string]interface{}) er
 		itemSplit := strings.Split(item, " ")
 		var err error
 		if len(itemSplit) == 2 {
-			preferenceMap["action"] = actionNoneWord
+			preferenceMap["action"] = "none"
 			preferenceMap["value"], err = strconv.Atoi(itemSplit[1])
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+				return fmt.Errorf(failedConvAtoiError, item, err)
 			}
 		} else {
 			preferenceMap["action"] = itemSplit[1]
 			preferenceMap["value"], err = strconv.Atoi(itemSplit[2])
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+				return fmt.Errorf(failedConvAtoiError, item, err)
 			}
 		}
 		thenMap["preference"] = append(thenMap["preference"].([]map[string]interface{}), preferenceMap)
@@ -1273,7 +1273,7 @@ func readPolicyStatementOptsTo(item string, toMap map[string]interface{}) error 
 		var err error
 		toMap["local_preference"], err = strconv.Atoi(strings.TrimPrefix(item, "local-preference "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+			return fmt.Errorf(failedConvAtoiError, item, err)
 		}
 	case strings.HasPrefix(item, "instance "):
 		toMap["routing_instance"] = strings.TrimPrefix(item, "instance ")
@@ -1283,7 +1283,7 @@ func readPolicyStatementOptsTo(item string, toMap map[string]interface{}) error 
 		var err error
 		toMap["metric"], err = strconv.Atoi(strings.TrimPrefix(item, "metric "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+			return fmt.Errorf(failedConvAtoiError, item, err)
 		}
 	case strings.HasPrefix(item, "neighbor "):
 		toMap["neighbor"] = append(toMap["neighbor"].([]string), strings.TrimPrefix(item, "neighbor "))
@@ -1297,7 +1297,7 @@ func readPolicyStatementOptsTo(item string, toMap map[string]interface{}) error 
 		var err error
 		toMap["preference"], err = strconv.Atoi(strings.TrimPrefix(item, "preference "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", item, err)
+			return fmt.Errorf(failedConvAtoiError, item, err)
 		}
 	case strings.HasPrefix(item, "protocol "):
 		toMap["protocol"] = append(toMap["protocol"].([]string), strings.TrimPrefix(item, "protocol "))

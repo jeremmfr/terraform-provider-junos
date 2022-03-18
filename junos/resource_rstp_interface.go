@@ -52,7 +52,7 @@ func resourceRstpInterface() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          defaultWord,
+				Default:          defaultW,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"access_trunk": {
@@ -112,7 +112,7 @@ func resourceRstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -135,7 +135,7 @@ func resourceRstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 	}
 	if rstpInterfaceExists {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
-		if d.Get("routing_instance").(string) == defaultWord {
+		if d.Get("routing_instance").(string) == defaultW {
 			return append(diagWarns, diag.FromErr(fmt.Errorf("protocols rstp interface %v already exists",
 				d.Get("name").(string)))...)
 		}
@@ -165,7 +165,7 @@ func resourceRstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 	if rstpInterfaceExists {
 		d.SetId(d.Get("name").(string) + idSeparator + d.Get("routing_instance").(string))
 	} else {
-		if d.Get("routing_instance").(string) == defaultWord {
+		if d.Get("routing_instance").(string) == defaultW {
 			return append(diagWarns, diag.FromErr(fmt.Errorf("protocols rstp interface %v not exists after commit "+
 				"=> check your config", d.Get("name").(string)))...)
 		}
@@ -317,17 +317,17 @@ func checkRstpInterfaceExists(name, routingInstance string, m interface{}, jnprS
 	sess := m.(*Session)
 	var showConfig string
 	var err error
-	if routingInstance == defaultWord {
-		showConfig, err = sess.command(
-			"show configuration protocols rstp interface "+name+" | display set", jnprSess)
+	if routingInstance == defaultW {
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols rstp interface "+name+pipeDisplaySet, jnprSess)
 	} else {
-		showConfig, err = sess.command("show configuration routing-instances "+routingInstance+
-			" protocols rstp interface "+name+" | display set", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
+			"protocols rstp interface "+name+pipeDisplaySet, jnprSess)
 	}
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -336,12 +336,13 @@ func checkRstpInterfaceExists(name, routingInstance string, m interface{}, jnprS
 
 func setRstpInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
-
-	setPrefix := "set protocols rstp interface " + d.Get("name").(string) + " "
-	if rI := d.Get("routing_instance").(string); rI != defaultWord {
-		setPrefix = "set routing-instances " + rI + " protocols rstp interface " + d.Get("name").(string) + " "
-	}
 	configSet := make([]string, 0)
+
+	setPrefix := setLS
+	if rI := d.Get("routing_instance").(string); rI != defaultW {
+		setPrefix = setRoutingInstances + rI + " "
+	}
+	setPrefix += "protocols rstp interface " + d.Get("name").(string) + " "
 
 	configSet = append(configSet, setPrefix)
 	if d.Get("access_trunk").(bool) {
@@ -379,27 +380,27 @@ func readRstpInterface(name, routingInstance string, m interface{}, jnprSess *Ne
 	confRead.priority = -1 // default -1
 	var showConfig string
 	var err error
-	if routingInstance == defaultWord {
-		showConfig, err = sess.command(
-			"show configuration protocols rstp interface "+name+" | display set relative", jnprSess)
+	if routingInstance == defaultW {
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols rstp interface "+name+pipeDisplaySetRelative, jnprSess)
 	} else {
-		showConfig, err = sess.command("show configuration routing-instances "+routingInstance+
-			" protocols rstp interface "+name+" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
+			"protocols rstp interface "+name+pipeDisplaySetRelative, jnprSess)
 	}
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		confRead.routingInstance = routingInstance
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case itemTrim == "access-trunk":
 				confRead.accessTrunk = true
@@ -411,7 +412,7 @@ func readRstpInterface(name, routingInstance string, m interface{}, jnprSess *Ne
 				var err error
 				confRead.cost, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "cost "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "edge":
 				confRead.edge = true
@@ -423,7 +424,7 @@ func readRstpInterface(name, routingInstance string, m interface{}, jnprSess *Ne
 				var err error
 				confRead.priority, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "priority "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}
@@ -436,10 +437,10 @@ func delRstpInterface(name, routingInstance string, m interface{}, jnprSess *Net
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 
-	if routingInstance == defaultWord {
+	if routingInstance == defaultW {
 		configSet = append(configSet, "delete protocols rstp interface "+name)
 	} else {
-		configSet = append(configSet, "delete routing-instances "+routingInstance+" protocols rstp interface "+name)
+		configSet = append(configSet, delRoutingInstances+routingInstance+" protocols rstp interface "+name)
 	}
 
 	return sess.configSet(configSet, jnprSess)

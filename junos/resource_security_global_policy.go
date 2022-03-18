@@ -62,8 +62,8 @@ func resourceSecurityGlobalPolicy() *schema.Resource {
 						"then": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Default:      permitWord,
-							ValidateFunc: validation.StringInSlice([]string{permitWord, "reject", "deny"}, false),
+							Default:      permitW,
+							ValidateFunc: validation.StringInSlice([]string{permitW, "reject", "deny"}, false),
 						},
 						"count": {
 							Type:     schema.TypeBool,
@@ -413,7 +413,7 @@ func setSecurityGlobalPolicy(d *schema.ResourceData, m interface{}, jnprSess *Ne
 			if policy["permit_application_services"].([]interface{})[0] == nil {
 				return fmt.Errorf("permit_application_services block is empty")
 			}
-			if policy["then"].(string) != permitWord {
+			if policy["then"].(string) != permitW {
 				return fmt.Errorf("conflict policy then %v and policy permit_application_services",
 					policy["then"].(string))
 			}
@@ -433,20 +433,20 @@ func readSecurityGlobalPolicy(m interface{}, jnprSess *NetconfObject) (globalPol
 	sess := m.(*Session)
 	var confRead globalPolicyOptions
 
-	showConfig, err := sess.command("show configuration security policies global | display set relative ", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"security policies global"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 	policyList := make([]map[string]interface{}, 0)
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			if strings.HasPrefix(itemTrim, "policy ") {
 				policyLineCut := strings.Split(itemTrim, " ")
 				policy := genMapGlobalPolicyWithName(policyLineCut[1])
@@ -480,7 +480,7 @@ func readSecurityGlobalPolicy(m interface{}, jnprSess *NetconfObject) (globalPol
 						itemTrimPolicy, "match source-end-user-profile "), "\"")
 				case strings.HasPrefix(itemTrimPolicy, "then "):
 					switch {
-					case strings.HasSuffix(itemTrimPolicy, permitWord),
+					case strings.HasSuffix(itemTrimPolicy, permitW),
 						strings.HasSuffix(itemTrimPolicy, "deny"),
 						strings.HasSuffix(itemTrimPolicy, "reject"):
 						policy["then"] = strings.TrimPrefix(itemTrimPolicy, "then ")
@@ -491,7 +491,7 @@ func readSecurityGlobalPolicy(m interface{}, jnprSess *NetconfObject) (globalPol
 					case itemTrimPolicy == "then log session-close":
 						policy["log_close"] = true
 					case strings.HasPrefix(itemTrimPolicy, "then permit application-services"):
-						policy["then"] = permitWord
+						policy["then"] = permitW
 						if len(policy["permit_application_services"].([]map[string]interface{})) == 0 {
 							policy["permit_application_services"] = append(
 								policy["permit_application_services"].([]map[string]interface{}),

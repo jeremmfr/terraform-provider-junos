@@ -461,11 +461,11 @@ func resourceIkeGatewayImport(d *schema.ResourceData, m interface{}) ([]*schema.
 
 func checkIkeGatewayExists(ikeGateway string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration security ike gateway "+ikeGateway+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"security ike gateway "+ikeGateway+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -604,21 +604,21 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 	sess := m.(*Session)
 	var confRead ikeGatewayOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security ike gateway "+ikeGateway+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security ike gateway "+ikeGateway+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = ikeGateway
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "external-interface "):
 				confRead.externalInterface = strings.TrimPrefix(itemTrim, "external-interface ")
@@ -644,7 +644,7 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 					confRead.dynamicRemote[0]["connections_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 						"dynamic connections-limit "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "dynamic distinguished-name"):
 					if len(confRead.dynamicRemote[0]["distinguished_name"].([]map[string]interface{})) == 0 {
@@ -710,7 +710,7 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 					confRead.deadPeerDetection[0]["interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 						"dead-peer-detection interval "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasSuffix(itemTrim, " always-send"):
 					confRead.deadPeerDetection[0]["send_mode"] = "always-send"
@@ -722,7 +722,7 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 					confRead.deadPeerDetection[0]["threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
 						"dead-peer-detection threshold "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case itemTrim == "general-ikeid":

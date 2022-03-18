@@ -61,7 +61,7 @@ func resourceStaticRoute() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          defaultWord,
+				Default:          defaultW,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"active": {
@@ -223,7 +223,7 @@ func resourceStaticRouteCreate(ctx context.Context, d *schema.ResourceData, m in
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -416,39 +416,37 @@ func checkStaticRouteExists(destination string, instance string, m interface{}, 
 	sess := m.(*Session)
 	var showConfig string
 	var err error
-	if instance == defaultWord {
+	if instance == defaultW {
 		if !strings.Contains(destination, ":") {
-			showConfig, err = sess.command("show configuration"+
-				" routing-options static route "+destination+" | display set", jnprSess)
+			showConfig, err = sess.command(cmdShowConfig+
+				"routing-options static route "+destination+pipeDisplaySet, jnprSess)
 			if err != nil {
 				return false, err
 			}
 		} else {
-			showConfig, err = sess.command("show configuration"+
-				" routing-options rib inet6.0 static route "+destination+" | display set", jnprSess)
+			showConfig, err = sess.command(cmdShowConfig+
+				"routing-options rib inet6.0 static route "+destination+pipeDisplaySet, jnprSess)
 			if err != nil {
 				return false, err
 			}
 		}
 	} else {
 		if !strings.Contains(destination, ":") {
-			showConfig, err = sess.command("show configuration"+
-				" routing-instances "+instance+
-				" routing-options static route "+destination+" | display set", jnprSess)
+			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
+				"routing-options static route "+destination+pipeDisplaySet, jnprSess)
 			if err != nil {
 				return false, err
 			}
 		} else {
-			showConfig, err = sess.command("show configuration"+
-				" routing-instances "+instance+
-				" routing-options rib "+instance+".inet6.0 static route "+destination+" | display set", jnprSess)
+			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
+				"routing-options rib "+instance+".inet6.0 static route "+destination+pipeDisplaySet, jnprSess)
 			if err != nil {
 				return false, err
 			}
 		}
 	}
 
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -460,7 +458,7 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	configSet := make([]string, 0)
 
 	var setPrefix string
-	if d.Get("routing_instance").(string) == defaultWord {
+	if d.Get("routing_instance").(string) == defaultW {
 		if !strings.Contains(d.Get("destination").(string), ":") {
 			setPrefix = "set routing-options static route " + d.Get("destination").(string)
 		} else {
@@ -468,10 +466,10 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 		}
 	} else {
 		if !strings.Contains(d.Get("destination").(string), ":") {
-			setPrefix = "set routing-instances " + d.Get("routing_instance").(string) +
+			setPrefix = setRoutingInstances + d.Get("routing_instance").(string) +
 				" routing-options static route " + d.Get("destination").(string)
 		} else {
-			setPrefix = "set routing-instances " + d.Get("routing_instance").(string) +
+			setPrefix = setRoutingInstances + d.Get("routing_instance").(string) +
 				" routing-options rib " + d.Get("routing_instance").(string) + ".inet6.0 " +
 				"static route " + d.Get("destination").(string)
 		}
@@ -581,40 +579,38 @@ func readStaticRoute(destination string, instance string, m interface{},
 	var showConfig string
 	var err error
 
-	if instance == defaultWord {
+	if instance == defaultW {
 		if !strings.Contains(destination, ":") {
-			showConfig, err = sess.command("show configuration"+
-				" routing-options static route "+destination+" | display set relative", jnprSess)
+			showConfig, err = sess.command(cmdShowConfig+
+				"routing-options static route "+destination+pipeDisplaySetRelative, jnprSess)
 		} else {
-			showConfig, err = sess.command("show configuration"+
-				" routing-options rib inet6.0 static route "+destination+" | display set relative", jnprSess)
+			showConfig, err = sess.command(cmdShowConfig+
+				"routing-options rib inet6.0 static route "+destination+pipeDisplaySetRelative, jnprSess)
 		}
 	} else {
 		if !strings.Contains(destination, ":") {
-			showConfig, err = sess.command("show configuration"+
-				" routing-instances "+instance+
-				" routing-options static route "+destination+" | display set relative", jnprSess)
+			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
+				"routing-options static route "+destination+pipeDisplaySetRelative, jnprSess)
 		} else {
-			showConfig, err = sess.command("show configuration"+
-				" routing-instances "+instance+
-				" routing-options rib "+instance+".inet6.0 static route "+destination+" | display set relative", jnprSess)
+			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
+				"routing-options rib "+instance+".inet6.0 static route "+destination+pipeDisplaySetRelative, jnprSess)
 		}
 	}
 	if err != nil {
 		return confRead, err
 	}
 
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.destination = destination
 		confRead.routingInstance = instance
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case itemTrim == "active":
 				confRead.active = true
@@ -622,7 +618,7 @@ func readStaticRoute(destination string, instance string, m interface{},
 				itemTrimSplit := strings.Split(itemTrim, " ")
 				confRead.asPathAggregatorAsNumber = itemTrimSplit[2]
 				confRead.asPathAggregatorAddress = itemTrimSplit[3]
-			case itemTrim == asPathAtomicAggregate:
+			case itemTrim == "as-path atomic-aggregate":
 				confRead.asPathAtomicAggregate = true
 			case strings.HasPrefix(itemTrim, "as-path origin "):
 				confRead.asPathOrigin = strings.TrimPrefix(itemTrim, "as-path origin ")
@@ -639,18 +635,18 @@ func readStaticRoute(destination string, instance string, m interface{},
 			case strings.HasPrefix(itemTrim, "metric "):
 				confRead.metric, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "metric "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "next-hop "):
 				confRead.nextHop = append(confRead.nextHop, strings.TrimPrefix(itemTrim, "next-hop "))
 			case strings.HasPrefix(itemTrim, "next-table "):
 				confRead.nextTable = strings.TrimPrefix(itemTrim, "next-table ")
-			case itemTrim == passiveW:
+			case itemTrim == "passive":
 				confRead.passive = true
 			case strings.HasPrefix(itemTrim, "preference "):
 				confRead.preference, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "preference "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "qualified-next-hop "):
 				nextHop := strings.TrimPrefix(itemTrim, "qualified-next-hop ")
@@ -670,13 +666,13 @@ func readStaticRoute(destination string, instance string, m interface{},
 					qualifiedNextHopOptions["metric"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimQnh, "metric "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimQnh, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimQnh, err)
 					}
 				case strings.HasPrefix(itemTrimQnh, "preference "):
 					qualifiedNextHopOptions["preference"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimQnh, "preference "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimQnh, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimQnh, err)
 					}
 				}
 				confRead.qualifiedNextHop = append(confRead.qualifiedNextHop, qualifiedNextHopOptions)
@@ -706,19 +702,17 @@ func readStaticRoute(destination string, instance string, m interface{},
 func delStaticRoute(destination string, instance string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	if instance == defaultWord {
-		if !strings.Contains(destination, ":") {
-			configSet = append(configSet, "delete routing-options static route "+destination)
-		} else {
-			configSet = append(configSet, "delete routing-options rib inet6.0 static route "+destination)
-		}
-	} else {
-		if !strings.Contains(destination, ":") {
-			configSet = append(configSet, "delete routing-instances "+instance+" routing-options static route "+destination)
-		} else {
-			configSet = append(configSet, "delete routing-instances "+instance+
-				" routing-options rib "+instance+".inet6.0 static route "+destination)
-		}
+	switch {
+	case instance == defaultW && !strings.Contains(destination, ":"):
+		configSet = append(configSet, "delete routing-options static route "+destination)
+	case instance == defaultW && strings.Contains(destination, ":"):
+		configSet = append(configSet, "delete routing-options rib inet6.0 static route "+destination)
+	case instance != defaultW && !strings.Contains(destination, ":"):
+		configSet = append(configSet, delRoutingInstances+instance+" "+
+			"routing-options static route "+destination)
+	case instance != defaultW && strings.Contains(destination, ":"):
+		configSet = append(configSet, delRoutingInstances+instance+" "+
+			"routing-options rib "+instance+".inet6.0 static route "+destination)
 	}
 
 	return sess.configSet(configSet, jnprSess)

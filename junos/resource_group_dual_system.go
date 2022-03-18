@@ -407,11 +407,11 @@ func resourceGroupDualSystemImport(d *schema.ResourceData, m interface{}) ([]*sc
 
 func checkGroupDualSystemExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration groups "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"groups "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -535,20 +535,20 @@ func readGroupDualSystem(group string, m interface{}, jnprSess *NetconfObject) (
 	sess := m.(*Session)
 	var confRead groupDualSystemOptions
 
-	showConfig, err := sess.command("show configuration groups "+group+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"groups "+group+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = group
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "interfaces fxp0 "):
 				if len(confRead.interfaceFxp0) == 0 {
@@ -661,17 +661,17 @@ func readGroupDualSystem(group string, m interface{}, jnprSess *NetconfObject) (
 			}
 		}
 	}
-	showConfigApplyGroups, err := sess.command("show configuration apply-groups | display set relative", jnprSess)
+	showConfigApplyGroups, err := sess.command(cmdShowConfig+"apply-groups"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfigApplyGroups != emptyWord {
+	if showConfigApplyGroups != emptyW {
 		confRead.name = group
 		for _, item := range strings.Split(showConfigApplyGroups, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
 			switch {

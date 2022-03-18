@@ -27,6 +27,9 @@ const (
 	rpcClose           = "<close-session/>"
 
 	rpcGetInterfaceInformationTerse = `<get-interface-information><terse/></get-interface-information>`
+
+	xmlStartTagConfigOut = "<configuration-output>"
+	xmlEndTagConfigOut   = "</configuration-output>"
 )
 
 // NetconfObject : store Junos device info and session.
@@ -202,7 +205,7 @@ func (j *NetconfObject) netconfCommand(cmd string) (string, error) {
 		}
 	}
 	if reply.Data == "" || strings.Count(reply.Data, "") <= 2 {
-		return emptyWord, errors.New("no output available - please check the syntax of your command")
+		return emptyW, errors.New("no output available - please check the syntax of your command")
 	}
 	var output commandXMLConfig
 	if err := xml.Unmarshal([]byte(reply.Data), &output); err != nil {

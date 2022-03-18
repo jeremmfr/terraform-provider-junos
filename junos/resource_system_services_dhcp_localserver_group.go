@@ -62,7 +62,7 @@ func resourceSystemServicesDhcpLocalServerGroup() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          defaultWord,
+				Default:          defaultW,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"version": {
@@ -750,7 +750,7 @@ func resourceSystemServicesDhcpLocalServerGroupCreate(ctx context.Context,
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if d.Get("routing_instance").(string) != defaultWord {
+	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -980,26 +980,23 @@ func checkSystemServicesDhcpLocalServerGroupExists(name, instance, version strin
 	sess := m.(*Session)
 	var showConfig string
 	var err error
-	showCmd := "show configuration system services dhcp-local-server group " + name
-	if instance == defaultWord {
-		if version == "v6" {
-			showCmd = "show configuration system services dhcp-local-server dhcpv6 group " + name
-		}
-	} else {
-		if version == "v6" {
-			showCmd = "show configuration routing-instances " + instance +
-				" system services dhcp-local-server dhcpv6 group " + name
-		} else {
-			showCmd = "show configuration routing-instances " + instance +
-				" system services dhcp-local-server group " + name
-		}
+	showCmd := cmdShowConfig
+	if instance != defaultW {
+		showCmd += routingInstancesWS + instance + " "
 	}
-	showConfig, err = sess.command(showCmd+" | display set", jnprSess)
+	showCmd += "system services dhcp-local-server "
+	if version == "v6" {
+		showCmd += "dhcpv6 group " + name
+	} else {
+		showCmd += "group " + name
+	}
+
+	showConfig, err = sess.command(showCmd+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
 
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -1010,19 +1007,14 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, m interface{}
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 
-	setPrefix := "set system services dhcp-local-server group " + d.Get("name").(string) + " "
-	if d.Get("routing_instance").(string) == defaultWord {
-		if d.Get("version").(string) == "v6" {
-			setPrefix = "set system services dhcp-local-server dhcpv6 group " + d.Get("name").(string) + " "
-		}
+	setPrefix := setLS
+	if d.Get("routing_instance").(string) != defaultW {
+		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
+	}
+	if d.Get("version").(string) == "v6" {
+		setPrefix += "system services dhcp-local-server dhcpv6 group " + d.Get("name").(string) + " "
 	} else {
-		if d.Get("version").(string) == "v6" {
-			setPrefix = "set routing-instances " + d.Get("routing_instance").(string) +
-				" system services dhcp-local-server dhcpv6 group " + d.Get("name").(string) + " "
-		} else {
-			setPrefix = "set routing-instances " + d.Get("routing_instance").(string) +
-				" system services dhcp-local-server group " + d.Get("name").(string) + " "
-		}
+		setPrefix += "system services dhcp-local-server group " + d.Get("name").(string) + " "
 	}
 
 	if v := d.Get("access_profile").(string); v != "" {
@@ -1176,7 +1168,7 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, m interface{}
 			configSet = append(configSet, setPrefixLDMBfd+"multiplier "+strconv.Itoa(v))
 		}
 		if liveDetectMethBfd["no_adaptation"].(bool) {
-			configSet = append(configSet, setPrefixLDMBfd+noAdaptation)
+			configSet = append(configSet, setPrefixLDMBfd+"no-adaptation")
 		}
 		if v := liveDetectMethBfd["session_mode"].(string); v != "" {
 			configSet = append(configSet, setPrefixLDMBfd+"session-mode "+v)
@@ -1509,38 +1501,34 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 	var confRead systemServicesDhcpLocalServerGroupOptions
 	var showConfig string
 	var err error
-
-	showCmd := "show configuration system services dhcp-local-server group " + name
-	if instance == defaultWord {
-		if version == "v6" {
-			showCmd = "show configuration system services dhcp-local-server dhcpv6 group " + name
-		}
-	} else {
-		if version == "v6" {
-			showCmd = "show configuration routing-instances " + instance +
-				" system services dhcp-local-server dhcpv6 group " + name
-		} else {
-			showCmd = "show configuration routing-instances " + instance +
-				" system services dhcp-local-server group " + name
-		}
+	showCmd := cmdShowConfig
+	if instance != defaultW {
+		showCmd += routingInstancesWS + instance + " "
 	}
-	showConfig, err = sess.command(showCmd+" | display set relative", jnprSess)
+	showCmd += "system services dhcp-local-server "
+	if version == "v6" {
+		showCmd += "dhcpv6 group " + name
+	} else {
+		showCmd += "group " + name
+	}
+
+	showConfig, err = sess.command(showCmd+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
 
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		confRead.routingInstance = instance
 		confRead.version = version
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "access-profile "):
 				confRead.accessProfile = strings.Trim(strings.TrimPrefix(itemTrim, "access-profile "), "\"")
@@ -1665,7 +1653,7 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 					confRead.leaseTimeValidation[0]["lease_time_threshold"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrim, "lease-time-validation lease-time-threshold "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "lease-time-validation violation-action "):
 					confRead.leaseTimeValidation[0]["violation_action"] = strings.TrimPrefix(
@@ -1706,7 +1694,7 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 				case strings.HasPrefix(itemTrimLiveDetMethBfd, "multiplier "):
 					confRead.livenessDetectionMethodBfd[0]["multiplier"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrimLiveDetMethBfd, "multiplier "))
-				case itemTrimLiveDetMethBfd == noAdaptation:
+				case itemTrimLiveDetMethBfd == "no-adaptation":
 					confRead.livenessDetectionMethodBfd[0]["no_adaptation"] = true
 				case strings.HasPrefix(itemTrimLiveDetMethBfd, "session-mode "):
 					confRead.livenessDetectionMethodBfd[0]["session_mode"] = strings.TrimPrefix(
@@ -1721,7 +1709,7 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 					confRead.livenessDetectionMethodBfd[0]["version"] = strings.TrimPrefix(itemTrimLiveDetMethBfd, "version ")
 				}
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "liveness-detection method layer2-liveness-detection "):
 				if len(confRead.livenessDetectionMethodLayer2) == 0 {
@@ -1740,7 +1728,7 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 						itemTrim, "liveness-detection method layer2-liveness-detection transmit-interval "))
 				}
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "overrides "):
 				if version == "v4" {
@@ -1796,7 +1784,7 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 						confRead.reconfigure[0]["trigger_radius_disconnect"] = true
 					}
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case itemTrim == "remote-id-mismatch disconnect":
@@ -1814,14 +1802,14 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m in
 				confRead.shortCycleProtectionLockoutMaxTime, err = strconv.Atoi(strings.TrimPrefix(
 					itemTrim, "short-cycle-protection lockout-max-time "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "short-cycle-protection lockout-min-time "):
 				var err error
 				confRead.shortCycleProtectionLockoutMinTime, err = strconv.Atoi(strings.TrimPrefix(
 					itemTrim, "short-cycle-protection lockout-min-time "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}
@@ -1893,7 +1881,7 @@ func readSystemServicesDhcpLocalServerGroupInterface(itemTrim, version string, i
 		interFace["upto"] = strings.TrimPrefix(itemTrim, "upto ")
 	}
 	if err != nil {
-		return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 	}
 
 	return nil
@@ -1986,7 +1974,7 @@ func readSystemServicesDhcpLocalServerGroupOverridesV4(itemTrim string, override
 		overrides["protocol_attributes"] = strings.Trim(strings.TrimPrefix(itemTrim, "protocol-attributes "), "\"")
 	}
 	if err != nil {
-		return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 	}
 
 	return nil
@@ -2046,7 +2034,7 @@ func readSystemServicesDhcpLocalServerGroupOverridesV6(itemTrim string, override
 		overrides["top_level_status_code"] = true
 	}
 	if err != nil {
-		return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+		return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 	}
 
 	return nil
@@ -2056,20 +2044,17 @@ func delSystemServicesDhcpLocalServerGroup(
 	name, instance, version string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	if instance == defaultWord {
-		if version == "v6" {
-			configSet = append(configSet, "delete system services dhcp-local-server dhcpv6 group "+name)
-		} else {
-			configSet = append(configSet, "delete system services dhcp-local-server group "+name)
-		}
-	} else {
-		if version == "v6" {
-			configSet = append(configSet, "delete routing-instances "+instance+
-				" system services dhcp-local-server dhcpv6 group "+name)
-		} else {
-			configSet = append(configSet, "delete routing-instances "+instance+
-				" system services dhcp-local-server group "+name)
-		}
+	switch {
+	case instance == defaultW && version == "v6":
+		configSet = append(configSet, "delete system services dhcp-local-server dhcpv6 group "+name)
+	case instance == defaultW && version == "v4":
+		configSet = append(configSet, "delete system services dhcp-local-server group "+name)
+	case instance != defaultW && version == "v6":
+		configSet = append(configSet, delRoutingInstances+instance+" "+
+			"system services dhcp-local-server dhcpv6 group "+name)
+	case instance != defaultW && version == "v4":
+		configSet = append(configSet, delRoutingInstances+instance+" "+
+			"system services dhcp-local-server group "+name)
 	}
 
 	return sess.configSet(configSet, jnprSess)

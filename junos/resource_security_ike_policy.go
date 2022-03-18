@@ -271,11 +271,11 @@ func resourceIkePolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.R
 
 func checkIkePolicyExists(ikePolicy string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration security ike policy "+ikePolicy+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"security ike policy "+ikePolicy+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -313,21 +313,21 @@ func readIkePolicy(ikePolicy string, m interface{}, jnprSess *NetconfObject) (ik
 	sess := m.(*Session)
 	var confRead ikePolicyOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security ike policy "+ikePolicy+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security ike policy "+ikePolicy+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = ikePolicy
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "mode "):
 				confRead.mode = strings.TrimPrefix(itemTrim, "mode ")

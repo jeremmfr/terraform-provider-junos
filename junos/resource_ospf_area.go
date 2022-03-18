@@ -40,7 +40,7 @@ func resourceOspfArea() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          defaultWord,
+				Default:          defaultW,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"version": {
@@ -541,20 +541,20 @@ func checkOspfAreaExists(idArea, version, routingInstance string,
 	if version == "v3" {
 		ospfVersion = ospfV3
 	}
-	if routingInstance == defaultWord {
-		showConfig, err = sess.command("show configuration"+
-			" protocols "+ospfVersion+" area "+idArea+" | display set", jnprSess)
+	if routingInstance == defaultW {
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols "+ospfVersion+" area "+idArea+pipeDisplaySet, jnprSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
-		showConfig, err = sess.command("show configuration"+
-			" routing-instances "+routingInstance+" protocols "+ospfVersion+" area "+idArea+" | display set", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
+			"protocols "+ospfVersion+" area "+idArea+pipeDisplaySet, jnprSess)
 		if err != nil {
 			return false, err
 		}
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -564,17 +564,16 @@ func checkOspfAreaExists(idArea, version, routingInstance string,
 func setOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
-	setPrefix := setLineStart
+	setPrefix := setLS
+	if d.Get("routing_instance").(string) != defaultW {
+		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
+	}
 	ospfVersion := ospfV2
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = ospfV3
 	}
-	if d.Get("routing_instance").(string) == defaultWord {
-		setPrefix += "protocols " + ospfVersion + " area " + d.Get("area_id").(string) + " "
-	} else {
-		setPrefix += "routing-instances " + d.Get("routing_instance").(string) +
-			" protocols " + ospfVersion + " area " + d.Get("area_id").(string) + " "
-	}
+	setPrefix += "protocols " + ospfVersion + " area " + d.Get("area_id").(string) + " "
+
 	interfaceNameList := make([]string, 0)
 	for _, v := range d.Get("interface").([]interface{}) {
 		ospfInterface := v.(map[string]interface{})
@@ -651,14 +650,14 @@ func setOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 				configSet = append(configSet, setPrefixBfd+"multiplier "+strconv.Itoa(v))
 			}
 			if bfdLiveDetect["no_adaptation"].(bool) {
-				configSet = append(configSet, setPrefixBfd+noAdaptation)
+				configSet = append(configSet, setPrefixBfd+"no-adaptation")
 			}
 			if v := bfdLiveDetect["transmit_interval_minimum_interval"].(int); v != 0 {
-				configSet = append(configSet, setPrefixBfd+""+
+				configSet = append(configSet, setPrefixBfd+
 					"transmit-interval minimum-interval "+strconv.Itoa(v))
 			}
 			if v := bfdLiveDetect["transmit_interval_threshold"].(int); v != 0 {
-				configSet = append(configSet, setPrefixBfd+""+
+				configSet = append(configSet, setPrefixBfd+
 					"transmit-interval threshold "+strconv.Itoa(v))
 			}
 			if v := bfdLiveDetect["version"].(string); v != "" {
@@ -801,32 +800,32 @@ func readOspfArea(idArea, version, routingInstance string,
 	if version == "v3" {
 		ospfVersion = ospfV3
 	}
-	if routingInstance == defaultWord {
-		showConfig, err = sess.command("show configuration"+
-			" protocols "+ospfVersion+" area "+idArea+" | display set relative", jnprSess)
+	if routingInstance == defaultW {
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols "+ospfVersion+" area "+idArea+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
-		showConfig, err = sess.command("show configuration"+
-			" routing-instances "+routingInstance+" protocols "+ospfVersion+" area "+idArea+" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
+			"protocols "+ospfVersion+" area "+idArea+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
 	}
 
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.areaID = idArea
 		confRead.version = version
 		confRead.routingInstance = routingInstance
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			if strings.HasPrefix(itemTrim, "interface ") {
 				itemInterfaceList := strings.Split(strings.TrimPrefix(itemTrim, "interface "), " ")
 				interfaceOptions := map[string]interface{}{
@@ -882,7 +881,7 @@ func readOspfArea(idArea, version, routingInstance string,
 					itemTrimInterfaceSplit := strings.Split(strings.TrimPrefix(itemTrimInterface, "authentication md5 "), " ")
 					keyID, err := strconv.Atoi(itemTrimInterfaceSplit[0])
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterfaceSplit[0], err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterfaceSplit[0], err)
 					}
 					authMD5 := map[string]interface{}{
 						"key_id":     keyID,
@@ -914,7 +913,7 @@ func readOspfArea(idArea, version, routingInstance string,
 					}
 					metric, err := strconv.Atoi(itemTrimInterfaceSplit[2])
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterfaceSplit[2], err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterfaceSplit[2], err)
 					}
 					interfaceOptions["bandwidth_based_metrics"] = append(
 						interfaceOptions["bandwidth_based_metrics"].([]map[string]interface{}), map[string]interface{}{
@@ -948,7 +947,7 @@ func readOspfArea(idArea, version, routingInstance string,
 					interfaceOptions["dead_interval"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "dead-interval "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 					}
 				case itemTrimInterface == "demand-circuit":
 					interfaceOptions["demand_circuit"] = true
@@ -962,7 +961,7 @@ func readOspfArea(idArea, version, routingInstance string,
 					interfaceOptions["hello_interval"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "hello-interval "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 					}
 				case strings.HasPrefix(itemTrimInterface, "interface-type "):
 					interfaceOptions["interface_type"] = strings.TrimPrefix(itemTrimInterface, "interface-type ")
@@ -988,13 +987,13 @@ func readOspfArea(idArea, version, routingInstance string,
 					interfaceOptions["metric"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "metric "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 					}
 				case strings.HasPrefix(itemTrimInterface, "mtu "):
 					interfaceOptions["mtu"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "mtu "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 					}
 				case strings.HasPrefix(itemTrimInterface, "neighbor "):
 					itemTrimInterfaceSplit := strings.Split(strings.TrimPrefix(itemTrimInterface, "neighbor "), " ")
@@ -1038,19 +1037,19 @@ func readOspfArea(idArea, version, routingInstance string,
 					interfaceOptions["poll_interval"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "poll-interval "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 					}
 				case strings.HasPrefix(itemTrimInterface, "priority "):
 					interfaceOptions["priority"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "priority "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 					}
 				case strings.HasPrefix(itemTrimInterface, "retransmit-interval "):
 					interfaceOptions["retransmit_interval"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "retransmit-interval "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 					}
 				case itemTrimInterface == "secondary":
 					interfaceOptions["secondary"] = true
@@ -1060,13 +1059,13 @@ func readOspfArea(idArea, version, routingInstance string,
 					interfaceOptions["te_metric"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "te-metric "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 					}
 				case strings.HasPrefix(itemTrimInterface, "transit-delay "):
 					interfaceOptions["transit_delay"], err = strconv.Atoi(
 						strings.TrimPrefix(itemTrimInterface, "transit-delay "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimInterface, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
 					}
 				}
 				confRead.interFace = append(confRead.interFace, interfaceOptions)
@@ -1083,13 +1082,13 @@ func readOspfAreaInterfaceBfd(itemTrim string, bfd map[string]interface{}) error
 		bfd["authentication_algorithm"] = strings.TrimPrefix(itemTrim, "authentication algorithm ")
 	case strings.HasPrefix(itemTrim, "authentication key-chain "):
 		bfd["authentication_key_chain"] = strings.Trim(strings.TrimPrefix(itemTrim, "authentication key-chain "), "\"")
-	case itemTrim == authenticationLooseCheck:
+	case itemTrim == "authentication loose-check":
 		bfd["authentication_loose_check"] = true
 	case strings.HasPrefix(itemTrim, "detection-time threshold "):
 		var err error
 		bfd["detection_time_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "detection-time threshold "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "full-neighbors-only":
 		bfd["full_neighbors_only"] = true
@@ -1097,41 +1096,41 @@ func readOspfAreaInterfaceBfd(itemTrim string, bfd map[string]interface{}) error
 		var err error
 		bfd["holddown_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "holddown-interval "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "minimum-interval "):
 		var err error
 		bfd["minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-interval "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "minimum-receive-interval "):
 		var err error
 		bfd["minimum_receive_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-receive-interval "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "multiplier "):
 		var err error
 		bfd["multiplier"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "multiplier "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case itemTrim == noAdaptation:
+	case itemTrim == "no-adaptation":
 		bfd["no_adaptation"] = true
 	case strings.HasPrefix(itemTrim, "transmit-interval minimum-interval "):
 		var err error
 		bfd["transmit_interval_minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "transmit-interval minimum-interval "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "transmit-interval threshold "):
 		var err error
 		bfd["transmit_interval_threshold"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "transmit-interval threshold "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "version "):
 		bfd["version"] = strings.TrimPrefix(itemTrim, "version ")
@@ -1147,10 +1146,10 @@ func delOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = ospfV3
 	}
-	if d.Get("routing_instance").(string) == defaultWord {
+	if d.Get("routing_instance").(string) == defaultW {
 		configSet = append(configSet, "delete protocols "+ospfVersion+" area "+d.Get("area_id").(string))
 	} else {
-		configSet = append(configSet, "delete routing-instances "+d.Get("routing_instance").(string)+
+		configSet = append(configSet, delRoutingInstances+d.Get("routing_instance").(string)+
 			" protocols "+ospfVersion+" area "+d.Get("area_id").(string))
 	}
 

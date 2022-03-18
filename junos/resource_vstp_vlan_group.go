@@ -44,7 +44,7 @@ func resourceVstpVlanGroup() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          defaultWord,
+				Default:          defaultW,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
 			"vlan": {
@@ -107,7 +107,7 @@ func resourceVstpVlanGroupCreate(ctx context.Context, d *schema.ResourceData, m 
 	defer sess.closeSession(jnprSess)
 	sess.configLock(jnprSess)
 	var diagWarns diag.Diagnostics
-	if routingInstance != defaultWord {
+	if routingInstance != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(routingInstance, m, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -129,7 +129,7 @@ func resourceVstpVlanGroupCreate(ctx context.Context, d *schema.ResourceData, m 
 	}
 	if vstpVlanGroupExists {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
-		if routingInstance != defaultWord {
+		if routingInstance != defaultW {
 			return append(diagWarns, diag.FromErr(fmt.Errorf(
 				"protocols vstp vlan-group group %v already exists in routing-instance %v",
 				name, routingInstance))...)
@@ -157,7 +157,7 @@ func resourceVstpVlanGroupCreate(ctx context.Context, d *schema.ResourceData, m 
 	if vstpVlanGroupExists {
 		d.SetId(name + idSeparator + routingInstance)
 	} else {
-		if routingInstance != defaultWord {
+		if routingInstance != defaultW {
 			return append(diagWarns, diag.FromErr(fmt.Errorf(
 				"protocols vstp vlan-group group %v not exists in routing-instance %v after commit "+
 					"=> check your config", name, routingInstance))...)
@@ -311,17 +311,17 @@ func checkVstpVlanGroupExists(name, routingInstance string, m interface{}, jnprS
 	sess := m.(*Session)
 	var showConfig string
 	var err error
-	if routingInstance == defaultWord {
-		showConfig, err = sess.command(
-			"show configuration protocols vstp vlan-group group "+name+" | display set", jnprSess)
+	if routingInstance == defaultW {
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols vstp vlan-group group "+name+pipeDisplaySet, jnprSess)
 	} else {
-		showConfig, err = sess.command("show configuration routing-instances "+routingInstance+
-			" protocols vstp vlan-group group "+name+" | display set", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
+			"protocols vstp vlan-group group "+name+pipeDisplaySet, jnprSess)
 	}
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -330,14 +330,13 @@ func checkVstpVlanGroupExists(name, routingInstance string, m interface{}, jnprS
 
 func setVstpVlanGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
-
-	var setPrefix string
-	if rI := d.Get("routing_instance").(string); rI == defaultWord {
-		setPrefix = "set protocols vstp vlan-group group " + d.Get("name").(string) + " "
-	} else {
-		setPrefix = "set routing-instances " + rI + " protocols vstp vlan-group group " + d.Get("name").(string) + " "
-	}
 	configSet := make([]string, 0)
+
+	setPrefix := setLS
+	if rI := d.Get("routing_instance").(string); rI != defaultW {
+		setPrefix = setRoutingInstances + rI + " "
+	}
+	setPrefix += "protocols vstp vlan-group group " + d.Get("name").(string) + " "
 
 	for _, vlan := range sortSetOfString(d.Get("vlan").(*schema.Set).List()) {
 		configSet = append(configSet, setPrefix+"vlan "+vlan)
@@ -370,27 +369,27 @@ func readVstpVlanGroup(name, routingInstance string, m interface{}, jnprSess *Ne
 	var confRead vstpVlanGroupOptions
 	var showConfig string
 	var err error
-	if routingInstance == defaultWord {
-		showConfig, err = sess.command(
-			"show configuration protocols vstp vlan-group group "+name+" | display set relative", jnprSess)
+	if routingInstance == defaultW {
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols vstp vlan-group group "+name+pipeDisplaySetRelative, jnprSess)
 	} else {
-		showConfig, err = sess.command("show configuration routing-instances "+routingInstance+
-			" protocols vstp vlan-group group "+name+" | display set relative", jnprSess)
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
+			"protocols vstp vlan-group group "+name+pipeDisplaySetRelative, jnprSess)
 	}
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		confRead.routingInstance = routingInstance
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "vlan "):
 				confRead.vlan = append(confRead.vlan, strings.TrimPrefix(itemTrim, "vlan "))
@@ -402,19 +401,19 @@ func readVstpVlanGroup(name, routingInstance string, m interface{}, jnprSess *Ne
 				var err error
 				confRead.forwardDelay, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "forward-delay "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "hello-time "):
 				var err error
 				confRead.helloTime, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "hello-time "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "max-age "):
 				var err error
 				confRead.maxAge, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-age "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "system-identifier "):
 				confRead.systemIdentifier = strings.TrimPrefix(itemTrim, "system-identifier ")
@@ -428,12 +427,12 @@ func readVstpVlanGroup(name, routingInstance string, m interface{}, jnprSess *Ne
 func delVstpVlanGroup(name, routingInstance string, deleteAll bool, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	delPrefix := deleteWord + " "
-	if routingInstance == defaultWord {
-		delPrefix += "protocols vstp vlan-group group " + name + " "
-	} else {
-		delPrefix += "routing-instances " + routingInstance + " protocols vstp vlan-group group " + name + " "
+	delPrefix := deleteLS
+	if routingInstance != defaultW {
+		delPrefix = delRoutingInstances + routingInstance + " "
 	}
+	delPrefix += "protocols vstp vlan-group group " + name + " "
+
 	if deleteAll {
 		return sess.configSet([]string{delPrefix}, jnprSess)
 	}

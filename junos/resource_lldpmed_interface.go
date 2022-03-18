@@ -319,11 +319,11 @@ func resourceLldpMedInterfaceImport(d *schema.ResourceData, m interface{}) ([]*s
 func checkLldpMedInterfaceExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(
-		"show configuration protocols lldp-med interface "+name+" | display set", jnprSess)
+		cmdShowConfig+"protocols lldp-med interface "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -390,20 +390,20 @@ func readLldpMedInterface(name string, m interface{}, jnprSess *NetconfObject,
 	var confRead lldpMedInterfaceOptions
 
 	showConfig, err := sess.command(
-		"show configuration protocols lldp-med interface "+name+" | display set relative", jnprSess)
+		cmdShowConfig+"protocols lldp-med interface "+name+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case itemTrim == disableW:
 				confRead.disable = true
@@ -427,7 +427,7 @@ func readLldpMedInterface(name string, m interface{}, jnprSess *NetconfObject,
 					if len(itemTrimSplit) > 0 {
 						caType, err := strconv.Atoi(itemTrimSplit[0])
 						if err != nil {
-							return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+							return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 						}
 						switch {
 						case len(itemTrimSplit) == 1:
@@ -458,28 +458,28 @@ func readLldpMedInterface(name string, m interface{}, jnprSess *NetconfObject,
 					confRead.location[0]["civic_based_what"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrimLocation, "civic-based what "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrimLocation, "co-ordinate lattitude "): // nolint: misspell
 					var err error
 					confRead.location[0]["co_ordinate_latitude"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrimLocation, "co-ordinate lattitude ")) // nolint: misspell
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrimLocation, "co-ordinate latitude "):
 					var err error
 					confRead.location[0]["co_ordinate_latitude"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrimLocation, "co-ordinate latitude "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrimLocation, "co-ordinate longitude "):
 					var err error
 					confRead.location[0]["co_ordinate_longitude"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrimLocation, "co-ordinate longitude "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrimLocation, "elin "):
 					confRead.location[0]["elin"] = strings.Trim(strings.TrimPrefix(itemTrimLocation, "elin "), "\"")

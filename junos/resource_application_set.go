@@ -224,12 +224,12 @@ func resourceApplicationSetImport(d *schema.ResourceData, m interface{}) ([]*sch
 
 func checkApplicationSetExists(applicationSet string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" applications application-set "+applicationSet+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"applications application-set "+applicationSet+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -252,21 +252,21 @@ func readApplicationSet(applicationSet string, m interface{}, jnprSess *NetconfO
 	sess := m.(*Session)
 	var confRead applicationSetOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" applications application-set "+applicationSet+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"applications application-set "+applicationSet+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = applicationSet
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			if strings.HasPrefix(itemTrim, "application ") {
 				confRead.applications = append(confRead.applications, strings.TrimPrefix(itemTrim, "application "))
 			}

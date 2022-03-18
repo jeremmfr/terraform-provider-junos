@@ -236,12 +236,12 @@ func resourceSecurityUtmCustomURLCategoryImport(d *schema.ResourceData, m interf
 
 func checkUtmCustomURLCategorysExists(urlCategory string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security utm custom-objects custom-url-category "+urlCategory+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security utm custom-objects custom-url-category "+urlCategory+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -265,21 +265,21 @@ func readUtmCustomURLCategory(urlCategory string, m interface{}, jnprSess *Netco
 	sess := m.(*Session)
 	var confRead utmCustomURLCategoryOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security utm custom-objects custom-url-category "+urlCategory+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security utm custom-objects custom-url-category "+urlCategory+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = urlCategory
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			if strings.HasPrefix(itemTrim, "value ") {
 				confRead.value = append(confRead.value, strings.TrimPrefix(itemTrim, "value "))
 			}

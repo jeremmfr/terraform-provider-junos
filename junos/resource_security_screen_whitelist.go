@@ -235,11 +235,11 @@ func resourceSecurityScreenWhiteListImport(d *schema.ResourceData, m interface{}
 
 func checkSecurityScreenWhiteListExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration security screen white-list "+name+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"security screen white-list "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -266,21 +266,21 @@ func readSecurityScreenWhiteList(name string, m interface{}, jnprSess *NetconfOb
 	sess := m.(*Session)
 	var confRead screenWhiteListOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security screen white-list "+name+" | display set relative ", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security screen white-list "+name+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			if strings.HasPrefix(itemTrim, "address ") {
 				confRead.address = append(confRead.address, strings.TrimPrefix(itemTrim, "address "))
 			}

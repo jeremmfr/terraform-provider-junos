@@ -292,33 +292,33 @@ func readChassisRedundancy(m interface{}, jnprSess *NetconfObject) (chassisRedun
 	sess := m.(*Session)
 	var confRead chassisRedundancyOptions
 
-	showConfig, err := sess.command("show configuration chassis redundancy | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"chassis redundancy"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "failover disk-read-threshold "):
 				var err error
 				confRead.failoverDiskReadThreshold, err = strconv.Atoi(strings.TrimPrefix(
 					itemTrim, "failover disk-read-threshold "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "failover disk-write-threshold "):
 				var err error
 				confRead.failoverDiskWriteThreshold, err = strconv.Atoi(strings.TrimPrefix(
 					itemTrim, "failover disk-write-threshold "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "failover not-on-disk-underperform":
 				confRead.failoverNotOnDiskUnderperform = true
@@ -332,7 +332,7 @@ func readChassisRedundancy(m interface{}, jnprSess *NetconfObject) (chassisRedun
 				var err error
 				confRead.keepaliveTime, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "keepalive-time "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "routing-engine "):
 				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "routing-engine "), " ")
@@ -341,7 +341,7 @@ func readChassisRedundancy(m interface{}, jnprSess *NetconfObject) (chassisRedun
 				}
 				slot, err := strconv.Atoi(itemTrimSplit[0])
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrimSplit[0], err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrimSplit[0], err)
 				}
 				confRead.routingEngine = append(confRead.routingEngine, map[string]interface{}{
 					"slot": slot,

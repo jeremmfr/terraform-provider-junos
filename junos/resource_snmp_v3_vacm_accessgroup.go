@@ -316,11 +316,11 @@ func resourceSnmpV3VacmAccessGroupImport(d *schema.ResourceData, m interface{}) 
 
 func checkSnmpV3VacmAccessGroupExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration snmp v3 vacm access group \""+name+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"snmp v3 vacm access group \""+name+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -408,21 +408,21 @@ func readSnmpV3VacmAccessGroup(name string, m interface{}, jnprSess *NetconfObje
 	sess := m.(*Session)
 	var confRead snmpV3VacmAccessGroupOptions
 
-	showConfig, err := sess.command(
-		"show configuration snmp v3 vacm access group \""+name+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"snmp v3 vacm access group \""+name+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = name
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "default-context-prefix security-model ") &&
 				strings.Contains(itemTrim, " security-level "):

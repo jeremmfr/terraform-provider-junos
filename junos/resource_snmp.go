@@ -414,19 +414,19 @@ func readSnmp(m interface{}, jnprSess *NetconfObject) (snmpOptions, error) {
 	sess := m.(*Session)
 	var confRead snmpOptions
 
-	showConfig, err := sess.command("show configuration snmp | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"snmp"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case itemTrim == "arp":
 				confRead.arp = true
@@ -464,7 +464,7 @@ func readSnmp(m interface{}, jnprSess *NetconfObject) (snmpOptions, error) {
 					confRead.healthMonitor[0]["falling_threshold"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrim, "health-monitor falling-threshold "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case itemTrim == "health-monitor idp":
 					confRead.healthMonitor[0]["idp"] = true
@@ -474,7 +474,7 @@ func readSnmp(m interface{}, jnprSess *NetconfObject) (snmpOptions, error) {
 					confRead.healthMonitor[0]["idp_falling_threshold"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrim, "health-monitor idp falling-threshold "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "health-monitor idp interval "):
 					confRead.healthMonitor[0]["idp"] = true
@@ -482,7 +482,7 @@ func readSnmp(m interface{}, jnprSess *NetconfObject) (snmpOptions, error) {
 					confRead.healthMonitor[0]["idp_interval"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrim, "health-monitor idp interval "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "health-monitor idp rising-threshold "):
 					confRead.healthMonitor[0]["idp"] = true
@@ -490,20 +490,20 @@ func readSnmp(m interface{}, jnprSess *NetconfObject) (snmpOptions, error) {
 					confRead.healthMonitor[0]["idp_rising_threshold"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrim, "health-monitor idp rising-threshold "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "health-monitor interval "):
 					var err error
 					confRead.healthMonitor[0]["interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "health-monitor interval "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "health-monitor rising-threshold "):
 					var err error
 					confRead.healthMonitor[0]["rising_threshold"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrim, "health-monitor rising-threshold "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case itemTrim == "if-count-with-filter-interfaces":

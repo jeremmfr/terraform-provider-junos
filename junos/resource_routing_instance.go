@@ -326,11 +326,11 @@ func resourceRoutingInstanceImport(d *schema.ResourceData, m interface{}) ([]*sc
 
 func checkRoutingInstanceExists(instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration routing-instances "+instance+" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+routingInstancesWS+instance+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -341,7 +341,7 @@ func setRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 
-	setPrefix := "set routing-instances " + d.Get("name").(string) + " "
+	setPrefix := setRoutingInstances + d.Get("name").(string) + " "
 	if d.Get("configure_type_singly").(bool) {
 		if v := d.Get("type").(string); v != "" {
 			return fmt.Errorf("if `configure_type_singly` = true, `type` need to be set to empty value to avoid confusion")
@@ -397,20 +397,20 @@ func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject
 	sess := m.(*Session)
 	var confRead instanceOptions
 
-	showConfig, err := sess.command("show configuration routing-instances "+instance+" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+routingInstancesWS+instance+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = instance
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
@@ -453,7 +453,7 @@ func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject
 func delRoutingInstanceOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
-	setPrefix := "delete routing-instances " + d.Get("name").(string) + " "
+	setPrefix := delRoutingInstances + d.Get("name").(string) + " "
 	configSet = append(configSet,
 		setPrefix+"description",
 		setPrefix+"routing-options autonomous-system",
@@ -479,7 +479,7 @@ func delRoutingInstanceOpts(d *schema.ResourceData, m interface{}, jnprSess *Net
 func delRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
-	configSet = append(configSet, "delete routing-instances "+d.Get("name").(string))
+	configSet = append(configSet, delRoutingInstances+d.Get("name").(string))
 
 	return sess.configSet(configSet, jnprSess)
 }

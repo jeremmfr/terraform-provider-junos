@@ -1820,19 +1820,19 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 	confRead.maxConfigurationRollbacks = -1
 	confRead.maxConfigurationsOnFlash = -1
 
-	showConfig, err := sess.command("show configuration system | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"system"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "archival configuration "):
 				if len(confRead.archivalConfiguration) == 0 {
@@ -1867,7 +1867,7 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 					confRead.archivalConfiguration[0]["transfer_interval"], err = strconv.Atoi(strings.TrimPrefix(
 						itemTrim, "archival configuration transfer-interval "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case itemTrim == "archival configuration transfer-on-commit":
 					confRead.archivalConfiguration[0]["transfer_on_commit"] = true
@@ -1913,13 +1913,13 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 				var err error
 				confRead.maxConfigurationRollbacks, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-configuration-rollbacks "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case strings.HasPrefix(itemTrim, "max-configurations-on-flash "):
 				var err error
 				confRead.maxConfigurationsOnFlash, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-configurations-on-flash "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesNtp()):
 				if len(confRead.ntp) == 0 {
@@ -1942,7 +1942,7 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 					var err error
 					confRead.ntp[0]["interval_range"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "ntp interval-range "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				case strings.HasPrefix(itemTrim, "ntp multicast-client"):
 					confRead.ntp[0]["multicast_client"] = true
@@ -1955,7 +1955,7 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 					var err error
 					confRead.ntp[0]["threshold_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "ntp threshold "))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case strings.HasPrefix(itemTrim, "ports "):
@@ -2087,7 +2087,7 @@ func readSystemLogin(confRead *systemOptions, itemTrim string) error {
 		var err error
 		confRead.login[0]["idle_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "login idle-timeout "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "login message "):
 		confRead.login[0]["message"] = strings.Trim(strings.TrimPrefix(itemTrim, "login message "), "\"")
@@ -2119,63 +2119,63 @@ func readSystemLogin(confRead *systemOptions, itemTrim string) error {
 			password["maximum_length"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "login password maximum-length "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login password minimum-changes "):
 			var err error
 			password["minimum_changes"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "login password minimum-changes "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login password minimum-character-changes "):
 			var err error
 			password["minimum_character_changes"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "login password minimum-character-changes "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login password minimum-length "):
 			var err error
 			password["minimum_length"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "login password minimum-length "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login password minimum-lower-cases "):
 			var err error
 			password["minimum_lower_cases"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "login password minimum-lower-cases "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login password minimum-numerics "):
 			var err error
 			password["minimum_numerics"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "login password minimum-numerics "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login password minimum-punctuations "):
 			var err error
 			password["minimum_punctuations"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "login password minimum-punctuations "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login password minimum-reuse "):
 			var err error
 			password["minimum_reuse"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "login password minimum-reuse "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login password minimum-upper-cases "):
 			var err error
 			password["minimum_upper_cases"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "login password minimum-upper-cases "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case strings.HasPrefix(itemTrim, "login retry-options "):
@@ -2197,42 +2197,42 @@ func readSystemLogin(confRead *systemOptions, itemTrim string) error {
 			retryOptions["backoff_factor"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "login retry-options backoff-factor "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login retry-options backoff-threshold "):
 			var err error
 			retryOptions["backoff_threshold"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "login retry-options backoff-threshold "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login retry-options lockout-period "):
 			var err error
 			retryOptions["lockout_period"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "login retry-options lockout-period "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login retry-options maximum-time "):
 			var err error
 			retryOptions["maximum_time"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "login retry-options maximum-time "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login retry-options minimum-time "):
 			var err error
 			retryOptions["minimum_time"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "login retry-options minimum-time "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "login retry-options tries-before-disconnect "):
 			var err error
 			retryOptions["tries_before_disconnect"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "login retry-options tries-before-disconnect "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	}
@@ -2285,14 +2285,14 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 			icmpV4RateLimit["bucket_size"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "internet-options icmpv4-rate-limit bucket-size "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "internet-options icmpv4-rate-limit packet-rate "):
 			var err error
 			icmpV4RateLimit["packet_rate"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "internet-options icmpv4-rate-limit packet-rate "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case strings.HasPrefix(itemTrim, "internet-options icmpv6-rate-limit"):
@@ -2310,14 +2310,14 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 			icmpV6RateLimit["bucket_size"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "internet-options icmpv6-rate-limit bucket-size "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "internet-options icmpv6-rate-limit packet-rate "):
 			var err error
 			icmpV6RateLimit["packet_rate"], err = strconv.Atoi(strings.TrimPrefix(
 				itemTrim, "internet-options icmpv6-rate-limit packet-rate "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	case itemTrim == "internet-options ipip-path-mtu-discovery":
@@ -2327,7 +2327,7 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 		confRead.internetOptions[0]["ipv6_duplicate_addr_detection_transmits"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "internet-options ipv6-duplicate-addr-detection-transmits "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "internet-options ipv6-path-mtu-discovery":
 		confRead.internetOptions[0]["ipv6_path_mtu_discovery"] = true
@@ -2336,7 +2336,7 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 		confRead.internetOptions[0]["ipv6_path_mtu_discovery_timeout"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "internet-options ipv6-path-mtu-discovery-timeout "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "internet-options ipv6-reject-zero-hop-limit":
 		confRead.internetOptions[0]["ipv6_reject_zero_hop_limit"] = true
@@ -2365,7 +2365,7 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 		confRead.internetOptions[0]["source_port_upper_limit"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "internet-options source-port upper-limit "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "internet-options source-quench":
 		confRead.internetOptions[0]["source_quench"] = true
@@ -2375,7 +2375,7 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 		var err error
 		confRead.internetOptions[0]["tcp_mss"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "internet-options tcp-mss "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	}
 
@@ -2414,13 +2414,13 @@ func readSystemLicense(confRead *systemOptions, itemTrim string) error {
 		confRead.license[0]["renew_before_expiration"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "license renew before-expiration "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "license renew interval "):
 		var err error
 		confRead.license[0]["renew_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "license renew interval "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	}
 
@@ -2450,7 +2450,7 @@ func readSystemServicesNetconfTraceOpts(confRead *systemOptions, itemTrimNetconf
 		var err error
 		netconfTraceOpts["file_files"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file files "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "file match "):
 		netconfTraceOpts["file_match"] = strings.Trim(strings.TrimPrefix(itemTrim, "file match "), "\"")
@@ -2475,7 +2475,7 @@ func readSystemServicesNetconfTraceOpts(confRead *systemOptions, itemTrimNetconf
 			netconfTraceOpts["file_size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file size "))
 		}
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "file world-readable":
 		netconfTraceOpts["file_world_readable"] = true
@@ -2509,28 +2509,28 @@ func readSystemServicesNetconfSSH(confRead *systemOptions, itemTrim string) erro
 		netconfSSH["client_alive_count_max"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "services netconf ssh client-alive-count-max "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "services netconf ssh client-alive-interval "):
 		var err error
 		netconfSSH["client_alive_interval"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "services netconf ssh client-alive-interval "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "services netconf ssh connection-limit "):
 		var err error
 		netconfSSH["connection_limit"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "services netconf ssh connection-limit "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "services netconf ssh rate-limit "):
 		var err error
 		netconfSSH["rate_limit"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "services netconf ssh rate-limit "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	}
 
@@ -2576,19 +2576,19 @@ func readSystemServicesSSH(confRead *systemOptions, itemTrim string) error {
 		ssh["client_alive_count_max"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "services ssh client-alive-count-max "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "services ssh client-alive-interval "):
 		var err error
 		ssh["client_alive_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh client-alive-interval "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "services ssh connection-limit "):
 		var err error
 		ssh["connection_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh connection-limit "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "services ssh fingerprint-hash "):
 		ssh["fingerprint_hash"] = strings.TrimPrefix(itemTrim, "services ssh fingerprint-hash ")
@@ -2607,14 +2607,14 @@ func readSystemServicesSSH(confRead *systemOptions, itemTrim string) error {
 		ssh["max_pre_authentication_packets"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "services ssh max-pre-authentication-packets "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "services ssh max-sessions-per-connection "):
 		var err error
 		ssh["max_sessions_per_connection"], err = strconv.Atoi(strings.TrimPrefix(
 			itemTrim, "services ssh max-sessions-per-connection "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "services ssh no-passwords":
 		ssh["no_passwords"] = true
@@ -2624,7 +2624,7 @@ func readSystemServicesSSH(confRead *systemOptions, itemTrim string) error {
 		var err error
 		ssh["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh port "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "services ssh protocol-version "):
 		ssh["protocol_version"] = append(ssh["protocol_version"].([]string),
@@ -2633,7 +2633,7 @@ func readSystemServicesSSH(confRead *systemOptions, itemTrim string) error {
 		var err error
 		ssh["rate_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh rate-limit "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "services ssh root-login "):
 		ssh["root_login"] = strings.TrimPrefix(itemTrim, "services ssh root-login ")
@@ -2669,7 +2669,7 @@ func readSystemServicesWebManagement(confRead *systemOptions, itemTrim string) e
 			var err error
 			webMHTTPS["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "services web-management https port "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 		if strings.HasPrefix(itemTrim, "services web-management https local-certificate ") {
@@ -2701,7 +2701,7 @@ func readSystemServicesWebManagement(confRead *systemOptions, itemTrim string) e
 			var err error
 			webMHTTP["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "services web-management http port "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 	}
@@ -2740,14 +2740,14 @@ func readSystemSyslog(confRead *systemOptions, itemTrim string) error {
 			confRead.syslog[0]["archive"].([]map[string]interface{})[0]["files"], err = strconv.Atoi(
 				strings.TrimPrefix(itemTrim, "syslog archive files "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case strings.HasPrefix(itemTrim, "syslog archive size "):
 			var err error
 			confRead.syslog[0]["archive"].([]map[string]interface{})[0]["size"], err = strconv.Atoi(
 				strings.TrimPrefix(itemTrim, "syslog archive size "))
 			if err != nil {
-				return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		case itemTrim == "syslog archive no-world-readable":
 			confRead.syslog[0]["archive"].([]map[string]interface{})[0]["no_world_readable"] = true
@@ -2759,7 +2759,7 @@ func readSystemSyslog(confRead *systemOptions, itemTrim string) error {
 		confRead.syslog[0]["log_rotate_frequency"], err = strconv.Atoi(
 			strings.TrimPrefix(itemTrim, "syslog log-rotate-frequency "))
 		if err != nil {
-			return fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case strings.HasPrefix(itemTrim, "syslog source-address "):
 		confRead.syslog[0]["source_address"] = strings.TrimPrefix(

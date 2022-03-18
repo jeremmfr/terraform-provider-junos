@@ -71,7 +71,7 @@ func resourceSecurityUtmProfileWebFilteringEnhanced() *schema.Resource {
 						"action": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitWord, "quarantine"}, false),
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitW, "quarantine"}, false),
 						},
 						"reputation_action": {
 							Type:     schema.TypeList,
@@ -88,7 +88,7 @@ func resourceSecurityUtmProfileWebFilteringEnhanced() *schema.Resource {
 									"action": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitWord, "quarantine"}, false),
+										ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitW, "quarantine"}, false),
 									},
 								},
 							},
@@ -103,7 +103,7 @@ func resourceSecurityUtmProfileWebFilteringEnhanced() *schema.Resource {
 			"default_action": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitWord, "quarantine"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitW, "quarantine"}, false),
 			},
 			"fallback_settings": {
 				Type:     schema.TypeList,
@@ -174,7 +174,7 @@ func resourceSecurityUtmProfileWebFilteringEnhanced() *schema.Resource {
 						"action": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitWord, "quarantine"}, false),
+							ValidateFunc: validation.StringInSlice([]string{"block", "log-and-permit", permitW, "quarantine"}, false),
 						},
 					},
 				},
@@ -385,12 +385,12 @@ func resourceSecurityUtmProfileWebFilteringEnhancedImport(
 
 func checkUtmProfileWebFEnhancedExists(profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
-	showConfig, err := sess.command("show configuration"+
-		" security utm feature-profile web-filtering juniper-enhanced profile \""+profile+"\" | display set", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security utm feature-profile web-filtering juniper-enhanced profile \""+profile+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
 	}
-	if showConfig == emptyWord {
+	if showConfig == emptyW {
 		return false, nil
 	}
 
@@ -509,23 +509,23 @@ func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *Netconf
 	sess := m.(*Session)
 	var confRead utmProfileWebFilteringEnhancedOptions
 
-	showConfig, err := sess.command("show configuration"+
-		" security utm feature-profile web-filtering juniper-enhanced"+
-		" profile \""+profile+"\" | display set relative", jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+
+		"security utm feature-profile web-filtering juniper-enhanced"+
+		" profile \""+profile+"\""+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return confRead, err
 	}
-	if showConfig != emptyWord {
+	if showConfig != emptyW {
 		confRead.name = profile
 		categoryList := make([]map[string]interface{}, 0)
 		for _, item := range strings.Split(showConfig, "\n") {
-			if strings.Contains(item, "<configuration-output>") {
+			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
 			}
-			if strings.Contains(item, "</configuration-output>") {
+			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			itemTrim := strings.TrimPrefix(item, setLineStart)
+			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
 			case strings.HasPrefix(itemTrim, "block-message"):
 				if len(confRead.blockMessage) == 0 {
@@ -611,7 +611,7 @@ func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *Netconf
 				var err error
 				confRead.timeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "timeout "))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to convert value from '%s' to integer : %w", itemTrim, err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}
