@@ -8,6 +8,14 @@ jobs:
     name: golangci-lint-latest
     runs-on: ubuntu-latest
     steps:
+      - name: Set up Go 1.17
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.17
+        id: go
+      - name: Disable cgo
+        run: |
+          echo "CGO_ENABLED=0" >> $GITHUB_ENV
       - name: Check out code
         uses: actions/checkout@v3
       - name: golangci-lint
