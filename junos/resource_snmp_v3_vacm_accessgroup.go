@@ -195,8 +195,8 @@ func resourceSnmpV3VacmAccessGroupRead(ctx context.Context, d *schema.ResourceDa
 	return resourceSnmpV3VacmAccessGroupReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSnmpV3VacmAccessGroupReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSnmpV3VacmAccessGroupReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	snmpV3VacmAccessGroupOptions, err := readSnmpV3VacmAccessGroup(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()

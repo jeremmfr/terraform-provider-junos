@@ -370,8 +370,7 @@ func dataSourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData
 	return nil
 }
 
-func searchInterfacePhysicalID(configInterface string, match string,
-	m interface{}, jnprSess *NetconfObject) (string, error) {
+func searchInterfacePhysicalID(configInterface, match string, m interface{}, jnprSess *NetconfObject) (string, error) {
 	sess := m.(*Session)
 	intConfigList := make([]string, 0)
 	showConfig, err := sess.command(cmdShowConfig+"interfaces "+configInterface+pipeDisplaySet, jnprSess)

@@ -247,8 +247,8 @@ func resourceSecurityGlobalPolicyRead(ctx context.Context, d *schema.ResourceDat
 	return resourceSecurityGlobalPolicyReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityGlobalPolicyReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityGlobalPolicyReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	globalPolicyOptions, err := readSecurityGlobalPolicy(m, jnprSess)
 	mutex.Unlock()
@@ -616,8 +616,9 @@ func readGlobalPolicyPermitApplicationServices(itemTrimPolicy string, applicatio
 	}
 }
 
-func setGlobalPolicyPermitApplicationServices(setPrefixPolicy string,
-	policyPermitApplicationServices map[string]interface{}) ([]string, error) {
+func setGlobalPolicyPermitApplicationServices(
+	setPrefixPolicy string, policyPermitApplicationServices map[string]interface{},
+) ([]string, error) {
 	configSet := make([]string, 0)
 	setPrefixPolicyPermitAppSvc := setPrefixPolicy + " then permit application-services "
 	if v := policyPermitApplicationServices["advanced_anti_malware_policy"].(string); v != "" {

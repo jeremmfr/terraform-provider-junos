@@ -49,8 +49,8 @@ func resourcePolicyoptionsPrefixList() *schema.Resource {
 	}
 }
 
-func resourcePolicyoptionsPrefixListCreate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourcePolicyoptionsPrefixListCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setPolicyoptionsPrefixList(d, m, nil); err != nil {
@@ -117,8 +117,8 @@ func resourcePolicyoptionsPrefixListRead(ctx context.Context, d *schema.Resource
 	return resourcePolicyoptionsPrefixListReadWJnprSess(d, m, jnprSess)
 }
 
-func resourcePolicyoptionsPrefixListReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourcePolicyoptionsPrefixListReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	prefixListOptions, err := readPolicyoptionsPrefixList(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -134,8 +134,8 @@ func resourcePolicyoptionsPrefixListReadWJnprSess(
 	return nil
 }
 
-func resourcePolicyoptionsPrefixListUpdate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourcePolicyoptionsPrefixListUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -178,8 +178,8 @@ func resourcePolicyoptionsPrefixListUpdate(
 	return append(diagWarns, resourcePolicyoptionsPrefixListReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourcePolicyoptionsPrefixListDelete(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourcePolicyoptionsPrefixListDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delPolicyoptionsPrefixList(d.Get("name").(string), m, nil); err != nil {

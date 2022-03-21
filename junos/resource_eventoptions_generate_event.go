@@ -55,8 +55,8 @@ func resourceEventoptionsGenerateEvent() *schema.Resource {
 	}
 }
 
-func resourceEventoptionsGenerateEventCreate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEventoptionsGenerateEventCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setEventoptionsGenerateEvent(d, m, nil); err != nil {
@@ -112,8 +112,8 @@ func resourceEventoptionsGenerateEventCreate(ctx context.Context,
 	return append(diagWarns, resourceEventoptionsGenerateEventReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceEventoptionsGenerateEventRead(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEventoptionsGenerateEventRead(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -124,8 +124,8 @@ func resourceEventoptionsGenerateEventRead(ctx context.Context,
 	return resourceEventoptionsGenerateEventReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceEventoptionsGenerateEventReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceEventoptionsGenerateEventReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	eventoptionsGenerateEventOptions, err := readEventoptionsGenerateEvent(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -141,8 +141,8 @@ func resourceEventoptionsGenerateEventReadWJnprSess(
 	return nil
 }
 
-func resourceEventoptionsGenerateEventUpdate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEventoptionsGenerateEventUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -185,8 +185,8 @@ func resourceEventoptionsGenerateEventUpdate(ctx context.Context,
 	return append(diagWarns, resourceEventoptionsGenerateEventReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceEventoptionsGenerateEventDelete(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEventoptionsGenerateEventDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delEventoptionsGenerateEvent(d.Get("name").(string), m, nil); err != nil {
@@ -276,8 +276,8 @@ func setEventoptionsGenerateEvent(d *schema.ResourceData, m interface{}, jnprSes
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readEventoptionsGenerateEvent(name string,
-	m interface{}, jnprSess *NetconfObject) (eventoptionsGenerateEventOptions, error) {
+func readEventoptionsGenerateEvent(name string, m interface{}, jnprSess *NetconfObject,
+) (eventoptionsGenerateEventOptions, error) {
 	sess := m.(*Session)
 	var confRead eventoptionsGenerateEventOptions
 
@@ -323,7 +323,8 @@ func delEventoptionsGenerateEvent(event string, m interface{}, jnprSess *Netconf
 }
 
 func fillEventoptionsGenerateEventData(
-	d *schema.ResourceData, eventoptionsGenerateEventOptions eventoptionsGenerateEventOptions) {
+	d *schema.ResourceData, eventoptionsGenerateEventOptions eventoptionsGenerateEventOptions,
+) {
 	if tfErr := d.Set("name", eventoptionsGenerateEventOptions.name); tfErr != nil {
 		panic(tfErr)
 	}

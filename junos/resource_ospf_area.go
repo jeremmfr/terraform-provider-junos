@@ -532,8 +532,8 @@ func resourceOspfAreaImport(d *schema.ResourceData, m interface{}) ([]*schema.Re
 	return result, nil
 }
 
-func checkOspfAreaExists(idArea, version, routingInstance string,
-	m interface{}, jnprSess *NetconfObject) (bool, error) {
+func checkOspfAreaExists(idArea, version, routingInstance string, m interface{}, jnprSess *NetconfObject,
+) (bool, error) {
 	sess := m.(*Session)
 	var showConfig string
 	var err error
@@ -790,8 +790,8 @@ func setOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readOspfArea(idArea, version, routingInstance string,
-	m interface{}, jnprSess *NetconfObject) (ospfAreaOptions, error) {
+func readOspfArea(idArea, version, routingInstance string, m interface{}, jnprSess *NetconfObject,
+) (ospfAreaOptions, error) {
 	sess := m.(*Session)
 	var confRead ospfAreaOptions
 	var showConfig string

@@ -45,8 +45,8 @@ func resourceServicesProxyProfile() *schema.Resource {
 	}
 }
 
-func resourceServicesProxyProfileCreate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesProxyProfileCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setServicesProxyProfile(d, m, nil); err != nil {
@@ -102,8 +102,8 @@ func resourceServicesProxyProfileCreate(ctx context.Context,
 	return append(diagWarns, resourceServicesProxyProfileReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceServicesProxyProfileRead(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesProxyProfileRead(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -114,8 +114,8 @@ func resourceServicesProxyProfileRead(ctx context.Context,
 	return resourceServicesProxyProfileReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceServicesProxyProfileReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceServicesProxyProfileReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	proxyProfileOptions, err := readServicesProxyProfile(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -131,8 +131,8 @@ func resourceServicesProxyProfileReadWJnprSess(
 	return nil
 }
 
-func resourceServicesProxyProfileUpdate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesProxyProfileUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -175,8 +175,8 @@ func resourceServicesProxyProfileUpdate(ctx context.Context,
 	return append(diagWarns, resourceServicesProxyProfileReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceServicesProxyProfileDelete(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesProxyProfileDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delServicesProxyProfile(d.Get("name").(string), m, nil); err != nil {
@@ -208,8 +208,8 @@ func resourceServicesProxyProfileDelete(ctx context.Context,
 	return diagWarns
 }
 
-func resourceServicesProxyProfileImport(
-	d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceServicesProxyProfileImport(d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -262,8 +262,7 @@ func setServicesProxyProfile(d *schema.ResourceData, m interface{}, jnprSess *Ne
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readServicesProxyProfile(profile string, m interface{}, jnprSess *NetconfObject) (
-	proxyProfileOptions, error) {
+func readServicesProxyProfile(profile string, m interface{}, jnprSess *NetconfObject) (proxyProfileOptions, error) {
 	sess := m.(*Session)
 	var confRead proxyProfileOptions
 
@@ -305,8 +304,8 @@ func delServicesProxyProfile(profile string, m interface{}, jnprSess *NetconfObj
 	return sess.configSet(configSet, jnprSess)
 }
 
-func fillServicesProxyProfileData(
-	d *schema.ResourceData, proxyProfileOptions proxyProfileOptions) {
+func fillServicesProxyProfileData(d *schema.ResourceData, proxyProfileOptions proxyProfileOptions,
+) {
 	if tfErr := d.Set("name", proxyProfileOptions.name); tfErr != nil {
 		panic(tfErr)
 	}

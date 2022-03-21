@@ -189,8 +189,8 @@ func resourceSystemRadiusServerRead(ctx context.Context, d *schema.ResourceData,
 	return resourceSystemRadiusServerReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSystemRadiusServerReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSystemRadiusServerReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	radiusServerOptions, err := readSystemRadiusServer(d.Get("address").(string), m, jnprSess)
 	mutex.Unlock()

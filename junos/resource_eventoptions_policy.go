@@ -533,8 +533,8 @@ func resourceEventoptionsPolicyRead(ctx context.Context, d *schema.ResourceData,
 	return resourceEventoptionsPolicyReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceEventoptionsPolicyReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceEventoptionsPolicyReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	eventoptionsPolicyOptions, err := readEventoptionsPolicy(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()

@@ -181,8 +181,8 @@ func resourceVstpVlanGroupRead(ctx context.Context, d *schema.ResourceData, m in
 	return resourceVstpVlanGroupReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceVstpVlanGroupReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceVstpVlanGroupReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	vstpVlanGroupOptions, err := readVstpVlanGroup(d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
 	mutex.Unlock()

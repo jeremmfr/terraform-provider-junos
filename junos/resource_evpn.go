@@ -375,8 +375,8 @@ func setEvpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readEvpn(routingInstance string,
-	m interface{}, jnprSess *NetconfObject) (evpnOptions, error) {
+func readEvpn(routingInstance string, m interface{}, jnprSess *NetconfObject,
+) (evpnOptions, error) {
 	sess := m.(*Session)
 	var confRead evpnOptions
 	var showConfig string

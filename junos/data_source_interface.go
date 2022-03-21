@@ -385,8 +385,7 @@ func dataSourceInterfaceRead(ctx context.Context, d *schema.ResourceData, m inte
 	return nil
 }
 
-func searchInterfaceID(configInterface string, match string,
-	m interface{}, jnprSess *NetconfObject) (string, error) {
+func searchInterfaceID(configInterface, match string, m interface{}, jnprSess *NetconfObject) (string, error) {
 	sess := m.(*Session)
 	intConfigList := make([]string, 0)
 	showConfig, err := sess.command(cmdShowConfig+"interfaces "+configInterface+pipeDisplaySet, jnprSess)

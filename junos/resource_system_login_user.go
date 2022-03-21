@@ -159,8 +159,8 @@ func resourceSystemLoginUserRead(ctx context.Context, d *schema.ResourceData, m 
 	return resourceSystemLoginUserReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSystemLoginUserReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSystemLoginUserReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	plainTextPassword := readSystemLoginUserReadDataPlainTextPassword(d)
 	mutex.Lock()
 	systemLoginUserOptions, err := readSystemLoginUser(d.Get("name").(string), plainTextPassword, m, jnprSess)

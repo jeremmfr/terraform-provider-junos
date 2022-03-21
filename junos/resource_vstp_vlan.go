@@ -174,8 +174,8 @@ func resourceVstpVlanRead(ctx context.Context, d *schema.ResourceData, m interfa
 	return resourceVstpVlanReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceVstpVlanReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceVstpVlanReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	vstpVlanOptions, err := readVstpVlan(d.Get("vlan_id").(string), d.Get("routing_instance").(string), m, jnprSess)
 	mutex.Unlock()

@@ -332,7 +332,7 @@ func readRibGroup(group string, m interface{}, jnprSess *NetconfObject) (ribGrou
 	return confRead, nil
 }
 
-func delRibGroupElement(element string, group string, m interface{}, jnprSess *NetconfObject) error {
+func delRibGroupElement(element, group string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete routing-options rib-groups "+group+" "+element)

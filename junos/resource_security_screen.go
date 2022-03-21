@@ -650,8 +650,8 @@ func resourceSecurityScreenRead(ctx context.Context, d *schema.ResourceData, m i
 	return resourceSecurityScreenReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityScreenReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityScreenReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	screenOptions, err := readSecurityScreen(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()

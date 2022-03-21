@@ -200,8 +200,8 @@ func resourceSecurityNatDestinationRead(ctx context.Context, d *schema.ResourceD
 	return resourceSecurityNatDestinationReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityNatDestinationReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityNatDestinationReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	natDestinationOptions, err := readSecurityNatDestination(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()

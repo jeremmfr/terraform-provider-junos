@@ -258,8 +258,9 @@ func sortSetOfString(list []interface{}) []string {
 	return s
 }
 
-func copyAndRemoveItemMapList(identifier string,
-	m map[string]interface{}, list []map[string]interface{}) []map[string]interface{} {
+func copyAndRemoveItemMapList(
+	identifier string, m map[string]interface{}, list []map[string]interface{},
+) []map[string]interface{} {
 	if m[identifier] == nil {
 		panic(fmt.Errorf("internal error: can't find identifier %s in map", identifier))
 	}
@@ -277,8 +278,9 @@ func copyAndRemoveItemMapList(identifier string,
 	return list
 }
 
-func copyAndRemoveItemMapList2(identifier, identifier2 string,
-	m map[string]interface{}, list []map[string]interface{}) []map[string]interface{} {
+func copyAndRemoveItemMapList2(
+	identifier, identifier2 string, m map[string]interface{}, list []map[string]interface{},
+) []map[string]interface{} {
 	if m[identifier] == nil {
 		panic(fmt.Errorf("internal error: can't find identifier %s in map", identifier))
 	}

@@ -112,8 +112,8 @@ func resourcePolicyoptionsCommunityRead(ctx context.Context, d *schema.ResourceD
 	return resourcePolicyoptionsCommunityReadWJnprSess(d, m, jnprSess)
 }
 
-func resourcePolicyoptionsCommunityReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourcePolicyoptionsCommunityReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	communityOptions, err := readPolicyoptionsCommunity(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()

@@ -621,8 +621,8 @@ func setOspf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readOspf(version, routingInstance string,
-	m interface{}, jnprSess *NetconfObject) (ospfOptions, error) {
+func readOspf(version, routingInstance string, m interface{}, jnprSess *NetconfObject,
+) (ospfOptions, error) {
 	sess := m.(*Session)
 	var confRead ospfOptions
 	confRead.externalPreference = -1

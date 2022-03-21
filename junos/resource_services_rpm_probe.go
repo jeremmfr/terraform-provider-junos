@@ -318,8 +318,8 @@ func resourceServicesRpmProbe() *schema.Resource {
 	}
 }
 
-func resourceServicesRpmProbeCreate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesRpmProbeCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setServicesRpmProbe(d, m, nil); err != nil {
@@ -375,8 +375,8 @@ func resourceServicesRpmProbeCreate(ctx context.Context,
 	return append(diagWarns, resourceServicesRpmProbeReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceServicesRpmProbeRead(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesRpmProbeRead(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -387,8 +387,8 @@ func resourceServicesRpmProbeRead(ctx context.Context,
 	return resourceServicesRpmProbeReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceServicesRpmProbeReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceServicesRpmProbeReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	rpmProbeOptions, err := readServicesRpmProbe(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -404,8 +404,8 @@ func resourceServicesRpmProbeReadWJnprSess(
 	return nil
 }
 
-func resourceServicesRpmProbeUpdate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesRpmProbeUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -448,8 +448,8 @@ func resourceServicesRpmProbeUpdate(ctx context.Context,
 	return append(diagWarns, resourceServicesRpmProbeReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceServicesRpmProbeDelete(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesRpmProbeDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delServicesRpmProbe(d.Get("name").(string), m, nil); err != nil {
@@ -481,8 +481,8 @@ func resourceServicesRpmProbeDelete(ctx context.Context,
 	return diagWarns
 }
 
-func resourceServicesRpmProbeImport(
-	d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceServicesRpmProbeImport(d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -690,8 +690,8 @@ func setServicesRpmProbe(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readServicesRpmProbe(probe string, m interface{}, jnprSess *NetconfObject) (
-	rpmProbeOptions, error) {
+func readServicesRpmProbe(probe string, m interface{}, jnprSess *NetconfObject,
+) (rpmProbeOptions, error) {
 	sess := m.(*Session)
 	var confRead rpmProbeOptions
 
@@ -981,8 +981,8 @@ func delServicesRpmProbe(probe string, m interface{}, jnprSess *NetconfObject) e
 	return sess.configSet(configSet, jnprSess)
 }
 
-func fillServicesRpmProbeData(
-	d *schema.ResourceData, rpmProbeOptions rpmProbeOptions) {
+func fillServicesRpmProbeData(d *schema.ResourceData, rpmProbeOptions rpmProbeOptions,
+) {
 	if tfErr := d.Set("name", rpmProbeOptions.name); tfErr != nil {
 		panic(tfErr)
 	}

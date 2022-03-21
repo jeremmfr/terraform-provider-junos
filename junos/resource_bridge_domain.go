@@ -236,8 +236,8 @@ func resourceBridgeDomainRead(ctx context.Context, d *schema.ResourceData, m int
 	return resourceBridgeDomainReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceBridgeDomainReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceBridgeDomainReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	bridgeDomainOptions, err := readBridgeDomain(d.Get("name").(string), d.Get("routing_instance").(string),
 		m, jnprSess)
@@ -378,8 +378,7 @@ func resourceBridgeDomainImport(d *schema.ResourceData, m interface{}) ([]*schem
 	return result, nil
 }
 
-func checkBridgeDomainExists(name string, instance string, m interface{},
-	jnprSess *NetconfObject) (bool, error) {
+func checkBridgeDomainExists(name, instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	var showConfig string
 	var err error
@@ -477,8 +476,7 @@ func setBridgeDomain(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readBridgeDomain(name string, instance string, m interface{},
-	jnprSess *NetconfObject) (bridgeDomainOptions, error) {
+func readBridgeDomain(name, instance string, m interface{}, jnprSess *NetconfObject) (bridgeDomainOptions, error) {
 	sess := m.(*Session)
 	var confRead bridgeDomainOptions
 	var showConfig string
@@ -615,8 +613,7 @@ func readBridgeDomain(name string, instance string, m interface{},
 	return confRead, nil
 }
 
-func delBridgeDomainOpts(
-	name string, instance string, vxlan []interface{}, m interface{}, jnprSess *NetconfObject) error {
+func delBridgeDomainOpts(name, instance string, vxlan []interface{}, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	delPrefix := deleteLS
@@ -653,7 +650,7 @@ func delBridgeDomainOpts(
 	return sess.configSet(configSet, jnprSess)
 }
 
-func delBridgeDomain(name string, instance string, vxlan []interface{}, m interface{}, jnprSess *NetconfObject) error {
+func delBridgeDomain(name, instance string, vxlan []interface{}, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	if instance == defaultW {

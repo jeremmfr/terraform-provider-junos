@@ -212,8 +212,8 @@ func resourceGenerateRouteRead(ctx context.Context, d *schema.ResourceData, m in
 	return resourceGenerateRouteReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceGenerateRouteReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceGenerateRouteReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	generateRouteOptions, err := readGenerateRoute(d.Get("destination").(string), d.Get("routing_instance").(string),
 		m, jnprSess)
@@ -452,8 +452,8 @@ func setGenerateRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readGenerateRoute(destination, instance string,
-	m interface{}, jnprSess *NetconfObject) (generateRouteOptions, error) {
+func readGenerateRoute(destination, instance string, m interface{}, jnprSess *NetconfObject,
+) (generateRouteOptions, error) {
 	sess := m.(*Session)
 	var confRead generateRouteOptions
 	var showConfig string
@@ -535,7 +535,7 @@ func readGenerateRoute(destination, instance string,
 	return confRead, nil
 }
 
-func delGenerateRoute(destination string, instance string, m interface{}, jnprSess *NetconfObject) error {
+func delGenerateRoute(destination, instance string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	if instance == defaultW {

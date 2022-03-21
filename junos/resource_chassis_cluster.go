@@ -246,8 +246,8 @@ func resourceChassisClusterRead(ctx context.Context, d *schema.ResourceData, m i
 	return resourceChassisClusterReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceChassisClusterReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceChassisClusterReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	clusterOptions, err := readChassisCluster(m, jnprSess)
 	mutex.Unlock()

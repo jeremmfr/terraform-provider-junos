@@ -152,8 +152,8 @@ func resourceSnmpCommunityRead(ctx context.Context, d *schema.ResourceData, m in
 	return resourceSnmpCommunityReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSnmpCommunityReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSnmpCommunityReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	snmpCommunityOptions, err := readSnmpCommunity(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()

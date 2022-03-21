@@ -247,8 +247,8 @@ func resourceGroupDualSystemRead(ctx context.Context, d *schema.ResourceData, m 
 	return resourceGroupDualSystemReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceGroupDualSystemReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceGroupDualSystemReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	groupDualSystemOpts, err := readGroupDualSystem(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()

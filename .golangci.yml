@@ -33,6 +33,9 @@ linters-settings:
   gocyclo:
     # minimal code complexity to report, 30 by default
     min-complexity: 90
+  gofumpt:
+    # Choose whether to use the extra rules.
+    extra-rules: true
   govet:
     enable-all: true
     disable:

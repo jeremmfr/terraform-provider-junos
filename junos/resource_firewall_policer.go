@@ -161,8 +161,8 @@ func resourceFirewallPolicerRead(ctx context.Context, d *schema.ResourceData, m 
 	return resourceFirewallPolicerReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceFirewallPolicerReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceFirewallPolicerReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	policerOptions, err := readFirewallPolicer(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()

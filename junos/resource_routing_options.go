@@ -223,8 +223,8 @@ func resourceRoutingOptionsRead(ctx context.Context, d *schema.ResourceData, m i
 	return resourceRoutingOptionsReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceRoutingOptionsReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceRoutingOptionsReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	routingOptionsOptions, err := readRoutingOptions(m, jnprSess)
 	mutex.Unlock()

@@ -133,8 +133,8 @@ func resourceIpsecProposalRead(ctx context.Context, d *schema.ResourceData, m in
 	return resourceIpsecProposalReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceIpsecProposalReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceIpsecProposalReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	ipsecProposalOptions, err := readIpsecProposal(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()

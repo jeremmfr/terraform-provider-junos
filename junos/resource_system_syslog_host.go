@@ -255,8 +255,8 @@ func resourceSystemSyslogHostRead(ctx context.Context, d *schema.ResourceData, m
 	return resourceSystemSyslogHostReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSystemSyslogHostReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSystemSyslogHostReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	syslogHostOptions, err := readSystemSyslogHost(d.Get("host").(string), m, jnprSess)
 	mutex.Unlock()

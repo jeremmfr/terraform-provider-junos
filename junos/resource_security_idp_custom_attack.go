@@ -815,8 +815,8 @@ func schemaSecurityIdpCustomAttackTypeSignature(chain bool) map[string]*schema.S
 	return r
 }
 
-func resourceSecurityIdpCustomAttackCreate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityIdpCustomAttackCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setSecurityIdpCustomAttack(d, m, nil); err != nil {
@@ -886,8 +886,8 @@ func resourceSecurityIdpCustomAttackRead(ctx context.Context, d *schema.Resource
 	return resourceSecurityIdpCustomAttackReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityIdpCustomAttackReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityIdpCustomAttackReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	idpCustomAttackOptions, err := readSecurityIdpCustomAttack(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -903,8 +903,8 @@ func resourceSecurityIdpCustomAttackReadWJnprSess(
 	return nil
 }
 
-func resourceSecurityIdpCustomAttackUpdate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityIdpCustomAttackUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -947,8 +947,8 @@ func resourceSecurityIdpCustomAttackUpdate(ctx context.Context,
 	return append(diagWarns, resourceSecurityIdpCustomAttackReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSecurityIdpCustomAttackDelete(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityIdpCustomAttackDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delSecurityIdpCustomAttack(d.Get("name").(string), m, nil); err != nil {
@@ -1097,8 +1097,8 @@ func setSecurityIdpCustomAttack(d *schema.ResourceData, m interface{}, jnprSess 
 	return sess.configSet(configSet, jnprSess)
 }
 
-func setSecurityIdpCustomAttackTypeAnomaly(
-	setPrefixOrigin string, attackAnomaly map[string]interface{}) []string {
+func setSecurityIdpCustomAttackTypeAnomaly(setPrefixOrigin string, attackAnomaly map[string]interface{},
+) []string {
 	configSet := make([]string, 0)
 
 	setPrefix := setPrefixOrigin + "attack-type anomaly "
@@ -1114,8 +1114,8 @@ func setSecurityIdpCustomAttackTypeAnomaly(
 	return configSet
 }
 
-func setSecurityIdpCustomAttackTypeSignature(
-	setPrefixOrigin string, attackSignature map[string]interface{}) ([]string, error) {
+func setSecurityIdpCustomAttackTypeSignature(setPrefixOrigin string, attackSignature map[string]interface{},
+) ([]string, error) {
 	configSet := make([]string, 0)
 	setPrefix := setPrefixOrigin + "attack-type signature "
 
@@ -1214,8 +1214,8 @@ func setSecurityIdpCustomAttackTypeSignature(
 	return configSet, nil
 }
 
-func setSecurityIdpCustomAttackTypeSignatureProtoICMP(
-	v6 bool, setPrefixOrigin string, protoICMP map[string]interface{}) []string {
+func setSecurityIdpCustomAttackTypeSignatureProtoICMP(v6 bool, setPrefixOrigin string, protoICMP map[string]interface{},
+) []string {
 	configSet := make([]string, 0)
 	setPrefix := setPrefixOrigin + "protocol icmp "
 	if v6 {
@@ -1261,8 +1261,8 @@ func setSecurityIdpCustomAttackTypeSignatureProtoICMP(
 	return configSet
 }
 
-func setSecurityIdpCustomAttackTypeSignatureProtoIPv4(
-	setPrefixOrigin string, protoIPv4 map[string]interface{}) []string {
+func setSecurityIdpCustomAttackTypeSignatureProtoIPv4(setPrefixOrigin string, protoIPv4 map[string]interface{},
+) []string {
 	configSet := make([]string, 0)
 	setPrefix := setPrefixOrigin + "protocol ipv4 "
 	if match := protoIPv4["checksum_validate_match"].(string); match != "" {
@@ -1326,8 +1326,8 @@ func setSecurityIdpCustomAttackTypeSignatureProtoIPv4(
 	return configSet
 }
 
-func setSecurityIdpCustomAttackTypeSignatureProtoIPv6(
-	setPrefixOrigin string, protoIPv6 map[string]interface{}) []string {
+func setSecurityIdpCustomAttackTypeSignatureProtoIPv6(setPrefixOrigin string, protoIPv6 map[string]interface{},
+) []string {
 	configSet := make([]string, 0)
 	setPrefix := setPrefixOrigin + "protocol ipv6 "
 	if match := protoIPv6["destination_match"].(string); match != "" {
@@ -1398,8 +1398,8 @@ func setSecurityIdpCustomAttackTypeSignatureProtoIPv6(
 	return configSet
 }
 
-func setSecurityIdpCustomAttackTypeSignatureProtoTCP(
-	setPrefixOrigin string, protoTCP map[string]interface{}) []string {
+func setSecurityIdpCustomAttackTypeSignatureProtoTCP(setPrefixOrigin string, protoTCP map[string]interface{},
+) []string {
 	configSet := make([]string, 0)
 	setPrefix := setPrefixOrigin + "protocol tcp "
 	if match := protoTCP["ack_number_match"].(string); match != "" {
@@ -1487,8 +1487,8 @@ func setSecurityIdpCustomAttackTypeSignatureProtoTCP(
 	return configSet
 }
 
-func setSecurityIdpCustomAttackTypeSignatureProtoUDP(
-	setPrefixOrigin string, protoUDP map[string]interface{}) []string {
+func setSecurityIdpCustomAttackTypeSignatureProtoUDP(setPrefixOrigin string, protoUDP map[string]interface{},
+) []string {
 	configSet := make([]string, 0)
 	setPrefix := setPrefixOrigin + "protocol udp "
 	if match := protoUDP["checksum_validate_match"].(string); match != "" {
@@ -1519,8 +1519,8 @@ func setSecurityIdpCustomAttackTypeSignatureProtoUDP(
 	return configSet
 }
 
-func readSecurityIdpCustomAttack(customAttack string, m interface{}, jnprSess *NetconfObject) (
-	idpCustomAttackOptions, error) {
+func readSecurityIdpCustomAttack(customAttack string, m interface{}, jnprSess *NetconfObject,
+) (idpCustomAttackOptions, error) {
 	sess := m.(*Session)
 	var confRead idpCustomAttackOptions
 	confRead.timeBindingCount = -1 // default to -1

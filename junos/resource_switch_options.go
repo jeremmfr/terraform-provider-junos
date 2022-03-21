@@ -89,8 +89,8 @@ func resourceSwitchOptionsRead(ctx context.Context, d *schema.ResourceData, m in
 	return resourceSwitchOptionsReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSwitchOptionsReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSwitchOptionsReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	switchOptionsOptions, err := readSwitchOptions(m, jnprSess)
 	mutex.Unlock()

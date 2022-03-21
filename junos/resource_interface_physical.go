@@ -571,8 +571,8 @@ func resourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData, 
 	return resourceInterfacePhysicalReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceInterfacePhysicalReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceInterfacePhysicalReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -750,8 +750,8 @@ func resourceInterfacePhysicalImport(d *schema.ResourceData, m interface{}) ([]*
 	return result, nil
 }
 
-func checkInterfacePhysicalNCEmpty(interFace string, m interface{}, jnprSess *NetconfObject) (
-	ncInt bool, emtyInt bool, errFunc error) {
+func checkInterfacePhysicalNCEmpty(interFace string, m interface{}, jnprSess *NetconfObject,
+) (ncInt, emtyInt bool, errFunc error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
@@ -1048,8 +1048,8 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	return sess.configSet(configSet, jnprSess)
 }
 
-func setInterfacePhysicalEsi(setPrefix string, esiParams []interface{},
-	m interface{}, jnprSess *NetconfObject) error {
+func setInterfacePhysicalEsi(setPrefix string, esiParams []interface{}, m interface{}, jnprSess *NetconfObject,
+) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 
@@ -1076,7 +1076,8 @@ func setInterfacePhysicalEsi(setPrefix string, esiParams []interface{},
 }
 
 func setInterfacePhysicalParentEtherOpts(
-	ethOpts map[string]interface{}, interfaceName string, m interface{}, jnprSess *NetconfObject) error {
+	ethOpts map[string]interface{}, interfaceName string, m interface{}, jnprSess *NetconfObject,
+) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	setPrefix := "set interfaces " + interfaceName + " "
@@ -1763,8 +1764,8 @@ func interfaceAggregatedLastChild(ae, interFace string, m interface{}, jnprSess 
 	return lastAE, nil
 }
 
-func interfaceAggregatedCountSearchMax(
-	newAE, oldAE, interFace string, m interface{}, jnprSess *NetconfObject) (string, error) {
+func interfaceAggregatedCountSearchMax(newAE, oldAE, interFace string, m interface{}, jnprSess *NetconfObject,
+) (string, error) {
 	sess := m.(*Session)
 	newAENum := strings.TrimPrefix(newAE, "ae")
 	newAENumInt, err := strconv.Atoi(newAENum)

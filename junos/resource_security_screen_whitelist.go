@@ -40,8 +40,8 @@ func resourceSecurityScreenWhiteList() *schema.Resource {
 	}
 }
 
-func resourceSecurityScreenWhiteListCreate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityScreenWhiteListCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setSecurityScreenWhiteList(d, m, nil); err != nil {
@@ -101,8 +101,8 @@ func resourceSecurityScreenWhiteListCreate(
 	return append(diagWarns, resourceSecurityScreenWhiteListReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSecurityScreenWhiteListRead(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityScreenWhiteListRead(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -113,8 +113,8 @@ func resourceSecurityScreenWhiteListRead(
 	return resourceSecurityScreenWhiteListReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityScreenWhiteListReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityScreenWhiteListReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	whiteListOptions, err := readSecurityScreenWhiteList(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -130,8 +130,8 @@ func resourceSecurityScreenWhiteListReadWJnprSess(
 	return nil
 }
 
-func resourceSecurityScreenWhiteListUpdate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityScreenWhiteListUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -174,8 +174,8 @@ func resourceSecurityScreenWhiteListUpdate(
 	return append(diagWarns, resourceSecurityScreenWhiteListReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSecurityScreenWhiteListDelete(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityScreenWhiteListDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delSecurityScreenWhiteList(d.Get("name").(string), m, nil); err != nil {
