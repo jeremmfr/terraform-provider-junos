@@ -1,6 +1,7 @@
 package junos_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -186,38 +187,38 @@ func TestAccJunosInterfacePhysical_basic(t *testing.T) {
 }
 
 func testAccJunosInterfacePhysicalSWConfigCreate(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_physical testacc_interface {
-  name         = "` + interFace + `"
+  name         = "%s"
   description  = "testacc_interface"
   trunk        = true
   vlan_native  = 100
   vlan_members = ["100-110"]
 }
-`
+`, interFace)
 }
 
 func testAccJunosInterfacePhysicalSWConfigUpdate(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_physical testacc_interface {
-  name         = "` + interFace + `"
+  name         = "%s"
   description  = "testacc_interfaceU"
   vlan_members = ["100"]
 }
-`
+`, interFace)
 }
 
 func testAccJunosInterfacePhysicalConfigCreate(interFace, interfaceAE, interFace2 string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_physical testacc_interface {
-  name        = "` + interFace + `"
+  name        = "%s"
   description = "testacc_interface"
   gigether_opts {
-    ae_8023ad = "` + interfaceAE + `"
+    ae_8023ad = "%s"
   }
 }
 resource junos_interface_physical testacc_interface2 {
-  name        = "` + interFace2 + `"
+  name        = "%s"
   description = "testacc_interface2"
   gigether_opts {
     flow_control     = true
@@ -229,7 +230,7 @@ resource "junos_interface_physical" "testacc_interfaceAE" {
   depends_on = [
     junos_interface_physical.testacc_interface,
   ]
-  name        = "` + interfaceAE + `"
+  name        = "%s"
   description = "testacc_interfaceAE"
   parent_ether_opts {
     flow_control = true
@@ -247,20 +248,20 @@ resource "junos_interface_physical" "testacc_interfaceAE" {
   }
   vlan_tagging = true
 }
-`
+`, interFace, interfaceAE, interFace2, interfaceAE)
 }
 
 func testAccJunosInterfacePhysicalConfigUpdate(interFace, interfaceAE, interFace2 string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_physical testacc_interface {
-  name        = "` + interFace + `"
+  name        = "%s"
   description = "testacc_interfaceU"
   gigether_opts {
-    ae_8023ad = "` + interfaceAE + `"
+    ae_8023ad = "%s"
   }
 }
 resource junos_interface_physical testacc_interface2 {
-  name        = "` + interFace2 + `"
+  name        = "%s"
   description = "testacc_interface2"
   ether_opts {
     flow_control     = true
@@ -281,7 +282,7 @@ resource "junos_interface_physical" "testacc_interfaceAE" {
     junos_interface_physical.testacc_interface,
     junos_interface_logical.testacc_interfaceLO,
   ]
-  name        = "` + interfaceAE + `"
+  name        = "%s"
   description = "testacc_interfaceAE"
   parent_ether_opts {
     bfd_liveness_detection {
@@ -304,32 +305,32 @@ resource "junos_interface_physical" "testacc_interfaceAE" {
   }
   vlan_tagging = true
 }
-`
+`, interFace, interfaceAE, interFace2, interfaceAE)
 }
 
 func testAccJunosInterfacePhysicalConfigUpdate2(interFace, interfaceAE string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_physical testacc_interface {
-  name        = "` + interFace + `"
+  name        = "%s"
   description = "testacc_interfaceU"
   ether_opts {
-    ae_8023ad = "` + interfaceAE + `"
+    ae_8023ad = "%s"
   }
 }
-`
+`, interFace, interfaceAE)
 }
 
 func testAccJunosInterfacePhysicalRouterConfigCreate(interFace, interfaceAE string) string {
-	return `
+	return fmt.Sprintf(`
 resource "junos_interface_physical" "testacc_interface" {
-  name        = "` + interFace + `"
+  name        = "%s"
   description = "testacc_interface"
   gigether_opts {
-    ae_8023ad = "` + interfaceAE + `"
+    ae_8023ad = "%s"
   }
 }
 resource "junos_interface_physical" "testacc_interfaceAE" {
-  name        = "` + interfaceAE + `"
+  name        = "%s"
   description = "testacc_interfaceAE"
   esi {
     identifier = "00:01:11:11:11:11:11:11:11:11"
@@ -341,20 +342,20 @@ resource "junos_interface_physical" "testacc_interfaceAE" {
   }
   vlan_tagging = true
 }
-`
+`, interFace, interfaceAE, interfaceAE)
 }
 
 func testAccJunosInterfacePhysicalRouterConfigUpdate(interFace, interfaceAE string) string {
-	return `
+	return fmt.Sprintf(`
 resource "junos_interface_physical" "testacc_interface" {
-  name        = "` + interFace + `"
+  name        = "%s"
   description = "testacc_interface"
   gigether_opts {
-    ae_8023ad = "` + interfaceAE + `"
+    ae_8023ad = "%s"
   }
 }
 resource "junos_interface_physical" "testacc_interfaceAE" {
-  name        = "` + interfaceAE + `"
+  name        = "%s"
   description = "testacc_interfaceAE"
   esi {
     identifier = "00:11:11:11:11:11:11:11:11:11"
@@ -362,23 +363,23 @@ resource "junos_interface_physical" "testacc_interfaceAE" {
   }
   vlan_tagging = true
 }
-`
+`, interFace, interfaceAE, interfaceAE)
 }
 
 func testAccJunosInterfacePhysicalSRXConfigCreate(interFace, interFace2 string) string {
-	return `
+	return fmt.Sprintf(`
 resource "junos_interface_physical" "testacc_interface" {
   depends_on = [
     junos_chassis_cluster.testacc_interface
   ]
-  name        = "` + interFace + `"
+  name        = "%s"
   description = "testacc_interface"
   gigether_opts {
     redundant_parent = "reth0"
   }
 }
 resource "junos_interface_physical" "testacc_interface2" {
-  name = "` + interFace2 + `"
+  name = "%s"
 }
 resource "junos_chassis_cluster" "testacc_interface" {
   fab0 {
@@ -405,5 +406,5 @@ resource "junos_interface_physical" "testacc_interface_reth" {
     minimum_links    = 1
   }
 }
-`
+`, interFace, interFace2)
 }

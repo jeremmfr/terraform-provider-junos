@@ -1,6 +1,7 @@
 package junos_test
 
 import (
+	"fmt"
 	"os"
 	"regexp"
 	"testing"
@@ -46,9 +47,9 @@ func TestAccDataSourceSecurityZone_basic(t *testing.T) {
 }
 
 func testAccDataSourceSecurityZoneConfigCreate(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_physical testacc_dataSecurityZone {
-  name         = "` + interFace + `"
+  name         = "%s"
   description  = "testacc_dataSecurityZone"
   vlan_tagging = true
 }
@@ -67,13 +68,13 @@ resource junos_interface_logical testacc_dataSecurityZone {
   security_zone             = junos_security_zone.testacc_dataSecurityZone.name
   security_inbound_services = ["ssh"]
 }
-`
+`, interFace)
 }
 
 func testAccDataSourceSecurityZoneConfigData(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_physical testacc_dataSecurityZone {
-  name         = "` + interFace + `"
+  name         = "%s"
   description  = "testacc_dataSecurityZone"
   vlan_tagging = true
 }
@@ -96,7 +97,7 @@ resource junos_interface_logical testacc_dataSecurityZone {
 data junos_security_zone testacc_dataSecurityZone {
   name = "testacc_dataSecurityZone"
 }
-`
+`, interFace)
 }
 
 func testAccDataSourceSecurityZoneConfigDataFailed() string {

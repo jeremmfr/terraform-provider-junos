@@ -69,14 +69,14 @@ func TestAccJunosCluster_basic(t *testing.T) {
 func testAccJunosClusterConfigCreate(interFace, interFace2 string) string {
 	return fmt.Sprintf(`
 resource "junos_interface_physical" "testacc_cluster_int2" {
-  name        = "` + interFace2 + `"
+  name        = "%s"
   description = "testacc_cluster_int2"
   gigether_opts {
     redundant_parent = "reth0"
   }
 }
 resource "junos_interface_physical" "testacc_cluster" {
-  name = "` + interFace + `"
+  name = "%s"
 }
 resource "junos_chassis_cluster" "testacc_cluster" {
   fab0 {
@@ -97,20 +97,20 @@ resource "junos_chassis_cluster" "testacc_cluster" {
   }
   reth_count = 2
 }
-`)
+`, interFace2, interFace)
 }
 
 func testAccJunosClusterConfigUpdate(interFace, interFace2 string) string {
 	return fmt.Sprintf(`
 resource "junos_interface_physical" "testacc_cluster_int2" {
-  name        = "` + interFace2 + `"
+  name        = "%s"
   description = "testacc_cluster_int2"
   gigether_opts {
     redundant_parent = "reth0"
   }
 }
 resource "junos_interface_physical" "testacc_cluster" {
-  name = "` + interFace + `"
+  name = "%s"
 }
 resource "junos_chassis_cluster" "testacc_cluster" {
   fab0 {
@@ -138,5 +138,5 @@ resource "junos_chassis_cluster" "testacc_cluster" {
   }
   reth_count = 3
 }
-`)
+`, interFace2, interFace)
 }

@@ -1,6 +1,7 @@
 package junos_test
 
 import (
+	"fmt"
 	"os"
 	"regexp"
 	"testing"
@@ -44,9 +45,9 @@ func TestAccDataSourceRoutingInstance_basic(t *testing.T) {
 }
 
 func testAccDataSourceRoutingInstanceConfigCreate(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_physical testacc_dataRoutingInstance {
-  name         = "` + interFace + `"
+  name         = "%s"
   description  = "testacc_dataRoutingInstance"
   vlan_tagging = true
 }
@@ -58,13 +59,13 @@ resource junos_interface_logical testacc_dataRoutingInstance {
   description      = "testacc_dataRoutingInstance"
   routing_instance = junos_routing_instance.testacc_dataRoutingInstance.name
 }
-`
+`, interFace)
 }
 
 func testAccDataSourceRoutingInstanceConfigData(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_physical testacc_dataRoutingInstance {
-  name         = "` + interFace + `"
+  name         = "%s"
   description  = "testacc_dataRoutingInstance"
   vlan_tagging = true
 }
@@ -80,7 +81,7 @@ resource junos_interface_logical testacc_dataRoutingInstance {
 data junos_routing_instance testacc_dataRoutingInstance {
   name = "testacc_dataRoutingInstance"
 }
-`
+`, interFace)
 }
 
 func testAccDataSourceRoutingInstanceConfigDataFailed() string {

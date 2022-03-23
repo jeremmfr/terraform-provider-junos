@@ -66,10 +66,10 @@ resource "junos_lldpmed_interface" "testacc_all" {
   name = "all"
 }
 resource "junos_lldpmed_interface" "testacc_interface" {
-  name = "` + interFace + `"
+  name = "%s"
   location {}
 }
-`)
+`, interFace)
 }
 
 func testAccJunosLldpMedInterfaceSWConfigUpdate(interFace string) string {
@@ -82,7 +82,7 @@ resource "junos_lldpmed_interface" "testacc_all" {
   }
 }
 resource "junos_lldpmed_interface" "testacc_interface" {
-  name = "` + interFace + `"
+  name = "%s"
   location {
     civic_based_country_code = "FR"
     civic_based_ca_type {
@@ -94,7 +94,7 @@ resource "junos_lldpmed_interface" "testacc_interface" {
     }
   }
 }
-`)
+`, interFace)
 }
 
 func testAccJunosLldpMedInterfaceConfigCreate(interFace string) string {
@@ -104,11 +104,11 @@ resource "junos_lldpmed_interface" "testacc_all" {
   disable = true
 }
 resource "junos_lldpmed_interface" "testacc_interface" {
-  name   = "` + interFace + `"
+  name   = "%s"
   enable = true
   location {}
 }
-`)
+`, interFace)
 }
 
 func testAccJunosLldpMedInterfaceConfigUpdate(interFace string) string {
@@ -121,7 +121,7 @@ resource "junos_lldpmed_interface" "testacc_all" {
   }
 }
 resource "junos_lldpmed_interface" "testacc_interface" {
-  name = "` + interFace + `"
+  name = "%s"
   location {
     civic_based_country_code = "UK"
     civic_based_ca_type {
@@ -133,7 +133,7 @@ resource "junos_lldpmed_interface" "testacc_interface" {
     }
   }
 }
-`)
+`, interFace)
 }
 
 func testAccJunosLldpMedInterfaceConfigUpdate2(interFace string) string {
@@ -145,11 +145,11 @@ resource "junos_lldpmed_interface" "testacc_all" {
   }
 }
 resource "junos_lldpmed_interface" "testacc_interface" {
-  name = "` + interFace + `"
+  name = "%s"
   location {
     co_ordinate_latitude  = 180
     co_ordinate_longitude = 180
   }
 }
-`)
+`, interFace)
 }

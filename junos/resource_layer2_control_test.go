@@ -1,6 +1,7 @@
 package junos_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -53,7 +54,7 @@ resource "junos_layer2_control" "l2c" {
 }
 
 func testAccJunosLayer2ControlConfigUpdate(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource "junos_chassis_redundancy" "l2c" {
   graceful_switchover = true
 }
@@ -67,42 +68,42 @@ resource "junos_layer2_control" "l2c" {
   bpdu_block {
     disable_timeout = 300
     interface {
-      name    = "` + interFace + `"
+      name    = "%s"
       disable = true
       drop    = true
     }
   }
   mac_rewrite_interface {
-    name           = "` + interFace + `"
+    name           = "%s"
     enable_all_ifl = true
     protocol       = ["cdp", "stp"]
   }
   nonstop_bridging = true
 }
-`
+`, interFace, interFace)
 }
 
 func testAccJunosLayer2ControlConfigUpdate2(interFace, interFace2 string) string {
-	return `
+	return fmt.Sprintf(`
 resource "junos_layer2_control" "l2c" {
   bpdu_block {
     interface {
-      name = "` + interFace2 + `"
+      name = "%s"
     }
     interface {
-      name    = "` + interFace + `"
+      name    = "%s"
       disable = true
       drop    = true
     }
   }
   mac_rewrite_interface {
-    name           = "` + interFace2 + `"
+    name           = "%s"
     enable_all_ifl = true
     protocol       = ["cdp", "stp"]
   }
   mac_rewrite_interface {
-    name = "` + interFace + `"
+    name = "%s"
   }
 }
-`
+`, interFace2, interFace, interFace2, interFace)
 }
