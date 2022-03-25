@@ -72,7 +72,7 @@ resource "junos_services_user_identification_device_identity_profile" "profile" 
     value = ["testacc_securityPolicy"]
   }
 }
-resource junos_security_policy testacc_securityPolicy {
+resource "junos_security_policy" "testacc_securityPolicy" {
   from_zone = junos_security_zone.testacc_seczonePolicy1.name
   to_zone   = junos_security_zone.testacc_seczonePolicy1.name
   policy {
@@ -88,7 +88,7 @@ resource junos_security_policy testacc_securityPolicy {
   }
 }
 
-resource junos_security_zone testacc_seczonePolicy1 {
+resource "junos_security_zone" "testacc_seczonePolicy1" {
   name = "testacc_seczonePolicy1"
   address_book {
     name    = "testacc_address1"
@@ -100,15 +100,15 @@ resource junos_security_zone testacc_seczonePolicy1 {
 
 func testAccJunosSecurityPolicyConfigUpdate() string {
 	return `
-resource junos_services_advanced_anti_malware_policy "testacc_securityPolicy" {
+resource "junos_services_advanced_anti_malware_policy" "testacc_securityPolicy" {
   name                     = "testacc_securityPolicy"
   verdict_threshold        = "recommended"
   default_notification_log = true
 }
-resource junos_security_idp_policy "testacc_securityPolicy" {
+resource "junos_security_idp_policy" "testacc_securityPolicy" {
   name = "testacc_securityPolicy"
 }
-resource junos_security_policy testacc_securityPolicy {
+resource "junos_security_policy" "testacc_securityPolicy" {
   from_zone = junos_security_zone.testacc_seczonePolicy1.name
   to_zone   = junos_security_zone.testacc_seczonePolicy1.name
   policy {
@@ -135,7 +135,7 @@ resource junos_security_policy testacc_securityPolicy {
   }
 }
 
-resource junos_security_zone testacc_seczonePolicy1 {
+resource "junos_security_zone" "testacc_seczonePolicy1" {
   name = "testacc_seczonePolicy1"
   address_book {
     name    = "testacc_address1"

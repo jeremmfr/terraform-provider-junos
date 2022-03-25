@@ -199,18 +199,18 @@ func TestAccJunosBgpGroup_basic(t *testing.T) {
 
 func testAccJunosBgpGroupConfigCreate() string {
 	return `
-resource junos_routing_options "testacc_bgpgroup" {
+resource "junos_routing_options" "testacc_bgpgroup" {
   clean_on_destroy = true
   autonomous_system {
     number = "65001"
   }
   graceful_restart {}
 }
-resource junos_routing_instance "testacc_bgpgroup" {
+resource "junos_routing_instance" "testacc_bgpgroup" {
   name = "testacc_bgpgroup"
   as   = "65000"
 }
-resource junos_policyoptions_policy_statement "testacc_bgpgroup" {
+resource "junos_policyoptions_policy_statement" "testacc_bgpgroup" {
   lifecycle {
     create_before_destroy = true
   }
@@ -219,7 +219,7 @@ resource junos_policyoptions_policy_statement "testacc_bgpgroup" {
     action = "accept"
   }
 }
-resource junos_bgp_group "testacc_bgpgroup" {
+resource "junos_bgp_group" "testacc_bgpgroup" {
   depends_on = [
     junos_routing_options.testacc_bgpgroup
   ]
@@ -308,18 +308,18 @@ resource junos_bgp_group "testacc_bgpgroup" {
 
 func testAccJunosBgpGroupConfigUpdate() string {
 	return `
-resource junos_routing_options "testacc_bgpgroup" {
+resource "junos_routing_options" "testacc_bgpgroup" {
   clean_on_destroy = true
   autonomous_system {
     number = "65001"
   }
   graceful_restart {}
 }
-resource junos_routing_instance "testacc_bgpgroup" {
+resource "junos_routing_instance" "testacc_bgpgroup" {
   name = "testacc_bgpgroup"
   as   = "65000"
 }
-resource junos_bgp_group "testacc_bgpgroup" {
+resource "junos_bgp_group" "testacc_bgpgroup" {
   depends_on = [
     junos_routing_options.testacc_bgpgroup
   ]
@@ -344,14 +344,14 @@ resource junos_bgp_group "testacc_bgpgroup" {
 
 func testAccJunosBgpGroupConfigUpdate2() string {
 	return `
-resource junos_routing_options "testacc_bgpgroup" {
+resource "junos_routing_options" "testacc_bgpgroup" {
   clean_on_destroy = true
   autonomous_system {
     number = "65001"
   }
   graceful_restart {}
 }
-resource junos_bgp_group "testacc_bgpgroup" {
+resource "junos_bgp_group" "testacc_bgpgroup" {
   depends_on = [
     junos_routing_options.testacc_bgpgroup
   ]
@@ -381,14 +381,14 @@ resource junos_bgp_group "testacc_bgpgroup" {
 
 func testAccJunosBgpGroupConfigUpdate3() string {
 	return `
-resource junos_routing_options "testacc_bgpgroup" {
+resource "junos_routing_options" "testacc_bgpgroup" {
   clean_on_destroy = true
   autonomous_system {
     number = "65001"
   }
   graceful_restart {}
 }
-resource junos_bgp_group "testacc_bgpgroup" {
+resource "junos_bgp_group" "testacc_bgpgroup" {
   depends_on = [
     junos_routing_options.testacc_bgpgroup
   ]

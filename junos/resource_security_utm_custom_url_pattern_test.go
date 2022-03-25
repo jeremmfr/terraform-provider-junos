@@ -45,7 +45,7 @@ func TestAccJunosSecurityUtmCustomURLPattern_basic(t *testing.T) {
 
 func testAccJunosSecurityUtmCustomURLPatternConfigCreate() string {
 	return `
-resource junos_security_utm_custom_url_pattern "testacc_UrlPattern" {
+resource "junos_security_utm_custom_url_pattern" "testacc_UrlPattern" {
   name  = "testacc_UrlPattern"
   value = ["*.google.com"]
 }
@@ -54,7 +54,7 @@ resource junos_security_utm_custom_url_pattern "testacc_UrlPattern" {
 
 func testAccJunosSecurityUtmCustomURLPatternConfigUpdate() string {
 	return `
-resource junos_security_utm_custom_url_pattern "testacc_UrlPattern" {
+resource "junos_security_utm_custom_url_pattern" "testacc_UrlPattern" {
   name  = "testacc_UrlPattern"
   value = ["*.google.com", "*.google.fr"]
 }

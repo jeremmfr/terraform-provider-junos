@@ -68,7 +68,7 @@ resource "junos_vstp_interface" "testacc_vstp_interface" {
 resource "junos_vstp_vlan" "testacc_vstp_interface2" {
   vlan_id = "10"
 }
-resource junos_interface_physical testacc_vstp_interface2 {
+resource "junos_interface_physical" "testacc_vstp_interface2" {
   name         = "%s"
   description  = "testacc_vstp_interface2"
   vlan_members = ["15"]
@@ -128,7 +128,7 @@ resource "junos_vstp_interface" "testacc_vstp_interface" {
 resource "junos_vstp_vlan" "testacc_vstp_interface2" {
   vlan_id = "10"
 }
-resource junos_interface_physical testacc_vstp_interface2 {
+resource "junos_interface_physical" "testacc_vstp_interface2" {
   name         = "%s"
   description  = "testacc_vstp_interface2"
   vlan_members = ["15"]

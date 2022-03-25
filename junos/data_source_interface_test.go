@@ -47,12 +47,12 @@ func TestAccDataSourceInterface_basic(t *testing.T) {
 
 func testAccDataSourceInterfaceConfigCreate(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface testacc_datainterfaceP {
+resource "junos_interface" "testacc_datainterfaceP" {
   name         = "%s"
   description  = "testacc_datainterfaceP"
   vlan_tagging = true
 }
-resource junos_interface testacc_datainterface {
+resource "junos_interface" "testacc_datainterface" {
   name        = "${junos_interface.testacc_datainterfaceP.name}.100"
   description = "testacc_datainterface"
   inet_address {
@@ -64,12 +64,12 @@ resource junos_interface testacc_datainterface {
 
 func testAccDataSourceInterfaceConfigData(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface testacc_datainterfaceP {
+resource "junos_interface" "testacc_datainterfaceP" {
   name         = "%s"
   description  = "testacc_datainterfaceP"
   vlan_tagging = true
 }
-resource junos_interface testacc_datainterface {
+resource "junos_interface" "testacc_datainterface" {
   name        = "${junos_interface.testacc_datainterfaceP.name}.100"
   description = "testacc_datainterface"
   inet_address {
@@ -77,12 +77,12 @@ resource junos_interface testacc_datainterface {
   }
 }
 
-data junos_interface testacc_datainterface {
+data "junos_interface" "testacc_datainterface" {
   config_interface = "%s"
   match            = "192.0.2.1/"
 }
 
-data junos_interface testacc_datainterface2 {
+data "junos_interface" "testacc_datainterface2" {
   match = "192.0.2.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
 }
 `, interFace, interFace)

@@ -65,7 +65,7 @@ func TestAccJunosVlan_basic(t *testing.T) {
 
 func testAccJunosVlanSwConfigCreate() string {
 	return `
-resource junos_firewall_filter "testacc_vlansw" {
+resource "junos_firewall_filter" "testacc_vlansw" {
   lifecycle {
     create_before_destroy = true
   }
@@ -78,13 +78,13 @@ resource junos_firewall_filter "testacc_vlansw" {
     }
   }
 }
-resource junos_interface_logical "testacc_vlansw" {
+resource "junos_interface_logical" "testacc_vlansw" {
   lifecycle {
     create_before_destroy = true
   }
   name = "irb.1000"
 }
-resource junos_vlan "testacc_vlansw" {
+resource "junos_vlan" "testacc_vlansw" {
   name                  = "testacc_vlansw"
   description           = "testacc_vlansw"
   vlan_id               = 1000
@@ -99,7 +99,7 @@ resource junos_vlan "testacc_vlansw" {
 
 func testAccJunosVlanSwConfigUpdate() string {
 	return `
-resource junos_vlan "testacc_vlansw" {
+resource "junos_vlan" "testacc_vlansw" {
   name         = "testacc_vlansw"
   description  = "testacc_vlansw"
   vlan_id_list = ["1001-1002"]

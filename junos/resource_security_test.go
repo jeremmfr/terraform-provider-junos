@@ -271,7 +271,7 @@ func TestAccJunosSecurity_basic(t *testing.T) {
 
 func testAccJunosSecurityConfigPreCreate() string {
 	return `
-resource junos_system "system" {
+resource "junos_system" "system" {
   tracing_dest_override_syslog_host = "192.0.2.13"
 }
 `
@@ -279,7 +279,7 @@ resource junos_system "system" {
 
 func testAccJunosSecurityConfigCreate(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface_logical "testacc_security" {
+resource "junos_interface_logical" "testacc_security" {
   lifecycle {
     create_before_destroy = true
   }
@@ -301,7 +301,7 @@ resource "junos_services_ssl_initiation_profile" "testacc_security" {
   name = "testacc_security"
 }
 
-resource junos_security "testacc_security" {
+resource "junos_security" "testacc_security" {
   alg {
     dns_disable    = true
     ftp_disable    = true
@@ -454,7 +454,7 @@ resource junos_security "testacc_security" {
 
 func testAccJunosSecurityConfigUpdate(interFace string) string {
 	return `
-resource junos_security "testacc_security" {
+resource "junos_security" "testacc_security" {
   flow {
     ethernet_switching {
       bypass_non_ip_unicast = true
@@ -520,7 +520,7 @@ resource junos_security "testacc_security" {
     }
   }
 }
-resource junos_routing_instance testacc_security {
+resource "junos_routing_instance" "testacc_security" {
   lifecycle {
     create_before_destroy = true
   }
@@ -531,7 +531,7 @@ resource junos_routing_instance testacc_security {
 
 func testAccJunosSecurityConfigUpdate2() string {
 	return `
-resource junos_security "testacc_security" {
+resource "junos_security" "testacc_security" {
   flow {
     tcp_session {
       time_wait_state {
@@ -548,7 +548,7 @@ resource junos_security "testacc_security" {
 
 func testAccJunosSecurityConfigPostCheck() string {
 	return `
-resource junos_security "testacc_security" {
+resource "junos_security" "testacc_security" {
   alg {
     dns_disable    = true
     ftp_disable    = true

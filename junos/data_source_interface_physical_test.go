@@ -39,7 +39,7 @@ func TestAccDataSourceInterfacePhysical_basic(t *testing.T) {
 
 func testAccDataSourceInterfacePhysicalConfigCreate(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface_physical testacc_datainterfaceP {
+resource "junos_interface_physical" "testacc_datainterfaceP" {
   name         = "%s"
   description  = "testacc_datainterfaceP"
   vlan_tagging = true
@@ -49,13 +49,13 @@ resource junos_interface_physical testacc_datainterfaceP {
 
 func testAccDataSourceInterfacePhysicalConfigData(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface_physical testacc_datainterfaceP {
+resource "junos_interface_physical" "testacc_datainterfaceP" {
   name         = "%s"
   description  = "testacc_datainterfaceP"
   vlan_tagging = true
 }
 
-data junos_interface_physical testacc_datainterfaceP {
+data "junos_interface_physical" "testacc_datainterfaceP" {
   config_interface = "%s"
 }
 `, interFace, interFace)

@@ -51,7 +51,7 @@ func TestAccJunosSecurityUtmPolicy_basic(t *testing.T) {
 
 func testAccJunosSecurityUtmPolicyConfigCreate() string {
 	return `
-resource junos_security_utm_policy "testacc_Policy" {
+resource "junos_security_utm_policy" "testacc_Policy" {
   name = "testacc Policy"
   anti_virus {
     http_profile = "junos-sophos-av-defaults"
@@ -66,7 +66,7 @@ resource junos_security_utm_policy "testacc_Policy" {
 
 func testAccJunosSecurityUtmPolicyConfigUpdate() string {
 	return `
-resource junos_security_utm_policy "testacc_Policy" {
+resource "junos_security_utm_policy" "testacc_Policy" {
   name                  = "testacc Policy"
   web_filtering_profile = "junos-wf-enhanced-default"
 }

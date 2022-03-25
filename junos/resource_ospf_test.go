@@ -37,13 +37,13 @@ func TestAccJunosOspf_basic(t *testing.T) {
 
 func testAccJunosOspfConfigCreate() string {
 	return `
-resource junos_policyoptions_policy_statement "testacc_ospf" {
+resource "junos_policyoptions_policy_statement" "testacc_ospf" {
   name = "testacc_ospf"
   then {
     action = "accept"
   }
 }
-resource junos_ospf "testacc_ospf" {
+resource "junos_ospf" "testacc_ospf" {
   database_protection {
     ignore_count      = 10
     ignore_time       = 600
@@ -86,21 +86,21 @@ resource junos_ospf "testacc_ospf" {
     rapid_runs              = 5
   }
 }
-resource junos_routing_instance "testacc_ospf" {
+resource "junos_routing_instance" "testacc_ospf" {
   name = "testacc_ospf"
 }
 resource "junos_rib_group" "testacc_ospf_ri" {
   name       = "testacc_ospf_ri"
   import_rib = ["${junos_routing_instance.testacc_ospf.name}.inet.0"]
 }
-resource junos_ospf "testacc_ospf_ri" {
+resource "junos_ospf" "testacc_ospf_ri" {
   routing_instance = junos_routing_instance.testacc_ospf.name
   export           = [junos_policyoptions_policy_statement.testacc_ospf.name]
   import           = [junos_policyoptions_policy_statement.testacc_ospf.name]
   domain_id        = "192.0.2.1:100"
   rib_group        = junos_rib_group.testacc_ospf_ri.name
 }
-resource junos_ospf "testacc_ospf_v3" {
+resource "junos_ospf" "testacc_ospf_v3" {
   version = "v3"
   export  = [junos_policyoptions_policy_statement.testacc_ospf.name]
   import  = [junos_policyoptions_policy_statement.testacc_ospf.name]
@@ -110,13 +110,13 @@ resource junos_ospf "testacc_ospf_v3" {
 
 func testAccJunosOspfConfigUpdate() string {
 	return `
-resource junos_policyoptions_policy_statement "testacc_ospf" {
+resource "junos_policyoptions_policy_statement" "testacc_ospf" {
   name = "testacc_ospf"
   then {
     action = "accept"
   }
 }
-resource junos_ospf "testacc_ospf" {
+resource "junos_ospf" "testacc_ospf" {
   database_protection {
     maximum_lsa = 10
   }

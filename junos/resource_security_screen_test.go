@@ -54,7 +54,7 @@ func TestAccJunosSecurityScreen_basic(t *testing.T) {
 
 func testAccJunosSecurityScreenConfigCreate() string {
 	return `
-resource junos_security_screen testacc_securityScreen {
+resource "junos_security_screen" "testacc_securityScreen" {
   name               = "testacc 1"
   alarm_without_drop = true
   description        = "desc testacc 1"
@@ -164,7 +164,7 @@ resource "junos_security_screen_whitelist" "testacc1" {
 
 func testAccJunosSecurityScreenConfigUpdate() string {
 	return `
-resource junos_security_screen testacc_securityScreen {
+resource "junos_security_screen" "testacc_securityScreen" {
   name               = "testacc 1"
   alarm_without_drop = true
   description        = "desc testacc 1"

@@ -60,7 +60,7 @@ func TestAccJunosSystemRadiusServer_basic(t *testing.T) {
 
 func testAccJunosSystemRadiusServerConfigCreate() string {
 	return `
-resource junos_system_radius_server testacc_radiusServer {
+resource "junos_system_radius_server" "testacc_radiusServer" {
   address = "192.0.2.1"
   secret  = "password"
 }
@@ -69,10 +69,10 @@ resource junos_system_radius_server testacc_radiusServer {
 
 func testAccJunosSystemRadiusServerConfigUpdate() string {
 	return `
-resource junos_routing_instance testacc_radiusServer {
+resource "junos_routing_instance" "testacc_radiusServer" {
   name = "testacc_radiusServer"
 }
-resource junos_system_radius_server testacc_radiusServer {
+resource "junos_system_radius_server" "testacc_radiusServer" {
   address                  = "192.0.2.1"
   secret                   = "password"
   preauthentication_secret = "password"

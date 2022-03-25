@@ -479,29 +479,29 @@ func TestAccJunosPolicyOptions_basic(t *testing.T) {
 
 func testAccJunosPolicyOptionsConfigCreate() string {
 	return `
-resource junos_routing_instance "testacc_policyOptions" {
+resource "junos_routing_instance" "testacc_policyOptions" {
   name = "testacc_policyOptions"
 }
-resource junos_policyoptions_as_path "testacc_policyOptions" {
+resource "junos_policyoptions_as_path" "testacc_policyOptions" {
   name = "testacc_policyOptions"
   path = "5|12|18"
 }
-resource junos_policyoptions_as_path_group "testacc_policyOptions" {
+resource "junos_policyoptions_as_path_group" "testacc_policyOptions" {
   name = "testacc_policyOptions"
   as_path {
     name = "testacc_policyOptions"
     path = "5|12|18"
   }
 }
-resource junos_policyoptions_community "testacc_policyOptions" {
+resource "junos_policyoptions_community" "testacc_policyOptions" {
   name    = "testacc_policyOptions"
   members = ["65000:100"]
 }
-resource junos_policyoptions_prefix_list "testacc_policyOptions" {
+resource "junos_policyoptions_prefix_list" "testacc_policyOptions" {
   name   = "testacc_policyOptions"
   prefix = ["192.0.2.0/25"]
 }
-resource junos_policyoptions_policy_statement "testacc_policyOptions" {
+resource "junos_policyoptions_policy_statement" "testacc_policyOptions" {
   name = "testacc_policyOptions"
   from {
     aggregate_contributor = true
@@ -660,7 +660,7 @@ resource junos_policyoptions_policy_statement "testacc_policyOptions" {
     }
   }
 }
-resource junos_policyoptions_policy_statement "testacc_policyOptions2" {
+resource "junos_policyoptions_policy_statement" "testacc_policyOptions2" {
   name = "testacc_policyOptions2"
   from {
     bgp_as_path_group = [junos_policyoptions_as_path_group.testacc_policyOptions.name]
@@ -701,7 +701,7 @@ resource junos_policyoptions_policy_statement "testacc_policyOptions2" {
     }
   }
 }
-resource junos_policyoptions_policy_statement "testacc_policyOptions3" {
+resource "junos_policyoptions_policy_statement" "testacc_policyOptions3" {
   name                              = "testacc_policyOptions3"
   add_it_to_forwarding_table_export = true
   from {
@@ -719,33 +719,33 @@ resource junos_policyoptions_policy_statement "testacc_policyOptions3" {
 
 func testAccJunosPolicyOptionsConfigUpdate() string {
 	return `
-resource junos_routing_instance "testacc_policyOptions" {
+resource "junos_routing_instance" "testacc_policyOptions" {
   name = "testacc_policyOptions"
 }
-resource junos_policyoptions_as_path "testacc_policyOptions" {
+resource "junos_policyoptions_as_path" "testacc_policyOptions" {
   name = "testacc_policyOptions"
   path = "5|15"
 }
-resource junos_policyoptions_as_path_group "testacc_policyOptions" {
+resource "junos_policyoptions_as_path_group" "testacc_policyOptions" {
   name = "testacc_policyOptions"
   as_path {
     name = "testacc_policyOptions"
     path = "5|15"
   }
 }
-resource junos_policyoptions_community "testacc_policyOptions" {
+resource "junos_policyoptions_community" "testacc_policyOptions" {
   name    = "testacc_policyOptions"
   members = ["65000:200"]
 }
-resource junos_policyoptions_prefix_list "testacc_policyOptions" {
+resource "junos_policyoptions_prefix_list" "testacc_policyOptions" {
   name   = "testacc_policyOptions"
   prefix = ["192.0.2.0/26", "192.0.2.64/26"]
 }
-resource junos_policyoptions_prefix_list "testacc_policyOptions2" {
+resource "junos_policyoptions_prefix_list" "testacc_policyOptions2" {
   name       = "testacc_policyOptions2"
   apply_path = "system radius-server <*>"
 }
-resource junos_policyoptions_policy_statement "testacc_policyOptions" {
+resource "junos_policyoptions_policy_statement" "testacc_policyOptions" {
   name = "testacc_policyOptions"
   from {
     aggregate_contributor = true
@@ -852,7 +852,7 @@ resource junos_policyoptions_policy_statement "testacc_policyOptions" {
     }
   }
 }
-resource junos_policyoptions_policy_statement "testacc_policyOptions2" {
+resource "junos_policyoptions_policy_statement" "testacc_policyOptions2" {
   name = "testacc_policyOptions2"
   from {
     bgp_as_path_group = [junos_policyoptions_as_path_group.testacc_policyOptions.name]

@@ -196,7 +196,7 @@ func TestAccJunosInterfaceLogical_basic(t *testing.T) {
 
 func testAccJunosInterfaceLogicalConfigCreate(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_firewall_filter "testacc_intlogicalInet" {
+resource "junos_firewall_filter" "testacc_intlogicalInet" {
   name   = "testacc_intlogicalInet"
   family = "inet"
   term {
@@ -206,7 +206,7 @@ resource junos_firewall_filter "testacc_intlogicalInet" {
     }
   }
 }
-resource junos_firewall_filter "testacc_intlogicalInet6" {
+resource "junos_firewall_filter" "testacc_intlogicalInet6" {
   name   = "testacc_intlogicalInet6"
   family = "inet6"
   term {
@@ -216,17 +216,17 @@ resource junos_firewall_filter "testacc_intlogicalInet6" {
     }
   }
 }
-resource junos_security_zone "testacc_interface_logical" {
+resource "junos_security_zone" "testacc_interface_logical" {
   name = "testacc_interface_logical"
 }
-resource junos_routing_instance "testacc_interface_logical" {
+resource "junos_routing_instance" "testacc_interface_logical" {
   name = "testacc_interface_logical"
 }
-resource junos_interface_physical testacc_interface_logical_phy {
+resource "junos_interface_physical" "testacc_interface_logical_phy" {
   name         = "%s"
   vlan_tagging = true
 }
-resource junos_interface_logical testacc_interface_logical {
+resource "junos_interface_logical" "testacc_interface_logical" {
   name                       = "${junos_interface_physical.testacc_interface_logical_phy.name}.100"
   description                = "testacc_interface_${junos_interface_physical.testacc_interface_logical_phy.name}.100"
   security_zone              = junos_security_zone.testacc_interface_logical.name
@@ -299,7 +299,7 @@ resource junos_interface_logical testacc_interface_logical {
 
 func testAccJunosInterfaceLogicalConfigUpdate(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_firewall_filter "testacc_intlogicalInet" {
+resource "junos_firewall_filter" "testacc_intlogicalInet" {
   name   = "testacc_intlogicalInet"
   family = "inet"
   term {
@@ -309,7 +309,7 @@ resource junos_firewall_filter "testacc_intlogicalInet" {
     }
   }
 }
-resource junos_firewall_filter "testacc_intlogicalInet6" {
+resource "junos_firewall_filter" "testacc_intlogicalInet6" {
   name   = "testacc_intlogicalInet6"
   family = "inet6"
   term {
@@ -319,17 +319,17 @@ resource junos_firewall_filter "testacc_intlogicalInet6" {
     }
   }
 }
-resource junos_security_zone "testacc_interface_logical" {
+resource "junos_security_zone" "testacc_interface_logical" {
   name = "testacc_interface"
 }
-resource junos_routing_instance "testacc_interface_logical" {
+resource "junos_routing_instance" "testacc_interface_logical" {
   name = "testacc_interface"
 }
-resource junos_interface_physical testacc_interface_logical_phy {
+resource "junos_interface_physical" "testacc_interface_logical_phy" {
   name         = "%s"
   vlan_tagging = true
 }
-resource junos_interface_logical testacc_interface_logical {
+resource "junos_interface_logical" "testacc_interface_logical" {
   lifecycle {
     create_before_destroy = true
   }
@@ -392,11 +392,11 @@ resource junos_interface_logical testacc_interface_logical {
 
 func testAccJunosInterfaceLogicalConfigUpdate2(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface_physical testacc_interface_logical_phy {
+resource "junos_interface_physical" "testacc_interface_logical_phy" {
   name         = "%s"
   vlan_tagging = true
 }
-resource junos_interface_logical testacc_interface_logical {
+resource "junos_interface_logical" "testacc_interface_logical" {
   name    = "${junos_interface_physical.testacc_interface_logical_phy.name}.100"
   vlan_id = 100
   family_inet {
@@ -415,11 +415,11 @@ resource junos_interface_logical testacc_interface_logical {
 
 func testAccJunosInterfaceLogicalConfigUpdate3(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface_physical testacc_interface_logical_phy {
+resource "junos_interface_physical" "testacc_interface_logical_phy" {
   name         = "%s"
   vlan_tagging = true
 }
-resource junos_interface_logical testacc_interface_logical {
+resource "junos_interface_logical" "testacc_interface_logical" {
   name    = "${junos_interface_physical.testacc_interface_logical_phy.name}.100"
   vlan_id = 100
   family_inet {
@@ -460,7 +460,7 @@ resource junos_interface_logical testacc_interface_logical {
     }
   }
 }
-resource junos_interface_logical testacc_interface_logical2 {
+resource "junos_interface_logical" "testacc_interface_logical2" {
   name = "${junos_interface_physical.testacc_interface_logical_phy.name}.101"
 }
 `, interFace)
@@ -468,11 +468,11 @@ resource junos_interface_logical testacc_interface_logical2 {
 
 func testAccJunosInterfaceLogicalConfigUpdate4(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface_physical testacc_interface_logical_phy {
+resource "junos_interface_physical" "testacc_interface_logical_phy" {
   name         = "%s"
   vlan_tagging = true
 }
-resource junos_interface_logical testacc_interface_logical {
+resource "junos_interface_logical" "testacc_interface_logical" {
   name    = "${junos_interface_physical.testacc_interface_logical_phy.name}.100"
   vlan_id = 100
   family_inet {
@@ -495,7 +495,7 @@ resource junos_interface_logical testacc_interface_logical {
     }
   }
 }
-resource junos_interface_logical testacc_interface_logical2 {
+resource "junos_interface_logical" "testacc_interface_logical2" {
   name = "${junos_interface_physical.testacc_interface_logical_phy.name}.101"
 }
 `, interFace)

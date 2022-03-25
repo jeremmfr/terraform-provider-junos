@@ -92,7 +92,7 @@ resource "junos_policyoptions_policy_statement" "testacc_routing_options3" {
   }
 }
 
-resource junos_routing_options "testacc_routing_options" {
+resource "junos_routing_options" "testacc_routing_options" {
   autonomous_system {
     number         = "65000"
     asdot_notation = true
@@ -146,7 +146,7 @@ resource "junos_policyoptions_policy_statement" "testacc_routing_options3" {
   }
 }
 
-resource junos_routing_options "testacc_routing_options" {
+resource "junos_routing_options" "testacc_routing_options" {
   clean_on_destroy                         = true
   forwarding_table_export_configure_singly = true
   forwarding_table {
@@ -165,7 +165,7 @@ resource junos_routing_options "testacc_routing_options" {
     junos_policyoptions_policy_statement.testacc_routing_options3.name,
   ]
 }
-resource junos_policyoptions_policy_statement "testacc_routing_options" {
+resource "junos_policyoptions_policy_statement" "testacc_routing_options" {
   name                              = "testacc_routing_options"
   add_it_to_forwarding_table_export = true
   from {

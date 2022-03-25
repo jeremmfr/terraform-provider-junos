@@ -31,16 +31,16 @@ func TestAccJunosSecurityZoneBookAddressSet_basic(t *testing.T) {
 
 func testAccJunosSecurityZoneBookAddressSetConfigCreate() string {
 	return `
-resource junos_security_zone "testacc_szone_bookaddressset" {
+resource "junos_security_zone" "testacc_szone_bookaddressset" {
   name                          = "testacc_szone_bookaddressset"
   address_book_configure_singly = true
 }
-resource junos_security_zone_book_address "testacc_szone_bookaddress_set" {
+resource "junos_security_zone_book_address" "testacc_szone_bookaddress_set" {
   name = "testacc_szone_bookaddress_set1"
   zone = junos_security_zone.testacc_szone_bookaddressset.name
   cidr = "192.0.2.0/25"
 }
-resource junos_security_zone_book_address_set "testacc_szone_bookaddress_set" {
+resource "junos_security_zone_book_address_set" "testacc_szone_bookaddress_set" {
   name = "testacc_szone_bookaddress_set"
   zone = junos_security_zone.testacc_szone_bookaddressset.name
   address = [
@@ -53,21 +53,21 @@ resource junos_security_zone_book_address_set "testacc_szone_bookaddress_set" {
 
 func testAccJunosSecurityZoneBookAddressSetConfigUpdate() string {
 	return `
-resource junos_security_zone "testacc_szone_bookaddressset" {
+resource "junos_security_zone" "testacc_szone_bookaddressset" {
   name                          = "testacc_szone_bookaddressset"
   address_book_configure_singly = true
 }
-resource junos_security_zone_book_address "testacc_szone_bookaddress_set" {
+resource "junos_security_zone_book_address" "testacc_szone_bookaddress_set" {
   name = "testacc_szone_bookaddress_set1"
   zone = junos_security_zone.testacc_szone_bookaddressset.name
   cidr = "192.0.2.0/25"
 }
-resource junos_security_zone_book_address "testacc_szone_bookaddress_set2" {
+resource "junos_security_zone_book_address" "testacc_szone_bookaddress_set2" {
   name = "testacc_szone_bookaddress_set2"
   zone = junos_security_zone.testacc_szone_bookaddressset.name
   cidr = "192.0.2.128/25"
 }
-resource junos_security_zone_book_address_set "testacc_szone_bookaddress_set" {
+resource "junos_security_zone_book_address_set" "testacc_szone_bookaddress_set" {
   name = "testacc_szone_bookaddress_set"
   zone = junos_security_zone.testacc_szone_bookaddressset.name
   address = [
@@ -75,7 +75,7 @@ resource junos_security_zone_book_address_set "testacc_szone_bookaddress_set" {
     junos_security_zone_book_address.testacc_szone_bookaddress_set2.name,
   ]
 }
-resource junos_security_zone_book_address_set "testacc_szone_bookaddress_setS2" {
+resource "junos_security_zone_book_address_set" "testacc_szone_bookaddress_setS2" {
   name = "testacc_szone_bookaddress_setS2"
   zone = junos_security_zone.testacc_szone_bookaddressset.name
   address = [

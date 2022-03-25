@@ -71,7 +71,7 @@ func TestAccJunosSecurityNatDestination_basic(t *testing.T) {
 
 func testAccJunosSecurityNatDestinationConfigCreate() string {
 	return `
-resource junos_security_nat_destination testacc_securityDNAT {
+resource "junos_security_nat_destination" "testacc_securityDNAT" {
   name        = "testacc_securityDNAT"
   description = "testacc securityDNAT"
   from {
@@ -87,24 +87,24 @@ resource junos_security_nat_destination testacc_securityDNAT {
     }
   }
 }
-resource junos_security_nat_destination_pool testacc_securityDNATPool {
+resource "junos_security_nat_destination_pool" "testacc_securityDNATPool" {
   name             = "testacc_securityDNATPool"
   description      = "testacc securityDNATPool"
   address          = "192.0.2.1/32"
   address_to       = "192.0.2.2/32"
   routing_instance = junos_routing_instance.testacc_securityDNAT.name
 }
-resource junos_security_nat_destination_pool testacc_securityDNATPool2 {
+resource "junos_security_nat_destination_pool" "testacc_securityDNATPool2" {
   name             = "testacc_securityDNATPool2"
   address          = "192.0.2.1/32"
   address_port     = 80
   routing_instance = junos_routing_instance.testacc_securityDNAT.name
 }
 
-resource junos_security_zone testacc_securityDNAT {
+resource "junos_security_zone" "testacc_securityDNAT" {
   name = "testacc_securityDNAT"
 }
-resource junos_routing_instance testacc_securityDNAT {
+resource "junos_routing_instance" "testacc_securityDNAT" {
   name = "testacc_securityDNAT"
 }
 `
@@ -112,7 +112,7 @@ resource junos_routing_instance testacc_securityDNAT {
 
 func testAccJunosSecurityNatDestinationConfigUpdate() string {
 	return `
-resource junos_security_nat_destination testacc_securityDNAT {
+resource "junos_security_nat_destination" "testacc_securityDNAT" {
   depends_on = [
     junos_security_address_book.testacc_securityDNAT
   ]
@@ -161,23 +161,23 @@ resource junos_security_nat_destination testacc_securityDNAT {
     }
   }
 }
-resource junos_security_nat_destination_pool testacc_securityDNATPool {
+resource "junos_security_nat_destination_pool" "testacc_securityDNATPool" {
   name             = "testacc_securityDNATPool"
   address          = "192.0.2.1/32"
   address_to       = "192.0.2.2/32"
   routing_instance = junos_routing_instance.testacc_securityDNAT.name
 }
-resource junos_security_nat_destination_pool testacc_securityDNATPool2 {
+resource "junos_security_nat_destination_pool" "testacc_securityDNATPool2" {
   name             = "testacc_securityDNATPool2"
   address          = "192.0.2.1/32"
   address_port     = 80
   routing_instance = junos_routing_instance.testacc_securityDNAT.name
 }
 
-resource junos_security_zone testacc_securityDNAT {
+resource "junos_security_zone" "testacc_securityDNAT" {
   name = "testacc_securityDNAT"
 }
-resource junos_routing_instance testacc_securityDNAT {
+resource "junos_routing_instance" "testacc_securityDNAT" {
   name = "testacc_securityDNAT"
 }
 resource "junos_security_address_book" "testacc_securityDNAT" {

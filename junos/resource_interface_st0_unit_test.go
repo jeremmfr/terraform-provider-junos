@@ -28,6 +28,6 @@ func TestAccJunosInterfaceSt0Unit_basic(t *testing.T) {
 
 func testAccJunosInterfaceSt0UnitConfig() string {
 	return `
-resource junos_interface_st0_unit testacc {}
+resource "junos_interface_st0_unit" "testacc" {}
 `
 }
