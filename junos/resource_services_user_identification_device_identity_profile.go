@@ -61,8 +61,8 @@ func resourceServicesUserIdentDeviceIdentityProfile() *schema.Resource {
 	}
 }
 
-func resourceServicesUserIdentDeviceIdentityProfileCreate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesUserIdentDeviceIdentityProfileCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setServicesUserIdentDeviceIdentityProfile(d, m, nil); err != nil {
@@ -122,8 +122,8 @@ func resourceServicesUserIdentDeviceIdentityProfileCreate(ctx context.Context,
 	return append(diagWarns, resourceServicesUserIdentDeviceIdentityProfileReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceServicesUserIdentDeviceIdentityProfileRead(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesUserIdentDeviceIdentityProfileRead(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -135,7 +135,8 @@ func resourceServicesUserIdentDeviceIdentityProfileRead(ctx context.Context,
 }
 
 func resourceServicesUserIdentDeviceIdentityProfileReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	svcUserIdentDevIdentProfileOptions, err := readServicesUserIdentDeviceIdentityProfile(
 		d.Get("name").(string), m, jnprSess)
@@ -152,8 +153,8 @@ func resourceServicesUserIdentDeviceIdentityProfileReadWJnprSess(
 	return nil
 }
 
-func resourceServicesUserIdentDeviceIdentityProfileUpdate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesUserIdentDeviceIdentityProfileUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -196,8 +197,8 @@ func resourceServicesUserIdentDeviceIdentityProfileUpdate(ctx context.Context,
 	return append(diagWarns, resourceServicesUserIdentDeviceIdentityProfileReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceServicesUserIdentDeviceIdentityProfileDelete(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesUserIdentDeviceIdentityProfileDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delServicesUserIdentDeviceIdentityProfile(d.Get("name").(string), m, nil); err != nil {
@@ -230,8 +231,8 @@ func resourceServicesUserIdentDeviceIdentityProfileDelete(ctx context.Context,
 	return diagWarns
 }
 
-func resourceServicesUserIdentDeviceIdentityProfileImport(
-	d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceServicesUserIdentDeviceIdentityProfileImport(d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -258,8 +259,8 @@ func resourceServicesUserIdentDeviceIdentityProfileImport(
 	return result, nil
 }
 
-func checkServicesUserIdentDeviceIdentityProfileExists(
-	profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
+func checkServicesUserIdentDeviceIdentityProfileExists(profile string, m interface{}, jnprSess *NetconfObject,
+) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
 		"services user-identification device-information end-user-profile profile-name "+profile+pipeDisplaySet, jnprSess)
@@ -296,8 +297,8 @@ func setServicesUserIdentDeviceIdentityProfile(d *schema.ResourceData, m interfa
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readServicesUserIdentDeviceIdentityProfile(profile string, m interface{}, jnprSess *NetconfObject) (
-	svcUserIdentDevIdentProfileOptions, error) {
+func readServicesUserIdentDeviceIdentityProfile(profile string, m interface{}, jnprSess *NetconfObject,
+) (svcUserIdentDevIdentProfileOptions, error) {
 	sess := m.(*Session)
 	var confRead svcUserIdentDevIdentProfileOptions
 
@@ -347,7 +348,8 @@ func delServicesUserIdentDeviceIdentityProfile(profile string, m interface{}, jn
 }
 
 func fillServicesUserIdentDeviceIdentityProfileData(
-	d *schema.ResourceData, svcUserIdentDevIdentProfileOptions svcUserIdentDevIdentProfileOptions) {
+	d *schema.ResourceData, svcUserIdentDevIdentProfileOptions svcUserIdentDevIdentProfileOptions,
+) {
 	if tfErr := d.Set("name", svcUserIdentDevIdentProfileOptions.name); tfErr != nil {
 		panic(tfErr)
 	}

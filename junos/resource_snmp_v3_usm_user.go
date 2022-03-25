@@ -188,8 +188,8 @@ func resourceSnmpV3UsmUserRead(ctx context.Context, d *schema.ResourceData, m in
 	return resourceSnmpV3UsmUserReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSnmpV3UsmUserReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSnmpV3UsmUserReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	configSrc := snmpV3UsmUserOptions{
 		name:                   d.Get("name").(string),
 		engineType:             d.Get("engine_type").(string),

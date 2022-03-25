@@ -1,6 +1,7 @@
 package junos_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -78,7 +79,7 @@ func TestAccJunosOspfArea_basic(t *testing.T) {
 }
 
 func testAccJunosOspfAreaConfigCreate(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_ospf_area "testacc_ospfarea" {
   area_id = "0.0.0.0"
   interface {
@@ -96,14 +97,14 @@ resource junos_ospf_area "testacc_ospfarea" {
   }
 }
 resource junos_interface_logical "testacc_ospfarea" {
-  name        = "` + interFace + `.0"
+  name        = "%s.0"
   description = "testacc_ospfarea"
 }
-`
+`, interFace)
 }
 
 func testAccJunosOspfAreaConfigUpdate(interFace, interFace2 string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_ospf_area "testacc_ospfarea" {
   area_id = "0.0.0.0"
   interface {
@@ -146,11 +147,11 @@ resource junos_ospf_area "testacc_ospfarea" {
   }
 }
 resource junos_interface_logical "testacc_ospfarea" {
-  name        = "` + interFace + `.0"
+  name        = "%s.0"
   description = "testacc_ospfarea"
 }
 resource junos_interface_logical "testacc_ospfarea2" {
-  name             = "` + interFace2 + `.0"
+  name             = "%s.0"
   description      = "testacc_ospfarea2"
   routing_instance = junos_routing_instance.testacc_ospfarea.name
 }
@@ -206,5 +207,5 @@ resource junos_ospf_area "testacc_ospfarea2" {
     }
   }
 }
-`
+`, interFace, interFace2)
 }

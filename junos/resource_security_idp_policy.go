@@ -348,8 +348,8 @@ func resourceSecurityIdpPolicyRead(ctx context.Context, d *schema.ResourceData, 
 	return resourceSecurityIdpPolicyReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityIdpPolicyReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityIdpPolicyReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	idpPolicyOptions, err := readSecurityIdpPolicy(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -732,8 +732,8 @@ func setSecurityIdpPolicyIpsRule(setPrefix string, rule map[string]interface{}) 
 	return configSet, nil
 }
 
-func readSecurityIdpPolicy(policy string, m interface{}, jnprSess *NetconfObject) (
-	idpPolicyOptions, error) {
+func readSecurityIdpPolicy(policy string, m interface{}, jnprSess *NetconfObject,
+) (idpPolicyOptions, error) {
 	sess := m.(*Session)
 	var confRead idpPolicyOptions
 

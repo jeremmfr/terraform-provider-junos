@@ -1,6 +1,7 @@
 package junos_test
 
 import (
+	"fmt"
 	"os"
 	"regexp"
 	"testing"
@@ -252,9 +253,9 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 }
 
 func testAccJunosSecurityIkeIpsecConfigCreate(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_logical "testacc_ikegateway" {
-  name = "` + interFace + `.0"
+  name = "%s.0"
   family_inet {
     address {
       cidr_ip = "192.0.2.4/25"
@@ -324,13 +325,13 @@ resource junos_security_ipsec_vpn "testacc_ipsecvpn" {
   establish_tunnels = "on-traffic"
   df_bit            = "clear"
 }
-`
+`, interFace)
 }
 
 func testAccJunosSecurityIkeIpsecConfigUpdate(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_logical "testacc_ikegateway" {
-  name = "` + interFace + `.0"
+  name = "%s.0"
   family_inet {
     address {
       cidr_ip = "192.0.2.4/25"
@@ -447,13 +448,13 @@ resource junos_security_policy_tunnel_pair_policy testacc_vpn-in-out {
   policy_a_to_b = junos_security_policy.testacc_policyIpsecLocToRem.policy[0].name
   policy_b_to_a = junos_security_policy.testacc_policyIpsecRemToLoc.policy[0].name
 }
-`
+`, interFace)
 }
 
 func testAccJunosSecurityIkeIpsecConfigUpdate2(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_logical "testacc_ikegateway" {
-  name = "` + interFace + `.0"
+  name = "%s.0"
   family_inet {
     address {
       cidr_ip = "192.0.2.4/25"
@@ -571,13 +572,13 @@ resource junos_security_policy_tunnel_pair_policy testacc_vpn-in-out {
   policy_a_to_b = junos_security_policy.testacc_policyIpsecLocToRem.policy[0].name
   policy_b_to_a = junos_security_policy.testacc_policyIpsecRemToLoc.policy[0].name
 }
-`
+`, interFace)
 }
 
 func testAccJunosSecurityIkeIpsecConfigUpdate3(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_logical "testacc_ikegateway" {
-  name = "` + interFace + `.0"
+  name = "%s.0"
   family_inet {
     address {
       cidr_ip = "192.0.2.4/25"
@@ -640,13 +641,13 @@ resource junos_interface_logical "testacc_ipsecvpn_bind" {
   family_inet {}
 }
 resource junos_interface_st0_unit testacc_ipsec_vpn {}
-`
+`, interFace)
 }
 
 func testAccJunosSecurityIkeIpsecConfigUpdate4(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_logical "testacc_ikegateway" {
-  name = "` + interFace + `.0"
+  name = "%s.0"
   family_inet {
     address {
       cidr_ip = "192.0.2.4/25"
@@ -674,13 +675,13 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
   policy             = junos_security_ike_policy.testacc_ikepol.name
   external_interface = junos_interface_logical.testacc_ikegateway.name
 }
-`
+`, interFace)
 }
 
 func testAccJunosSecurityIkeIpsecConfigUpdate5(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_logical "testacc_ikegateway" {
-  name = "` + interFace + `.0"
+  name = "%s.0"
   family_inet {
     address {
       cidr_ip = "192.0.2.4/25"
@@ -708,13 +709,13 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
   policy             = junos_security_ike_policy.testacc_ikepol.name
   external_interface = junos_interface_logical.testacc_ikegateway.name
 }
-`
+`, interFace)
 }
 
 func testAccJunosSecurityIkeIpsecConfigUpdate6(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_logical "testacc_ikegateway" {
-  name = "` + interFace + `.0"
+  name = "%s.0"
   family_inet {
     address {
       cidr_ip = "192.0.2.4/25"
@@ -744,13 +745,13 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
   policy             = junos_security_ike_policy.testacc_ikepol.name
   external_interface = junos_interface_logical.testacc_ikegateway.name
 }
-`
+`, interFace)
 }
 
 func testAccJunosSecurityIkeIpsecConfigUpdate7(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_logical "testacc_ikegateway" {
-  name = "` + interFace + `.0"
+  name = "%s.0"
   family_inet {
     address {
       cidr_ip = "192.0.2.4/25"
@@ -780,5 +781,5 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
   policy             = junos_security_ike_policy.testacc_ikepol.name
   external_interface = junos_interface_logical.testacc_ikegateway.name
 }
-`
+`, interFace)
 }

@@ -95,7 +95,7 @@ resource "junos_rstp_interface" "all" {
 }
 
 resource "junos_interface_physical" "testacc_rstp_interface" {
-  name         = "` + interFace + `"
+  name         = "%s"
   vlan_members = ["default"]
 }
 
@@ -120,7 +120,7 @@ resource "junos_rstp_interface" "all2" {
   mode                      = "shared"
   priority                  = 240
 }
-`)
+`, interFace)
 }
 
 func testAccJunosRstpInterfaceConfigCreate() string {

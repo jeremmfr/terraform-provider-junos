@@ -246,8 +246,8 @@ func resourceIgmpSnoopingVlanRead(ctx context.Context, d *schema.ResourceData, m
 	return resourceIgmpSnoopingVlanReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceIgmpSnoopingVlanReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceIgmpSnoopingVlanReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	igmpSnoopingVlanOptions, err := readIgmpSnoopingVlan(
 		d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)

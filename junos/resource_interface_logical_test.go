@@ -223,7 +223,7 @@ resource junos_routing_instance "testacc_interface_logical" {
   name = "testacc_interface_logical"
 }
 resource junos_interface_physical testacc_interface_logical_phy {
-  name         = "` + interFace + `"
+  name         = "%s"
   vlan_tagging = true
 }
 resource junos_interface_logical testacc_interface_logical {
@@ -294,7 +294,7 @@ resource junos_interface_logical testacc_interface_logical {
     }
   }
 }
-`)
+`, interFace)
 }
 
 func testAccJunosInterfaceLogicalConfigUpdate(interFace string) string {
@@ -326,7 +326,7 @@ resource junos_routing_instance "testacc_interface_logical" {
   name = "testacc_interface"
 }
 resource junos_interface_physical testacc_interface_logical_phy {
-  name         = "` + interFace + `"
+  name         = "%s"
   vlan_tagging = true
 }
 resource junos_interface_logical testacc_interface_logical {
@@ -387,13 +387,13 @@ resource junos_interface_logical testacc_interface_logical {
     }
   }
 }
-`)
+`, interFace)
 }
 
 func testAccJunosInterfaceLogicalConfigUpdate2(interFace string) string {
 	return fmt.Sprintf(`
 resource junos_interface_physical testacc_interface_logical_phy {
-  name         = "` + interFace + `"
+  name         = "%s"
   vlan_tagging = true
 }
 resource junos_interface_logical testacc_interface_logical {
@@ -410,13 +410,13 @@ resource junos_interface_logical testacc_interface_logical {
     }
   }
 }
-`)
+`, interFace)
 }
 
 func testAccJunosInterfaceLogicalConfigUpdate3(interFace string) string {
 	return fmt.Sprintf(`
 resource junos_interface_physical testacc_interface_logical_phy {
-  name         = "` + interFace + `"
+  name         = "%s"
   vlan_tagging = true
 }
 resource junos_interface_logical testacc_interface_logical {
@@ -463,13 +463,13 @@ resource junos_interface_logical testacc_interface_logical {
 resource junos_interface_logical testacc_interface_logical2 {
   name = "${junos_interface_physical.testacc_interface_logical_phy.name}.101"
 }
-`)
+`, interFace)
 }
 
 func testAccJunosInterfaceLogicalConfigUpdate4(interFace string) string {
 	return fmt.Sprintf(`
 resource junos_interface_physical testacc_interface_logical_phy {
-  name         = "` + interFace + `"
+  name         = "%s"
   vlan_tagging = true
 }
 resource junos_interface_logical testacc_interface_logical {
@@ -498,5 +498,5 @@ resource junos_interface_logical testacc_interface_logical {
 resource junos_interface_logical testacc_interface_logical2 {
   name = "${junos_interface_physical.testacc_interface_logical_phy.name}.101"
 }
-`)
+`, interFace)
 }

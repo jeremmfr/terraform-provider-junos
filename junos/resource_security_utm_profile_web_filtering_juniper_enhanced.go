@@ -188,8 +188,8 @@ func resourceSecurityUtmProfileWebFilteringEnhanced() *schema.Resource {
 	}
 }
 
-func resourceSecurityUtmProfileWebFilteringEnhancedCreate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityUtmProfileWebFilteringEnhancedCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setUtmProfileWebFEnhanced(d, m, nil); err != nil {
@@ -249,8 +249,8 @@ func resourceSecurityUtmProfileWebFilteringEnhancedCreate(
 	return append(diagWarns, resourceSecurityUtmProfileWebFilteringEnhancedReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSecurityUtmProfileWebFilteringEnhancedRead(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityUtmProfileWebFilteringEnhancedRead(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -262,7 +262,8 @@ func resourceSecurityUtmProfileWebFilteringEnhancedRead(
 }
 
 func resourceSecurityUtmProfileWebFilteringEnhancedReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	utmProfileWebFEnhancedOptions, err := readUtmProfileWebFEnhanced(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -278,8 +279,8 @@ func resourceSecurityUtmProfileWebFilteringEnhancedReadWJnprSess(
 	return nil
 }
 
-func resourceSecurityUtmProfileWebFilteringEnhancedUpdate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityUtmProfileWebFilteringEnhancedUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -322,8 +323,8 @@ func resourceSecurityUtmProfileWebFilteringEnhancedUpdate(
 	return append(diagWarns, resourceSecurityUtmProfileWebFilteringEnhancedReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSecurityUtmProfileWebFilteringEnhancedDelete(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityUtmProfileWebFilteringEnhancedDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delUtmProfileWebFEnhanced(d.Get("name").(string), m, nil); err != nil {
@@ -355,8 +356,8 @@ func resourceSecurityUtmProfileWebFilteringEnhancedDelete(
 	return diagWarns
 }
 
-func resourceSecurityUtmProfileWebFilteringEnhancedImport(
-	d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityUtmProfileWebFilteringEnhancedImport(d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -504,8 +505,8 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, m interface{}, jnprSess *
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *NetconfObject) (
-	utmProfileWebFilteringEnhancedOptions, error) {
+func readUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *NetconfObject,
+) (utmProfileWebFilteringEnhancedOptions, error) {
 	sess := m.(*Session)
 	var confRead utmProfileWebFilteringEnhancedOptions
 
@@ -630,8 +631,9 @@ func delUtmProfileWebFEnhanced(profile string, m interface{}, jnprSess *NetconfO
 	return sess.configSet(configSet, jnprSess)
 }
 
-func fillUtmProfileWebFEnhancedData(d *schema.ResourceData,
-	utmProfileWebFEnhancedOptions utmProfileWebFilteringEnhancedOptions) {
+func fillUtmProfileWebFEnhancedData(
+	d *schema.ResourceData, utmProfileWebFEnhancedOptions utmProfileWebFilteringEnhancedOptions,
+) {
 	if tfErr := d.Set("name", utmProfileWebFEnhancedOptions.name); tfErr != nil {
 		panic(tfErr)
 	}

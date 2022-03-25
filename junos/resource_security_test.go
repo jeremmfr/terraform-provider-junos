@@ -1,6 +1,7 @@
 package junos_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -277,12 +278,12 @@ resource junos_system "system" {
 }
 
 func testAccJunosSecurityConfigCreate(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_logical "testacc_security" {
   lifecycle {
     create_before_destroy = true
   }
-  name        = "` + interFace + `.0"
+  name        = "%s.0"
   description = "testacc_security"
 }
 resource "junos_services_proxy_profile" "testacc_security" {
@@ -448,7 +449,7 @@ resource junos_security "testacc_security" {
     }
   }
 }
-`
+`, interFace)
 }
 
 func testAccJunosSecurityConfigUpdate(interFace string) string {

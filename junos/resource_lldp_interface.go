@@ -152,8 +152,8 @@ func resourceLldpInterfaceRead(ctx context.Context, d *schema.ResourceData, m in
 	return resourceLldpInterfaceReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceLldpInterfaceReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceLldpInterfaceReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	lldpInterfaceOptions, err := readLldpInterface(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()

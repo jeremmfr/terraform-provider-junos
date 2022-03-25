@@ -449,8 +449,8 @@ func resourceAccessAddressAssignPool() *schema.Resource {
 	}
 }
 
-func resourceAccessAddressAssignPoolCreate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceAccessAddressAssignPoolCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setAccessAddressAssignPool(d, m, nil); err != nil {
@@ -534,8 +534,8 @@ func resourceAccessAddressAssignPoolRead(ctx context.Context, d *schema.Resource
 	return resourceAccessAddressAssignPoolReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceAccessAddressAssignPoolReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceAccessAddressAssignPoolReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	accessAddressAssignPoolOptions, err := readAccessAddressAssignPool(
 		d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
@@ -552,8 +552,8 @@ func resourceAccessAddressAssignPoolReadWJnprSess(
 	return nil
 }
 
-func resourceAccessAddressAssignPoolUpdate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceAccessAddressAssignPoolUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -598,8 +598,8 @@ func resourceAccessAddressAssignPoolUpdate(ctx context.Context,
 	return append(diagWarns, resourceAccessAddressAssignPoolReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceAccessAddressAssignPoolDelete(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceAccessAddressAssignPoolDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delAccessAddressAssignPool(
@@ -664,8 +664,7 @@ func resourceAccessAddressAssignPoolImport(d *schema.ResourceData, m interface{}
 	return result, nil
 }
 
-func checkAccessAddressAssignPoolExists(name string, instance string, m interface{},
-	jnprSess *NetconfObject) (bool, error) {
+func checkAccessAddressAssignPoolExists(name, instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	var showConfig string
 	var err error
@@ -870,8 +869,8 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 	return configSet, nil
 }
 
-func setAccessAddressAssignPoolFamilyDhcpAttributes(
-	dhcpAttr map[string]interface{}, familyType, setPrefix string) ([]string, error) {
+func setAccessAddressAssignPoolFamilyDhcpAttributes(dhcpAttr map[string]interface{}, familyType, setPrefix string,
+) ([]string, error) {
 	configSet := make([]string, 0)
 
 	if v := dhcpAttr["boot_file"].(string); v != "" {
@@ -1044,8 +1043,8 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(
 	return configSet, nil
 }
 
-func readAccessAddressAssignPool(name string, instance string, m interface{},
-	jnprSess *NetconfObject) (accessAddressAssignPoolOptions, error) {
+func readAccessAddressAssignPool(name, instance string, m interface{}, jnprSess *NetconfObject,
+) (accessAddressAssignPoolOptions, error) {
 	sess := m.(*Session)
 	var confRead accessAddressAssignPoolOptions
 	var showConfig string
@@ -1342,7 +1341,7 @@ func readAccessAddressAssignPoolFamily(itemTrim string, family map[string]interf
 	return nil
 }
 
-func delAccessAddressAssignPool(name string, instance string, m interface{}, jnprSess *NetconfObject) error {
+func delAccessAddressAssignPool(name, instance string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	if instance == defaultW {
@@ -1355,7 +1354,8 @@ func delAccessAddressAssignPool(name string, instance string, m interface{}, jnp
 }
 
 func fillAccessAddressAssignPoolData(
-	d *schema.ResourceData, accessAddressAssignPoolOptions accessAddressAssignPoolOptions) {
+	d *schema.ResourceData, accessAddressAssignPoolOptions accessAddressAssignPoolOptions,
+) {
 	if tfErr := d.Set("name", accessAddressAssignPoolOptions.name); tfErr != nil {
 		panic(tfErr)
 	}

@@ -120,8 +120,8 @@ func resourceSnmpV3CommunityRead(ctx context.Context, d *schema.ResourceData, m 
 	return resourceSnmpV3CommunityReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSnmpV3CommunityReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSnmpV3CommunityReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	snmpV3CommunityOptions, err := readSnmpV3Community(d.Get("community_index").(string), m, jnprSess)
 	mutex.Unlock()

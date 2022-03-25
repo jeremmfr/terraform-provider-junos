@@ -339,8 +339,8 @@ func resourceFirewallFilterRead(ctx context.Context, d *schema.ResourceData, m i
 	return resourceFirewallFilterReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceFirewallFilterReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceFirewallFilterReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	filterOptions, err := readFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
 	mutex.Unlock()
@@ -594,8 +594,8 @@ func fillFirewallFilterData(d *schema.ResourceData, filterOptions filterOptions)
 	}
 }
 
-func setFirewallFilterOptsFrom(setPrefixTermFrom string,
-	configSet []string, fromMap map[string]interface{}) ([]string, error) {
+func setFirewallFilterOptsFrom(setPrefixTermFrom string, configSet []string, fromMap map[string]interface{},
+) ([]string, error) {
 	for _, address := range sortSetOfString(fromMap["address"].(*schema.Set).List()) {
 		err := validateCIDRNetwork(address)
 		if err != nil {

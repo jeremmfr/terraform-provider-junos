@@ -265,8 +265,8 @@ func resourceSecurityPolicyRead(ctx context.Context, d *schema.ResourceData, m i
 	return resourceSecurityPolicyReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityPolicyReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityPolicyReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	policyOptions, err := readSecurityPolicy(d.Get("from_zone").(string)+idSeparator+d.Get("to_zone").(string),
 		m, jnprSess)
@@ -595,7 +595,8 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 }
 
 func readSecurityPolicyTunnelPairPolicyLines(
-	listLines *[]string, fromZone string, toZone string, m interface{}, jnprSess *NetconfObject) error {
+	listLines *[]string, fromZone, toZone string, m interface{}, jnprSess *NetconfObject,
+) error {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
 		"security policies from-zone "+fromZone+" to-zone "+toZone+pipeDisplaySet, jnprSess)
@@ -619,7 +620,7 @@ func readSecurityPolicyTunnelPairPolicyLines(
 	return nil
 }
 
-func delSecurityPolicy(fromZone string, toZone string, m interface{}, jnprSess *NetconfObject) error {
+func delSecurityPolicy(fromZone, toZone string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security policies from-zone "+fromZone+" to-zone "+toZone)
@@ -716,8 +717,8 @@ func readPolicyPermitApplicationServices(itemTrimPolicy string, applicationServi
 	}
 }
 
-func setPolicyPermitApplicationServices(setPrefixPolicy string,
-	policyPermitApplicationServices map[string]interface{}) ([]string, error) {
+func setPolicyPermitApplicationServices(setPrefixPolicy string, policyPermitApplicationServices map[string]interface{},
+) ([]string, error) {
 	configSet := make([]string, 0)
 	setPrefixPolicyPermitAppSvc := setPrefixPolicy + " then permit application-services"
 	if v := policyPermitApplicationServices["advanced_anti_malware_policy"].(string); v != "" {

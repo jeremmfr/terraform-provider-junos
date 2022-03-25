@@ -250,8 +250,8 @@ func resourceSystemLoginClassRead(ctx context.Context, d *schema.ResourceData, m
 	return resourceSystemLoginClassReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSystemLoginClassReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSystemLoginClassReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	systemLoginClassOptions, err := readSystemLoginClass(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()

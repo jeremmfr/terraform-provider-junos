@@ -262,23 +262,23 @@ func TestAccJunosInterface_basic(t *testing.T) {
 func testAccJunosInterfaceConfigCreate(interFace string) string {
 	return fmt.Sprintf(`
 resource junos_interface testacc_interface {
-  name         = "` + interFace + `"
+  name         = "%s"
   description  = "testacc_interface"
   trunk        = true
   vlan_native  = 100
   vlan_members = ["100-110"]
 }
-`)
+`, interFace)
 }
 
 func testAccJunosInterfaceConfigUpdate(interFace string) string {
 	return fmt.Sprintf(`
 resource junos_interface testacc_interface {
-  name         = "` + interFace + `"
+  name         = "%s"
   description  = "testacc_interfaceU"
   vlan_members = ["100"]
 }
-`)
+`, interFace)
 }
 
 func testAccJunosInterfacePlusConfigCreate(interFace, interfaceAE string) string {
@@ -310,9 +310,9 @@ resource junos_routing_instance "testacc_interface" {
   name = "testacc_interface"
 }
 resource junos_interface testacc_interface {
-  name         = "` + interFace + `"
+  name         = "%s"
   description  = "testacc_interface"
-  ether802_3ad = "` + interfaceAE + `"
+  ether802_3ad = "%s"
 }
 resource junos_interface testacc_interfaceAE {
   name             = junos_interface.testacc_interface.ether802_3ad
@@ -382,7 +382,7 @@ resource junos_interface testacc_interfaceAEunit {
     address = "fe80::1/64"
   }
 }
-`)
+`, interFace, interfaceAE)
 }
 
 func testAccJunosInterfacePlusConfigUpdate(interFace, interfaceAE string) string {
@@ -414,9 +414,9 @@ resource junos_routing_instance "testacc_interface" {
   name = "testacc_interface"
 }
 resource junos_interface testacc_interface {
-  name         = "` + interFace + `"
+  name         = "%s"
   description  = "testacc_interfaceU"
-  ether802_3ad = "` + interfaceAE + `"
+  ether802_3ad = "%s"
 }
 resource junos_interface testacc_interfaceAE {
   name         = junos_interface.testacc_interface.ether802_3ad
@@ -468,5 +468,5 @@ resource junos_interface testacc_interfaceAEunit {
     address = "fe80::1/64"
   }
 }
-`)
+`, interFace, interfaceAE)
 }

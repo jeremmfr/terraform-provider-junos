@@ -47,8 +47,8 @@ func resourceSystemRootAuthentication() *schema.Resource {
 	}
 }
 
-func resourceSystemRootAuthenticationCreate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSystemRootAuthenticationCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setSystemRootAuthentication(d, m, nil); err != nil {
@@ -93,8 +93,8 @@ func resourceSystemRootAuthenticationRead(ctx context.Context, d *schema.Resourc
 	return resourceSystemRootAuthenticationReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSystemRootAuthenticationReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSystemRootAuthenticationReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	systemRootAuthOptions, err := readSystemRootAuthentication(m, jnprSess)
 	mutex.Unlock()
@@ -106,8 +106,8 @@ func resourceSystemRootAuthenticationReadWJnprSess(
 	return nil
 }
 
-func resourceSystemRootAuthenticationUpdate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSystemRootAuthenticationUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -150,8 +150,8 @@ func resourceSystemRootAuthenticationUpdate(
 	return append(diagWarns, resourceSystemRootAuthenticationReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSystemRootAuthenticationDelete(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSystemRootAuthenticationDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	return nil
 }
 

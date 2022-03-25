@@ -730,8 +730,8 @@ func resourceInterfaceLogicalRead(ctx context.Context, d *schema.ResourceData, m
 	return resourceInterfaceLogicalReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceInterfaceLogicalReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceInterfaceLogicalReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -974,8 +974,8 @@ func resourceInterfaceLogicalImport(d *schema.ResourceData, m interface{}) ([]*s
 	return result, nil
 }
 
-func checkInterfaceLogicalNCEmpty(interFace string, m interface{}, jnprSess *NetconfObject) (
-	ncInt bool, emtyInt bool, justSet bool, _err error) {
+func checkInterfaceLogicalNCEmpty(interFace string, m interface{}, jnprSess *NetconfObject,
+) (ncInt, emtyInt, justSet bool, _err error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
@@ -1385,8 +1385,9 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 	return confRead, nil
 }
 
-func readInterfaceLogicalSecurityInboundTraffic(interFace string, confRead *interfaceLogicalOptions,
-	m interface{}, jnprSess *NetconfObject) error {
+func readInterfaceLogicalSecurityInboundTraffic(
+	interFace string, confRead *interfaceLogicalOptions, m interface{}, jnprSess *NetconfObject,
+) error {
 	sess := m.(*Session)
 
 	showConfig, err := sess.command(cmdShowConfig+
@@ -1468,8 +1469,8 @@ func delZoneInterfaceLogical(zone string, d *schema.ResourceData, m interface{},
 	return sess.configSet(configSet, jnprSess)
 }
 
-func delRoutingInstanceInterfaceLogical(instance string, d *schema.ResourceData,
-	m interface{}, jnprSess *NetconfObject) error {
+func delRoutingInstanceInterfaceLogical(instance string, d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, delRoutingInstances+instance+" interface "+d.Get("name").(string))
@@ -1504,8 +1505,8 @@ func fillInterfaceLogicalData(d *schema.ResourceData, interfaceLogicalOpt interf
 	}
 }
 
-func readFamilyInetAddress(item string, inetAddress []map[string]interface{},
-	family string) ([]map[string]interface{}, error) {
+func readFamilyInetAddress(item string, inetAddress []map[string]interface{}, family string,
+) ([]map[string]interface{}, error) {
 	var addressConfig []string
 	var itemTrim string
 	switch family {
@@ -1730,7 +1731,7 @@ func readFamilyInet6Dhcpv6Client(item string, dhcp map[string]interface{}) error
 	return nil
 }
 
-func setFamilyAddress(inetAddress map[string]interface{}, setPrefix string, family string) ([]string, error) {
+func setFamilyAddress(inetAddress map[string]interface{}, setPrefix, family string) ([]string, error) {
 	configSet := make([]string, 0)
 	if family != inetW && family != inet6W {
 		panic(fmt.Sprintf("setFamilyAddress() unknown family %v", family))

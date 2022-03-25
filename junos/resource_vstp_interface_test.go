@@ -61,7 +61,7 @@ func TestAccJunosVstpInterface_basic(t *testing.T) {
 }
 
 func testAccJunosVstpInterfaceSWConfigCreate(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource "junos_vstp_interface" "testacc_vstp_interface" {
   name = "all"
 }
@@ -69,7 +69,7 @@ resource "junos_vstp_vlan" "testacc_vstp_interface2" {
   vlan_id = "10"
 }
 resource junos_interface_physical testacc_vstp_interface2 {
-  name         = "` + interFace + `"
+  name         = "%s"
   description  = "testacc_vstp_interface2"
   vlan_members = ["15"]
 }
@@ -108,11 +108,11 @@ resource "junos_vstp_vlan_group" "testacc_vstp_interface6" {
   vlan             = ["13"]
 }
 resource "junos_vstp_interface" "testacc_vstp_interface6" {
-  name             = "` + interFace + `"
+  name             = "%s"
   routing_instance = junos_routing_instance.testacc_vstp_interface.name
   vlan_group       = junos_vstp_vlan_group.testacc_vstp_interface6.name
 }
-`
+`, interFace, interFace)
 }
 
 func testAccJunosVstpInterfaceSWConfigUpdate(interFace string) string {
@@ -129,7 +129,7 @@ resource "junos_vstp_vlan" "testacc_vstp_interface2" {
   vlan_id = "10"
 }
 resource junos_interface_physical testacc_vstp_interface2 {
-  name         = "` + interFace + `"
+  name         = "%s"
   description  = "testacc_vstp_interface2"
   vlan_members = ["15"]
 }
@@ -174,11 +174,11 @@ resource "junos_vstp_vlan_group" "testacc_vstp_interface6" {
   vlan             = ["13"]
 }
 resource "junos_vstp_interface" "testacc_vstp_interface6" {
-  name             = "` + interFace + `"
+  name             = "%s"
   no_root_port     = true
   priority         = 64
   routing_instance = junos_routing_instance.testacc_vstp_interface.name
   vlan_group       = junos_vstp_vlan_group.testacc_vstp_interface6.name
 }
-`)
+`, interFace, interFace)
 }

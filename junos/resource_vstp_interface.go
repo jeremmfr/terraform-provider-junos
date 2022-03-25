@@ -358,8 +358,8 @@ func resourceVstpInterfaceRead(ctx context.Context, d *schema.ResourceData, m in
 	return resourceVstpInterfaceReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceVstpInterfaceReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceVstpInterfaceReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	vstpInterfaceOptions, err := readVstpInterface(
 		d.Get("name").(string), d.Get("routing_instance").(string),

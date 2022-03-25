@@ -412,7 +412,7 @@ func resourceStaticRouteImport(d *schema.ResourceData, m interface{}) ([]*schema
 	return result, nil
 }
 
-func checkStaticRouteExists(destination string, instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
+func checkStaticRouteExists(destination, instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	var showConfig string
 	var err error
@@ -572,8 +572,7 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readStaticRoute(destination string, instance string, m interface{},
-	jnprSess *NetconfObject) (staticRouteOptions, error) {
+func readStaticRoute(destination, instance string, m interface{}, jnprSess *NetconfObject) (staticRouteOptions, error) {
 	sess := m.(*Session)
 	var confRead staticRouteOptions
 	var showConfig string
@@ -699,7 +698,7 @@ func readStaticRoute(destination string, instance string, m interface{},
 	return confRead, nil
 }
 
-func delStaticRoute(destination string, instance string, m interface{}, jnprSess *NetconfObject) error {
+func delStaticRoute(destination, instance string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	switch {

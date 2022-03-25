@@ -40,8 +40,8 @@ func resourceSecurityUtmCustomURLCategory() *schema.Resource {
 	}
 }
 
-func resourceSecurityUtmCustomURLCategoryCreate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityUtmCustomURLCategoryCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setUtmCustomURLCategory(d, m, nil); err != nil {
@@ -101,8 +101,8 @@ func resourceSecurityUtmCustomURLCategoryCreate(
 	return append(diagWarns, resourceSecurityUtmCustomURLCategoryReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSecurityUtmCustomURLCategoryRead(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityUtmCustomURLCategoryRead(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -113,8 +113,8 @@ func resourceSecurityUtmCustomURLCategoryRead(
 	return resourceSecurityUtmCustomURLCategoryReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityUtmCustomURLCategoryReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityUtmCustomURLCategoryReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	utmCustomURLCategoryOptions, err := readUtmCustomURLCategory(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -130,8 +130,8 @@ func resourceSecurityUtmCustomURLCategoryReadWJnprSess(
 	return nil
 }
 
-func resourceSecurityUtmCustomURLCategoryUpdate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityUtmCustomURLCategoryUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -174,8 +174,8 @@ func resourceSecurityUtmCustomURLCategoryUpdate(
 	return append(diagWarns, resourceSecurityUtmCustomURLCategoryReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSecurityUtmCustomURLCategoryDelete(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityUtmCustomURLCategoryDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delUtmCustomURLCategory(d.Get("name").(string), m, nil); err != nil {
@@ -260,8 +260,8 @@ func setUtmCustomURLCategory(d *schema.ResourceData, m interface{}, jnprSess *Ne
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readUtmCustomURLCategory(urlCategory string, m interface{}, jnprSess *NetconfObject) (
-	utmCustomURLCategoryOptions, error) {
+func readUtmCustomURLCategory(urlCategory string, m interface{}, jnprSess *NetconfObject,
+) (utmCustomURLCategoryOptions, error) {
 	sess := m.(*Session)
 	var confRead utmCustomURLCategoryOptions
 

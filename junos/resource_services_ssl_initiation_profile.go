@@ -100,8 +100,8 @@ func resourceServicesSSLInitiationProfile() *schema.Resource {
 	}
 }
 
-func resourceServicesSSLInitiationProfileCreate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesSSLInitiationProfileCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setServicesSSLInitiationProfile(d, m, nil); err != nil {
@@ -159,8 +159,8 @@ func resourceServicesSSLInitiationProfileCreate(ctx context.Context,
 	return append(diagWarns, resourceServicesSSLInitiationProfileReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceServicesSSLInitiationProfileRead(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesSSLInitiationProfileRead(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -171,8 +171,8 @@ func resourceServicesSSLInitiationProfileRead(ctx context.Context,
 	return resourceServicesSSLInitiationProfileReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceServicesSSLInitiationProfileReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceServicesSSLInitiationProfileReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	svcSSLInitiationProfileOptions, err := readServicesSSLInitiationProfile(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -188,8 +188,8 @@ func resourceServicesSSLInitiationProfileReadWJnprSess(
 	return nil
 }
 
-func resourceServicesSSLInitiationProfileUpdate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesSSLInitiationProfileUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -232,8 +232,8 @@ func resourceServicesSSLInitiationProfileUpdate(ctx context.Context,
 	return append(diagWarns, resourceServicesSSLInitiationProfileReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceServicesSSLInitiationProfileDelete(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesSSLInitiationProfileDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delServicesSSLInitiationProfile(d.Get("name").(string), m, nil); err != nil {
@@ -265,8 +265,8 @@ func resourceServicesSSLInitiationProfileDelete(ctx context.Context,
 	return diagWarns
 }
 
-func resourceServicesSSLInitiationProfileImport(
-	d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceServicesSSLInitiationProfileImport(d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -292,8 +292,8 @@ func resourceServicesSSLInitiationProfileImport(
 	return result, nil
 }
 
-func checkServicesSSLInitiationProfileExists(
-	profile string, m interface{}, jnprSess *NetconfObject) (bool, error) {
+func checkServicesSSLInitiationProfileExists(profile string, m interface{}, jnprSess *NetconfObject,
+) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
 		"services ssl initiation profile \""+profile+"\""+pipeDisplaySet, jnprSess)
@@ -356,8 +356,8 @@ func setServicesSSLInitiationProfile(d *schema.ResourceData, m interface{}, jnpr
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readServicesSSLInitiationProfile(profile string, m interface{}, jnprSess *NetconfObject) (
-	svcSSLInitiationProfileOptions, error) {
+func readServicesSSLInitiationProfile(profile string, m interface{}, jnprSess *NetconfObject,
+) (svcSSLInitiationProfileOptions, error) {
 	sess := m.(*Session)
 	var confRead svcSSLInitiationProfileOptions
 
@@ -428,7 +428,8 @@ func delServicesSSLInitiationProfile(profile string, m interface{}, jnprSess *Ne
 }
 
 func fillServicesSSLInitiationProfileData(
-	d *schema.ResourceData, svcSSLInitiationProfileOptions svcSSLInitiationProfileOptions) {
+	d *schema.ResourceData, svcSSLInitiationProfileOptions svcSSLInitiationProfileOptions,
+) {
 	if tfErr := d.Set("name", svcSSLInitiationProfileOptions.name); tfErr != nil {
 		panic(tfErr)
 	}

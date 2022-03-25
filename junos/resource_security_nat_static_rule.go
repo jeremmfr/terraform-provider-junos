@@ -122,8 +122,8 @@ func resourceSecurityNatStaticRule() *schema.Resource {
 	}
 }
 
-func resourceSecurityNatStaticRuleCreate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityNatStaticRuleCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setSecurityNatStaticRule(d, m, nil); err != nil {
@@ -210,8 +210,8 @@ func resourceSecurityNatStaticRuleRead(ctx context.Context, d *schema.ResourceDa
 	return resourceSecurityNatStaticRuleReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityNatStaticRuleReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityNatStaticRuleReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	natStaticRuleOptions, err := readSecurityNatStaticRule(d.Get("rule_set").(string), d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -227,8 +227,8 @@ func resourceSecurityNatStaticRuleReadWJnprSess(
 	return nil
 }
 
-func resourceSecurityNatStaticRuleUpdate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityNatStaticRuleUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -271,8 +271,8 @@ func resourceSecurityNatStaticRuleUpdate(ctx context.Context,
 	return append(diagWarns, resourceSecurityNatStaticRuleReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSecurityNatStaticRuleDelete(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityNatStaticRuleDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delSecurityNatStaticRule(d.Get("rule_set").(string), d.Get("name").(string), m, nil); err != nil {
@@ -435,8 +435,8 @@ func setSecurityNatStaticRule(d *schema.ResourceData, m interface{}, jnprSess *N
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSecurityNatStaticRule(ruleSet, name string,
-	m interface{}, jnprSess *NetconfObject) (natStaticRuleOptions, error) {
+func readSecurityNatStaticRule(ruleSet, name string, m interface{}, jnprSess *NetconfObject,
+) (natStaticRuleOptions, error) {
 	sess := m.(*Session)
 	var confRead natStaticRuleOptions
 

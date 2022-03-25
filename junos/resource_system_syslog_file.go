@@ -299,8 +299,8 @@ func resourceSystemSyslogFileRead(ctx context.Context, d *schema.ResourceData, m
 	return resourceSystemSyslogFileReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSystemSyslogFileReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSystemSyslogFileReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	syslogFileOptions, err := readSystemSyslogFile(d.Get("filename").(string), m, jnprSess)
 	mutex.Unlock()

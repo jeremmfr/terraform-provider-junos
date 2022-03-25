@@ -245,8 +245,8 @@ func resourceSecurityAddressBookRead(ctx context.Context, d *schema.ResourceData
 	return resourceSecurityAddressBookReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityAddressBookReadWJnprSess(d *schema.ResourceData, m interface{},
-	jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityAddressBookReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	addressOptions, err := readSecurityAddressBook(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -594,8 +594,8 @@ func fillSecurityAddressBookData(d *schema.ResourceData, addressOptions addressB
 	}
 }
 
-func copySecurityAddressBookAddressDescriptions(descMap map[string]string,
-	addrList []map[string]interface{}) (newList []map[string]interface{}) {
+func copySecurityAddressBookAddressDescriptions(descMap map[string]string, addrList []map[string]interface{},
+) (newList []map[string]interface{}) {
 	for _, ele := range addrList {
 		ele["description"] = descMap[ele["name"].(string)]
 		newList = append(newList, ele)

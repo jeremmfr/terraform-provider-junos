@@ -105,8 +105,8 @@ func resourceApplicationSetRead(ctx context.Context, d *schema.ResourceData, m i
 	return resourceApplicationSetReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceApplicationSetReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceApplicationSetReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	applicationSetOptions, err := readApplicationSet(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()

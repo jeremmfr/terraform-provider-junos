@@ -66,12 +66,12 @@ resource "junos_igmp_snooping_vlan" "vlan10" {
   name            = "vlan10"
   immediate_leave = true
   interface {
-    name                = "` + interFace + `.1"
+    name                = "%s.1"
     host_only_interface = true
   }
   proxy = true
 }
-`)
+`, interFace)
 }
 
 func testAccJunosIgmpSnoopingVlanSWConfigUpdate(interFace string) string {
@@ -83,7 +83,7 @@ resource "junos_igmp_snooping_vlan" "vlan10" {
     name = "ge-0/0/3.1"
   }
   interface {
-    name                       = "` + interFace + `.0"
+    name                       = "%s.0"
     group_limit                = 32
     immediate_leave            = true
     multicast_router_interface = true
@@ -103,7 +103,7 @@ resource "junos_igmp_snooping_vlan" "vlan10" {
   query_response_interval    = "31.0"
   robust_count               = 5
 }
-`)
+`, interFace)
 }
 
 func testAccJunosIgmpSnoopingVlanConfigCreate(interFace string) string {
@@ -120,12 +120,12 @@ resource "junos_igmp_snooping_vlan" "vlan10" {
   routing_instance = junos_routing_instance.testacc_igmp_snooping_vlan.name
   immediate_leave  = true
   interface {
-    name                = "` + interFace + `.1"
+    name                = "%s.1"
     host_only_interface = true
   }
   proxy = true
 }
-`)
+`, interFace)
 }
 
 func testAccJunosIgmpSnoopingVlanConfigUpdate(interFace string) string {
@@ -142,7 +142,7 @@ resource "junos_igmp_snooping_vlan" "vlan10" {
     name = "ge-0/0/3.1"
   }
   interface {
-    name                       = "` + interFace + `.0"
+    name                       = "%s.0"
     group_limit                = 32
     immediate_leave            = true
     multicast_router_interface = true
@@ -161,5 +161,5 @@ resource "junos_igmp_snooping_vlan" "vlan10" {
   query_response_interval    = "31.0"
   robust_count               = 5
 }
-`)
+`, interFace)
 }

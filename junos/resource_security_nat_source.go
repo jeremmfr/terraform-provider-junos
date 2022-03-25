@@ -235,8 +235,8 @@ func resourceSecurityNatSourceRead(ctx context.Context, d *schema.ResourceData, 
 	return resourceSecurityNatSourceReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityNatSourceReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityNatSourceReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	natSourceOptions, err := readSecurityNatSource(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()

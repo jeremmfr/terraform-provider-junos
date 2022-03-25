@@ -112,8 +112,8 @@ func resourceSnmpViewRead(ctx context.Context, d *schema.ResourceData, m interfa
 	return resourceSnmpViewReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSnmpViewReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSnmpViewReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	snmpViewOptions, err := readSnmpView(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()

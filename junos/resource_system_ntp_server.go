@@ -125,8 +125,8 @@ func resourceSystemNtpServerRead(ctx context.Context, d *schema.ResourceData, m 
 	return resourceSystemNtpServerReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSystemNtpServerReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSystemNtpServerReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	ntpServerOptions, err := readSystemNtpServer(d.Get("address").(string), m, jnprSess)
 	mutex.Unlock()

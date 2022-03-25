@@ -406,8 +406,8 @@ func schemaPolicyoptionsPolicyStatementTo() map[string]*schema.Schema {
 	}
 }
 
-func resourcePolicyoptionsPolicyStatementCreate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourcePolicyoptionsPolicyStatementCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setPolicyStatement(d, m, nil); err != nil {
@@ -475,8 +475,8 @@ func resourcePolicyoptionsPolicyStatementCreate(
 	return append(diagWarns, resourcePolicyoptionsPolicyStatementReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourcePolicyoptionsPolicyStatementRead(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourcePolicyoptionsPolicyStatementRead(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -487,8 +487,8 @@ func resourcePolicyoptionsPolicyStatementRead(
 	return resourcePolicyoptionsPolicyStatementReadWJnprSess(d, m, jnprSess)
 }
 
-func resourcePolicyoptionsPolicyStatementReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourcePolicyoptionsPolicyStatementReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	policyStatementOptions, err := readPolicyStatement(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -520,8 +520,8 @@ func resourcePolicyoptionsPolicyStatementReadWJnprSess(
 	return nil
 }
 
-func resourcePolicyoptionsPolicyStatementUpdate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourcePolicyoptionsPolicyStatementUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -592,8 +592,8 @@ func resourcePolicyoptionsPolicyStatementUpdate(
 	return append(diagWarns, resourcePolicyoptionsPolicyStatementReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourcePolicyoptionsPolicyStatementDelete(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourcePolicyoptionsPolicyStatementDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delPolicyStatement(d.Get("name").(string), m, nil); err != nil {
@@ -833,8 +833,8 @@ func readPolicyStatement(name string, m interface{}, jnprSess *NetconfObject) (p
 	return confRead, nil
 }
 
-func readPolicyStatementFwTableExport(policyName string,
-	m interface{}, jnprSess *NetconfObject) (bool, error) {
+func readPolicyStatementFwTableExport(policyName string, m interface{}, jnprSess *NetconfObject,
+) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
 		"routing-options forwarding-table export"+pipeDisplaySetRelative, jnprSess)

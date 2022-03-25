@@ -549,8 +549,8 @@ func dataSourceInterfaceLogicalRead(ctx context.Context, d *schema.ResourceData,
 	return nil
 }
 
-func searchInterfaceLogicalID(configInterface string, match string,
-	m interface{}, jnprSess *NetconfObject) (string, error) {
+func searchInterfaceLogicalID(configInterface, match string, m interface{}, jnprSess *NetconfObject,
+) (string, error) {
 	sess := m.(*Session)
 	intConfigList := make([]string, 0)
 	showConfig, err := sess.command(cmdShowConfig+"interfaces "+configInterface+pipeDisplaySet, jnprSess)

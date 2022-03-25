@@ -1,6 +1,7 @@
 package junos_test
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -135,61 +136,61 @@ func TestAccDataSourceInterfacesPhysicalPresent_basic(t *testing.T) {
 }
 
 func testAccDataSourceInterfacesPhysicalPresentPreSwitch(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_physical testacc_dataIfacesPhysPresent {
-  name        = "` + interFace + `"
+  name        = "%s"
   description = "testacc_dataIfacesPhysPresent"
 }
 resource junos_interface_logical testacc_dataIfacesPhysPresent {
   name        = "${junos_interface_physical.testacc_dataIfacesPhysPresent.name}.0"
   description = "testacc_dataIfacesPhysPresent"
 }
-`
+`, interFace)
 }
 
 func testAccDataSourceInterfacesPhysicalPresentConfig(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_physical testacc_dataIfacesPhysPresent {
-  name        = "` + interFace + `"
+  name        = "%s"
   description = "testacc_dataIfacesPhysPresent"
 }
 data junos_interfaces_physical_present testacc_dataIfacesPhysPresent {
 }
-`
+`, interFace)
 }
 
 func testAccDataSourceInterfacesPhysicalPresentConfigMatch(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_physical testacc_dataIfacesPhysPresent {
-  name        = "` + interFace + `"
+  name        = "%s"
   description = "testacc_dataIfacesPhysPresent"
 }
 data junos_interfaces_physical_present testacc_dataIfacesPhysPresentEth {
-  match_name = "^` + strings.Split(interFace, `-`)[0] + `-.*$"
+  match_name = "^%s-.*$"
 }
 data junos_interfaces_physical_present testacc_dataIfacesPhysPresentEth003 {
-  match_name = "^` + interFace + `$"
+  match_name = "^%s$"
 }
 data junos_interfaces_physical_present testacc_dataIfacesPhysPresentEth003AdmUp {
-  match_name     = "^` + interFace + `$"
+  match_name     = "^%s$"
   match_admin_up = true
 }
 data junos_interfaces_physical_present testacc_dataIfacesPhysPresentEth003OperUp {
-  match_name    = "^` + interFace + `$"
+  match_name    = "^%s$"
   match_oper_up = true
 }
 data junos_interfaces_physical_present testacc_dataIfacesPhysPresentLo0 {
   match_name    = "^lo0$"
   match_oper_up = true
 }
-`
+`, interFace, strings.Split(interFace, `-`)[0], interFace, interFace, interFace)
 }
 
 func testAccDataSourceInterfacesPhysicalPresentConfigMatch2(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 data junos_interfaces_physical_present testacc_dataIfacesPhysPresentEth003AdmUp {
-  match_name     = "^` + interFace + `$"
+  match_name     = "^%s$"
   match_admin_up = true
 }
-`
+`, interFace)
 }

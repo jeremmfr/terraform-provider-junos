@@ -132,8 +132,8 @@ func resourceChassisRedundancyRead(ctx context.Context, d *schema.ResourceData, 
 	return resourceChassisRedundancyReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceChassisRedundancyReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceChassisRedundancyReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	redundancyOptions, err := readChassisRedundancy(m, jnprSess)
 	mutex.Unlock()

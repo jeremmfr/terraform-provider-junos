@@ -104,8 +104,8 @@ func resourceSnmpClientlistRead(ctx context.Context, d *schema.ResourceData, m i
 	return resourceSnmpClientlistReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSnmpClientlistReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSnmpClientlistReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	snmpClientlistOptions, err := readSnmpClientlist(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()

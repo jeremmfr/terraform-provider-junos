@@ -92,8 +92,8 @@ func resourceSecurityDynamicAddressFeedServer() *schema.Resource {
 	}
 }
 
-func resourceSecurityDynamicAddressFeedServerCreate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityDynamicAddressFeedServerCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setSecurityDynamicAddressFeedServer(d, m, nil); err != nil {
@@ -155,8 +155,8 @@ func resourceSecurityDynamicAddressFeedServerCreate(ctx context.Context,
 	return append(diagWarns, resourceSecurityDynamicAddressFeedServerReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSecurityDynamicAddressFeedServerRead(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityDynamicAddressFeedServerRead(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -168,7 +168,8 @@ func resourceSecurityDynamicAddressFeedServerRead(ctx context.Context,
 }
 
 func resourceSecurityDynamicAddressFeedServerReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	dynamicAddressFeedServerOptions, err := readSecurityDynamicAddressFeedServer(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -184,8 +185,8 @@ func resourceSecurityDynamicAddressFeedServerReadWJnprSess(
 	return nil
 }
 
-func resourceSecurityDynamicAddressFeedServerUpdate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityDynamicAddressFeedServerUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -228,8 +229,8 @@ func resourceSecurityDynamicAddressFeedServerUpdate(ctx context.Context,
 	return append(diagWarns, resourceSecurityDynamicAddressFeedServerReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSecurityDynamicAddressFeedServerDelete(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityDynamicAddressFeedServerDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delSecurityDynamicAddressFeedServer(d.Get("name").(string), m, nil); err != nil {
@@ -261,8 +262,8 @@ func resourceSecurityDynamicAddressFeedServerDelete(ctx context.Context,
 	return diagWarns
 }
 
-func resourceSecurityDynamicAddressFeedServerImport(
-	d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityDynamicAddressFeedServerImport(d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -342,8 +343,8 @@ func setSecurityDynamicAddressFeedServer(d *schema.ResourceData, m interface{}, 
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSecurityDynamicAddressFeedServer(
-	name string, m interface{}, jnprSess *NetconfObject) (dynamicAddressFeedServerOptions, error) {
+func readSecurityDynamicAddressFeedServer(name string, m interface{}, jnprSess *NetconfObject,
+) (dynamicAddressFeedServerOptions, error) {
 	sess := m.(*Session)
 	var confRead dynamicAddressFeedServerOptions
 	// default -1
@@ -426,7 +427,8 @@ func delSecurityDynamicAddressFeedServer(name string, m interface{}, jnprSess *N
 }
 
 func fillSecurityDynamicAddressFeedServerData(
-	d *schema.ResourceData, dynamicAddressFeedServerOptions dynamicAddressFeedServerOptions) {
+	d *schema.ResourceData, dynamicAddressFeedServerOptions dynamicAddressFeedServerOptions,
+) {
 	if tfErr := d.Set("name", dynamicAddressFeedServerOptions.name); tfErr != nil {
 		panic(tfErr)
 	}

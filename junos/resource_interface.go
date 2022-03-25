@@ -848,8 +848,7 @@ func resourceInterfaceImport(d *schema.ResourceData, m interface{}) ([]*schema.R
 	return result, nil
 }
 
-func checkInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) (
-	ncInt bool, emtyInt bool, errFunc error) {
+func checkInterfaceNC(interFace string, m interface{}, jnprSess *NetconfObject) (ncInt, emtyInt bool, errFunc error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
@@ -1464,8 +1463,8 @@ func delZoneInterface(zone string, d *schema.ResourceData, m interface{}, jnprSe
 	return sess.configSet(configSet, jnprSess)
 }
 
-func delRoutingInstanceInterface(instance string, d *schema.ResourceData,
-	m interface{}, jnprSess *NetconfObject) error {
+func delRoutingInstanceInterface(instance string, d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, delRoutingInstances+instance+" interface "+d.Get("name").(string))
@@ -1548,8 +1547,8 @@ func fillInterfaceData(d *schema.ResourceData, interfaceOpt interfaceOptions) {
 	}
 }
 
-func readFamilyInetAddressOld(item string, inetAddress []map[string]interface{},
-	family string) ([]map[string]interface{}, error) {
+func readFamilyInetAddressOld(item string, inetAddress []map[string]interface{}, family string,
+) ([]map[string]interface{}, error) {
 	var addressConfig []string
 	var itemTrim string
 	switch family {
@@ -1657,8 +1656,8 @@ func readFamilyInetAddressOld(item string, inetAddress []map[string]interface{},
 	return inetAddress, nil
 }
 
-func setFamilyAddressOld(inetAddress interface{}, intCut []string, configSet []string, setName string,
-	family string) ([]string, error) {
+func setFamilyAddressOld(inetAddress interface{}, intCut, configSet []string, setName, family string,
+) ([]string, error) {
 	if family != inetW && family != inet6W {
 		return configSet, fmt.Errorf("setFamilyAddressOld() unknown family %v", family)
 	}

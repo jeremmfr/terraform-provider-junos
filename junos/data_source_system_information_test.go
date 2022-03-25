@@ -28,5 +28,5 @@ func TestAccDataSourceSystemInformation_basic(t *testing.T) {
 func testAccSystemInformationConfig() string {
 	return `
 data "junos_system_information" "test" {}
-	`
+`
 }

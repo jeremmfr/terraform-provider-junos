@@ -192,8 +192,8 @@ func resourceSecurityLogStreamRead(ctx context.Context, d *schema.ResourceData, 
 	return resourceSecurityLogStreamReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityLogStreamReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityLogStreamReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	securityLogStreamOptions, err := readSecurityLogStream(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -375,8 +375,8 @@ func setSecurityLogStream(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSecurityLogStream(securityLogStream string, m interface{}, jnprSess *NetconfObject) (
-	securityLogStreamOptions, error) {
+func readSecurityLogStream(securityLogStream string, m interface{}, jnprSess *NetconfObject,
+) (securityLogStreamOptions, error) {
 	sess := m.(*Session)
 	var confRead securityLogStreamOptions
 

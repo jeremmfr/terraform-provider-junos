@@ -304,8 +304,8 @@ func resourceSecurityZoneRead(ctx context.Context, d *schema.ResourceData, m int
 	return resourceSecurityZoneReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityZoneReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityZoneReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	zoneOptions, err := readSecurityZone(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()

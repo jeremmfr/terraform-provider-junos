@@ -1,6 +1,7 @@
 package junos_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -45,9 +46,9 @@ func TestAccDataSourceInterfaceLogical_basic(t *testing.T) {
 }
 
 func testAccDataSourceInterfaceLogicalConfigCreate(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_physical testacc_datainterfaceP {
-  name         = "` + interFace + `"
+  name         = "%s"
   description  = "testacc_datainterfaceP"
   vlan_tagging = true
 }
@@ -65,13 +66,13 @@ resource junos_interface_logical testacc_datainterfaceL {
     }
   }
 }
-`
+`, interFace)
 }
 
 func testAccDataSourceInterfaceLogicalConfigData(interFace string) string {
-	return `
+	return fmt.Sprintf(`
 resource junos_interface_physical testacc_datainterfaceP {
-  name         = "` + interFace + `"
+  name         = "%s"
   description  = "testacc_datainterfaceP"
   vlan_tagging = true
 }
@@ -86,12 +87,12 @@ resource junos_interface_logical testacc_datainterfaceL {
 }
 
 data junos_interface_logical testacc_datainterfaceL {
-  config_interface = "` + interFace + `"
+  config_interface = "%s"
   match            = "192.0.2.1/"
 }
 
 data junos_interface_logical testacc_datainterfaceL2 {
   match = "192.0.2.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
 }
-`
+`, interFace, interFace)
 }

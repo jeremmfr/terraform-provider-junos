@@ -59,8 +59,8 @@ func resourceSecurityZoneBookAddressSet() *schema.Resource {
 	}
 }
 
-func resourceSecurityZoneBookAddressSetCreate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityZoneBookAddressSetCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setSecurityZoneBookAddressSet(d, m, nil); err != nil {
@@ -136,8 +136,8 @@ func resourceSecurityZoneBookAddressSetCreate(ctx context.Context,
 	return append(diagWarns, resourceSecurityZoneBookAddressSetReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSecurityZoneBookAddressSetRead(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityZoneBookAddressSetRead(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -148,8 +148,8 @@ func resourceSecurityZoneBookAddressSetRead(ctx context.Context,
 	return resourceSecurityZoneBookAddressSetReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityZoneBookAddressSetReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityZoneBookAddressSetReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	zoneBookAddressSetOptions, err := readSecurityZoneBookAddressSet(
 		d.Get("zone").(string), d.Get("name").(string), m, jnprSess)
@@ -166,8 +166,8 @@ func resourceSecurityZoneBookAddressSetReadWJnprSess(
 	return nil
 }
 
-func resourceSecurityZoneBookAddressSetUpdate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityZoneBookAddressSetUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -210,8 +210,8 @@ func resourceSecurityZoneBookAddressSetUpdate(ctx context.Context,
 	return append(diagWarns, resourceSecurityZoneBookAddressSetReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSecurityZoneBookAddressSetDelete(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityZoneBookAddressSetDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delSecurityZoneBookAddressSet(d.Get("zone").(string), d.Get("name").(string), m, nil); err != nil {
@@ -274,8 +274,8 @@ func resourceSecurityZoneBookAddressSetImport(d *schema.ResourceData, m interfac
 	return result, nil
 }
 
-func checkSecurityZoneBookAddressSetsExists(
-	zone, addressSet string, m interface{}, jnprSess *NetconfObject) (bool, error) {
+func checkSecurityZoneBookAddressSetsExists(zone, addressSet string, m interface{}, jnprSess *NetconfObject,
+) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
 		"security zones security-zone "+zone+" address-book address-set "+addressSet+pipeDisplaySet, jnprSess)
@@ -312,8 +312,8 @@ func setSecurityZoneBookAddressSet(d *schema.ResourceData, m interface{}, jnprSe
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSecurityZoneBookAddressSet(
-	zone, addressSet string, m interface{}, jnprSess *NetconfObject) (zoneBookAddressSetOptions, error) {
+func readSecurityZoneBookAddressSet(zone, addressSet string, m interface{}, jnprSess *NetconfObject,
+) (zoneBookAddressSetOptions, error) {
 	sess := m.(*Session)
 	var confRead zoneBookAddressSetOptions
 

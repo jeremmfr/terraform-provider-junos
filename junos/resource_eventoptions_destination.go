@@ -62,8 +62,8 @@ func resourceEventoptionsDestination() *schema.Resource {
 	}
 }
 
-func resourceEventoptionsDestinationCreate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEventoptionsDestinationCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setEventoptionsDestination(d, m, nil); err != nil {
@@ -130,8 +130,8 @@ func resourceEventoptionsDestinationRead(ctx context.Context, d *schema.Resource
 	return resourceEventoptionsDestinationReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceEventoptionsDestinationReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceEventoptionsDestinationReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	eventoptionsDestinationOptions, err := readEventoptionsDestination(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -147,8 +147,8 @@ func resourceEventoptionsDestinationReadWJnprSess(
 	return nil
 }
 
-func resourceEventoptionsDestinationUpdate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEventoptionsDestinationUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -191,8 +191,8 @@ func resourceEventoptionsDestinationUpdate(ctx context.Context,
 	return append(diagWarns, resourceEventoptionsDestinationReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceEventoptionsDestinationDelete(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEventoptionsDestinationDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delEventoptionsDestination(d.Get("name").(string), m, nil); err != nil {
@@ -288,8 +288,8 @@ func setEventoptionsDestination(d *schema.ResourceData, m interface{}, jnprSess 
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readEventoptionsDestination(
-	name string, m interface{}, jnprSess *NetconfObject) (eventoptionsDestinationOptions, error) {
+func readEventoptionsDestination(name string, m interface{}, jnprSess *NetconfObject,
+) (eventoptionsDestinationOptions, error) {
 	sess := m.(*Session)
 	var confRead eventoptionsDestinationOptions
 	confRead.transferDelay = -1 // default value
@@ -349,7 +349,8 @@ func delEventoptionsDestination(destination string, m interface{}, jnprSess *Net
 }
 
 func fillEventoptionsDestinationData(
-	d *schema.ResourceData, eventoptionsDestinationOptions eventoptionsDestinationOptions) {
+	d *schema.ResourceData, eventoptionsDestinationOptions eventoptionsDestinationOptions,
+) {
 	if tfErr := d.Set("name", eventoptionsDestinationOptions.name); tfErr != nil {
 		panic(tfErr)
 	}

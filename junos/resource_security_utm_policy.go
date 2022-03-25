@@ -204,8 +204,8 @@ func resourceSecurityUtmPolicyRead(ctx context.Context, d *schema.ResourceData, 
 	return resourceSecurityUtmPolicyReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityUtmPolicyReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityUtmPolicyReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	utmPolicyOptions, err := readUtmPolicy(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -430,8 +430,8 @@ func setUtmPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readUtmPolicy(policy string, m interface{}, jnprSess *NetconfObject) (
-	utmPolicyOptions, error) {
+func readUtmPolicy(policy string, m interface{}, jnprSess *NetconfObject,
+) (utmPolicyOptions, error) {
 	sess := m.(*Session)
 	var confRead utmPolicyOptions
 

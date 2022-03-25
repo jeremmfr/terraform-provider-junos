@@ -33,8 +33,8 @@ func resourceInterfacePhysicalDisable() *schema.Resource {
 	}
 }
 
-func resourceInterfacePhysicalDisableCreate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceInterfacePhysicalDisableCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := addInterfacePhysicalNC(d.Get("name").(string), m, nil); err != nil {
@@ -127,7 +127,7 @@ func resourceInterfacePhysicalDisableRead(ctx context.Context, d *schema.Resourc
 	return nil
 }
 
-func resourceInterfacePhysicalDisableDelete(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceInterfacePhysicalDisableDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	return nil
 }

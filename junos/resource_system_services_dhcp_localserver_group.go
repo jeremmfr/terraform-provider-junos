@@ -730,8 +730,8 @@ func schemaSystemServicesDhcpLocalServerGroupOverridesV6() map[string]*schema.Sc
 	}
 }
 
-func resourceSystemServicesDhcpLocalServerGroupCreate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSystemServicesDhcpLocalServerGroupCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setSystemServicesDhcpLocalServerGroup(d, m, nil); err != nil {
@@ -821,8 +821,8 @@ func resourceSystemServicesDhcpLocalServerGroupCreate(ctx context.Context,
 	return append(diagWarns, resourceSystemServicesDhcpLocalServerGroupReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSystemServicesDhcpLocalServerGroupRead(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSystemServicesDhcpLocalServerGroupRead(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -834,7 +834,8 @@ func resourceSystemServicesDhcpLocalServerGroupRead(ctx context.Context,
 }
 
 func resourceSystemServicesDhcpLocalServerGroupReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	systemServicesDhcpLocalServerGroupOptions, err := readSystemServicesDhcpLocalServerGroup(
 		d.Get("name").(string), d.Get("routing_instance").(string), d.Get("version").(string), m, jnprSess)
@@ -851,8 +852,8 @@ func resourceSystemServicesDhcpLocalServerGroupReadWJnprSess(
 	return nil
 }
 
-func resourceSystemServicesDhcpLocalServerGroupUpdate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSystemServicesDhcpLocalServerGroupUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -897,8 +898,8 @@ func resourceSystemServicesDhcpLocalServerGroupUpdate(ctx context.Context,
 	return append(diagWarns, resourceSystemServicesDhcpLocalServerGroupReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSystemServicesDhcpLocalServerGroupDelete(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSystemServicesDhcpLocalServerGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delSystemServicesDhcpLocalServerGroup(
@@ -932,8 +933,8 @@ func resourceSystemServicesDhcpLocalServerGroupDelete(ctx context.Context,
 	return diagWarns
 }
 
-func resourceSystemServicesDhcpLocalServerGroupImport(
-	d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSystemServicesDhcpLocalServerGroupImport(d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -975,8 +976,9 @@ func resourceSystemServicesDhcpLocalServerGroupImport(
 	return result, nil
 }
 
-func checkSystemServicesDhcpLocalServerGroupExists(name, instance, version string, m interface{},
-	jnprSess *NetconfObject) (bool, error) {
+func checkSystemServicesDhcpLocalServerGroupExists(
+	name, instance, version string, m interface{}, jnprSess *NetconfObject,
+) (bool, error) {
 	sess := m.(*Session)
 	var showConfig string
 	var err error
@@ -1279,7 +1281,8 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, m interface{}
 }
 
 func setSystemServicesDhcpLocalServerGroupInterface(
-	interFace map[string]interface{}, setPrefixInterface, version string) ([]string, error) {
+	interFace map[string]interface{}, setPrefixInterface, version string,
+) ([]string, error) {
 	configSet := make([]string, 0)
 
 	setPrefix := setPrefixInterface + "interface " + interFace["name"].(string) + " "
@@ -1358,8 +1361,8 @@ func setSystemServicesDhcpLocalServerGroupInterface(
 	return configSet, nil
 }
 
-func setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV4(
-	overrides map[string]interface{}, setPrefix string) ([]string, error) {
+func setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV4(overrides map[string]interface{}, setPrefix string,
+) ([]string, error) {
 	configSet := make([]string, 0)
 	setPrefix += "overrides "
 
@@ -1422,8 +1425,8 @@ func setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV4(
 	return configSet, nil
 }
 
-func setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV6(
-	overrides map[string]interface{}, setPrefix string) ([]string, error) {
+func setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV6(overrides map[string]interface{}, setPrefix string,
+) ([]string, error) {
 	configSet := make([]string, 0)
 	setPrefix += "overrides "
 
@@ -1495,8 +1498,8 @@ func setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV6(
 	return configSet, nil
 }
 
-func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m interface{},
-	jnprSess *NetconfObject) (systemServicesDhcpLocalServerGroupOptions, error) {
+func readSystemServicesDhcpLocalServerGroup(name, instance, version string, m interface{}, jnprSess *NetconfObject,
+) (systemServicesDhcpLocalServerGroupOptions, error) {
 	sess := m.(*Session)
 	var confRead systemServicesDhcpLocalServerGroupOptions
 	var showConfig string
@@ -2040,8 +2043,8 @@ func readSystemServicesDhcpLocalServerGroupOverridesV6(itemTrim string, override
 	return nil
 }
 
-func delSystemServicesDhcpLocalServerGroup(
-	name, instance, version string, m interface{}, jnprSess *NetconfObject) error {
+func delSystemServicesDhcpLocalServerGroup(name, instance, version string, m interface{}, jnprSess *NetconfObject,
+) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	switch {
@@ -2061,7 +2064,8 @@ func delSystemServicesDhcpLocalServerGroup(
 }
 
 func fillSystemServicesDhcpLocalServerGroupData(
-	d *schema.ResourceData, systemServicesDhcpLocalServerGroupOptions systemServicesDhcpLocalServerGroupOptions) {
+	d *schema.ResourceData, systemServicesDhcpLocalServerGroupOptions systemServicesDhcpLocalServerGroupOptions,
+) {
 	if tfErr := d.Set("name",
 		systemServicesDhcpLocalServerGroupOptions.name); tfErr != nil {
 		panic(tfErr)

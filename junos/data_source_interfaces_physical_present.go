@@ -70,8 +70,8 @@ func dataSourceInterfacesPhysicalPresent() *schema.Resource {
 	}
 }
 
-func dataSourceInterfacesPhysicalPresentRead(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func dataSourceInterfacesPhysicalPresentRead(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
@@ -102,8 +102,8 @@ func dataSourceInterfacesPhysicalPresentRead(ctx context.Context,
 	return nil
 }
 
-func searchInterfacesPhysicalPresent(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) (interfacesPresentOpts, error) {
+func searchInterfacesPhysicalPresent(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) (interfacesPresentOpts, error) {
 	sess := m.(*Session)
 	var result interfacesPresentOpts
 	replyData, err := sess.commandXML(rpcGetInterfaceInformationTerse, jnprSess)
