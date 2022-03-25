@@ -14,7 +14,7 @@ Configure static configuration in `protocols vstp` block for root or routing-ins
 
 ```hcl
 # Configure vstp
-resource junos_vstp "vstp" {
+resource "junos_vstp" "vstp" {
   bpdu_block_on_edge = true
 }
 ```

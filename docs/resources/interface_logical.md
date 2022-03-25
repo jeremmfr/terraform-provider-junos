@@ -9,7 +9,7 @@ Provides a logical interface resource.
 ## Example Usage
 
 ```hcl
-resource junos_interface_logical "interface_fw_demo_100" {
+resource "junos_interface_logical" "interface_fw_demo_100" {
   name        = "ae0.100"
   description = "interfaceFwDemo100"
   family_inet {

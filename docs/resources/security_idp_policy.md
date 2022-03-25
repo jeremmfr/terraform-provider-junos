@@ -10,7 +10,7 @@ Provides a security idp policy resource.
 
 ```hcl
 # Add an idp policy
-resource junos_security_idp_policy "demo_idp_policy" {
+resource "junos_security_idp_policy" "demo_idp_policy" {
   name = "Idp-Policy"
   ips_rule {
     name        = "rules_1"

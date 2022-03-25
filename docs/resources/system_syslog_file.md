@@ -10,7 +10,7 @@ Configure a system syslog file.
 
 ```hcl
 # Add a system syslog file
-resource junos_system_syslog_file "demo_syslog_file" {
+resource "junos_system_syslog_file" "demo_syslog_file" {
   filename     = "demo"
   any_severity = "emergency"
 }

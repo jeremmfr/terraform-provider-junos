@@ -10,7 +10,7 @@ Provides a snmp v3 VACM security name assignment to group resource.
 
 ```hcl
 # Assigns security names to group
-resource junos_snmp_v3_vacm_securitytogroup "read" {
+resource "junos_snmp_v3_vacm_securitytogroup" "read" {
   model = "usm"
   name  = "read"
   group = "group1"

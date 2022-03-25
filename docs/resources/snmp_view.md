@@ -10,7 +10,7 @@ Provides a snmp view resource.
 
 ```hcl
 # Add a snmp view
-resource junos_snmp_view "view1" {
+resource "junos_snmp_view" "view1" {
   name        = "view1"
   oid_include = [".1"]
 }

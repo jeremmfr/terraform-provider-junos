@@ -11,7 +11,7 @@ Get information on a physical interface
 
 ```hcl
 # Search interface with name
-data junos_interface_physical "interface_physical_demo" {
+data "junos_interface_physical" "interface_physical_demo" {
   config_interface = "ge-0/0/3"
 }
 ```

@@ -16,7 +16,7 @@ Configure static configuration in `system` block (except `system root-authentica
 
 ```hcl
 # Configure system
-resource junos_system "system" {
+resource "junos_system" "system" {
   host_name   = "MyJunOS-device"
   name_server = ["192.0.2.10", "192.0.2.11"]
   services {

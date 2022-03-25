@@ -14,7 +14,7 @@ Configure static configuration in `security` block
 
 ```hcl
 # Configure security
-resource junos_security "security" {
+resource "junos_security" "security" {
   ike_traceoptions {
     file {
       name  = "ike.log"

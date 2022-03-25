@@ -10,7 +10,7 @@ Configure a system radius-server.
 
 ```hcl
 # Add a system radius-server
-resource junos_system_radius_server "demo_radius_server" {
+resource "junos_system_radius_server" "demo_radius_server" {
   address = "192.0.2.1"
   secret  = "password"
 }

@@ -13,7 +13,7 @@ Configure `chassis redundancy` block
 
 ```hcl
 # Configure chassis redundancy
-resource junos_chassis_redundancy "chassis_redundancy" {
+resource "junos_chassis_redundancy" "chassis_redundancy" {
   graceful_switchover = true
 }
 ```

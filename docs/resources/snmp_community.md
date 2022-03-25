@@ -10,7 +10,7 @@ Provides a snmp community resource.
 
 ```hcl
 # Add a snmp community
-resource junos_snmp_community "public" {
+resource "junos_snmp_community" "public" {
   name                    = "public"
   authorization_read_only = true
 }

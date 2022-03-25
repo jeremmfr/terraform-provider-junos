@@ -14,19 +14,19 @@ There is a guide for help migrating to the new resources.
 
 ```hcl
 # Configure interface of switch
-resource junos_interface "interface_switch_demo" {
+resource "junos_interface" "interface_switch_demo" {
   name         = "ge-0/0/0"
   description  = "interfaceSwitchDemo"
   trunk        = true
   vlan_members = ["100"]
 }
 # Configure a L3 interface on Junos Router or firewall
-resource junos_interface "interface_fw_demo" {
+resource "junos_interface" "interface_fw_demo" {
   name         = "ge-0/0/0"
   description  = "interfaceFwDemo"
   vlan_tagging = true
 }
-resource junos_interface "interface_fw_demo_100" {
+resource "junos_interface" "interface_fw_demo_100" {
   name        = "${junos_interface.interface_fw_demo.name}.100"
   description = "interfaceFwDemo100"
   inet_address {

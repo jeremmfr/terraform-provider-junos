@@ -10,11 +10,11 @@ Provides a snmp v3 USM user resource.
 
 ```hcl
 # Add a snmp v3 usm local-engine user
-resource junos_snmp_v3_usm_user "user1" {
+resource "junos_snmp_v3_usm_user" "user1" {
   name = "user1"
 }
 # Add a snmp v3 usm remote-engine user
-resource junos_snmp_v3_usm_user "user2" {
+resource "junos_snmp_v3_usm_user" "user2" {
   name        = "user2"
   engine_type = "remote"
   engine_id   = "800007E5804089071BC6D10A41"

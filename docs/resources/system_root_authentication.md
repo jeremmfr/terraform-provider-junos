@@ -14,7 +14,7 @@ Configure `system root-authentication` block
 
 ```hcl
 # Configure system root-authentication
-resource junos_system_root_authentication "root_auth" {
+resource "junos_system_root_authentication" "root_auth" {
   encrypted_password = "$6$XXX"
   ssh_public_keys = [
     "ssh-rsa XXXX",

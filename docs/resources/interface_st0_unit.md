@@ -12,7 +12,7 @@ New st0 unit interface can be configured with `junos_interface_logical` resource
 ## Example Usage
 
 ```hcl
-resource junos_interface_st0_unit "demo" {}
+resource "junos_interface_st0_unit" "demo" {}
 ```
 
 ## Attributes Reference

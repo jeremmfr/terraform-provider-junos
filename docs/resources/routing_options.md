@@ -14,7 +14,7 @@ Configure static configuration in `routing-options` block
 
 ```hcl
 # Configure routing-options
-resource junos_routing_options "routing_options" {
+resource "junos_routing_options" "routing_options" {
   autonomous_system {
     number = "65000"
   }

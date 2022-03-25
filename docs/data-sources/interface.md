@@ -15,11 +15,11 @@ For more consistency, functionalities of this data source have been splitted in 
 
 ```hcl
 # Search interface with IP
-data junos_interface "demo_ip" {
+data "junos_interface" "demo_ip" {
   match = "192.0.2.2/"
 }
 # Search interface with name
-data junos_interface "interface_fw_demo" {
+data "junos_interface" "interface_fw_demo" {
   config_interface = "ge-0/0/3.0"
 }
 ```

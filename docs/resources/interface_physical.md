@@ -10,14 +10,14 @@ Provides a physical interface resource.
 
 ```hcl
 # Configure interface of switch
-resource junos_interface_physical "interface_switch_demo" {
+resource "junos_interface_physical" "interface_switch_demo" {
   name         = "ge-0/0/0"
   description  = "interfaceSwitchDemo"
   trunk        = true
   vlan_members = ["100"]
 }
 # Prepare physical interface for L3 logical interfaces on Junos Router or firewall
-resource junos_interface_physical "interface_fw_demo" {
+resource "junos_interface_physical" "interface_fw_demo" {
   name         = "ge-0/0/1"
   description  = "interfaceFwDemo"
   vlan_tagging = true

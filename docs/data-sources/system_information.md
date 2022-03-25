@@ -9,7 +9,7 @@ Get information of the Junos device system information.
 ## Example Usage
 
 ```hcl
-data junos_system_information "example" {}
+data "junos_system_information" "example" {}
 ```
 
 ## Attributes Reference

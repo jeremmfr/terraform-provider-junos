@@ -10,7 +10,7 @@ Provides an as-path group resource.
 
 ```hcl
 # Add an as-path group
-resource junos_policyoptions_as_path_group "via_century_link" {
+resource "junos_policyoptions_as_path_group" "via_century_link" {
   name = "viaCenturyLink"
   as_path {
     name = "qwest"

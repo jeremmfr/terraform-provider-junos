@@ -9,7 +9,7 @@ Provides a LLDP MED interface resource.
 ## Example Usage
 
 ```hcl
-resource junos_lldpmed_interface "all" {
+resource "junos_lldpmed_interface" "all" {
   name = "all"
 }
 ```
