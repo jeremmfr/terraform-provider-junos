@@ -35,7 +35,7 @@ func TestAccJunosSystemRootAuthentication_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosSystemRootAuthenticationPostCheck(),
+					Config: testAccJunosSystemRootAuthenticationUpdate2(),
 				},
 			},
 		})
@@ -62,10 +62,10 @@ resource "junos_system_root_authentication" "root_auth" {
 `
 }
 
-func testAccJunosSystemRootAuthenticationPostCheck() string {
+func testAccJunosSystemRootAuthenticationUpdate2() string {
 	return `
 resource "junos_system_root_authentication" "root_auth" {
-  encrypted_password = "$6$XXX"
+  plain_text_password = "testPassword1234"
 }
 `
 }
