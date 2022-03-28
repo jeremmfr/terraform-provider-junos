@@ -3,8 +3,6 @@ package junos
 import (
 	"context"
 	"fmt"
-	"os"
-	"strings"
 	"sync"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -98,13 +96,13 @@ func Provider() *schema.Provider {
 				Type:         schema.TypeBool,
 				Optional:     true,
 				RequiredWith: []string{"fake_create_with_setfile"},
-				DefaultFunc:  EnvDefaultBooleanFunc("JUNOS_FAKEUPDATE_ALSO"),
+				DefaultFunc:  schema.EnvDefaultFunc("JUNOS_FAKEUPDATE_ALSO", "false"),
 			},
 			"fake_delete_also": {
 				Type:         schema.TypeBool,
 				Optional:     true,
 				RequiredWith: []string{"fake_create_with_setfile"},
-				DefaultFunc:  EnvDefaultBooleanFunc("JUNOS_FAKEDELETE_ALSO"),
+				DefaultFunc:  schema.EnvDefaultFunc("JUNOS_FAKEDELETE_ALSO", "false"),
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -260,14 +258,4 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 	}
 
 	return c.prepareSession()
-}
-
-func EnvDefaultBooleanFunc(k string) schema.SchemaDefaultFunc {
-	return func() (interface{}, error) {
-		if v := os.Getenv(k); strings.ToLower(v) == "true" {
-			return true, nil
-		}
-
-		return false, nil
-	}
 }

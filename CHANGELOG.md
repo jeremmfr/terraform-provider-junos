@@ -4,6 +4,7 @@
 ENHANCEMENTS:
 
 * release now with golang 1.18
+* provider: normalize reading `JUNOS_FAKEUPDATE_ALSO` and `JUNOS_FAKEDELETE_ALSO` environment variables (use SDK function)
 
 BUG FIXES:
 
