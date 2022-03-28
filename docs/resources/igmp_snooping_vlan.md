@@ -9,7 +9,7 @@ Provides a IGMP snooping vlan resource.
 ## Example Usage
 
 ```hcl
-resource junos_igmp_snooping_vlan "all" {
+resource "junos_igmp_snooping_vlan" "all" {
   name = "all"
 }
 ```

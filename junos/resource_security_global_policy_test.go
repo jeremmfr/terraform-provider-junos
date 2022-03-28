@@ -50,10 +50,10 @@ func TestAccJunosSecurityGlobalPolicy_basic(t *testing.T) {
 
 func testAccJunosSecurityGlobalPolicyConfigCreate() string {
 	return `
-resource junos_security_zone "testacc_secglobpolicy1" {
+resource "junos_security_zone" "testacc_secglobpolicy1" {
   name = "testacc_secglobpolicy1"
 }
-resource junos_security_zone "testacc_secglobpolicy2" {
+resource "junos_security_zone" "testacc_secglobpolicy2" {
   lifecycle {
     create_before_destroy = true
   }
@@ -80,7 +80,7 @@ resource "junos_services_user_identification_device_identity_profile" "profile" 
     value = ["testacc_secglobpolicy"]
   }
 }
-resource junos_security_global_policy "testacc_secglobpolicy" {
+resource "junos_security_global_policy" "testacc_secglobpolicy" {
   depends_on = [
     junos_security_address_book.testacc_secglobpolicy
   ]
@@ -101,7 +101,7 @@ resource junos_security_global_policy "testacc_secglobpolicy" {
 
 func testAccJunosSecurityGlobalPolicyConfigUpdate() string {
 	return `
-resource junos_security_zone "testacc_secglobpolicy1" {
+resource "junos_security_zone" "testacc_secglobpolicy1" {
   lifecycle {
     create_before_destroy = true
   }
@@ -120,7 +120,7 @@ resource "junos_security_address_book" "testacc_secglobpolicy" {
     value = "192.0.2.2/32"
   }
 }
-resource junos_services_advanced_anti_malware_policy "testacc_secglobpolicy" {
+resource "junos_services_advanced_anti_malware_policy" "testacc_secglobpolicy" {
   lifecycle {
     create_before_destroy = true
   }
@@ -128,7 +128,7 @@ resource junos_services_advanced_anti_malware_policy "testacc_secglobpolicy" {
   verdict_threshold        = "recommended"
   default_notification_log = true
 }
-resource junos_security_global_policy "testacc_secglobpolicy" {
+resource "junos_security_global_policy" "testacc_secglobpolicy" {
   depends_on = [
     junos_security_address_book.testacc_secglobpolicy
   ]
@@ -166,13 +166,13 @@ resource junos_security_global_policy "testacc_secglobpolicy" {
 
 func testAccJunosSecurityGlobalPolicyConfigUpdate2() string {
 	return `
-resource junos_security_zone "testacc_secglobpolicy1" {
+resource "junos_security_zone" "testacc_secglobpolicy1" {
   lifecycle {
     create_before_destroy = true
   }
   name = "testacc_secglobpolicy1"
 }
-resource junos_security_idp_policy "testacc_secglobpolicy" {
+resource "junos_security_idp_policy" "testacc_secglobpolicy" {
   lifecycle {
     create_before_destroy = true
   }
@@ -191,7 +191,7 @@ resource "junos_security_address_book" "testacc_secglobpolicy" {
     value = "192.0.2.2/32"
   }
 }
-resource junos_security_global_policy "testacc_secglobpolicy" {
+resource "junos_security_global_policy" "testacc_secglobpolicy" {
   depends_on = [
     junos_security_address_book.testacc_secglobpolicy
   ]

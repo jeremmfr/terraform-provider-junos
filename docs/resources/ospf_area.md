@@ -10,7 +10,7 @@ Provides an ospf area resource.
 
 ```hcl
 # Add an ospf area
-resource junos_ospf_area "demo_area" {
+resource "junos_ospf_area" "demo_area" {
   area_id = "0.0.0.0"
   interface {
     name = "all"

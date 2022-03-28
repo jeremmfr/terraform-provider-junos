@@ -10,7 +10,7 @@ Configure a system syslog host.
 
 ```hcl
 # Add a system syslog host
-resource junos_system_syslog_host "demo_syslog_host" {
+resource "junos_system_syslog_host" "demo_syslog_host" {
   host = "192.0.2.1"
   port = 514
 }

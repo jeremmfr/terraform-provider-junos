@@ -15,7 +15,7 @@ routing-instance level.
 
 ```hcl
 # Configure ospf
-resource junos_ospf "ospf" {
+resource "junos_ospf" "ospf" {
   export = ["redistribe"]
 }
 ```

@@ -254,7 +254,7 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 
 func testAccJunosSecurityIkeIpsecConfigCreate(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface_logical "testacc_ikegateway" {
+resource "junos_interface_logical" "testacc_ikegateway" {
   name = "%s.0"
   family_inet {
     address {
@@ -262,20 +262,20 @@ resource junos_interface_logical "testacc_ikegateway" {
     }
   }
 }
-resource junos_security_ike_proposal "testacc_ikeprop" {
+resource "junos_security_ike_proposal" "testacc_ikeprop" {
   name                     = "testacc_ikeprop"
   authentication_algorithm = "sha1"
   encryption_algorithm     = "aes-256-cbc"
   dh_group                 = "group2"
   lifetime_seconds         = 3600
 }
-resource junos_security_ike_policy "testacc_ikepol" {
+resource "junos_security_ike_policy" "testacc_ikepol" {
   name                = "testacc_ikepol"
   proposals           = [junos_security_ike_proposal.testacc_ikeprop.name]
   mode                = "main"
   pre_shared_key_text = "thePassWord"
 }
-resource junos_security_ike_gateway "testacc_ikegateway" {
+resource "junos_security_ike_gateway" "testacc_ikegateway" {
   name               = "testacc_ikegateway"
   address            = ["192.0.2.3"]
   policy             = junos_security_ike_policy.testacc_ikepol.name
@@ -295,19 +295,19 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
   version = "v2-only"
 }
 
-resource junos_security_ipsec_proposal "testacc_ipsecprop" {
+resource "junos_security_ipsec_proposal" "testacc_ipsecprop" {
   name                     = "testacc_ipsecprop"
   authentication_algorithm = "hmac-sha1-96"
   protocol                 = "esp"
   encryption_algorithm     = "aes-128-cbc"
 }
-resource junos_security_ipsec_policy "testacc_ipsecpol" {
+resource "junos_security_ipsec_policy" "testacc_ipsecpol" {
   name      = "testacc_ipsecpol"
   proposals = [junos_security_ipsec_proposal.testacc_ipsecprop.name]
   pfs_keys  = "group2"
 }
-resource junos_interface_st0_unit testacc_ipsecvpn {}
-resource junos_security_ipsec_vpn "testacc_ipsecvpn" {
+resource "junos_interface_st0_unit" "testacc_ipsecvpn" {}
+resource "junos_security_ipsec_vpn" "testacc_ipsecvpn" {
   name           = "testacc_ipsecvpn"
   bind_interface = junos_interface_st0_unit.testacc_ipsecvpn.id
   ike {
@@ -330,7 +330,7 @@ resource junos_security_ipsec_vpn "testacc_ipsecvpn" {
 
 func testAccJunosSecurityIkeIpsecConfigUpdate(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface_logical "testacc_ikegateway" {
+resource "junos_interface_logical" "testacc_ikegateway" {
   name = "%s.0"
   family_inet {
     address {
@@ -338,20 +338,20 @@ resource junos_interface_logical "testacc_ikegateway" {
     }
   }
 }
-resource junos_security_ike_proposal "testacc_ikeprop" {
+resource "junos_security_ike_proposal" "testacc_ikeprop" {
   name                     = "testacc_ikeprop"
   authentication_algorithm = "sha1"
   encryption_algorithm     = "aes-256-cbc"
   dh_group                 = "group1"
   lifetime_seconds         = 3600
 }
-resource junos_security_ike_policy "testacc_ikepol" {
+resource "junos_security_ike_policy" "testacc_ikepol" {
   name                = "testacc_ikepol"
   proposal_set        = "standard"
   mode                = "main"
   pre_shared_key_text = "mysecret"
 }
-resource junos_security_ike_gateway "testacc_ikegateway" {
+resource "junos_security_ike_gateway" "testacc_ikegateway" {
   name               = "testacc_ikegateway"
   address            = ["192.0.2.4"]
   policy             = junos_security_ike_policy.testacc_ikepol.name
@@ -373,18 +373,18 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
   }
 }
 
-resource junos_security_ipsec_proposal "testacc_ipsecprop" {
+resource "junos_security_ipsec_proposal" "testacc_ipsecprop" {
   name                     = "testacc_ipsecprop"
   authentication_algorithm = "hmac-sha1-96"
   protocol                 = "esp"
   encryption_algorithm     = "aes-256-cbc"
 }
-resource junos_security_ipsec_policy "testacc_ipsecpol" {
+resource "junos_security_ipsec_policy" "testacc_ipsecpol" {
   name         = "testacc_ipsecpol"
   proposal_set = "standard"
   pfs_keys     = "group1"
 }
-resource junos_security_ipsec_vpn "testacc_ipsecvpn2" {
+resource "junos_security_ipsec_vpn" "testacc_ipsecvpn2" {
   name = "testacc_ipsecvpn2"
   ike {
     gateway          = junos_security_ike_gateway.testacc_ikegateway.name
@@ -396,21 +396,21 @@ resource junos_security_ipsec_vpn "testacc_ipsecvpn2" {
   establish_tunnels = "immediately"
   df_bit            = "clear"
 }
-resource junos_security_zone testacc_secIkeIpsec_local {
+resource "junos_security_zone" "testacc_secIkeIpsec_local" {
   name = "testacc_secIkeIPsec_local"
   address_book {
     name    = "testacc_vpnlocal"
     network = "192.0.2.64/26"
   }
 }
-resource junos_security_zone testacc_secIkeIpsec_remote {
+resource "junos_security_zone" "testacc_secIkeIpsec_remote" {
   name = "testacc_secIkeIPsec_remote"
   address_book {
     name    = "testacc_vpnremote"
     network = "192.0.2.128/26"
   }
 }
-resource junos_security_policy testacc_policyIpsecLocToRem {
+resource "junos_security_policy" "testacc_policyIpsecLocToRem" {
   depends_on = [
     junos_security_zone.testacc_secIkeIpsec_local,
     junos_security_zone.testacc_secIkeIpsec_remote
@@ -426,7 +426,7 @@ resource junos_security_policy testacc_policyIpsecLocToRem {
   }
 }
 
-resource junos_security_policy testacc_policyIpsecRemToLoc {
+resource "junos_security_policy" "testacc_policyIpsecRemToLoc" {
   depends_on = [
     junos_security_zone.testacc_secIkeIpsec_local,
     junos_security_zone.testacc_secIkeIpsec_remote
@@ -442,7 +442,7 @@ resource junos_security_policy testacc_policyIpsecRemToLoc {
   }
 }
 
-resource junos_security_policy_tunnel_pair_policy testacc_vpn-in-out {
+resource "junos_security_policy_tunnel_pair_policy" "testacc_vpn-in-out" {
   zone_a        = junos_security_zone.testacc_secIkeIpsec_local.name
   zone_b        = junos_security_zone.testacc_secIkeIpsec_remote.name
   policy_a_to_b = junos_security_policy.testacc_policyIpsecLocToRem.policy[0].name
@@ -453,7 +453,7 @@ resource junos_security_policy_tunnel_pair_policy testacc_vpn-in-out {
 
 func testAccJunosSecurityIkeIpsecConfigUpdate2(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface_logical "testacc_ikegateway" {
+resource "junos_interface_logical" "testacc_ikegateway" {
   name = "%s.0"
   family_inet {
     address {
@@ -461,20 +461,20 @@ resource junos_interface_logical "testacc_ikegateway" {
     }
   }
 }
-resource junos_security_ike_proposal "testacc_ikeprop" {
+resource "junos_security_ike_proposal" "testacc_ikeprop" {
   name                     = "testacc_ikeprop"
   authentication_algorithm = "sha1"
   encryption_algorithm     = "aes-256-cbc"
   dh_group                 = "group1"
   lifetime_seconds         = 3600
 }
-resource junos_security_ike_policy "testacc_ikepol" {
+resource "junos_security_ike_policy" "testacc_ikepol" {
   name                = "testacc_ikepol"
   proposals           = [junos_security_ike_proposal.testacc_ikeprop.name]
   mode                = "aggressive"
   pre_shared_key_text = "mysecret"
 }
-resource junos_security_ike_gateway "testacc_ikegateway" {
+resource "junos_security_ike_gateway" "testacc_ikegateway" {
   name = "testacc_ikegateway"
   dynamic_remote {
     distinguished_name {
@@ -497,18 +497,18 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
   local_address = "192.0.2.4"
 }
 
-resource junos_security_ipsec_proposal "testacc_ipsecprop" {
+resource "junos_security_ipsec_proposal" "testacc_ipsecprop" {
   name                     = "testacc_ipsecprop"
   authentication_algorithm = "hmac-sha1-96"
   protocol                 = "esp"
   encryption_algorithm     = "aes-256-cbc"
 }
-resource junos_security_ipsec_policy "testacc_ipsecpol" {
+resource "junos_security_ipsec_policy" "testacc_ipsecpol" {
   name      = "testacc_ipsecpol"
   proposals = [junos_security_ipsec_proposal.testacc_ipsecprop.name]
   pfs_keys  = "group1"
 }
-resource junos_security_ipsec_vpn "testacc_ipsecvpn2" {
+resource "junos_security_ipsec_vpn" "testacc_ipsecvpn2" {
   name = "testacc_ipsecvpn2"
   ike {
     gateway          = junos_security_ike_gateway.testacc_ikegateway.name
@@ -520,21 +520,21 @@ resource junos_security_ipsec_vpn "testacc_ipsecvpn2" {
   establish_tunnels = "immediately"
   df_bit            = "clear"
 }
-resource junos_security_zone testacc_secIkeIpsec_local {
+resource "junos_security_zone" "testacc_secIkeIpsec_local" {
   name = "testacc_secIkeIPsec_local"
   address_book {
     name    = "testacc_vpnlocal"
     network = "192.0.2.64/26"
   }
 }
-resource junos_security_zone testacc_secIkeIpsec_remote {
+resource "junos_security_zone" "testacc_secIkeIpsec_remote" {
   name = "testacc_secIkeIPsec_remote"
   address_book {
     name    = "testacc_vpnremote"
     network = "192.0.2.128/26"
   }
 }
-resource junos_security_policy testacc_policyIpsecLocToRem {
+resource "junos_security_policy" "testacc_policyIpsecLocToRem" {
   depends_on = [
     junos_security_zone.testacc_secIkeIpsec_local,
     junos_security_zone.testacc_secIkeIpsec_remote
@@ -550,7 +550,7 @@ resource junos_security_policy testacc_policyIpsecLocToRem {
   }
 }
 
-resource junos_security_policy testacc_policyIpsecRemToLoc {
+resource "junos_security_policy" "testacc_policyIpsecRemToLoc" {
   depends_on = [
     junos_security_zone.testacc_secIkeIpsec_local,
     junos_security_zone.testacc_secIkeIpsec_remote
@@ -566,7 +566,7 @@ resource junos_security_policy testacc_policyIpsecRemToLoc {
   }
 }
 
-resource junos_security_policy_tunnel_pair_policy testacc_vpn-in-out {
+resource "junos_security_policy_tunnel_pair_policy" "testacc_vpn-in-out" {
   zone_a        = junos_security_zone.testacc_secIkeIpsec_local.name
   zone_b        = junos_security_zone.testacc_secIkeIpsec_remote.name
   policy_a_to_b = junos_security_policy.testacc_policyIpsecLocToRem.policy[0].name
@@ -577,7 +577,7 @@ resource junos_security_policy_tunnel_pair_policy testacc_vpn-in-out {
 
 func testAccJunosSecurityIkeIpsecConfigUpdate3(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface_logical "testacc_ikegateway" {
+resource "junos_interface_logical" "testacc_ikegateway" {
   name = "%s.0"
   family_inet {
     address {
@@ -585,20 +585,20 @@ resource junos_interface_logical "testacc_ikegateway" {
     }
   }
 }
-resource junos_security_ike_proposal "testacc_ikeprop" {
+resource "junos_security_ike_proposal" "testacc_ikeprop" {
   name                     = "testacc_ikeprop"
   authentication_algorithm = "sha1"
   encryption_algorithm     = "aes-256-cbc"
   dh_group                 = "group1"
   lifetime_seconds         = 3600
 }
-resource junos_security_ike_policy "testacc_ikepol" {
+resource "junos_security_ike_policy" "testacc_ikepol" {
   name                = "testacc_ikepol"
   proposals           = [junos_security_ike_proposal.testacc_ikeprop.name]
   mode                = "aggressive"
   pre_shared_key_text = "mysecret"
 }
-resource junos_security_ike_gateway "testacc_ikegateway" {
+resource "junos_security_ike_gateway" "testacc_ikegateway" {
   name = "testacc_ikegateway"
   dynamic_remote {
     hostname = "host1.example.com"
@@ -606,18 +606,18 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
   policy             = junos_security_ike_policy.testacc_ikepol.name
   external_interface = junos_interface_logical.testacc_ikegateway.name
 }
-resource junos_security_ipsec_proposal "testacc_ipsecprop" {
+resource "junos_security_ipsec_proposal" "testacc_ipsecprop" {
   name                     = "testacc_ipsecprop"
   authentication_algorithm = "hmac-sha1-96"
   protocol                 = "esp"
   encryption_algorithm     = "aes-128-cbc"
 }
-resource junos_security_ipsec_policy "testacc_ipsecpol" {
+resource "junos_security_ipsec_policy" "testacc_ipsecpol" {
   name      = "testacc_ipsecpol"
   proposals = [junos_security_ipsec_proposal.testacc_ipsecprop.name]
   pfs_keys  = "group2"
 }
-resource junos_security_ipsec_vpn "testacc_ipsecvpn" {
+resource "junos_security_ipsec_vpn" "testacc_ipsecvpn" {
   name           = "testacc_ipsecvpn"
   bind_interface = junos_interface_logical.testacc_ipsecvpn_bind.name
   ike {
@@ -636,17 +636,17 @@ resource junos_security_ipsec_vpn "testacc_ipsecvpn" {
     remote_ip = "192.0.3.192/26"
   }
 }
-resource junos_interface_logical "testacc_ipsecvpn_bind" {
+resource "junos_interface_logical" "testacc_ipsecvpn_bind" {
   name = junos_interface_st0_unit.testacc_ipsec_vpn.id
   family_inet {}
 }
-resource junos_interface_st0_unit testacc_ipsec_vpn {}
+resource "junos_interface_st0_unit" "testacc_ipsec_vpn" {}
 `, interFace)
 }
 
 func testAccJunosSecurityIkeIpsecConfigUpdate4(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface_logical "testacc_ikegateway" {
+resource "junos_interface_logical" "testacc_ikegateway" {
   name = "%s.0"
   family_inet {
     address {
@@ -654,20 +654,20 @@ resource junos_interface_logical "testacc_ikegateway" {
     }
   }
 }
-resource junos_security_ike_proposal "testacc_ikeprop" {
+resource "junos_security_ike_proposal" "testacc_ikeprop" {
   name                     = "testacc_ikeprop"
   authentication_algorithm = "sha1"
   encryption_algorithm     = "aes-256-cbc"
   dh_group                 = "group1"
   lifetime_seconds         = 3600
 }
-resource junos_security_ike_policy "testacc_ikepol" {
+resource "junos_security_ike_policy" "testacc_ikepol" {
   name                = "testacc_ikepol"
   proposals           = [junos_security_ike_proposal.testacc_ikeprop.name]
   mode                = "aggressive"
   pre_shared_key_text = "mysecret"
 }
-resource junos_security_ike_gateway "testacc_ikegateway" {
+resource "junos_security_ike_gateway" "testacc_ikegateway" {
   name = "testacc_ikegateway"
   dynamic_remote {
     inet = "192.168.0.4"
@@ -680,7 +680,7 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
 
 func testAccJunosSecurityIkeIpsecConfigUpdate5(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface_logical "testacc_ikegateway" {
+resource "junos_interface_logical" "testacc_ikegateway" {
   name = "%s.0"
   family_inet {
     address {
@@ -688,20 +688,20 @@ resource junos_interface_logical "testacc_ikegateway" {
     }
   }
 }
-resource junos_security_ike_proposal "testacc_ikeprop" {
+resource "junos_security_ike_proposal" "testacc_ikeprop" {
   name                     = "testacc_ikeprop"
   authentication_algorithm = "sha1"
   encryption_algorithm     = "aes-256-cbc"
   dh_group                 = "group1"
   lifetime_seconds         = 3600
 }
-resource junos_security_ike_policy "testacc_ikepol" {
+resource "junos_security_ike_policy" "testacc_ikepol" {
   name                = "testacc_ikepol"
   proposals           = [junos_security_ike_proposal.testacc_ikeprop.name]
   mode                = "aggressive"
   pre_shared_key_text = "mysecret"
 }
-resource junos_security_ike_gateway "testacc_ikegateway" {
+resource "junos_security_ike_gateway" "testacc_ikegateway" {
   name = "testacc_ikegateway"
   dynamic_remote {
     inet6 = "2001:db8::1"
@@ -714,7 +714,7 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
 
 func testAccJunosSecurityIkeIpsecConfigUpdate6(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface_logical "testacc_ikegateway" {
+resource "junos_interface_logical" "testacc_ikegateway" {
   name = "%s.0"
   family_inet {
     address {
@@ -722,20 +722,20 @@ resource junos_interface_logical "testacc_ikegateway" {
     }
   }
 }
-resource junos_security_ike_proposal "testacc_ikeprop" {
+resource "junos_security_ike_proposal" "testacc_ikeprop" {
   name                     = "testacc_ikeprop"
   authentication_algorithm = "sha1"
   encryption_algorithm     = "aes-256-cbc"
   dh_group                 = "group1"
   lifetime_seconds         = 3600
 }
-resource junos_security_ike_policy "testacc_ikepol" {
+resource "junos_security_ike_policy" "testacc_ikepol" {
   name                = "testacc_ikepol"
   proposals           = [junos_security_ike_proposal.testacc_ikeprop.name]
   mode                = "aggressive"
   pre_shared_key_text = "mysecret"
 }
-resource junos_security_ike_gateway "testacc_ikegateway" {
+resource "junos_security_ike_gateway" "testacc_ikegateway" {
   name = "testacc_ikegateway"
   dynamic_remote {
     ike_user_type               = "group-ike-id"
@@ -750,7 +750,7 @@ resource junos_security_ike_gateway "testacc_ikegateway" {
 
 func testAccJunosSecurityIkeIpsecConfigUpdate7(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface_logical "testacc_ikegateway" {
+resource "junos_interface_logical" "testacc_ikegateway" {
   name = "%s.0"
   family_inet {
     address {
@@ -758,20 +758,20 @@ resource junos_interface_logical "testacc_ikegateway" {
     }
   }
 }
-resource junos_security_ike_proposal "testacc_ikeprop" {
+resource "junos_security_ike_proposal" "testacc_ikeprop" {
   name                     = "testacc_ikeprop"
   authentication_algorithm = "sha1"
   encryption_algorithm     = "aes-256-cbc"
   dh_group                 = "group1"
   lifetime_seconds         = 3600
 }
-resource junos_security_ike_policy "testacc_ikepol" {
+resource "junos_security_ike_policy" "testacc_ikepol" {
   name                = "testacc_ikepol"
   proposals           = [junos_security_ike_proposal.testacc_ikeprop.name]
   mode                = "aggressive"
   pre_shared_key_text = "mysecret"
 }
-resource junos_security_ike_gateway "testacc_ikegateway" {
+resource "junos_security_ike_gateway" "testacc_ikegateway" {
   name = "testacc_ikegateway"
   dynamic_remote {
     distinguished_name {

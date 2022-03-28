@@ -10,7 +10,7 @@ Provides a security zone resource.
 
 ```hcl
 # Add a security zone
-resource junos_security_zone "demo_zone" {
+resource "junos_security_zone" "demo_zone" {
   name              = "DemoZone"
   inbound_protocols = ["bgp"]
   address_book {

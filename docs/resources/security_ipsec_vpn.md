@@ -10,7 +10,7 @@ Provides a security ipsec vpn resource.
 
 ```hcl
 # Add a route-based ipsec vpn
-resource junos_security_ipsec_vpn "demo_vpn" {
+resource "junos_security_ipsec_vpn" "demo_vpn" {
   name              = "first-vpn"
   establish_tunnels = "immediately"
   bind_interface    = junos_interface_st0_unit.demo.id
@@ -19,7 +19,7 @@ resource junos_security_ipsec_vpn "demo_vpn" {
     policy  = "ipsec-policy"
   }
 }
-resource junos_interface_st0_unit demo {}
+resource "junos_interface_st0_unit" "demo" {}
 ```
 
 ## Argument Reference

@@ -10,7 +10,7 @@ Provides a firewall policer resource.
 
 ```hcl
 # Configure a firewall policer
-resource junos_firewall_policer "policer_demo" {
+resource "junos_firewall_policer" "policer_demo" {
   name            = "policerDemo"
   filter_specific = true
   if_exceeding {

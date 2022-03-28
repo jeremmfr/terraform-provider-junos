@@ -10,7 +10,7 @@ Provides a community BGP resource.
 
 ```hcl
 # Add a community
-resource junos_policyoptions_community "community_demo" {
+resource "junos_policyoptions_community" "community_demo" {
   name    = "communityDemo"
   members = ["65000:100"]
 }

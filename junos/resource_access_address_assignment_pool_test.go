@@ -65,7 +65,7 @@ resource "junos_access_address_assignment_pool" "testacc_accessAddAssP6_1" {
 
 func testAccJunosAccessAddressAssignmentPoolUpdate() string {
 	return `
-resource junos_interface_logical "testacc_accessAddAssP4" {
+resource "junos_interface_logical" "testacc_accessAddAssP4" {
   name = "lo0.1"
 }
 resource "junos_access_address_assignment_pool" "testacc_accessAddAssP4" {

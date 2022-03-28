@@ -10,7 +10,7 @@ Provides a vlan resource.
 
 ```hcl
 # Add a vlan
-resource junos_vlan "blue" {
+resource "junos_vlan" "blue" {
   name        = "blue"
   description = "blue-10"
   vlan_id     = 10

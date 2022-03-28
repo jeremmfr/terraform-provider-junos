@@ -10,7 +10,7 @@ Provides a tunnel pair policy resource options in each policy.
 
 ```hcl
 # Add a tunnel pair policy
-resource junos_security_policy_tunnel_pair_policy "demo_pair" {
+resource "junos_security_policy_tunnel_pair_policy" "demo_pair" {
   zone_a        = "trust"
   zone_b        = "untrust"
   policy_a_to_b = "trust_to_untrust"

@@ -10,7 +10,7 @@ Configure a system ntp server.
 
 ```hcl
 # Add a system ntp server
-resource junos_system_ntp_server "demo_ntp_server" {
+resource "junos_system_ntp_server" "demo_ntp_server" {
   address = "192.0.2.1"
   prefer  = true
 }

@@ -10,7 +10,7 @@ Provides a security idp custom-attack resource.
 
 ```hcl
 # Add an idp custom-attack
-resource junos_security_idp_custom_attack "demo_idp_custom_attack" {
+resource "junos_security_idp_custom_attack" "demo_idp_custom_attack" {
   name               = "SSH:BRUTE-FORCE-CUSTOM"
   recommended_action = "drop"
   severity           = "minor"

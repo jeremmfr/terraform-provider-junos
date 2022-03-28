@@ -17,7 +17,7 @@ Destroy this resource has no effect on the Junos configuration.
 
 ```hcl
 # Disable an interface
-resource junos_interface_physical_disable "interface_demo" {
+resource "junos_interface_physical_disable" "interface_demo" {
   name = "ge-0/0/0"
 }
 ```

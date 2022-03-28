@@ -10,7 +10,7 @@ Get information from a security zone.
 
 ```hcl
 # Read security zone
-resource junos_security_zone "demo_zone" {
+data "junos_security_zone" "demo_zone" {
   name = "DemoZone"
 }
 ```

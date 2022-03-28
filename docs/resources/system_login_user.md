@@ -10,7 +10,7 @@ Provides a system login user resource.
 
 ```hcl
 # Add a system login user
-resource junos_system_login_user "user1" {
+resource "junos_system_login_user" "user1" {
   name  = "user1"
   class = "operator"
   authentication {

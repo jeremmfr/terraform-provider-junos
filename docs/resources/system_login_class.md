@@ -10,7 +10,7 @@ Provides a system login class resource.
 
 ```hcl
 # Add a system login class
-resource junos_system_login_class "engineering" {
+resource "junos_system_login_class" "engineering" {
   name         = "engineering"
   idle_timeout = 30
   login_alarms = true

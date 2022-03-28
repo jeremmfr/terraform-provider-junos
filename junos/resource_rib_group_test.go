@@ -51,16 +51,16 @@ func TestAccJunosRibGroup_basic(t *testing.T) {
 
 func testAccJunosRibGroupConfigCreate() string {
 	return `
-resource junos_routing_instance "testacc_ribGroup1" {
+resource "junos_routing_instance" "testacc_ribGroup1" {
   name = "testacc_ribGroup1"
 }
-resource junos_policyoptions_policy_statement "testacc_ribGroup" {
+resource "junos_policyoptions_policy_statement" "testacc_ribGroup" {
   name = "testacc_ribGroup"
   then {
     action = "accept"
   }
 }
-resource junos_rib_group testacc_ribGroup {
+resource "junos_rib_group" "testacc_ribGroup" {
   name          = "testacc_ribGroup-test"
   import_policy = [junos_policyoptions_policy_statement.testacc_ribGroup.name, ]
   import_rib = [
@@ -73,19 +73,19 @@ resource junos_rib_group testacc_ribGroup {
 
 func testAccJunosRibGroupConfigUpdate() string {
 	return `
-resource junos_routing_instance "testacc_ribGroup1" {
+resource "junos_routing_instance" "testacc_ribGroup1" {
   name = "testacc_ribGroup1"
 }
-resource junos_routing_instance "testacc_ribGroup2" {
+resource "junos_routing_instance" "testacc_ribGroup2" {
   name = "testacc_ribGroup2"
 }
-resource junos_policyoptions_policy_statement "testacc_ribGroup" {
+resource "junos_policyoptions_policy_statement" "testacc_ribGroup" {
   name = "testacc_ribGroup"
   then {
     action = "accept"
   }
 }
-resource junos_rib_group testacc_ribGroup {
+resource "junos_rib_group" "testacc_ribGroup" {
   name          = "testacc_ribGroup-test"
   import_policy = [junos_policyoptions_policy_statement.testacc_ribGroup.name, ]
   import_rib = [

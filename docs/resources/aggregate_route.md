@@ -10,7 +10,7 @@ Provides an aggregate route resource for destination.
 
 ```hcl
 # Add an aggregate route
-resource junos_aggregate_route "demo_aggregate_route" {
+resource "junos_aggregate_route" "demo_aggregate_route" {
   destination      = "192.0.2.0/25"
   routing_instance = "prod-vr"
   brief            = true

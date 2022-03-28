@@ -10,7 +10,7 @@ Provides a security screen resource.
 
 ```hcl
 # Add a security screen
-resource junos_security_screen "demo_screen" {
+resource "junos_security_screen" "demo_screen" {
   name               = "demo_screen"
   alarm_without_drop = true
   description        = "desc screen"

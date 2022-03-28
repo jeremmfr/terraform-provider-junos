@@ -10,7 +10,7 @@ Provides a security policy resource.
 
 ```hcl
 # Add a security policy
-resource junos_security_policy "demo_policy" {
+resource "junos_security_policy" "demo_policy" {
   from_zone = "trust"
   to_zone   = "untrust"
   policy {

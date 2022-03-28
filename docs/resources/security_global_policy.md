@@ -13,7 +13,7 @@ Configure static configuration in `security policies global` block
 
 ```hcl
 # Configure security policies global
-resource junos_security_global_policy "global" {
+resource "junos_security_global_policy" "global" {
   policy {
     name                      = "test"
     match_source_address      = ["blue"]

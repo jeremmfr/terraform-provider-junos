@@ -251,12 +251,12 @@ func TestAccJunosSystem_basic(t *testing.T) {
 // nolint: lll
 func testAccJunosSystemConfigCreate() string {
 	return `
-data junos_system_information "srx" {}
+data "junos_system_information" "srx" {}
 locals {
   netconfSSHCltAliveCountMax    = "${tonumber(replace(data.junos_system_information.srx.os_version, "/\\..*$/", "")) >= 21 ? 100 : null}"
   netconfSSHClientAliveInterval = "${tonumber(replace(data.junos_system_information.srx.os_version, "/\\..*$/", "")) >= 21 ? 1000 : null}"
 }
-resource junos_system "testacc_system" {
+resource "junos_system" "testacc_system" {
   host_name = "testacc-terraform"
   archival_configuration {
     archive_site {
@@ -422,7 +422,7 @@ resource junos_system "testacc_system" {
 
 func testAccJunosSystemConfigUpdate() string {
 	return `
-resource junos_system "testacc_system" {
+resource "junos_system" "testacc_system" {
   host_name = "testacc-terraform"
   archival_configuration {
     archive_site {

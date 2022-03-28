@@ -10,7 +10,7 @@ Provides a security utm custom-object custom-url-category resource.
 
 ```hcl
 # Add a security utm custom-object custom-url-category
-resource junos_security_utm_custom_url_category "demo_url_category" {
+resource "junos_security_utm_custom_url_category" "demo_url_category" {
   name = "custom-category"
   value = [
     "custompattern1",

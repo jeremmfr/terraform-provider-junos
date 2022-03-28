@@ -10,7 +10,7 @@ Provides a security pool resource for destination nat.
 
 ```hcl
 # Add a destination nat pool
-resource junos_security_nat_destination_pool "demo_dnat_pool" {
+resource "junos_security_nat_destination_pool" "demo_dnat_pool" {
   name    = "ip_internal"
   address = "192.0.2.2/32"
 }

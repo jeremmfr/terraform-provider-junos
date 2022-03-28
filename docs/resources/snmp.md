@@ -14,7 +14,7 @@ Configure static configuration in `snmp` block
 
 ```hcl
 # Configure snmp
-resource junos_snmp "snmp" {
+resource "junos_snmp" "snmp" {
   filter_duplicates          = true
   filter_internal_interfaces = true
   health_monitor {}

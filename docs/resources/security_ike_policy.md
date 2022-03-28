@@ -10,7 +10,7 @@ Provides a security ike policy resource.
 
 ```hcl
 # Add an ike policy
-resource junos_security_ike_policy "demo_vpn_policy" {
+resource "junos_security_ike_policy" "demo_vpn_policy" {
   name                = "ike-policy"
   proposals           = ["ike-proposal"]
   pre_shared_key_text = "theKey"

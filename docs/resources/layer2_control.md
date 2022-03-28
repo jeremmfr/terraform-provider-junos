@@ -13,7 +13,7 @@ Configure `protocols layer2-control` block
 
 ```hcl
 # Configure layer2 control
-resource junos_layer2_control "l2control" {
+resource "junos_layer2_control" "l2control" {
   bpdu_block {}
 }
 ```

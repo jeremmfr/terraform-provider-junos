@@ -10,7 +10,7 @@ Provides a security address book resource.
 
 ```hcl
 # Add an address book with entries
-resource junos_security_address_book "testAddressBook" {
+resource "junos_security_address_book" "testAddressBook" {
   name        = "testAddressBook"
   attach_zone = ["SecurityZone"]
   network_address {

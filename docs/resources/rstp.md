@@ -14,7 +14,7 @@ Configure static configuration in `protocols rstp` block for root or routing-ins
 
 ```hcl
 # Configure rstp
-resource junos_rstp "rstp" {
+resource "junos_rstp" "rstp" {
   bpdu_block_on_edge = true
 }
 ```

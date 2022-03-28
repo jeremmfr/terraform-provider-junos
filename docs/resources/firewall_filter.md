@@ -10,7 +10,7 @@ Provides a firewall filter resource.
 
 ```hcl
 # Configure a firewall filter
-resource junos_firewall_filter "filterdemo" {
+resource "junos_firewall_filter" "filterdemo" {
   name   = "filterDemo"
   family = "inet"
   term {

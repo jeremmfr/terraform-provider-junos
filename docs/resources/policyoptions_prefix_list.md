@@ -10,7 +10,7 @@ Provides a prefix list resource.
 
 ```hcl
 # Add a prefix list
-resource junos_policyoptions_prefix_list "demo_plist" {
+resource "junos_policyoptions_prefix_list" "demo_plist" {
   name   = "DemoPList"
   prefix = ["192.0.2.0/25"]
 }

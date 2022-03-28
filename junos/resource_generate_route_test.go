@@ -71,10 +71,10 @@ func TestAccJunosGenerateRoute_basic(t *testing.T) {
 
 func testAccJunosGenerateRouteConfigCreate() string {
 	return `
-resource junos_routing_instance testacc_generateRoute {
+resource "junos_routing_instance" "testacc_generateRoute" {
   name = "testacc_generateRoute"
 }
-resource junos_policyoptions_policy_statement "testacc_generateRoute" {
+resource "junos_policyoptions_policy_statement" "testacc_generateRoute" {
   lifecycle {
     create_before_destroy = true
   }
@@ -84,7 +84,7 @@ resource junos_policyoptions_policy_statement "testacc_generateRoute" {
   }
 }
 
-resource junos_generate_route testacc_generateRoute {
+resource "junos_generate_route" "testacc_generateRoute" {
   destination                  = "192.0.2.0/24"
   routing_instance             = junos_routing_instance.testacc_generateRoute.name
   preference                   = 100
@@ -100,7 +100,7 @@ resource junos_generate_route testacc_generateRoute {
   as_path_origin               = "igp"
   as_path_path                 = "65000 65000"
 }
-resource junos_generate_route testacc_generateRoute6 {
+resource "junos_generate_route" "testacc_generateRoute6" {
   destination                  = "2001:db8:85a3::/48"
   routing_instance             = junos_routing_instance.testacc_generateRoute.name
   preference                   = 100
@@ -121,17 +121,17 @@ resource junos_generate_route testacc_generateRoute6 {
 
 func testAccJunosGenerateRouteConfigUpdate() string {
 	return `
-resource junos_routing_instance testacc_generateRoute {
+resource "junos_routing_instance" "testacc_generateRoute" {
   name = "testacc_generateRoute"
 }
 
-resource junos_generate_route testacc_generateRoute {
+resource "junos_generate_route" "testacc_generateRoute" {
   destination      = "192.0.2.0/24"
   routing_instance = junos_routing_instance.testacc_generateRoute.name
   passive          = true
   brief            = true
 }
-resource junos_generate_route testacc_generateRoute6 {
+resource "junos_generate_route" "testacc_generateRoute6" {
   destination      = "2001:db8:85a3::/48"
   routing_instance = junos_routing_instance.testacc_generateRoute.name
   passive          = true
@@ -142,14 +142,14 @@ resource junos_generate_route testacc_generateRoute6 {
 
 func testAccJunosGenerateRouteConfigUpdate2() string {
 	return `
-resource junos_routing_instance testacc_generateRoute {
+resource "junos_routing_instance" "testacc_generateRoute" {
   name = "testacc_generateRoute"
 }
-resource junos_routing_instance testacc_generateRoute2 {
+resource "junos_routing_instance" "testacc_generateRoute2" {
   name = "testacc_generateRoute2"
 }
 
-resource junos_generate_route testacc_generateRoute {
+resource "junos_generate_route" "testacc_generateRoute" {
   destination      = "192.0.2.0/24"
   routing_instance = junos_routing_instance.testacc_generateRoute.name
   next_table       = "${junos_routing_instance.testacc_generateRoute2.name}.inet.0"

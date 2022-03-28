@@ -10,7 +10,7 @@ Provides a security utm custom-object url-pattern resource.
 
 ```hcl
 # Add a security utm custom-object url-pattern
-resource junos_security_utm_custom_url_pattern "demo_url_pattern" {
+resource "junos_security_utm_custom_url_pattern" "demo_url_pattern" {
   name = "Global_Whitelisted"
   value = [
     "http://*.google.com",

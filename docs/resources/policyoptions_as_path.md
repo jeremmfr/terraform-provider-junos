@@ -10,7 +10,7 @@ Provides an as-path resource.
 
 ```hcl
 # Add an as-path
-resource junos_policyoptions_as_path "github" {
+resource "junos_policyoptions_as_path" "github" {
   name = "github"
   path = ".* 36459"
 }

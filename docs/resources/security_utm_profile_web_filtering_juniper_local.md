@@ -10,7 +10,7 @@ Provides a security utm feature-profile web-filtering juniper-local profile reso
 
 ```hcl
 # Add a security utm feature-profile web-filtering juniper-local profile
-resource junos_security_utm_profile_web_filtering_juniper_local "demo_profile" {
+resource "junos_security_utm_profile_web_filtering_juniper_local" "demo_profile" {
   name                 = "Default Webfilter2"
   default_action       = "log-and-permit"
   custom_block_message = "Blocked by Juniper"

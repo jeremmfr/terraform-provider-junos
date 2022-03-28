@@ -101,7 +101,7 @@ func TestAccJunosSecurityNatSource_basic(t *testing.T) {
 
 func testAccJunosSecurityNatSourceConfigCreate() string {
 	return `
-resource junos_security_nat_source testacc_securitySNAT {
+resource "junos_security_nat_source" "testacc_securitySNAT" {
   name        = "testacc_securitySNAT"
   description = "testacc securitySNAT"
   from {
@@ -125,7 +125,7 @@ resource junos_security_nat_source testacc_securitySNAT {
     }
   }
 }
-resource junos_security_nat_source_pool testacc_securitySNATPool {
+resource "junos_security_nat_source_pool" "testacc_securitySNATPool" {
   name                                   = "testacc_securitySNATPool"
   description                            = "testacc securitySNATPool"
   address                                = ["192.0.2.1/32", "192.0.2.64/27"]
@@ -136,10 +136,10 @@ resource junos_security_nat_source_pool testacc_securitySNATPool {
   pool_utilization_alarm_clear_threshold = 60
 }
 
-resource junos_security_zone testacc_securitySNAT {
+resource "junos_security_zone" "testacc_securitySNAT" {
   name = "testacc_securitySNAT"
 }
-resource junos_routing_instance testacc_securitySNAT {
+resource "junos_routing_instance" "testacc_securitySNAT" {
   name = "testacc_securitySNAT"
 }
 `
@@ -147,7 +147,7 @@ resource junos_routing_instance testacc_securitySNAT {
 
 func testAccJunosSecurityNatSourceConfigUpdate() string {
 	return `
-resource junos_security_nat_source testacc_securitySNAT {
+resource "junos_security_nat_source" "testacc_securitySNAT" {
   depends_on = [
     junos_security_address_book.testacc_securitySNAT
   ]
@@ -199,7 +199,7 @@ resource junos_security_nat_source testacc_securitySNAT {
     }
   }
 }
-resource junos_security_nat_source_pool testacc_securitySNATPool {
+resource "junos_security_nat_source_pool" "testacc_securitySNATPool" {
   name                    = "testacc_securitySNATPool"
   address                 = ["192.0.2.1/32"]
   routing_instance        = junos_routing_instance.testacc_securitySNAT.name
@@ -207,10 +207,10 @@ resource junos_security_nat_source_pool testacc_securitySNATPool {
   port_overloading_factor = 3
 }
 
-resource junos_security_zone testacc_securitySNAT {
+resource "junos_security_zone" "testacc_securitySNAT" {
   name = "testacc_securitySNAT"
 }
-resource junos_routing_instance testacc_securitySNAT {
+resource "junos_routing_instance" "testacc_securitySNAT" {
   name = "testacc_securitySNAT"
 }
 resource "junos_security_address_book" "testacc_securitySNAT" {

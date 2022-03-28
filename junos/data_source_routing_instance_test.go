@@ -46,15 +46,15 @@ func TestAccDataSourceRoutingInstance_basic(t *testing.T) {
 
 func testAccDataSourceRoutingInstanceConfigCreate(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface_physical testacc_dataRoutingInstance {
+resource "junos_interface_physical" "testacc_dataRoutingInstance" {
   name         = "%s"
   description  = "testacc_dataRoutingInstance"
   vlan_tagging = true
 }
-resource junos_routing_instance testacc_dataRoutingInstance {
+resource "junos_routing_instance" "testacc_dataRoutingInstance" {
   name = "testacc_dataRoutingInstance"
 }
-resource junos_interface_logical testacc_dataRoutingInstance {
+resource "junos_interface_logical" "testacc_dataRoutingInstance" {
   name             = "${junos_interface_physical.testacc_dataRoutingInstance.name}.100"
   description      = "testacc_dataRoutingInstance"
   routing_instance = junos_routing_instance.testacc_dataRoutingInstance.name
@@ -64,21 +64,21 @@ resource junos_interface_logical testacc_dataRoutingInstance {
 
 func testAccDataSourceRoutingInstanceConfigData(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface_physical testacc_dataRoutingInstance {
+resource "junos_interface_physical" "testacc_dataRoutingInstance" {
   name         = "%s"
   description  = "testacc_dataRoutingInstance"
   vlan_tagging = true
 }
-resource junos_routing_instance testacc_dataRoutingInstance {
+resource "junos_routing_instance" "testacc_dataRoutingInstance" {
   name = "testacc_dataRoutingInstance"
 }
-resource junos_interface_logical testacc_dataRoutingInstance {
+resource "junos_interface_logical" "testacc_dataRoutingInstance" {
   name             = "${junos_interface_physical.testacc_dataRoutingInstance.name}.100"
   description      = "testacc_dataRoutingInstance"
   routing_instance = junos_routing_instance.testacc_dataRoutingInstance.name
 }
 
-data junos_routing_instance testacc_dataRoutingInstance {
+data "junos_routing_instance" "testacc_dataRoutingInstance" {
   name = "testacc_dataRoutingInstance"
 }
 `, interFace)
@@ -86,7 +86,7 @@ data junos_routing_instance testacc_dataRoutingInstance {
 
 func testAccDataSourceRoutingInstanceConfigDataFailed() string {
 	return `
-data junos_routing_instance testacc_dataRoutingInstance {
+data "junos_routing_instance" "testacc_dataRoutingInstance" {
   name = "testacc"
 }
 `

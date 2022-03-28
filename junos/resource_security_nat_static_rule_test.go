@@ -67,7 +67,7 @@ func TestAccJunosSecurityNatStaticRule_basic(t *testing.T) {
 
 func testAccJunosSecurityNatStaticRuleConfigCreate() string {
 	return `
-resource junos_security_nat_static testacc_securityNATSttRule {
+resource "junos_security_nat_static" "testacc_securityNATSttRule" {
   name = "testacc_securityNATSttRule"
   from {
     type  = "zone"
@@ -75,7 +75,7 @@ resource junos_security_nat_static testacc_securityNATSttRule {
   }
   configure_rules_singly = true
 }
-resource junos_security_nat_static_rule testacc_securityNATSttRule {
+resource "junos_security_nat_static_rule" "testacc_securityNATSttRule" {
   name                = "testacc_securityNATSttRule"
   rule_set            = junos_security_nat_static.testacc_securityNATSttRule.name
   destination_address = "192.0.2.0/25"
@@ -86,10 +86,10 @@ resource junos_security_nat_static_rule testacc_securityNATSttRule {
   }
 }
 
-resource junos_security_zone testacc_securityNATSttRule {
+resource "junos_security_zone" "testacc_securityNATSttRule" {
   name = "testacc_securityNATSttRule"
 }
-resource junos_routing_instance testacc_securityNATSttRule {
+resource "junos_routing_instance" "testacc_securityNATSttRule" {
   name = "testacc_securityNATSttRule"
 }
 `
@@ -97,7 +97,7 @@ resource junos_routing_instance testacc_securityNATSttRule {
 
 func testAccJunosSecurityNatStaticRuleConfigUpdate() string {
 	return `
-resource junos_security_nat_static testacc_securityNATSttRule {
+resource "junos_security_nat_static" "testacc_securityNATSttRule" {
   name = "testacc_securityNATSttRule"
   from {
     type  = "zone"
@@ -105,7 +105,7 @@ resource junos_security_nat_static testacc_securityNATSttRule {
   }
   configure_rules_singly = true
 }
-resource junos_security_nat_static_rule testacc_securityNATSttRule {
+resource "junos_security_nat_static_rule" "testacc_securityNATSttRule" {
   name                = "testacc_securityNATSttRule"
   rule_set            = junos_security_nat_static.testacc_securityNATSttRule.name
   destination_address = "192.0.2.0/26"
@@ -115,7 +115,7 @@ resource junos_security_nat_static_rule testacc_securityNATSttRule {
     prefix           = "192.0.2.64/26"
   }
 }
-resource junos_security_nat_static_rule testacc_securityNATSttRule2 {
+resource "junos_security_nat_static_rule" "testacc_securityNATSttRule2" {
   depends_on = [
     junos_security_address_book.testacc_securityNATSttRule
   ]
@@ -135,7 +135,7 @@ resource junos_security_nat_static_rule testacc_securityNATSttRule2 {
     prefix           = "testacc_securityNATSttRule-prefix"
   }
 }
-resource junos_security_nat_static_rule testacc_securityNATSttRule3 {
+resource "junos_security_nat_static_rule" "testacc_securityNATSttRule3" {
   depends_on = [
     junos_security_address_book.testacc_securityNATSttRule
   ]

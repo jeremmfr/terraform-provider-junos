@@ -10,7 +10,7 @@ Provides a bgp neighbor resource.
 
 ```hcl
 # Configure a bgp neighbor
-resource junos_bgp_neighbor "bgpneighbordemo" {
+resource "junos_bgp_neighbor" "bgpneighbordemo" {
   ip               = "192.0.2.4"
   routing_instance = "default"
   group            = "GroupBgpDemo"

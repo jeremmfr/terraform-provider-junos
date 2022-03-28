@@ -10,7 +10,7 @@ Provides a routing policy resource.
 
 ```hcl
 # Add a policy
-resource junos_policyoptions_policy_statement "demo_policy" {
+resource "junos_policyoptions_policy_statement" "demo_policy" {
   name = "DemoPolicy"
   from {
     protocol = ["bgp"]

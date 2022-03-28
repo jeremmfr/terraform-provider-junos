@@ -188,7 +188,7 @@ func TestAccJunosInterfacePhysical_basic(t *testing.T) {
 
 func testAccJunosInterfacePhysicalSWConfigCreate(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface_physical testacc_interface {
+resource "junos_interface_physical" "testacc_interface" {
   name         = "%s"
   description  = "testacc_interface"
   trunk        = true
@@ -200,7 +200,7 @@ resource junos_interface_physical testacc_interface {
 
 func testAccJunosInterfacePhysicalSWConfigUpdate(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface_physical testacc_interface {
+resource "junos_interface_physical" "testacc_interface" {
   name         = "%s"
   description  = "testacc_interfaceU"
   vlan_members = ["100"]
@@ -210,14 +210,14 @@ resource junos_interface_physical testacc_interface {
 
 func testAccJunosInterfacePhysicalConfigCreate(interFace, interfaceAE, interFace2 string) string {
 	return fmt.Sprintf(`
-resource junos_interface_physical testacc_interface {
+resource "junos_interface_physical" "testacc_interface" {
   name        = "%s"
   description = "testacc_interface"
   gigether_opts {
     ae_8023ad = "%s"
   }
 }
-resource junos_interface_physical testacc_interface2 {
+resource "junos_interface_physical" "testacc_interface2" {
   name        = "%s"
   description = "testacc_interface2"
   gigether_opts {
@@ -253,14 +253,14 @@ resource "junos_interface_physical" "testacc_interfaceAE" {
 
 func testAccJunosInterfacePhysicalConfigUpdate(interFace, interfaceAE, interFace2 string) string {
 	return fmt.Sprintf(`
-resource junos_interface_physical testacc_interface {
+resource "junos_interface_physical" "testacc_interface" {
   name        = "%s"
   description = "testacc_interfaceU"
   gigether_opts {
     ae_8023ad = "%s"
   }
 }
-resource junos_interface_physical testacc_interface2 {
+resource "junos_interface_physical" "testacc_interface2" {
   name        = "%s"
   description = "testacc_interface2"
   ether_opts {
@@ -310,7 +310,7 @@ resource "junos_interface_physical" "testacc_interfaceAE" {
 
 func testAccJunosInterfacePhysicalConfigUpdate2(interFace, interfaceAE string) string {
 	return fmt.Sprintf(`
-resource junos_interface_physical testacc_interface {
+resource "junos_interface_physical" "testacc_interface" {
   name        = "%s"
   description = "testacc_interfaceU"
   ether_opts {

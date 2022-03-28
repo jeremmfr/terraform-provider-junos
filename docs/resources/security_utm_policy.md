@@ -10,7 +10,7 @@ Provides a security utm utm-policy resource.
 
 ```hcl
 # Add a security utm utm-policy
-resource junos_security_utm_policy "demo_policy" {
+resource "junos_security_utm_policy" "demo_policy" {
   name = "Demo Policy"
   anti_virus {
     http_profile = "junos-av-defaults"
