@@ -34,7 +34,10 @@ func resourceSecurityScreenWhiteList() *schema.Resource {
 				Type:     schema.TypeSet,
 				Required: true,
 				MinItems: 1,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateCIDRNetworkFunc(),
+				},
 			},
 		},
 	}
@@ -253,9 +256,6 @@ func setSecurityScreenWhiteList(d *schema.ResourceData, m interface{}, jnprSess 
 	setPrefix := "set security screen white-list " + d.Get("name").(string) + " "
 
 	for _, v := range sortSetOfString(d.Get("address").(*schema.Set).List()) {
-		if err := validateCIDRNetwork(v); err != nil {
-			return err
-		}
 		configSet = append(configSet, setPrefix+"address "+v)
 	}
 
