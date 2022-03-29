@@ -96,7 +96,10 @@ func resourceInterfaceLogical() *schema.Resource {
 													Type:     schema.TypeList,
 													Required: true,
 													MinItems: 1,
-													Elem:     &schema.Schema{Type: schema.TypeString},
+													Elem: &schema.Schema{
+														Type:         schema.TypeString,
+														ValidateFunc: validation.IsIPAddress,
+													},
 												},
 												"accept_data": {
 													Type:     schema.TypeBool,
@@ -372,7 +375,10 @@ func resourceInterfaceLogical() *schema.Resource {
 													Type:     schema.TypeList,
 													Required: true,
 													MinItems: 1,
-													Elem:     &schema.Schema{Type: schema.TypeString},
+													Elem: &schema.Schema{
+														Type:         schema.TypeString,
+														ValidateFunc: validation.IsIPAddress,
+													},
 												},
 												"virtual_link_local_address": {
 													Type:         schema.TypeString,
@@ -1780,10 +1786,6 @@ func setFamilyAddress(inetAddress map[string]interface{}, setPrefix, family stri
 			case inetW:
 				setNameAddVrrp = setPrefixAddress + " vrrp-group " + strconv.Itoa(vrrpGroupMap["identifier"].(int))
 				for _, ip := range vrrpGroupMap["virtual_address"].([]interface{}) {
-					_, errs := validation.IsIPAddress(ip, "virtual_address")
-					if len(errs) > 0 {
-						return configSet, errs[0]
-					}
 					configSet = append(configSet, setNameAddVrrp+" virtual-address "+ip.(string))
 				}
 				if vrrpGroupMap["advertise_interval"].(int) != 0 {
@@ -1801,10 +1803,6 @@ func setFamilyAddress(inetAddress map[string]interface{}, setPrefix, family stri
 			case inet6W:
 				setNameAddVrrp = setPrefixAddress + " vrrp-inet6-group " + strconv.Itoa(vrrpGroupMap["identifier"].(int))
 				for _, ip := range vrrpGroupMap["virtual_address"].([]interface{}) {
-					_, errs := validation.IsIPAddress(ip, "virtual_address")
-					if len(errs) > 0 {
-						return configSet, errs[0]
-					}
 					configSet = append(configSet, setNameAddVrrp+" virtual-inet6-address "+ip.(string))
 				}
 				configSet = append(configSet, setNameAddVrrp+" virtual-link-local-address "+
