@@ -67,6 +67,23 @@ func validateIPwithMask(ip string) error {
 	return nil
 }
 
+func validateCIDRNetworkFunc() schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
+		v := i.(string)
+		err := validateCIDRNetwork(v)
+		if err != nil {
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       err.Error(),
+				AttributePath: path,
+			})
+		}
+
+		return diags
+	}
+}
+
 func validateCIDRNetwork(network string) error {
 	if !strings.Contains(network, "/") {
 		return fmt.Errorf("%v missing mask", network)
