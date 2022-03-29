@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * resource/`junos_ospf`: add validation to elements of `export` and `import` arguments
 * resource/`junos_policyoptions_policy_statement`: add validation to elements of some list of string
 * resource/`junos_rib_group`: add validation to elements of `import_policy` argument
+* resource/`junos_routing_instance`: add validation to elements of `instance_export`, `instance_import`, `vrf_export` and `vrf_import` arguments
 * resource/`junos_system_root_authentication`: add `plain_text_password` argument to be able to set password in plain text format (Fixes #368)
 * release now with golang 1.18
 * provider: normalize reading `JUNOS_FAKEUPDATE_ALSO` and `JUNOS_FAKEDELETE_ALSO` environment variables (use SDK function)
