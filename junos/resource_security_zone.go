@@ -154,12 +154,18 @@ func resourceSecurityZone() *schema.Resource {
 						"address": {
 							Type:     schema.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem: &schema.Schema{
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
+							},
 						},
 						"address_set": {
 							Type:     schema.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem: &schema.Schema{
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
+							},
 						},
 						"description": {
 							Type:     schema.TypeString,
