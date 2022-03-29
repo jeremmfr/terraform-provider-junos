@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * resource/`junos_routing_options`: add validation to elements of `forwarding_table.0.export`, `instance_export` and `instance_import` arguments
 * resource/`junos_security_address_book`: add validation to elements of `attach_zone`, `address_set.*.address` and `address_set.*.address_set` arguments
 * resource/`junos_security_zone`: add validation to elements of `address_book_set.*.address` and `address_book_set.*.address_set` arguments
+* resource/`junos_security_zone_book_address_set`: add validation to elements of `address` and `address_set` arguments
 * resource/`junos_system_root_authentication`: add `plain_text_password` argument to be able to set password in plain text format (Fixes #368)
 * release now with golang 1.18
 * provider: normalize reading `JUNOS_FAKEUPDATE_ALSO` and `JUNOS_FAKEDELETE_ALSO` environment variables (use SDK function)

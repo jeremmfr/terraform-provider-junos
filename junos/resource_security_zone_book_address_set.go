@@ -43,13 +43,19 @@ func resourceSecurityZoneBookAddressSet() *schema.Resource {
 				Type:         schema.TypeSet,
 				Optional:     true,
 				AtLeastOneOf: []string{"address", "address_set"},
-				Elem:         &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
+				},
 			},
 			"address_set": {
 				Type:         schema.TypeSet,
 				Optional:     true,
 				AtLeastOneOf: []string{"address", "address_set"},
-				Elem:         &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
+				},
 			},
 			"description": {
 				Type:     schema.TypeString,
