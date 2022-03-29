@@ -53,11 +53,14 @@ func resourceIkeGateway() *schema.Resource {
 				Required: true,
 			},
 			"address": {
-				Type:         schema.TypeList,
-				Optional:     true,
-				MinItems:     1,
-				MaxItems:     5,
-				Elem:         &schema.Schema{Type: schema.TypeString},
+				Type:     schema.TypeList,
+				Optional: true,
+				MinItems: 1,
+				MaxItems: 5,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.IsIPAddress,
+				},
 				ExactlyOneOf: []string{"address", "dynamic_remote"},
 			},
 			"dynamic_remote": {
@@ -480,10 +483,6 @@ func setIkeGateway(d *schema.ResourceData, m interface{}, jnprSess *NetconfObjec
 	configSet = append(configSet, setPrefix+" ike-policy "+d.Get("policy").(string))
 	configSet = append(configSet, setPrefix+" external-interface "+d.Get("external_interface").(string))
 	for _, v := range d.Get("address").([]interface{}) {
-		_, errs := validation.IsIPAddress(v, "address")
-		if len(errs) > 0 {
-			return errs[0]
-		}
 		configSet = append(configSet, setPrefix+" address "+v.(string))
 	}
 	for _, v := range d.Get("dynamic_remote").([]interface{}) {
