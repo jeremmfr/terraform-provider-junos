@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * resource/`junos_evpn`: add validation to elements of `vrf_export` and `vrf_import` arguments
 * resource/`junos_firewall_filter`: add validation to elements of `*prefix_list*` arguments
 * resource/`junos_generate_route`: add validation to elements of `policy` argument
+* resource/`junos_ospf`: add validation to elements of `export` and `import` arguments
 * resource/`junos_system_root_authentication`: add `plain_text_password` argument to be able to set password in plain text format (Fixes #368)
 * release now with golang 1.18
 * provider: normalize reading `JUNOS_FAKEUPDATE_ALSO` and `JUNOS_FAKEDELETE_ALSO` environment variables (use SDK function)
