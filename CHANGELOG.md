@@ -5,6 +5,7 @@ ENHANCEMENTS:
 
 * resource/`junos_*`: move validation of some list of string to Plan phase and not during Apply
 * resource/`junos_aggregate_route`: add validation to elements of `policy` argument
+* resource/`junos_application_set`: add validation to elements of `applications` argument
 * resource/`junos_system_root_authentication`: add `plain_text_password` argument to be able to set password in plain text format (Fixes #368)
 * release now with golang 1.18
 * provider: normalize reading `JUNOS_FAKEUPDATE_ALSO` and `JUNOS_FAKEDELETE_ALSO` environment variables (use SDK function)
