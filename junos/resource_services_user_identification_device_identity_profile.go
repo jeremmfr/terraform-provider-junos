@@ -23,7 +23,7 @@ func resourceServicesUserIdentDeviceIdentityProfile() *schema.Resource {
 		UpdateContext: resourceServicesUserIdentDeviceIdentityProfileUpdate,
 		DeleteContext: resourceServicesUserIdentDeviceIdentityProfileDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceServicesUserIdentDeviceIdentityProfileImport,
+			StateContext: resourceServicesUserIdentDeviceIdentityProfileImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -231,7 +231,7 @@ func resourceServicesUserIdentDeviceIdentityProfileDelete(ctx context.Context, d
 	return diagWarns
 }
 
-func resourceServicesUserIdentDeviceIdentityProfileImport(d *schema.ResourceData, m interface{},
+func resourceServicesUserIdentDeviceIdentityProfileImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()

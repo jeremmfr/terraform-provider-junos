@@ -17,7 +17,7 @@ func resourceBgpNeighbor() *schema.Resource {
 		UpdateContext: resourceBgpNeighborUpdate,
 		DeleteContext: resourceBgpNeighborDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceBgpNeighborImport,
+			StateContext: resourceBgpNeighborImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"ip": {
@@ -779,7 +779,8 @@ func resourceBgpNeighborDelete(ctx context.Context, d *schema.ResourceData, m in
 	return diagWarns
 }
 
-func resourceBgpNeighborImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceBgpNeighborImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

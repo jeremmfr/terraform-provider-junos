@@ -23,7 +23,7 @@ func resourcePolicyoptionsAsPathGroup() *schema.Resource {
 		UpdateContext: resourcePolicyoptionsAsPathGroupUpdate,
 		DeleteContext: resourcePolicyoptionsAsPathGroupDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourcePolicyoptionsAsPathGroupImport,
+			StateContext: resourcePolicyoptionsAsPathGroupImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -219,7 +219,8 @@ func resourcePolicyoptionsAsPathGroupDelete(ctx context.Context, d *schema.Resou
 	return diagWarns
 }
 
-func resourcePolicyoptionsAsPathGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourcePolicyoptionsAsPathGroupImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

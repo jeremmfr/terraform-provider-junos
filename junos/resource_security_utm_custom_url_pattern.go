@@ -21,7 +21,7 @@ func resourceSecurityUtmCustomURLPattern() *schema.Resource {
 		UpdateContext: resourceSecurityUtmCustomURLPatternUpdate,
 		DeleteContext: resourceSecurityUtmCustomURLPatternDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityUtmCustomURLPatternImport,
+			StateContext: resourceSecurityUtmCustomURLPatternImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -206,7 +206,8 @@ func resourceSecurityUtmCustomURLPatternDelete(ctx context.Context, d *schema.Re
 	return diagWarns
 }
 
-func resourceSecurityUtmCustomURLPatternImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityUtmCustomURLPatternImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

@@ -31,7 +31,7 @@ func resourceForwardingoptionsSamplingInstance() *schema.Resource {
 		UpdateContext: resourceForwardingoptionsSamplingInstanceUpdate,
 		DeleteContext: resourceForwardingoptionsSamplingInstanceDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceForwardingoptionsSamplingInstanceImport,
+			StateContext: resourceForwardingoptionsSamplingInstanceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -793,7 +793,7 @@ func resourceForwardingoptionsSamplingInstanceDelete(ctx context.Context, d *sch
 	return diagWarns
 }
 
-func resourceForwardingoptionsSamplingInstanceImport(d *schema.ResourceData, m interface{},
+func resourceForwardingoptionsSamplingInstanceImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()

@@ -30,7 +30,7 @@ func resourceChassisRedundancy() *schema.Resource {
 		UpdateContext: resourceChassisRedundancyUpdate,
 		DeleteContext: resourceChassisRedundancyDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceChassisRedundancyImport,
+			StateContext: resourceChassisRedundancyImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"failover_disk_read_threshold": {
@@ -220,7 +220,8 @@ func resourceChassisRedundancyDelete(ctx context.Context, d *schema.ResourceData
 	return diagWarns
 }
 
-func resourceChassisRedundancyImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceChassisRedundancyImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

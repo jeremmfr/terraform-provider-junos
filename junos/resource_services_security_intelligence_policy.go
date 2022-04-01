@@ -24,7 +24,7 @@ func resourceServicesSecurityIntellPolicy() *schema.Resource {
 		UpdateContext: resourceServicesSecurityIntellPolicyUpdate,
 		DeleteContext: resourceServicesSecurityIntellPolicyDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceServicesSecurityIntellPolicyImport,
+			StateContext: resourceServicesSecurityIntellPolicyImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -220,7 +220,7 @@ func resourceServicesSecurityIntellPolicyDelete(ctx context.Context, d *schema.R
 	return diagWarns
 }
 
-func resourceServicesSecurityIntellPolicyImport(d *schema.ResourceData, m interface{},
+func resourceServicesSecurityIntellPolicyImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()

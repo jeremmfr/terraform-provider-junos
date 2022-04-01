@@ -22,7 +22,7 @@ func resourcePolicyoptionsCommunity() *schema.Resource {
 		UpdateContext: resourcePolicyoptionsCommunityUpdate,
 		DeleteContext: resourcePolicyoptionsCommunityDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourcePolicyoptionsCommunityImport,
+			StateContext: resourcePolicyoptionsCommunityImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -204,7 +204,8 @@ func resourcePolicyoptionsCommunityDelete(ctx context.Context, d *schema.Resourc
 	return diagWarns
 }
 
-func resourcePolicyoptionsCommunityImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourcePolicyoptionsCommunityImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

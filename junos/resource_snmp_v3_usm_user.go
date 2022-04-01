@@ -30,7 +30,7 @@ func resourceSnmpV3UsmUser() *schema.Resource {
 		UpdateContext: resourceSnmpV3UsmUserUpdate,
 		DeleteContext: resourceSnmpV3UsmUserDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSnmpV3UsmUserImport,
+			StateContext: resourceSnmpV3UsmUserImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -293,7 +293,8 @@ func resourceSnmpV3UsmUserDelete(ctx context.Context, d *schema.ResourceData, m 
 	return diagWarns
 }
 
-func resourceSnmpV3UsmUserImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSnmpV3UsmUserImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

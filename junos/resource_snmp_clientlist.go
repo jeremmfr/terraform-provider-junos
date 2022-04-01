@@ -21,7 +21,7 @@ func resourceSnmpClientlist() *schema.Resource {
 		UpdateContext: resourceSnmpClientlistUpdate,
 		DeleteContext: resourceSnmpClientlistDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSnmpClientlistImport,
+			StateContext: resourceSnmpClientlistImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -196,7 +196,8 @@ func resourceSnmpClientlistDelete(ctx context.Context, d *schema.ResourceData, m
 	return diagWarns
 }
 
-func resourceSnmpClientlistImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSnmpClientlistImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

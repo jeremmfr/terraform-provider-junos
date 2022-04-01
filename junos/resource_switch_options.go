@@ -20,7 +20,7 @@ func resourceSwitchOptions() *schema.Resource {
 		UpdateContext: resourceSwitchOptionsUpdate,
 		DeleteContext: resourceSwitchOptionsDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSwitchOptionsImport,
+			StateContext: resourceSwitchOptionsImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"clean_on_destroy": {
@@ -179,7 +179,8 @@ func resourceSwitchOptionsDelete(ctx context.Context, d *schema.ResourceData, m 
 	return nil
 }
 
-func resourceSwitchOptionsImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSwitchOptionsImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

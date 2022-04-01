@@ -51,7 +51,7 @@ func resourceSystem() *schema.Resource {
 		UpdateContext: resourceSystemUpdate,
 		DeleteContext: resourceSystemDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSystemImport,
+			StateContext: resourceSystemImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"archival_configuration": {
@@ -1031,7 +1031,8 @@ func resourceSystemDelete(ctx context.Context, d *schema.ResourceData, m interfa
 	return nil
 }
 
-func resourceSystemImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSystemImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

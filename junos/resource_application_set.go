@@ -21,7 +21,7 @@ func resourceApplicationSet() *schema.Resource {
 		UpdateContext: resourceApplicationSetUpdate,
 		DeleteContext: resourceApplicationSetDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceApplicationSetImport,
+			StateContext: resourceApplicationSetImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -197,7 +197,8 @@ func resourceApplicationSetDelete(ctx context.Context, d *schema.ResourceData, m
 	return diagWarns
 }
 
-func resourceApplicationSetImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceApplicationSetImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

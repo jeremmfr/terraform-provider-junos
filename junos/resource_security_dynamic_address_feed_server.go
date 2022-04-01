@@ -28,7 +28,7 @@ func resourceSecurityDynamicAddressFeedServer() *schema.Resource {
 		UpdateContext: resourceSecurityDynamicAddressFeedServerUpdate,
 		DeleteContext: resourceSecurityDynamicAddressFeedServerDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityDynamicAddressFeedServerImport,
+			StateContext: resourceSecurityDynamicAddressFeedServerImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -262,7 +262,7 @@ func resourceSecurityDynamicAddressFeedServerDelete(ctx context.Context, d *sche
 	return diagWarns
 }
 
-func resourceSecurityDynamicAddressFeedServerImport(d *schema.ResourceData, m interface{},
+func resourceSecurityDynamicAddressFeedServerImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()

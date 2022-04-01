@@ -27,7 +27,7 @@ func resourceIpsecProposal() *schema.Resource {
 		UpdateContext: resourceIpsecProposalUpdate,
 		DeleteContext: resourceIpsecProposalDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceIpsecProposalImport,
+			StateContext: resourceIpsecProposalImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -225,7 +225,8 @@ func resourceIpsecProposalDelete(ctx context.Context, d *schema.ResourceData, m 
 	return diagWarns
 }
 
-func resourceIpsecProposalImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceIpsecProposalImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

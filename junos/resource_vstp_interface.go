@@ -34,7 +34,7 @@ func resourceVstpInterface() *schema.Resource {
 		UpdateContext: resourceVstpInterfaceUpdate,
 		DeleteContext: resourceVstpInterfaceDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceVstpInterfaceImport,
+			StateContext: resourceVstpInterfaceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -465,7 +465,8 @@ func resourceVstpInterfaceDelete(ctx context.Context, d *schema.ResourceData, m 
 	return diagWarns
 }
 
-func resourceVstpInterfaceImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceVstpInterfaceImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

@@ -25,7 +25,7 @@ func resourceLayer2Control() *schema.Resource {
 		UpdateContext: resourceLayer2ControlUpdate,
 		DeleteContext: resourceLayer2ControlDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceLayer2ControlImport,
+			StateContext: resourceLayer2ControlImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"bpdu_block": {
@@ -245,7 +245,8 @@ func resourceLayer2ControlDelete(ctx context.Context, d *schema.ResourceData, m 
 	return diagWarns
 }
 
-func resourceLayer2ControlImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceLayer2ControlImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

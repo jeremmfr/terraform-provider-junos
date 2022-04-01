@@ -28,7 +28,7 @@ func resourceRoutingOptions() *schema.Resource {
 		UpdateContext: resourceRoutingOptionsUpdate,
 		DeleteContext: resourceRoutingOptionsDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceRoutingOptionsImport,
+			StateContext: resourceRoutingOptionsImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"clean_on_destroy": {
@@ -335,7 +335,8 @@ func resourceRoutingOptionsDelete(ctx context.Context, d *schema.ResourceData, m
 	return nil
 }
 
-func resourceRoutingOptionsImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceRoutingOptionsImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

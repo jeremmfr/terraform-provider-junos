@@ -31,7 +31,7 @@ func resourceChassisCluster() *schema.Resource {
 		UpdateContext: resourceChassisClusterUpdate,
 		DeleteContext: resourceChassisClusterDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceChassisClusterImport,
+			StateContext: resourceChassisClusterImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"fab0": {
@@ -334,7 +334,8 @@ func resourceChassisClusterDelete(ctx context.Context, d *schema.ResourceData, m
 	return diagWarns
 }
 
-func resourceChassisClusterImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceChassisClusterImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

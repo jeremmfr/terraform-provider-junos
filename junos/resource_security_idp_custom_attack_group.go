@@ -21,7 +21,7 @@ func resourceSecurityIdpCustomAttackGroup() *schema.Resource {
 		UpdateContext: resourceSecurityIdpCustomAttackGroupUpdate,
 		DeleteContext: resourceSecurityIdpCustomAttackGroupDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityIdpCustomAttackGroupImport,
+			StateContext: resourceSecurityIdpCustomAttackGroupImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -206,7 +206,8 @@ func resourceSecurityIdpCustomAttackGroupDelete(ctx context.Context, d *schema.R
 	return diagWarns
 }
 
-func resourceSecurityIdpCustomAttackGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityIdpCustomAttackGroupImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

@@ -31,7 +31,7 @@ func resourceSecurityIdpCustomAttack() *schema.Resource {
 		UpdateContext: resourceSecurityIdpCustomAttackUpdate,
 		DeleteContext: resourceSecurityIdpCustomAttackDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityIdpCustomAttackImport,
+			StateContext: resourceSecurityIdpCustomAttackImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -980,7 +980,8 @@ func resourceSecurityIdpCustomAttackDelete(ctx context.Context, d *schema.Resour
 	return diagWarns
 }
 
-func resourceSecurityIdpCustomAttackImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityIdpCustomAttackImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

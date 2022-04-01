@@ -17,7 +17,7 @@ func resourceBgpGroup() *schema.Resource {
 		UpdateContext: resourceBgpGroupUpdate,
 		DeleteContext: resourceBgpGroupDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceBgpGroupImport,
+			StateContext: resourceBgpGroupImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -768,7 +768,8 @@ func resourceBgpGroupDelete(ctx context.Context, d *schema.ResourceData, m inter
 	return diagWarns
 }
 
-func resourceBgpGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceBgpGroupImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

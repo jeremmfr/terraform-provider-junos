@@ -28,7 +28,7 @@ func resourceServicesSecurityIntellProfile() *schema.Resource {
 		UpdateContext: resourceServicesSecurityIntellProfileUpdate,
 		DeleteContext: resourceServicesSecurityIntellProfileDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceServicesSecurityIntellProfileImport,
+			StateContext: resourceServicesSecurityIntellProfileImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -281,7 +281,7 @@ func resourceServicesSecurityIntellProfileDelete(ctx context.Context, d *schema.
 	return diagWarns
 }
 
-func resourceServicesSecurityIntellProfileImport(d *schema.ResourceData, m interface{},
+func resourceServicesSecurityIntellProfileImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()

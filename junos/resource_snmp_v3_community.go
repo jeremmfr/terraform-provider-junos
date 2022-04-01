@@ -25,7 +25,7 @@ func resourceSnmpV3Community() *schema.Resource {
 		UpdateContext: resourceSnmpV3CommunityUpdate,
 		DeleteContext: resourceSnmpV3CommunityDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSnmpV3CommunityImport,
+			StateContext: resourceSnmpV3CommunityImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"community_index": {
@@ -212,7 +212,8 @@ func resourceSnmpV3CommunityDelete(ctx context.Context, d *schema.ResourceData, 
 	return diagWarns
 }
 
-func resourceSnmpV3CommunityImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSnmpV3CommunityImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

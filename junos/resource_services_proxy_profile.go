@@ -24,7 +24,7 @@ func resourceServicesProxyProfile() *schema.Resource {
 		UpdateContext: resourceServicesProxyProfileUpdate,
 		DeleteContext: resourceServicesProxyProfileDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceServicesProxyProfileImport,
+			StateContext: resourceServicesProxyProfileImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -208,7 +208,7 @@ func resourceServicesProxyProfileDelete(ctx context.Context, d *schema.ResourceD
 	return diagWarns
 }
 
-func resourceServicesProxyProfileImport(d *schema.ResourceData, m interface{},
+func resourceServicesProxyProfileImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()

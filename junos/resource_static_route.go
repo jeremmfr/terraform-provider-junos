@@ -48,7 +48,7 @@ func resourceStaticRoute() *schema.Resource {
 		UpdateContext: resourceStaticRouteUpdate,
 		DeleteContext: resourceStaticRouteDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceStaticRouteImport,
+			StateContext: resourceStaticRouteImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"destination": {
@@ -381,7 +381,8 @@ func resourceStaticRouteDelete(ctx context.Context, d *schema.ResourceData, m in
 	return diagWarns
 }
 
-func resourceStaticRouteImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceStaticRouteImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

@@ -47,7 +47,7 @@ func resourceSystemSyslogHost() *schema.Resource {
 		UpdateContext: resourceSystemSyslogHostUpdate,
 		DeleteContext: resourceSystemSyslogHostDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSystemSyslogHostImport,
+			StateContext: resourceSystemSyslogHostImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"host": {
@@ -347,7 +347,8 @@ func resourceSystemSyslogHostDelete(ctx context.Context, d *schema.ResourceData,
 	return diagWarns
 }
 
-func resourceSystemSyslogHostImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSystemSyslogHostImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

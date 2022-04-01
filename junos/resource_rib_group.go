@@ -23,7 +23,7 @@ func resourceRibGroup() *schema.Resource {
 		UpdateContext: resourceRibGroupUpdate,
 		DeleteContext: resourceRibGroupDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceRibGroupImport,
+			StateContext: resourceRibGroupImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -243,7 +243,8 @@ func resourceRibGroupDelete(ctx context.Context, d *schema.ResourceData, m inter
 	return diagWarns
 }
 
-func resourceRibGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceRibGroupImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

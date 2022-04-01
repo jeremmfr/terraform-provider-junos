@@ -28,7 +28,7 @@ func resourceServices() *schema.Resource {
 		UpdateContext: resourceServicesUpdate,
 		DeleteContext: resourceServicesDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceServicesImport,
+			StateContext: resourceServicesImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"clean_on_destroy": {
@@ -748,7 +748,8 @@ func resourceServicesDelete(ctx context.Context, d *schema.ResourceData, m inter
 	return nil
 }
 
-func resourceServicesImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceServicesImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

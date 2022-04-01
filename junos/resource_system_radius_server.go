@@ -36,7 +36,7 @@ func resourceSystemRadiusServer() *schema.Resource {
 		UpdateContext: resourceSystemRadiusServerUpdate,
 		DeleteContext: resourceSystemRadiusServerDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSystemRadiusServerImport,
+			StateContext: resourceSystemRadiusServerImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"address": {
@@ -281,7 +281,8 @@ func resourceSystemRadiusServerDelete(ctx context.Context, d *schema.ResourceDat
 	return diagWarns
 }
 
-func resourceSystemRadiusServerImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSystemRadiusServerImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

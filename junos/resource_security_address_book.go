@@ -29,7 +29,7 @@ func resourceSecurityAddressBook() *schema.Resource {
 		UpdateContext: resourceSecurityAddressBookUpdate,
 		DeleteContext: resourceSecurityAddressBookDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityAddressBookImport,
+			StateContext: resourceSecurityAddressBookImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -337,7 +337,8 @@ func resourceSecurityAddressBookDelete(ctx context.Context, d *schema.ResourceDa
 	return diagWarns
 }
 
-func resourceSecurityAddressBookImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityAddressBookImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

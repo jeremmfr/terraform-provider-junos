@@ -26,7 +26,7 @@ func resourceSystemNtpServer() *schema.Resource {
 		UpdateContext: resourceSystemNtpServerUpdate,
 		DeleteContext: resourceSystemNtpServerDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSystemNtpServerImport,
+			StateContext: resourceSystemNtpServerImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"address": {
@@ -218,7 +218,8 @@ func resourceSystemNtpServerDelete(ctx context.Context, d *schema.ResourceData, 
 	return diagWarns
 }
 
-func resourceSystemNtpServerImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSystemNtpServerImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

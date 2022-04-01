@@ -24,7 +24,7 @@ func resourceSystemRootAuthentication() *schema.Resource {
 		UpdateContext: resourceSystemRootAuthenticationUpdate,
 		DeleteContext: resourceSystemRootAuthenticationDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSystemRootAuthenticationImport,
+			StateContext: resourceSystemRootAuthenticationImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"encrypted_password": {
@@ -179,7 +179,8 @@ func resourceSystemRootAuthenticationDelete(ctx context.Context, d *schema.Resou
 	return nil
 }
 
-func resourceSystemRootAuthenticationImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSystemRootAuthenticationImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

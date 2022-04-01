@@ -30,7 +30,7 @@ func resourceVstpVlan() *schema.Resource {
 		UpdateContext: resourceVstpVlanUpdate,
 		DeleteContext: resourceVstpVlanDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceVstpVlanImport,
+			StateContext: resourceVstpVlanImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"vlan_id": {
@@ -266,7 +266,8 @@ func resourceVstpVlanDelete(ctx context.Context, d *schema.ResourceData, m inter
 	return diagWarns
 }
 
-func resourceVstpVlanImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceVstpVlanImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

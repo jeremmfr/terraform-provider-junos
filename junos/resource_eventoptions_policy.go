@@ -27,7 +27,7 @@ func resourceEventoptionsPolicy() *schema.Resource {
 		UpdateContext: resourceEventoptionsPolicyUpdate,
 		DeleteContext: resourceEventoptionsPolicyDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceEventoptionsPolicyImport,
+			StateContext: resourceEventoptionsPolicyImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -625,7 +625,8 @@ func resourceEventoptionsPolicyDelete(ctx context.Context, d *schema.ResourceDat
 	return diagWarns
 }
 
-func resourceEventoptionsPolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceEventoptionsPolicyImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

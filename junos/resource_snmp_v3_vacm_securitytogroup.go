@@ -24,7 +24,7 @@ func resourceSnmpV3VacmSecurityToGroup() *schema.Resource {
 		UpdateContext: resourceSnmpV3VacmSecurityToGroupUpdate,
 		DeleteContext: resourceSnmpV3VacmSecurityToGroupDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSnmpV3VacmSecurityToGroupImport,
+			StateContext: resourceSnmpV3VacmSecurityToGroupImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"model": {
@@ -214,7 +214,8 @@ func resourceSnmpV3VacmSecurityToGroupDelete(ctx context.Context, d *schema.Reso
 	return diagWarns
 }
 
-func resourceSnmpV3VacmSecurityToGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSnmpV3VacmSecurityToGroupImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

@@ -24,7 +24,7 @@ func resourceSnmpV3VacmAccessGroup() *schema.Resource {
 		UpdateContext: resourceSnmpV3VacmAccessGroupUpdate,
 		DeleteContext: resourceSnmpV3VacmAccessGroupDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSnmpV3VacmAccessGroupImport,
+			StateContext: resourceSnmpV3VacmAccessGroupImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -287,7 +287,8 @@ func resourceSnmpV3VacmAccessGroupDelete(ctx context.Context, d *schema.Resource
 	return diagWarns
 }
 
-func resourceSnmpV3VacmAccessGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSnmpV3VacmAccessGroupImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

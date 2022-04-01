@@ -38,7 +38,7 @@ func resourceRstp() *schema.Resource {
 		UpdateContext: resourceRstpUpdate,
 		DeleteContext: resourceRstpDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceRstpImport,
+			StateContext: resourceRstpImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"routing_instance": {
@@ -294,7 +294,8 @@ func resourceRstpDelete(ctx context.Context, d *schema.ResourceData, m interface
 	return diagWarns
 }
 
-func resourceRstpImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceRstpImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

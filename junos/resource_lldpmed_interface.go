@@ -26,7 +26,7 @@ func resourceLldpMedInterface() *schema.Resource {
 		UpdateContext: resourceLldpMedInterfaceUpdate,
 		DeleteContext: resourceLldpMedInterfaceDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceLldpMedInterfaceImport,
+			StateContext: resourceLldpMedInterfaceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -289,7 +289,8 @@ func resourceLldpMedInterfaceDelete(ctx context.Context, d *schema.ResourceData,
 	return diagWarns
 }
 
-func resourceLldpMedInterfaceImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceLldpMedInterfaceImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

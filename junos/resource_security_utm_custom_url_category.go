@@ -21,7 +21,7 @@ func resourceSecurityUtmCustomURLCategory() *schema.Resource {
 		UpdateContext: resourceSecurityUtmCustomURLCategoryUpdate,
 		DeleteContext: resourceSecurityUtmCustomURLCategoryDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityUtmCustomURLCategoryImport,
+			StateContext: resourceSecurityUtmCustomURLCategoryImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -207,7 +207,8 @@ func resourceSecurityUtmCustomURLCategoryDelete(ctx context.Context, d *schema.R
 	return diagWarns
 }
 
-func resourceSecurityUtmCustomURLCategoryImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityUtmCustomURLCategoryImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

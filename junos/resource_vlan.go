@@ -35,7 +35,7 @@ func resourceVlan() *schema.Resource {
 		UpdateContext: resourceVlanUpdate,
 		DeleteContext: resourceVlanDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceVlanImport,
+			StateContext: resourceVlanImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -321,7 +321,8 @@ func resourceVlanDelete(ctx context.Context, d *schema.ResourceData, m interface
 	return diagWarns
 }
 
-func resourceVlanImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceVlanImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

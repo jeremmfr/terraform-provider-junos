@@ -27,7 +27,7 @@ func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 		UpdateContext: resourcePolicyoptionsPolicyStatementUpdate,
 		DeleteContext: resourcePolicyoptionsPolicyStatementDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourcePolicyoptionsPolicyStatementImport,
+			StateContext: resourcePolicyoptionsPolicyStatementImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -637,7 +637,8 @@ func resourcePolicyoptionsPolicyStatementDelete(ctx context.Context, d *schema.R
 	return diagWarns
 }
 
-func resourcePolicyoptionsPolicyStatementImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourcePolicyoptionsPolicyStatementImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

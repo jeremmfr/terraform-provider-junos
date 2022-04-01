@@ -39,7 +39,7 @@ func resourceIkePolicy() *schema.Resource {
 		UpdateContext: resourceIkePolicyUpdate,
 		DeleteContext: resourceIkePolicyDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceIkePolicyImport,
+			StateContext: resourceIkePolicyImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -244,7 +244,8 @@ func resourceIkePolicyDelete(ctx context.Context, d *schema.ResourceData, m inte
 	return diagWarns
 }
 
-func resourceIkePolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceIkePolicyImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

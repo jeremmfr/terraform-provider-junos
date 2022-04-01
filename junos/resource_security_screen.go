@@ -36,7 +36,7 @@ func resourceSecurityScreen() *schema.Resource {
 		UpdateContext: resourceSecurityScreenUpdate,
 		DeleteContext: resourceSecurityScreenDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityScreenImport,
+			StateContext: resourceSecurityScreenImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -742,7 +742,8 @@ func resourceSecurityScreenDelete(ctx context.Context, d *schema.ResourceData, m
 	return diagWarns
 }
 
-func resourceSecurityScreenImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityScreenImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

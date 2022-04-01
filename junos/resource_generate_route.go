@@ -38,7 +38,7 @@ func resourceGenerateRoute() *schema.Resource {
 		UpdateContext: resourceGenerateRouteUpdate,
 		DeleteContext: resourceGenerateRouteDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceGenerateRouteImport,
+			StateContext: resourceGenerateRouteImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"destination": {
@@ -310,7 +310,8 @@ func resourceGenerateRouteDelete(ctx context.Context, d *schema.ResourceData, m 
 	return diagWarns
 }
 
-func resourceGenerateRouteImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceGenerateRouteImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

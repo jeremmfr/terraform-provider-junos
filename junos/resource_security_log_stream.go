@@ -29,7 +29,7 @@ func resourceSecurityLogStream() *schema.Resource {
 		UpdateContext: resourceSecurityLogStreamUpdate,
 		DeleteContext: resourceSecurityLogStreamDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityLogStreamImport,
+			StateContext: resourceSecurityLogStreamImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -284,7 +284,8 @@ func resourceSecurityLogStreamDelete(ctx context.Context, d *schema.ResourceData
 	return diagWarns
 }
 
-func resourceSecurityLogStreamImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityLogStreamImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

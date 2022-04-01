@@ -38,7 +38,7 @@ func resourceSecurityZone() *schema.Resource {
 		UpdateContext: resourceSecurityZoneUpdate,
 		DeleteContext: resourceSecurityZoneDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityZoneImport,
+			StateContext: resourceSecurityZoneImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -419,7 +419,8 @@ func resourceSecurityZoneDelete(ctx context.Context, d *schema.ResourceData, m i
 	return diagWarns
 }
 
-func resourceSecurityZoneImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityZoneImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

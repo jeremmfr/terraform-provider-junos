@@ -27,7 +27,7 @@ func resourceIkeProposal() *schema.Resource {
 		UpdateContext: resourceIkeProposalUpdate,
 		DeleteContext: resourceIkeProposalDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceIkeProposalImport,
+			StateContext: resourceIkeProposalImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -223,7 +223,8 @@ func resourceIkeProposalDelete(ctx context.Context, d *schema.ResourceData, m in
 	return diagWarns
 }
 
-func resourceIkeProposalImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceIkeProposalImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

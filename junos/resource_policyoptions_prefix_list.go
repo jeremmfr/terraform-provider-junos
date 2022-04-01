@@ -23,7 +23,7 @@ func resourcePolicyoptionsPrefixList() *schema.Resource {
 		UpdateContext: resourcePolicyoptionsPrefixListUpdate,
 		DeleteContext: resourcePolicyoptionsPrefixListDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourcePolicyoptionsPrefixListImport,
+			StateContext: resourcePolicyoptionsPrefixListImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -211,7 +211,8 @@ func resourcePolicyoptionsPrefixListDelete(ctx context.Context, d *schema.Resour
 	return diagWarns
 }
 
-func resourcePolicyoptionsPrefixListImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourcePolicyoptionsPrefixListImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

@@ -27,7 +27,7 @@ func resourceEvpn() *schema.Resource {
 		UpdateContext: resourceEvpnUpdate,
 		DeleteContext: resourceEvpnDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceEvpnImport,
+			StateContext: resourceEvpnImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"routing_instance": {
@@ -275,7 +275,8 @@ func resourceEvpnDelete(ctx context.Context, d *schema.ResourceData, m interface
 	return diagWarns
 }
 
-func resourceEvpnImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceEvpnImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
