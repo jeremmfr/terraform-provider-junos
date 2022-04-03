@@ -11,9 +11,9 @@ import (
 
 func resourceInterfacePhysicalDisable() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceInterfacePhysicalDisableCreate,
-		ReadContext:   resourceInterfacePhysicalDisableRead,
-		DeleteContext: resourceInterfacePhysicalDisableDelete,
+		CreateWithoutTimeout: resourceInterfacePhysicalDisableCreate,
+		ReadWithoutTimeout:   resourceInterfacePhysicalDisableRead,
+		DeleteWithoutTimeout: resourceInterfacePhysicalDisableDelete,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -49,7 +49,9 @@ func resourceInterfacePhysicalDisableCreate(ctx context.Context, d *schema.Resou
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), m, jnprSess)
 	if err != nil {

@@ -25,10 +25,10 @@ type zoneBookAddressOptions struct {
 
 func resourceSecurityZoneBookAddress() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityZoneBookAddressCreate,
-		ReadContext:   resourceSecurityZoneBookAddressRead,
-		UpdateContext: resourceSecurityZoneBookAddressUpdate,
-		DeleteContext: resourceSecurityZoneBookAddressDelete,
+		CreateWithoutTimeout: resourceSecurityZoneBookAddressCreate,
+		ReadWithoutTimeout:   resourceSecurityZoneBookAddressRead,
+		UpdateWithoutTimeout: resourceSecurityZoneBookAddressUpdate,
+		DeleteWithoutTimeout: resourceSecurityZoneBookAddressDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSecurityZoneBookAddressImport,
 		},
@@ -115,7 +115,9 @@ func resourceSecurityZoneBookAddressCreate(ctx context.Context, d *schema.Resour
 		return diag.FromErr(fmt.Errorf("security zone address-book address not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	zonesExists, err := checkSecurityZonesExists(d.Get("zone").(string), m, jnprSess)
 	if err != nil {
@@ -220,7 +222,9 @@ func resourceSecurityZoneBookAddressUpdate(ctx context.Context, d *schema.Resour
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityZoneBookAddress(d.Get("zone").(string), d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -259,7 +263,9 @@ func resourceSecurityZoneBookAddressDelete(ctx context.Context, d *schema.Resour
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityZoneBookAddress(d.Get("zone").(string), d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

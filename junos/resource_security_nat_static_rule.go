@@ -27,10 +27,10 @@ type natStaticRuleOptions struct {
 
 func resourceSecurityNatStaticRule() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityNatStaticRuleCreate,
-		ReadContext:   resourceSecurityNatStaticRuleRead,
-		UpdateContext: resourceSecurityNatStaticRuleUpdate,
-		DeleteContext: resourceSecurityNatStaticRuleDelete,
+		CreateWithoutTimeout: resourceSecurityNatStaticRuleCreate,
+		ReadWithoutTimeout:   resourceSecurityNatStaticRuleRead,
+		UpdateWithoutTimeout: resourceSecurityNatStaticRuleUpdate,
+		DeleteWithoutTimeout: resourceSecurityNatStaticRuleDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSecurityNatStaticRuleImport,
 		},
@@ -142,7 +142,9 @@ func resourceSecurityNatStaticRuleCreate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(fmt.Errorf("security nat static rule in rule-set not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	natStaticExists, err := checkSecurityNatStaticExists(d.Get("rule_set").(string), m, jnprSess)
 	if err != nil {
@@ -247,7 +249,9 @@ func resourceSecurityNatStaticRuleUpdate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityNatStaticRule(d.Get("rule_set").(string), d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -286,7 +290,9 @@ func resourceSecurityNatStaticRuleDelete(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityNatStaticRule(d.Get("rule_set").(string), d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

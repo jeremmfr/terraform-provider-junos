@@ -10,7 +10,7 @@ import (
 
 func dataSourceSecurityZone() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceSecurityZoneRead,
+		ReadWithoutTimeout: dataSourceSecurityZoneRead,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:             schema.TypeString,

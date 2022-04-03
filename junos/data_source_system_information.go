@@ -9,7 +9,7 @@ import (
 
 func dataSourceSystemInformation() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceSystemInformationRead,
+		ReadWithoutTimeout: dataSourceSystemInformationRead,
 
 		Schema: map[string]*schema.Schema{
 			"hardware_model": {

@@ -33,10 +33,10 @@ type zoneOptions struct {
 
 func resourceSecurityZone() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityZoneCreate,
-		ReadContext:   resourceSecurityZoneRead,
-		UpdateContext: resourceSecurityZoneUpdate,
-		DeleteContext: resourceSecurityZoneDelete,
+		CreateWithoutTimeout: resourceSecurityZoneCreate,
+		ReadWithoutTimeout:   resourceSecurityZoneRead,
+		UpdateWithoutTimeout: resourceSecurityZoneUpdate,
+		DeleteWithoutTimeout: resourceSecurityZoneDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSecurityZoneImport,
 		},
@@ -253,7 +253,9 @@ func resourceSecurityZoneCreate(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(fmt.Errorf("security zone not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	securityZoneExists, err := checkSecurityZonesExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -363,7 +365,9 @@ func resourceSecurityZoneUpdate(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	if err := delSecurityZoneOpts(
 		d.Get("name").(string), addressBookConfiguredSingly, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -401,7 +405,9 @@ func resourceSecurityZoneDelete(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityZone(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

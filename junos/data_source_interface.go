@@ -13,7 +13,7 @@ import (
 
 func dataSourceInterface() *schema.Resource {
 	return &schema.Resource{
-		ReadContext:        dataSourceInterfaceRead,
+		ReadWithoutTimeout: dataSourceInterfaceRead,
 		DeprecationMessage: "use junos_interface_physical or junos_interface_logical data source instead",
 		Schema: map[string]*schema.Schema{
 			"config_interface": {

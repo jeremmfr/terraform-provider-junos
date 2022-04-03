@@ -23,10 +23,10 @@ type servicesOptions struct {
 
 func resourceServices() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceServicesCreate,
-		ReadContext:   resourceServicesRead,
-		UpdateContext: resourceServicesUpdate,
-		DeleteContext: resourceServicesDelete,
+		CreateWithoutTimeout: resourceServicesCreate,
+		ReadWithoutTimeout:   resourceServicesRead,
+		UpdateWithoutTimeout: resourceServicesUpdate,
+		DeleteWithoutTimeout: resourceServicesDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceServicesImport,
 		},
@@ -629,7 +629,9 @@ func resourceServicesCreate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := setServices(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -690,7 +692,9 @@ func resourceServicesUpdate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServices(d, m, jnprSess, false); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -729,7 +733,9 @@ func resourceServicesDelete(ctx context.Context, d *schema.ResourceData, m inter
 			return diag.FromErr(err)
 		}
 		defer sess.closeSession(jnprSess)
-		sess.configLock(jnprSess)
+		if err := sess.configLock(ctx, jnprSess); err != nil {
+			return diag.FromErr(err)
+		}
 		var diagWarns diag.Diagnostics
 		if err := delServices(d, m, jnprSess, true); err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

@@ -46,10 +46,10 @@ type systemOptions struct {
 
 func resourceSystem() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSystemCreate,
-		ReadContext:   resourceSystemRead,
-		UpdateContext: resourceSystemUpdate,
-		DeleteContext: resourceSystemDelete,
+		CreateWithoutTimeout: resourceSystemCreate,
+		ReadWithoutTimeout:   resourceSystemRead,
+		UpdateWithoutTimeout: resourceSystemUpdate,
+		DeleteWithoutTimeout: resourceSystemDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSystemImport,
 		},
@@ -942,7 +942,9 @@ func resourceSystemCreate(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := setSystem(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -1003,7 +1005,9 @@ func resourceSystemUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSystem(m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

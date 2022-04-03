@@ -30,10 +30,10 @@ type applicationOptions struct {
 
 func resourceApplication() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceApplicationCreate,
-		ReadContext:   resourceApplicationRead,
-		UpdateContext: resourceApplicationUpdate,
-		DeleteContext: resourceApplicationDelete,
+		CreateWithoutTimeout: resourceApplicationCreate,
+		ReadWithoutTimeout:   resourceApplicationRead,
+		UpdateWithoutTimeout: resourceApplicationUpdate,
+		DeleteWithoutTimeout: resourceApplicationDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceApplicationImport,
 		},
@@ -190,7 +190,9 @@ func resourceApplicationCreate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	appExists, err := checkApplicationExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -275,7 +277,9 @@ func resourceApplicationUpdate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delApplication(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -313,7 +317,9 @@ func resourceApplicationDelete(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delApplication(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

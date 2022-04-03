@@ -24,10 +24,10 @@ type vstpOptions struct {
 
 func resourceVstp() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceVstpCreate,
-		ReadContext:   resourceVstpRead,
-		UpdateContext: resourceVstpUpdate,
-		DeleteContext: resourceVstpDelete,
+		CreateWithoutTimeout: resourceVstpCreate,
+		ReadWithoutTimeout:   resourceVstpRead,
+		UpdateWithoutTimeout: resourceVstpUpdate,
+		DeleteWithoutTimeout: resourceVstpDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceVstpImport,
 		},
@@ -98,7 +98,9 @@ func resourceVstpCreate(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
@@ -187,7 +189,9 @@ func resourceVstpUpdate(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delVstp(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -225,7 +229,9 @@ func resourceVstpDelete(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delVstp(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

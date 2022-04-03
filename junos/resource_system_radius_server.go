@@ -31,10 +31,10 @@ type radiusServerOptions struct {
 
 func resourceSystemRadiusServer() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSystemRadiusServerCreate,
-		ReadContext:   resourceSystemRadiusServerRead,
-		UpdateContext: resourceSystemRadiusServerUpdate,
-		DeleteContext: resourceSystemRadiusServerDelete,
+		CreateWithoutTimeout: resourceSystemRadiusServerCreate,
+		ReadWithoutTimeout:   resourceSystemRadiusServerRead,
+		UpdateWithoutTimeout: resourceSystemRadiusServerUpdate,
+		DeleteWithoutTimeout: resourceSystemRadiusServerDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSystemRadiusServerImport,
 		},
@@ -137,7 +137,9 @@ func resourceSystemRadiusServerCreate(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	radiusServerExists, err := checkSystemRadiusServerExists(d.Get("address").(string), m, jnprSess)
 	if err != nil {
@@ -225,7 +227,9 @@ func resourceSystemRadiusServerUpdate(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSystemRadiusServer(d.Get("address").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -263,7 +267,9 @@ func resourceSystemRadiusServerDelete(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSystemRadiusServer(d.Get("address").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

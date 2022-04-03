@@ -29,10 +29,10 @@ type igmpSnoopingVlanOptions struct {
 
 func resourceIgmpSnoopingVlan() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceIgmpSnoopingVlanCreate,
-		ReadContext:   resourceIgmpSnoopingVlanRead,
-		UpdateContext: resourceIgmpSnoopingVlanUpdate,
-		DeleteContext: resourceIgmpSnoopingVlanDelete,
+		CreateWithoutTimeout: resourceIgmpSnoopingVlanCreate,
+		ReadWithoutTimeout:   resourceIgmpSnoopingVlanRead,
+		UpdateWithoutTimeout: resourceIgmpSnoopingVlanUpdate,
+		DeleteWithoutTimeout: resourceIgmpSnoopingVlanDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceIgmpSnoopingVlanImport,
 		},
@@ -167,7 +167,9 @@ func resourceIgmpSnoopingVlanCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
@@ -283,7 +285,9 @@ func resourceIgmpSnoopingVlanUpdate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delIgmpSnoopingVlan(d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -321,7 +325,9 @@ func resourceIgmpSnoopingVlanDelete(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delIgmpSnoopingVlan(d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

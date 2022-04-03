@@ -19,10 +19,10 @@ type snmpV3VacmAccessGroupOptions struct {
 
 func resourceSnmpV3VacmAccessGroup() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSnmpV3VacmAccessGroupCreate,
-		ReadContext:   resourceSnmpV3VacmAccessGroupRead,
-		UpdateContext: resourceSnmpV3VacmAccessGroupUpdate,
-		DeleteContext: resourceSnmpV3VacmAccessGroupDelete,
+		CreateWithoutTimeout: resourceSnmpV3VacmAccessGroupCreate,
+		ReadWithoutTimeout:   resourceSnmpV3VacmAccessGroupRead,
+		UpdateWithoutTimeout: resourceSnmpV3VacmAccessGroupUpdate,
+		DeleteWithoutTimeout: resourceSnmpV3VacmAccessGroupDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSnmpV3VacmAccessGroupImport,
 		},
@@ -143,7 +143,9 @@ func resourceSnmpV3VacmAccessGroupCreate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	snmpV3VacmAccessGroupExists, err := checkSnmpV3VacmAccessGroupExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -231,7 +233,9 @@ func resourceSnmpV3VacmAccessGroupUpdate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSnmpV3VacmAccessGroup(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -269,7 +273,9 @@ func resourceSnmpV3VacmAccessGroupDelete(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSnmpV3VacmAccessGroup(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

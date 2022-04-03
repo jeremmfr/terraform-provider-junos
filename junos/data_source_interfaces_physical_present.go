@@ -18,7 +18,7 @@ type interfacesPresentOpts struct {
 
 func dataSourceInterfacesPhysicalPresent() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceInterfacesPhysicalPresentRead,
+		ReadWithoutTimeout: dataSourceInterfacesPhysicalPresentRead,
 		Schema: map[string]*schema.Schema{
 			"match_name": {
 				Type:     schema.TypeString,

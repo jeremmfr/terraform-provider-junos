@@ -21,10 +21,10 @@ type rpmProbeOptions struct {
 
 func resourceServicesRpmProbe() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceServicesRpmProbeCreate,
-		ReadContext:   resourceServicesRpmProbeRead,
-		UpdateContext: resourceServicesRpmProbeUpdate,
-		DeleteContext: resourceServicesRpmProbeDelete,
+		CreateWithoutTimeout: resourceServicesRpmProbeCreate,
+		ReadWithoutTimeout:   resourceServicesRpmProbeRead,
+		UpdateWithoutTimeout: resourceServicesRpmProbeUpdate,
+		DeleteWithoutTimeout: resourceServicesRpmProbeDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceServicesRpmProbeImport,
 		},
@@ -334,7 +334,9 @@ func resourceServicesRpmProbeCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	rpmProbeExists, err := checkServicesRpmProbeExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -424,7 +426,9 @@ func resourceServicesRpmProbeUpdate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesRpmProbe(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -463,7 +467,9 @@ func resourceServicesRpmProbeDelete(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesRpmProbe(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

@@ -22,10 +22,10 @@ type natSourceOptions struct {
 
 func resourceSecurityNatSource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityNatSourceCreate,
-		ReadContext:   resourceSecurityNatSourceRead,
-		UpdateContext: resourceSecurityNatSourceUpdate,
-		DeleteContext: resourceSecurityNatSourceDelete,
+		CreateWithoutTimeout: resourceSecurityNatSourceCreate,
+		ReadWithoutTimeout:   resourceSecurityNatSourceRead,
+		UpdateWithoutTimeout: resourceSecurityNatSourceUpdate,
+		DeleteWithoutTimeout: resourceSecurityNatSourceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSecurityNatSourceImport,
 		},
@@ -184,7 +184,9 @@ func resourceSecurityNatSourceCreate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf("security nat source not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	securityNatSourceExists, err := checkSecurityNatSourceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -271,7 +273,9 @@ func resourceSecurityNatSourceUpdate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityNatSource(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -309,7 +313,9 @@ func resourceSecurityNatSourceDelete(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityNatSource(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

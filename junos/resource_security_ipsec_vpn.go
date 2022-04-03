@@ -24,10 +24,10 @@ type ipsecVpnOptions struct {
 
 func resourceIpsecVpn() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceIpsecVpnCreate,
-		ReadContext:   resourceIpsecVpnRead,
-		UpdateContext: resourceIpsecVpnUpdate,
-		DeleteContext: resourceIpsecVpnDelete,
+		CreateWithoutTimeout: resourceIpsecVpnCreate,
+		ReadWithoutTimeout:   resourceIpsecVpnRead,
+		UpdateWithoutTimeout: resourceIpsecVpnUpdate,
+		DeleteWithoutTimeout: resourceIpsecVpnDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceIpsecVpnImport,
 		},
@@ -166,7 +166,9 @@ func resourceIpsecVpnCreate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(fmt.Errorf("security ipsec vpn not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	ipsecVpnExists, err := checkIpsecVpnExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -286,7 +288,9 @@ func resourceIpsecVpnUpdate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	if err := delIpsecVpnConf(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -339,7 +343,9 @@ func resourceIpsecVpnDelete(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delIpsecVpn(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

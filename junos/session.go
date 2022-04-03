@@ -1,6 +1,7 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -162,17 +163,21 @@ func (sess *Session) commitConf(logMessage string, jnpr *NetconfObject) (_warnin
 	return warns, nil
 }
 
-func (sess *Session) configLock(jnpr *NetconfObject) {
-	var lock bool
+func (sess *Session) configLock(ctx context.Context, jnpr *NetconfObject) error {
 	for {
-		lock = jnpr.netconfConfigLock()
-		if lock {
-			sess.logFile("[configLock] locked")
-			sleepShort(sess.junosSleepShort)
+		select {
+		case <-ctx.Done():
+			sess.logFile("[configLock] aborted")
 
-			break
-		} else {
-			sess.logFile("[configLock] sleep for wait lock")
+			return fmt.Errorf("candidate configuration lock attempt aborted")
+		default:
+			if jnpr.netconfConfigLock() {
+				sess.logFile("[configLock] locked")
+				sleepShort(sess.junosSleepShort)
+
+				return nil
+			}
+			sess.logFile("[configLock] sleep to wait the lock")
 			sleep(sess.junosSleepLock)
 		}
 	}

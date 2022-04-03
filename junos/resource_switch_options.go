@@ -15,10 +15,10 @@ type switchOptionsOptions struct {
 
 func resourceSwitchOptions() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSwitchOptionsCreate,
-		ReadContext:   resourceSwitchOptionsRead,
-		UpdateContext: resourceSwitchOptionsUpdate,
-		DeleteContext: resourceSwitchOptionsDelete,
+		CreateWithoutTimeout: resourceSwitchOptionsCreate,
+		ReadWithoutTimeout:   resourceSwitchOptionsRead,
+		UpdateWithoutTimeout: resourceSwitchOptionsUpdate,
+		DeleteWithoutTimeout: resourceSwitchOptionsDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSwitchOptionsImport,
 		},
@@ -59,7 +59,9 @@ func resourceSwitchOptionsCreate(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := setSwitchOptions(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -121,7 +123,9 @@ func resourceSwitchOptionsUpdate(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSwitchOptions(m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -160,7 +164,9 @@ func resourceSwitchOptionsDelete(ctx context.Context, d *schema.ResourceData, m 
 			return diag.FromErr(err)
 		}
 		defer sess.closeSession(jnprSess)
-		sess.configLock(jnprSess)
+		if err := sess.configLock(ctx, jnprSess); err != nil {
+			return diag.FromErr(err)
+		}
 		var diagWarns diag.Diagnostics
 		if err := delSwitchOptions(m, jnprSess); err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

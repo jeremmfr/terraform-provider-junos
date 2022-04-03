@@ -13,9 +13,9 @@ import (
 
 func resourceNullCommitFile() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceNullCommitFileCreate,
-		ReadContext:   resourceNullCommitFileRead,
-		DeleteContext: resourceNullCommitFileDelete,
+		CreateWithoutTimeout: resourceNullCommitFileCreate,
+		ReadWithoutTimeout:   resourceNullCommitFileRead,
+		DeleteWithoutTimeout: resourceNullCommitFileDelete,
 		Schema: map[string]*schema.Schema{
 			"filename": {
 				Type:     schema.TypeString,
@@ -50,7 +50,9 @@ func resourceNullCommitFileCreate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	fileName := d.Get("filename").(string)
 	configSet, err := readNullCommitFile(fileName)

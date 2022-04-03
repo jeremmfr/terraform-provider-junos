@@ -43,10 +43,10 @@ type staticRouteOptions struct {
 
 func resourceStaticRoute() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceStaticRouteCreate,
-		ReadContext:   resourceStaticRouteRead,
-		UpdateContext: resourceStaticRouteUpdate,
-		DeleteContext: resourceStaticRouteDelete,
+		CreateWithoutTimeout: resourceStaticRouteCreate,
+		ReadWithoutTimeout:   resourceStaticRouteRead,
+		UpdateWithoutTimeout: resourceStaticRouteUpdate,
+		DeleteWithoutTimeout: resourceStaticRouteDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceStaticRouteImport,
 		},
@@ -221,7 +221,9 @@ func resourceStaticRouteCreate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
@@ -324,7 +326,9 @@ func resourceStaticRouteUpdate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -363,7 +367,9 @@ func resourceStaticRouteDelete(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

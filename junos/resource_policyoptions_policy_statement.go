@@ -22,10 +22,10 @@ type policyStatementOptions struct {
 
 func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourcePolicyoptionsPolicyStatementCreate,
-		ReadContext:   resourcePolicyoptionsPolicyStatementRead,
-		UpdateContext: resourcePolicyoptionsPolicyStatementUpdate,
-		DeleteContext: resourcePolicyoptionsPolicyStatementDelete,
+		CreateWithoutTimeout: resourcePolicyoptionsPolicyStatementCreate,
+		ReadWithoutTimeout:   resourcePolicyoptionsPolicyStatementRead,
+		UpdateWithoutTimeout: resourcePolicyoptionsPolicyStatementUpdate,
+		DeleteWithoutTimeout: resourcePolicyoptionsPolicyStatementDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourcePolicyoptionsPolicyStatementImport,
 		},
@@ -427,7 +427,9 @@ func resourcePolicyoptionsPolicyStatementCreate(ctx context.Context, d *schema.R
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	policyStatementExists, err := checkPolicyStatementExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -552,7 +554,9 @@ func resourcePolicyoptionsPolicyStatementUpdate(ctx context.Context, d *schema.R
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delPolicyStatement(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -612,7 +616,9 @@ func resourcePolicyoptionsPolicyStatementDelete(ctx context.Context, d *schema.R
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delPolicyStatement(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

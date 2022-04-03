@@ -17,10 +17,10 @@ type asPathOptions struct {
 
 func resourcePolicyoptionsAsPath() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourcePolicyoptionsAsPathCreate,
-		ReadContext:   resourcePolicyoptionsAsPathRead,
-		UpdateContext: resourcePolicyoptionsAsPathUpdate,
-		DeleteContext: resourcePolicyoptionsAsPathDelete,
+		CreateWithoutTimeout: resourcePolicyoptionsAsPathCreate,
+		ReadWithoutTimeout:   resourcePolicyoptionsAsPathRead,
+		UpdateWithoutTimeout: resourcePolicyoptionsAsPathUpdate,
+		DeleteWithoutTimeout: resourcePolicyoptionsAsPathDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourcePolicyoptionsAsPathImport,
 		},
@@ -58,7 +58,9 @@ func resourcePolicyoptionsAsPathCreate(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	policyoptsAsPathExists, err := checkPolicyoptionsAsPathExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -146,7 +148,9 @@ func resourcePolicyoptionsAsPathUpdate(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delPolicyoptionsAsPath(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -184,7 +188,9 @@ func resourcePolicyoptionsAsPathDelete(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delPolicyoptionsAsPath(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

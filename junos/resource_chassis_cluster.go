@@ -26,10 +26,10 @@ type chassisClusterOptions struct {
 
 func resourceChassisCluster() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceChassisClusterCreate,
-		ReadContext:   resourceChassisClusterRead,
-		UpdateContext: resourceChassisClusterUpdate,
-		DeleteContext: resourceChassisClusterDelete,
+		CreateWithoutTimeout: resourceChassisClusterCreate,
+		ReadWithoutTimeout:   resourceChassisClusterRead,
+		UpdateWithoutTimeout: resourceChassisClusterUpdate,
+		DeleteWithoutTimeout: resourceChassisClusterDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceChassisClusterImport,
 		},
@@ -216,7 +216,9 @@ func resourceChassisClusterCreate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("chassis cluster "+
 			"not compatible with Junos device %s", jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := setChassisCluster(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -278,7 +280,9 @@ func resourceChassisClusterUpdate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delChassisCluster(m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -316,7 +320,9 @@ func resourceChassisClusterDelete(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delChassisCluster(m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

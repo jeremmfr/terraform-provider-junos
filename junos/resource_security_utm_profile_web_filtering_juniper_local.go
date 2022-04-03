@@ -21,10 +21,10 @@ type utmProfileWebFilteringLocalOptions struct {
 
 func resourceSecurityUtmProfileWebFilteringLocal() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityUtmProfileWebFilteringLocalCreate,
-		ReadContext:   resourceSecurityUtmProfileWebFilteringLocalRead,
-		UpdateContext: resourceSecurityUtmProfileWebFilteringLocalUpdate,
-		DeleteContext: resourceSecurityUtmProfileWebFilteringLocalDelete,
+		CreateWithoutTimeout: resourceSecurityUtmProfileWebFilteringLocalCreate,
+		ReadWithoutTimeout:   resourceSecurityUtmProfileWebFilteringLocalRead,
+		UpdateWithoutTimeout: resourceSecurityUtmProfileWebFilteringLocalUpdate,
+		DeleteWithoutTimeout: resourceSecurityUtmProfileWebFilteringLocalDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSecurityUtmProfileWebFilteringLocalImport,
 		},
@@ -101,7 +101,9 @@ func resourceSecurityUtmProfileWebFilteringLocalCreate(ctx context.Context, d *s
 		return diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering juniper-local "+
 			"not compatible with Junos device %s", jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	utmProfileWebFLocalExists, err := checkUtmProfileWebFLocalExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -192,7 +194,9 @@ func resourceSecurityUtmProfileWebFilteringLocalUpdate(ctx context.Context, d *s
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delUtmProfileWebFLocal(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -231,7 +235,9 @@ func resourceSecurityUtmProfileWebFilteringLocalDelete(ctx context.Context, d *s
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delUtmProfileWebFLocal(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

@@ -20,10 +20,10 @@ type layer2ControlOptions struct {
 
 func resourceLayer2Control() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceLayer2ControlCreate,
-		ReadContext:   resourceLayer2ControlRead,
-		UpdateContext: resourceLayer2ControlUpdate,
-		DeleteContext: resourceLayer2ControlDelete,
+		CreateWithoutTimeout: resourceLayer2ControlCreate,
+		ReadWithoutTimeout:   resourceLayer2ControlRead,
+		UpdateWithoutTimeout: resourceLayer2ControlUpdate,
+		DeleteWithoutTimeout: resourceLayer2ControlDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceLayer2ControlImport,
 		},
@@ -127,7 +127,9 @@ func resourceLayer2ControlCreate(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := setLayer2Control(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -189,7 +191,9 @@ func resourceLayer2ControlUpdate(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delLayer2Control(m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -227,7 +231,9 @@ func resourceLayer2ControlDelete(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delLayer2Control(m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

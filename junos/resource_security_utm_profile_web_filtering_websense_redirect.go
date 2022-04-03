@@ -23,10 +23,10 @@ type utmProfileWebFilteringWebsenseOptions struct {
 
 func resourceSecurityUtmProfileWebFilteringWebsense() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityUtmProfileWebFilteringWebsenseCreate,
-		ReadContext:   resourceSecurityUtmProfileWebFilteringWebsenseRead,
-		UpdateContext: resourceSecurityUtmProfileWebFilteringWebsenseUpdate,
-		DeleteContext: resourceSecurityUtmProfileWebFilteringWebsenseDelete,
+		CreateWithoutTimeout: resourceSecurityUtmProfileWebFilteringWebsenseCreate,
+		ReadWithoutTimeout:   resourceSecurityUtmProfileWebFilteringWebsenseRead,
+		UpdateWithoutTimeout: resourceSecurityUtmProfileWebFilteringWebsenseUpdate,
+		DeleteWithoutTimeout: resourceSecurityUtmProfileWebFilteringWebsenseDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSecurityUtmProfileWebFilteringWebsenseImport,
 		},
@@ -125,7 +125,9 @@ func resourceSecurityUtmProfileWebFilteringWebsenseCreate(ctx context.Context, d
 		return diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering websense-redirect "+
 			"not compatible with Junos device %s", jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	utmProfileWebFWebsenseExists, err := checkUtmProfileWebFWebsenseExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -216,7 +218,9 @@ func resourceSecurityUtmProfileWebFilteringWebsenseUpdate(ctx context.Context, d
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delUtmProfileWebFWebsense(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -255,7 +259,9 @@ func resourceSecurityUtmProfileWebFilteringWebsenseDelete(ctx context.Context, d
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delUtmProfileWebFWebsense(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

@@ -31,10 +31,10 @@ type interfacePhysicalOptions struct {
 
 func resourceInterfacePhysical() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceInterfacePhysicalCreate,
-		ReadContext:   resourceInterfacePhysicalRead,
-		UpdateContext: resourceInterfacePhysicalUpdate,
-		DeleteContext: resourceInterfacePhysicalDelete,
+		CreateWithoutTimeout: resourceInterfacePhysicalCreate,
+		ReadWithoutTimeout:   resourceInterfacePhysicalRead,
+		UpdateWithoutTimeout: resourceInterfacePhysicalUpdate,
+		DeleteWithoutTimeout: resourceInterfacePhysicalDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceInterfacePhysicalImport,
 		},
@@ -505,7 +505,9 @@ func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -629,7 +631,9 @@ func resourceInterfacePhysicalUpdate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delInterfacePhysicalOpts(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -672,7 +676,9 @@ func resourceInterfacePhysicalDelete(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delInterfacePhysical(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

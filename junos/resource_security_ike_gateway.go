@@ -30,10 +30,10 @@ type ikeGatewayOptions struct {
 
 func resourceIkeGateway() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceIkeGatewayCreate,
-		ReadContext:   resourceIkeGatewayRead,
-		UpdateContext: resourceIkeGatewayUpdate,
-		DeleteContext: resourceIkeGatewayDelete,
+		CreateWithoutTimeout: resourceIkeGatewayCreate,
+		ReadWithoutTimeout:   resourceIkeGatewayRead,
+		UpdateWithoutTimeout: resourceIkeGatewayUpdate,
+		DeleteWithoutTimeout: resourceIkeGatewayDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceIkeGatewayImport,
 		},
@@ -292,7 +292,9 @@ func resourceIkeGatewayCreate(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(fmt.Errorf("security ike gateway not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	ikeGatewayExists, err := checkIkeGatewayExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -378,7 +380,9 @@ func resourceIkeGatewayUpdate(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delIkeGateway(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -416,7 +420,9 @@ func resourceIkeGatewayDelete(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delIkeGateway(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

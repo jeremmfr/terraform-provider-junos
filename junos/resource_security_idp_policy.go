@@ -20,10 +20,10 @@ type idpPolicyOptions struct {
 
 func resourceSecurityIdpPolicy() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityIdpPolicyCreate,
-		ReadContext:   resourceSecurityIdpPolicyRead,
-		UpdateContext: resourceSecurityIdpPolicyUpdate,
-		DeleteContext: resourceSecurityIdpPolicyDelete,
+		CreateWithoutTimeout: resourceSecurityIdpPolicyCreate,
+		ReadWithoutTimeout:   resourceSecurityIdpPolicyRead,
+		UpdateWithoutTimeout: resourceSecurityIdpPolicyUpdate,
+		DeleteWithoutTimeout: resourceSecurityIdpPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSecurityIdpPolicyImport,
 		},
@@ -296,7 +296,9 @@ func resourceSecurityIdpPolicyCreate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf("security idp policy not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	idpPolicyExists, err := checkSecurityIdpPolicyExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -384,7 +386,9 @@ func resourceSecurityIdpPolicyUpdate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityIdpPolicy(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -422,7 +426,9 @@ func resourceSecurityIdpPolicyDelete(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityIdpPolicy(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

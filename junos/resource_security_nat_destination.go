@@ -21,10 +21,10 @@ type natDestinationOptions struct {
 
 func resourceSecurityNatDestination() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityNatDestinationCreate,
-		ReadContext:   resourceSecurityNatDestinationRead,
-		UpdateContext: resourceSecurityNatDestinationUpdate,
-		DeleteContext: resourceSecurityNatDestinationDelete,
+		CreateWithoutTimeout: resourceSecurityNatDestinationCreate,
+		ReadWithoutTimeout:   resourceSecurityNatDestinationRead,
+		UpdateWithoutTimeout: resourceSecurityNatDestinationUpdate,
+		DeleteWithoutTimeout: resourceSecurityNatDestinationDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSecurityNatDestinationImport,
 		},
@@ -148,7 +148,9 @@ func resourceSecurityNatDestinationCreate(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(fmt.Errorf("security nat destination not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	securityNatDestinationExists, err := checkSecurityNatDestinationExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -236,7 +238,9 @@ func resourceSecurityNatDestinationUpdate(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityNatDestination(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -274,7 +278,9 @@ func resourceSecurityNatDestinationDelete(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityNatDestination(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

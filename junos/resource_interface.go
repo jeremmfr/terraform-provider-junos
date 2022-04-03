@@ -42,10 +42,10 @@ type interfaceOptions struct {
 
 func resourceInterface() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceInterfaceCreate,
-		ReadContext:   resourceInterfaceRead,
-		UpdateContext: resourceInterfaceUpdate,
-		DeleteContext: resourceInterfaceDelete,
+		CreateWithoutTimeout: resourceInterfaceCreate,
+		ReadWithoutTimeout:   resourceInterfaceRead,
+		UpdateWithoutTimeout: resourceInterfaceUpdate,
+		DeleteWithoutTimeout: resourceInterfaceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceInterfaceImport,
 		},
@@ -461,7 +461,9 @@ func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if intExists {
 		ncInt, emptyInt, err := checkInterfaceNC(d.Get("name").(string), m, jnprSess)
@@ -621,7 +623,9 @@ func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delInterfaceOpts(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -781,7 +785,9 @@ func resourceInterfaceDelete(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delInterface(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

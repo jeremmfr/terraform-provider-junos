@@ -22,10 +22,10 @@ type ikeProposalOptions struct {
 
 func resourceIkeProposal() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceIkeProposalCreate,
-		ReadContext:   resourceIkeProposalRead,
-		UpdateContext: resourceIkeProposalUpdate,
-		DeleteContext: resourceIkeProposalDelete,
+		CreateWithoutTimeout: resourceIkeProposalCreate,
+		ReadWithoutTimeout:   resourceIkeProposalRead,
+		UpdateWithoutTimeout: resourceIkeProposalUpdate,
+		DeleteWithoutTimeout: resourceIkeProposalDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceIkeProposalImport,
 		},
@@ -81,7 +81,9 @@ func resourceIkeProposalCreate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(fmt.Errorf("security ike proposal not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	ikeProposalExists, err := checkIkeProposalExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -167,7 +169,9 @@ func resourceIkeProposalUpdate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delIkeProposal(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -205,7 +209,9 @@ func resourceIkeProposalDelete(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delIkeProposal(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

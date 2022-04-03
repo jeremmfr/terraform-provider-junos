@@ -14,7 +14,7 @@ import (
 
 func dataSourceInterfaceLogical() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceInterfaceLogicalRead,
+		ReadWithoutTimeout: dataSourceInterfaceLogicalRead,
 		Schema: map[string]*schema.Schema{
 			"config_interface": {
 				Type:     schema.TypeString,

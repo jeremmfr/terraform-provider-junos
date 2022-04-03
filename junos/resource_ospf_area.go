@@ -23,10 +23,10 @@ type ospfAreaOptions struct {
 
 func resourceOspfArea() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceOspfAreaCreate,
-		ReadContext:   resourceOspfAreaRead,
-		UpdateContext: resourceOspfAreaUpdate,
-		DeleteContext: resourceOspfAreaDelete,
+		CreateWithoutTimeout: resourceOspfAreaCreate,
+		ReadWithoutTimeout:   resourceOspfAreaRead,
+		UpdateWithoutTimeout: resourceOspfAreaUpdate,
+		DeleteWithoutTimeout: resourceOspfAreaDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceOspfAreaImport,
 		},
@@ -355,7 +355,9 @@ func resourceOspfAreaCreate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	ospfAreaExists, err := checkOspfAreaExists(d.Get("area_id").(string), d.Get("version").(string),
 		d.Get("routing_instance").(string), m, jnprSess)
@@ -446,7 +448,9 @@ func resourceOspfAreaUpdate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delOspfArea(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -484,7 +488,9 @@ func resourceOspfAreaDelete(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delOspfArea(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

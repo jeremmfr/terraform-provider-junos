@@ -26,10 +26,10 @@ type samplingInstanceOptions struct {
 
 func resourceForwardingoptionsSamplingInstance() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceForwardingoptionsSamplingInstanceCreate,
-		ReadContext:   resourceForwardingoptionsSamplingInstanceRead,
-		UpdateContext: resourceForwardingoptionsSamplingInstanceUpdate,
-		DeleteContext: resourceForwardingoptionsSamplingInstanceDelete,
+		CreateWithoutTimeout: resourceForwardingoptionsSamplingInstanceCreate,
+		ReadWithoutTimeout:   resourceForwardingoptionsSamplingInstanceRead,
+		UpdateWithoutTimeout: resourceForwardingoptionsSamplingInstanceUpdate,
+		DeleteWithoutTimeout: resourceForwardingoptionsSamplingInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceForwardingoptionsSamplingInstanceImport,
 		},
@@ -643,7 +643,9 @@ func resourceForwardingoptionsSamplingInstanceCreate(ctx context.Context, d *sch
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	fwdoptsSamplingInstanceExists, err := checkForwardingoptionsSamplingInstanceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -735,7 +737,9 @@ func resourceForwardingoptionsSamplingInstanceUpdate(ctx context.Context, d *sch
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delForwardingoptionsSamplingInstance(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -775,7 +779,9 @@ func resourceForwardingoptionsSamplingInstanceDelete(ctx context.Context, d *sch
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delForwardingoptionsSamplingInstance(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

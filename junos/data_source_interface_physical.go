@@ -13,7 +13,7 @@ import (
 
 func dataSourceInterfacePhysical() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceInterfacePhysicalRead,
+		ReadWithoutTimeout: dataSourceInterfacePhysicalRead,
 		Schema: map[string]*schema.Schema{
 			"config_interface": {
 				Type:     schema.TypeString,

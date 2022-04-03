@@ -29,10 +29,10 @@ type bridgeDomainOptions struct {
 
 func resourceBridgeDomain() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceBridgeDomainCreate,
-		ReadContext:   resourceBridgeDomainRead,
-		UpdateContext: resourceBridgeDomainUpdate,
-		DeleteContext: resourceBridgeDomainDelete,
+		CreateWithoutTimeout: resourceBridgeDomainCreate,
+		ReadWithoutTimeout:   resourceBridgeDomainRead,
+		UpdateWithoutTimeout: resourceBridgeDomainUpdate,
+		DeleteWithoutTimeout: resourceBridgeDomainDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceBridgeDomainImport,
 		},
@@ -168,7 +168,9 @@ func resourceBridgeDomainCreate(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(fmt.Errorf("bridge domain "+
 			"not compatible with Junos device %s", jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
@@ -280,7 +282,9 @@ func resourceBridgeDomainUpdate(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if d.HasChange("vxlan") {
 		oldVxlan, _ := d.GetChange("vxlan")
@@ -328,7 +332,9 @@ func resourceBridgeDomainDelete(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delBridgeDomain(d.Get("name").(string), d.Get("routing_instance").(string), d.Get("vxlan").([]interface{}),
 		m, jnprSess); err != nil {

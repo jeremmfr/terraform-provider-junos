@@ -22,10 +22,10 @@ type natDestinationPoolOptions struct {
 
 func resourceSecurityNatDestinationPool() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityNatDestinationPoolCreate,
-		ReadContext:   resourceSecurityNatDestinationPoolRead,
-		UpdateContext: resourceSecurityNatDestinationPoolUpdate,
-		DeleteContext: resourceSecurityNatDestinationPoolDelete,
+		CreateWithoutTimeout: resourceSecurityNatDestinationPoolCreate,
+		ReadWithoutTimeout:   resourceSecurityNatDestinationPoolRead,
+		UpdateWithoutTimeout: resourceSecurityNatDestinationPoolUpdate,
+		DeleteWithoutTimeout: resourceSecurityNatDestinationPoolDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSecurityNatDestinationPoolImport,
 		},
@@ -86,7 +86,9 @@ func resourceSecurityNatDestinationPoolCreate(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf("security nat destination pool not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	securityNatDestinationPoolExists, err := checkSecurityNatDestinationPoolExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -176,7 +178,9 @@ func resourceSecurityNatDestinationPoolUpdate(ctx context.Context, d *schema.Res
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityNatDestinationPool(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -215,7 +219,9 @@ func resourceSecurityNatDestinationPoolDelete(ctx context.Context, d *schema.Res
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityNatDestinationPool(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

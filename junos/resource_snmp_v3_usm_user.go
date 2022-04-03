@@ -25,10 +25,10 @@ type snmpV3UsmUserOptions struct {
 
 func resourceSnmpV3UsmUser() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSnmpV3UsmUserCreate,
-		ReadContext:   resourceSnmpV3UsmUserRead,
-		UpdateContext: resourceSnmpV3UsmUserUpdate,
-		DeleteContext: resourceSnmpV3UsmUserDelete,
+		CreateWithoutTimeout: resourceSnmpV3UsmUserCreate,
+		ReadWithoutTimeout:   resourceSnmpV3UsmUserRead,
+		UpdateWithoutTimeout: resourceSnmpV3UsmUserUpdate,
+		DeleteWithoutTimeout: resourceSnmpV3UsmUserDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSnmpV3UsmUserImport,
 		},
@@ -120,7 +120,9 @@ func resourceSnmpV3UsmUserCreate(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	snmpV3UsmUserExists, err := checkSnmpV3UsmUserExists(
 		d.Get("name").(string), d.Get("engine_type").(string), d.Get("engine_id").(string), m, jnprSess)
@@ -234,7 +236,9 @@ func resourceSnmpV3UsmUserUpdate(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSnmpV3UsmUser(
 		d.Get("name").(string), d.Get("engine_type").(string), d.Get("engine_id").(string), m, jnprSess); err != nil {
@@ -274,7 +278,9 @@ func resourceSnmpV3UsmUserDelete(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSnmpV3UsmUser(
 		d.Get("name").(string), d.Get("engine_type").(string), d.Get("engine_id").(string), m, jnprSess); err != nil {

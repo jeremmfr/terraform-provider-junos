@@ -22,10 +22,10 @@ type evpnOptions struct {
 
 func resourceEvpn() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceEvpnCreate,
-		ReadContext:   resourceEvpnRead,
-		UpdateContext: resourceEvpnUpdate,
-		DeleteContext: resourceEvpnDelete,
+		CreateWithoutTimeout: resourceEvpnCreate,
+		ReadWithoutTimeout:   resourceEvpnRead,
+		UpdateWithoutTimeout: resourceEvpnUpdate,
+		DeleteWithoutTimeout: resourceEvpnDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceEvpnImport,
 		},
@@ -125,7 +125,9 @@ func resourceEvpnCreate(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
@@ -219,7 +221,9 @@ func resourceEvpnUpdate(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delEvpn(false, d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -257,7 +261,9 @@ func resourceEvpnDelete(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delEvpn(true, d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

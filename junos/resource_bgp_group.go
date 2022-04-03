@@ -12,10 +12,10 @@ import (
 
 func resourceBgpGroup() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceBgpGroupCreate,
-		ReadContext:   resourceBgpGroupRead,
-		UpdateContext: resourceBgpGroupUpdate,
-		DeleteContext: resourceBgpGroupDelete,
+		CreateWithoutTimeout: resourceBgpGroupCreate,
+		ReadWithoutTimeout:   resourceBgpGroupRead,
+		UpdateWithoutTimeout: resourceBgpGroupUpdate,
+		DeleteWithoutTimeout: resourceBgpGroupDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceBgpGroupImport,
 		},
@@ -612,7 +612,9 @@ func resourceBgpGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
@@ -712,7 +714,9 @@ func resourceBgpGroupUpdate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delBgpOpts(d, "group", m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -750,7 +754,9 @@ func resourceBgpGroupDelete(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delBgpGroup(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

@@ -27,10 +27,10 @@ type natSourcePoolOptions struct {
 
 func resourceSecurityNatSourcePool() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityNatSourcePoolCreate,
-		ReadContext:   resourceSecurityNatSourcePoolRead,
-		UpdateContext: resourceSecurityNatSourcePoolUpdate,
-		DeleteContext: resourceSecurityNatSourcePoolDelete,
+		CreateWithoutTimeout: resourceSecurityNatSourcePoolCreate,
+		ReadWithoutTimeout:   resourceSecurityNatSourcePoolRead,
+		UpdateWithoutTimeout: resourceSecurityNatSourcePoolUpdate,
+		DeleteWithoutTimeout: resourceSecurityNatSourcePoolDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSecurityNatSourcePoolImport,
 		},
@@ -112,7 +112,9 @@ func resourceSecurityNatSourcePoolCreate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(fmt.Errorf("security nat source pool not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	securityNatSourcePoolExists, err := checkSecurityNatSourcePoolExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -200,7 +202,9 @@ func resourceSecurityNatSourcePoolUpdate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityNatSourcePool(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -238,7 +242,9 @@ func resourceSecurityNatSourcePoolDelete(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityNatSourcePool(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

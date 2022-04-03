@@ -10,7 +10,7 @@ import (
 
 func dataSourceRoutingInstance() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceRoutingInstanceRead,
+		ReadWithoutTimeout: dataSourceRoutingInstanceRead,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:             schema.TypeString,

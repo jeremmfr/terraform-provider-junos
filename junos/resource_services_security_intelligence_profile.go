@@ -23,10 +23,10 @@ type securityIntellProfileOptions struct {
 
 func resourceServicesSecurityIntellProfile() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceServicesSecurityIntellProfileCreate,
-		ReadContext:   resourceServicesSecurityIntellProfileRead,
-		UpdateContext: resourceServicesSecurityIntellProfileUpdate,
-		DeleteContext: resourceServicesSecurityIntellProfileDelete,
+		CreateWithoutTimeout: resourceServicesSecurityIntellProfileCreate,
+		ReadWithoutTimeout:   resourceServicesSecurityIntellProfileRead,
+		UpdateWithoutTimeout: resourceServicesSecurityIntellProfileUpdate,
+		DeleteWithoutTimeout: resourceServicesSecurityIntellProfileDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceServicesSecurityIntellProfileImport,
 		},
@@ -134,7 +134,9 @@ func resourceServicesSecurityIntellProfileCreate(ctx context.Context, d *schema.
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	securityIntellProfileExists, err := checkServicesSecurityIntellProfileExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -224,7 +226,9 @@ func resourceServicesSecurityIntellProfileUpdate(ctx context.Context, d *schema.
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesSecurityIntellProfile(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -263,7 +267,9 @@ func resourceServicesSecurityIntellProfileDelete(ctx context.Context, d *schema.
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesSecurityIntellProfile(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

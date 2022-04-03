@@ -40,10 +40,10 @@ type syslogFileOptions struct {
 
 func resourceSystemSyslogFile() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSystemSyslogFileCreate,
-		ReadContext:   resourceSystemSyslogFileRead,
-		UpdateContext: resourceSystemSyslogFileUpdate,
-		DeleteContext: resourceSystemSyslogFileDelete,
+		CreateWithoutTimeout: resourceSystemSyslogFileCreate,
+		ReadWithoutTimeout:   resourceSystemSyslogFileRead,
+		UpdateWithoutTimeout: resourceSystemSyslogFileUpdate,
+		DeleteWithoutTimeout: resourceSystemSyslogFileDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSystemSyslogFileImport,
 		},
@@ -247,7 +247,9 @@ func resourceSystemSyslogFileCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	syslogFileExists, err := checkSystemSyslogFileExists(d.Get("filename").(string), m, jnprSess)
 	if err != nil {
@@ -335,7 +337,9 @@ func resourceSystemSyslogFileUpdate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSystemSyslogFile(d.Get("filename").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -373,7 +377,9 @@ func resourceSystemSyslogFileDelete(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSystemSyslogFile(d.Get("filename").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

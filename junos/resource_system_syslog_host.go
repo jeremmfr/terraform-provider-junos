@@ -42,10 +42,10 @@ type syslogHostOptions struct {
 
 func resourceSystemSyslogHost() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSystemSyslogHostCreate,
-		ReadContext:   resourceSystemSyslogHostRead,
-		UpdateContext: resourceSystemSyslogHostUpdate,
-		DeleteContext: resourceSystemSyslogHostDelete,
+		CreateWithoutTimeout: resourceSystemSyslogHostCreate,
+		ReadWithoutTimeout:   resourceSystemSyslogHostRead,
+		UpdateWithoutTimeout: resourceSystemSyslogHostUpdate,
+		DeleteWithoutTimeout: resourceSystemSyslogHostDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSystemSyslogHostImport,
 		},
@@ -204,7 +204,9 @@ func resourceSystemSyslogHostCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	syslogHostExists, err := checkSystemSyslogHostExists(d.Get("host").(string), m, jnprSess)
 	if err != nil {
@@ -291,7 +293,9 @@ func resourceSystemSyslogHostUpdate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSystemSyslogHost(d.Get("host").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -329,7 +333,9 @@ func resourceSystemSyslogHostDelete(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSystemSyslogHost(d.Get("host").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

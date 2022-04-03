@@ -13,9 +13,9 @@ import (
 
 func resourceInterfaceSt0Unit() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceInterfaceSt0UnitCreate,
-		ReadContext:   resourceInterfaceSt0UnitRead,
-		DeleteContext: resourceInterfaceSt0UnitDelete,
+		CreateWithoutTimeout: resourceInterfaceSt0UnitCreate,
+		ReadWithoutTimeout:   resourceInterfaceSt0UnitRead,
+		DeleteWithoutTimeout: resourceInterfaceSt0UnitDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceInterfaceSt0UnitImport,
 		},
@@ -29,7 +29,9 @@ func resourceInterfaceSt0UnitCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	newSt0, err := searchInterfaceSt0UnitToCreate(m, jnprSess)
 	if err != nil {
@@ -100,7 +102,9 @@ func resourceInterfaceSt0UnitDelete(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	ncInt, emptyInt, _, err := checkInterfaceLogicalNCEmpty(d.Id(), m, jnprSess)
 	if err != nil {

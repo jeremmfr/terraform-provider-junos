@@ -27,10 +27,10 @@ type interfaceLogicalOptions struct {
 
 func resourceInterfaceLogical() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceInterfaceLogicalCreate,
-		ReadContext:   resourceInterfaceLogicalRead,
-		UpdateContext: resourceInterfaceLogicalUpdate,
-		DeleteContext: resourceInterfaceLogicalDelete,
+		CreateWithoutTimeout: resourceInterfaceLogicalCreate,
+		ReadWithoutTimeout:   resourceInterfaceLogicalRead,
+		UpdateWithoutTimeout: resourceInterfaceLogicalUpdate,
+		DeleteWithoutTimeout: resourceInterfaceLogicalDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceInterfaceLogicalImport,
 		},
@@ -630,7 +630,9 @@ func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	ncInt, emptyInt, _, err := checkInterfaceLogicalNCEmpty(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -806,7 +808,9 @@ func resourceInterfaceLogicalUpdate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delInterfaceLogicalOpts(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -905,7 +909,9 @@ func resourceInterfaceLogicalDelete(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delInterfaceLogical(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

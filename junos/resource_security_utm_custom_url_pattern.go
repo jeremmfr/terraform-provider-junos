@@ -16,10 +16,10 @@ type utmCustomURLPatternOptions struct {
 
 func resourceSecurityUtmCustomURLPattern() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityUtmCustomURLPatternCreate,
-		ReadContext:   resourceSecurityUtmCustomURLPatternRead,
-		UpdateContext: resourceSecurityUtmCustomURLPatternUpdate,
-		DeleteContext: resourceSecurityUtmCustomURLPatternDelete,
+		CreateWithoutTimeout: resourceSecurityUtmCustomURLPatternCreate,
+		ReadWithoutTimeout:   resourceSecurityUtmCustomURLPatternRead,
+		UpdateWithoutTimeout: resourceSecurityUtmCustomURLPatternUpdate,
+		DeleteWithoutTimeout: resourceSecurityUtmCustomURLPatternDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSecurityUtmCustomURLPatternImport,
 		},
@@ -60,7 +60,9 @@ func resourceSecurityUtmCustomURLPatternCreate(ctx context.Context, d *schema.Re
 		return diag.FromErr(fmt.Errorf("security utm custom-objects url-pattern "+
 			"not compatible with Junos device %s", jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	utmCustomURLPatternExists, err := checkUtmCustomURLPatternsExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -149,7 +151,9 @@ func resourceSecurityUtmCustomURLPatternUpdate(ctx context.Context, d *schema.Re
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delUtmCustomURLPattern(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -188,7 +192,9 @@ func resourceSecurityUtmCustomURLPatternDelete(ctx context.Context, d *schema.Re
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delUtmCustomURLPattern(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

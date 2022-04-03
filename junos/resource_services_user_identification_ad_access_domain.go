@@ -24,10 +24,10 @@ type svcUserIdentAdAccessDomainOptions struct {
 
 func resourceServicesUserIdentAdAccessDomain() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceServicesUserIdentAdAccessDomainCreate,
-		ReadContext:   resourceServicesUserIdentAdAccessDomainRead,
-		UpdateContext: resourceServicesUserIdentAdAccessDomainUpdate,
-		DeleteContext: resourceServicesUserIdentAdAccessDomainDelete,
+		CreateWithoutTimeout: resourceServicesUserIdentAdAccessDomainCreate,
+		ReadWithoutTimeout:   resourceServicesUserIdentAdAccessDomainRead,
+		UpdateWithoutTimeout: resourceServicesUserIdentAdAccessDomainUpdate,
+		DeleteWithoutTimeout: resourceServicesUserIdentAdAccessDomainDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceServicesUserIdentAdAccessDomainImport,
 		},
@@ -141,7 +141,9 @@ func resourceServicesUserIdentAdAccessDomainCreate(ctx context.Context, d *schem
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	svcUserIdentAdAccessDomainExists, err := checkServicesUserIdentAdAccessDomainExists(
 		d.Get("name").(string), m, jnprSess)
@@ -235,7 +237,9 @@ func resourceServicesUserIdentAdAccessDomainUpdate(ctx context.Context, d *schem
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesUserIdentAdAccessDomain(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -274,7 +278,9 @@ func resourceServicesUserIdentAdAccessDomainDelete(ctx context.Context, d *schem
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesUserIdentAdAccessDomain(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

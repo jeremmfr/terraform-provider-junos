@@ -26,10 +26,10 @@ type vstpVlanGroupOptions struct {
 
 func resourceVstpVlanGroup() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceVstpVlanGroupCreate,
-		ReadContext:   resourceVstpVlanGroupRead,
-		UpdateContext: resourceVstpVlanGroupUpdate,
-		DeleteContext: resourceVstpVlanGroupDelete,
+		CreateWithoutTimeout: resourceVstpVlanGroupCreate,
+		ReadWithoutTimeout:   resourceVstpVlanGroupRead,
+		UpdateWithoutTimeout: resourceVstpVlanGroupUpdate,
+		DeleteWithoutTimeout: resourceVstpVlanGroupDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceVstpVlanGroupImport,
 		},
@@ -105,7 +105,9 @@ func resourceVstpVlanGroupCreate(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if routingInstance != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(routingInstance, m, jnprSess)
@@ -218,7 +220,9 @@ func resourceVstpVlanGroupUpdate(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delVstpVlanGroup(
 		d.Get("name").(string), d.Get("routing_instance").(string), false, m, jnprSess); err != nil {
@@ -257,7 +261,9 @@ func resourceVstpVlanGroupDelete(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delVstpVlanGroup(d.Get("name").(string), d.Get("routing_instance").(string), true, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

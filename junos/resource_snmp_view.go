@@ -17,10 +17,10 @@ type snmpViewOptions struct {
 
 func resourceSnmpView() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSnmpViewCreate,
-		ReadContext:   resourceSnmpViewRead,
-		UpdateContext: resourceSnmpViewUpdate,
-		DeleteContext: resourceSnmpViewDelete,
+		CreateWithoutTimeout: resourceSnmpViewCreate,
+		ReadWithoutTimeout:   resourceSnmpViewRead,
+		UpdateWithoutTimeout: resourceSnmpViewUpdate,
+		DeleteWithoutTimeout: resourceSnmpViewDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSnmpViewImport,
 		},
@@ -61,7 +61,9 @@ func resourceSnmpViewCreate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	snmpViewExists, err := checkSnmpViewExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -148,7 +150,9 @@ func resourceSnmpViewUpdate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSnmpView(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -186,7 +190,9 @@ func resourceSnmpViewDelete(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSnmpView(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

@@ -21,10 +21,10 @@ type eventoptionsDestinationOptions struct {
 
 func resourceEventoptionsDestination() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceEventoptionsDestinationCreate,
-		ReadContext:   resourceEventoptionsDestinationRead,
-		UpdateContext: resourceEventoptionsDestinationUpdate,
-		DeleteContext: resourceEventoptionsDestinationDelete,
+		CreateWithoutTimeout: resourceEventoptionsDestinationCreate,
+		ReadWithoutTimeout:   resourceEventoptionsDestinationRead,
+		UpdateWithoutTimeout: resourceEventoptionsDestinationUpdate,
+		DeleteWithoutTimeout: resourceEventoptionsDestinationDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceEventoptionsDestinationImport,
 		},
@@ -78,7 +78,9 @@ func resourceEventoptionsDestinationCreate(ctx context.Context, d *schema.Resour
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	eventoptionsDestinationExists, err := checkEventoptionsDestinationExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -167,7 +169,9 @@ func resourceEventoptionsDestinationUpdate(ctx context.Context, d *schema.Resour
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delEventoptionsDestination(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -206,7 +210,9 @@ func resourceEventoptionsDestinationDelete(ctx context.Context, d *schema.Resour
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delEventoptionsDestination(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

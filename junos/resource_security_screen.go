@@ -31,10 +31,10 @@ type screenOptions struct {
 
 func resourceSecurityScreen() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityScreenCreate,
-		ReadContext:   resourceSecurityScreenRead,
-		UpdateContext: resourceSecurityScreenUpdate,
-		DeleteContext: resourceSecurityScreenDelete,
+		CreateWithoutTimeout: resourceSecurityScreenCreate,
+		ReadWithoutTimeout:   resourceSecurityScreenRead,
+		UpdateWithoutTimeout: resourceSecurityScreenUpdate,
+		DeleteWithoutTimeout: resourceSecurityScreenDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSecurityScreenImport,
 		},
@@ -599,7 +599,9 @@ func resourceSecurityScreenCreate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("security screen not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	securityScreenExists, err := checkSecurityScreenExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -686,7 +688,9 @@ func resourceSecurityScreenUpdate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityScreen(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -724,7 +728,9 @@ func resourceSecurityScreenDelete(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityScreen(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))

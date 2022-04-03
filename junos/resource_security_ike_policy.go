@@ -34,10 +34,10 @@ func listProposalSet() []string {
 
 func resourceIkePolicy() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceIkePolicyCreate,
-		ReadContext:   resourceIkePolicyRead,
-		UpdateContext: resourceIkePolicyUpdate,
-		DeleteContext: resourceIkePolicyDelete,
+		CreateWithoutTimeout: resourceIkePolicyCreate,
+		ReadWithoutTimeout:   resourceIkePolicyRead,
+		UpdateWithoutTimeout: resourceIkePolicyUpdate,
+		DeleteWithoutTimeout: resourceIkePolicyDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceIkePolicyImport,
 		},
@@ -102,7 +102,9 @@ func resourceIkePolicyCreate(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(fmt.Errorf("security ike policy not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	ikePolicyExists, err := checkIkePolicyExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -187,7 +189,9 @@ func resourceIkePolicyUpdate(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delIkePolicy(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -226,7 +230,9 @@ func resourceIkePolicyDelete(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delIkePolicy(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
