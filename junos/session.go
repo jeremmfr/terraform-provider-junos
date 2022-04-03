@@ -19,6 +19,7 @@ type Session struct {
 	junosSleepLock         int
 	junosSleepShort        int
 	junosSleepSSHClosed    int
+	junosSSHTimeoutToEstab int
 	junosFilePermission    int64
 	junosIP                string
 	junosUserName          string
@@ -51,6 +52,7 @@ func (sess *Session) startNewSession() (*NetconfObject, error) {
 	if sess.junosPassword != "" {
 		auth.Password = sess.junosPassword
 	}
+	auth.Timeout = sess.junosSSHTimeoutToEstab
 	jnpr, err := netconfNewSession(sess.junosIP+":"+strconv.Itoa(sess.junosPort), &auth)
 	if err != nil {
 		return nil, err

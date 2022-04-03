@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/jeremmfr/go-netconf/netconf"
@@ -58,6 +59,7 @@ type netconfAuthMethod struct {
 	PrivateKeyFile string
 	Passphrase     string
 	Ciphers        []string
+	Timeout        int
 }
 
 type commitResults struct {
@@ -150,6 +152,7 @@ func genSSHClientConfig(auth *netconfAuthMethod) (*ssh.ClientConfig, error) {
 	for _, v := range configs[2:] {
 		configs[0].Auth = append(configs[0].Auth, v.Auth...)
 	}
+	configs[0].Timeout = time.Duration(auth.Timeout) * time.Second
 
 	return configs[0], nil
 }

@@ -6,6 +6,7 @@ ENHANCEMENTS:
 * resource/`junos_system_root_authentication`: add `plain_text_password` argument to be able to set password in plain text format (Fixes #368)
 * release now with golang 1.18
 * provider: normalize reading `JUNOS_FAKEUPDATE_ALSO` and `JUNOS_FAKEDELETE_ALSO` environment variables (use SDK function)
+* provider: add `ssh_timeout_to_establish` argument to configure a timeout for establishing TCP connections when initiating SSH connections
 
 BUG FIXES:
 
