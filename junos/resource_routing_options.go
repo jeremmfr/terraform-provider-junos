@@ -188,7 +188,7 @@ func resourceRoutingOptionsCreate(ctx context.Context, d *schema.ResourceData, m
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -216,7 +216,7 @@ func resourceRoutingOptionsCreate(ctx context.Context, d *schema.ResourceData, m
 
 func resourceRoutingOptionsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -275,7 +275,7 @@ func resourceRoutingOptionsUpdate(ctx context.Context, d *schema.ResourceData, m
 
 		return diagWarns
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -315,7 +315,7 @@ func resourceRoutingOptionsDelete(ctx context.Context, d *schema.ResourceData, m
 
 			return nil
 		}
-		jnprSess, err := sess.startNewSession()
+		jnprSess, err := sess.startNewSession(ctx)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -344,7 +344,7 @@ func resourceRoutingOptionsDelete(ctx context.Context, d *schema.ResourceData, m
 func resourceRoutingOptionsImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

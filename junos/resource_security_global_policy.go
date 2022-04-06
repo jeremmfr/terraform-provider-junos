@@ -196,7 +196,7 @@ func resourceSecurityGlobalPolicyCreate(ctx context.Context, d *schema.ResourceD
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -240,7 +240,7 @@ func resourceSecurityGlobalPolicyCreate(ctx context.Context, d *schema.ResourceD
 
 func resourceSecurityGlobalPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -276,7 +276,7 @@ func resourceSecurityGlobalPolicyUpdate(ctx context.Context, d *schema.ResourceD
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -317,7 +317,7 @@ func resourceSecurityGlobalPolicyDelete(ctx context.Context, d *schema.ResourceD
 		return nil
 	}
 
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -345,7 +345,7 @@ func resourceSecurityGlobalPolicyDelete(ctx context.Context, d *schema.ResourceD
 func resourceSecurityGlobalPolicyImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

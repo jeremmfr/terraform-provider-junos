@@ -244,7 +244,7 @@ func resourceSecurityZoneCreate(ctx context.Context, d *schema.ResourceData, m i
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -297,7 +297,7 @@ func resourceSecurityZoneCreate(ctx context.Context, d *schema.ResourceData, m i
 
 func resourceSecurityZoneRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -360,7 +360,7 @@ func resourceSecurityZoneUpdate(ctx context.Context, d *schema.ResourceData, m i
 
 		return diagWarns
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -400,7 +400,7 @@ func resourceSecurityZoneDelete(ctx context.Context, d *schema.ResourceData, m i
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -428,7 +428,7 @@ func resourceSecurityZoneDelete(ctx context.Context, d *schema.ResourceData, m i
 func resourceSecurityZoneImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

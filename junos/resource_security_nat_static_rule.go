@@ -133,7 +133,7 @@ func resourceSecurityNatStaticRuleCreate(ctx context.Context, d *schema.Resource
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -203,7 +203,7 @@ func resourceSecurityNatStaticRuleCreate(ctx context.Context, d *schema.Resource
 
 func resourceSecurityNatStaticRuleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -244,7 +244,7 @@ func resourceSecurityNatStaticRuleUpdate(ctx context.Context, d *schema.Resource
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -285,7 +285,7 @@ func resourceSecurityNatStaticRuleDelete(ctx context.Context, d *schema.Resource
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -313,7 +313,7 @@ func resourceSecurityNatStaticRuleDelete(ctx context.Context, d *schema.Resource
 func resourceSecurityNatStaticRuleImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

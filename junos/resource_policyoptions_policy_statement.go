@@ -422,7 +422,7 @@ func resourcePolicyoptionsPolicyStatementCreate(ctx context.Context, d *schema.R
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -480,7 +480,7 @@ func resourcePolicyoptionsPolicyStatementCreate(ctx context.Context, d *schema.R
 func resourcePolicyoptionsPolicyStatementRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -549,7 +549,7 @@ func resourcePolicyoptionsPolicyStatementUpdate(ctx context.Context, d *schema.R
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -611,7 +611,7 @@ func resourcePolicyoptionsPolicyStatementDelete(ctx context.Context, d *schema.R
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -646,7 +646,7 @@ func resourcePolicyoptionsPolicyStatementDelete(ctx context.Context, d *schema.R
 func resourcePolicyoptionsPolicyStatementImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

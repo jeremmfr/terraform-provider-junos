@@ -100,7 +100,7 @@ func resourceVstpVlanGroupCreate(ctx context.Context, d *schema.ResourceData, m 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -174,7 +174,7 @@ func resourceVstpVlanGroupCreate(ctx context.Context, d *schema.ResourceData, m 
 
 func resourceVstpVlanGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -215,7 +215,7 @@ func resourceVstpVlanGroupUpdate(ctx context.Context, d *schema.ResourceData, m 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -256,7 +256,7 @@ func resourceVstpVlanGroupDelete(ctx context.Context, d *schema.ResourceData, m 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -284,7 +284,7 @@ func resourceVstpVlanGroupDelete(ctx context.Context, d *schema.ResourceData, m 
 func resourceVstpVlanGroupImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

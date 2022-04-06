@@ -116,7 +116,7 @@ func resourceSecurityUtmProfileWebFilteringWebsenseCreate(ctx context.Context, d
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -171,7 +171,7 @@ func resourceSecurityUtmProfileWebFilteringWebsenseCreate(ctx context.Context, d
 func resourceSecurityUtmProfileWebFilteringWebsenseRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -213,7 +213,7 @@ func resourceSecurityUtmProfileWebFilteringWebsenseUpdate(ctx context.Context, d
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -254,7 +254,7 @@ func resourceSecurityUtmProfileWebFilteringWebsenseDelete(ctx context.Context, d
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -282,7 +282,7 @@ func resourceSecurityUtmProfileWebFilteringWebsenseDelete(ctx context.Context, d
 func resourceSecurityUtmProfileWebFilteringWebsenseImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

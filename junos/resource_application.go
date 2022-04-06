@@ -185,7 +185,7 @@ func resourceApplicationCreate(ctx context.Context, d *schema.ResourceData, m in
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -233,7 +233,7 @@ func resourceApplicationCreate(ctx context.Context, d *schema.ResourceData, m in
 
 func resourceApplicationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -272,7 +272,7 @@ func resourceApplicationUpdate(ctx context.Context, d *schema.ResourceData, m in
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -312,7 +312,7 @@ func resourceApplicationDelete(ctx context.Context, d *schema.ResourceData, m in
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -340,7 +340,7 @@ func resourceApplicationDelete(ctx context.Context, d *schema.ResourceData, m in
 func resourceApplicationImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

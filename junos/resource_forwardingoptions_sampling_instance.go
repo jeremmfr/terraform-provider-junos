@@ -638,7 +638,7 @@ func resourceForwardingoptionsSamplingInstanceCreate(ctx context.Context, d *sch
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -690,7 +690,7 @@ func resourceForwardingoptionsSamplingInstanceCreate(ctx context.Context, d *sch
 func resourceForwardingoptionsSamplingInstanceRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -732,7 +732,7 @@ func resourceForwardingoptionsSamplingInstanceUpdate(ctx context.Context, d *sch
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -774,7 +774,7 @@ func resourceForwardingoptionsSamplingInstanceDelete(ctx context.Context, d *sch
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -802,7 +802,7 @@ func resourceForwardingoptionsSamplingInstanceDelete(ctx context.Context, d *sch
 func resourceForwardingoptionsSamplingInstanceImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

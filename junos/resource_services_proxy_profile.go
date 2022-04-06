@@ -56,7 +56,7 @@ func resourceServicesProxyProfileCreate(ctx context.Context, d *schema.ResourceD
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -107,7 +107,7 @@ func resourceServicesProxyProfileCreate(ctx context.Context, d *schema.ResourceD
 func resourceServicesProxyProfileRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -148,7 +148,7 @@ func resourceServicesProxyProfileUpdate(ctx context.Context, d *schema.ResourceD
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -189,7 +189,7 @@ func resourceServicesProxyProfileDelete(ctx context.Context, d *schema.ResourceD
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -217,7 +217,7 @@ func resourceServicesProxyProfileDelete(ctx context.Context, d *schema.ResourceD
 func resourceServicesProxyProfileImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

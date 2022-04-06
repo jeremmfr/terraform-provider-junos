@@ -139,7 +139,7 @@ func resourceSecurityNatDestinationCreate(ctx context.Context, d *schema.Resourc
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -193,7 +193,7 @@ func resourceSecurityNatDestinationCreate(ctx context.Context, d *schema.Resourc
 
 func resourceSecurityNatDestinationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -233,7 +233,7 @@ func resourceSecurityNatDestinationUpdate(ctx context.Context, d *schema.Resourc
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -273,7 +273,7 @@ func resourceSecurityNatDestinationDelete(ctx context.Context, d *schema.Resourc
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -301,7 +301,7 @@ func resourceSecurityNatDestinationDelete(ctx context.Context, d *schema.Resourc
 func resourceSecurityNatDestinationImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

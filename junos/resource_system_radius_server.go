@@ -132,7 +132,7 @@ func resourceSystemRadiusServerCreate(ctx context.Context, d *schema.ResourceDat
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -182,7 +182,7 @@ func resourceSystemRadiusServerCreate(ctx context.Context, d *schema.ResourceDat
 
 func resourceSystemRadiusServerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -222,7 +222,7 @@ func resourceSystemRadiusServerUpdate(ctx context.Context, d *schema.ResourceDat
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -262,7 +262,7 @@ func resourceSystemRadiusServerDelete(ctx context.Context, d *schema.ResourceDat
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -290,7 +290,7 @@ func resourceSystemRadiusServerDelete(ctx context.Context, d *schema.ResourceDat
 func resourceSystemRadiusServerImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

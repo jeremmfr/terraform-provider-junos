@@ -1,10 +1,12 @@
 package junos
 
 import (
+	"context"
 	"encoding/xml"
 	"errors"
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"strings"
 	"time"
@@ -81,21 +83,29 @@ type getInterfaceTerseReply struct {
 // to run our commands against.
 // Authentication methods are defined using the netconfAuthMethod struct, and are as follows:
 // username and password, SSH private key (with or without passphrase).
-func netconfNewSession(host string, auth *netconfAuthMethod) (*NetconfObject, error) {
+func netconfNewSession(ctx context.Context, host string, auth *netconfAuthMethod) (*NetconfObject, error) {
 	clientConfig, err := genSSHClientConfig(auth)
 	if err != nil {
 		return nil, err
 	}
 
-	return netconfNewSessionWithConfig(host, clientConfig)
+	return netconfNewSessionWithConfig(ctx, host, clientConfig)
 }
 
 // netconfNewSessionWithConfig establishes a new connection to a NetconfObject device that we will use
 // to run our commands against.
-func netconfNewSessionWithConfig(host string, clientConfig *ssh.ClientConfig) (*NetconfObject, error) {
-	s, err := netconf.DialSSH(host, clientConfig)
+func netconfNewSessionWithConfig(ctx context.Context, host string, clientConfig *ssh.ClientConfig,
+) (*NetconfObject, error) {
+	netDialer := net.Dialer{
+		Timeout: clientConfig.Timeout,
+	}
+	conn, err := netDialer.DialContext(ctx, "tcp", host)
 	if err != nil {
 		return nil, fmt.Errorf("error connecting to %s - %w", host, err)
+	}
+	s, err := netconf.NewSSHSession(conn, clientConfig)
+	if err != nil {
+		return nil, fmt.Errorf("error initializing SSH session to %s - %w", host, err)
 	}
 
 	return newSessionFromNetconf(s)

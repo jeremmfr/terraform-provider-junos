@@ -476,7 +476,7 @@ func resourceEventoptionsPolicyCreate(ctx context.Context, d *schema.ResourceDat
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -526,7 +526,7 @@ func resourceEventoptionsPolicyCreate(ctx context.Context, d *schema.ResourceDat
 
 func resourceEventoptionsPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -566,7 +566,7 @@ func resourceEventoptionsPolicyUpdate(ctx context.Context, d *schema.ResourceDat
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -606,7 +606,7 @@ func resourceEventoptionsPolicyDelete(ctx context.Context, d *schema.ResourceDat
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -634,7 +634,7 @@ func resourceEventoptionsPolicyDelete(ctx context.Context, d *schema.ResourceDat
 func resourceEventoptionsPolicyImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

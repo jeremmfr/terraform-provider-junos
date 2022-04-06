@@ -34,7 +34,7 @@ type Session struct {
 	junosSSHCiphers        []string
 }
 
-func (sess *Session) startNewSession() (*NetconfObject, error) {
+func (sess *Session) startNewSession(ctx context.Context) (*NetconfObject, error) {
 	var auth netconfAuthMethod
 	auth.Username = sess.junosUserName
 	auth.Ciphers = sess.junosSSHCiphers
@@ -54,7 +54,7 @@ func (sess *Session) startNewSession() (*NetconfObject, error) {
 		auth.Password = sess.junosPassword
 	}
 	auth.Timeout = sess.junosSSHTimeoutToEstab
-	jnpr, err := netconfNewSession(sess.junosIP+":"+strconv.Itoa(sess.junosPort), &auth)
+	jnpr, err := netconfNewSession(ctx, sess.junosIP+":"+strconv.Itoa(sess.junosPort), &auth)
 	if err != nil {
 		return nil, err
 	}

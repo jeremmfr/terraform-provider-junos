@@ -283,7 +283,7 @@ func resourceIkeGatewayCreate(ctx context.Context, d *schema.ResourceData, m int
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -336,7 +336,7 @@ func resourceIkeGatewayCreate(ctx context.Context, d *schema.ResourceData, m int
 
 func resourceIkeGatewayRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -375,7 +375,7 @@ func resourceIkeGatewayUpdate(ctx context.Context, d *schema.ResourceData, m int
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -415,7 +415,7 @@ func resourceIkeGatewayDelete(ctx context.Context, d *schema.ResourceData, m int
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -443,7 +443,7 @@ func resourceIkeGatewayDelete(ctx context.Context, d *schema.ResourceData, m int
 func resourceIkeGatewayImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

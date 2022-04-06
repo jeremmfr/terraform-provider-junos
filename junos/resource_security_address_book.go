@@ -185,7 +185,7 @@ func resourceSecurityAddressBookCreate(ctx context.Context, d *schema.ResourceDa
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -238,7 +238,7 @@ func resourceSecurityAddressBookCreate(ctx context.Context, d *schema.ResourceDa
 
 func resourceSecurityAddressBookRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -278,7 +278,7 @@ func resourceSecurityAddressBookUpdate(ctx context.Context, d *schema.ResourceDa
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -318,7 +318,7 @@ func resourceSecurityAddressBookDelete(ctx context.Context, d *schema.ResourceDa
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -346,7 +346,7 @@ func resourceSecurityAddressBookDelete(ctx context.Context, d *schema.ResourceDa
 func resourceSecurityAddressBookImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

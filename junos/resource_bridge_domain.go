@@ -159,7 +159,7 @@ func resourceBridgeDomainCreate(ctx context.Context, d *schema.ResourceData, m i
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -229,7 +229,7 @@ func resourceBridgeDomainCreate(ctx context.Context, d *schema.ResourceData, m i
 
 func resourceBridgeDomainRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -277,7 +277,7 @@ func resourceBridgeDomainUpdate(ctx context.Context, d *schema.ResourceData, m i
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -327,7 +327,7 @@ func resourceBridgeDomainDelete(ctx context.Context, d *schema.ResourceData, m i
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -356,7 +356,7 @@ func resourceBridgeDomainDelete(ctx context.Context, d *schema.ResourceData, m i
 func resourceBridgeDomainImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

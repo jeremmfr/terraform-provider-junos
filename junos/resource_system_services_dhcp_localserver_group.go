@@ -743,7 +743,7 @@ func resourceSystemServicesDhcpLocalServerGroupCreate(ctx context.Context, d *sc
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -826,7 +826,7 @@ func resourceSystemServicesDhcpLocalServerGroupCreate(ctx context.Context, d *sc
 func resourceSystemServicesDhcpLocalServerGroupRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -870,7 +870,7 @@ func resourceSystemServicesDhcpLocalServerGroupUpdate(ctx context.Context, d *sc
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -913,7 +913,7 @@ func resourceSystemServicesDhcpLocalServerGroupDelete(ctx context.Context, d *sc
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -942,7 +942,7 @@ func resourceSystemServicesDhcpLocalServerGroupDelete(ctx context.Context, d *sc
 func resourceSystemServicesDhcpLocalServerGroupImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -141,7 +141,7 @@ func resourceServicesFlowMonitoringVIPFixTemplateCreate(ctx context.Context, d *
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -195,7 +195,7 @@ func resourceServicesFlowMonitoringVIPFixTemplateCreate(ctx context.Context, d *
 func resourceServicesFlowMonitoringVIPFixTemplateRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -238,7 +238,7 @@ func resourceServicesFlowMonitoringVIPFixTemplateUpdate(ctx context.Context, d *
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -279,7 +279,7 @@ func resourceServicesFlowMonitoringVIPFixTemplateDelete(ctx context.Context, d *
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -307,7 +307,7 @@ func resourceServicesFlowMonitoringVIPFixTemplateDelete(ctx context.Context, d *
 func resourceServicesFlowMonitoringVIPFixTemplateImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -111,7 +111,7 @@ func resourceServicesSSLInitiationProfileCreate(ctx context.Context, d *schema.R
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -164,7 +164,7 @@ func resourceServicesSSLInitiationProfileCreate(ctx context.Context, d *schema.R
 func resourceServicesSSLInitiationProfileRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -205,7 +205,7 @@ func resourceServicesSSLInitiationProfileUpdate(ctx context.Context, d *schema.R
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -246,7 +246,7 @@ func resourceServicesSSLInitiationProfileDelete(ctx context.Context, d *schema.R
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -274,7 +274,7 @@ func resourceServicesSSLInitiationProfileDelete(ctx context.Context, d *schema.R
 func resourceServicesSSLInitiationProfileImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

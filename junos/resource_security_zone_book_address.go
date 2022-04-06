@@ -106,7 +106,7 @@ func resourceSecurityZoneBookAddressCreate(ctx context.Context, d *schema.Resour
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -176,7 +176,7 @@ func resourceSecurityZoneBookAddressCreate(ctx context.Context, d *schema.Resour
 
 func resourceSecurityZoneBookAddressRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -217,7 +217,7 @@ func resourceSecurityZoneBookAddressUpdate(ctx context.Context, d *schema.Resour
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -258,7 +258,7 @@ func resourceSecurityZoneBookAddressDelete(ctx context.Context, d *schema.Resour
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -286,7 +286,7 @@ func resourceSecurityZoneBookAddressDelete(ctx context.Context, d *schema.Resour
 func resourceSecurityZoneBookAddressImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

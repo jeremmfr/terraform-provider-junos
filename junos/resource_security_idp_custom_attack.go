@@ -826,7 +826,7 @@ func resourceSecurityIdpCustomAttackCreate(ctx context.Context, d *schema.Resour
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -879,7 +879,7 @@ func resourceSecurityIdpCustomAttackCreate(ctx context.Context, d *schema.Resour
 
 func resourceSecurityIdpCustomAttackRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -920,7 +920,7 @@ func resourceSecurityIdpCustomAttackUpdate(ctx context.Context, d *schema.Resour
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -961,7 +961,7 @@ func resourceSecurityIdpCustomAttackDelete(ctx context.Context, d *schema.Resour
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -989,7 +989,7 @@ func resourceSecurityIdpCustomAttackDelete(ctx context.Context, d *schema.Resour
 func resourceSecurityIdpCustomAttackImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

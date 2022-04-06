@@ -937,7 +937,7 @@ func resourceSystemCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -965,7 +965,7 @@ func resourceSystemCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 func resourceSystemRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -1000,7 +1000,7 @@ func resourceSystemUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -1038,7 +1038,7 @@ func resourceSystemDelete(ctx context.Context, d *schema.ResourceData, m interfa
 func resourceSystemImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

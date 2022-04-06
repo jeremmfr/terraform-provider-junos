@@ -339,7 +339,7 @@ func dataSourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf("no arguments provided, 'config_interface' and 'match' empty"))
 	}
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
