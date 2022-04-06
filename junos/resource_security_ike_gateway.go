@@ -35,7 +35,7 @@ func resourceIkeGateway() *schema.Resource {
 		UpdateContext: resourceIkeGatewayUpdate,
 		DeleteContext: resourceIkeGatewayDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceIkeGatewayImport,
+			StateContext: resourceIkeGatewayImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -434,7 +434,8 @@ func resourceIkeGatewayDelete(ctx context.Context, d *schema.ResourceData, m int
 	return diagWarns
 }
 
-func resourceIkeGatewayImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceIkeGatewayImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

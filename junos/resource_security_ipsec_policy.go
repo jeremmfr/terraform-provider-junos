@@ -24,7 +24,7 @@ func resourceIpsecPolicy() *schema.Resource {
 		UpdateContext: resourceIpsecPolicyUpdate,
 		DeleteContext: resourceIpsecPolicyDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceIpsecPolicyImport,
+			StateContext: resourceIpsecPolicyImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -215,7 +215,8 @@ func resourceIpsecPolicyDelete(ctx context.Context, d *schema.ResourceData, m in
 	return diagWarns
 }
 
-func resourceIpsecPolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceIpsecPolicyImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

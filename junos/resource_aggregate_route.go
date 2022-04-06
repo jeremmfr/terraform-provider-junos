@@ -37,7 +37,7 @@ func resourceAggregateRoute() *schema.Resource {
 		UpdateContext: resourceAggregateRouteUpdate,
 		DeleteContext: resourceAggregateRouteDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceAggregateRouteImport,
+			StateContext: resourceAggregateRouteImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"destination": {
@@ -303,7 +303,8 @@ func resourceAggregateRouteDelete(ctx context.Context, d *schema.ResourceData, m
 	return diagWarns
 }
 
-func resourceAggregateRouteImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceAggregateRouteImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

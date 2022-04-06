@@ -32,7 +32,7 @@ func resourceSecurityNatSourcePool() *schema.Resource {
 		UpdateContext: resourceSecurityNatSourcePoolUpdate,
 		DeleteContext: resourceSecurityNatSourcePoolDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityNatSourcePoolImport,
+			StateContext: resourceSecurityNatSourcePoolImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -256,7 +256,8 @@ func resourceSecurityNatSourcePoolDelete(ctx context.Context, d *schema.Resource
 	return diagWarns
 }
 
-func resourceSecurityNatSourcePoolImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityNatSourcePoolImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

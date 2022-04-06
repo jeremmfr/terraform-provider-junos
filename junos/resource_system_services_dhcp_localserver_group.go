@@ -49,7 +49,7 @@ func resourceSystemServicesDhcpLocalServerGroup() *schema.Resource {
 		UpdateContext: resourceSystemServicesDhcpLocalServerGroupUpdate,
 		DeleteContext: resourceSystemServicesDhcpLocalServerGroupDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSystemServicesDhcpLocalServerGroupImport,
+			StateContext: resourceSystemServicesDhcpLocalServerGroupImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -933,7 +933,7 @@ func resourceSystemServicesDhcpLocalServerGroupDelete(ctx context.Context, d *sc
 	return diagWarns
 }
 
-func resourceSystemServicesDhcpLocalServerGroupImport(d *schema.ResourceData, m interface{},
+func resourceSystemServicesDhcpLocalServerGroupImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()

@@ -47,7 +47,7 @@ func resourceInterface() *schema.Resource {
 		UpdateContext: resourceInterfaceUpdate,
 		DeleteContext: resourceInterfaceDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceInterfaceImport,
+			StateContext: resourceInterfaceImport,
 		},
 		DeprecationMessage: "use junos_interface_physical or junos_interface_logical resource instead",
 		Schema: map[string]*schema.Schema{
@@ -819,7 +819,8 @@ func resourceInterfaceDelete(ctx context.Context, d *schema.ResourceData, m inte
 	return diagWarns
 }
 
-func resourceInterfaceImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceInterfaceImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

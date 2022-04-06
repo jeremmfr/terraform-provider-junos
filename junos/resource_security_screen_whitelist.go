@@ -21,7 +21,7 @@ func resourceSecurityScreenWhiteList() *schema.Resource {
 		UpdateContext: resourceSecurityScreenWhiteListUpdate,
 		DeleteContext: resourceSecurityScreenWhiteListDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityScreenWhiteListImport,
+			StateContext: resourceSecurityScreenWhiteListImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -207,7 +207,8 @@ func resourceSecurityScreenWhiteListDelete(ctx context.Context, d *schema.Resour
 	return diagWarns
 }
 
-func resourceSecurityScreenWhiteListImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityScreenWhiteListImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

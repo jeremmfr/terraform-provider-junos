@@ -34,7 +34,7 @@ func resourceBridgeDomain() *schema.Resource {
 		UpdateContext: resourceBridgeDomainUpdate,
 		DeleteContext: resourceBridgeDomainDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceBridgeDomainImport,
+			StateContext: resourceBridgeDomainImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -347,7 +347,8 @@ func resourceBridgeDomainDelete(ctx context.Context, d *schema.ResourceData, m i
 	return diagWarns
 }
 
-func resourceBridgeDomainImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceBridgeDomainImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

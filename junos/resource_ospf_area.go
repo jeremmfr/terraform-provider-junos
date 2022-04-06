@@ -28,7 +28,7 @@ func resourceOspfArea() *schema.Resource {
 		UpdateContext: resourceOspfAreaUpdate,
 		DeleteContext: resourceOspfAreaDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceOspfAreaImport,
+			StateContext: resourceOspfAreaImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"area_id": {
@@ -502,7 +502,8 @@ func resourceOspfAreaDelete(ctx context.Context, d *schema.ResourceData, m inter
 	return diagWarns
 }
 
-func resourceOspfAreaImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceOspfAreaImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

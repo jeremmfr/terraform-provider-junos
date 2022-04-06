@@ -44,7 +44,7 @@ func resourceOspf() *schema.Resource {
 		UpdateContext: resourceOspfUpdate,
 		DeleteContext: resourceOspfDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceOspfImport,
+			StateContext: resourceOspfImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"routing_instance": {
@@ -436,7 +436,8 @@ func resourceOspfDelete(ctx context.Context, d *schema.ResourceData, m interface
 	return diagWarns
 }
 
-func resourceOspfImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceOspfImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

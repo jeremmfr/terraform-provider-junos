@@ -26,7 +26,7 @@ func resourceSecurityUtmProfileWebFilteringLocal() *schema.Resource {
 		UpdateContext: resourceSecurityUtmProfileWebFilteringLocalUpdate,
 		DeleteContext: resourceSecurityUtmProfileWebFilteringLocalDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityUtmProfileWebFilteringLocalImport,
+			StateContext: resourceSecurityUtmProfileWebFilteringLocalImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -249,7 +249,7 @@ func resourceSecurityUtmProfileWebFilteringLocalDelete(ctx context.Context, d *s
 	return diagWarns
 }
 
-func resourceSecurityUtmProfileWebFilteringLocalImport(d *schema.ResourceData, m interface{},
+func resourceSecurityUtmProfileWebFilteringLocalImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()

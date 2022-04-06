@@ -29,7 +29,7 @@ func resourceAccessAddressAssignPool() *schema.Resource {
 		UpdateContext: resourceAccessAddressAssignPoolUpdate,
 		DeleteContext: resourceAccessAddressAssignPoolDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceAccessAddressAssignPoolImport,
+			StateContext: resourceAccessAddressAssignPoolImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -633,7 +633,8 @@ func resourceAccessAddressAssignPoolDelete(ctx context.Context, d *schema.Resour
 	return diagWarns
 }
 
-func resourceAccessAddressAssignPoolImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceAccessAddressAssignPoolImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

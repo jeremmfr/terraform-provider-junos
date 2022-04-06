@@ -22,7 +22,7 @@ func resourceSnmpView() *schema.Resource {
 		UpdateContext: resourceSnmpViewUpdate,
 		DeleteContext: resourceSnmpViewDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSnmpViewImport,
+			StateContext: resourceSnmpViewImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -204,7 +204,8 @@ func resourceSnmpViewDelete(ctx context.Context, d *schema.ResourceData, m inter
 	return diagWarns
 }
 
-func resourceSnmpViewImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSnmpViewImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

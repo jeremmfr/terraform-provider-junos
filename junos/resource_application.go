@@ -35,7 +35,7 @@ func resourceApplication() *schema.Resource {
 		UpdateContext: resourceApplicationUpdate,
 		DeleteContext: resourceApplicationDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceApplicationImport,
+			StateContext: resourceApplicationImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -331,7 +331,8 @@ func resourceApplicationDelete(ctx context.Context, d *schema.ResourceData, m in
 	return diagWarns
 }
 
-func resourceApplicationImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceApplicationImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

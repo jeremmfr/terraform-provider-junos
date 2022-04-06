@@ -29,7 +29,7 @@ func resourceServicesSSLInitiationProfile() *schema.Resource {
 		UpdateContext: resourceServicesSSLInitiationProfileUpdate,
 		DeleteContext: resourceServicesSSLInitiationProfileDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceServicesSSLInitiationProfileImport,
+			StateContext: resourceServicesSSLInitiationProfileImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -265,7 +265,7 @@ func resourceServicesSSLInitiationProfileDelete(ctx context.Context, d *schema.R
 	return diagWarns
 }
 
-func resourceServicesSSLInitiationProfileImport(d *schema.ResourceData, m interface{},
+func resourceServicesSSLInitiationProfileImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()

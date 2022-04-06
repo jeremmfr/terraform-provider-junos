@@ -47,7 +47,7 @@ func resourceSystemLoginClass() *schema.Resource {
 		UpdateContext: resourceSystemLoginClassUpdate,
 		DeleteContext: resourceSystemLoginClassDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSystemLoginClassImport,
+			StateContext: resourceSystemLoginClassImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -342,7 +342,8 @@ func resourceSystemLoginClassDelete(ctx context.Context, d *schema.ResourceData,
 	return diagWarns
 }
 
-func resourceSystemLoginClassImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSystemLoginClassImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

@@ -25,7 +25,7 @@ func resourceSecurityDynamicAddressName() *schema.Resource {
 		UpdateContext: resourceSecurityDynamicAddressNameUpdate,
 		DeleteContext: resourceSecurityDynamicAddressNameDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityDynamicAddressNameImport,
+			StateContext: resourceSecurityDynamicAddressNameImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -255,7 +255,7 @@ func resourceSecurityDynamicAddressNameDelete(ctx context.Context, d *schema.Res
 	return diagWarns
 }
 
-func resourceSecurityDynamicAddressNameImport(d *schema.ResourceData, m interface{},
+func resourceSecurityDynamicAddressNameImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()

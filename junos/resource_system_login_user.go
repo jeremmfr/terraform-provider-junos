@@ -28,7 +28,7 @@ func resourceSystemLoginUser() *schema.Resource {
 		UpdateContext: resourceSystemLoginUserUpdate,
 		DeleteContext: resourceSystemLoginUserDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSystemLoginUserImport,
+			StateContext: resourceSystemLoginUserImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -253,7 +253,8 @@ func resourceSystemLoginUserDelete(ctx context.Context, d *schema.ResourceData, 
 	return diagWarns
 }
 
-func resourceSystemLoginUserImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSystemLoginUserImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

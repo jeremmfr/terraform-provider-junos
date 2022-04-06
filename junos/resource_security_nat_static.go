@@ -28,7 +28,7 @@ func resourceSecurityNatStatic() *schema.Resource {
 		UpdateContext: resourceSecurityNatStaticUpdate,
 		DeleteContext: resourceSecurityNatStaticDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityNatStaticImport,
+			StateContext: resourceSecurityNatStaticImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -348,7 +348,8 @@ func resourceSecurityNatStaticDelete(ctx context.Context, d *schema.ResourceData
 	return diagWarns
 }
 
-func resourceSecurityNatStaticImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityNatStaticImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

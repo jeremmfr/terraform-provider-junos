@@ -30,7 +30,7 @@ func resourceSecurityZoneBookAddress() *schema.Resource {
 		UpdateContext: resourceSecurityZoneBookAddressUpdate,
 		DeleteContext: resourceSecurityZoneBookAddressDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityZoneBookAddressImport,
+			StateContext: resourceSecurityZoneBookAddressImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -277,7 +277,8 @@ func resourceSecurityZoneBookAddressDelete(ctx context.Context, d *schema.Resour
 	return diagWarns
 }
 
-func resourceSecurityZoneBookAddressImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityZoneBookAddressImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

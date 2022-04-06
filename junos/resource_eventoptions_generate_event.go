@@ -26,7 +26,7 @@ func resourceEventoptionsGenerateEvent() *schema.Resource {
 		UpdateContext: resourceEventoptionsGenerateEventUpdate,
 		DeleteContext: resourceEventoptionsGenerateEventDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceEventoptionsGenerateEventImport,
+			StateContext: resourceEventoptionsGenerateEventImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -218,7 +218,8 @@ func resourceEventoptionsGenerateEventDelete(ctx context.Context, d *schema.Reso
 	return diagWarns
 }
 
-func resourceEventoptionsGenerateEventImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceEventoptionsGenerateEventImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

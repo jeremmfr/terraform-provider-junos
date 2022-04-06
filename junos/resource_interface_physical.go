@@ -36,7 +36,7 @@ func resourceInterfacePhysical() *schema.Resource {
 		UpdateContext: resourceInterfacePhysicalUpdate,
 		DeleteContext: resourceInterfacePhysicalDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceInterfacePhysicalImport,
+			StateContext: resourceInterfacePhysicalImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -709,7 +709,8 @@ func resourceInterfacePhysicalDelete(ctx context.Context, d *schema.ResourceData
 	return diagWarns
 }
 
-func resourceInterfacePhysicalImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceInterfacePhysicalImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	if strings.Count(d.Id(), ".") != 0 {
 		return nil, fmt.Errorf("name of interface %s need to doesn't have a dot", d.Id())
 	}

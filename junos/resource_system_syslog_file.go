@@ -45,7 +45,7 @@ func resourceSystemSyslogFile() *schema.Resource {
 		UpdateContext: resourceSystemSyslogFileUpdate,
 		DeleteContext: resourceSystemSyslogFileDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSystemSyslogFileImport,
+			StateContext: resourceSystemSyslogFileImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"filename": {
@@ -391,7 +391,8 @@ func resourceSystemSyslogFileDelete(ctx context.Context, d *schema.ResourceData,
 	return diagWarns
 }
 
-func resourceSystemSyslogFileImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSystemSyslogFileImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

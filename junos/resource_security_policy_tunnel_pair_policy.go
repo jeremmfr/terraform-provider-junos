@@ -22,7 +22,7 @@ func resourceSecurityPolicyTunnelPairPolicy() *schema.Resource {
 		ReadContext:   resourceSecurityPolicyTunnelPairPolicyRead,
 		DeleteContext: resourceSecurityPolicyTunnelPairPolicyDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityPolicyTunnelPairPolicyImport,
+			StateContext: resourceSecurityPolicyTunnelPairPolicyImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"zone_a": {
@@ -207,7 +207,7 @@ func resourceSecurityPolicyTunnelPairPolicyDelete(ctx context.Context, d *schema
 	return diagWarns
 }
 
-func resourceSecurityPolicyTunnelPairPolicyImport(d *schema.ResourceData, m interface{},
+func resourceSecurityPolicyTunnelPairPolicyImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()

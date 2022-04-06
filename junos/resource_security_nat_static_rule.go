@@ -32,7 +32,7 @@ func resourceSecurityNatStaticRule() *schema.Resource {
 		UpdateContext: resourceSecurityNatStaticRuleUpdate,
 		DeleteContext: resourceSecurityNatStaticRuleDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityNatStaticRuleImport,
+			StateContext: resourceSecurityNatStaticRuleImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -304,7 +304,8 @@ func resourceSecurityNatStaticRuleDelete(ctx context.Context, d *schema.Resource
 	return diagWarns
 }
 
-func resourceSecurityNatStaticRuleImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityNatStaticRuleImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

@@ -36,7 +36,7 @@ func resourceSnmp() *schema.Resource {
 		UpdateContext: resourceSnmpUpdate,
 		DeleteContext: resourceSnmpDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSnmpImport,
+			StateContext: resourceSnmpImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"clean_on_destroy": {
@@ -290,7 +290,8 @@ func resourceSnmpDelete(ctx context.Context, d *schema.ResourceData, m interface
 	return nil
 }
 
-func resourceSnmpImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSnmpImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

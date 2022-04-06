@@ -31,7 +31,7 @@ func resourceVstpVlanGroup() *schema.Resource {
 		UpdateContext: resourceVstpVlanGroupUpdate,
 		DeleteContext: resourceVstpVlanGroupDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceVstpVlanGroupImport,
+			StateContext: resourceVstpVlanGroupImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -275,7 +275,8 @@ func resourceVstpVlanGroupDelete(ctx context.Context, d *schema.ResourceData, m 
 	return diagWarns
 }
 
-func resourceVstpVlanGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceVstpVlanGroupImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

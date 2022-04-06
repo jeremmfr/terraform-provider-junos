@@ -29,7 +29,7 @@ func resourceServicesUserIdentAdAccessDomain() *schema.Resource {
 		UpdateContext: resourceServicesUserIdentAdAccessDomainUpdate,
 		DeleteContext: resourceServicesUserIdentAdAccessDomainDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceServicesUserIdentAdAccessDomainImport,
+			StateContext: resourceServicesUserIdentAdAccessDomainImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -292,7 +292,7 @@ func resourceServicesUserIdentAdAccessDomainDelete(ctx context.Context, d *schem
 	return diagWarns
 }
 
-func resourceServicesUserIdentAdAccessDomainImport(d *schema.ResourceData, m interface{},
+func resourceServicesUserIdentAdAccessDomainImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()

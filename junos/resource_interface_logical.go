@@ -32,7 +32,7 @@ func resourceInterfaceLogical() *schema.Resource {
 		UpdateContext: resourceInterfaceLogicalUpdate,
 		DeleteContext: resourceInterfaceLogicalDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceInterfaceLogicalImport,
+			StateContext: resourceInterfaceLogicalImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -923,7 +923,8 @@ func resourceInterfaceLogicalDelete(ctx context.Context, d *schema.ResourceData,
 	return diagWarns
 }
 
-func resourceInterfaceLogicalImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceInterfaceLogicalImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	if strings.Count(d.Id(), ".") != 1 {
 		return nil, fmt.Errorf("name of interface %s need to have 1 dot", d.Id())
 	}

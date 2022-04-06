@@ -28,7 +28,7 @@ func resourceSecurityUtmProfileWebFilteringWebsense() *schema.Resource {
 		UpdateContext: resourceSecurityUtmProfileWebFilteringWebsenseUpdate,
 		DeleteContext: resourceSecurityUtmProfileWebFilteringWebsenseDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityUtmProfileWebFilteringWebsenseImport,
+			StateContext: resourceSecurityUtmProfileWebFilteringWebsenseImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -273,7 +273,7 @@ func resourceSecurityUtmProfileWebFilteringWebsenseDelete(ctx context.Context, d
 	return diagWarns
 }
 
-func resourceSecurityUtmProfileWebFilteringWebsenseImport(d *schema.ResourceData, m interface{},
+func resourceSecurityUtmProfileWebFilteringWebsenseImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()

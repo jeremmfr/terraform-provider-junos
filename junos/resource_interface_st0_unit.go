@@ -17,7 +17,7 @@ func resourceInterfaceSt0Unit() *schema.Resource {
 		ReadContext:   resourceInterfaceSt0UnitRead,
 		DeleteContext: resourceInterfaceSt0UnitDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceInterfaceSt0UnitImport,
+			StateContext: resourceInterfaceSt0UnitImport,
 		},
 	}
 }
@@ -129,7 +129,8 @@ func resourceInterfaceSt0UnitDelete(ctx context.Context, d *schema.ResourceData,
 	return diagWarns
 }
 
-func resourceInterfaceSt0UnitImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceInterfaceSt0UnitImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	if !strings.HasPrefix(d.Id(), "st0.") {
 		return nil, fmt.Errorf("id must be start with 'st0.'")

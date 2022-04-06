@@ -37,7 +37,7 @@ func resourceServicesFlowMonitoringVIPFixTemplate() *schema.Resource {
 		UpdateContext: resourceServicesFlowMonitoringVIPFixTemplateUpdate,
 		DeleteContext: resourceServicesFlowMonitoringVIPFixTemplateDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceServicesFlowMonitoringVIPFixTemplateImport,
+			StateContext: resourceServicesFlowMonitoringVIPFixTemplateImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -298,7 +298,7 @@ func resourceServicesFlowMonitoringVIPFixTemplateDelete(ctx context.Context, d *
 	return diagWarns
 }
 
-func resourceServicesFlowMonitoringVIPFixTemplateImport(d *schema.ResourceData, m interface{},
+func resourceServicesFlowMonitoringVIPFixTemplateImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()

@@ -27,7 +27,7 @@ func resourceGroupDualSystem() *schema.Resource {
 		UpdateContext: resourceGroupDualSystemUpdate,
 		DeleteContext: resourceGroupDualSystemDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceGroupDualSystemImport,
+			StateContext: resourceGroupDualSystemImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -375,7 +375,8 @@ func resourceGroupDualSystemDelete(ctx context.Context, d *schema.ResourceData, 
 	return diagWarns
 }
 
-func resourceGroupDualSystemImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceGroupDualSystemImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

@@ -25,7 +25,7 @@ func resourceFirewallPolicer() *schema.Resource {
 		UpdateContext: resourceFirewallPolicerUpdate,
 		DeleteContext: resourceFirewallPolicerDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceFirewallPolicerImport,
+			StateContext: resourceFirewallPolicerImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -253,7 +253,8 @@ func resourceFirewallPolicerDelete(ctx context.Context, d *schema.ResourceData, 
 	return diagWarns
 }
 
-func resourceFirewallPolicerImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceFirewallPolicerImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

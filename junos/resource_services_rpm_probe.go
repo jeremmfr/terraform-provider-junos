@@ -26,7 +26,7 @@ func resourceServicesRpmProbe() *schema.Resource {
 		UpdateContext: resourceServicesRpmProbeUpdate,
 		DeleteContext: resourceServicesRpmProbeDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceServicesRpmProbeImport,
+			StateContext: resourceServicesRpmProbeImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -481,7 +481,7 @@ func resourceServicesRpmProbeDelete(ctx context.Context, d *schema.ResourceData,
 	return diagWarns
 }
 
-func resourceServicesRpmProbeImport(d *schema.ResourceData, m interface{},
+func resourceServicesRpmProbeImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()

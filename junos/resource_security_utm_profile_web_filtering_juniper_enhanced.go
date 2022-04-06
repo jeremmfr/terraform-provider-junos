@@ -33,7 +33,7 @@ func resourceSecurityUtmProfileWebFilteringEnhanced() *schema.Resource {
 		UpdateContext: resourceSecurityUtmProfileWebFilteringEnhancedUpdate,
 		DeleteContext: resourceSecurityUtmProfileWebFilteringEnhancedDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityUtmProfileWebFilteringEnhancedImport,
+			StateContext: resourceSecurityUtmProfileWebFilteringEnhancedImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -356,7 +356,7 @@ func resourceSecurityUtmProfileWebFilteringEnhancedDelete(ctx context.Context, d
 	return diagWarns
 }
 
-func resourceSecurityUtmProfileWebFilteringEnhancedImport(d *schema.ResourceData, m interface{},
+func resourceSecurityUtmProfileWebFilteringEnhancedImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()

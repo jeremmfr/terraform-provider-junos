@@ -29,7 +29,7 @@ func resourceIpsecVpn() *schema.Resource {
 		UpdateContext: resourceIpsecVpnUpdate,
 		DeleteContext: resourceIpsecVpnDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceIpsecVpnImport,
+			StateContext: resourceIpsecVpnImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -357,7 +357,8 @@ func resourceIpsecVpnDelete(ctx context.Context, d *schema.ResourceData, m inter
 	return diagWarns
 }
 
-func resourceIpsecVpnImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceIpsecVpnImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

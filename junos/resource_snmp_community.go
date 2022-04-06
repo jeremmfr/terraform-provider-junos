@@ -27,7 +27,7 @@ func resourceSnmpCommunity() *schema.Resource {
 		UpdateContext: resourceSnmpCommunityUpdate,
 		DeleteContext: resourceSnmpCommunityDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSnmpCommunityImport,
+			StateContext: resourceSnmpCommunityImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -244,7 +244,8 @@ func resourceSnmpCommunityDelete(ctx context.Context, d *schema.ResourceData, m 
 	return diagWarns
 }
 
-func resourceSnmpCommunityImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSnmpCommunityImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

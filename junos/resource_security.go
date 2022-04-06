@@ -34,7 +34,7 @@ func resourceSecurity() *schema.Resource {
 		UpdateContext: resourceSecurityUpdate,
 		DeleteContext: resourceSecurityDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityImport,
+			StateContext: resourceSecurityImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"clean_on_destroy": {
@@ -974,7 +974,8 @@ func resourceSecurityDelete(ctx context.Context, d *schema.ResourceData, m inter
 	return nil
 }
 
-func resourceSecurityImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

@@ -34,7 +34,7 @@ func resourceIgmpSnoopingVlan() *schema.Resource {
 		UpdateContext: resourceIgmpSnoopingVlanUpdate,
 		DeleteContext: resourceIgmpSnoopingVlanDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceIgmpSnoopingVlanImport,
+			StateContext: resourceIgmpSnoopingVlanImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -339,7 +339,8 @@ func resourceIgmpSnoopingVlanDelete(ctx context.Context, d *schema.ResourceData,
 	return diagWarns
 }
 
-func resourceIgmpSnoopingVlanImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceIgmpSnoopingVlanImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {

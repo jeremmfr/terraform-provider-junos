@@ -26,7 +26,7 @@ func resourceSecurityNatDestination() *schema.Resource {
 		UpdateContext: resourceSecurityNatDestinationUpdate,
 		DeleteContext: resourceSecurityNatDestinationDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityNatDestinationImport,
+			StateContext: resourceSecurityNatDestinationImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -292,7 +292,8 @@ func resourceSecurityNatDestinationDelete(ctx context.Context, d *schema.Resourc
 	return diagWarns
 }
 
-func resourceSecurityNatDestinationImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityNatDestinationImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	jnprSess, err := sess.startNewSession()
 	if err != nil {
