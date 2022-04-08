@@ -67,6 +67,23 @@ func validateIPwithMask(ip string) error {
 	return nil
 }
 
+func validateCIDRNetworkFunc() schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
+		v := i.(string)
+		err := validateCIDRNetwork(v)
+		if err != nil {
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       err.Error(),
+				AttributePath: path,
+			})
+		}
+
+		return diags
+	}
+}
+
 func validateCIDRNetwork(network string) error {
 	if !strings.Contains(network, "/") {
 		return fmt.Errorf("%v missing mask", network)
@@ -82,15 +99,29 @@ func validateCIDRNetwork(network string) error {
 	return nil
 }
 
-func validateCIDR(cidr string) error {
-	if !strings.Contains(cidr, "/") {
-		return fmt.Errorf("%v missing mask", cidr)
-	}
-	if _, _, err := net.ParseCIDR(cidr); err != nil {
-		return fmt.Errorf("%v is not a valid CIDR", cidr)
-	}
+func validateCIDRFunc() schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
+		v := i.(string)
+		if !strings.Contains(v, "/") {
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("%v missing mask", v),
+				AttributePath: path,
+			})
 
-	return nil
+			return diags
+		}
+		if _, _, err := net.ParseCIDR(v); err != nil {
+			diags = append(diags, diag.Diagnostic{
+				Severity:      diag.Error,
+				Summary:       fmt.Sprintf("%v is not a valid CIDR", v),
+				AttributePath: path,
+			})
+		}
+
+		return diags
+	}
 }
 
 func validateWildcardFunc() schema.SchemaValidateDiagFunc {

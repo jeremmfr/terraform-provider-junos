@@ -113,7 +113,10 @@ func resourceAggregateRoute() *schema.Resource {
 			"policy": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+				},
 			},
 			"preference": {
 				Type:     schema.TypeInt,

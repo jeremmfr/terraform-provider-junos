@@ -110,7 +110,10 @@ func resourceOspf() *schema.Resource {
 			"export": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+				},
 			},
 			"external_preference": {
 				Type:         schema.TypeInt,
@@ -163,7 +166,10 @@ func resourceOspf() *schema.Resource {
 			"import": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+				},
 			},
 			"labeled_preference": {
 				Type:         schema.TypeInt,

@@ -100,7 +100,10 @@ func resourceSecurityNatSource() *schema.Resource {
 									"destination_address": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateCIDRNetworkFunc(),
+										},
 									},
 									"destination_address_name": {
 										Type:     schema.TypeSet,
@@ -120,7 +123,10 @@ func resourceSecurityNatSource() *schema.Resource {
 									"source_address": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateCIDRNetworkFunc(),
+										},
 									},
 									"source_address_name": {
 										Type:     schema.TypeSet,
@@ -411,10 +417,6 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				configSet = append(configSet, setPrefixRule+" match application \""+vv+"\"")
 			}
 			for _, address := range sortSetOfString(match["destination_address"].(*schema.Set).List()) {
-				err := validateCIDRNetwork(address)
-				if err != nil {
-					return err
-				}
 				configSet = append(configSet, setPrefixRule+" match destination-address "+address)
 			}
 			for _, vv := range sortSetOfString(match["destination_address_name"].(*schema.Set).List()) {
@@ -430,10 +432,6 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				configSet = append(configSet, setPrefixRule+" match protocol "+proto)
 			}
 			for _, address := range sortSetOfString(match["source_address"].(*schema.Set).List()) {
-				err := validateCIDRNetwork(address)
-				if err != nil {
-					return err
-				}
 				configSet = append(configSet, setPrefixRule+" match source-address "+address)
 			}
 			for _, vv := range sortSetOfString(match["source_address_name"].(*schema.Set).List()) {

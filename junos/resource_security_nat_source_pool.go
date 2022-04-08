@@ -45,7 +45,10 @@ func resourceSecurityNatSourcePool() *schema.Resource {
 				Type:     schema.TypeList,
 				Required: true,
 				MinItems: 1,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateCIDRFunc(),
+				},
 			},
 			"address_pooling": {
 				Type:         schema.TypeString,
@@ -304,10 +307,6 @@ func setSecurityNatSourcePool(d *schema.ResourceData, m interface{}, jnprSess *N
 
 	setPrefix := "set security nat source pool " + d.Get("name").(string)
 	for _, v := range d.Get("address").([]interface{}) {
-		err := validateCIDR(v.(string))
-		if err != nil {
-			return err
-		}
 		configSet = append(configSet, setPrefix+" address "+v.(string))
 	}
 	if d.Get("address_pooling").(string) != "" {

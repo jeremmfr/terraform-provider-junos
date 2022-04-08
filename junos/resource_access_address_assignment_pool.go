@@ -79,7 +79,10 @@ func resourceAccessAddressAssignPool() *schema.Resource {
 									"dns_server": {
 										Type:     schema.TypeList,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validateIsIPv6Address,
+										},
 									},
 									"domain_name": {
 										Type:             schema.TypeString,
@@ -124,7 +127,10 @@ func resourceAccessAddressAssignPool() *schema.Resource {
 									"name_server": {
 										Type:     schema.TypeList,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.IsIPv4Address,
+										},
 									},
 									"netbios_node_type": {
 										Type:         schema.TypeString,
@@ -139,7 +145,13 @@ func resourceAccessAddressAssignPool() *schema.Resource {
 									"option": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+											ValidateFunc: validation.StringMatch(regexp.MustCompile(
+												`^\d+ (array )?(byte|flag|hex-string|integer|ip-address|short|string|unsigned-integer|unsigned-short) .*$`),
+												"need to match '^\\d+ (array )?"+
+													"(byte|flag|hex-string|integer|ip-address|short|string|unsigned-integer|unsigned-short) .*$'"),
+										},
 									},
 									"option_match_82_circuit_id": {
 										Type:     schema.TypeList,
@@ -205,7 +217,10 @@ func resourceAccessAddressAssignPool() *schema.Resource {
 									"router": {
 										Type:     schema.TypeList,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.IsIPv4Address,
+										},
 									},
 									"server_identifier": {
 										Type:         schema.TypeString,
@@ -215,7 +230,10 @@ func resourceAccessAddressAssignPool() *schema.Resource {
 									"sip_server_inet_address": {
 										Type:     schema.TypeList,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.IsIPv4Address,
+										},
 									},
 									"sip_server_inet_domain_name": {
 										Type:     schema.TypeList,
@@ -225,7 +243,10 @@ func resourceAccessAddressAssignPool() *schema.Resource {
 									"sip_server_inet6_address": {
 										Type:     schema.TypeList,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validateIsIPv6Address,
+										},
 									},
 									"sip_server_inet6_domain_name": {
 										Type:             schema.TypeString,
@@ -300,7 +321,10 @@ func resourceAccessAddressAssignPool() *schema.Resource {
 									"wins_server": {
 										Type:     schema.TypeList,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.IsIPv4Address,
+										},
 									},
 								},
 							},
@@ -884,9 +908,6 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(dhcpAttr map[string]interfac
 		if familyType == inetW {
 			return configSet, fmt.Errorf("dhcp_attributes.0.dns_server not compatible when type = inet")
 		}
-		if _, errs := validateIsIPv6Address(v, "dhcp_attributes.0.dns_server"); len(errs) > 0 {
-			return configSet, errs[0]
-		}
 
 		configSet = append(configSet, setPrefix+"dns-server "+v.(string))
 	}
@@ -909,9 +930,6 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(dhcpAttr map[string]interfac
 		configSet = append(configSet, setPrefix+"maximum-lease-time infinite")
 	}
 	for _, v := range dhcpAttr["name_server"].([]interface{}) {
-		if _, errs := validation.IsIPv4Address(v, "dhcp_attributes.0.name_server"); len(errs) > 0 {
-			return configSet, errs[0]
-		}
 		configSet = append(configSet, setPrefix+"name-server "+v.(string))
 	}
 	if v := dhcpAttr["netbios_node_type"].(string); v != "" {
@@ -921,12 +939,6 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(dhcpAttr map[string]interfac
 		configSet = append(configSet, setPrefix+"next-server "+v)
 	}
 	for _, v := range sortSetOfString(dhcpAttr["option"].(*schema.Set).List()) {
-		r := regexp.MustCompile(
-			`^\d+ (array )?(byte|flag|hex-string|integer|ip-address|short|string|unsigned-integer|unsigned-short) .*$`)
-		if !r.MatchString(v) {
-			return configSet, fmt.Errorf("option '%s' is invalid, need to match "+
-				"'^\\d+ (array )?(byte|flag|hex-string|integer|ip-address|short|string|unsigned-integer|unsigned-short) .*$'", v)
-		}
 		configSet = append(configSet, setPrefix+"option "+v)
 	}
 	optionMatch82CircuitIDValueList := make([]string, 0)
@@ -972,26 +984,17 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(dhcpAttr map[string]interfac
 		configSet = append(configSet, setPrefix+"propagate-settings \""+v+"\"")
 	}
 	for _, v := range dhcpAttr["router"].([]interface{}) {
-		if _, errs := validation.IsIPv4Address(v.(string), "dhcp_attributes.0.router"); len(errs) > 0 {
-			return configSet, errs[0]
-		}
 		configSet = append(configSet, setPrefix+"router "+v.(string))
 	}
 	if v := dhcpAttr["server_identifier"].(string); v != "" {
 		configSet = append(configSet, setPrefix+"server-identifier "+v)
 	}
 	for _, v := range dhcpAttr["sip_server_inet_address"].([]interface{}) {
-		if _, errs := validation.IsIPv4Address(v.(string), "dhcp_attributes.0.sip_server_inet_address"); len(errs) > 0 {
-			return configSet, errs[0]
-		}
 		configSet = append(configSet, setPrefix+"sip-server ip-address "+v.(string))
 	}
 	for _, v := range dhcpAttr["sip_server_inet6_address"].([]interface{}) {
 		if familyType == inetW {
 			return configSet, fmt.Errorf("dhcp_attributes.0.sip_server_inet6_address not compatible when type = inet")
-		}
-		if _, errs := validateIsIPv6Address(v.(string), "dhcp_attributes.0.sip_server_inet6_address"); len(errs) > 0 {
-			return configSet, errs[0]
 		}
 		configSet = append(configSet, setPrefix+"sip-server-address "+v.(string))
 	}
@@ -1032,9 +1035,6 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(dhcpAttr map[string]interfac
 		configSet = append(configSet, setPrefix+"valid-lifetime infinite")
 	}
 	for _, v := range dhcpAttr["wins_server"].([]interface{}) {
-		if _, errs := validation.IsIPv4Address(v.(string), "dhcp_attributes.0.wins_server"); len(errs) > 0 {
-			return configSet, errs[0]
-		}
 		configSet = append(configSet, setPrefix+"wins-server "+v.(string))
 	}
 	if len(configSet) == 0 {

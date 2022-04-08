@@ -69,22 +69,34 @@ func resourceFirewallFilter() *schema.Resource {
 									"address": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateCIDRNetworkFunc(),
+										},
 									},
 									"address_except": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateCIDRNetworkFunc(),
+										},
 									},
 									"destination_address": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateCIDRNetworkFunc(),
+										},
 									},
 									"destination_address_except": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateCIDRNetworkFunc(),
+										},
 									},
 									"destination_port": {
 										Type:     schema.TypeSet,
@@ -99,12 +111,18 @@ func resourceFirewallFilter() *schema.Resource {
 									"destination_prefix_list": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+										},
 									},
 									"destination_prefix_list_except": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+										},
 									},
 									"icmp_code": {
 										Type:     schema.TypeSet,
@@ -153,12 +171,18 @@ func resourceFirewallFilter() *schema.Resource {
 									"prefix_list": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+										},
 									},
 									"prefix_list_except": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+										},
 									},
 									"protocol": {
 										Type:     schema.TypeSet,
@@ -173,12 +197,18 @@ func resourceFirewallFilter() *schema.Resource {
 									"source_address": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateCIDRNetworkFunc(),
+										},
 									},
 									"source_address_except": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateCIDRNetworkFunc(),
+										},
 									},
 									"source_port": {
 										Type:     schema.TypeSet,
@@ -193,12 +223,18 @@ func resourceFirewallFilter() *schema.Resource {
 									"source_prefix_list": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+										},
 									},
 									"source_prefix_list_except": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+										},
 									},
 									"tcp_established": {
 										Type:     schema.TypeBool,
@@ -598,31 +634,15 @@ func fillFirewallFilterData(d *schema.ResourceData, filterOptions filterOptions)
 func setFirewallFilterOptsFrom(setPrefixTermFrom string, configSet []string, fromMap map[string]interface{},
 ) ([]string, error) {
 	for _, address := range sortSetOfString(fromMap["address"].(*schema.Set).List()) {
-		err := validateCIDRNetwork(address)
-		if err != nil {
-			return nil, err
-		}
 		configSet = append(configSet, setPrefixTermFrom+"address "+address)
 	}
 	for _, address := range sortSetOfString(fromMap["address_except"].(*schema.Set).List()) {
-		err := validateCIDRNetwork(address)
-		if err != nil {
-			return nil, err
-		}
 		configSet = append(configSet, setPrefixTermFrom+"address "+address+" except")
 	}
 	for _, address := range sortSetOfString(fromMap["destination_address"].(*schema.Set).List()) {
-		err := validateCIDRNetwork(address)
-		if err != nil {
-			return nil, err
-		}
 		configSet = append(configSet, setPrefixTermFrom+"destination-address "+address)
 	}
 	for _, address := range sortSetOfString(fromMap["destination_address_except"].(*schema.Set).List()) {
-		err := validateCIDRNetwork(address)
-		if err != nil {
-			return nil, err
-		}
 		configSet = append(configSet, setPrefixTermFrom+"destination-address "+address+" except")
 	}
 	if len(fromMap["destination_port"].(*schema.Set).List()) > 0 &&
@@ -701,17 +721,9 @@ func setFirewallFilterOptsFrom(setPrefixTermFrom string, configSet []string, fro
 		configSet = append(configSet, setPrefixTermFrom+"protocol-except "+protocol)
 	}
 	for _, address := range sortSetOfString(fromMap["source_address"].(*schema.Set).List()) {
-		err := validateCIDRNetwork(address)
-		if err != nil {
-			return nil, err
-		}
 		configSet = append(configSet, setPrefixTermFrom+"source-address "+address)
 	}
 	for _, address := range sortSetOfString(fromMap["source_address_except"].(*schema.Set).List()) {
-		err := validateCIDRNetwork(address)
-		if err != nil {
-			return nil, err
-		}
 		configSet = append(configSet, setPrefixTermFrom+"source-address "+address+" except")
 	}
 	if len(fromMap["source_port"].(*schema.Set).List()) > 0 &&

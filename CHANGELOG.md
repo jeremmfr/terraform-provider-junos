@@ -3,6 +3,23 @@
 
 ENHANCEMENTS:
 
+* resource/`junos_*`: move validation of some list of string to Plan phase and not during Apply
+* resource/`junos_aggregate_route`: add validation to elements of `policy` argument
+* resource/`junos_application_set`: add validation to elements of `applications` argument
+* resource/`junos_bgp_group`: add validation to elements of `export` and `import` arguments
+* resource/`junos_bgp_neighbor`: add validation to elements of `export` and `import` arguments
+* resource/`junos_chassis_cluster`: add validation to elements of `member_interfaces` argument
+* resource/`junos_evpn`: add validation to elements of `vrf_export` and `vrf_import` arguments
+* resource/`junos_firewall_filter`: add validation to elements of `*prefix_list*` arguments
+* resource/`junos_generate_route`: add validation to elements of `policy` argument
+* resource/`junos_ospf`: add validation to elements of `export` and `import` arguments
+* resource/`junos_policyoptions_policy_statement`: add validation to elements of some list of string
+* resource/`junos_rib_group`: add validation to elements of `import_policy` argument
+* resource/`junos_routing_instance`: add validation to elements of `instance_export`, `instance_import`, `vrf_export` and `vrf_import` arguments
+* resource/`junos_routing_options`: add validation to elements of `forwarding_table.0.export`, `instance_export` and `instance_import` arguments
+* resource/`junos_security_address_book`: add validation to elements of `attach_zone`, `address_set.*.address` and `address_set.*.address_set` arguments
+* resource/`junos_security_zone`: add validation to elements of `address_book_set.*.address` and `address_book_set.*.address_set` arguments
+* resource/`junos_security_zone_book_address_set`: add validation to elements of `address` and `address_set` arguments
 * resource/`junos_system_root_authentication`: add `plain_text_password` argument to be able to set password in plain text format (Fixes #368)
 * release now with golang 1.18
 * provider: normalize reading `JUNOS_FAKEUPDATE_ALSO` and `JUNOS_FAKEDELETE_ALSO` environment variables (use SDK function)

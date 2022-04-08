@@ -35,7 +35,10 @@ func resourceRibGroup() *schema.Resource {
 			"import_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+				},
 			},
 			"import_rib": {
 				Type:     schema.TypeList,

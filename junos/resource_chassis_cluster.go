@@ -44,7 +44,18 @@ func resourceChassisCluster() *schema.Resource {
 							Type:     schema.TypeList,
 							Required: true,
 							MinItems: 1,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
+									value := v.(string)
+									if strings.Count(value, ".") > 0 {
+										errors = append(errors, fmt.Errorf(
+											"%q in %q cannot have a dot", value, k))
+									}
+
+									return
+								},
+							},
 						},
 						"description": {
 							Type:     schema.TypeString,
@@ -63,7 +74,18 @@ func resourceChassisCluster() *schema.Resource {
 							Type:     schema.TypeList,
 							Required: true,
 							MinItems: 1,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
+									value := v.(string)
+									if strings.Count(value, ".") > 0 {
+										errors = append(errors, fmt.Errorf(
+											"%q in %q cannot have a dot", value, k))
+									}
+
+									return
+								},
+							},
 						},
 						"description": {
 							Type:     schema.TypeString,

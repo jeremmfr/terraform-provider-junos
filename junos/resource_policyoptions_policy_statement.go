@@ -114,17 +114,26 @@ func schemaPolicyoptionsPolicyStatementFrom() map[string]*schema.Schema {
 		"bgp_as_path": {
 			Type:     schema.TypeSet,
 			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+			Elem: &schema.Schema{
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
+			},
 		},
 		"bgp_as_path_group": {
 			Type:     schema.TypeSet,
 			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+			Elem: &schema.Schema{
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
+			},
 		},
 		"bgp_community": {
 			Type:     schema.TypeSet,
 			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+			Elem: &schema.Schema{
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
+			},
 		},
 		"bgp_origin": {
 			Type:         schema.TypeString,
@@ -144,8 +153,9 @@ func schemaPolicyoptionsPolicyStatementFrom() map[string]*schema.Schema {
 			Optional: true,
 		},
 		"routing_instance": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:             schema.TypeString,
+			Optional:         true,
+			ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
 		},
 		"interface": {
 			Type:     schema.TypeSet,
@@ -173,7 +183,10 @@ func schemaPolicyoptionsPolicyStatementFrom() map[string]*schema.Schema {
 		"policy": {
 			Type:     schema.TypeList,
 			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+			Elem: &schema.Schema{
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+			},
 		},
 		"preference": {
 			Type:     schema.TypeInt,
@@ -182,7 +195,10 @@ func schemaPolicyoptionsPolicyStatementFrom() map[string]*schema.Schema {
 		"prefix_list": {
 			Type:     schema.TypeSet,
 			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+			Elem: &schema.Schema{
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+			},
 		},
 		"protocol": {
 			Type:     schema.TypeSet,
@@ -333,17 +349,26 @@ func schemaPolicyoptionsPolicyStatementTo() map[string]*schema.Schema {
 		"bgp_as_path": {
 			Type:     schema.TypeSet,
 			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+			Elem: &schema.Schema{
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
+			},
 		},
 		"bgp_as_path_group": {
 			Type:     schema.TypeSet,
 			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+			Elem: &schema.Schema{
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
+			},
 		},
 		"bgp_community": {
 			Type:     schema.TypeSet,
 			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+			Elem: &schema.Schema{
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
+			},
 		},
 		"bgp_origin": {
 			Type:         schema.TypeString,
@@ -363,8 +388,9 @@ func schemaPolicyoptionsPolicyStatementTo() map[string]*schema.Schema {
 			Optional: true,
 		},
 		"routing_instance": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:             schema.TypeString,
+			Optional:         true,
+			ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
 		},
 		"interface": {
 			Type:     schema.TypeSet,
@@ -392,7 +418,10 @@ func schemaPolicyoptionsPolicyStatementTo() map[string]*schema.Schema {
 		"policy": {
 			Type:     schema.TypeList,
 			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+			Elem: &schema.Schema{
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+			},
 		},
 		"preference": {
 			Type:     schema.TypeInt,

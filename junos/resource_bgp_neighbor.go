@@ -186,7 +186,10 @@ func resourceBgpNeighbor() *schema.Resource {
 			"export": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+				},
 			},
 			"family_evpn": {
 				Type:     schema.TypeList,
@@ -429,7 +432,10 @@ func resourceBgpNeighbor() *schema.Resource {
 			"import": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+				},
 			},
 			"keep_all": {
 				Type:          schema.TypeBool,

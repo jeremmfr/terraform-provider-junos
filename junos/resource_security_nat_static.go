@@ -95,7 +95,10 @@ func resourceSecurityNatStatic() *schema.Resource {
 						"source_address": {
 							Type:     schema.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem: &schema.Schema{
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validateCIDRNetworkFunc(),
+							},
 						},
 						"source_address_name": {
 							Type:     schema.TypeSet,
@@ -439,9 +442,6 @@ func setSecurityNatStatic(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				return fmt.Errorf("destination_port need to be set with destination_port_to in rule %s", rule["name"].(string))
 			}
 			for _, vv := range sortSetOfString(rule["source_address"].(*schema.Set).List()) {
-				if err := validateCIDRNetwork(vv); err != nil {
-					return err
-				}
 				configSet = append(configSet, setPrefixRule+" match source-address "+vv)
 			}
 			for _, vv := range sortSetOfString(rule["source_address_name"].(*schema.Set).List()) {

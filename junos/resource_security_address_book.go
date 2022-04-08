@@ -45,7 +45,10 @@ func resourceSecurityAddressBook() *schema.Resource {
 			"attach_zone": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+				},
 			},
 			"network_address": {
 				Type:     schema.TypeSet,
@@ -156,12 +159,18 @@ func resourceSecurityAddressBook() *schema.Resource {
 						"address": {
 							Type:     schema.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem: &schema.Schema{
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
+							},
 						},
 						"address_set": {
 							Type:     schema.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem: &schema.Schema{
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
+							},
 						},
 						"description": {
 							Type:     schema.TypeString,
