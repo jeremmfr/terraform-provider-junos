@@ -322,7 +322,7 @@ func readEventoptionsDestination(name string, m interface{}, jnprSess *NetconfOb
 				if len(itemTrimSplit) > 2 {
 					password, err := jdecode.Decode(strings.Trim(itemTrimSplit[3], "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode secret : %w", err)
+						return confRead, fmt.Errorf("failed to decode secret: %w", err)
 					}
 					confRead.archiveSite = append(confRead.archiveSite, map[string]interface{}{
 						"url":      strings.Trim(itemTrimSplit[1], "\""),

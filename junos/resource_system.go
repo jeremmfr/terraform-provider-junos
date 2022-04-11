@@ -1859,7 +1859,7 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 					} else {
 						passWord, err := jdecode.Decode(strings.Trim(archiveSiteSplit[2], "\""))
 						if err != nil {
-							return confRead, fmt.Errorf("failed to decode archive-site password : %w", err)
+							return confRead, fmt.Errorf("failed to decode archive-site password: %w", err)
 						}
 						confRead.archivalConfiguration[0]["archive_site"] = append(
 							confRead.archivalConfiguration[0]["archive_site"].([]map[string]interface{}), map[string]interface{}{
@@ -2411,7 +2411,7 @@ func readSystemLicense(confRead *systemOptions, itemTrim string) error {
 			confRead.license[0]["autoupdate_password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 				itemTrimPassword, "password "), "\""))
 			if err != nil {
-				return fmt.Errorf("failed to decode password : %w", err)
+				return fmt.Errorf("failed to decode password: %w", err)
 			}
 		}
 	case strings.HasPrefix(itemTrim, "license renew before-expiration "):

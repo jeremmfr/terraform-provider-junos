@@ -699,7 +699,7 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 					confRead.aaa[0]["client_password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
 						"aaa client password "), "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode aaa client password : %w", err)
+						return confRead, fmt.Errorf("failed to decode aaa client password: %w", err)
 					}
 				case strings.HasPrefix(itemTrim, "aaa client username "):
 					confRead.aaa[0]["client_username"] = strings.TrimPrefix(itemTrim, "aaa client username ")

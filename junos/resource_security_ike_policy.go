@@ -346,13 +346,13 @@ func readIkePolicy(ikePolicy string, m interface{}, jnprSess *NetconfObject) (ik
 				confRead.preSharedKeyHexa, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
 					"pre-shared-key hexadecimal "), "\""))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to decode pre-shared-key hexadecimal : %w", err)
+					return confRead, fmt.Errorf("failed to decode pre-shared-key hexadecimal: %w", err)
 				}
 			case strings.HasPrefix(itemTrim, "pre-shared-key ascii-text "):
 				confRead.preSharedKeyText, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
 					"pre-shared-key ascii-text "), "\""))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to decode pre-shared-key ascii-text : %w", err)
+					return confRead, fmt.Errorf("failed to decode pre-shared-key ascii-text: %w", err)
 				}
 			}
 		}

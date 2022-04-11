@@ -1471,7 +1471,7 @@ func readServicesSecurityIntel(confRead *servicesOptions, itemTrimSecurityIntel 
 		confRead.securityIntelligence[0]["url_parameter"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 			itemTrim, "url-parameter "), "\""))
 		if err != nil {
-			return fmt.Errorf("failed to decode url-parameter : %w", err)
+			return fmt.Errorf("failed to decode url-parameter: %w", err)
 		}
 	}
 
@@ -1797,7 +1797,7 @@ func readServicesUserIdentification(confRead *servicesOptions, itemTrimUserIdent
 				userIdentIdentityMgmtConnect["primary_client_secret"], err = jdecode.Decode(
 					strings.Trim(strings.TrimPrefix(itemTrimIdentMgmt, "connection primary client-secret "), "\""))
 				if err != nil {
-					return fmt.Errorf("failed to decode primary client-secret : %w", err)
+					return fmt.Errorf("failed to decode primary client-secret: %w", err)
 				}
 			case strings.HasPrefix(itemTrimIdentMgmt, "connection connect-method "):
 				userIdentIdentityMgmtConnect["connect_method"] = strings.TrimPrefix(itemTrimIdentMgmt, "connection connect-method ")
@@ -1827,7 +1827,7 @@ func readServicesUserIdentification(confRead *servicesOptions, itemTrimUserIdent
 				userIdentIdentityMgmtConnect["secondary_client_secret"], err = jdecode.Decode(
 					strings.Trim(strings.TrimPrefix(itemTrimIdentMgmt, "connection secondary client-secret "), "\""))
 				if err != nil {
-					return fmt.Errorf("failed to decode secondary client-secret : %w", err)
+					return fmt.Errorf("failed to decode secondary client-secret: %w", err)
 				}
 			case strings.HasPrefix(itemTrimIdentMgmt, "connection token-api "):
 				userIdentIdentityMgmtConnect["token_api"] = strings.Trim(strings.TrimPrefix(

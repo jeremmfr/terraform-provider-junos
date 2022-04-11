@@ -455,7 +455,7 @@ func readSystemRadiusServer(address string, m interface{}, jnprSess *NetconfObje
 				confRead.preauthenticationSecret, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
 					"preauthentication-secret "), "\""))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to decode preauthentication-secret : %w", err)
+					return confRead, fmt.Errorf("failed to decode preauthentication-secret: %w", err)
 				}
 			case strings.HasPrefix(itemTrim, "retry "):
 				var err error
@@ -470,7 +470,7 @@ func readSystemRadiusServer(address string, m interface{}, jnprSess *NetconfObje
 				confRead.secret, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
 					"secret "), "\""))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to decode secret : %w", err)
+					return confRead, fmt.Errorf("failed to decode secret: %w", err)
 				}
 			case strings.HasPrefix(itemTrim, "source-address "):
 				confRead.sourceAddress = strings.TrimPrefix(itemTrim, "source-address ")

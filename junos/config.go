@@ -57,7 +57,7 @@ func (c *configProvider) prepareSession() (*Session, diag.Diagnostics) {
 	// junosFilePermission
 	filePermission, err := strconv.ParseInt(c.junosFilePermission, 8, 64)
 	if err != nil {
-		return sess, diag.FromErr(fmt.Errorf("failed to convert value from '%s' to int64 : %w",
+		return sess, diag.FromErr(fmt.Errorf("failed to convert value from '%s' to int64: %w",
 			c.junosFilePermission, err))
 	}
 	sess.junosFilePermission = filePermission

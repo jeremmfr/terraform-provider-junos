@@ -696,7 +696,7 @@ func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObjec
 						sitesOptions["password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 							itemTrimArchSites, "password "), "\""))
 						if err != nil {
-							return confRead, fmt.Errorf("failed to decode password : %w", err)
+							return confRead, fmt.Errorf("failed to decode password: %w", err)
 						}
 					case strings.HasPrefix(itemTrimArchSites, "routing-instance "):
 						sitesOptions["routing_instance"] = strings.TrimPrefix(itemTrimArchSites, "routing-instance ")

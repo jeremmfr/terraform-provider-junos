@@ -882,7 +882,7 @@ func readOspfArea(idArea, version, routingInstance string, m interface{}, jnprSe
 					interfaceOptions["authentication_simple_password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 						itemTrimInterface, "authentication simple-password "), "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode authentication simple-password : %w", err)
+						return confRead, fmt.Errorf("failed to decode authentication simple-password: %w", err)
 					}
 				case strings.HasPrefix(itemTrimInterface, "authentication md5 "):
 					itemTrimInterfaceSplit := strings.Split(strings.TrimPrefix(itemTrimInterface, "authentication md5 "), " ")
@@ -904,7 +904,7 @@ func readOspfArea(idArea, version, routingInstance string, m interface{}, jnprSe
 						authMD5["key"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 							itemTrimAuthMD5, "key "), "\""))
 						if err != nil {
-							return confRead, fmt.Errorf("failed to decode authentication md5 key : %w", err)
+							return confRead, fmt.Errorf("failed to decode authentication md5 key: %w", err)
 						}
 					case strings.HasPrefix(itemTrimAuthMD5, "start-time "):
 						authMD5["start_time"] = strings.Split(strings.Trim(strings.TrimPrefix(

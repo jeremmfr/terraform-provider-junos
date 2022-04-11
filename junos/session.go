@@ -127,18 +127,18 @@ func (sess *Session) appendFakeCreateSetFile(lines []string) error {
 	dirSetFile := path.Dir(sess.junosFakeCreateSetFile)
 	if _, err := os.Stat(dirSetFile); err != nil {
 		if err := os.MkdirAll(dirSetFile, os.FileMode(directoryPermission)); err != nil {
-			return fmt.Errorf("failed to create parent directory of `%s` : %w", sess.junosFakeCreateSetFile, err)
+			return fmt.Errorf("failed to create parent directory of '%s': %w", sess.junosFakeCreateSetFile, err)
 		}
 	}
 	f, err := os.OpenFile(sess.junosFakeCreateSetFile,
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.FileMode(sess.junosFilePermission))
 	if err != nil {
-		return fmt.Errorf("failed to openfile `%s` : %w", sess.junosFakeCreateSetFile, err)
+		return fmt.Errorf("failed to open file '%s': %w", sess.junosFakeCreateSetFile, err)
 	}
 	defer f.Close()
 	for _, v := range lines {
 		if _, err := f.WriteString(v + "\n"); err != nil {
-			return fmt.Errorf("failed to write in file `%s` : %w", sess.junosFakeCreateSetFile, err)
+			return fmt.Errorf("failed to write in file '%s': %w", sess.junosFakeCreateSetFile, err)
 		}
 	}
 

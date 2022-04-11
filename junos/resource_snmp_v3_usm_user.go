@@ -472,7 +472,7 @@ func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, m interface{}, jnprSess *Ne
 					confRead.authenticationKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 						itemTrim, "authentication-md5 authentication-key "), "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode authentication-key : %w", err)
+						return confRead, fmt.Errorf("failed to decode authentication-key: %w", err)
 					}
 				}
 			case itemTrim == "authentication-none":
@@ -486,7 +486,7 @@ func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, m interface{}, jnprSess *Ne
 					confRead.authenticationKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 						itemTrim, "authentication-sha authentication-key "), "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode authentication-key : %w", err)
+						return confRead, fmt.Errorf("failed to decode authentication-key: %w", err)
 					}
 				}
 			case strings.HasPrefix(itemTrim, "privacy-3des privacy-key "):
@@ -498,7 +498,7 @@ func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, m interface{}, jnprSess *Ne
 					confRead.privacyKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 						itemTrim, "privacy-3des privacy-key "), "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode privacy-key : %w", err)
+						return confRead, fmt.Errorf("failed to decode privacy-key: %w", err)
 					}
 				}
 			case strings.HasPrefix(itemTrim, "privacy-aes128 privacy-key "):
@@ -510,7 +510,7 @@ func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, m interface{}, jnprSess *Ne
 					confRead.privacyKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 						itemTrim, "privacy-aes128 privacy-key "), "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode privacy-key : %w", err)
+						return confRead, fmt.Errorf("failed to decode privacy-key: %w", err)
 					}
 				}
 			case strings.HasPrefix(itemTrim, "privacy-des privacy-key "):
@@ -522,7 +522,7 @@ func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, m interface{}, jnprSess *Ne
 					confRead.privacyKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 						itemTrim, "privacy-des privacy-key "), "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode privacy-key : %w", err)
+						return confRead, fmt.Errorf("failed to decode privacy-key: %w", err)
 					}
 				}
 			case itemTrim == "privacy-none":

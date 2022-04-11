@@ -420,7 +420,7 @@ func readServicesUserIdentAdAccessDomain(domain string, m interface{}, jnprSess 
 				var err error
 				confRead.userPassword, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim, "user password "), "\""))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to decode user password : %w", err)
+					return confRead, fmt.Errorf("failed to decode user password: %w", err)
 				}
 			case strings.HasPrefix(itemTrim, "user "):
 				confRead.userName = strings.TrimPrefix(itemTrim, "user ")
@@ -481,7 +481,7 @@ func readServicesUserIdentAdAccessDomain(domain string, m interface{}, jnprSess 
 					confRead.userGroupMappingLdap[0]["user_password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 						itemTrim, "user-group-mapping ldap user password "), "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode user password : %w", err)
+						return confRead, fmt.Errorf("failed to decode user password: %w", err)
 					}
 				case strings.HasPrefix(itemTrim, "user-group-mapping ldap user "):
 					confRead.userGroupMappingLdap[0]["user_name"] = strings.TrimPrefix(itemTrim, "user-group-mapping ldap user ")

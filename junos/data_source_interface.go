@@ -405,7 +405,7 @@ func searchInterfaceID(configInterface, match string, m interface{}, jnprSess *N
 		itemTrim := strings.TrimPrefix(item, "set interfaces ")
 		matched, err := regexp.MatchString(match, itemTrim)
 		if err != nil {
-			return "", fmt.Errorf("failed to regexp with %s : %w", match, err)
+			return "", fmt.Errorf("failed to regexp with '%s': %w", match, err)
 		}
 		if !matched {
 			continue

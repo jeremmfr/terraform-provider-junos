@@ -307,7 +307,7 @@ func readSnmpV3Community(communityIndex string, m interface{}, jnprSess *Netconf
 				var err error
 				confRead.communityName, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim, "community-name "), "\""))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to decode community-name : %w", err)
+					return confRead, fmt.Errorf("failed to decode community-name: %w", err)
 				}
 			case strings.HasPrefix(itemTrim, "context "):
 				confRead.context = strings.Trim(strings.TrimPrefix(itemTrim, "context "), "\"")

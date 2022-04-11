@@ -1298,7 +1298,7 @@ func readInterfacePhysicalEsi(confRead *interfacePhysicalOptions, item string) e
 	var err error
 	identifier, err := regexp.MatchString(`^([\d\w]{2}:){9}[\d\w]{2}`, itemTrim)
 	if err != nil {
-		return fmt.Errorf("esi_identifier regexp error : %w", err)
+		return fmt.Errorf("esi_identifier regexp error: %w", err)
 	}
 	switch {
 	case identifier:
@@ -1777,7 +1777,7 @@ func interfaceAggregatedCountSearchMax(newAE, oldAE, interFace string, m interfa
 	newAENum := strings.TrimPrefix(newAE, "ae")
 	newAENumInt, err := strconv.Atoi(newAENum)
 	if err != nil {
-		return "", fmt.Errorf("failed to convert ae interaface '%v' to integer : %w", newAE, err)
+		return "", fmt.Errorf("failed to convert ae interaface '%v' to integer: %w", newAE, err)
 	}
 	showConfig, err := sess.command(cmdShowConfig+"interfaces"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
@@ -1819,7 +1819,7 @@ func interfaceAggregatedCountSearchMax(newAE, oldAE, interFace string, m interfa
 		balt.SortStringsByLengthInc(listAEFound)
 		lastAeInt, err := strconv.Atoi(strings.TrimPrefix(listAEFound[len(listAEFound)-1], "ae"))
 		if err != nil {
-			return "", fmt.Errorf("failed to convert internal variable lastAeInt to integer : %w", err)
+			return "", fmt.Errorf("failed to convert internal variable lastAeInt to integer: %w", err)
 		}
 		if lastAeInt > newAENumInt {
 			return strconv.Itoa(lastAeInt + 1), nil

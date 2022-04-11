@@ -113,13 +113,13 @@ func searchInterfacesPhysicalPresent(d *schema.ResourceData, m interface{}, jnpr
 	var iface getInterfaceTerseReply
 	err = xml.Unmarshal([]byte(replyData), &iface.InterfaceInfo)
 	if err != nil {
-		return result, fmt.Errorf("failed to xml unmarshal reply data %s : %w", replyData, err)
+		return result, fmt.Errorf("failed to xml unmarshal reply data '%s': %w", replyData, err)
 	}
 	for _, iFace := range iface.InterfaceInfo.PhysicalInterface {
 		if mName := d.Get("match_name").(string); mName != "" {
 			matched, err := regexp.MatchString(mName, strings.Trim(iFace.Name, " \n\t"))
 			if err != nil {
-				return result, fmt.Errorf("failed to regexp with %s : %w", mName, err)
+				return result, fmt.Errorf("failed to regexp with '%s': %w", mName, err)
 			}
 			if !matched {
 				continue

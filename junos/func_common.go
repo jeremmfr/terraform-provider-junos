@@ -344,7 +344,7 @@ func replaceTildeToHomeDir(path *string) error {
 	if strings.HasPrefix(*path, "~") {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("failed to read user home directory : %w", err)
+			return fmt.Errorf("failed to read user home directory: %w", err)
 		}
 		*path = homeDir + strings.TrimPrefix(*path, "~")
 	}

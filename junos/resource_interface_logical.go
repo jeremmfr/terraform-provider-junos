@@ -1580,7 +1580,7 @@ func readFamilyInetAddress(item string, inetAddress []map[string]interface{}, fa
 			vrrpGroup["authentication_key"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrimVrrp,
 				"authentication-key "), "\""))
 			if err != nil {
-				return inetAddress, fmt.Errorf("failed to decode authentication-key : %w", err)
+				return inetAddress, fmt.Errorf("failed to decode authentication-key: %w", err)
 			}
 		case strings.HasPrefix(itemTrimVrrp, "authentication-type "):
 			vrrpGroup["authentication_type"] = strings.TrimPrefix(itemTrimVrrp, "authentication-type ")
