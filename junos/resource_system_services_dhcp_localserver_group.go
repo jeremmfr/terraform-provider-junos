@@ -44,10 +44,10 @@ type systemServicesDhcpLocalServerGroupOptions struct {
 
 func resourceSystemServicesDhcpLocalServerGroup() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSystemServicesDhcpLocalServerGroupCreate,
-		ReadContext:   resourceSystemServicesDhcpLocalServerGroupRead,
-		UpdateContext: resourceSystemServicesDhcpLocalServerGroupUpdate,
-		DeleteContext: resourceSystemServicesDhcpLocalServerGroupDelete,
+		CreateWithoutTimeout: resourceSystemServicesDhcpLocalServerGroupCreate,
+		ReadWithoutTimeout:   resourceSystemServicesDhcpLocalServerGroupRead,
+		UpdateWithoutTimeout: resourceSystemServicesDhcpLocalServerGroupUpdate,
+		DeleteWithoutTimeout: resourceSystemServicesDhcpLocalServerGroupDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSystemServicesDhcpLocalServerGroupImport,
 		},
@@ -743,12 +743,14 @@ func resourceSystemServicesDhcpLocalServerGroupCreate(ctx context.Context, d *sc
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
@@ -824,7 +826,7 @@ func resourceSystemServicesDhcpLocalServerGroupCreate(ctx context.Context, d *sc
 func resourceSystemServicesDhcpLocalServerGroupRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -868,12 +870,14 @@ func resourceSystemServicesDhcpLocalServerGroupUpdate(ctx context.Context, d *sc
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSystemServicesDhcpLocalServerGroup(
 		d.Get("name").(string), d.Get("routing_instance").(string), d.Get("version").(string), m, jnprSess); err != nil {
@@ -909,12 +913,14 @@ func resourceSystemServicesDhcpLocalServerGroupDelete(ctx context.Context, d *sc
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSystemServicesDhcpLocalServerGroup(
 		d.Get("name").(string), d.Get("routing_instance").(string), d.Get("version").(string), m, jnprSess); err != nil {
@@ -936,7 +942,7 @@ func resourceSystemServicesDhcpLocalServerGroupDelete(ctx context.Context, d *sc
 func resourceSystemServicesDhcpLocalServerGroupImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -18,10 +18,10 @@ type ribGroupOptions struct {
 
 func resourceRibGroup() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceRibGroupCreate,
-		ReadContext:   resourceRibGroupRead,
-		UpdateContext: resourceRibGroupUpdate,
-		DeleteContext: resourceRibGroupDelete,
+		CreateWithoutTimeout: resourceRibGroupCreate,
+		ReadWithoutTimeout:   resourceRibGroupRead,
+		UpdateWithoutTimeout: resourceRibGroupUpdate,
+		DeleteWithoutTimeout: resourceRibGroupDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceRibGroupImport,
 		},
@@ -66,12 +66,14 @@ func resourceRibGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	ribGroupExists, err := checkRibGroupExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -112,7 +114,7 @@ func resourceRibGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceRibGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -166,12 +168,14 @@ func resourceRibGroupUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if d.HasChange("import_policy") {
 		err = delRibGroupElement("import-policy", d.Get("name").(string), m, jnprSess)
@@ -223,12 +227,14 @@ func resourceRibGroupDelete(ctx context.Context, d *schema.ResourceData, m inter
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delRibGroup(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -249,7 +255,7 @@ func resourceRibGroupDelete(ctx context.Context, d *schema.ResourceData, m inter
 func resourceRibGroupImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

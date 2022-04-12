@@ -42,10 +42,10 @@ type interfaceOptions struct {
 
 func resourceInterface() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceInterfaceCreate,
-		ReadContext:   resourceInterfaceRead,
-		UpdateContext: resourceInterfaceUpdate,
-		DeleteContext: resourceInterfaceDelete,
+		CreateWithoutTimeout: resourceInterfaceCreate,
+		ReadWithoutTimeout:   resourceInterfaceRead,
+		UpdateWithoutTimeout: resourceInterfaceUpdate,
+		DeleteWithoutTimeout: resourceInterfaceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceInterfaceImport,
 		},
@@ -452,7 +452,7 @@ func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -461,7 +461,9 @@ func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if intExists {
 		ncInt, emptyInt, err := checkInterfaceNC(d.Get("name").(string), m, jnprSess)
@@ -568,7 +570,7 @@ func resourceInterfaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 
 func resourceInterfaceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -616,12 +618,14 @@ func resourceInterfaceReadWJnprSess(d *schema.ResourceData, m interface{}, jnprS
 func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delInterfaceOpts(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -776,12 +780,14 @@ func resourceInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m inte
 
 func resourceInterfaceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delInterface(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -822,7 +828,7 @@ func resourceInterfaceDelete(ctx context.Context, d *schema.ResourceData, m inte
 func resourceInterfaceImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1339,12 +1345,12 @@ func delInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 			}
 			aeInt, err := strconv.Atoi(strings.TrimPrefix(d.Get("ether802_3ad").(string), "ae"))
 			if err != nil {
-				return fmt.Errorf("failed to convert AE id of ether802_3ad argument '%s' in integer : %w",
+				return fmt.Errorf("failed to convert AE id of ether802_3ad argument '%s' in integer: %w",
 					d.Get("ether802_3ad").(string), err)
 			}
 			aggregatedCountInt, err := strconv.Atoi(aggregatedCount)
 			if err != nil {
-				return fmt.Errorf("failed to convert internal variable aggregatedCountInt in integer : %w", err)
+				return fmt.Errorf("failed to convert internal variable aggregatedCountInt in integer: %w", err)
 			}
 			if aggregatedCountInt < aeInt+1 {
 				oAEintNC, oAEintEmpty, err := checkInterfaceNC(d.Get("ether802_3ad").(string), m, jnprSess)
@@ -1611,7 +1617,7 @@ func readFamilyInetAddressOld(item string, inetAddress []map[string]interface{},
 			vrrpGroup["authentication_key"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrimVrrp,
 				"authentication-key "), "\""))
 			if err != nil {
-				return inetAddress, fmt.Errorf("failed to decode authentication-key : %w", err)
+				return inetAddress, fmt.Errorf("failed to decode authentication-key: %w", err)
 			}
 		case strings.HasPrefix(itemTrimVrrp, "authentication-type "):
 			vrrpGroup["authentication_type"] = strings.TrimPrefix(itemTrimVrrp, "authentication-type ")
@@ -1774,7 +1780,7 @@ func aggregatedCountSearchMax(newAE, oldAE, interFace string, m interface{}, jnp
 	newAENum := strings.TrimPrefix(newAE, "ae")
 	newAENumInt, err := strconv.Atoi(newAENum)
 	if err != nil {
-		return "", fmt.Errorf("failed to convert internal variable newAENum to integer : %w", err)
+		return "", fmt.Errorf("failed to convert internal variable newAENum to integer: %w", err)
 	}
 	intShowInt, err := sess.command("show interfaces terse", jnprSess)
 	if err != nil {
@@ -1805,7 +1811,7 @@ func aggregatedCountSearchMax(newAE, oldAE, interFace string, m interface{}, jnp
 	if len(intShowAE) > 0 {
 		lastAeInt, err := strconv.Atoi(strings.TrimPrefix(intShowAE[len(intShowAE)-1], "ae"))
 		if err != nil {
-			return "", fmt.Errorf("failed to convert internal variable lastAeInt to integer : %w", err)
+			return "", fmt.Errorf("failed to convert internal variable lastAeInt to integer: %w", err)
 		}
 		if lastAeInt > newAENumInt {
 			return strconv.Itoa(lastAeInt + 1), nil

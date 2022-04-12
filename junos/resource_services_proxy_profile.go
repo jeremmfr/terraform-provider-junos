@@ -19,10 +19,10 @@ type proxyProfileOptions struct {
 
 func resourceServicesProxyProfile() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceServicesProxyProfileCreate,
-		ReadContext:   resourceServicesProxyProfileRead,
-		UpdateContext: resourceServicesProxyProfileUpdate,
-		DeleteContext: resourceServicesProxyProfileDelete,
+		CreateWithoutTimeout: resourceServicesProxyProfileCreate,
+		ReadWithoutTimeout:   resourceServicesProxyProfileRead,
+		UpdateWithoutTimeout: resourceServicesProxyProfileUpdate,
+		DeleteWithoutTimeout: resourceServicesProxyProfileDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceServicesProxyProfileImport,
 		},
@@ -56,12 +56,14 @@ func resourceServicesProxyProfileCreate(ctx context.Context, d *schema.ResourceD
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	proxyProfileExists, err := checkServicesProxyProfileExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -105,7 +107,7 @@ func resourceServicesProxyProfileCreate(ctx context.Context, d *schema.ResourceD
 func resourceServicesProxyProfileRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -146,12 +148,14 @@ func resourceServicesProxyProfileUpdate(ctx context.Context, d *schema.ResourceD
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesProxyProfile(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -185,12 +189,14 @@ func resourceServicesProxyProfileDelete(ctx context.Context, d *schema.ResourceD
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesProxyProfile(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -211,7 +217,7 @@ func resourceServicesProxyProfileDelete(ctx context.Context, d *schema.ResourceD
 func resourceServicesProxyProfileImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

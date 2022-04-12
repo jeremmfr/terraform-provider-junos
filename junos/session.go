@@ -1,6 +1,7 @@
 package junos
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -19,6 +20,7 @@ type Session struct {
 	junosSleepLock         int
 	junosSleepShort        int
 	junosSleepSSHClosed    int
+	junosSSHTimeoutToEstab int
 	junosFilePermission    int64
 	junosIP                string
 	junosUserName          string
@@ -32,7 +34,7 @@ type Session struct {
 	junosSSHCiphers        []string
 }
 
-func (sess *Session) startNewSession() (*NetconfObject, error) {
+func (sess *Session) startNewSession(ctx context.Context) (*NetconfObject, error) {
 	var auth netconfAuthMethod
 	auth.Username = sess.junosUserName
 	auth.Ciphers = sess.junosSSHCiphers
@@ -51,7 +53,8 @@ func (sess *Session) startNewSession() (*NetconfObject, error) {
 	if sess.junosPassword != "" {
 		auth.Password = sess.junosPassword
 	}
-	jnpr, err := netconfNewSession(sess.junosIP+":"+strconv.Itoa(sess.junosPort), &auth)
+	auth.Timeout = sess.junosSSHTimeoutToEstab
+	jnpr, err := netconfNewSession(ctx, sess.junosIP+":"+strconv.Itoa(sess.junosPort), &auth)
 	if err != nil {
 		return nil, err
 	}
@@ -124,18 +127,18 @@ func (sess *Session) appendFakeCreateSetFile(lines []string) error {
 	dirSetFile := path.Dir(sess.junosFakeCreateSetFile)
 	if _, err := os.Stat(dirSetFile); err != nil {
 		if err := os.MkdirAll(dirSetFile, os.FileMode(directoryPermission)); err != nil {
-			return fmt.Errorf("failed to create parent directory of `%s` : %w", sess.junosFakeCreateSetFile, err)
+			return fmt.Errorf("failed to create parent directory of '%s': %w", sess.junosFakeCreateSetFile, err)
 		}
 	}
 	f, err := os.OpenFile(sess.junosFakeCreateSetFile,
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.FileMode(sess.junosFilePermission))
 	if err != nil {
-		return fmt.Errorf("failed to openfile `%s` : %w", sess.junosFakeCreateSetFile, err)
+		return fmt.Errorf("failed to open file '%s': %w", sess.junosFakeCreateSetFile, err)
 	}
 	defer f.Close()
 	for _, v := range lines {
 		if _, err := f.WriteString(v + "\n"); err != nil {
-			return fmt.Errorf("failed to write in file `%s` : %w", sess.junosFakeCreateSetFile, err)
+			return fmt.Errorf("failed to write in file '%s': %w", sess.junosFakeCreateSetFile, err)
 		}
 	}
 
@@ -160,17 +163,21 @@ func (sess *Session) commitConf(logMessage string, jnpr *NetconfObject) (_warnin
 	return warns, nil
 }
 
-func (sess *Session) configLock(jnpr *NetconfObject) {
-	var lock bool
+func (sess *Session) configLock(ctx context.Context, jnpr *NetconfObject) error {
 	for {
-		lock = jnpr.netconfConfigLock()
-		if lock {
-			sess.logFile("[configLock] locked")
-			sleepShort(sess.junosSleepShort)
+		select {
+		case <-ctx.Done():
+			sess.logFile("[configLock] aborted")
 
-			break
-		} else {
-			sess.logFile("[configLock] sleep for wait lock")
+			return fmt.Errorf("candidate configuration lock attempt aborted")
+		default:
+			if jnpr.netconfConfigLock() {
+				sess.logFile("[configLock] locked")
+				sleepShort(sess.junosSleepShort)
+
+				return nil
+			}
+			sess.logFile("[configLock] sleep to wait the lock")
 			sleep(sess.junosSleepLock)
 		}
 	}

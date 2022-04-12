@@ -12,10 +12,10 @@ import (
 
 func resourceBgpNeighbor() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceBgpNeighborCreate,
-		ReadContext:   resourceBgpNeighborRead,
-		UpdateContext: resourceBgpNeighborUpdate,
-		DeleteContext: resourceBgpNeighborDelete,
+		CreateWithoutTimeout: resourceBgpNeighborCreate,
+		ReadWithoutTimeout:   resourceBgpNeighborRead,
+		UpdateWithoutTimeout: resourceBgpNeighborUpdate,
+		DeleteWithoutTimeout: resourceBgpNeighborDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceBgpNeighborImport,
 		},
@@ -607,12 +607,14 @@ func resourceBgpNeighborCreate(ctx context.Context, d *schema.ResourceData, m in
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
@@ -684,7 +686,7 @@ func resourceBgpNeighborCreate(ctx context.Context, d *schema.ResourceData, m in
 
 func resourceBgpNeighborRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -724,12 +726,14 @@ func resourceBgpNeighborUpdate(ctx context.Context, d *schema.ResourceData, m in
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delBgpOpts(d, "neighbor", m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -762,12 +766,14 @@ func resourceBgpNeighborDelete(ctx context.Context, d *schema.ResourceData, m in
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delBgpNeighbor(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -788,7 +794,7 @@ func resourceBgpNeighborDelete(ctx context.Context, d *schema.ResourceData, m in
 func resourceBgpNeighborImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -293,7 +293,7 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 		var err error
 		confRead.authenticationKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(item, "authentication-key "), "\""))
 		if err != nil {
-			return fmt.Errorf("failed to decode authentication-key : %w", err)
+			return fmt.Errorf("failed to decode authentication-key: %w", err)
 		}
 	case strings.HasPrefix(item, "authentication-key-chain "):
 		confRead.authenticationKeyChain = strings.TrimPrefix(item, "authentication-key-chain ")

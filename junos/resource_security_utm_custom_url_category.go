@@ -16,10 +16,10 @@ type utmCustomURLCategoryOptions struct {
 
 func resourceSecurityUtmCustomURLCategory() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityUtmCustomURLCategoryCreate,
-		ReadContext:   resourceSecurityUtmCustomURLCategoryRead,
-		UpdateContext: resourceSecurityUtmCustomURLCategoryUpdate,
-		DeleteContext: resourceSecurityUtmCustomURLCategoryDelete,
+		CreateWithoutTimeout: resourceSecurityUtmCustomURLCategoryCreate,
+		ReadWithoutTimeout:   resourceSecurityUtmCustomURLCategoryRead,
+		UpdateWithoutTimeout: resourceSecurityUtmCustomURLCategoryUpdate,
+		DeleteWithoutTimeout: resourceSecurityUtmCustomURLCategoryDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSecurityUtmCustomURLCategoryImport,
 		},
@@ -51,7 +51,7 @@ func resourceSecurityUtmCustomURLCategoryCreate(ctx context.Context, d *schema.R
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -60,7 +60,9 @@ func resourceSecurityUtmCustomURLCategoryCreate(ctx context.Context, d *schema.R
 		return diag.FromErr(fmt.Errorf("security utm custom-objects custom-url-category "+
 			"not compatible with Junos device %s", jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	utmCustomURLCategoryExists, err := checkUtmCustomURLCategorysExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -104,7 +106,7 @@ func resourceSecurityUtmCustomURLCategoryCreate(ctx context.Context, d *schema.R
 func resourceSecurityUtmCustomURLCategoryRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -145,12 +147,14 @@ func resourceSecurityUtmCustomURLCategoryUpdate(ctx context.Context, d *schema.R
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delUtmCustomURLCategory(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -184,12 +188,14 @@ func resourceSecurityUtmCustomURLCategoryDelete(ctx context.Context, d *schema.R
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delUtmCustomURLCategory(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -210,7 +216,7 @@ func resourceSecurityUtmCustomURLCategoryDelete(ctx context.Context, d *schema.R
 func resourceSecurityUtmCustomURLCategoryImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

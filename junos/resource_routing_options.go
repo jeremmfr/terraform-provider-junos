@@ -23,10 +23,10 @@ type routingOptionsOptions struct {
 
 func resourceRoutingOptions() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceRoutingOptionsCreate,
-		ReadContext:   resourceRoutingOptionsRead,
-		UpdateContext: resourceRoutingOptionsUpdate,
-		DeleteContext: resourceRoutingOptionsDelete,
+		CreateWithoutTimeout: resourceRoutingOptionsCreate,
+		ReadWithoutTimeout:   resourceRoutingOptionsRead,
+		UpdateWithoutTimeout: resourceRoutingOptionsUpdate,
+		DeleteWithoutTimeout: resourceRoutingOptionsDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceRoutingOptionsImport,
 		},
@@ -197,12 +197,14 @@ func resourceRoutingOptionsCreate(ctx context.Context, d *schema.ResourceData, m
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := setRoutingOptions(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -223,7 +225,7 @@ func resourceRoutingOptionsCreate(ctx context.Context, d *schema.ResourceData, m
 
 func resourceRoutingOptionsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -282,12 +284,14 @@ func resourceRoutingOptionsUpdate(ctx context.Context, d *schema.ResourceData, m
 
 		return diagWarns
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	if err := delRoutingOptions(fwTableExportConfigSingly, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -320,12 +324,14 @@ func resourceRoutingOptionsDelete(ctx context.Context, d *schema.ResourceData, m
 
 			return nil
 		}
-		jnprSess, err := sess.startNewSession()
+		jnprSess, err := sess.startNewSession(ctx)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 		defer sess.closeSession(jnprSess)
-		sess.configLock(jnprSess)
+		if err := sess.configLock(ctx, jnprSess); err != nil {
+			return diag.FromErr(err)
+		}
 		var diagWarns diag.Diagnostics
 		if err := delRoutingOptions(d.Get("forwarding_table_export_configure_singly").(bool), m, jnprSess); err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -347,7 +353,7 @@ func resourceRoutingOptionsDelete(ctx context.Context, d *schema.ResourceData, m
 func resourceRoutingOptionsImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

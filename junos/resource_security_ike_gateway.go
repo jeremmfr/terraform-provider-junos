@@ -30,10 +30,10 @@ type ikeGatewayOptions struct {
 
 func resourceIkeGateway() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceIkeGatewayCreate,
-		ReadContext:   resourceIkeGatewayRead,
-		UpdateContext: resourceIkeGatewayUpdate,
-		DeleteContext: resourceIkeGatewayDelete,
+		CreateWithoutTimeout: resourceIkeGatewayCreate,
+		ReadWithoutTimeout:   resourceIkeGatewayRead,
+		UpdateWithoutTimeout: resourceIkeGatewayUpdate,
+		DeleteWithoutTimeout: resourceIkeGatewayDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceIkeGatewayImport,
 		},
@@ -286,7 +286,7 @@ func resourceIkeGatewayCreate(ctx context.Context, d *schema.ResourceData, m int
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -295,7 +295,9 @@ func resourceIkeGatewayCreate(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(fmt.Errorf("security ike gateway not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	ikeGatewayExists, err := checkIkeGatewayExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -337,7 +339,7 @@ func resourceIkeGatewayCreate(ctx context.Context, d *schema.ResourceData, m int
 
 func resourceIkeGatewayRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -376,12 +378,14 @@ func resourceIkeGatewayUpdate(ctx context.Context, d *schema.ResourceData, m int
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delIkeGateway(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -414,12 +418,14 @@ func resourceIkeGatewayDelete(ctx context.Context, d *schema.ResourceData, m int
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delIkeGateway(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -440,7 +446,7 @@ func resourceIkeGatewayDelete(ctx context.Context, d *schema.ResourceData, m int
 func resourceIkeGatewayImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -692,7 +698,7 @@ func readIkeGateway(ikeGateway string, m interface{}, jnprSess *NetconfObject) (
 					confRead.aaa[0]["client_password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
 						"aaa client password "), "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode aaa client password : %w", err)
+						return confRead, fmt.Errorf("failed to decode aaa client password: %w", err)
 					}
 				case strings.HasPrefix(itemTrim, "aaa client username "):
 					confRead.aaa[0]["client_username"] = strings.TrimPrefix(itemTrim, "aaa client username ")

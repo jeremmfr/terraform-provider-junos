@@ -154,6 +154,11 @@ The following arguments are supported in the `provider` block:
   `aes128-cbc`
   ]
 
+- **ssh_timeout_to_establish** (Optional, Number)  
+  Seconds to wait for establishing TCP connections when initiating SSH connections.  
+  It can also be sourced from the `JUNOS_SSH_TIMEOUT_TO_ESTABLISH` environment variable.  
+  Defaults to `0` (no timeout).
+
 ---
 
 ### Debug & workaround options

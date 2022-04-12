@@ -16,10 +16,10 @@ type screenWhiteListOptions struct {
 
 func resourceSecurityScreenWhiteList() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityScreenWhiteListCreate,
-		ReadContext:   resourceSecurityScreenWhiteListRead,
-		UpdateContext: resourceSecurityScreenWhiteListUpdate,
-		DeleteContext: resourceSecurityScreenWhiteListDelete,
+		CreateWithoutTimeout: resourceSecurityScreenWhiteListCreate,
+		ReadWithoutTimeout:   resourceSecurityScreenWhiteListRead,
+		UpdateWithoutTimeout: resourceSecurityScreenWhiteListUpdate,
+		DeleteWithoutTimeout: resourceSecurityScreenWhiteListDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSecurityScreenWhiteListImport,
 		},
@@ -54,7 +54,7 @@ func resourceSecurityScreenWhiteListCreate(ctx context.Context, d *schema.Resour
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -63,7 +63,9 @@ func resourceSecurityScreenWhiteListCreate(ctx context.Context, d *schema.Resour
 		return diag.FromErr(fmt.Errorf("security screen white-list not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	securityScreenWhiteListExists, err := checkSecurityScreenWhiteListExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -107,7 +109,7 @@ func resourceSecurityScreenWhiteListCreate(ctx context.Context, d *schema.Resour
 func resourceSecurityScreenWhiteListRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -148,12 +150,14 @@ func resourceSecurityScreenWhiteListUpdate(ctx context.Context, d *schema.Resour
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityScreenWhiteList(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -187,12 +191,14 @@ func resourceSecurityScreenWhiteListDelete(ctx context.Context, d *schema.Resour
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityScreenWhiteList(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -213,7 +219,7 @@ func resourceSecurityScreenWhiteListDelete(ctx context.Context, d *schema.Resour
 func resourceSecurityScreenWhiteListImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

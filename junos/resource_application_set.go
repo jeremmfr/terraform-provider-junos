@@ -16,10 +16,10 @@ type applicationSetOptions struct {
 
 func resourceApplicationSet() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceApplicationSetCreate,
-		ReadContext:   resourceApplicationSetRead,
-		UpdateContext: resourceApplicationSetUpdate,
-		DeleteContext: resourceApplicationSetDelete,
+		CreateWithoutTimeout: resourceApplicationSetCreate,
+		ReadWithoutTimeout:   resourceApplicationSetRead,
+		UpdateWithoutTimeout: resourceApplicationSetUpdate,
+		DeleteWithoutTimeout: resourceApplicationSetDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceApplicationSetImport,
 		},
@@ -53,12 +53,14 @@ func resourceApplicationSetCreate(ctx context.Context, d *schema.ResourceData, m
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	appSetExists, err := checkApplicationSetExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -99,7 +101,7 @@ func resourceApplicationSetCreate(ctx context.Context, d *schema.ResourceData, m
 
 func resourceApplicationSetRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -139,12 +141,14 @@ func resourceApplicationSetUpdate(ctx context.Context, d *schema.ResourceData, m
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delApplicationSet(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -177,12 +181,14 @@ func resourceApplicationSetDelete(ctx context.Context, d *schema.ResourceData, m
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delApplicationSet(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -203,7 +209,7 @@ func resourceApplicationSetDelete(ctx context.Context, d *schema.ResourceData, m
 func resourceApplicationSetImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -24,10 +24,10 @@ type securityLogStreamOptions struct {
 
 func resourceSecurityLogStream() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityLogStreamCreate,
-		ReadContext:   resourceSecurityLogStreamRead,
-		UpdateContext: resourceSecurityLogStreamUpdate,
-		DeleteContext: resourceSecurityLogStreamDelete,
+		CreateWithoutTimeout: resourceSecurityLogStreamCreate,
+		ReadWithoutTimeout:   resourceSecurityLogStreamRead,
+		UpdateWithoutTimeout: resourceSecurityLogStreamUpdate,
+		DeleteWithoutTimeout: resourceSecurityLogStreamDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSecurityLogStreamImport,
 		},
@@ -132,7 +132,7 @@ func resourceSecurityLogStreamCreate(ctx context.Context, d *schema.ResourceData
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -141,7 +141,9 @@ func resourceSecurityLogStreamCreate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf("security log stream "+
 			"not compatible with Junos device %s", jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	securityLogStreamExists, err := checkSecurityLogStreamExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -183,7 +185,7 @@ func resourceSecurityLogStreamCreate(ctx context.Context, d *schema.ResourceData
 
 func resourceSecurityLogStreamRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -223,12 +225,14 @@ func resourceSecurityLogStreamUpdate(ctx context.Context, d *schema.ResourceData
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delLogStream(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -261,12 +265,14 @@ func resourceSecurityLogStreamDelete(ctx context.Context, d *schema.ResourceData
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delLogStream(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -287,7 +293,7 @@ func resourceSecurityLogStreamDelete(ctx context.Context, d *schema.ResourceData
 func resourceSecurityLogStreamImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -21,10 +21,10 @@ type lldpMedInterfaceOptions struct {
 
 func resourceLldpMedInterface() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceLldpMedInterfaceCreate,
-		ReadContext:   resourceLldpMedInterfaceRead,
-		UpdateContext: resourceLldpMedInterfaceUpdate,
-		DeleteContext: resourceLldpMedInterfaceDelete,
+		CreateWithoutTimeout: resourceLldpMedInterfaceCreate,
+		ReadWithoutTimeout:   resourceLldpMedInterfaceRead,
+		UpdateWithoutTimeout: resourceLldpMedInterfaceUpdate,
+		DeleteWithoutTimeout: resourceLldpMedInterfaceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceLldpMedInterfaceImport,
 		},
@@ -140,12 +140,14 @@ func resourceLldpMedInterfaceCreate(ctx context.Context, d *schema.ResourceData,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	lldpMedInterfaceExists, err := checkLldpMedInterfaceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -188,7 +190,7 @@ func resourceLldpMedInterfaceCreate(ctx context.Context, d *schema.ResourceData,
 
 func resourceLldpMedInterfaceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -228,12 +230,14 @@ func resourceLldpMedInterfaceUpdate(ctx context.Context, d *schema.ResourceData,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delLldpMedInterface(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -266,12 +270,14 @@ func resourceLldpMedInterfaceDelete(ctx context.Context, d *schema.ResourceData,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delLldpMedInterface(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -292,7 +298,7 @@ func resourceLldpMedInterfaceDelete(ctx context.Context, d *schema.ResourceData,
 func resourceLldpMedInterfaceImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

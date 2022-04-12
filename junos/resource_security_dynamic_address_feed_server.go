@@ -23,10 +23,10 @@ type dynamicAddressFeedServerOptions struct {
 
 func resourceSecurityDynamicAddressFeedServer() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityDynamicAddressFeedServerCreate,
-		ReadContext:   resourceSecurityDynamicAddressFeedServerRead,
-		UpdateContext: resourceSecurityDynamicAddressFeedServerUpdate,
-		DeleteContext: resourceSecurityDynamicAddressFeedServerDelete,
+		CreateWithoutTimeout: resourceSecurityDynamicAddressFeedServerCreate,
+		ReadWithoutTimeout:   resourceSecurityDynamicAddressFeedServerRead,
+		UpdateWithoutTimeout: resourceSecurityDynamicAddressFeedServerUpdate,
+		DeleteWithoutTimeout: resourceSecurityDynamicAddressFeedServerDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSecurityDynamicAddressFeedServerImport,
 		},
@@ -103,7 +103,7 @@ func resourceSecurityDynamicAddressFeedServerCreate(ctx context.Context, d *sche
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -112,7 +112,9 @@ func resourceSecurityDynamicAddressFeedServerCreate(ctx context.Context, d *sche
 		return diag.FromErr(fmt.Errorf("security dynamic-address feed-server "+
 			"not compatible with Junos device %s", jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	securityDynamicAddressFeedServerExists, err := checkSecurityDynamicAddressFeedServersExists(
 		d.Get("name").(string), m, jnprSess)
@@ -158,7 +160,7 @@ func resourceSecurityDynamicAddressFeedServerCreate(ctx context.Context, d *sche
 func resourceSecurityDynamicAddressFeedServerRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -200,12 +202,14 @@ func resourceSecurityDynamicAddressFeedServerUpdate(ctx context.Context, d *sche
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityDynamicAddressFeedServer(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -239,12 +243,14 @@ func resourceSecurityDynamicAddressFeedServerDelete(ctx context.Context, d *sche
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityDynamicAddressFeedServer(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -265,7 +271,7 @@ func resourceSecurityDynamicAddressFeedServerDelete(ctx context.Context, d *sche
 func resourceSecurityDynamicAddressFeedServerImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

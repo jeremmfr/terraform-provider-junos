@@ -20,10 +20,10 @@ type filterOptions struct {
 
 func resourceFirewallFilter() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceFirewallFilterCreate,
-		ReadContext:   resourceFirewallFilterRead,
-		UpdateContext: resourceFirewallFilterUpdate,
-		DeleteContext: resourceFirewallFilterDelete,
+		CreateWithoutTimeout: resourceFirewallFilterCreate,
+		ReadWithoutTimeout:   resourceFirewallFilterRead,
+		UpdateWithoutTimeout: resourceFirewallFilterUpdate,
+		DeleteWithoutTimeout: resourceFirewallFilterDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceFirewallFilterImport,
 		},
@@ -319,12 +319,14 @@ func resourceFirewallFilterCreate(ctx context.Context, d *schema.ResourceData, m
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	firewallFilterExists, err := checkFirewallFilterExists(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
 	if err != nil {
@@ -366,7 +368,7 @@ func resourceFirewallFilterCreate(ctx context.Context, d *schema.ResourceData, m
 
 func resourceFirewallFilterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -406,12 +408,14 @@ func resourceFirewallFilterUpdate(ctx context.Context, d *schema.ResourceData, m
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -444,12 +448,14 @@ func resourceFirewallFilterDelete(ctx context.Context, d *schema.ResourceData, m
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -470,7 +476,7 @@ func resourceFirewallFilterDelete(ctx context.Context, d *schema.ResourceData, m
 func resourceFirewallFilterImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

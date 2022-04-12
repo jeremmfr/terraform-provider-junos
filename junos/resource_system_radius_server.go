@@ -31,10 +31,10 @@ type radiusServerOptions struct {
 
 func resourceSystemRadiusServer() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSystemRadiusServerCreate,
-		ReadContext:   resourceSystemRadiusServerRead,
-		UpdateContext: resourceSystemRadiusServerUpdate,
-		DeleteContext: resourceSystemRadiusServerDelete,
+		CreateWithoutTimeout: resourceSystemRadiusServerCreate,
+		ReadWithoutTimeout:   resourceSystemRadiusServerRead,
+		UpdateWithoutTimeout: resourceSystemRadiusServerUpdate,
+		DeleteWithoutTimeout: resourceSystemRadiusServerDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSystemRadiusServerImport,
 		},
@@ -132,12 +132,14 @@ func resourceSystemRadiusServerCreate(ctx context.Context, d *schema.ResourceDat
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	radiusServerExists, err := checkSystemRadiusServerExists(d.Get("address").(string), m, jnprSess)
 	if err != nil {
@@ -180,7 +182,7 @@ func resourceSystemRadiusServerCreate(ctx context.Context, d *schema.ResourceDat
 
 func resourceSystemRadiusServerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -220,12 +222,14 @@ func resourceSystemRadiusServerUpdate(ctx context.Context, d *schema.ResourceDat
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSystemRadiusServer(d.Get("address").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -258,12 +262,14 @@ func resourceSystemRadiusServerDelete(ctx context.Context, d *schema.ResourceDat
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSystemRadiusServer(d.Get("address").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -284,7 +290,7 @@ func resourceSystemRadiusServerDelete(ctx context.Context, d *schema.ResourceDat
 func resourceSystemRadiusServerImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -449,7 +455,7 @@ func readSystemRadiusServer(address string, m interface{}, jnprSess *NetconfObje
 				confRead.preauthenticationSecret, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
 					"preauthentication-secret "), "\""))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to decode preauthentication-secret : %w", err)
+					return confRead, fmt.Errorf("failed to decode preauthentication-secret: %w", err)
 				}
 			case strings.HasPrefix(itemTrim, "retry "):
 				var err error
@@ -464,7 +470,7 @@ func readSystemRadiusServer(address string, m interface{}, jnprSess *NetconfObje
 				confRead.secret, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
 					"secret "), "\""))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to decode secret : %w", err)
+					return confRead, fmt.Errorf("failed to decode secret: %w", err)
 				}
 			case strings.HasPrefix(itemTrim, "source-address "):
 				confRead.sourceAddress = strings.TrimPrefix(itemTrim, "source-address ")

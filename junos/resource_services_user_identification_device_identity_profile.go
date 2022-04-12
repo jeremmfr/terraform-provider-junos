@@ -18,10 +18,10 @@ type svcUserIdentDevIdentProfileOptions struct {
 
 func resourceServicesUserIdentDeviceIdentityProfile() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceServicesUserIdentDeviceIdentityProfileCreate,
-		ReadContext:   resourceServicesUserIdentDeviceIdentityProfileRead,
-		UpdateContext: resourceServicesUserIdentDeviceIdentityProfileUpdate,
-		DeleteContext: resourceServicesUserIdentDeviceIdentityProfileDelete,
+		CreateWithoutTimeout: resourceServicesUserIdentDeviceIdentityProfileCreate,
+		ReadWithoutTimeout:   resourceServicesUserIdentDeviceIdentityProfileRead,
+		UpdateWithoutTimeout: resourceServicesUserIdentDeviceIdentityProfileUpdate,
+		DeleteWithoutTimeout: resourceServicesUserIdentDeviceIdentityProfileDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceServicesUserIdentDeviceIdentityProfileImport,
 		},
@@ -72,12 +72,14 @@ func resourceServicesUserIdentDeviceIdentityProfileCreate(ctx context.Context, d
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	svcUserIdentDevIdentProfileExists, err := checkServicesUserIdentDeviceIdentityProfileExists(
 		d.Get("name").(string), m, jnprSess)
@@ -125,7 +127,7 @@ func resourceServicesUserIdentDeviceIdentityProfileCreate(ctx context.Context, d
 func resourceServicesUserIdentDeviceIdentityProfileRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -168,12 +170,14 @@ func resourceServicesUserIdentDeviceIdentityProfileUpdate(ctx context.Context, d
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesUserIdentDeviceIdentityProfile(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -208,12 +212,14 @@ func resourceServicesUserIdentDeviceIdentityProfileDelete(ctx context.Context, d
 		return nil
 	}
 
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesUserIdentDeviceIdentityProfile(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -234,7 +240,7 @@ func resourceServicesUserIdentDeviceIdentityProfileDelete(ctx context.Context, d
 func resourceServicesUserIdentDeviceIdentityProfileImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

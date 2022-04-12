@@ -22,10 +22,10 @@ type utmPolicyOptions struct {
 
 func resourceSecurityUtmPolicy() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityUtmPolicyCreate,
-		ReadContext:   resourceSecurityUtmPolicyRead,
-		UpdateContext: resourceSecurityUtmPolicyUpdate,
-		DeleteContext: resourceSecurityUtmPolicyDelete,
+		CreateWithoutTimeout: resourceSecurityUtmPolicyCreate,
+		ReadWithoutTimeout:   resourceSecurityUtmPolicyRead,
+		UpdateWithoutTimeout: resourceSecurityUtmPolicyUpdate,
+		DeleteWithoutTimeout: resourceSecurityUtmPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSecurityUtmPolicyImport,
 		},
@@ -143,7 +143,7 @@ func resourceSecurityUtmPolicyCreate(ctx context.Context, d *schema.ResourceData
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -152,7 +152,9 @@ func resourceSecurityUtmPolicyCreate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf("security utm utm-policy "+
 			"not compatible with Junos device %s", jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	utmPolicyExists, err := checkUtmPolicysExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -195,7 +197,7 @@ func resourceSecurityUtmPolicyCreate(ctx context.Context, d *schema.ResourceData
 
 func resourceSecurityUtmPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -235,12 +237,14 @@ func resourceSecurityUtmPolicyUpdate(ctx context.Context, d *schema.ResourceData
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delUtmPolicy(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -273,12 +277,14 @@ func resourceSecurityUtmPolicyDelete(ctx context.Context, d *schema.ResourceData
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delUtmPolicy(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -299,7 +305,7 @@ func resourceSecurityUtmPolicyDelete(ctx context.Context, d *schema.ResourceData
 func resourceSecurityUtmPolicyImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

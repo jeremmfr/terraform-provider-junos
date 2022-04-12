@@ -29,10 +29,10 @@ type securityOptions struct {
 
 func resourceSecurity() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityCreate,
-		ReadContext:   resourceSecurityRead,
-		UpdateContext: resourceSecurityUpdate,
-		DeleteContext: resourceSecurityDelete,
+		CreateWithoutTimeout: resourceSecurityCreate,
+		ReadWithoutTimeout:   resourceSecurityRead,
+		UpdateWithoutTimeout: resourceSecurityUpdate,
+		DeleteWithoutTimeout: resourceSecurityDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSecurityImport,
 		},
@@ -846,7 +846,7 @@ func resourceSecurityCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -855,7 +855,9 @@ func resourceSecurityCreate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(fmt.Errorf("security not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := setSecurity(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -876,7 +878,7 @@ func resourceSecurityCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceSecurityRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -911,12 +913,14 @@ func resourceSecurityUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurity(m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -950,12 +954,14 @@ func resourceSecurityDelete(ctx context.Context, d *schema.ResourceData, m inter
 
 			return nil
 		}
-		jnprSess, err := sess.startNewSession()
+		jnprSess, err := sess.startNewSession(ctx)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 		defer sess.closeSession(jnprSess)
-		sess.configLock(jnprSess)
+		if err := sess.configLock(ctx, jnprSess); err != nil {
+			return diag.FromErr(err)
+		}
 		var diagWarns diag.Diagnostics
 		if err := delSecurity(m, jnprSess); err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -977,7 +983,7 @@ func resourceSecurityDelete(ctx context.Context, d *schema.ResourceData, m inter
 func resourceSecurityImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

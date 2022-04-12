@@ -13,9 +13,9 @@ import (
 
 func resourceNullCommitFile() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceNullCommitFileCreate,
-		ReadContext:   resourceNullCommitFileRead,
-		DeleteContext: resourceNullCommitFileDelete,
+		CreateWithoutTimeout: resourceNullCommitFileCreate,
+		ReadWithoutTimeout:   resourceNullCommitFileRead,
+		DeleteWithoutTimeout: resourceNullCommitFileDelete,
 		Schema: map[string]*schema.Schema{
 			"filename": {
 				Type:     schema.TypeString,
@@ -45,12 +45,14 @@ func resourceNullCommitFile() *schema.Resource {
 
 func resourceNullCommitFileCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	fileName := d.Get("filename").(string)
 	configSet, err := readNullCommitFile(fileName)
@@ -99,11 +101,11 @@ func readNullCommitFile(filename string) ([]string, error) {
 		return []string{}, err
 	}
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		return []string{}, fmt.Errorf("file `%s` doesn't exist", filename)
+		return []string{}, fmt.Errorf("file '%s' doesn't exist", filename)
 	}
 	fileReadByte, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return []string{}, fmt.Errorf("could not read file `%s` : %w", filename, err)
+		return []string{}, fmt.Errorf("could not read file '%s': %w", filename, err)
 	}
 
 	return strings.Split(string(fileReadByte), "\n"), nil
@@ -115,10 +117,10 @@ func cleanNullCommitFile(filename string, sess *Session) error {
 	}
 	f, err := os.OpenFile(filename, os.O_TRUNC, os.FileMode(sess.junosFilePermission))
 	if err != nil {
-		return fmt.Errorf("could not open file `%s` to truncate after commit : %w", filename, err)
+		return fmt.Errorf("could not open file '%s' to truncate after commit: %w", filename, err)
 	}
 	if err := f.Close(); err != nil {
-		return fmt.Errorf("could not close file handler for `%s` after truncation : %w", filename, err)
+		return fmt.Errorf("could not close file handler for '%s' after truncation: %w", filename, err)
 	}
 
 	return nil

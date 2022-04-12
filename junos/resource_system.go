@@ -46,10 +46,10 @@ type systemOptions struct {
 
 func resourceSystem() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSystemCreate,
-		ReadContext:   resourceSystemRead,
-		UpdateContext: resourceSystemUpdate,
-		DeleteContext: resourceSystemDelete,
+		CreateWithoutTimeout: resourceSystemCreate,
+		ReadWithoutTimeout:   resourceSystemRead,
+		UpdateWithoutTimeout: resourceSystemUpdate,
+		DeleteWithoutTimeout: resourceSystemDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSystemImport,
 		},
@@ -937,12 +937,14 @@ func resourceSystemCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := setSystem(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -963,7 +965,7 @@ func resourceSystemCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 func resourceSystemRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -998,12 +1000,14 @@ func resourceSystemUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSystem(m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -1034,7 +1038,7 @@ func resourceSystemDelete(ctx context.Context, d *schema.ResourceData, m interfa
 func resourceSystemImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1855,7 +1859,7 @@ func readSystem(m interface{}, jnprSess *NetconfObject) (systemOptions, error) {
 					} else {
 						passWord, err := jdecode.Decode(strings.Trim(archiveSiteSplit[2], "\""))
 						if err != nil {
-							return confRead, fmt.Errorf("failed to decode archive-site password : %w", err)
+							return confRead, fmt.Errorf("failed to decode archive-site password: %w", err)
 						}
 						confRead.archivalConfiguration[0]["archive_site"] = append(
 							confRead.archivalConfiguration[0]["archive_site"].([]map[string]interface{}), map[string]interface{}{
@@ -2407,7 +2411,7 @@ func readSystemLicense(confRead *systemOptions, itemTrim string) error {
 			confRead.license[0]["autoupdate_password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 				itemTrimPassword, "password "), "\""))
 			if err != nil {
-				return fmt.Errorf("failed to decode password : %w", err)
+				return fmt.Errorf("failed to decode password: %w", err)
 			}
 		}
 	case strings.HasPrefix(itemTrim, "license renew before-expiration "):

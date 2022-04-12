@@ -14,7 +14,7 @@ import (
 
 func dataSourceInterfaceLogical() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceInterfaceLogicalRead,
+		ReadWithoutTimeout: dataSourceInterfaceLogicalRead,
 		Schema: map[string]*schema.Schema{
 			"config_interface": {
 				Type:     schema.TypeString,
@@ -518,7 +518,7 @@ func dataSourceInterfaceLogicalRead(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(fmt.Errorf("no arguments provided, 'config_interface' and 'match' empty"))
 	}
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -570,7 +570,7 @@ func searchInterfaceLogicalID(configInterface, match string, m interface{}, jnpr
 		itemTrim := strings.TrimPrefix(item, "set interfaces ")
 		matched, err := regexp.MatchString(match, itemTrim)
 		if err != nil {
-			return "", fmt.Errorf("failed to regexp with %s : %w", match, err)
+			return "", fmt.Errorf("failed to regexp with '%s': %w", match, err)
 		}
 		if !matched {
 			continue

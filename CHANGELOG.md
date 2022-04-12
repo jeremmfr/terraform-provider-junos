@@ -23,6 +23,9 @@ ENHANCEMENTS:
 * resource/`junos_system_root_authentication`: add `plain_text_password` argument to be able to set password in plain text format (Fixes #368)
 * release now with golang 1.18
 * provider: normalize reading `JUNOS_FAKEUPDATE_ALSO` and `JUNOS_FAKEDELETE_ALSO` environment variables (use SDK function)
+* provider: add `ssh_timeout_to_establish` argument to configure a timeout for establishing TCP connections when initiating SSH connections
+* provider: A gracefully shutting down of Terraform with `Ctrl-c` now stop threads waiting for candidate configuration lock (stop after a loop of `cmd_sleep_lock` seconds)  
+  and cancel the TCP connection attempt to establish SSH session if it's not yet complete
 
 BUG FIXES:
 

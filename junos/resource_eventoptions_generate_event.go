@@ -21,10 +21,10 @@ type eventoptionsGenerateEventOptions struct {
 
 func resourceEventoptionsGenerateEvent() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceEventoptionsGenerateEventCreate,
-		ReadContext:   resourceEventoptionsGenerateEventRead,
-		UpdateContext: resourceEventoptionsGenerateEventUpdate,
-		DeleteContext: resourceEventoptionsGenerateEventDelete,
+		CreateWithoutTimeout: resourceEventoptionsGenerateEventCreate,
+		ReadWithoutTimeout:   resourceEventoptionsGenerateEventRead,
+		UpdateWithoutTimeout: resourceEventoptionsGenerateEventUpdate,
+		DeleteWithoutTimeout: resourceEventoptionsGenerateEventDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceEventoptionsGenerateEventImport,
 		},
@@ -66,12 +66,14 @@ func resourceEventoptionsGenerateEventCreate(ctx context.Context, d *schema.Reso
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	eventoptionsGenerateEventExists, err := checkEventoptionsGenerateEventExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -115,7 +117,7 @@ func resourceEventoptionsGenerateEventCreate(ctx context.Context, d *schema.Reso
 func resourceEventoptionsGenerateEventRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -156,12 +158,14 @@ func resourceEventoptionsGenerateEventUpdate(ctx context.Context, d *schema.Reso
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delEventoptionsGenerateEvent(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -195,12 +199,14 @@ func resourceEventoptionsGenerateEventDelete(ctx context.Context, d *schema.Reso
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delEventoptionsGenerateEvent(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -221,7 +227,7 @@ func resourceEventoptionsGenerateEventDelete(ctx context.Context, d *schema.Reso
 func resourceEventoptionsGenerateEventImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

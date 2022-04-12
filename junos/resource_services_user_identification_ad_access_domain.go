@@ -24,10 +24,10 @@ type svcUserIdentAdAccessDomainOptions struct {
 
 func resourceServicesUserIdentAdAccessDomain() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceServicesUserIdentAdAccessDomainCreate,
-		ReadContext:   resourceServicesUserIdentAdAccessDomainRead,
-		UpdateContext: resourceServicesUserIdentAdAccessDomainUpdate,
-		DeleteContext: resourceServicesUserIdentAdAccessDomainDelete,
+		CreateWithoutTimeout: resourceServicesUserIdentAdAccessDomainCreate,
+		ReadWithoutTimeout:   resourceServicesUserIdentAdAccessDomainRead,
+		UpdateWithoutTimeout: resourceServicesUserIdentAdAccessDomainUpdate,
+		DeleteWithoutTimeout: resourceServicesUserIdentAdAccessDomainDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceServicesUserIdentAdAccessDomainImport,
 		},
@@ -136,12 +136,14 @@ func resourceServicesUserIdentAdAccessDomainCreate(ctx context.Context, d *schem
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	svcUserIdentAdAccessDomainExists, err := checkServicesUserIdentAdAccessDomainExists(
 		d.Get("name").(string), m, jnprSess)
@@ -188,7 +190,7 @@ func resourceServicesUserIdentAdAccessDomainCreate(ctx context.Context, d *schem
 func resourceServicesUserIdentAdAccessDomainRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -230,12 +232,14 @@ func resourceServicesUserIdentAdAccessDomainUpdate(ctx context.Context, d *schem
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesUserIdentAdAccessDomain(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -269,12 +273,14 @@ func resourceServicesUserIdentAdAccessDomainDelete(ctx context.Context, d *schem
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesUserIdentAdAccessDomain(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -295,7 +301,7 @@ func resourceServicesUserIdentAdAccessDomainDelete(ctx context.Context, d *schem
 func resourceServicesUserIdentAdAccessDomainImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -414,7 +420,7 @@ func readServicesUserIdentAdAccessDomain(domain string, m interface{}, jnprSess 
 				var err error
 				confRead.userPassword, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim, "user password "), "\""))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to decode user password : %w", err)
+					return confRead, fmt.Errorf("failed to decode user password: %w", err)
 				}
 			case strings.HasPrefix(itemTrim, "user "):
 				confRead.userName = strings.TrimPrefix(itemTrim, "user ")
@@ -475,7 +481,7 @@ func readServicesUserIdentAdAccessDomain(domain string, m interface{}, jnprSess 
 					confRead.userGroupMappingLdap[0]["user_password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 						itemTrim, "user-group-mapping ldap user password "), "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode user password : %w", err)
+						return confRead, fmt.Errorf("failed to decode user password: %w", err)
 					}
 				case strings.HasPrefix(itemTrim, "user-group-mapping ldap user "):
 					confRead.userGroupMappingLdap[0]["user_name"] = strings.TrimPrefix(itemTrim, "user-group-mapping ldap user ")

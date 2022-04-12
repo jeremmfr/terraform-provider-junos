@@ -76,6 +76,11 @@ func Provider() *schema.Provider {
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				DefaultFunc: defaultSSHCiphers(),
 			},
+			"ssh_timeout_to_establish": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("JUNOS_SSH_TIMEOUT_TO_ESTABLISH", 0),
+			},
 			"file_permission": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -247,6 +252,7 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		junosCmdSleepShort:       d.Get("cmd_sleep_short").(int),
 		junosCmdSleepLock:        d.Get("cmd_sleep_lock").(int),
 		junosSSHSleepClosed:      d.Get("ssh_sleep_closed").(int),
+		junosSSHTimeoutToEstab:   d.Get("ssh_timeout_to_establish").(int),
 		junosFilePermission:      d.Get("file_permission").(string),
 		junosDebugNetconfLogPath: d.Get("debug_netconf_log_path").(string),
 		junosFakeCreateSetFile:   d.Get("fake_create_with_setfile").(string),

@@ -31,10 +31,10 @@ type snmpOptions struct {
 
 func resourceSnmp() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSnmpCreate,
-		ReadContext:   resourceSnmpRead,
-		UpdateContext: resourceSnmpUpdate,
-		DeleteContext: resourceSnmpDelete,
+		CreateWithoutTimeout: resourceSnmpCreate,
+		ReadWithoutTimeout:   resourceSnmpRead,
+		UpdateWithoutTimeout: resourceSnmpUpdate,
+		DeleteWithoutTimeout: resourceSnmpDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSnmpImport,
 		},
@@ -166,12 +166,14 @@ func resourceSnmpCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := setSnmp(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -192,7 +194,7 @@ func resourceSnmpCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 func resourceSnmpRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -227,12 +229,14 @@ func resourceSnmpUpdate(ctx context.Context, d *schema.ResourceData, m interface
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSnmp(m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -266,12 +270,14 @@ func resourceSnmpDelete(ctx context.Context, d *schema.ResourceData, m interface
 
 			return nil
 		}
-		jnprSess, err := sess.startNewSession()
+		jnprSess, err := sess.startNewSession(ctx)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 		defer sess.closeSession(jnprSess)
-		sess.configLock(jnprSess)
+		if err := sess.configLock(ctx, jnprSess); err != nil {
+			return diag.FromErr(err)
+		}
 		var diagWarns diag.Diagnostics
 		if err := delSnmp(m, jnprSess); err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -293,7 +299,7 @@ func resourceSnmpDelete(ctx context.Context, d *schema.ResourceData, m interface
 func resourceSnmpImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -39,10 +39,10 @@ type ospfOptions struct {
 
 func resourceOspf() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceOspfCreate,
-		ReadContext:   resourceOspfRead,
-		UpdateContext: resourceOspfUpdate,
-		DeleteContext: resourceOspfDelete,
+		CreateWithoutTimeout: resourceOspfCreate,
+		ReadWithoutTimeout:   resourceOspfRead,
+		UpdateWithoutTimeout: resourceOspfUpdate,
+		DeleteWithoutTimeout: resourceOspfDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceOspfImport,
 		},
@@ -291,12 +291,14 @@ func resourceOspfCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
@@ -331,7 +333,7 @@ func resourceOspfCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 func resourceOspfRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -380,12 +382,14 @@ func resourceOspfUpdate(ctx context.Context, d *schema.ResourceData, m interface
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delOspf(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -419,12 +423,14 @@ func resourceOspfDelete(ctx context.Context, d *schema.ResourceData, m interface
 		return nil
 	}
 
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delOspf(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -445,7 +451,7 @@ func resourceOspfDelete(ctx context.Context, d *schema.ResourceData, m interface
 func resourceOspfImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

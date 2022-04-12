@@ -24,10 +24,10 @@ type accessAddressAssignPoolOptions struct {
 
 func resourceAccessAddressAssignPool() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceAccessAddressAssignPoolCreate,
-		ReadContext:   resourceAccessAddressAssignPoolRead,
-		UpdateContext: resourceAccessAddressAssignPoolUpdate,
-		DeleteContext: resourceAccessAddressAssignPoolDelete,
+		CreateWithoutTimeout: resourceAccessAddressAssignPoolCreate,
+		ReadWithoutTimeout:   resourceAccessAddressAssignPoolRead,
+		UpdateWithoutTimeout: resourceAccessAddressAssignPoolUpdate,
+		DeleteWithoutTimeout: resourceAccessAddressAssignPoolDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceAccessAddressAssignPoolImport,
 		},
@@ -484,12 +484,14 @@ func resourceAccessAddressAssignPoolCreate(ctx context.Context, d *schema.Resour
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
@@ -549,7 +551,7 @@ func resourceAccessAddressAssignPoolCreate(ctx context.Context, d *schema.Resour
 
 func resourceAccessAddressAssignPoolRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -592,12 +594,14 @@ func resourceAccessAddressAssignPoolUpdate(ctx context.Context, d *schema.Resour
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delAccessAddressAssignPool(d.Get("name").(string), d.Get("routing_instance").(string),
 		m, jnprSess); err != nil {
@@ -633,12 +637,14 @@ func resourceAccessAddressAssignPoolDelete(ctx context.Context, d *schema.Resour
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delAccessAddressAssignPool(d.Get("name").(string), d.Get("routing_instance").(string),
 		m, jnprSess); err != nil {
@@ -660,7 +666,7 @@ func resourceAccessAddressAssignPoolDelete(ctx context.Context, d *schema.Resour
 func resourceAccessAddressAssignPoolImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

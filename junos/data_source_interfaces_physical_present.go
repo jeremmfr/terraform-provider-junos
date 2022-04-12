@@ -18,7 +18,7 @@ type interfacesPresentOpts struct {
 
 func dataSourceInterfacesPhysicalPresent() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceInterfacesPhysicalPresentRead,
+		ReadWithoutTimeout: dataSourceInterfacesPhysicalPresentRead,
 		Schema: map[string]*schema.Schema{
 			"match_name": {
 				Type:     schema.TypeString,
@@ -73,7 +73,7 @@ func dataSourceInterfacesPhysicalPresent() *schema.Resource {
 func dataSourceInterfacesPhysicalPresentRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -113,13 +113,13 @@ func searchInterfacesPhysicalPresent(d *schema.ResourceData, m interface{}, jnpr
 	var iface getInterfaceTerseReply
 	err = xml.Unmarshal([]byte(replyData), &iface.InterfaceInfo)
 	if err != nil {
-		return result, fmt.Errorf("failed to xml unmarshal reply data %s : %w", replyData, err)
+		return result, fmt.Errorf("failed to xml unmarshal reply data '%s': %w", replyData, err)
 	}
 	for _, iFace := range iface.InterfaceInfo.PhysicalInterface {
 		if mName := d.Get("match_name").(string); mName != "" {
 			matched, err := regexp.MatchString(mName, strings.Trim(iFace.Name, " \n\t"))
 			if err != nil {
-				return result, fmt.Errorf("failed to regexp with %s : %w", mName, err)
+				return result, fmt.Errorf("failed to regexp with '%s': %w", mName, err)
 			}
 			if !matched {
 				continue

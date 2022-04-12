@@ -23,10 +23,10 @@ type servicesOptions struct {
 
 func resourceServices() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceServicesCreate,
-		ReadContext:   resourceServicesRead,
-		UpdateContext: resourceServicesUpdate,
-		DeleteContext: resourceServicesDelete,
+		CreateWithoutTimeout: resourceServicesCreate,
+		ReadWithoutTimeout:   resourceServicesRead,
+		UpdateWithoutTimeout: resourceServicesUpdate,
+		DeleteWithoutTimeout: resourceServicesDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceServicesImport,
 		},
@@ -624,12 +624,14 @@ func resourceServicesCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := setServices(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -650,7 +652,7 @@ func resourceServicesCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceServicesRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -685,12 +687,14 @@ func resourceServicesUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServices(d, m, jnprSess, false); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -724,12 +728,14 @@ func resourceServicesDelete(ctx context.Context, d *schema.ResourceData, m inter
 
 			return nil
 		}
-		jnprSess, err := sess.startNewSession()
+		jnprSess, err := sess.startNewSession(ctx)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 		defer sess.closeSession(jnprSess)
-		sess.configLock(jnprSess)
+		if err := sess.configLock(ctx, jnprSess); err != nil {
+			return diag.FromErr(err)
+		}
 		var diagWarns diag.Diagnostics
 		if err := delServices(d, m, jnprSess, true); err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -751,7 +757,7 @@ func resourceServicesDelete(ctx context.Context, d *schema.ResourceData, m inter
 func resourceServicesImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1465,7 +1471,7 @@ func readServicesSecurityIntel(confRead *servicesOptions, itemTrimSecurityIntel 
 		confRead.securityIntelligence[0]["url_parameter"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 			itemTrim, "url-parameter "), "\""))
 		if err != nil {
-			return fmt.Errorf("failed to decode url-parameter : %w", err)
+			return fmt.Errorf("failed to decode url-parameter: %w", err)
 		}
 	}
 
@@ -1791,7 +1797,7 @@ func readServicesUserIdentification(confRead *servicesOptions, itemTrimUserIdent
 				userIdentIdentityMgmtConnect["primary_client_secret"], err = jdecode.Decode(
 					strings.Trim(strings.TrimPrefix(itemTrimIdentMgmt, "connection primary client-secret "), "\""))
 				if err != nil {
-					return fmt.Errorf("failed to decode primary client-secret : %w", err)
+					return fmt.Errorf("failed to decode primary client-secret: %w", err)
 				}
 			case strings.HasPrefix(itemTrimIdentMgmt, "connection connect-method "):
 				userIdentIdentityMgmtConnect["connect_method"] = strings.TrimPrefix(itemTrimIdentMgmt, "connection connect-method ")
@@ -1821,7 +1827,7 @@ func readServicesUserIdentification(confRead *servicesOptions, itemTrimUserIdent
 				userIdentIdentityMgmtConnect["secondary_client_secret"], err = jdecode.Decode(
 					strings.Trim(strings.TrimPrefix(itemTrimIdentMgmt, "connection secondary client-secret "), "\""))
 				if err != nil {
-					return fmt.Errorf("failed to decode secondary client-secret : %w", err)
+					return fmt.Errorf("failed to decode secondary client-secret: %w", err)
 				}
 			case strings.HasPrefix(itemTrimIdentMgmt, "connection token-api "):
 				userIdentIdentityMgmtConnect["token_api"] = strings.Trim(strings.TrimPrefix(

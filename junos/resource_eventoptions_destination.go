@@ -21,10 +21,10 @@ type eventoptionsDestinationOptions struct {
 
 func resourceEventoptionsDestination() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceEventoptionsDestinationCreate,
-		ReadContext:   resourceEventoptionsDestinationRead,
-		UpdateContext: resourceEventoptionsDestinationUpdate,
-		DeleteContext: resourceEventoptionsDestinationDelete,
+		CreateWithoutTimeout: resourceEventoptionsDestinationCreate,
+		ReadWithoutTimeout:   resourceEventoptionsDestinationRead,
+		UpdateWithoutTimeout: resourceEventoptionsDestinationUpdate,
+		DeleteWithoutTimeout: resourceEventoptionsDestinationDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceEventoptionsDestinationImport,
 		},
@@ -73,12 +73,14 @@ func resourceEventoptionsDestinationCreate(ctx context.Context, d *schema.Resour
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	eventoptionsDestinationExists, err := checkEventoptionsDestinationExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -121,7 +123,7 @@ func resourceEventoptionsDestinationCreate(ctx context.Context, d *schema.Resour
 
 func resourceEventoptionsDestinationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -162,12 +164,14 @@ func resourceEventoptionsDestinationUpdate(ctx context.Context, d *schema.Resour
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delEventoptionsDestination(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -201,12 +205,14 @@ func resourceEventoptionsDestinationDelete(ctx context.Context, d *schema.Resour
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delEventoptionsDestination(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -227,7 +233,7 @@ func resourceEventoptionsDestinationDelete(ctx context.Context, d *schema.Resour
 func resourceEventoptionsDestinationImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -316,7 +322,7 @@ func readEventoptionsDestination(name string, m interface{}, jnprSess *NetconfOb
 				if len(itemTrimSplit) > 2 {
 					password, err := jdecode.Decode(strings.Trim(itemTrimSplit[3], "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode secret : %w", err)
+						return confRead, fmt.Errorf("failed to decode secret: %w", err)
 					}
 					confRead.archiveSite = append(confRead.archiveSite, map[string]interface{}{
 						"url":      strings.Trim(itemTrimSplit[1], "\""),

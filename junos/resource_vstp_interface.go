@@ -29,10 +29,10 @@ type vstpInterfaceOptions struct {
 
 func resourceVstpInterface() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceVstpInterfaceCreate,
-		ReadContext:   resourceVstpInterfaceRead,
-		UpdateContext: resourceVstpInterfaceUpdate,
-		DeleteContext: resourceVstpInterfaceDelete,
+		CreateWithoutTimeout: resourceVstpInterfaceCreate,
+		ReadWithoutTimeout:   resourceVstpInterfaceRead,
+		UpdateWithoutTimeout: resourceVstpInterfaceUpdate,
+		DeleteWithoutTimeout: resourceVstpInterfaceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceVstpInterfaceImport,
 		},
@@ -193,12 +193,14 @@ func resourceVstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	vstpInterfaceVIdType, name, _, routingInstance := resourceVstpInterfaceReadID(resourceVstpInterfaceNewID(d))
 	vlan := d.Get("vlan").(string)
@@ -349,7 +351,7 @@ func resourceVstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 
 func resourceVstpInterfaceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -395,12 +397,14 @@ func resourceVstpInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delVstpInterface(
 		d.Get("name").(string), d.Get("routing_instance").(string),
@@ -439,12 +443,14 @@ func resourceVstpInterfaceDelete(ctx context.Context, d *schema.ResourceData, m 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delVstpInterface(
 		d.Get("name").(string), d.Get("routing_instance").(string),
@@ -468,7 +474,7 @@ func resourceVstpInterfaceDelete(ctx context.Context, d *schema.ResourceData, m 
 func resourceVstpInterfaceImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -19,10 +19,10 @@ type zoneBookAddressSetOptions struct {
 
 func resourceSecurityZoneBookAddressSet() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityZoneBookAddressSetCreate,
-		ReadContext:   resourceSecurityZoneBookAddressSetRead,
-		UpdateContext: resourceSecurityZoneBookAddressSetUpdate,
-		DeleteContext: resourceSecurityZoneBookAddressSetDelete,
+		CreateWithoutTimeout: resourceSecurityZoneBookAddressSetCreate,
+		ReadWithoutTimeout:   resourceSecurityZoneBookAddressSetRead,
+		UpdateWithoutTimeout: resourceSecurityZoneBookAddressSetUpdate,
+		DeleteWithoutTimeout: resourceSecurityZoneBookAddressSetDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSecurityZoneBookAddressSetImport,
 		},
@@ -76,7 +76,7 @@ func resourceSecurityZoneBookAddressSetCreate(ctx context.Context, d *schema.Res
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -85,7 +85,9 @@ func resourceSecurityZoneBookAddressSetCreate(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf("security zone address-book address-set not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	zonesExists, err := checkSecurityZonesExists(d.Get("zone").(string), m, jnprSess)
 	if err != nil {
@@ -145,7 +147,7 @@ func resourceSecurityZoneBookAddressSetCreate(ctx context.Context, d *schema.Res
 func resourceSecurityZoneBookAddressSetRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -187,12 +189,14 @@ func resourceSecurityZoneBookAddressSetUpdate(ctx context.Context, d *schema.Res
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityZoneBookAddressSet(d.Get("zone").(string), d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -226,12 +230,14 @@ func resourceSecurityZoneBookAddressSetDelete(ctx context.Context, d *schema.Res
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityZoneBookAddressSet(d.Get("zone").(string), d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -252,7 +258,7 @@ func resourceSecurityZoneBookAddressSetDelete(ctx context.Context, d *schema.Res
 func resourceSecurityZoneBookAddressSetImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

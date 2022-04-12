@@ -24,10 +24,10 @@ type svcSSLInitiationProfileOptions struct {
 
 func resourceServicesSSLInitiationProfile() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceServicesSSLInitiationProfileCreate,
-		ReadContext:   resourceServicesSSLInitiationProfileRead,
-		UpdateContext: resourceServicesSSLInitiationProfileUpdate,
-		DeleteContext: resourceServicesSSLInitiationProfileDelete,
+		CreateWithoutTimeout: resourceServicesSSLInitiationProfileCreate,
+		ReadWithoutTimeout:   resourceServicesSSLInitiationProfileRead,
+		UpdateWithoutTimeout: resourceServicesSSLInitiationProfileUpdate,
+		DeleteWithoutTimeout: resourceServicesSSLInitiationProfileDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceServicesSSLInitiationProfileImport,
 		},
@@ -111,12 +111,14 @@ func resourceServicesSSLInitiationProfileCreate(ctx context.Context, d *schema.R
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	svcSSLInitiationProfileExists, err := checkServicesSSLInitiationProfileExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -162,7 +164,7 @@ func resourceServicesSSLInitiationProfileCreate(ctx context.Context, d *schema.R
 func resourceServicesSSLInitiationProfileRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -203,12 +205,14 @@ func resourceServicesSSLInitiationProfileUpdate(ctx context.Context, d *schema.R
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesSSLInitiationProfile(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -242,12 +246,14 @@ func resourceServicesSSLInitiationProfileDelete(ctx context.Context, d *schema.R
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesSSLInitiationProfile(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -268,7 +274,7 @@ func resourceServicesSSLInitiationProfileDelete(ctx context.Context, d *schema.R
 func resourceServicesSSLInitiationProfileImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

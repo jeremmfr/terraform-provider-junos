@@ -24,10 +24,10 @@ type addressBookOptions struct {
 
 func resourceSecurityAddressBook() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityAddressBookCreate,
-		ReadContext:   resourceSecurityAddressBookRead,
-		UpdateContext: resourceSecurityAddressBookUpdate,
-		DeleteContext: resourceSecurityAddressBookDelete,
+		CreateWithoutTimeout: resourceSecurityAddressBookCreate,
+		ReadWithoutTimeout:   resourceSecurityAddressBookRead,
+		UpdateWithoutTimeout: resourceSecurityAddressBookUpdate,
+		DeleteWithoutTimeout: resourceSecurityAddressBookDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSecurityAddressBookImport,
 		},
@@ -194,7 +194,7 @@ func resourceSecurityAddressBookCreate(ctx context.Context, d *schema.ResourceDa
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -203,7 +203,9 @@ func resourceSecurityAddressBookCreate(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(fmt.Errorf("security policy not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	addressBookExists, err := checkSecurityAddressBookExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -245,7 +247,7 @@ func resourceSecurityAddressBookCreate(ctx context.Context, d *schema.ResourceDa
 
 func resourceSecurityAddressBookRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -285,12 +287,14 @@ func resourceSecurityAddressBookUpdate(ctx context.Context, d *schema.ResourceDa
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityAddressBook(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -323,12 +327,14 @@ func resourceSecurityAddressBookDelete(ctx context.Context, d *schema.ResourceDa
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityAddressBook(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -349,7 +355,7 @@ func resourceSecurityAddressBookDelete(ctx context.Context, d *schema.ResourceDa
 func resourceSecurityAddressBookImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -29,10 +29,10 @@ type bridgeDomainOptions struct {
 
 func resourceBridgeDomain() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceBridgeDomainCreate,
-		ReadContext:   resourceBridgeDomainRead,
-		UpdateContext: resourceBridgeDomainUpdate,
-		DeleteContext: resourceBridgeDomainDelete,
+		CreateWithoutTimeout: resourceBridgeDomainCreate,
+		ReadWithoutTimeout:   resourceBridgeDomainRead,
+		UpdateWithoutTimeout: resourceBridgeDomainUpdate,
+		DeleteWithoutTimeout: resourceBridgeDomainDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceBridgeDomainImport,
 		},
@@ -159,7 +159,7 @@ func resourceBridgeDomainCreate(ctx context.Context, d *schema.ResourceData, m i
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -168,7 +168,9 @@ func resourceBridgeDomainCreate(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(fmt.Errorf("bridge domain "+
 			"not compatible with Junos device %s", jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
@@ -227,7 +229,7 @@ func resourceBridgeDomainCreate(ctx context.Context, d *schema.ResourceData, m i
 
 func resourceBridgeDomainRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -275,12 +277,14 @@ func resourceBridgeDomainUpdate(ctx context.Context, d *schema.ResourceData, m i
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if d.HasChange("vxlan") {
 		oldVxlan, _ := d.GetChange("vxlan")
@@ -323,12 +327,14 @@ func resourceBridgeDomainDelete(ctx context.Context, d *schema.ResourceData, m i
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delBridgeDomain(d.Get("name").(string), d.Get("routing_instance").(string), d.Get("vxlan").([]interface{}),
 		m, jnprSess); err != nil {
@@ -350,7 +356,7 @@ func resourceBridgeDomainDelete(ctx context.Context, d *schema.ResourceData, m i
 func resourceBridgeDomainImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

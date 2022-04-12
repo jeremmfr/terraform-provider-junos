@@ -10,7 +10,7 @@ import (
 
 func dataSourceSecurityZone() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceSecurityZoneRead,
+		ReadWithoutTimeout: dataSourceSecurityZoneRead,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:             schema.TypeString,
@@ -201,7 +201,7 @@ func dataSourceSecurityZone() *schema.Resource {
 
 func dataSourceSecurityZoneRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -13,7 +13,7 @@ import (
 
 func dataSourceInterface() *schema.Resource {
 	return &schema.Resource{
-		ReadContext:        dataSourceInterfaceRead,
+		ReadWithoutTimeout: dataSourceInterfaceRead,
 		DeprecationMessage: "use junos_interface_physical or junos_interface_logical data source instead",
 		Schema: map[string]*schema.Schema{
 			"config_interface": {
@@ -354,7 +354,7 @@ func dataSourceInterfaceRead(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(fmt.Errorf("no arguments provided, 'config_interface' and 'match' empty"))
 	}
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -405,7 +405,7 @@ func searchInterfaceID(configInterface, match string, m interface{}, jnprSess *N
 		itemTrim := strings.TrimPrefix(item, "set interfaces ")
 		matched, err := regexp.MatchString(match, itemTrim)
 		if err != nil {
-			return "", fmt.Errorf("failed to regexp with %s : %w", match, err)
+			return "", fmt.Errorf("failed to regexp with '%s': %w", match, err)
 		}
 		if !matched {
 			continue

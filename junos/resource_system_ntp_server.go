@@ -21,10 +21,10 @@ type ntpServerOptions struct {
 
 func resourceSystemNtpServer() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSystemNtpServerCreate,
-		ReadContext:   resourceSystemNtpServerRead,
-		UpdateContext: resourceSystemNtpServerUpdate,
-		DeleteContext: resourceSystemNtpServerDelete,
+		CreateWithoutTimeout: resourceSystemNtpServerCreate,
+		ReadWithoutTimeout:   resourceSystemNtpServerRead,
+		UpdateWithoutTimeout: resourceSystemNtpServerUpdate,
+		DeleteWithoutTimeout: resourceSystemNtpServerDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSystemNtpServerImport,
 		},
@@ -68,12 +68,14 @@ func resourceSystemNtpServerCreate(ctx context.Context, d *schema.ResourceData, 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	ntpServerExists, err := checkSystemNtpServerExists(d.Get("address").(string), m, jnprSess)
 	if err != nil {
@@ -116,7 +118,7 @@ func resourceSystemNtpServerCreate(ctx context.Context, d *schema.ResourceData, 
 
 func resourceSystemNtpServerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -156,12 +158,14 @@ func resourceSystemNtpServerUpdate(ctx context.Context, d *schema.ResourceData, 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSystemNtpServer(d.Get("address").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -195,12 +199,14 @@ func resourceSystemNtpServerDelete(ctx context.Context, d *schema.ResourceData, 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSystemNtpServer(d.Get("address").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -221,7 +227,7 @@ func resourceSystemNtpServerDelete(ctx context.Context, d *schema.ResourceData, 
 func resourceSystemNtpServerImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

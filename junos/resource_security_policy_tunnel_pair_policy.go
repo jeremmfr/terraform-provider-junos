@@ -18,9 +18,9 @@ type policyPairPolicyOptions struct {
 
 func resourceSecurityPolicyTunnelPairPolicy() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityPolicyTunnelPairPolicyCreate,
-		ReadContext:   resourceSecurityPolicyTunnelPairPolicyRead,
-		DeleteContext: resourceSecurityPolicyTunnelPairPolicyDelete,
+		CreateWithoutTimeout: resourceSecurityPolicyTunnelPairPolicyCreate,
+		ReadWithoutTimeout:   resourceSecurityPolicyTunnelPairPolicyRead,
+		DeleteWithoutTimeout: resourceSecurityPolicyTunnelPairPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSecurityPolicyTunnelPairPolicyImport,
 		},
@@ -65,7 +65,7 @@ func resourceSecurityPolicyTunnelPairPolicyCreate(ctx context.Context, d *schema
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -74,7 +74,9 @@ func resourceSecurityPolicyTunnelPairPolicyCreate(ctx context.Context, d *schema
 		return diag.FromErr(fmt.Errorf("security policy tunnel pair policy not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	securityPolicyExists, err := checkSecurityPolicyExists(d.Get("zone_a").(string), d.Get("zone_b").(string), m, jnprSess)
 	if err != nil {
@@ -145,7 +147,7 @@ func resourceSecurityPolicyTunnelPairPolicyCreate(ctx context.Context, d *schema
 func resourceSecurityPolicyTunnelPairPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -184,12 +186,14 @@ func resourceSecurityPolicyTunnelPairPolicyDelete(ctx context.Context, d *schema
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityPolicyTunnelPairPolicy(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -210,7 +214,7 @@ func resourceSecurityPolicyTunnelPairPolicyDelete(ctx context.Context, d *schema
 func resourceSecurityPolicyTunnelPairPolicyImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

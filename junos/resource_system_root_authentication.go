@@ -19,10 +19,10 @@ type systemRootAuthOptions struct {
 
 func resourceSystemRootAuthentication() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSystemRootAuthenticationCreate,
-		ReadContext:   resourceSystemRootAuthenticationRead,
-		UpdateContext: resourceSystemRootAuthenticationUpdate,
-		DeleteContext: resourceSystemRootAuthenticationDelete,
+		CreateWithoutTimeout: resourceSystemRootAuthenticationCreate,
+		ReadWithoutTimeout:   resourceSystemRootAuthenticationRead,
+		UpdateWithoutTimeout: resourceSystemRootAuthenticationUpdate,
+		DeleteWithoutTimeout: resourceSystemRootAuthenticationDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceSystemRootAuthenticationImport,
 		},
@@ -74,12 +74,14 @@ func resourceSystemRootAuthenticationCreate(ctx context.Context, d *schema.Resou
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	// To be able detect a plain text password not accepted by system
 	if d.Get("plain_text_password").(string) != "" {
@@ -108,7 +110,7 @@ func resourceSystemRootAuthenticationCreate(ctx context.Context, d *schema.Resou
 
 func resourceSystemRootAuthenticationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -145,12 +147,14 @@ func resourceSystemRootAuthenticationUpdate(ctx context.Context, d *schema.Resou
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSystemRootAuthentication(m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -182,7 +186,7 @@ func resourceSystemRootAuthenticationDelete(ctx context.Context, d *schema.Resou
 func resourceSystemRootAuthenticationImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

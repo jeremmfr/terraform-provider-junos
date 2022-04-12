@@ -19,10 +19,10 @@ type securityIntellPolicyOptions struct {
 
 func resourceServicesSecurityIntellPolicy() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceServicesSecurityIntellPolicyCreate,
-		ReadContext:   resourceServicesSecurityIntellPolicyRead,
-		UpdateContext: resourceServicesSecurityIntellPolicyUpdate,
-		DeleteContext: resourceServicesSecurityIntellPolicyDelete,
+		CreateWithoutTimeout: resourceServicesSecurityIntellPolicyCreate,
+		ReadWithoutTimeout:   resourceServicesSecurityIntellPolicyRead,
+		UpdateWithoutTimeout: resourceServicesSecurityIntellPolicyUpdate,
+		DeleteWithoutTimeout: resourceServicesSecurityIntellPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceServicesSecurityIntellPolicyImport,
 		},
@@ -68,12 +68,14 @@ func resourceServicesSecurityIntellPolicyCreate(ctx context.Context, d *schema.R
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	securityIntellPolicyExists, err := checkServicesSecurityIntellPolicyExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -117,7 +119,7 @@ func resourceServicesSecurityIntellPolicyCreate(ctx context.Context, d *schema.R
 func resourceServicesSecurityIntellPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -158,12 +160,14 @@ func resourceServicesSecurityIntellPolicyUpdate(ctx context.Context, d *schema.R
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesSecurityIntellPolicy(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -197,12 +201,14 @@ func resourceServicesSecurityIntellPolicyDelete(ctx context.Context, d *schema.R
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesSecurityIntellPolicy(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -223,7 +229,7 @@ func resourceServicesSecurityIntellPolicyDelete(ctx context.Context, d *schema.R
 func resourceServicesSecurityIntellPolicyImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

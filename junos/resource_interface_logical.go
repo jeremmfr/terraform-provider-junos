@@ -27,10 +27,10 @@ type interfaceLogicalOptions struct {
 
 func resourceInterfaceLogical() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceInterfaceLogicalCreate,
-		ReadContext:   resourceInterfaceLogicalRead,
-		UpdateContext: resourceInterfaceLogicalUpdate,
-		DeleteContext: resourceInterfaceLogicalDelete,
+		CreateWithoutTimeout: resourceInterfaceLogicalCreate,
+		ReadWithoutTimeout:   resourceInterfaceLogicalRead,
+		UpdateWithoutTimeout: resourceInterfaceLogicalUpdate,
+		DeleteWithoutTimeout: resourceInterfaceLogicalDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceInterfaceLogicalImport,
 		},
@@ -631,12 +631,14 @@ func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	ncInt, emptyInt, _, err := checkInterfaceLogicalNCEmpty(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -727,7 +729,7 @@ func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData,
 
 func resourceInterfaceLogicalRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -807,12 +809,14 @@ func resourceInterfaceLogicalUpdate(ctx context.Context, d *schema.ResourceData,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delInterfaceLogicalOpts(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -906,12 +910,14 @@ func resourceInterfaceLogicalDelete(ctx context.Context, d *schema.ResourceData,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delInterfaceLogical(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -935,7 +941,7 @@ func resourceInterfaceLogicalImport(ctx context.Context, d *schema.ResourceData,
 		return nil, fmt.Errorf("name of interface %s need to have 1 dot", d.Id())
 	}
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1580,7 +1586,7 @@ func readFamilyInetAddress(item string, inetAddress []map[string]interface{}, fa
 			vrrpGroup["authentication_key"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrimVrrp,
 				"authentication-key "), "\""))
 			if err != nil {
-				return inetAddress, fmt.Errorf("failed to decode authentication-key : %w", err)
+				return inetAddress, fmt.Errorf("failed to decode authentication-key: %w", err)
 			}
 		case strings.HasPrefix(itemTrimVrrp, "authentication-type "):
 			vrrpGroup["authentication_type"] = strings.TrimPrefix(itemTrimVrrp, "authentication-type ")
