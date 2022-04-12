@@ -411,8 +411,27 @@ resource "junos_system" "testacc_system" {
       size              = 10000000
       no_world_readable = true
     }
-    log_rotate_frequency = 30
-    source_address       = "192.0.2.1"
+    console {
+      any_severity                 = "emergency"
+      authorization_severity       = "none"
+      changelog_severity           = "emergency"
+      conflictlog_severity         = "error"
+      daemon_severity              = "none"
+      dfc_severity                 = "alert"
+      external_severity            = "any"
+      firewall_severity            = "info"
+      ftp_severity                 = "none"
+      interactivecommands_severity = "critical"
+      kernel_severity              = "emergency"
+      ntp_severity                 = "emergency"
+      pfe_severity                 = "emergency"
+      security_severity            = "emergency"
+      user_severity                = "emergency"
+    }
+    log_rotate_frequency    = 30
+    source_address          = "192.0.2.1"
+    time_format_millisecond = true
+    time_format_year        = true
   }
   time_zone                         = "Europe/Paris"
   tracing_dest_override_syslog_host = "192.0.2.50"
@@ -468,6 +487,9 @@ resource "junos_system" "testacc_system" {
       files          = 5
       size           = 10000000
       world_readable = true
+    }
+    console {
+      any_severity = "emergency"
     }
   }
   time_zone = "Europe/Paris"

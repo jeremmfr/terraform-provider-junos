@@ -901,6 +901,90 @@ func resourceSystem() *schema.Resource {
 								},
 							},
 						},
+						"console": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"any_severity": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
+									},
+									"authorization_severity": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
+									},
+									"changelog_severity": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
+									},
+									"conflictlog_severity": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
+									},
+									"daemon_severity": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
+									},
+									"dfc_severity": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
+									},
+									"external_severity": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
+									},
+									"firewall_severity": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
+									},
+									"ftp_severity": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
+									},
+									"interactivecommands_severity": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
+									},
+									"kernel_severity": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
+									},
+									"ntp_severity": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
+									},
+									"pfe_severity": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
+									},
+									"security_severity": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
+									},
+									"user_severity": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(listOfSyslogSeverity(), false),
+									},
+								},
+							},
+						},
 						"log_rotate_frequency": {
 							Type:         schema.TypeInt,
 							Optional:     true,
@@ -910,6 +994,14 @@ func resourceSystem() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							ValidateDiagFunc: validateAddress(),
+						},
+						"time_format_millisecond": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"time_format_year": {
+							Type:     schema.TypeBool,
+							Optional: true,
 						},
 					},
 				},
@@ -1247,48 +1339,8 @@ func setSystem(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) e
 	if err := setSystemServices(d, m, jnprSess); err != nil {
 		return err
 	}
-	for _, syslog := range d.Get("syslog").([]interface{}) {
-		if syslog == nil {
-			return fmt.Errorf("syslog block is empty")
-		}
-		syslogM := syslog.(map[string]interface{})
-		for _, archive := range syslogM["archive"].([]interface{}) {
-			configSet = append(configSet, setPrefix+"syslog archive")
-			if archive != nil {
-				archiveM := archive.(map[string]interface{})
-				if archiveM["binary_data"].(bool) && archiveM["no_binary_data"].(bool) {
-					return fmt.Errorf("conflict between 'binary_data' and 'no_binary_data' for syslog archive")
-				}
-				if archiveM["binary_data"].(bool) {
-					configSet = append(configSet, setPrefix+"syslog archive binary-data")
-				}
-				if archiveM["no_binary_data"].(bool) {
-					configSet = append(configSet, setPrefix+"syslog archive no-binary-data")
-				}
-				if archiveM["files"].(int) > 0 {
-					configSet = append(configSet, setPrefix+"syslog archive files "+strconv.Itoa(archiveM["files"].(int)))
-				}
-				if archiveM["size"].(int) > 0 {
-					configSet = append(configSet, setPrefix+"syslog archive size "+strconv.Itoa(archiveM["size"].(int)))
-				}
-				if archiveM["no_world_readable"].(bool) && archiveM["world_readable"].(bool) {
-					return fmt.Errorf("conflict between 'world_readable' and 'no_world_readable' for syslog archive")
-				}
-				if archiveM["no_world_readable"].(bool) {
-					configSet = append(configSet, setPrefix+"syslog archive no-world-readable")
-				}
-				if archiveM["world_readable"].(bool) {
-					configSet = append(configSet, setPrefix+"syslog archive world-readable")
-				}
-			}
-		}
-		if syslogM["log_rotate_frequency"].(int) > 0 {
-			configSet = append(configSet, setPrefix+"syslog log-rotate-frequency "+
-				strconv.Itoa(syslogM["log_rotate_frequency"].(int)))
-		}
-		if syslogM["source_address"].(string) != "" {
-			configSet = append(configSet, setPrefix+"syslog source-address "+syslogM["source_address"].(string))
-		}
+	if err := setSystemSyslog(d, m, jnprSess); err != nil {
+		return err
 	}
 	if d.Get("time_zone").(string) != "" {
 		configSet = append(configSet, setPrefix+"time-zone "+d.Get("time_zone").(string))
@@ -1690,6 +1742,117 @@ func setSystemLogin(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	return sess.configSet(configSet, jnprSess)
 }
 
+func setSystemSyslog(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
+	sess := m.(*Session)
+	setPrefix := "set system syslog "
+	configSet := make([]string, 0)
+	for _, syslog := range d.Get("syslog").([]interface{}) {
+		if syslog == nil {
+			return fmt.Errorf("syslog block is empty")
+		}
+		syslogM := syslog.(map[string]interface{})
+		for _, archive := range syslogM["archive"].([]interface{}) {
+			configSet = append(configSet, setPrefix+"archive")
+			if archive != nil {
+				archiveM := archive.(map[string]interface{})
+				if archiveM["binary_data"].(bool) && archiveM["no_binary_data"].(bool) {
+					return fmt.Errorf("conflict between 'binary_data' and 'no_binary_data' for syslog archive")
+				}
+				if archiveM["binary_data"].(bool) {
+					configSet = append(configSet, setPrefix+"archive binary-data")
+				}
+				if archiveM["no_binary_data"].(bool) {
+					configSet = append(configSet, setPrefix+"archive no-binary-data")
+				}
+				if archiveM["files"].(int) > 0 {
+					configSet = append(configSet, setPrefix+"archive files "+strconv.Itoa(archiveM["files"].(int)))
+				}
+				if archiveM["size"].(int) > 0 {
+					configSet = append(configSet, setPrefix+"archive size "+strconv.Itoa(archiveM["size"].(int)))
+				}
+				if archiveM["no_world_readable"].(bool) && archiveM["world_readable"].(bool) {
+					return fmt.Errorf("conflict between 'world_readable' and 'no_world_readable' for syslog archive")
+				}
+				if archiveM["no_world_readable"].(bool) {
+					configSet = append(configSet, setPrefix+"archive no-world-readable")
+				}
+				if archiveM["world_readable"].(bool) {
+					configSet = append(configSet, setPrefix+"archive world-readable")
+				}
+			}
+		}
+		for _, consoleSchema := range syslogM["console"].([]interface{}) {
+			if consoleSchema == nil {
+				return fmt.Errorf("syslog.0.console block is empty")
+			}
+			console := consoleSchema.(map[string]interface{})
+			if v := console["any_severity"].(string); v != "" {
+				configSet = append(configSet, setPrefix+"console any "+v)
+			}
+			if v := console["authorization_severity"].(string); v != "" {
+				configSet = append(configSet, setPrefix+"console authorization "+v)
+			}
+			if v := console["changelog_severity"].(string); v != "" {
+				configSet = append(configSet, setPrefix+"console change-log "+v)
+			}
+			if v := console["conflictlog_severity"].(string); v != "" {
+				configSet = append(configSet, setPrefix+"console conflict-log "+v)
+			}
+			if v := console["daemon_severity"].(string); v != "" {
+				configSet = append(configSet, setPrefix+"console daemon "+v)
+			}
+			if v := console["dfc_severity"].(string); v != "" {
+				configSet = append(configSet, setPrefix+"console dfc "+v)
+			}
+			if v := console["external_severity"].(string); v != "" {
+				configSet = append(configSet, setPrefix+"console external "+v)
+			}
+			if v := console["firewall_severity"].(string); v != "" {
+				configSet = append(configSet, setPrefix+"console firewall "+v)
+			}
+			if v := console["ftp_severity"].(string); v != "" {
+				configSet = append(configSet, setPrefix+"console ftp "+v)
+			}
+			if v := console["interactivecommands_severity"].(string); v != "" {
+				configSet = append(configSet, setPrefix+"console interactive-commands "+v)
+			}
+			if v := console["kernel_severity"].(string); v != "" {
+				configSet = append(configSet, setPrefix+"console kernel "+v)
+			}
+			if v := console["ntp_severity"].(string); v != "" {
+				configSet = append(configSet, setPrefix+"console ntp "+v)
+			}
+			if v := console["pfe_severity"].(string); v != "" {
+				configSet = append(configSet, setPrefix+"console pfe "+v)
+			}
+			if v := console["security_severity"].(string); v != "" {
+				configSet = append(configSet, setPrefix+"console security "+v)
+			}
+			if v := console["user_severity"].(string); v != "" {
+				configSet = append(configSet, setPrefix+"console user "+v)
+			}
+			if len(configSet) == 0 || !strings.HasPrefix(configSet[len(configSet)-1], setPrefix+"console") {
+				return fmt.Errorf("syslog.0.console block is empty")
+			}
+		}
+		if syslogM["log_rotate_frequency"].(int) > 0 {
+			configSet = append(configSet, setPrefix+"log-rotate-frequency "+
+				strconv.Itoa(syslogM["log_rotate_frequency"].(int)))
+		}
+		if syslogM["source_address"].(string) != "" {
+			configSet = append(configSet, setPrefix+"source-address "+syslogM["source_address"].(string))
+		}
+		if syslogM["time_format_millisecond"].(bool) {
+			configSet = append(configSet, setPrefix+"time-format millisecond")
+		}
+		if syslogM["time_format_year"].(bool) {
+			configSet = append(configSet, setPrefix+"time-format year")
+		}
+	}
+
+	return sess.configSet(configSet, jnprSess)
+}
+
 func listLinesLogin() []string {
 	return []string{
 		"login announcement",
@@ -1773,8 +1936,10 @@ func listLinesServicesWebManagement() []string {
 func listLinesSyslog() []string {
 	return []string{
 		"syslog archive",
+		"syslog console ",
 		"syslog log-rotate-frequency",
 		"syslog source-address",
+		"syslog time-format ",
 	}
 }
 
@@ -2717,9 +2882,12 @@ func readSystemServicesWebManagement(confRead *systemOptions, itemTrim string) e
 func readSystemSyslog(confRead *systemOptions, itemTrim string) error {
 	if len(confRead.syslog) == 0 {
 		confRead.syslog = append(confRead.syslog, map[string]interface{}{
-			"archive":              make([]map[string]interface{}, 0),
-			"log_rotate_frequency": 0,
-			"source_address":       "",
+			"archive":                 make([]map[string]interface{}, 0),
+			"console":                 make([]map[string]interface{}, 0),
+			"log_rotate_frequency":    0,
+			"source_address":          "",
+			"time_format_millisecond": false,
+			"time_format_year":        false,
 		})
 	}
 	switch {
@@ -2759,6 +2927,60 @@ func readSystemSyslog(confRead *systemOptions, itemTrim string) error {
 		case itemTrim == "syslog archive world-readable":
 			confRead.syslog[0]["archive"].([]map[string]interface{})[0]["world_readable"] = true
 		}
+	case strings.HasPrefix(itemTrim, "syslog console "):
+		if len(confRead.syslog[0]["console"].([]map[string]interface{})) == 0 {
+			confRead.syslog[0]["console"] = append(confRead.syslog[0]["console"].([]map[string]interface{}),
+				map[string]interface{}{
+					"any_severity":                 "",
+					"authorization_severity":       "",
+					"changelog_severity":           "",
+					"conflictlog_severity":         "",
+					"daemon_severity":              "",
+					"dfc_severity":                 "",
+					"external_severity":            "",
+					"firewall_severity":            "",
+					"ftp_severity":                 "",
+					"interactivecommands_severity": "",
+					"kernel_severity":              "",
+					"ntp_severity":                 "",
+					"pfe_severity":                 "",
+					"security_severity":            "",
+					"user_severity":                "",
+				})
+		}
+		console := confRead.syslog[0]["console"].([]map[string]interface{})[0]
+		switch {
+		case strings.HasPrefix(itemTrim, "syslog console any "):
+			console["any_severity"] = strings.TrimPrefix(itemTrim, "syslog console any ")
+		case strings.HasPrefix(itemTrim, "syslog console authorization "):
+			console["authorization_severity"] = strings.TrimPrefix(itemTrim, "syslog console authorization ")
+		case strings.HasPrefix(itemTrim, "syslog console change-log "):
+			console["changelog_severity"] = strings.TrimPrefix(itemTrim, "syslog console change-log ")
+		case strings.HasPrefix(itemTrim, "syslog console conflict-log "):
+			console["conflictlog_severity"] = strings.TrimPrefix(itemTrim, "syslog console conflict-log ")
+		case strings.HasPrefix(itemTrim, "syslog console daemon "):
+			console["daemon_severity"] = strings.TrimPrefix(itemTrim, "syslog console daemon ")
+		case strings.HasPrefix(itemTrim, "syslog console dfc "):
+			console["dfc_severity"] = strings.TrimPrefix(itemTrim, "syslog console dfc ")
+		case strings.HasPrefix(itemTrim, "syslog console external "):
+			console["external_severity"] = strings.TrimPrefix(itemTrim, "syslog console external ")
+		case strings.HasPrefix(itemTrim, "syslog console firewall "):
+			console["firewall_severity"] = strings.TrimPrefix(itemTrim, "syslog console firewall ")
+		case strings.HasPrefix(itemTrim, "syslog console ftp "):
+			console["ftp_severity"] = strings.TrimPrefix(itemTrim, "syslog console ftp ")
+		case strings.HasPrefix(itemTrim, "syslog console interactive-commands "):
+			console["interactivecommands_severity"] = strings.TrimPrefix(itemTrim, "syslog console interactive-commands ")
+		case strings.HasPrefix(itemTrim, "syslog console kernel "):
+			console["kernel_severity"] = strings.TrimPrefix(itemTrim, "syslog console kernel ")
+		case strings.HasPrefix(itemTrim, "syslog console ntp "):
+			console["ntp_severity"] = strings.TrimPrefix(itemTrim, "syslog console ntp ")
+		case strings.HasPrefix(itemTrim, "syslog console pfe "):
+			console["pfe_severity"] = strings.TrimPrefix(itemTrim, "syslog console pfe ")
+		case strings.HasPrefix(itemTrim, "syslog console security "):
+			console["security_severity"] = strings.TrimPrefix(itemTrim, "syslog console security ")
+		case strings.HasPrefix(itemTrim, "syslog console user "):
+			console["user_severity"] = strings.TrimPrefix(itemTrim, "syslog console user ")
+		}
 	case strings.HasPrefix(itemTrim, "syslog log-rotate-frequency "):
 		var err error
 		confRead.syslog[0]["log_rotate_frequency"], err = strconv.Atoi(
@@ -2769,6 +2991,10 @@ func readSystemSyslog(confRead *systemOptions, itemTrim string) error {
 	case strings.HasPrefix(itemTrim, "syslog source-address "):
 		confRead.syslog[0]["source_address"] = strings.TrimPrefix(
 			itemTrim, "syslog source-address ")
+	case itemTrim == "syslog time-format millisecond":
+		confRead.syslog[0]["time_format_millisecond"] = true
+	case itemTrim == "syslog time-format year":
+		confRead.syslog[0]["time_format_year"] = true
 	}
 
 	return nil
