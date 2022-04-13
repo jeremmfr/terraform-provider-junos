@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.11.0
+	github.com/hashicorp/terraform-plugin-sdk/v2 v2.13.0
 	github.com/jeremmfr/go-netconf v0.4.3
 	github.com/jeremmfr/go-utils v0.4.1
 	github.com/jeremmfr/junosdecode v1.1.0
@@ -57,4 +57,4 @@ require (
 	google.golang.org/protobuf v1.27.1 // indirect
 )
 
-replace github.com/hashicorp/terraform-plugin-sdk/v2 => github.com/jeremmfr/terraform-plugin-sdk/v2 v2.11.1-0.20220316083425-f711567b3c5d
+replace github.com/hashicorp/terraform-plugin-sdk/v2 => github.com/jeremmfr/terraform-plugin-sdk/v2 v2.13.1-0.20220411071827-346044975466
