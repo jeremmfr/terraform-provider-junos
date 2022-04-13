@@ -23,12 +23,12 @@ type ospfAreaOptions struct {
 
 func resourceOspfArea() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceOspfAreaCreate,
-		ReadContext:   resourceOspfAreaRead,
-		UpdateContext: resourceOspfAreaUpdate,
-		DeleteContext: resourceOspfAreaDelete,
+		CreateWithoutTimeout: resourceOspfAreaCreate,
+		ReadWithoutTimeout:   resourceOspfAreaRead,
+		UpdateWithoutTimeout: resourceOspfAreaUpdate,
+		DeleteWithoutTimeout: resourceOspfAreaDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceOspfAreaImport,
+			StateContext: resourceOspfAreaImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"area_id": {
@@ -350,12 +350,14 @@ func resourceOspfAreaCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	ospfAreaExists, err := checkOspfAreaExists(d.Get("area_id").(string), d.Get("version").(string),
 		d.Get("routing_instance").(string), m, jnprSess)
@@ -401,7 +403,7 @@ func resourceOspfAreaCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceOspfAreaRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -441,12 +443,14 @@ func resourceOspfAreaUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delOspfArea(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -479,12 +483,14 @@ func resourceOspfAreaDelete(ctx context.Context, d *schema.ResourceData, m inter
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delOspfArea(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -502,9 +508,10 @@ func resourceOspfAreaDelete(ctx context.Context, d *schema.ResourceData, m inter
 	return diagWarns
 }
 
-func resourceOspfAreaImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceOspfAreaImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -532,8 +539,8 @@ func resourceOspfAreaImport(d *schema.ResourceData, m interface{}) ([]*schema.Re
 	return result, nil
 }
 
-func checkOspfAreaExists(idArea, version, routingInstance string,
-	m interface{}, jnprSess *NetconfObject) (bool, error) {
+func checkOspfAreaExists(idArea, version, routingInstance string, m interface{}, jnprSess *NetconfObject,
+) (bool, error) {
 	sess := m.(*Session)
 	var showConfig string
 	var err error
@@ -790,8 +797,8 @@ func setOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readOspfArea(idArea, version, routingInstance string,
-	m interface{}, jnprSess *NetconfObject) (ospfAreaOptions, error) {
+func readOspfArea(idArea, version, routingInstance string, m interface{}, jnprSess *NetconfObject,
+) (ospfAreaOptions, error) {
 	sess := m.(*Session)
 	var confRead ospfAreaOptions
 	var showConfig string
@@ -875,7 +882,7 @@ func readOspfArea(idArea, version, routingInstance string,
 					interfaceOptions["authentication_simple_password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 						itemTrimInterface, "authentication simple-password "), "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode authentication simple-password : %w", err)
+						return confRead, fmt.Errorf("failed to decode authentication simple-password: %w", err)
 					}
 				case strings.HasPrefix(itemTrimInterface, "authentication md5 "):
 					itemTrimInterfaceSplit := strings.Split(strings.TrimPrefix(itemTrimInterface, "authentication md5 "), " ")
@@ -897,7 +904,7 @@ func readOspfArea(idArea, version, routingInstance string,
 						authMD5["key"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 							itemTrimAuthMD5, "key "), "\""))
 						if err != nil {
-							return confRead, fmt.Errorf("failed to decode authentication md5 key : %w", err)
+							return confRead, fmt.Errorf("failed to decode authentication md5 key: %w", err)
 						}
 					case strings.HasPrefix(itemTrimAuthMD5, "start-time "):
 						authMD5["start_time"] = strings.Split(strings.Trim(strings.TrimPrefix(

@@ -10,7 +10,7 @@ Provides a set of applications resource.
 
 ```hcl
 # Add a set of applications
-resource junos_application_set "ssh_telnet" {
+resource "junos_application_set" "ssh_telnet" {
   name         = "ssh_telnet"
   applications = ["junos-ssh", "junos-telnet"]
 }

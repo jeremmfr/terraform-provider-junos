@@ -13,7 +13,7 @@ true otherwise there will be a conflict between resources.
 
 ```hcl
 # Add an address
-resource junos_security_zone_book_address "demo" {
+resource "junos_security_zone_book_address" "demo" {
   name = "address1"
   zone = "theZone"
   cidr = "192.0.2.0/25"

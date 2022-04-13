@@ -19,12 +19,12 @@ type ipsecPolicyOptions struct {
 
 func resourceIpsecPolicy() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceIpsecPolicyCreate,
-		ReadContext:   resourceIpsecPolicyRead,
-		UpdateContext: resourceIpsecPolicyUpdate,
-		DeleteContext: resourceIpsecPolicyDelete,
+		CreateWithoutTimeout: resourceIpsecPolicyCreate,
+		ReadWithoutTimeout:   resourceIpsecPolicyRead,
+		UpdateWithoutTimeout: resourceIpsecPolicyUpdate,
+		DeleteWithoutTimeout: resourceIpsecPolicyDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceIpsecPolicyImport,
+			StateContext: resourceIpsecPolicyImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -64,7 +64,7 @@ func resourceIpsecPolicyCreate(ctx context.Context, d *schema.ResourceData, m in
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -73,7 +73,9 @@ func resourceIpsecPolicyCreate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(fmt.Errorf("security ipsec policy not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	ipsecPolicyExists, err := checkIpsecPolicyExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -115,7 +117,7 @@ func resourceIpsecPolicyCreate(ctx context.Context, d *schema.ResourceData, m in
 
 func resourceIpsecPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -154,12 +156,14 @@ func resourceIpsecPolicyUpdate(ctx context.Context, d *schema.ResourceData, m in
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delIpsecPolicy(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -192,12 +196,14 @@ func resourceIpsecPolicyDelete(ctx context.Context, d *schema.ResourceData, m in
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delIpsecPolicy(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -215,9 +221,10 @@ func resourceIpsecPolicyDelete(ctx context.Context, d *schema.ResourceData, m in
 	return diagWarns
 }
 
-func resourceIpsecPolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceIpsecPolicyImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -156,7 +156,7 @@ resource "junos_security_address_book" "testacc_securityNamedAddressBook" {
 
 func testAccJunosSecurityAddressBookConfigUpdate() string {
 	return `
-resource junos_security_address_book "testacc_securityGlobalAddressBook" {
+resource "junos_security_address_book" "testacc_securityGlobalAddressBook" {
   description = "testacc global description"
   network_address {
     name        = "testacc_network"
@@ -178,7 +178,7 @@ resource junos_security_address_book "testacc_securityGlobalAddressBook" {
   }
 }
 
-resource junos_security_address_book "testacc_securityNamedAddressBook" {
+resource "junos_security_address_book" "testacc_securityNamedAddressBook" {
   name = "testacc_secAddrBook"
   network_address {
     name  = "testacc_network"

@@ -34,7 +34,7 @@ func TestAccJunosSecurityIdpPolicy_basic(t *testing.T) {
 
 func testAccJunosSecurityIdpPolicyConfigCreate() string {
 	return `
-resource junos_security "testacc_secIdpPolicy" {
+resource "junos_security" "testacc_secIdpPolicy" {
   lifecycle {
     ignore_changes = [
       log
@@ -131,7 +131,7 @@ resource "junos_security_idp_policy" "testacc_idp_pol" {
 
 func testAccJunosSecurityIdpPolicyConfigUpdate() string {
 	return `
-resource junos_security "testacc_secIdpPolicy" {
+resource "junos_security" "testacc_secIdpPolicy" {
   idp_sensor_configuration {
     packet_log {
       source_address = "192.0.2.4"
@@ -182,7 +182,7 @@ resource "junos_security_idp_policy" "testacc_idp_pol" {
 
 func testAccJunosSecurityIdpPolicyConfigPostCheck() string {
 	return `
-resource junos_security "testacc_secIdpPolicy" {
+resource "junos_security" "testacc_secIdpPolicy" {
   alg {
     dns_disable    = true
     ftp_disable    = true

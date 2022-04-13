@@ -18,12 +18,12 @@ type asPathGroupOptions struct {
 
 func resourcePolicyoptionsAsPathGroup() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourcePolicyoptionsAsPathGroupCreate,
-		ReadContext:   resourcePolicyoptionsAsPathGroupRead,
-		UpdateContext: resourcePolicyoptionsAsPathGroupUpdate,
-		DeleteContext: resourcePolicyoptionsAsPathGroupDelete,
+		CreateWithoutTimeout: resourcePolicyoptionsAsPathGroupCreate,
+		ReadWithoutTimeout:   resourcePolicyoptionsAsPathGroupRead,
+		UpdateWithoutTimeout: resourcePolicyoptionsAsPathGroupUpdate,
+		DeleteWithoutTimeout: resourcePolicyoptionsAsPathGroupDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourcePolicyoptionsAsPathGroupImport,
+			StateContext: resourcePolicyoptionsAsPathGroupImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -57,8 +57,8 @@ func resourcePolicyoptionsAsPathGroup() *schema.Resource {
 	}
 }
 
-func resourcePolicyoptionsAsPathGroupCreate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourcePolicyoptionsAsPathGroupCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setPolicyoptionsAsPathGroup(d, m, nil); err != nil {
@@ -68,12 +68,14 @@ func resourcePolicyoptionsAsPathGroupCreate(
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	policyoptsAsPathGroupExists, err := checkPolicyoptionsAsPathGroupExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -116,7 +118,7 @@ func resourcePolicyoptionsAsPathGroupCreate(
 
 func resourcePolicyoptionsAsPathGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -125,8 +127,8 @@ func resourcePolicyoptionsAsPathGroupRead(ctx context.Context, d *schema.Resourc
 	return resourcePolicyoptionsAsPathGroupReadWJnprSess(d, m, jnprSess)
 }
 
-func resourcePolicyoptionsAsPathGroupReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourcePolicyoptionsAsPathGroupReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	asPathGroupOptions, err := readPolicyoptionsAsPathGroup(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -142,8 +144,8 @@ func resourcePolicyoptionsAsPathGroupReadWJnprSess(
 	return nil
 }
 
-func resourcePolicyoptionsAsPathGroupUpdate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourcePolicyoptionsAsPathGroupUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -157,12 +159,14 @@ func resourcePolicyoptionsAsPathGroupUpdate(
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delPolicyoptionsAsPathGroup(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -186,8 +190,8 @@ func resourcePolicyoptionsAsPathGroupUpdate(
 	return append(diagWarns, resourcePolicyoptionsAsPathGroupReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourcePolicyoptionsAsPathGroupDelete(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourcePolicyoptionsAsPathGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delPolicyoptionsAsPathGroup(d.Get("name").(string), m, nil); err != nil {
@@ -196,12 +200,14 @@ func resourcePolicyoptionsAsPathGroupDelete(
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delPolicyoptionsAsPathGroup(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -219,9 +225,10 @@ func resourcePolicyoptionsAsPathGroupDelete(
 	return diagWarns
 }
 
-func resourcePolicyoptionsAsPathGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourcePolicyoptionsAsPathGroupImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

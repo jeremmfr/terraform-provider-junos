@@ -27,12 +27,12 @@ type natStaticRuleOptions struct {
 
 func resourceSecurityNatStaticRule() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityNatStaticRuleCreate,
-		ReadContext:   resourceSecurityNatStaticRuleRead,
-		UpdateContext: resourceSecurityNatStaticRuleUpdate,
-		DeleteContext: resourceSecurityNatStaticRuleDelete,
+		CreateWithoutTimeout: resourceSecurityNatStaticRuleCreate,
+		ReadWithoutTimeout:   resourceSecurityNatStaticRuleRead,
+		UpdateWithoutTimeout: resourceSecurityNatStaticRuleUpdate,
+		DeleteWithoutTimeout: resourceSecurityNatStaticRuleDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityNatStaticRuleImport,
+			StateContext: resourceSecurityNatStaticRuleImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -72,7 +72,10 @@ func resourceSecurityNatStaticRule() *schema.Resource {
 			"source_address": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateCIDRNetworkFunc(),
+				},
 			},
 			"source_address_name": {
 				Type:     schema.TypeSet,
@@ -122,8 +125,8 @@ func resourceSecurityNatStaticRule() *schema.Resource {
 	}
 }
 
-func resourceSecurityNatStaticRuleCreate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityNatStaticRuleCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setSecurityNatStaticRule(d, m, nil); err != nil {
@@ -133,7 +136,7 @@ func resourceSecurityNatStaticRuleCreate(ctx context.Context,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -142,7 +145,9 @@ func resourceSecurityNatStaticRuleCreate(ctx context.Context,
 		return diag.FromErr(fmt.Errorf("security nat static rule in rule-set not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	natStaticExists, err := checkSecurityNatStaticExists(d.Get("rule_set").(string), m, jnprSess)
 	if err != nil {
@@ -201,7 +206,7 @@ func resourceSecurityNatStaticRuleCreate(ctx context.Context,
 
 func resourceSecurityNatStaticRuleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -210,8 +215,8 @@ func resourceSecurityNatStaticRuleRead(ctx context.Context, d *schema.ResourceDa
 	return resourceSecurityNatStaticRuleReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityNatStaticRuleReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityNatStaticRuleReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	natStaticRuleOptions, err := readSecurityNatStaticRule(d.Get("rule_set").(string), d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -227,8 +232,8 @@ func resourceSecurityNatStaticRuleReadWJnprSess(
 	return nil
 }
 
-func resourceSecurityNatStaticRuleUpdate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityNatStaticRuleUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -242,12 +247,14 @@ func resourceSecurityNatStaticRuleUpdate(ctx context.Context,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityNatStaticRule(d.Get("rule_set").(string), d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -271,8 +278,8 @@ func resourceSecurityNatStaticRuleUpdate(ctx context.Context,
 	return append(diagWarns, resourceSecurityNatStaticRuleReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSecurityNatStaticRuleDelete(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityNatStaticRuleDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delSecurityNatStaticRule(d.Get("rule_set").(string), d.Get("name").(string), m, nil); err != nil {
@@ -281,12 +288,14 @@ func resourceSecurityNatStaticRuleDelete(ctx context.Context,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityNatStaticRule(d.Get("rule_set").(string), d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -304,9 +313,10 @@ func resourceSecurityNatStaticRuleDelete(ctx context.Context,
 	return diagWarns
 }
 
-func resourceSecurityNatStaticRuleImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityNatStaticRuleImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -372,9 +382,6 @@ func setSecurityNatStaticRule(d *schema.ResourceData, m interface{}, jnprSess *N
 		return fmt.Errorf("destination_port need to be not 0 with destination_port_to")
 	}
 	for _, v := range sortSetOfString(d.Get("source_address").(*schema.Set).List()) {
-		if err := validateCIDRNetwork(v); err != nil {
-			return err
-		}
 		configSet = append(configSet, setPrefix+"match source-address "+v)
 	}
 	for _, v := range sortSetOfString(d.Get("source_address_name").(*schema.Set).List()) {
@@ -435,8 +442,8 @@ func setSecurityNatStaticRule(d *schema.ResourceData, m interface{}, jnprSess *N
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSecurityNatStaticRule(ruleSet, name string,
-	m interface{}, jnprSess *NetconfObject) (natStaticRuleOptions, error) {
+func readSecurityNatStaticRule(ruleSet, name string, m interface{}, jnprSess *NetconfObject,
+) (natStaticRuleOptions, error) {
 	sess := m.(*Session)
 	var confRead natStaticRuleOptions
 

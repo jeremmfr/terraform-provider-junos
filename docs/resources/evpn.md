@@ -15,7 +15,7 @@ various options potentially required in `switch-options` or on the `routing-inst
 
 ```hcl
 # Configure evpn
-resource junos_evpn "default" {
+resource "junos_evpn" "default" {
   encapsulation = "vxlan"
   switch_or_ri_options {
     route_distinguisher = "20:1"

@@ -1,6 +1,7 @@
 package junos_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -85,14 +86,14 @@ func TestAccJunosSecurityZone_basic(t *testing.T) {
 
 func testAccJunosSecurityZoneConfigCreate() string {
 	return `
-resource junos_security_screen "testaccZone" {
+resource "junos_security_screen" "testaccZone" {
   lifecycle {
     create_before_destroy = true
   }
   name        = "testaccZone"
   description = "testaccZone"
 }
-resource junos_security_zone "testacc_securityZone" {
+resource "junos_security_zone" "testacc_securityZone" {
   name = "testacc_securityZone"
   address_book {
     name        = "testacc_zone1"
@@ -150,8 +151,8 @@ resource junos_security_zone "testacc_securityZone" {
 }
 
 func testAccJunosSecurityZoneConfigUpdate(interFace string) string {
-	return `
-resource junos_security_zone "testacc_securityZone" {
+	return fmt.Sprintf(`
+resource "junos_security_zone" "testacc_securityZone" {
   name = "testacc_securityZone"
   address_book {
     name    = "testacc_zone1"
@@ -168,21 +169,21 @@ resource junos_security_zone "testacc_securityZone" {
   inbound_protocols = ["bgp"]
   inbound_services  = ["ssh"]
 }
-resource junos_interface_logical "testacc_securityZone" {
-  name          = "` + interFace + `.0"
+resource "junos_interface_logical" "testacc_securityZone" {
+  name          = "%s.0"
   security_zone = junos_security_zone.testacc_securityZone.name
 }
-`
+`, interFace)
 }
 
 func testAccJunosSecurityZoneConfigUpdate2(interFace string) string {
-	return `
-resource junos_security_zone "testacc_securityZone" {
+	return fmt.Sprintf(`
+resource "junos_security_zone" "testacc_securityZone" {
   name = "testacc_securityZone"
 }
-resource junos_interface_logical "testacc_securityZone" {
-  name          = "` + interFace + `.0"
+resource "junos_interface_logical" "testacc_securityZone" {
+  name          = "%s.0"
   security_zone = junos_security_zone.testacc_securityZone.name
 }
-`
+`, interFace)
 }

@@ -9,7 +9,7 @@ Provides a VSTP vlan-group group resource.
 ## Example Usage
 
 ```hcl
-resource junos_vstp_vlan_group "grp" {
+resource "junos_vstp_vlan_group" "grp" {
   name = "grp"
   vlan = ["10", "11"]
 }

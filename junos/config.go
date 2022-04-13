@@ -15,6 +15,7 @@ type configProvider struct {
 	junosCmdSleepShort       int
 	junosCmdSleepLock        int
 	junosSSHSleepClosed      int
+	junosSSHTimeoutToEstab   int
 	junosIP                  string
 	junosUserName            string
 	junosPassword            string
@@ -31,19 +32,20 @@ type configProvider struct {
 // prepareSession : prepare information to connect to Junos Device and more.
 func (c *configProvider) prepareSession() (*Session, diag.Diagnostics) {
 	sess := &Session{
-		junosIP:             c.junosIP,
-		junosPort:           c.junosPort,
-		junosUserName:       c.junosUserName,
-		junosPassword:       c.junosPassword,
-		junosSSHKeyPEM:      c.junosSSHKeyPEM,
-		junosKeyPass:        c.junosKeyPass,
-		junosGroupIntDel:    c.junosGroupIntDel,
-		junosSleepLock:      c.junosCmdSleepLock,
-		junosSleepShort:     c.junosCmdSleepShort,
-		junosSleepSSHClosed: c.junosSSHSleepClosed,
-		junosSSHCiphers:     c.junosSSHCiphers,
-		junosFakeUpdateAlso: c.junosFakeUpdateAlso,
-		junosFakeDeleteAlso: c.junosFakeDeleteAlso,
+		junosIP:                c.junosIP,
+		junosPort:              c.junosPort,
+		junosUserName:          c.junosUserName,
+		junosPassword:          c.junosPassword,
+		junosSSHKeyPEM:         c.junosSSHKeyPEM,
+		junosKeyPass:           c.junosKeyPass,
+		junosGroupIntDel:       c.junosGroupIntDel,
+		junosSleepLock:         c.junosCmdSleepLock,
+		junosSleepShort:        c.junosCmdSleepShort,
+		junosSleepSSHClosed:    c.junosSSHSleepClosed,
+		junosSSHCiphers:        c.junosSSHCiphers,
+		junosSSHTimeoutToEstab: c.junosSSHTimeoutToEstab,
+		junosFakeUpdateAlso:    c.junosFakeUpdateAlso,
+		junosFakeDeleteAlso:    c.junosFakeDeleteAlso,
 	}
 	// junosSSHKeyFile
 	sshKeyFile := c.junosSSHKeyFile
@@ -55,7 +57,7 @@ func (c *configProvider) prepareSession() (*Session, diag.Diagnostics) {
 	// junosFilePermission
 	filePermission, err := strconv.ParseInt(c.junosFilePermission, 8, 64)
 	if err != nil {
-		return sess, diag.FromErr(fmt.Errorf("failed to convert value from '%s' to int64 : %w",
+		return sess, diag.FromErr(fmt.Errorf("failed to convert value from '%s' to int64: %w",
 			c.junosFilePermission, err))
 	}
 	sess.junosFilePermission = filePermission

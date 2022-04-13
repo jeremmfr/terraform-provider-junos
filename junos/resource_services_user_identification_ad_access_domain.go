@@ -24,12 +24,12 @@ type svcUserIdentAdAccessDomainOptions struct {
 
 func resourceServicesUserIdentAdAccessDomain() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceServicesUserIdentAdAccessDomainCreate,
-		ReadContext:   resourceServicesUserIdentAdAccessDomainRead,
-		UpdateContext: resourceServicesUserIdentAdAccessDomainUpdate,
-		DeleteContext: resourceServicesUserIdentAdAccessDomainDelete,
+		CreateWithoutTimeout: resourceServicesUserIdentAdAccessDomainCreate,
+		ReadWithoutTimeout:   resourceServicesUserIdentAdAccessDomainRead,
+		UpdateWithoutTimeout: resourceServicesUserIdentAdAccessDomainUpdate,
+		DeleteWithoutTimeout: resourceServicesUserIdentAdAccessDomainDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceServicesUserIdentAdAccessDomainImport,
+			StateContext: resourceServicesUserIdentAdAccessDomainImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -125,8 +125,8 @@ func resourceServicesUserIdentAdAccessDomain() *schema.Resource {
 	}
 }
 
-func resourceServicesUserIdentAdAccessDomainCreate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesUserIdentAdAccessDomainCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setServicesUserIdentAdAccessDomain(d, m, nil); err != nil {
@@ -136,12 +136,14 @@ func resourceServicesUserIdentAdAccessDomainCreate(ctx context.Context,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	svcUserIdentAdAccessDomainExists, err := checkServicesUserIdentAdAccessDomainExists(
 		d.Get("name").(string), m, jnprSess)
@@ -185,10 +187,10 @@ func resourceServicesUserIdentAdAccessDomainCreate(ctx context.Context,
 	return append(diagWarns, resourceServicesUserIdentAdAccessDomainReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceServicesUserIdentAdAccessDomainRead(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesUserIdentAdAccessDomainRead(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -198,7 +200,8 @@ func resourceServicesUserIdentAdAccessDomainRead(ctx context.Context,
 }
 
 func resourceServicesUserIdentAdAccessDomainReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	svcUserIdentAdAccessDomainOptions, err := readServicesUserIdentAdAccessDomain(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -214,8 +217,8 @@ func resourceServicesUserIdentAdAccessDomainReadWJnprSess(
 	return nil
 }
 
-func resourceServicesUserIdentAdAccessDomainUpdate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesUserIdentAdAccessDomainUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -229,12 +232,14 @@ func resourceServicesUserIdentAdAccessDomainUpdate(ctx context.Context,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesUserIdentAdAccessDomain(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -258,8 +263,8 @@ func resourceServicesUserIdentAdAccessDomainUpdate(ctx context.Context,
 	return append(diagWarns, resourceServicesUserIdentAdAccessDomainReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceServicesUserIdentAdAccessDomainDelete(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesUserIdentAdAccessDomainDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delServicesUserIdentAdAccessDomain(d.Get("name").(string), m, nil); err != nil {
@@ -268,12 +273,14 @@ func resourceServicesUserIdentAdAccessDomainDelete(ctx context.Context,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesUserIdentAdAccessDomain(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -291,10 +298,10 @@ func resourceServicesUserIdentAdAccessDomainDelete(ctx context.Context,
 	return diagWarns
 }
 
-func resourceServicesUserIdentAdAccessDomainImport(
-	d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceServicesUserIdentAdAccessDomainImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -319,8 +326,8 @@ func resourceServicesUserIdentAdAccessDomainImport(
 	return result, nil
 }
 
-func checkServicesUserIdentAdAccessDomainExists(domain string,
-	m interface{}, jnprSess *NetconfObject) (bool, error) {
+func checkServicesUserIdentAdAccessDomainExists(domain string, m interface{}, jnprSess *NetconfObject,
+) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
 		"services user-identification active-directory-access domain "+domain+pipeDisplaySet, jnprSess)
@@ -388,8 +395,8 @@ func setServicesUserIdentAdAccessDomain(d *schema.ResourceData, m interface{}, j
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readServicesUserIdentAdAccessDomain(domain string,
-	m interface{}, jnprSess *NetconfObject) (svcUserIdentAdAccessDomainOptions, error) {
+func readServicesUserIdentAdAccessDomain(domain string, m interface{}, jnprSess *NetconfObject,
+) (svcUserIdentAdAccessDomainOptions, error) {
 	sess := m.(*Session)
 	var confRead svcUserIdentAdAccessDomainOptions
 
@@ -413,7 +420,7 @@ func readServicesUserIdentAdAccessDomain(domain string,
 				var err error
 				confRead.userPassword, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim, "user password "), "\""))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to decode user password : %w", err)
+					return confRead, fmt.Errorf("failed to decode user password: %w", err)
 				}
 			case strings.HasPrefix(itemTrim, "user "):
 				confRead.userName = strings.TrimPrefix(itemTrim, "user ")
@@ -474,7 +481,7 @@ func readServicesUserIdentAdAccessDomain(domain string,
 					confRead.userGroupMappingLdap[0]["user_password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 						itemTrim, "user-group-mapping ldap user password "), "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode user password : %w", err)
+						return confRead, fmt.Errorf("failed to decode user password: %w", err)
 					}
 				case strings.HasPrefix(itemTrim, "user-group-mapping ldap user "):
 					confRead.userGroupMappingLdap[0]["user_name"] = strings.TrimPrefix(itemTrim, "user-group-mapping ldap user ")
@@ -496,7 +503,8 @@ func delServicesUserIdentAdAccessDomain(domain string, m interface{}, jnprSess *
 }
 
 func fillServicesUserIdentAdAccessDomainData(
-	d *schema.ResourceData, svcUserIdentAdAccessDomainOptions svcUserIdentAdAccessDomainOptions) {
+	d *schema.ResourceData, svcUserIdentAdAccessDomainOptions svcUserIdentAdAccessDomainOptions,
+) {
 	if tfErr := d.Set("name", svcUserIdentAdAccessDomainOptions.name); tfErr != nil {
 		panic(tfErr)
 	}

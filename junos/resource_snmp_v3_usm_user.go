@@ -25,12 +25,12 @@ type snmpV3UsmUserOptions struct {
 
 func resourceSnmpV3UsmUser() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSnmpV3UsmUserCreate,
-		ReadContext:   resourceSnmpV3UsmUserRead,
-		UpdateContext: resourceSnmpV3UsmUserUpdate,
-		DeleteContext: resourceSnmpV3UsmUserDelete,
+		CreateWithoutTimeout: resourceSnmpV3UsmUserCreate,
+		ReadWithoutTimeout:   resourceSnmpV3UsmUserRead,
+		UpdateWithoutTimeout: resourceSnmpV3UsmUserUpdate,
+		DeleteWithoutTimeout: resourceSnmpV3UsmUserDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSnmpV3UsmUserImport,
+			StateContext: resourceSnmpV3UsmUserImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -115,12 +115,14 @@ func resourceSnmpV3UsmUserCreate(ctx context.Context, d *schema.ResourceData, m 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	snmpV3UsmUserExists, err := checkSnmpV3UsmUserExists(
 		d.Get("name").(string), d.Get("engine_type").(string), d.Get("engine_id").(string), m, jnprSess)
@@ -179,7 +181,7 @@ func resourceSnmpV3UsmUserCreate(ctx context.Context, d *schema.ResourceData, m 
 
 func resourceSnmpV3UsmUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -188,8 +190,8 @@ func resourceSnmpV3UsmUserRead(ctx context.Context, d *schema.ResourceData, m in
 	return resourceSnmpV3UsmUserReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSnmpV3UsmUserReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSnmpV3UsmUserReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	configSrc := snmpV3UsmUserOptions{
 		name:                   d.Get("name").(string),
 		engineType:             d.Get("engine_type").(string),
@@ -229,12 +231,14 @@ func resourceSnmpV3UsmUserUpdate(ctx context.Context, d *schema.ResourceData, m 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSnmpV3UsmUser(
 		d.Get("name").(string), d.Get("engine_type").(string), d.Get("engine_id").(string), m, jnprSess); err != nil {
@@ -269,12 +273,14 @@ func resourceSnmpV3UsmUserDelete(ctx context.Context, d *schema.ResourceData, m 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSnmpV3UsmUser(
 		d.Get("name").(string), d.Get("engine_type").(string), d.Get("engine_id").(string), m, jnprSess); err != nil {
@@ -293,9 +299,10 @@ func resourceSnmpV3UsmUserDelete(ctx context.Context, d *schema.ResourceData, m 
 	return diagWarns
 }
 
-func resourceSnmpV3UsmUserImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSnmpV3UsmUserImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -465,7 +472,7 @@ func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, m interface{}, jnprSess *Ne
 					confRead.authenticationKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 						itemTrim, "authentication-md5 authentication-key "), "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode authentication-key : %w", err)
+						return confRead, fmt.Errorf("failed to decode authentication-key: %w", err)
 					}
 				}
 			case itemTrim == "authentication-none":
@@ -479,7 +486,7 @@ func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, m interface{}, jnprSess *Ne
 					confRead.authenticationKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 						itemTrim, "authentication-sha authentication-key "), "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode authentication-key : %w", err)
+						return confRead, fmt.Errorf("failed to decode authentication-key: %w", err)
 					}
 				}
 			case strings.HasPrefix(itemTrim, "privacy-3des privacy-key "):
@@ -491,7 +498,7 @@ func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, m interface{}, jnprSess *Ne
 					confRead.privacyKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 						itemTrim, "privacy-3des privacy-key "), "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode privacy-key : %w", err)
+						return confRead, fmt.Errorf("failed to decode privacy-key: %w", err)
 					}
 				}
 			case strings.HasPrefix(itemTrim, "privacy-aes128 privacy-key "):
@@ -503,7 +510,7 @@ func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, m interface{}, jnprSess *Ne
 					confRead.privacyKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 						itemTrim, "privacy-aes128 privacy-key "), "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode privacy-key : %w", err)
+						return confRead, fmt.Errorf("failed to decode privacy-key: %w", err)
 					}
 				}
 			case strings.HasPrefix(itemTrim, "privacy-des privacy-key "):
@@ -515,7 +522,7 @@ func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, m interface{}, jnprSess *Ne
 					confRead.privacyKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 						itemTrim, "privacy-des privacy-key "), "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode privacy-key : %w", err)
+						return confRead, fmt.Errorf("failed to decode privacy-key: %w", err)
 					}
 				}
 			case itemTrim == "privacy-none":

@@ -14,7 +14,7 @@ Configure static configuration in `services` block
 
 ```hcl
 # Configure services
-resource junos_services "services" {
+resource "junos_services" "services" {
   security_intelligence {
     authentication_token = "abcdefghijklmnopqrstuvwxyz123400"
     url                  = "https://example.com/api/manifest.xml"

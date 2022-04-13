@@ -21,12 +21,12 @@ type utmProfileWebFilteringLocalOptions struct {
 
 func resourceSecurityUtmProfileWebFilteringLocal() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityUtmProfileWebFilteringLocalCreate,
-		ReadContext:   resourceSecurityUtmProfileWebFilteringLocalRead,
-		UpdateContext: resourceSecurityUtmProfileWebFilteringLocalUpdate,
-		DeleteContext: resourceSecurityUtmProfileWebFilteringLocalDelete,
+		CreateWithoutTimeout: resourceSecurityUtmProfileWebFilteringLocalCreate,
+		ReadWithoutTimeout:   resourceSecurityUtmProfileWebFilteringLocalRead,
+		UpdateWithoutTimeout: resourceSecurityUtmProfileWebFilteringLocalUpdate,
+		DeleteWithoutTimeout: resourceSecurityUtmProfileWebFilteringLocalDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityUtmProfileWebFilteringLocalImport,
+			StateContext: resourceSecurityUtmProfileWebFilteringLocalImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -81,8 +81,8 @@ func resourceSecurityUtmProfileWebFilteringLocal() *schema.Resource {
 	}
 }
 
-func resourceSecurityUtmProfileWebFilteringLocalCreate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityUtmProfileWebFilteringLocalCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setUtmProfileWebFLocal(d, m, nil); err != nil {
@@ -92,7 +92,7 @@ func resourceSecurityUtmProfileWebFilteringLocalCreate(
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -101,7 +101,9 @@ func resourceSecurityUtmProfileWebFilteringLocalCreate(
 		return diag.FromErr(fmt.Errorf("security utm feature-profile web-filtering juniper-local "+
 			"not compatible with Junos device %s", jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	utmProfileWebFLocalExists, err := checkUtmProfileWebFLocalExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -142,10 +144,10 @@ func resourceSecurityUtmProfileWebFilteringLocalCreate(
 	return append(diagWarns, resourceSecurityUtmProfileWebFilteringLocalReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSecurityUtmProfileWebFilteringLocalRead(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityUtmProfileWebFilteringLocalRead(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -155,7 +157,8 @@ func resourceSecurityUtmProfileWebFilteringLocalRead(
 }
 
 func resourceSecurityUtmProfileWebFilteringLocalReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	utmProfileWebFLocalOptions, err := readUtmProfileWebFLocal(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -171,8 +174,8 @@ func resourceSecurityUtmProfileWebFilteringLocalReadWJnprSess(
 	return nil
 }
 
-func resourceSecurityUtmProfileWebFilteringLocalUpdate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityUtmProfileWebFilteringLocalUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -186,12 +189,14 @@ func resourceSecurityUtmProfileWebFilteringLocalUpdate(
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delUtmProfileWebFLocal(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -215,8 +220,8 @@ func resourceSecurityUtmProfileWebFilteringLocalUpdate(
 	return append(diagWarns, resourceSecurityUtmProfileWebFilteringLocalReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSecurityUtmProfileWebFilteringLocalDelete(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityUtmProfileWebFilteringLocalDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delUtmProfileWebFLocal(d.Get("name").(string), m, nil); err != nil {
@@ -225,12 +230,14 @@ func resourceSecurityUtmProfileWebFilteringLocalDelete(
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delUtmProfileWebFLocal(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -248,10 +255,10 @@ func resourceSecurityUtmProfileWebFilteringLocalDelete(
 	return diagWarns
 }
 
-func resourceSecurityUtmProfileWebFilteringLocalImport(
-	d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityUtmProfileWebFilteringLocalImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -332,8 +339,8 @@ func setUtmProfileWebFLocal(d *schema.ResourceData, m interface{}, jnprSess *Net
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readUtmProfileWebFLocal(profile string, m interface{}, jnprSess *NetconfObject) (
-	utmProfileWebFilteringLocalOptions, error) {
+func readUtmProfileWebFLocal(profile string, m interface{}, jnprSess *NetconfObject,
+) (utmProfileWebFilteringLocalOptions, error) {
 	sess := m.(*Session)
 	var confRead utmProfileWebFilteringLocalOptions
 
@@ -399,8 +406,9 @@ func delUtmProfileWebFLocal(profile string, m interface{}, jnprSess *NetconfObje
 	return sess.configSet(configSet, jnprSess)
 }
 
-func fillUtmProfileWebFLocalData(d *schema.ResourceData,
-	utmProfileWebFLocalOptions utmProfileWebFilteringLocalOptions) {
+func fillUtmProfileWebFLocalData(
+	d *schema.ResourceData, utmProfileWebFLocalOptions utmProfileWebFilteringLocalOptions,
+) {
 	if tfErr := d.Set("name", utmProfileWebFLocalOptions.name); tfErr != nil {
 		panic(tfErr)
 	}

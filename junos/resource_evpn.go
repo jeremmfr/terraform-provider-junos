@@ -22,12 +22,12 @@ type evpnOptions struct {
 
 func resourceEvpn() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceEvpnCreate,
-		ReadContext:   resourceEvpnRead,
-		UpdateContext: resourceEvpnUpdate,
-		DeleteContext: resourceEvpnDelete,
+		CreateWithoutTimeout: resourceEvpnCreate,
+		ReadWithoutTimeout:   resourceEvpnRead,
+		UpdateWithoutTimeout: resourceEvpnUpdate,
+		DeleteWithoutTimeout: resourceEvpnDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceEvpnImport,
+			StateContext: resourceEvpnImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"routing_instance": {
@@ -74,12 +74,18 @@ func resourceEvpn() *schema.Resource {
 						"vrf_export": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem: &schema.Schema{
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+							},
 						},
 						"vrf_import": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem: &schema.Schema{
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+							},
 						},
 						"vrf_target": {
 							Type:     schema.TypeString,
@@ -120,12 +126,14 @@ func resourceEvpnCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
@@ -160,7 +168,7 @@ func resourceEvpnCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 func resourceEvpnRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -214,12 +222,14 @@ func resourceEvpnUpdate(ctx context.Context, d *schema.ResourceData, m interface
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delEvpn(false, d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -252,12 +262,14 @@ func resourceEvpnDelete(ctx context.Context, d *schema.ResourceData, m interface
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delEvpn(true, d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -275,9 +287,10 @@ func resourceEvpnDelete(ctx context.Context, d *schema.ResourceData, m interface
 	return diagWarns
 }
 
-func resourceEvpnImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceEvpnImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -375,8 +388,8 @@ func setEvpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readEvpn(routingInstance string,
-	m interface{}, jnprSess *NetconfObject) (evpnOptions, error) {
+func readEvpn(routingInstance string, m interface{}, jnprSess *NetconfObject,
+) (evpnOptions, error) {
 	sess := m.(*Session)
 	var confRead evpnOptions
 	var showConfig string

@@ -12,12 +12,12 @@ import (
 
 func resourceBgpGroup() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceBgpGroupCreate,
-		ReadContext:   resourceBgpGroupRead,
-		UpdateContext: resourceBgpGroupUpdate,
-		DeleteContext: resourceBgpGroupDelete,
+		CreateWithoutTimeout: resourceBgpGroupCreate,
+		ReadWithoutTimeout:   resourceBgpGroupRead,
+		UpdateWithoutTimeout: resourceBgpGroupUpdate,
+		DeleteWithoutTimeout: resourceBgpGroupDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceBgpGroupImport,
+			StateContext: resourceBgpGroupImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -188,7 +188,10 @@ func resourceBgpGroup() *schema.Resource {
 			"export": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+				},
 			},
 			"family_evpn": {
 				Type:     schema.TypeList,
@@ -437,7 +440,10 @@ func resourceBgpGroup() *schema.Resource {
 			"import": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+				},
 			},
 			"keep_all": {
 				Type:          schema.TypeBool,
@@ -607,12 +613,14 @@ func resourceBgpGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
@@ -668,7 +676,7 @@ func resourceBgpGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceBgpGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -707,12 +715,14 @@ func resourceBgpGroupUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delBgpOpts(d, "group", m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -745,12 +755,14 @@ func resourceBgpGroupDelete(ctx context.Context, d *schema.ResourceData, m inter
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delBgpGroup(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -768,9 +780,10 @@ func resourceBgpGroupDelete(ctx context.Context, d *schema.ResourceData, m inter
 	return diagWarns
 }
 
-func resourceBgpGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceBgpGroupImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

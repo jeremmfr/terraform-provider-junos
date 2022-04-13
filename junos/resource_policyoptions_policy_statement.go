@@ -22,12 +22,12 @@ type policyStatementOptions struct {
 
 func resourcePolicyoptionsPolicyStatement() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourcePolicyoptionsPolicyStatementCreate,
-		ReadContext:   resourcePolicyoptionsPolicyStatementRead,
-		UpdateContext: resourcePolicyoptionsPolicyStatementUpdate,
-		DeleteContext: resourcePolicyoptionsPolicyStatementDelete,
+		CreateWithoutTimeout: resourcePolicyoptionsPolicyStatementCreate,
+		ReadWithoutTimeout:   resourcePolicyoptionsPolicyStatementRead,
+		UpdateWithoutTimeout: resourcePolicyoptionsPolicyStatementUpdate,
+		DeleteWithoutTimeout: resourcePolicyoptionsPolicyStatementDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourcePolicyoptionsPolicyStatementImport,
+			StateContext: resourcePolicyoptionsPolicyStatementImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -114,17 +114,26 @@ func schemaPolicyoptionsPolicyStatementFrom() map[string]*schema.Schema {
 		"bgp_as_path": {
 			Type:     schema.TypeSet,
 			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+			Elem: &schema.Schema{
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
+			},
 		},
 		"bgp_as_path_group": {
 			Type:     schema.TypeSet,
 			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+			Elem: &schema.Schema{
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
+			},
 		},
 		"bgp_community": {
 			Type:     schema.TypeSet,
 			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+			Elem: &schema.Schema{
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
+			},
 		},
 		"bgp_origin": {
 			Type:         schema.TypeString,
@@ -144,8 +153,9 @@ func schemaPolicyoptionsPolicyStatementFrom() map[string]*schema.Schema {
 			Optional: true,
 		},
 		"routing_instance": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:             schema.TypeString,
+			Optional:         true,
+			ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
 		},
 		"interface": {
 			Type:     schema.TypeSet,
@@ -173,7 +183,10 @@ func schemaPolicyoptionsPolicyStatementFrom() map[string]*schema.Schema {
 		"policy": {
 			Type:     schema.TypeList,
 			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+			Elem: &schema.Schema{
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+			},
 		},
 		"preference": {
 			Type:     schema.TypeInt,
@@ -182,7 +195,10 @@ func schemaPolicyoptionsPolicyStatementFrom() map[string]*schema.Schema {
 		"prefix_list": {
 			Type:     schema.TypeSet,
 			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+			Elem: &schema.Schema{
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+			},
 		},
 		"protocol": {
 			Type:     schema.TypeSet,
@@ -333,17 +349,26 @@ func schemaPolicyoptionsPolicyStatementTo() map[string]*schema.Schema {
 		"bgp_as_path": {
 			Type:     schema.TypeSet,
 			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+			Elem: &schema.Schema{
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
+			},
 		},
 		"bgp_as_path_group": {
 			Type:     schema.TypeSet,
 			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+			Elem: &schema.Schema{
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
+			},
 		},
 		"bgp_community": {
 			Type:     schema.TypeSet,
 			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+			Elem: &schema.Schema{
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
+			},
 		},
 		"bgp_origin": {
 			Type:         schema.TypeString,
@@ -363,8 +388,9 @@ func schemaPolicyoptionsPolicyStatementTo() map[string]*schema.Schema {
 			Optional: true,
 		},
 		"routing_instance": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:             schema.TypeString,
+			Optional:         true,
+			ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
 		},
 		"interface": {
 			Type:     schema.TypeSet,
@@ -392,7 +418,10 @@ func schemaPolicyoptionsPolicyStatementTo() map[string]*schema.Schema {
 		"policy": {
 			Type:     schema.TypeList,
 			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+			Elem: &schema.Schema{
+				Type:             schema.TypeString,
+				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+			},
 		},
 		"preference": {
 			Type:     schema.TypeInt,
@@ -406,8 +435,8 @@ func schemaPolicyoptionsPolicyStatementTo() map[string]*schema.Schema {
 	}
 }
 
-func resourcePolicyoptionsPolicyStatementCreate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourcePolicyoptionsPolicyStatementCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setPolicyStatement(d, m, nil); err != nil {
@@ -422,12 +451,14 @@ func resourcePolicyoptionsPolicyStatementCreate(
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	policyStatementExists, err := checkPolicyStatementExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -475,10 +506,10 @@ func resourcePolicyoptionsPolicyStatementCreate(
 	return append(diagWarns, resourcePolicyoptionsPolicyStatementReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourcePolicyoptionsPolicyStatementRead(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourcePolicyoptionsPolicyStatementRead(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -487,8 +518,8 @@ func resourcePolicyoptionsPolicyStatementRead(
 	return resourcePolicyoptionsPolicyStatementReadWJnprSess(d, m, jnprSess)
 }
 
-func resourcePolicyoptionsPolicyStatementReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourcePolicyoptionsPolicyStatementReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	policyStatementOptions, err := readPolicyStatement(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -520,8 +551,8 @@ func resourcePolicyoptionsPolicyStatementReadWJnprSess(
 	return nil
 }
 
-func resourcePolicyoptionsPolicyStatementUpdate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourcePolicyoptionsPolicyStatementUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -547,12 +578,14 @@ func resourcePolicyoptionsPolicyStatementUpdate(
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delPolicyStatement(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -592,8 +625,8 @@ func resourcePolicyoptionsPolicyStatementUpdate(
 	return append(diagWarns, resourcePolicyoptionsPolicyStatementReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourcePolicyoptionsPolicyStatementDelete(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourcePolicyoptionsPolicyStatementDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delPolicyStatement(d.Get("name").(string), m, nil); err != nil {
@@ -607,12 +640,14 @@ func resourcePolicyoptionsPolicyStatementDelete(
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delPolicyStatement(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -637,9 +672,10 @@ func resourcePolicyoptionsPolicyStatementDelete(
 	return diagWarns
 }
 
-func resourcePolicyoptionsPolicyStatementImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourcePolicyoptionsPolicyStatementImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -833,8 +869,8 @@ func readPolicyStatement(name string, m interface{}, jnprSess *NetconfObject) (p
 	return confRead, nil
 }
 
-func readPolicyStatementFwTableExport(policyName string,
-	m interface{}, jnprSess *NetconfObject) (bool, error) {
+func readPolicyStatementFwTableExport(policyName string, m interface{}, jnprSess *NetconfObject,
+) (bool, error) {
 	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
 		"routing-options forwarding-table export"+pipeDisplaySetRelative, jnprSess)

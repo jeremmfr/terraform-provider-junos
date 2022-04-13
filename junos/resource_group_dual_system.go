@@ -22,12 +22,12 @@ type groupDualSystemOptions struct {
 
 func resourceGroupDualSystem() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceGroupDualSystemCreate,
-		ReadContext:   resourceGroupDualSystemRead,
-		UpdateContext: resourceGroupDualSystemUpdate,
-		DeleteContext: resourceGroupDualSystemDelete,
+		CreateWithoutTimeout: resourceGroupDualSystemCreate,
+		ReadWithoutTimeout:   resourceGroupDualSystemRead,
+		UpdateWithoutTimeout: resourceGroupDualSystemUpdate,
+		DeleteWithoutTimeout: resourceGroupDualSystemDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceGroupDualSystemImport,
+			StateContext: resourceGroupDualSystemImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -191,12 +191,14 @@ func resourceGroupDualSystemCreate(ctx context.Context, d *schema.ResourceData, 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	groupDualSystemExists, err := checkGroupDualSystemExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -238,7 +240,7 @@ func resourceGroupDualSystemCreate(ctx context.Context, d *schema.ResourceData, 
 
 func resourceGroupDualSystemRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -247,8 +249,8 @@ func resourceGroupDualSystemRead(ctx context.Context, d *schema.ResourceData, m 
 	return resourceGroupDualSystemReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceGroupDualSystemReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceGroupDualSystemReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	groupDualSystemOpts, err := readGroupDualSystem(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -285,12 +287,14 @@ func resourceGroupDualSystemUpdate(ctx context.Context, d *schema.ResourceData, 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delGroupDualSystem(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -341,12 +345,14 @@ func resourceGroupDualSystemDelete(ctx context.Context, d *schema.ResourceData, 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delGroupDualSystem(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -375,9 +381,10 @@ func resourceGroupDualSystemDelete(ctx context.Context, d *schema.ResourceData, 
 	return diagWarns
 }
 
-func resourceGroupDualSystemImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceGroupDualSystemImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

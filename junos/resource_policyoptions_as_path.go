@@ -17,12 +17,12 @@ type asPathOptions struct {
 
 func resourcePolicyoptionsAsPath() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourcePolicyoptionsAsPathCreate,
-		ReadContext:   resourcePolicyoptionsAsPathRead,
-		UpdateContext: resourcePolicyoptionsAsPathUpdate,
-		DeleteContext: resourcePolicyoptionsAsPathDelete,
+		CreateWithoutTimeout: resourcePolicyoptionsAsPathCreate,
+		ReadWithoutTimeout:   resourcePolicyoptionsAsPathRead,
+		UpdateWithoutTimeout: resourcePolicyoptionsAsPathUpdate,
+		DeleteWithoutTimeout: resourcePolicyoptionsAsPathDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourcePolicyoptionsAsPathImport,
+			StateContext: resourcePolicyoptionsAsPathImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -53,12 +53,14 @@ func resourcePolicyoptionsAsPathCreate(ctx context.Context, d *schema.ResourceDa
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	policyoptsAsPathExists, err := checkPolicyoptionsAsPathExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -101,7 +103,7 @@ func resourcePolicyoptionsAsPathCreate(ctx context.Context, d *schema.ResourceDa
 
 func resourcePolicyoptionsAsPathRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -110,8 +112,8 @@ func resourcePolicyoptionsAsPathRead(ctx context.Context, d *schema.ResourceData
 	return resourcePolicyoptionsAsPathReadWJnprSess(d, m, jnprSess)
 }
 
-func resourcePolicyoptionsAsPathReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourcePolicyoptionsAsPathReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	asPathOptions, err := readPolicyoptionsAsPath(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -141,12 +143,14 @@ func resourcePolicyoptionsAsPathUpdate(ctx context.Context, d *schema.ResourceDa
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delPolicyoptionsAsPath(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -179,12 +183,14 @@ func resourcePolicyoptionsAsPathDelete(ctx context.Context, d *schema.ResourceDa
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delPolicyoptionsAsPath(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -202,9 +208,10 @@ func resourcePolicyoptionsAsPathDelete(ctx context.Context, d *schema.ResourceDa
 	return diagWarns
 }
 
-func resourcePolicyoptionsAsPathImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourcePolicyoptionsAsPathImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

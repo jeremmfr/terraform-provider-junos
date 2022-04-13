@@ -10,7 +10,7 @@ Provides an application resource.
 
 ```hcl
 # Add an application
-resource junos_application "mysql" {
+resource "junos_application" "mysql" {
   name             = "mysql"
   protocol         = "tcp"
   destination_port = "3306"

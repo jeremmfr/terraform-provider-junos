@@ -10,7 +10,7 @@ Provides a security ipsec policy resource.
 
 ```hcl
 # Add an ipsec policy
-resource junos_security_ipsec_policy "demo_vpn_policy" {
+resource "junos_security_ipsec_policy" "demo_vpn_policy" {
   name      = "ipsec-policy"
   proposals = ["ipsec-proposal"]
   pfs_keys  = "group2"

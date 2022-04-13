@@ -34,12 +34,12 @@ func listProposalSet() []string {
 
 func resourceIkePolicy() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceIkePolicyCreate,
-		ReadContext:   resourceIkePolicyRead,
-		UpdateContext: resourceIkePolicyUpdate,
-		DeleteContext: resourceIkePolicyDelete,
+		CreateWithoutTimeout: resourceIkePolicyCreate,
+		ReadWithoutTimeout:   resourceIkePolicyRead,
+		UpdateWithoutTimeout: resourceIkePolicyUpdate,
+		DeleteWithoutTimeout: resourceIkePolicyDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceIkePolicyImport,
+			StateContext: resourceIkePolicyImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -93,7 +93,7 @@ func resourceIkePolicyCreate(ctx context.Context, d *schema.ResourceData, m inte
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -102,7 +102,9 @@ func resourceIkePolicyCreate(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(fmt.Errorf("security ike policy not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	ikePolicyExists, err := checkIkePolicyExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -143,7 +145,7 @@ func resourceIkePolicyCreate(ctx context.Context, d *schema.ResourceData, m inte
 
 func resourceIkePolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -182,12 +184,14 @@ func resourceIkePolicyUpdate(ctx context.Context, d *schema.ResourceData, m inte
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delIkePolicy(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -221,12 +225,14 @@ func resourceIkePolicyDelete(ctx context.Context, d *schema.ResourceData, m inte
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delIkePolicy(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -244,9 +250,10 @@ func resourceIkePolicyDelete(ctx context.Context, d *schema.ResourceData, m inte
 	return diagWarns
 }
 
-func resourceIkePolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceIkePolicyImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -339,13 +346,13 @@ func readIkePolicy(ikePolicy string, m interface{}, jnprSess *NetconfObject) (ik
 				confRead.preSharedKeyHexa, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
 					"pre-shared-key hexadecimal "), "\""))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to decode pre-shared-key hexadecimal : %w", err)
+					return confRead, fmt.Errorf("failed to decode pre-shared-key hexadecimal: %w", err)
 				}
 			case strings.HasPrefix(itemTrim, "pre-shared-key ascii-text "):
 				confRead.preSharedKeyText, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
 					"pre-shared-key ascii-text "), "\""))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to decode pre-shared-key ascii-text : %w", err)
+					return confRead, fmt.Errorf("failed to decode pre-shared-key ascii-text: %w", err)
 				}
 			}
 		}

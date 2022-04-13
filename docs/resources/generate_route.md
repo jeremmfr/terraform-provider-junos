@@ -10,7 +10,7 @@ Provides a generate route resource for destination.
 
 ```hcl
 # Add a generate route
-resource junos_generate_route "demo_generate_route" {
+resource "junos_generate_route" "demo_generate_route" {
   destination      = "192.0.2.0/25"
   routing_instance = "prod-vr"
   brief            = true

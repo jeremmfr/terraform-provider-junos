@@ -9,7 +9,7 @@ Provides a VSTP interface resource.
 ## Example Usage
 
 ```hcl
-resource junos_vstp_interface "all" {
+resource "junos_vstp_interface" "all" {
   name = "all"
 }
 ```

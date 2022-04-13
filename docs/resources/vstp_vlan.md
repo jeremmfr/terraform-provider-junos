@@ -9,7 +9,7 @@ Provides a VSTP vlan resource.
 ## Example Usage
 
 ```hcl
-resource junos_vstp_vlan "all" {
+resource "junos_vstp_vlan" "all" {
   vlan_id = "all"
 }
 ```

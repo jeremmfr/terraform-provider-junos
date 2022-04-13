@@ -22,12 +22,12 @@ type utmPolicyOptions struct {
 
 func resourceSecurityUtmPolicy() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityUtmPolicyCreate,
-		ReadContext:   resourceSecurityUtmPolicyRead,
-		UpdateContext: resourceSecurityUtmPolicyUpdate,
-		DeleteContext: resourceSecurityUtmPolicyDelete,
+		CreateWithoutTimeout: resourceSecurityUtmPolicyCreate,
+		ReadWithoutTimeout:   resourceSecurityUtmPolicyRead,
+		UpdateWithoutTimeout: resourceSecurityUtmPolicyUpdate,
+		DeleteWithoutTimeout: resourceSecurityUtmPolicyDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityUtmPolicyImport,
+			StateContext: resourceSecurityUtmPolicyImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -143,7 +143,7 @@ func resourceSecurityUtmPolicyCreate(ctx context.Context, d *schema.ResourceData
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -152,7 +152,9 @@ func resourceSecurityUtmPolicyCreate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf("security utm utm-policy "+
 			"not compatible with Junos device %s", jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	utmPolicyExists, err := checkUtmPolicysExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -195,7 +197,7 @@ func resourceSecurityUtmPolicyCreate(ctx context.Context, d *schema.ResourceData
 
 func resourceSecurityUtmPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -204,8 +206,8 @@ func resourceSecurityUtmPolicyRead(ctx context.Context, d *schema.ResourceData, 
 	return resourceSecurityUtmPolicyReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityUtmPolicyReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityUtmPolicyReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	utmPolicyOptions, err := readUtmPolicy(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -235,12 +237,14 @@ func resourceSecurityUtmPolicyUpdate(ctx context.Context, d *schema.ResourceData
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delUtmPolicy(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -273,12 +277,14 @@ func resourceSecurityUtmPolicyDelete(ctx context.Context, d *schema.ResourceData
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delUtmPolicy(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -296,9 +302,10 @@ func resourceSecurityUtmPolicyDelete(ctx context.Context, d *schema.ResourceData
 	return diagWarns
 }
 
-func resourceSecurityUtmPolicyImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityUtmPolicyImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -430,8 +437,8 @@ func setUtmPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readUtmPolicy(policy string, m interface{}, jnprSess *NetconfObject) (
-	utmPolicyOptions, error) {
+func readUtmPolicy(policy string, m interface{}, jnprSess *NetconfObject,
+) (utmPolicyOptions, error) {
 	sess := m.(*Session)
 	var confRead utmPolicyOptions
 

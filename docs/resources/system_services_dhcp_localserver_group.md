@@ -10,14 +10,14 @@ Provides a DHCP (or DHCPv6) local server group.
 
 ```hcl
 # Add a DHCP local server group
-resource junos_system_services_dhcp_localserver_group "demo_dhcp_group" {
+resource "junos_system_services_dhcp_localserver_group" "demo_dhcp_group" {
   name = "demo_dhcp_group"
   interface {
     name = "ge-0/0/3.1"
   }
 }
 # Add a DHCPv6 local server group
-resource junos_system_services_dhcp_localserver_group "demo_dhcp_group_v6" {
+resource "junos_system_services_dhcp_localserver_group" "demo_dhcp_group_v6" {
   name    = "demo_dhcp_group"
   version = "v6"
   interface {

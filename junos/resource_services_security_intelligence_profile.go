@@ -23,12 +23,12 @@ type securityIntellProfileOptions struct {
 
 func resourceServicesSecurityIntellProfile() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceServicesSecurityIntellProfileCreate,
-		ReadContext:   resourceServicesSecurityIntellProfileRead,
-		UpdateContext: resourceServicesSecurityIntellProfileUpdate,
-		DeleteContext: resourceServicesSecurityIntellProfileDelete,
+		CreateWithoutTimeout: resourceServicesSecurityIntellProfileCreate,
+		ReadWithoutTimeout:   resourceServicesSecurityIntellProfileRead,
+		UpdateWithoutTimeout: resourceServicesSecurityIntellProfileUpdate,
+		DeleteWithoutTimeout: resourceServicesSecurityIntellProfileDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceServicesSecurityIntellProfileImport,
+			StateContext: resourceServicesSecurityIntellProfileImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -118,8 +118,8 @@ func resourceServicesSecurityIntellProfile() *schema.Resource {
 	}
 }
 
-func resourceServicesSecurityIntellProfileCreate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesSecurityIntellProfileCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setServicesSecurityIntellProfile(d, m, nil); err != nil {
@@ -129,12 +129,14 @@ func resourceServicesSecurityIntellProfileCreate(ctx context.Context,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	securityIntellProfileExists, err := checkServicesSecurityIntellProfileExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -175,10 +177,10 @@ func resourceServicesSecurityIntellProfileCreate(ctx context.Context,
 	return append(diagWarns, resourceServicesSecurityIntellProfileReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceServicesSecurityIntellProfileRead(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesSecurityIntellProfileRead(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -187,8 +189,8 @@ func resourceServicesSecurityIntellProfileRead(ctx context.Context,
 	return resourceServicesSecurityIntellProfileReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceServicesSecurityIntellProfileReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceServicesSecurityIntellProfileReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	securityIntellProfileOptions, err := readServicesSecurityIntellProfile(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -204,8 +206,8 @@ func resourceServicesSecurityIntellProfileReadWJnprSess(
 	return nil
 }
 
-func resourceServicesSecurityIntellProfileUpdate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesSecurityIntellProfileUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -219,12 +221,14 @@ func resourceServicesSecurityIntellProfileUpdate(ctx context.Context,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesSecurityIntellProfile(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -248,8 +252,8 @@ func resourceServicesSecurityIntellProfileUpdate(ctx context.Context,
 	return append(diagWarns, resourceServicesSecurityIntellProfileReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceServicesSecurityIntellProfileDelete(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServicesSecurityIntellProfileDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delServicesSecurityIntellProfile(d.Get("name").(string), m, nil); err != nil {
@@ -258,12 +262,14 @@ func resourceServicesSecurityIntellProfileDelete(ctx context.Context,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delServicesSecurityIntellProfile(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -281,10 +287,10 @@ func resourceServicesSecurityIntellProfileDelete(ctx context.Context,
 	return diagWarns
 }
 
-func resourceServicesSecurityIntellProfileImport(
-	d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceServicesSecurityIntellProfileImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -367,8 +373,8 @@ func setServicesSecurityIntellProfile(d *schema.ResourceData, m interface{}, jnp
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readServicesSecurityIntellProfile(profile string, m interface{}, jnprSess *NetconfObject) (
-	securityIntellProfileOptions, error) {
+func readServicesSecurityIntellProfile(profile string, m interface{}, jnprSess *NetconfObject,
+) (securityIntellProfileOptions, error) {
 	sess := m.(*Session)
 	var confRead securityIntellProfileOptions
 
@@ -468,7 +474,8 @@ func delServicesSecurityIntellProfile(profile string, m interface{}, jnprSess *N
 }
 
 func fillServicesSecurityIntellProfileData(
-	d *schema.ResourceData, securityIntellProfileOptions securityIntellProfileOptions) {
+	d *schema.ResourceData, securityIntellProfileOptions securityIntellProfileOptions,
+) {
 	if tfErr := d.Set("name", securityIntellProfileOptions.name); tfErr != nil {
 		panic(tfErr)
 	}

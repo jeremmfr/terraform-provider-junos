@@ -14,7 +14,7 @@ Configure `system root-authentication` block
 
 ```hcl
 # Configure system root-authentication
-resource junos_system_root_authentication "root_auth" {
+resource "junos_system_root_authentication" "root_auth" {
   encrypted_password = "$6$XXX"
   ssh_public_keys = [
     "ssh-rsa XXXX",
@@ -27,8 +27,18 @@ resource junos_system_root_authentication "root_auth" {
 
 The following arguments are supported:
 
-- **encrypted_password** (Required, String)  
-  Encrypted password string.
+-> **Note:** One of `encrypted_password` or `plain_text_password` arguments is required.
+
+- **encrypted_password** (Optional, String)  
+  Encrypted password string.  
+  If `plain_text_password` is used in Terraform config,
+  the value of this argument is left blank to avoid conflict.
+- **plain_text_password** (Optional, String, Sensitive)  
+  Plain text password (auto encrypted by Junos device)  
+  Due to encryption, when Terraform refreshes the resource, the plain text password can't be read,
+  so the provider can't detect a change of the password itself outside of Terraform.  
+  To be able to detect a change of the password outside of Terraform,
+  preferably use `encrypted_password` argument.  
 - **no_public_keys** (Optional, Boolean)  
   Disables ssh public key based authentication.
 - **ssh_public_keys** (Optional, Set of String)  

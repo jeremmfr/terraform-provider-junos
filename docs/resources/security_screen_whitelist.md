@@ -10,7 +10,7 @@ Provides a security screen white-list resource.
 
 ```hcl
 # Add a security screen white-list
-resource junos_security_screen_whitelist "demo_screen_whitelist" {
+resource "junos_security_screen_whitelist" "demo_screen_whitelist" {
   name = "demo_screen_whitelist"
   address = [
     "192.0.2.128/26",

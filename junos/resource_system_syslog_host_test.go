@@ -97,7 +97,7 @@ func TestAccJunosSystemSyslogHost_basic(t *testing.T) {
 
 func testAccJunosSystemSyslogHostConfigCreate() string {
 	return `
-resource junos_system_syslog_host testacc_syslogHost {
+resource "junos_system_syslog_host" "testacc_syslogHost" {
   host = "192.0.2.1"
   port = 514
 }
@@ -106,7 +106,7 @@ resource junos_system_syslog_host testacc_syslogHost {
 
 func testAccJunosSystemSyslogHostConfigUpdate() string {
 	return `
-resource junos_system_syslog_host testacc_syslogHost {
+resource "junos_system_syslog_host" "testacc_syslogHost" {
   host = "192.0.2.1"
   structured_data {
     brief = true
@@ -117,7 +117,7 @@ resource junos_system_syslog_host testacc_syslogHost {
 
 func testAccJunosSystemSyslogHostConfigUpdate2() string {
 	return `
-resource junos_system_syslog_host testacc_syslogHost {
+resource "junos_system_syslog_host" "testacc_syslogHost" {
   host                         = "192.0.2.1"
   port                         = 514
   allow_duplicates             = true

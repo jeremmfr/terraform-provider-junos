@@ -10,7 +10,7 @@ Provides a snmp v3 community resource.
 
 ```hcl
 # Add a snmp v3 community
-resource junos_snmp_v3_community "index1" {
+resource "junos_snmp_v3_community" "index1" {
   community_index = "index1"
   security_name   = "john"
 }

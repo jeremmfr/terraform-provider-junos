@@ -10,7 +10,7 @@ Provides a security utm feature-profile web-filtering juniper-enhanced profile r
 
 ```hcl
 # Add a security utm feature-profile web-filtering juniper-enhanced profile
-resource junos_security_utm_profile_web_filtering_juniper_enhanced "demo_profile" {
+resource "junos_security_utm_profile_web_filtering_juniper_enhanced" "demo_profile" {
   name = "Default Webfilter"
   category {
     name   = "Enhanced_Network_Errors"

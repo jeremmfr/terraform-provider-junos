@@ -14,7 +14,7 @@ Configure static configuration in `switch-options` block
 
 ```hcl
 # Configure switch-options
-resource junos_switch_options "switch_options" {
+resource "junos_switch_options" "switch_options" {
   vtep_source_interface = "lo0.0"
 }
 ```

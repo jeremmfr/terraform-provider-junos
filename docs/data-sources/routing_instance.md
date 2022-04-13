@@ -10,7 +10,7 @@ Get information on a routing instance.
 
 ```hcl
 # Read routing instance
-data junos_routing_instance "demo_ri" {
+data "junos_routing_instance" "demo_ri" {
   name = "prod-vr"
 }
 ```

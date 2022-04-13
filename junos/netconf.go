@@ -1,12 +1,15 @@
 package junos
 
 import (
+	"context"
 	"encoding/xml"
 	"errors"
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/jeremmfr/go-netconf/netconf"
@@ -58,6 +61,7 @@ type netconfAuthMethod struct {
 	PrivateKeyFile string
 	Passphrase     string
 	Ciphers        []string
+	Timeout        int
 }
 
 type commitResults struct {
@@ -79,21 +83,29 @@ type getInterfaceTerseReply struct {
 // to run our commands against.
 // Authentication methods are defined using the netconfAuthMethod struct, and are as follows:
 // username and password, SSH private key (with or without passphrase).
-func netconfNewSession(host string, auth *netconfAuthMethod) (*NetconfObject, error) {
+func netconfNewSession(ctx context.Context, host string, auth *netconfAuthMethod) (*NetconfObject, error) {
 	clientConfig, err := genSSHClientConfig(auth)
 	if err != nil {
 		return nil, err
 	}
 
-	return netconfNewSessionWithConfig(host, clientConfig)
+	return netconfNewSessionWithConfig(ctx, host, clientConfig)
 }
 
 // netconfNewSessionWithConfig establishes a new connection to a NetconfObject device that we will use
 // to run our commands against.
-func netconfNewSessionWithConfig(host string, clientConfig *ssh.ClientConfig) (*NetconfObject, error) {
-	s, err := netconf.DialSSH(host, clientConfig)
+func netconfNewSessionWithConfig(ctx context.Context, host string, clientConfig *ssh.ClientConfig,
+) (*NetconfObject, error) {
+	netDialer := net.Dialer{
+		Timeout: clientConfig.Timeout,
+	}
+	conn, err := netDialer.DialContext(ctx, "tcp", host)
 	if err != nil {
-		return nil, fmt.Errorf("error connecting to %s - %w", host, err)
+		return nil, fmt.Errorf("error connecting to %s: %w", host, err)
+	}
+	s, err := netconf.NewSSHSession(conn, clientConfig)
+	if err != nil {
+		return nil, fmt.Errorf("error initializing SSH session to %s: %w", host, err)
 	}
 
 	return newSessionFromNetconf(s)
@@ -120,13 +132,13 @@ func genSSHClientConfig(auth *netconfAuthMethod) (*ssh.ClientConfig, error) {
 	case len(auth.PrivateKeyPEM) > 0:
 		config, err := netconf.SSHConfigPubKeyPem(auth.Username, []byte(auth.PrivateKeyPEM), auth.Passphrase)
 		if err != nil {
-			return config, fmt.Errorf("failed to create new SSHConfig with PEM private key : %w", err)
+			return config, fmt.Errorf("failed to create new SSHConfig with PEM private key: %w", err)
 		}
 		configs = append(configs, config)
 	case len(auth.PrivateKeyFile) > 0:
 		config, err := netconf.SSHConfigPubKeyFile(auth.Username, auth.PrivateKeyFile, auth.Passphrase)
 		if err != nil {
-			return config, fmt.Errorf("failed to create new SSHConfig with file private key : %w", err)
+			return config, fmt.Errorf("failed to create new SSHConfig with file private key: %w", err)
 		}
 		configs = append(configs, config)
 	case os.Getenv("SSH_AUTH_SOCK") != "":
@@ -150,6 +162,7 @@ func genSSHClientConfig(auth *netconfAuthMethod) (*ssh.ClientConfig, error) {
 	for _, v := range configs[2:] {
 		configs[0].Auth = append(configs[0].Auth, v.Auth...)
 	}
+	configs[0].Timeout = time.Duration(auth.Timeout) * time.Second
 
 	return configs[0], nil
 }
@@ -173,7 +186,7 @@ func (j *NetconfObject) gatherFacts() error {
 	// Get info for get-system-information and populate SystemInformation Struct
 	val, err := s.Exec(netconf.RawMethod(rpcSystemInfo))
 	if err != nil {
-		return fmt.Errorf("failed to netconf get-system-information : %w", err)
+		return fmt.Errorf("failed to netconf get-system-information: %w", err)
 	}
 
 	if val.Errors != nil {
@@ -186,7 +199,7 @@ func (j *NetconfObject) gatherFacts() error {
 	}
 	err = xml.Unmarshal([]byte(val.RawReply), &j)
 	if err != nil {
-		return fmt.Errorf("failed to xml unmarshal reply : %w", err)
+		return fmt.Errorf("failed to xml unmarshal reply: %w", err)
 	}
 
 	return nil
@@ -197,7 +210,7 @@ func (j *NetconfObject) netconfCommand(cmd string) (string, error) {
 	command := fmt.Sprintf(rpcCommand, cmd)
 	reply, err := j.Session.Exec(netconf.RawMethod(command))
 	if err != nil {
-		return "", fmt.Errorf("failed to netconf command exec : %w", err)
+		return "", fmt.Errorf("failed to netconf command exec: %w", err)
 	}
 	if reply.Errors != nil {
 		for _, m := range reply.Errors {
@@ -209,7 +222,7 @@ func (j *NetconfObject) netconfCommand(cmd string) (string, error) {
 	}
 	var output commandXMLConfig
 	if err := xml.Unmarshal([]byte(reply.Data), &output); err != nil {
-		return "", fmt.Errorf("failed to xml unmarshal reply : %w", err)
+		return "", fmt.Errorf("failed to xml unmarshal reply: %w", err)
 	}
 
 	return output.Config, nil
@@ -218,7 +231,7 @@ func (j *NetconfObject) netconfCommand(cmd string) (string, error) {
 func (j *NetconfObject) netconfCommandXML(cmd string) (string, error) {
 	reply, err := j.Session.Exec(netconf.RawMethod(cmd))
 	if err != nil {
-		return "", fmt.Errorf("failed to netconf xml command exec : %w", err)
+		return "", fmt.Errorf("failed to netconf xml command exec: %w", err)
 	}
 	if reply.Errors != nil {
 		for _, m := range reply.Errors {
@@ -233,7 +246,7 @@ func (j *NetconfObject) netconfConfigSet(cmd []string) (string, error) {
 	command := fmt.Sprintf(rpcConfigStringSet, strings.Join(cmd, "\n"))
 	reply, err := j.Session.Exec(netconf.RawMethod(command))
 	if err != nil {
-		return "", fmt.Errorf("failed to netconf set/delete command exec : %w", err)
+		return "", fmt.Errorf("failed to netconf set/delete command exec: %w", err)
 	}
 	// logFile("netconfConfigSet.Reply:" + reply.RawReply)
 	message := ""
@@ -265,7 +278,7 @@ func (j *NetconfObject) netconfConfigLock() bool {
 func (j *NetconfObject) netconfConfigUnlock() []error {
 	reply, err := j.Session.Exec(netconf.RawMethod(rpcCandidateUnlock))
 	if err != nil {
-		return []error{fmt.Errorf("failed to netconf config unlock : %w", err)}
+		return []error{fmt.Errorf("failed to netconf config unlock: %w", err)}
 	}
 	if reply.Errors != nil {
 		errs := make([]error, 0)
@@ -282,7 +295,7 @@ func (j *NetconfObject) netconfConfigUnlock() []error {
 func (j *NetconfObject) netconfConfigClear() []error {
 	reply, err := j.Session.Exec(netconf.RawMethod(rpcClearCandidate))
 	if err != nil {
-		return []error{fmt.Errorf("failed to netconf config clear : %w", err)}
+		return []error{fmt.Errorf("failed to netconf config clear: %w", err)}
 	}
 	if reply.Errors != nil {
 		errs := make([]error, 0)
@@ -300,7 +313,7 @@ func (j *NetconfObject) netconfConfigClear() []error {
 func (j *NetconfObject) netconfCommit(logMessage string) (_warn []error, _err error) {
 	reply, err := j.Session.Exec(netconf.RawMethod(fmt.Sprintf(rpcCommit, logMessage)))
 	if err != nil {
-		return []error{}, fmt.Errorf("failed to netconf commit : %w", err)
+		return []error{}, fmt.Errorf("failed to netconf commit: %w", err)
 	}
 
 	if reply.Errors != nil {
@@ -319,7 +332,7 @@ func (j *NetconfObject) netconfCommit(logMessage string) (_warn []error, _err er
 	if strings.Contains(reply.Data, "<commit-results>") {
 		err = xml.Unmarshal([]byte(reply.Data), &errs)
 		if err != nil {
-			return []error{}, fmt.Errorf("failed to xml unmarshal reply %s : %w", reply.Data, err)
+			return []error{}, fmt.Errorf("failed to xml unmarshal reply '%s': %w", reply.Data, err)
 		}
 
 		if errs.Errors != nil {
@@ -345,7 +358,7 @@ func (j *NetconfObject) close(sleepClosed int) error {
 	if err != nil {
 		sleep(sleepClosed)
 
-		return fmt.Errorf("failed to netconf close : %w", err)
+		return fmt.Errorf("failed to netconf close: %w", err)
 	}
 	sleep(sleepClosed)
 

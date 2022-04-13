@@ -10,7 +10,7 @@ Provides a security utm feature-profile web-filtering websense-redirect profile 
 
 ```hcl
 # Add a security utm feature-profile web-filtering websense-redirect profile
-resource junos_security_utm_profile_web_filtering_websense_redirect "demo_profile" {
+resource "junos_security_utm_profile_web_filtering_websense_redirect" "demo_profile" {
   name                 = "Default Webfilter3"
   custom_block_message = "Blocked by Juniper"
   server {

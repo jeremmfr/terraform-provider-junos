@@ -10,7 +10,7 @@ Provides a security source nat resource.
 
 ```hcl
 # Add a source nat
-resource junos_security_nat_source "demo_snat" {
+resource "junos_security_nat_source" "demo_snat" {
   name = "nat_from_trust_to_untrust"
   from {
     type  = "zone"

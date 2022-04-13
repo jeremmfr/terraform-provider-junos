@@ -16,12 +16,12 @@ type screenWhiteListOptions struct {
 
 func resourceSecurityScreenWhiteList() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityScreenWhiteListCreate,
-		ReadContext:   resourceSecurityScreenWhiteListRead,
-		UpdateContext: resourceSecurityScreenWhiteListUpdate,
-		DeleteContext: resourceSecurityScreenWhiteListDelete,
+		CreateWithoutTimeout: resourceSecurityScreenWhiteListCreate,
+		ReadWithoutTimeout:   resourceSecurityScreenWhiteListRead,
+		UpdateWithoutTimeout: resourceSecurityScreenWhiteListUpdate,
+		DeleteWithoutTimeout: resourceSecurityScreenWhiteListDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityScreenWhiteListImport,
+			StateContext: resourceSecurityScreenWhiteListImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -34,14 +34,17 @@ func resourceSecurityScreenWhiteList() *schema.Resource {
 				Type:     schema.TypeSet,
 				Required: true,
 				MinItems: 1,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateCIDRNetworkFunc(),
+				},
 			},
 		},
 	}
 }
 
-func resourceSecurityScreenWhiteListCreate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityScreenWhiteListCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setSecurityScreenWhiteList(d, m, nil); err != nil {
@@ -51,7 +54,7 @@ func resourceSecurityScreenWhiteListCreate(
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -60,7 +63,9 @@ func resourceSecurityScreenWhiteListCreate(
 		return diag.FromErr(fmt.Errorf("security screen white-list not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	securityScreenWhiteListExists, err := checkSecurityScreenWhiteListExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -101,10 +106,10 @@ func resourceSecurityScreenWhiteListCreate(
 	return append(diagWarns, resourceSecurityScreenWhiteListReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSecurityScreenWhiteListRead(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityScreenWhiteListRead(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -113,8 +118,8 @@ func resourceSecurityScreenWhiteListRead(
 	return resourceSecurityScreenWhiteListReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityScreenWhiteListReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityScreenWhiteListReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	whiteListOptions, err := readSecurityScreenWhiteList(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -130,8 +135,8 @@ func resourceSecurityScreenWhiteListReadWJnprSess(
 	return nil
 }
 
-func resourceSecurityScreenWhiteListUpdate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityScreenWhiteListUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -145,12 +150,14 @@ func resourceSecurityScreenWhiteListUpdate(
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityScreenWhiteList(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -174,8 +181,8 @@ func resourceSecurityScreenWhiteListUpdate(
 	return append(diagWarns, resourceSecurityScreenWhiteListReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSecurityScreenWhiteListDelete(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityScreenWhiteListDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delSecurityScreenWhiteList(d.Get("name").(string), m, nil); err != nil {
@@ -184,12 +191,14 @@ func resourceSecurityScreenWhiteListDelete(
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityScreenWhiteList(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -207,9 +216,10 @@ func resourceSecurityScreenWhiteListDelete(
 	return diagWarns
 }
 
-func resourceSecurityScreenWhiteListImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityScreenWhiteListImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -253,9 +263,6 @@ func setSecurityScreenWhiteList(d *schema.ResourceData, m interface{}, jnprSess 
 	setPrefix := "set security screen white-list " + d.Get("name").(string) + " "
 
 	for _, v := range sortSetOfString(d.Get("address").(*schema.Set).List()) {
-		if err := validateCIDRNetwork(v); err != nil {
-			return err
-		}
 		configSet = append(configSet, setPrefix+"address "+v)
 	}
 

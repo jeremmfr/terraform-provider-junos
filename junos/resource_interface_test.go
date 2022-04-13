@@ -261,29 +261,29 @@ func TestAccJunosInterface_basic(t *testing.T) {
 
 func testAccJunosInterfaceConfigCreate(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface testacc_interface {
-  name         = "` + interFace + `"
+resource "junos_interface" "testacc_interface" {
+  name         = "%s"
   description  = "testacc_interface"
   trunk        = true
   vlan_native  = 100
   vlan_members = ["100-110"]
 }
-`)
+`, interFace)
 }
 
 func testAccJunosInterfaceConfigUpdate(interFace string) string {
 	return fmt.Sprintf(`
-resource junos_interface testacc_interface {
-  name         = "` + interFace + `"
+resource "junos_interface" "testacc_interface" {
+  name         = "%s"
   description  = "testacc_interfaceU"
   vlan_members = ["100"]
 }
-`)
+`, interFace)
 }
 
 func testAccJunosInterfacePlusConfigCreate(interFace, interfaceAE string) string {
 	return fmt.Sprintf(`
-resource junos_firewall_filter "testacc_interfaceInet" {
+resource "junos_firewall_filter" "testacc_interfaceInet" {
   name   = "testacc_interfaceInet"
   family = "inet"
   term {
@@ -293,7 +293,7 @@ resource junos_firewall_filter "testacc_interfaceInet" {
     }
   }
 }
-resource junos_firewall_filter "testacc_interfaceInet6" {
+resource "junos_firewall_filter" "testacc_interfaceInet6" {
   name   = "testacc_interfaceInet6"
   family = "inet6"
   term {
@@ -303,25 +303,25 @@ resource junos_firewall_filter "testacc_interfaceInet6" {
     }
   }
 }
-resource junos_security_zone "testacc_interface" {
+resource "junos_security_zone" "testacc_interface" {
   name = "testacc_interface"
 }
-resource junos_routing_instance "testacc_interface" {
+resource "junos_routing_instance" "testacc_interface" {
   name = "testacc_interface"
 }
-resource junos_interface testacc_interface {
-  name         = "` + interFace + `"
+resource "junos_interface" "testacc_interface" {
+  name         = "%s"
   description  = "testacc_interface"
-  ether802_3ad = "` + interfaceAE + `"
+  ether802_3ad = "%s"
 }
-resource junos_interface testacc_interfaceAE {
+resource "junos_interface" "testacc_interfaceAE" {
   name             = junos_interface.testacc_interface.ether802_3ad
   description      = "testacc_interfaceAE"
   ae_lacp          = "active"
   ae_minimum_links = 1
   vlan_tagging     = true
 }
-resource junos_interface testacc_interfaceAEunit {
+resource "junos_interface" "testacc_interfaceAEunit" {
   name               = "${junos_interface.testacc_interfaceAE.name}.100"
   description        = "testacc_interface_${junos_interface.testacc_interfaceAE.name}.100"
   security_zone      = junos_security_zone.testacc_interface.name
@@ -382,12 +382,12 @@ resource junos_interface testacc_interfaceAEunit {
     address = "fe80::1/64"
   }
 }
-`)
+`, interFace, interfaceAE)
 }
 
 func testAccJunosInterfacePlusConfigUpdate(interFace, interfaceAE string) string {
 	return fmt.Sprintf(`
-resource junos_firewall_filter "testacc_interfaceInet" {
+resource "junos_firewall_filter" "testacc_interfaceInet" {
   name   = "testacc_interfaceInet"
   family = "inet"
   term {
@@ -397,7 +397,7 @@ resource junos_firewall_filter "testacc_interfaceInet" {
     }
   }
 }
-resource junos_firewall_filter "testacc_interfaceInet6" {
+resource "junos_firewall_filter" "testacc_interfaceInet6" {
   name   = "testacc_interfaceInet6"
   family = "inet6"
   term {
@@ -407,23 +407,23 @@ resource junos_firewall_filter "testacc_interfaceInet6" {
     }
   }
 }
-resource junos_security_zone "testacc_interface" {
+resource "junos_security_zone" "testacc_interface" {
   name = "testacc_interface"
 }
-resource junos_routing_instance "testacc_interface" {
+resource "junos_routing_instance" "testacc_interface" {
   name = "testacc_interface"
 }
-resource junos_interface testacc_interface {
-  name         = "` + interFace + `"
+resource "junos_interface" "testacc_interface" {
+  name         = "%s"
   description  = "testacc_interfaceU"
-  ether802_3ad = "` + interfaceAE + `"
+  ether802_3ad = "%s"
 }
-resource junos_interface testacc_interfaceAE {
+resource "junos_interface" "testacc_interfaceAE" {
   name         = junos_interface.testacc_interface.ether802_3ad
   description  = "testacc_interfaceAE"
   vlan_tagging = true
 }
-resource junos_interface testacc_interfaceAEunit {
+resource "junos_interface" "testacc_interfaceAEunit" {
   name               = "${junos_interface.testacc_interfaceAE.name}.100"
   vlan_tagging_id    = 101
   description        = "testacc_interface_${junos_interface.testacc_interfaceAE.name}.100"
@@ -468,5 +468,5 @@ resource junos_interface testacc_interfaceAEunit {
     address = "fe80::1/64"
   }
 }
-`)
+`, interFace, interfaceAE)
 }

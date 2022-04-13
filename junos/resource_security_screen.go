@@ -31,12 +31,12 @@ type screenOptions struct {
 
 func resourceSecurityScreen() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityScreenCreate,
-		ReadContext:   resourceSecurityScreenRead,
-		UpdateContext: resourceSecurityScreenUpdate,
-		DeleteContext: resourceSecurityScreenDelete,
+		CreateWithoutTimeout: resourceSecurityScreenCreate,
+		ReadWithoutTimeout:   resourceSecurityScreenRead,
+		UpdateWithoutTimeout: resourceSecurityScreenUpdate,
+		DeleteWithoutTimeout: resourceSecurityScreenDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityScreenImport,
+			StateContext: resourceSecurityScreenImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -162,7 +162,11 @@ func resourceSecurityScreen() *schema.Resource {
 												"user_defined_option_type": {
 													Type:     schema.TypeList,
 													Optional: true,
-													Elem:     &schema.Schema{Type: schema.TypeString},
+													Elem: &schema.Schema{
+														Type: schema.TypeString,
+														ValidateFunc: validation.StringMatch(regexp.MustCompile(userDefinedOptionTypeRegex),
+															"doesn't match '(1..255)' or '(1..255) to (1..255)'"),
+													},
 												},
 											},
 										},
@@ -204,7 +208,11 @@ func resourceSecurityScreen() *schema.Resource {
 												"user_defined_option_type": {
 													Type:     schema.TypeList,
 													Optional: true,
-													Elem:     &schema.Schema{Type: schema.TypeString},
+													Elem: &schema.Schema{
+														Type: schema.TypeString,
+														ValidateFunc: validation.StringMatch(regexp.MustCompile(userDefinedOptionTypeRegex),
+															"doesn't match '(1..255)' or '(1..255) to (1..255)'"),
+													},
 												},
 											},
 										},
@@ -228,7 +236,11 @@ func resourceSecurityScreen() *schema.Resource {
 									"user_defined_header_type": {
 										Type:     schema.TypeList,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+											ValidateFunc: validation.StringMatch(regexp.MustCompile(userDefinedHeaderTypeRegex),
+												"doesn't match '(0..255)' or '(0..255) to (0..255)'"),
+										},
 									},
 								},
 							},
@@ -482,12 +494,18 @@ func resourceSecurityScreen() *schema.Resource {
 												"destination_address": {
 													Type:     schema.TypeSet,
 													Optional: true,
-													Elem:     &schema.Schema{Type: schema.TypeString},
+													Elem: &schema.Schema{
+														Type:             schema.TypeString,
+														ValidateDiagFunc: validateCIDRNetworkFunc(),
+													},
 												},
 												"source_address": {
 													Type:     schema.TypeSet,
 													Optional: true,
-													Elem:     &schema.Schema{Type: schema.TypeString},
+													Elem: &schema.Schema{
+														Type:             schema.TypeString,
+														ValidateDiagFunc: validateCIDRNetworkFunc(),
+													},
 												},
 											},
 										},
@@ -590,7 +608,7 @@ func resourceSecurityScreenCreate(ctx context.Context, d *schema.ResourceData, m
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -599,7 +617,9 @@ func resourceSecurityScreenCreate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("security screen not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	securityScreenExists, err := checkSecurityScreenExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -641,7 +661,7 @@ func resourceSecurityScreenCreate(ctx context.Context, d *schema.ResourceData, m
 
 func resourceSecurityScreenRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -650,8 +670,8 @@ func resourceSecurityScreenRead(ctx context.Context, d *schema.ResourceData, m i
 	return resourceSecurityScreenReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityScreenReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityScreenReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	screenOptions, err := readSecurityScreen(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -681,12 +701,14 @@ func resourceSecurityScreenUpdate(ctx context.Context, d *schema.ResourceData, m
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityScreen(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -719,12 +741,14 @@ func resourceSecurityScreenDelete(ctx context.Context, d *schema.ResourceData, m
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityScreen(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -742,9 +766,10 @@ func resourceSecurityScreenDelete(ctx context.Context, d *schema.ResourceData, m
 	return diagWarns
 }
 
-func resourceSecurityScreenImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityScreenImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -923,10 +948,6 @@ func setSecurityScreenIP(ip map[string]interface{}, setPrefix string) ([]string,
 						"tunnel-encapsulation-limit-option")
 				}
 				for _, v3 := range ipIPv6ExtHeaderDestHeader["user_defined_option_type"].([]interface{}) {
-					if r := regexp.MustCompile(userDefinedOptionTypeRegex); !r.Match([]byte(v3.(string))) {
-						return configSet, fmt.Errorf(
-							"user_defined_option_type %v doesn't match '(1..255)' or '(1..255) to (1..255)'", v3.(string))
-					}
 					configSet = append(configSet,
 						setPrefix+"ipv6-extension-header destination-header user-defined-option-type "+v3.(string))
 				}
@@ -958,10 +979,6 @@ func setSecurityScreenIP(ip map[string]interface{}, setPrefix string) ([]string,
 					configSet = append(configSet, setPrefix+"ipv6-extension-header hop-by-hop-header router-alert-option")
 				}
 				for _, v3 := range ipIPv6ExtHeaderHopByHopHeader["user_defined_option_type"].([]interface{}) {
-					if r := regexp.MustCompile(userDefinedOptionTypeRegex); !r.Match([]byte(v3.(string))) {
-						return configSet, fmt.Errorf(
-							"user_defined_option_type %v doesn't match '(1..255)' or '(1..255) to (1..255)'", v3.(string))
-					}
 					configSet = append(configSet,
 						setPrefix+"ipv6-extension-header hop-by-hop-header user-defined-option-type "+v3.(string))
 				}
@@ -980,10 +997,6 @@ func setSecurityScreenIP(ip map[string]interface{}, setPrefix string) ([]string,
 			configSet = append(configSet, setPrefix+"ipv6-extension-header shim6-header")
 		}
 		for _, v2 := range ipIPv6ExtHeader["user_defined_header_type"].([]interface{}) {
-			if r := regexp.MustCompile(userDefinedHeaderTypeRegex); !r.Match([]byte(v2.(string))) {
-				return configSet, fmt.Errorf(
-					"user_defined_header_type %v doesn't match '(0..255)' or '(0..255) to (0..255)'", v2.(string))
-			}
 			configSet = append(configSet, setPrefix+"ipv6-extension-header user-defined-header-type "+v2.(string))
 		}
 	}
@@ -1173,16 +1186,10 @@ func setSecurityScreenTCP(tcp map[string]interface{}, setPrefix string) ([]strin
 				}
 				whitelistNameList = append(whitelistNameList, whitelist["name"].(string))
 				for _, destination := range sortSetOfString(whitelist["destination_address"].(*schema.Set).List()) {
-					if err := validateCIDRNetwork(destination); err != nil {
-						return configSet, err
-					}
 					configSet = append(configSet, setPrefix+"syn-flood white-list "+whitelist["name"].(string)+
 						" destination-address "+destination)
 				}
 				for _, source := range sortSetOfString(whitelist["source_address"].(*schema.Set).List()) {
-					if err := validateCIDRNetwork(source); err != nil {
-						return configSet, err
-					}
 					configSet = append(configSet, setPrefix+"syn-flood white-list "+whitelist["name"].(string)+
 						" source-address "+source)
 				}

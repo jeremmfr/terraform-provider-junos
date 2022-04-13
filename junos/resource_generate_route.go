@@ -33,12 +33,12 @@ type generateRouteOptions struct {
 
 func resourceGenerateRoute() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceGenerateRouteCreate,
-		ReadContext:   resourceGenerateRouteRead,
-		UpdateContext: resourceGenerateRouteUpdate,
-		DeleteContext: resourceGenerateRouteDelete,
+		CreateWithoutTimeout: resourceGenerateRouteCreate,
+		ReadWithoutTimeout:   resourceGenerateRouteRead,
+		UpdateWithoutTimeout: resourceGenerateRouteUpdate,
+		DeleteWithoutTimeout: resourceGenerateRouteDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceGenerateRouteImport,
+			StateContext: resourceGenerateRouteImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"destination": {
@@ -120,7 +120,10 @@ func resourceGenerateRoute() *schema.Resource {
 			"policy": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+				},
 			},
 			"preference": {
 				Type:     schema.TypeInt,
@@ -140,12 +143,14 @@ func resourceGenerateRouteCreate(ctx context.Context, d *schema.ResourceData, m 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
@@ -203,7 +208,7 @@ func resourceGenerateRouteCreate(ctx context.Context, d *schema.ResourceData, m 
 
 func resourceGenerateRouteRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -212,8 +217,8 @@ func resourceGenerateRouteRead(ctx context.Context, d *schema.ResourceData, m in
 	return resourceGenerateRouteReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceGenerateRouteReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceGenerateRouteReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	generateRouteOptions, err := readGenerateRoute(d.Get("destination").(string), d.Get("routing_instance").(string),
 		m, jnprSess)
@@ -245,12 +250,14 @@ func resourceGenerateRouteUpdate(ctx context.Context, d *schema.ResourceData, m 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delGenerateRoute(
 		d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess); err != nil {
@@ -286,12 +293,14 @@ func resourceGenerateRouteDelete(ctx context.Context, d *schema.ResourceData, m 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delGenerateRoute(
 		d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess); err != nil {
@@ -310,9 +319,10 @@ func resourceGenerateRouteDelete(ctx context.Context, d *schema.ResourceData, m 
 	return diagWarns
 }
 
-func resourceGenerateRouteImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceGenerateRouteImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -452,8 +462,8 @@ func setGenerateRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readGenerateRoute(destination, instance string,
-	m interface{}, jnprSess *NetconfObject) (generateRouteOptions, error) {
+func readGenerateRoute(destination, instance string, m interface{}, jnprSess *NetconfObject,
+) (generateRouteOptions, error) {
 	sess := m.(*Session)
 	var confRead generateRouteOptions
 	var showConfig string
@@ -535,7 +545,7 @@ func readGenerateRoute(destination, instance string,
 	return confRead, nil
 }
 
-func delGenerateRoute(destination string, instance string, m interface{}, jnprSess *NetconfObject) error {
+func delGenerateRoute(destination, instance string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	if instance == defaultW {

@@ -63,10 +63,10 @@ resource "junos_lldp_interface" "testacc_all" {
   name = "all"
 }
 resource "junos_lldp_interface" "testacc_interface" {
-  name = "` + interFace + `"
+  name = "%s"
   power_negotiation {}
 }
-`)
+`, interFace)
 }
 
 func testAccJunosLldpInterfaceSWConfigUpdate(interFace string) string {
@@ -80,13 +80,13 @@ resource "junos_lldp_interface" "testacc_all" {
 
 }
 resource "junos_lldp_interface" "testacc_interface" {
-  name    = "` + interFace + `"
+  name    = "%s"
   disable = true
   power_negotiation {
     disable = true
   }
 }
-`)
+`, interFace)
 }
 
 func testAccJunosLldpInterfaceConfigCreate(interFace string) string {
@@ -95,9 +95,9 @@ resource "junos_lldp_interface" "testacc_all" {
   name = "all"
 }
 resource "junos_lldp_interface" "testacc_interface" {
-  name = "` + interFace + `"
+  name = "%s"
 }
-`)
+`, interFace)
 }
 
 func testAccJunosLldpInterfaceConfigUpdate(interFace string) string {
@@ -109,9 +109,9 @@ resource "junos_lldp_interface" "testacc_all" {
 
 }
 resource "junos_lldp_interface" "testacc_interface" {
-  name                      = "` + interFace + `"
+  name                      = "%s"
   disable                   = true
   trap_notification_disable = true
 }
-`)
+`, interFace)
 }

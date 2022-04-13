@@ -10,7 +10,7 @@ Provides a snmp v3 VACM access group resource.
 
 ```hcl
 # Add a snmpv3 VACM access group
-resource junos_snmp_v3_vacm_accessgroup "group1" {
+resource "junos_snmp_v3_vacm_accessgroup" "group1" {
   name = "group1"
   default_context_prefix {
     model     = "any"

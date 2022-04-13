@@ -19,12 +19,12 @@ type snmpV3VacmAccessGroupOptions struct {
 
 func resourceSnmpV3VacmAccessGroup() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSnmpV3VacmAccessGroupCreate,
-		ReadContext:   resourceSnmpV3VacmAccessGroupRead,
-		UpdateContext: resourceSnmpV3VacmAccessGroupUpdate,
-		DeleteContext: resourceSnmpV3VacmAccessGroupDelete,
+		CreateWithoutTimeout: resourceSnmpV3VacmAccessGroupCreate,
+		ReadWithoutTimeout:   resourceSnmpV3VacmAccessGroupRead,
+		UpdateWithoutTimeout: resourceSnmpV3VacmAccessGroupUpdate,
+		DeleteWithoutTimeout: resourceSnmpV3VacmAccessGroupDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSnmpV3VacmAccessGroupImport,
+			StateContext: resourceSnmpV3VacmAccessGroupImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -138,12 +138,14 @@ func resourceSnmpV3VacmAccessGroupCreate(ctx context.Context, d *schema.Resource
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	snmpV3VacmAccessGroupExists, err := checkSnmpV3VacmAccessGroupExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -186,7 +188,7 @@ func resourceSnmpV3VacmAccessGroupCreate(ctx context.Context, d *schema.Resource
 
 func resourceSnmpV3VacmAccessGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -195,8 +197,8 @@ func resourceSnmpV3VacmAccessGroupRead(ctx context.Context, d *schema.ResourceDa
 	return resourceSnmpV3VacmAccessGroupReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSnmpV3VacmAccessGroupReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSnmpV3VacmAccessGroupReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	snmpV3VacmAccessGroupOptions, err := readSnmpV3VacmAccessGroup(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -226,12 +228,14 @@ func resourceSnmpV3VacmAccessGroupUpdate(ctx context.Context, d *schema.Resource
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSnmpV3VacmAccessGroup(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -264,12 +268,14 @@ func resourceSnmpV3VacmAccessGroupDelete(ctx context.Context, d *schema.Resource
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSnmpV3VacmAccessGroup(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -287,9 +293,10 @@ func resourceSnmpV3VacmAccessGroupDelete(ctx context.Context, d *schema.Resource
 	return diagWarns
 }
 
-func resourceSnmpV3VacmAccessGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSnmpV3VacmAccessGroupImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

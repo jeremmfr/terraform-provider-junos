@@ -35,7 +35,7 @@ func TestAccJunosSystemRootAuthentication_basic(t *testing.T) {
 					),
 				},
 				{
-					Config: testAccJunosSystemRootAuthenticationPostCheck(),
+					Config: testAccJunosSystemRootAuthenticationUpdate2(),
 				},
 			},
 		})
@@ -44,7 +44,7 @@ func TestAccJunosSystemRootAuthentication_basic(t *testing.T) {
 
 func testAccJunosSystemRootAuthenticationCreate() string {
 	return `
-resource junos_system_root_authentication "root_auth" {
+resource "junos_system_root_authentication" "root_auth" {
   encrypted_password = "$6$XXXX"
   ssh_public_keys = [
     "ssh-rsa XXXX",
@@ -55,17 +55,17 @@ resource junos_system_root_authentication "root_auth" {
 
 func testAccJunosSystemRootAuthenticationUpdate() string {
 	return `
-resource junos_system_root_authentication "root_auth" {
+resource "junos_system_root_authentication" "root_auth" {
   encrypted_password = "$6$XXX"
   no_public_keys     = true
 }
 `
 }
 
-func testAccJunosSystemRootAuthenticationPostCheck() string {
+func testAccJunosSystemRootAuthenticationUpdate2() string {
 	return `
-resource junos_system_root_authentication "root_auth" {
-  encrypted_password = "$6$XXX"
+resource "junos_system_root_authentication" "root_auth" {
+  plain_text_password = "testPassword1234"
 }
 `
 }

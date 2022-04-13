@@ -10,7 +10,7 @@ Provides a security ike proposal resource.
 
 ```hcl
 # Add an ike proposal
-resource junos_security_ike_proposal "demo_vpn_proposal" {
+resource "junos_security_ike_proposal" "demo_vpn_proposal" {
   name                     = "ike-proposal"
   authentication_algorithm = "sha1"
   encryption_algorithm     = "aes-128-cbc"

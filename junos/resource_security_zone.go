@@ -33,12 +33,12 @@ type zoneOptions struct {
 
 func resourceSecurityZone() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityZoneCreate,
-		ReadContext:   resourceSecurityZoneRead,
-		UpdateContext: resourceSecurityZoneUpdate,
-		DeleteContext: resourceSecurityZoneDelete,
+		CreateWithoutTimeout: resourceSecurityZoneCreate,
+		ReadWithoutTimeout:   resourceSecurityZoneRead,
+		UpdateWithoutTimeout: resourceSecurityZoneUpdate,
+		DeleteWithoutTimeout: resourceSecurityZoneDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityZoneImport,
+			StateContext: resourceSecurityZoneImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -154,12 +154,18 @@ func resourceSecurityZone() *schema.Resource {
 						"address": {
 							Type:     schema.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem: &schema.Schema{
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
+							},
 						},
 						"address_set": {
 							Type:     schema.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem: &schema.Schema{
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatAddressName),
+							},
 						},
 						"description": {
 							Type:     schema.TypeString,
@@ -244,7 +250,7 @@ func resourceSecurityZoneCreate(ctx context.Context, d *schema.ResourceData, m i
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -253,7 +259,9 @@ func resourceSecurityZoneCreate(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(fmt.Errorf("security zone not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	securityZoneExists, err := checkSecurityZonesExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -295,7 +303,7 @@ func resourceSecurityZoneCreate(ctx context.Context, d *schema.ResourceData, m i
 
 func resourceSecurityZoneRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -304,8 +312,8 @@ func resourceSecurityZoneRead(ctx context.Context, d *schema.ResourceData, m int
 	return resourceSecurityZoneReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityZoneReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityZoneReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	zoneOptions, err := readSecurityZone(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -358,12 +366,14 @@ func resourceSecurityZoneUpdate(ctx context.Context, d *schema.ResourceData, m i
 
 		return diagWarns
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	if err := delSecurityZoneOpts(
 		d.Get("name").(string), addressBookConfiguredSingly, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -396,12 +406,14 @@ func resourceSecurityZoneDelete(ctx context.Context, d *schema.ResourceData, m i
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityZone(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -419,9 +431,10 @@ func resourceSecurityZoneDelete(ctx context.Context, d *schema.ResourceData, m i
 	return diagWarns
 }
 
-func resourceSecurityZoneImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityZoneImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

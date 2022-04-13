@@ -59,7 +59,7 @@ func TestAccJunosFirewallPolicer_basic(t *testing.T) {
 
 func testAccJunosFirewallPolicerConfigCreate() string {
 	return `
-resource junos_firewall_policer testacc_fwPolic {
+resource "junos_firewall_policer" "testacc_fwPolic" {
   name            = "testacc_fwPolic"
   filter_specific = true
   if_exceeding {
@@ -75,7 +75,7 @@ resource junos_firewall_policer testacc_fwPolic {
 
 func testAccJunosFirewallPolicerConfigUpdate() string {
 	return `
-resource junos_firewall_policer testacc_fwPolic {
+resource "junos_firewall_policer" "testacc_fwPolic" {
   name = "testacc_fwPolic"
   if_exceeding {
     bandwidth_limit  = "32k"

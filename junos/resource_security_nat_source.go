@@ -22,12 +22,12 @@ type natSourceOptions struct {
 
 func resourceSecurityNatSource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityNatSourceCreate,
-		ReadContext:   resourceSecurityNatSourceRead,
-		UpdateContext: resourceSecurityNatSourceUpdate,
-		DeleteContext: resourceSecurityNatSourceDelete,
+		CreateWithoutTimeout: resourceSecurityNatSourceCreate,
+		ReadWithoutTimeout:   resourceSecurityNatSourceRead,
+		UpdateWithoutTimeout: resourceSecurityNatSourceUpdate,
+		DeleteWithoutTimeout: resourceSecurityNatSourceDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityNatSourceImport,
+			StateContext: resourceSecurityNatSourceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -100,7 +100,10 @@ func resourceSecurityNatSource() *schema.Resource {
 									"destination_address": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateCIDRNetworkFunc(),
+										},
 									},
 									"destination_address_name": {
 										Type:     schema.TypeSet,
@@ -120,7 +123,10 @@ func resourceSecurityNatSource() *schema.Resource {
 									"source_address": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateCIDRNetworkFunc(),
+										},
 									},
 									"source_address_name": {
 										Type:     schema.TypeSet,
@@ -175,7 +181,7 @@ func resourceSecurityNatSourceCreate(ctx context.Context, d *schema.ResourceData
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -184,7 +190,9 @@ func resourceSecurityNatSourceCreate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf("security nat source not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	securityNatSourceExists, err := checkSecurityNatSourceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -226,7 +234,7 @@ func resourceSecurityNatSourceCreate(ctx context.Context, d *schema.ResourceData
 
 func resourceSecurityNatSourceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -235,8 +243,8 @@ func resourceSecurityNatSourceRead(ctx context.Context, d *schema.ResourceData, 
 	return resourceSecurityNatSourceReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityNatSourceReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityNatSourceReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	natSourceOptions, err := readSecurityNatSource(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -266,12 +274,14 @@ func resourceSecurityNatSourceUpdate(ctx context.Context, d *schema.ResourceData
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityNatSource(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -304,12 +314,14 @@ func resourceSecurityNatSourceDelete(ctx context.Context, d *schema.ResourceData
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityNatSource(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -327,9 +339,10 @@ func resourceSecurityNatSourceDelete(ctx context.Context, d *schema.ResourceData
 	return diagWarns
 }
 
-func resourceSecurityNatSourceImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityNatSourceImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -410,10 +423,6 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				configSet = append(configSet, setPrefixRule+" match application \""+vv+"\"")
 			}
 			for _, address := range sortSetOfString(match["destination_address"].(*schema.Set).List()) {
-				err := validateCIDRNetwork(address)
-				if err != nil {
-					return err
-				}
 				configSet = append(configSet, setPrefixRule+" match destination-address "+address)
 			}
 			for _, vv := range sortSetOfString(match["destination_address_name"].(*schema.Set).List()) {
@@ -429,10 +438,6 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 				configSet = append(configSet, setPrefixRule+" match protocol "+proto)
 			}
 			for _, address := range sortSetOfString(match["source_address"].(*schema.Set).List()) {
-				err := validateCIDRNetwork(address)
-				if err != nil {
-					return err
-				}
 				configSet = append(configSet, setPrefixRule+" match source-address "+address)
 			}
 			for _, vv := range sortSetOfString(match["source_address_name"].(*schema.Set).List()) {

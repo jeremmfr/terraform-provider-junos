@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -18,17 +19,26 @@ type systemRootAuthOptions struct {
 
 func resourceSystemRootAuthentication() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSystemRootAuthenticationCreate,
-		ReadContext:   resourceSystemRootAuthenticationRead,
-		UpdateContext: resourceSystemRootAuthenticationUpdate,
-		DeleteContext: resourceSystemRootAuthenticationDelete,
+		CreateWithoutTimeout: resourceSystemRootAuthenticationCreate,
+		ReadWithoutTimeout:   resourceSystemRootAuthenticationRead,
+		UpdateWithoutTimeout: resourceSystemRootAuthenticationUpdate,
+		DeleteWithoutTimeout: resourceSystemRootAuthenticationDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSystemRootAuthenticationImport,
+			StateContext: resourceSystemRootAuthenticationImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"encrypted_password": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"encrypted_password", "plain_text_password"},
+			},
+			"plain_text_password": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"encrypted_password", "plain_text_password"},
 			},
 			"no_public_keys": {
 				Type:     schema.TypeBool,
@@ -47,10 +57,16 @@ func resourceSystemRootAuthentication() *schema.Resource {
 	}
 }
 
-func resourceSystemRootAuthenticationCreate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSystemRootAuthenticationCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
+		// To be able detect a plain text password not accepted by system
+		if d.Get("plain_text_password").(string) != "" {
+			if err := delSystemRootAuthenticationPassword(m, nil); err != nil {
+				return diag.FromErr(err)
+			}
+		}
 		if err := setSystemRootAuthentication(d, m, nil); err != nil {
 			return diag.FromErr(err)
 		}
@@ -58,13 +74,23 @@ func resourceSystemRootAuthenticationCreate(
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
+	// To be able detect a plain text password not accepted by system
+	if d.Get("plain_text_password").(string) != "" {
+		if err := delSystemRootAuthenticationPassword(m, jnprSess); err != nil {
+			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+			return append(diagWarns, diag.FromErr(err)...)
+		}
+	}
 	if err := setSystemRootAuthentication(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -84,7 +110,7 @@ func resourceSystemRootAuthenticationCreate(
 
 func resourceSystemRootAuthenticationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -93,8 +119,8 @@ func resourceSystemRootAuthenticationRead(ctx context.Context, d *schema.Resourc
 	return resourceSystemRootAuthenticationReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSystemRootAuthenticationReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSystemRootAuthenticationReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	systemRootAuthOptions, err := readSystemRootAuthentication(m, jnprSess)
 	mutex.Unlock()
@@ -106,8 +132,8 @@ func resourceSystemRootAuthenticationReadWJnprSess(
 	return nil
 }
 
-func resourceSystemRootAuthenticationUpdate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSystemRootAuthenticationUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -121,12 +147,14 @@ func resourceSystemRootAuthenticationUpdate(
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSystemRootAuthentication(m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -150,14 +178,15 @@ func resourceSystemRootAuthenticationUpdate(
 	return append(diagWarns, resourceSystemRootAuthenticationReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSystemRootAuthenticationDelete(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSystemRootAuthenticationDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	return nil
 }
 
-func resourceSystemRootAuthenticationImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSystemRootAuthenticationImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +209,11 @@ func setSystemRootAuthentication(d *schema.ResourceData, m interface{}, jnprSess
 	configSet := make([]string, 0)
 	setPrefix := "set system root-authentication "
 
-	configSet = append(configSet, setPrefix+"encrypted-password \""+d.Get("encrypted_password").(string)+"\"")
+	if v := d.Get("plain_text_password").(string); v != "" {
+		configSet = append(configSet, setPrefix+"plain-text-password-value \""+v+"\"")
+	} else {
+		configSet = append(configSet, setPrefix+"encrypted-password \""+d.Get("encrypted_password").(string)+"\"")
+	}
 	if d.Get("no_public_keys").(bool) {
 		configSet = append(configSet, setPrefix+"no-public-keys")
 	}
@@ -253,9 +286,19 @@ func delSystemRootAuthentication(m interface{}, jnprSess *NetconfObject) error {
 	return sess.configSet(configSet, jnprSess)
 }
 
+func delSystemRootAuthenticationPassword(m interface{}, jnprSess *NetconfObject) error {
+	sess := m.(*Session)
+	configSet := make([]string, 0, 1)
+	configSet = append(configSet, "delete system root-authentication encrypted-password")
+
+	return sess.configSet(configSet, jnprSess)
+}
+
 func fillSystemRootAuthenticationData(d *schema.ResourceData, systemRootAuthOptions systemRootAuthOptions) {
-	if tfErr := d.Set("encrypted_password", systemRootAuthOptions.encryptedPassword); tfErr != nil {
-		panic(tfErr)
+	if d.Get("plain_text_password").(string) == "" {
+		if tfErr := d.Set("encrypted_password", systemRootAuthOptions.encryptedPassword); tfErr != nil {
+			panic(tfErr)
+		}
 	}
 	if tfErr := d.Set("no_public_keys", systemRootAuthOptions.noPublicKeys); tfErr != nil {
 		panic(tfErr)

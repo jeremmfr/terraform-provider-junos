@@ -17,12 +17,12 @@ type communityOptions struct {
 
 func resourcePolicyoptionsCommunity() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourcePolicyoptionsCommunityCreate,
-		ReadContext:   resourcePolicyoptionsCommunityRead,
-		UpdateContext: resourcePolicyoptionsCommunityUpdate,
-		DeleteContext: resourcePolicyoptionsCommunityDelete,
+		CreateWithoutTimeout: resourcePolicyoptionsCommunityCreate,
+		ReadWithoutTimeout:   resourcePolicyoptionsCommunityRead,
+		UpdateWithoutTimeout: resourcePolicyoptionsCommunityUpdate,
+		DeleteWithoutTimeout: resourcePolicyoptionsCommunityDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourcePolicyoptionsCommunityImport,
+			StateContext: resourcePolicyoptionsCommunityImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -55,12 +55,14 @@ func resourcePolicyoptionsCommunityCreate(ctx context.Context, d *schema.Resourc
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	policyoptsCommunityExists, err := checkPolicyoptionsCommunityExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -103,7 +105,7 @@ func resourcePolicyoptionsCommunityCreate(ctx context.Context, d *schema.Resourc
 
 func resourcePolicyoptionsCommunityRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -112,8 +114,8 @@ func resourcePolicyoptionsCommunityRead(ctx context.Context, d *schema.ResourceD
 	return resourcePolicyoptionsCommunityReadWJnprSess(d, m, jnprSess)
 }
 
-func resourcePolicyoptionsCommunityReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourcePolicyoptionsCommunityReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	communityOptions, err := readPolicyoptionsCommunity(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -143,12 +145,14 @@ func resourcePolicyoptionsCommunityUpdate(ctx context.Context, d *schema.Resourc
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delPolicyoptionsCommunity(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -181,12 +185,14 @@ func resourcePolicyoptionsCommunityDelete(ctx context.Context, d *schema.Resourc
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delPolicyoptionsCommunity(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -204,9 +210,10 @@ func resourcePolicyoptionsCommunityDelete(ctx context.Context, d *schema.Resourc
 	return diagWarns
 }
 
-func resourcePolicyoptionsCommunityImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourcePolicyoptionsCommunityImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

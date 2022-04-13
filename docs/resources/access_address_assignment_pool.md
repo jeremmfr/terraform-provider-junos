@@ -10,7 +10,7 @@ Provides an access address-assignment pool.
 
 ```hcl
 # Add an access address-assignment pool
-resource junos_access_address_assignment_pool "demo_dhcp_pool" {
+resource "junos_access_address_assignment_pool" "demo_dhcp_pool" {
   name = "demo_dhcp_pool"
   family {
     type    = "inet"

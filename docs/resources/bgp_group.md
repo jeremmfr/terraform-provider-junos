@@ -10,7 +10,7 @@ Provides a bgp group resource.
 
 ```hcl
 # Configure a bgp group
-resource junos_bgp_group "groupbgpdemo" {
+resource "junos_bgp_group" "groupbgpdemo" {
   name             = "GroupBgpDemo"
   routing_instance = "default"
   peer_as          = "65002"

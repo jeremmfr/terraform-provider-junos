@@ -11,7 +11,7 @@ admin/operational status.
 
 ```hcl
 # All interfaces that begin with 'ge-'
-data junos_interfaces_physical_present "interfaces_ge" {
+data "junos_interfaces_physical_present" "interfaces_ge" {
   match_name = "^ge-.*$"
 }
 ```

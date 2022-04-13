@@ -16,7 +16,7 @@ Configure static configuration in `system` block (except `system root-authentica
 
 ```hcl
 # Configure system
-resource junos_system "system" {
+resource "junos_system" "system" {
   host_name   = "MyJunOS-device"
   name_server = ["192.0.2.10", "192.0.2.11"]
   services {
@@ -164,10 +164,17 @@ The following arguments are supported:
   - **archive** (Optional, Block)  
     Declare `archive` configuration.  
     See [below for nested schema](#archive-arguments-for-syslog).
+  - **console** (Optional, Block)  
+    Declare `console` configuration.  
+    See [below for nested schema](#console-arguments-for-syslog).
   - **log_rotate_frequency** (Optional, Number)  
     Rotate log frequency (1..59 minutes).
   - **source_address** (Optional, String)  
     Use specified address as source address.
+  - **time_format_millisecond** (Optional, Boolean)  
+    Include milliseconds in system log timestamp.
+  - **time_format_year** (Optional, Boolean)  
+    Include year in system log timestamp.
 - **time_zone** (Optional, String)  
   Time zone name or POSIX-compliant time zone string (`<continent>`/`<major-city>` or `<time-zone>`).
 - **tracing_dest_override_syslog_host** (Optional, String)  
@@ -434,6 +441,41 @@ The following arguments are supported:
   Allow any user to read the log file.
 - **no_world_readable** (Optional, Boolean)  
   Don't allow any user to read the log file.
+
+---
+
+### console arguments for syslog
+
+- **any_severity** (Optional, String)  
+  All facilities severity.
+- **authorization_severity** (Optional, String)  
+  Authorization system severity.
+- **changelog_severity** (Optional, String)  
+  Configuration change log severity.
+- **conflictlog_severity** (Optional, String)  
+  Configuration conflict log severity.
+- **daemon_severity** (Optional, String)  
+  Various system processes severity.
+- **dfc_severity** (Optional, String)  
+  Dynamic flow capture severity.
+- **external_severity** (Optional, String)  
+  Local external applications severity.
+- **firewall_severity** (Optional, String)  
+  Firewall filtering system severity.
+- **ftp_severity** (Optional, String)  
+  FTP process severity.
+- **interactivecommands_severity** (Optional, String)  
+  Commands executed by the UI severity.
+- **kernel_severity** (Optional, String)  
+  Kernel severity.
+- **ntp_severity** (Optional, String)  
+  NTP process severity.
+- **pfe_severity** (Optional, String)  
+  Packet Forwarding Engine severity.
+- **security_severity** (Optional, String)  
+  Security related severity.
+- **user_severity** (Optional, String)  
+  User processes severity.
 
 ## Attributes Reference
 

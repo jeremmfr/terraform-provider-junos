@@ -24,12 +24,12 @@ type accessAddressAssignPoolOptions struct {
 
 func resourceAccessAddressAssignPool() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceAccessAddressAssignPoolCreate,
-		ReadContext:   resourceAccessAddressAssignPoolRead,
-		UpdateContext: resourceAccessAddressAssignPoolUpdate,
-		DeleteContext: resourceAccessAddressAssignPoolDelete,
+		CreateWithoutTimeout: resourceAccessAddressAssignPoolCreate,
+		ReadWithoutTimeout:   resourceAccessAddressAssignPoolRead,
+		UpdateWithoutTimeout: resourceAccessAddressAssignPoolUpdate,
+		DeleteWithoutTimeout: resourceAccessAddressAssignPoolDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceAccessAddressAssignPoolImport,
+			StateContext: resourceAccessAddressAssignPoolImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -79,7 +79,10 @@ func resourceAccessAddressAssignPool() *schema.Resource {
 									"dns_server": {
 										Type:     schema.TypeList,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validateIsIPv6Address,
+										},
 									},
 									"domain_name": {
 										Type:             schema.TypeString,
@@ -124,7 +127,10 @@ func resourceAccessAddressAssignPool() *schema.Resource {
 									"name_server": {
 										Type:     schema.TypeList,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.IsIPv4Address,
+										},
 									},
 									"netbios_node_type": {
 										Type:         schema.TypeString,
@@ -139,7 +145,13 @@ func resourceAccessAddressAssignPool() *schema.Resource {
 									"option": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+											ValidateFunc: validation.StringMatch(regexp.MustCompile(
+												`^\d+ (array )?(byte|flag|hex-string|integer|ip-address|short|string|unsigned-integer|unsigned-short) .*$`),
+												"need to match '^\\d+ (array )?"+
+													"(byte|flag|hex-string|integer|ip-address|short|string|unsigned-integer|unsigned-short) .*$'"),
+										},
 									},
 									"option_match_82_circuit_id": {
 										Type:     schema.TypeList,
@@ -205,7 +217,10 @@ func resourceAccessAddressAssignPool() *schema.Resource {
 									"router": {
 										Type:     schema.TypeList,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.IsIPv4Address,
+										},
 									},
 									"server_identifier": {
 										Type:         schema.TypeString,
@@ -215,7 +230,10 @@ func resourceAccessAddressAssignPool() *schema.Resource {
 									"sip_server_inet_address": {
 										Type:     schema.TypeList,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.IsIPv4Address,
+										},
 									},
 									"sip_server_inet_domain_name": {
 										Type:     schema.TypeList,
@@ -225,7 +243,10 @@ func resourceAccessAddressAssignPool() *schema.Resource {
 									"sip_server_inet6_address": {
 										Type:     schema.TypeList,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validateIsIPv6Address,
+										},
 									},
 									"sip_server_inet6_domain_name": {
 										Type:             schema.TypeString,
@@ -300,7 +321,10 @@ func resourceAccessAddressAssignPool() *schema.Resource {
 									"wins_server": {
 										Type:     schema.TypeList,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.IsIPv4Address,
+										},
 									},
 								},
 							},
@@ -449,8 +473,8 @@ func resourceAccessAddressAssignPool() *schema.Resource {
 	}
 }
 
-func resourceAccessAddressAssignPoolCreate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceAccessAddressAssignPoolCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setAccessAddressAssignPool(d, m, nil); err != nil {
@@ -460,12 +484,14 @@ func resourceAccessAddressAssignPoolCreate(ctx context.Context,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
@@ -525,7 +551,7 @@ func resourceAccessAddressAssignPoolCreate(ctx context.Context,
 
 func resourceAccessAddressAssignPoolRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -534,8 +560,8 @@ func resourceAccessAddressAssignPoolRead(ctx context.Context, d *schema.Resource
 	return resourceAccessAddressAssignPoolReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceAccessAddressAssignPoolReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceAccessAddressAssignPoolReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	accessAddressAssignPoolOptions, err := readAccessAddressAssignPool(
 		d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
@@ -552,8 +578,8 @@ func resourceAccessAddressAssignPoolReadWJnprSess(
 	return nil
 }
 
-func resourceAccessAddressAssignPoolUpdate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceAccessAddressAssignPoolUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -568,12 +594,14 @@ func resourceAccessAddressAssignPoolUpdate(ctx context.Context,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delAccessAddressAssignPool(d.Get("name").(string), d.Get("routing_instance").(string),
 		m, jnprSess); err != nil {
@@ -598,8 +626,8 @@ func resourceAccessAddressAssignPoolUpdate(ctx context.Context,
 	return append(diagWarns, resourceAccessAddressAssignPoolReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceAccessAddressAssignPoolDelete(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceAccessAddressAssignPoolDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delAccessAddressAssignPool(
@@ -609,12 +637,14 @@ func resourceAccessAddressAssignPoolDelete(ctx context.Context,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delAccessAddressAssignPool(d.Get("name").(string), d.Get("routing_instance").(string),
 		m, jnprSess); err != nil {
@@ -633,9 +663,10 @@ func resourceAccessAddressAssignPoolDelete(ctx context.Context,
 	return diagWarns
 }
 
-func resourceAccessAddressAssignPoolImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceAccessAddressAssignPoolImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -664,8 +695,7 @@ func resourceAccessAddressAssignPoolImport(d *schema.ResourceData, m interface{}
 	return result, nil
 }
 
-func checkAccessAddressAssignPoolExists(name string, instance string, m interface{},
-	jnprSess *NetconfObject) (bool, error) {
+func checkAccessAddressAssignPoolExists(name, instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
 	sess := m.(*Session)
 	var showConfig string
 	var err error
@@ -870,8 +900,8 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 	return configSet, nil
 }
 
-func setAccessAddressAssignPoolFamilyDhcpAttributes(
-	dhcpAttr map[string]interface{}, familyType, setPrefix string) ([]string, error) {
+func setAccessAddressAssignPoolFamilyDhcpAttributes(dhcpAttr map[string]interface{}, familyType, setPrefix string,
+) ([]string, error) {
 	configSet := make([]string, 0)
 
 	if v := dhcpAttr["boot_file"].(string); v != "" {
@@ -883,9 +913,6 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(
 	for _, v := range dhcpAttr["dns_server"].([]interface{}) {
 		if familyType == inetW {
 			return configSet, fmt.Errorf("dhcp_attributes.0.dns_server not compatible when type = inet")
-		}
-		if _, errs := validateIsIPv6Address(v, "dhcp_attributes.0.dns_server"); len(errs) > 0 {
-			return configSet, errs[0]
 		}
 
 		configSet = append(configSet, setPrefix+"dns-server "+v.(string))
@@ -909,9 +936,6 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(
 		configSet = append(configSet, setPrefix+"maximum-lease-time infinite")
 	}
 	for _, v := range dhcpAttr["name_server"].([]interface{}) {
-		if _, errs := validation.IsIPv4Address(v, "dhcp_attributes.0.name_server"); len(errs) > 0 {
-			return configSet, errs[0]
-		}
 		configSet = append(configSet, setPrefix+"name-server "+v.(string))
 	}
 	if v := dhcpAttr["netbios_node_type"].(string); v != "" {
@@ -921,12 +945,6 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(
 		configSet = append(configSet, setPrefix+"next-server "+v)
 	}
 	for _, v := range sortSetOfString(dhcpAttr["option"].(*schema.Set).List()) {
-		r := regexp.MustCompile(
-			`^\d+ (array )?(byte|flag|hex-string|integer|ip-address|short|string|unsigned-integer|unsigned-short) .*$`)
-		if !r.MatchString(v) {
-			return configSet, fmt.Errorf("option '%s' is invalid, need to match "+
-				"'^\\d+ (array )?(byte|flag|hex-string|integer|ip-address|short|string|unsigned-integer|unsigned-short) .*$'", v)
-		}
 		configSet = append(configSet, setPrefix+"option "+v)
 	}
 	optionMatch82CircuitIDValueList := make([]string, 0)
@@ -972,26 +990,17 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(
 		configSet = append(configSet, setPrefix+"propagate-settings \""+v+"\"")
 	}
 	for _, v := range dhcpAttr["router"].([]interface{}) {
-		if _, errs := validation.IsIPv4Address(v.(string), "dhcp_attributes.0.router"); len(errs) > 0 {
-			return configSet, errs[0]
-		}
 		configSet = append(configSet, setPrefix+"router "+v.(string))
 	}
 	if v := dhcpAttr["server_identifier"].(string); v != "" {
 		configSet = append(configSet, setPrefix+"server-identifier "+v)
 	}
 	for _, v := range dhcpAttr["sip_server_inet_address"].([]interface{}) {
-		if _, errs := validation.IsIPv4Address(v.(string), "dhcp_attributes.0.sip_server_inet_address"); len(errs) > 0 {
-			return configSet, errs[0]
-		}
 		configSet = append(configSet, setPrefix+"sip-server ip-address "+v.(string))
 	}
 	for _, v := range dhcpAttr["sip_server_inet6_address"].([]interface{}) {
 		if familyType == inetW {
 			return configSet, fmt.Errorf("dhcp_attributes.0.sip_server_inet6_address not compatible when type = inet")
-		}
-		if _, errs := validateIsIPv6Address(v.(string), "dhcp_attributes.0.sip_server_inet6_address"); len(errs) > 0 {
-			return configSet, errs[0]
 		}
 		configSet = append(configSet, setPrefix+"sip-server-address "+v.(string))
 	}
@@ -1032,9 +1041,6 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(
 		configSet = append(configSet, setPrefix+"valid-lifetime infinite")
 	}
 	for _, v := range dhcpAttr["wins_server"].([]interface{}) {
-		if _, errs := validation.IsIPv4Address(v.(string), "dhcp_attributes.0.wins_server"); len(errs) > 0 {
-			return configSet, errs[0]
-		}
 		configSet = append(configSet, setPrefix+"wins-server "+v.(string))
 	}
 	if len(configSet) == 0 {
@@ -1044,8 +1050,8 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(
 	return configSet, nil
 }
 
-func readAccessAddressAssignPool(name string, instance string, m interface{},
-	jnprSess *NetconfObject) (accessAddressAssignPoolOptions, error) {
+func readAccessAddressAssignPool(name, instance string, m interface{}, jnprSess *NetconfObject,
+) (accessAddressAssignPoolOptions, error) {
 	sess := m.(*Session)
 	var confRead accessAddressAssignPoolOptions
 	var showConfig string
@@ -1342,7 +1348,7 @@ func readAccessAddressAssignPoolFamily(itemTrim string, family map[string]interf
 	return nil
 }
 
-func delAccessAddressAssignPool(name string, instance string, m interface{}, jnprSess *NetconfObject) error {
+func delAccessAddressAssignPool(name, instance string, m interface{}, jnprSess *NetconfObject) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	if instance == defaultW {
@@ -1355,7 +1361,8 @@ func delAccessAddressAssignPool(name string, instance string, m interface{}, jnp
 }
 
 func fillAccessAddressAssignPoolData(
-	d *schema.ResourceData, accessAddressAssignPoolOptions accessAddressAssignPoolOptions) {
+	d *schema.ResourceData, accessAddressAssignPoolOptions accessAddressAssignPoolOptions,
+) {
 	if tfErr := d.Set("name", accessAddressAssignPoolOptions.name); tfErr != nil {
 		panic(tfErr)
 	}

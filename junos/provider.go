@@ -3,8 +3,6 @@ package junos
 import (
 	"context"
 	"fmt"
-	"os"
-	"strings"
 	"sync"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -78,6 +76,11 @@ func Provider() *schema.Provider {
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				DefaultFunc: defaultSSHCiphers(),
 			},
+			"ssh_timeout_to_establish": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("JUNOS_SSH_TIMEOUT_TO_ESTABLISH", 0),
+			},
 			"file_permission": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -98,13 +101,13 @@ func Provider() *schema.Provider {
 				Type:         schema.TypeBool,
 				Optional:     true,
 				RequiredWith: []string{"fake_create_with_setfile"},
-				DefaultFunc:  EnvDefaultBooleanFunc("JUNOS_FAKEUPDATE_ALSO"),
+				DefaultFunc:  schema.EnvDefaultFunc("JUNOS_FAKEUPDATE_ALSO", "false"),
 			},
 			"fake_delete_also": {
 				Type:         schema.TypeBool,
 				Optional:     true,
 				RequiredWith: []string{"fake_create_with_setfile"},
-				DefaultFunc:  EnvDefaultBooleanFunc("JUNOS_FAKEDELETE_ALSO"),
+				DefaultFunc:  schema.EnvDefaultFunc("JUNOS_FAKEDELETE_ALSO", "false"),
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -249,6 +252,7 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		junosCmdSleepShort:       d.Get("cmd_sleep_short").(int),
 		junosCmdSleepLock:        d.Get("cmd_sleep_lock").(int),
 		junosSSHSleepClosed:      d.Get("ssh_sleep_closed").(int),
+		junosSSHTimeoutToEstab:   d.Get("ssh_timeout_to_establish").(int),
 		junosFilePermission:      d.Get("file_permission").(string),
 		junosDebugNetconfLogPath: d.Get("debug_netconf_log_path").(string),
 		junosFakeCreateSetFile:   d.Get("fake_create_with_setfile").(string),
@@ -260,14 +264,4 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 	}
 
 	return c.prepareSession()
-}
-
-func EnvDefaultBooleanFunc(k string) schema.SchemaDefaultFunc {
-	return func() (interface{}, error) {
-		if v := os.Getenv(k); strings.ToLower(v) == "true" {
-			return true, nil
-		}
-
-		return false, nil
-	}
 }

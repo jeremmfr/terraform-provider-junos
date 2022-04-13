@@ -293,7 +293,7 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 		var err error
 		confRead.authenticationKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(item, "authentication-key "), "\""))
 		if err != nil {
-			return fmt.Errorf("failed to decode authentication-key : %w", err)
+			return fmt.Errorf("failed to decode authentication-key: %w", err)
 		}
 	case strings.HasPrefix(item, "authentication-key-chain "):
 		confRead.authenticationKeyChain = strings.TrimPrefix(item, "authentication-key-chain ")
@@ -422,8 +422,8 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 	return nil
 }
 
-func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{},
-	m interface{}, jnprSess *NetconfObject) error {
+func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{}, m interface{}, jnprSess *NetconfObject,
+) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 
@@ -548,8 +548,9 @@ func readBgpOptsBfd(item string, bfdRead map[string]interface{}) error {
 	return nil
 }
 
-func setBgpOptsFamily(setPrefix, familyType string, familyOptsList []interface{},
-	m interface{}, jnprSess *NetconfObject) error {
+func setBgpOptsFamily(
+	setPrefix, familyType string, familyOptsList []interface{}, m interface{}, jnprSess *NetconfObject,
+) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 	setPrefixFamily := setPrefix + "family "
@@ -725,8 +726,8 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 	return append(opts, readOpts), nil
 }
 
-func setBgpOptsGrafefulRestart(setPrefix string, gracefulRestarts []interface{},
-	m interface{}, jnprSess *NetconfObject) error {
+func setBgpOptsGrafefulRestart(setPrefix string, gracefulRestarts []interface{}, m interface{}, jnprSess *NetconfObject,
+) error {
 	sess := m.(*Session)
 	configSet := make([]string, 0)
 

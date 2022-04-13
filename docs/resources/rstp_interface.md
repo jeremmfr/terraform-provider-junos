@@ -9,7 +9,7 @@ Provides a RSTP interface resource.
 ## Example Usage
 
 ```hcl
-resource junos_rstp_interface "all" {
+resource "junos_rstp_interface" "all" {
   name = "all"
 }
 ```

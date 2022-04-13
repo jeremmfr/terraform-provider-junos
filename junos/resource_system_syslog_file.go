@@ -40,12 +40,12 @@ type syslogFileOptions struct {
 
 func resourceSystemSyslogFile() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSystemSyslogFileCreate,
-		ReadContext:   resourceSystemSyslogFileRead,
-		UpdateContext: resourceSystemSyslogFileUpdate,
-		DeleteContext: resourceSystemSyslogFileDelete,
+		CreateWithoutTimeout: resourceSystemSyslogFileCreate,
+		ReadWithoutTimeout:   resourceSystemSyslogFileRead,
+		UpdateWithoutTimeout: resourceSystemSyslogFileUpdate,
+		DeleteWithoutTimeout: resourceSystemSyslogFileDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSystemSyslogFileImport,
+			StateContext: resourceSystemSyslogFileImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"filename": {
@@ -242,12 +242,14 @@ func resourceSystemSyslogFileCreate(ctx context.Context, d *schema.ResourceData,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	syslogFileExists, err := checkSystemSyslogFileExists(d.Get("filename").(string), m, jnprSess)
 	if err != nil {
@@ -290,7 +292,7 @@ func resourceSystemSyslogFileCreate(ctx context.Context, d *schema.ResourceData,
 
 func resourceSystemSyslogFileRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -299,8 +301,8 @@ func resourceSystemSyslogFileRead(ctx context.Context, d *schema.ResourceData, m
 	return resourceSystemSyslogFileReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSystemSyslogFileReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSystemSyslogFileReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	syslogFileOptions, err := readSystemSyslogFile(d.Get("filename").(string), m, jnprSess)
 	mutex.Unlock()
@@ -330,12 +332,14 @@ func resourceSystemSyslogFileUpdate(ctx context.Context, d *schema.ResourceData,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSystemSyslogFile(d.Get("filename").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -368,12 +372,14 @@ func resourceSystemSyslogFileDelete(ctx context.Context, d *schema.ResourceData,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSystemSyslogFile(d.Get("filename").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -391,9 +397,10 @@ func resourceSystemSyslogFileDelete(ctx context.Context, d *schema.ResourceData,
 	return diagWarns
 }
 
-func resourceSystemSyslogFileImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSystemSyslogFileImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -689,7 +696,7 @@ func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObjec
 						sitesOptions["password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
 							itemTrimArchSites, "password "), "\""))
 						if err != nil {
-							return confRead, fmt.Errorf("failed to decode password : %w", err)
+							return confRead, fmt.Errorf("failed to decode password: %w", err)
 						}
 					case strings.HasPrefix(itemTrimArchSites, "routing-instance "):
 						sitesOptions["routing_instance"] = strings.TrimPrefix(itemTrimArchSites, "routing-instance ")

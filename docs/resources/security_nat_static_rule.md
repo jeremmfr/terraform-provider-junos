@@ -14,7 +14,7 @@ between resources.
 
 ```hcl
 # Add a static nat rule
-resource junos_security_nat_static_rule "demo_nat_rule" {
+resource "junos_security_nat_static_rule" "demo_nat_rule" {
   name                = "nat_192_0_2_0_25"
   rule_set            = "nat_from_trust"
   destination_address = "192.0.2.0/25"

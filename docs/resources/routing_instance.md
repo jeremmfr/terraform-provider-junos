@@ -10,7 +10,7 @@ Provides a routing instance resource.
 
 ```hcl
 # Add a routing instance
-resource junos_routing_instance "demo_ri" {
+resource "junos_routing_instance" "demo_ri" {
   name = "prod-vr"
 }
 ```

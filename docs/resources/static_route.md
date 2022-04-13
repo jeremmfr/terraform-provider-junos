@@ -10,7 +10,7 @@ Provides a static route resource for destination.
 
 ```hcl
 # Add a static route
-resource junos_static_route "demo_static_route" {
+resource "junos_static_route" "demo_static_route" {
   destination      = "192.0.2.0/25"
   routing_instance = "prod-vr"
   next_hop         = ["st0.0"]

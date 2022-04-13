@@ -16,12 +16,12 @@ type snmpClientlistOptions struct {
 
 func resourceSnmpClientlist() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSnmpClientlistCreate,
-		ReadContext:   resourceSnmpClientlistRead,
-		UpdateContext: resourceSnmpClientlistUpdate,
-		DeleteContext: resourceSnmpClientlistDelete,
+		CreateWithoutTimeout: resourceSnmpClientlistCreate,
+		ReadWithoutTimeout:   resourceSnmpClientlistRead,
+		UpdateWithoutTimeout: resourceSnmpClientlistUpdate,
+		DeleteWithoutTimeout: resourceSnmpClientlistDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSnmpClientlistImport,
+			StateContext: resourceSnmpClientlistImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -48,12 +48,14 @@ func resourceSnmpClientlistCreate(ctx context.Context, d *schema.ResourceData, m
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	snmpClientlistExists, err := checkSnmpClientlistExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -95,7 +97,7 @@ func resourceSnmpClientlistCreate(ctx context.Context, d *schema.ResourceData, m
 
 func resourceSnmpClientlistRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -104,8 +106,8 @@ func resourceSnmpClientlistRead(ctx context.Context, d *schema.ResourceData, m i
 	return resourceSnmpClientlistReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSnmpClientlistReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSnmpClientlistReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	snmpClientlistOptions, err := readSnmpClientlist(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -135,12 +137,14 @@ func resourceSnmpClientlistUpdate(ctx context.Context, d *schema.ResourceData, m
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSnmpClientlist(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -173,12 +177,14 @@ func resourceSnmpClientlistDelete(ctx context.Context, d *schema.ResourceData, m
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSnmpClientlist(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -196,9 +202,10 @@ func resourceSnmpClientlistDelete(ctx context.Context, d *schema.ResourceData, m
 	return diagWarns
 }
 
-func resourceSnmpClientlistImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSnmpClientlistImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

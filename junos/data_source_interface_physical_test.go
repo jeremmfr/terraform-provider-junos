@@ -1,6 +1,7 @@
 package junos_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -37,25 +38,25 @@ func TestAccDataSourceInterfacePhysical_basic(t *testing.T) {
 }
 
 func testAccDataSourceInterfacePhysicalConfigCreate(interFace string) string {
-	return `
-resource junos_interface_physical testacc_datainterfaceP {
-  name         = "` + interFace + `"
+	return fmt.Sprintf(`
+resource "junos_interface_physical" "testacc_datainterfaceP" {
+  name         = "%s"
   description  = "testacc_datainterfaceP"
   vlan_tagging = true
 }
-`
+`, interFace)
 }
 
 func testAccDataSourceInterfacePhysicalConfigData(interFace string) string {
-	return `
-resource junos_interface_physical testacc_datainterfaceP {
-  name         = "` + interFace + `"
+	return fmt.Sprintf(`
+resource "junos_interface_physical" "testacc_datainterfaceP" {
+  name         = "%s"
   description  = "testacc_datainterfaceP"
   vlan_tagging = true
 }
 
-data junos_interface_physical testacc_datainterfaceP {
-  config_interface = "` + interFace + `"
+data "junos_interface_physical" "testacc_datainterfaceP" {
+  config_interface = "%s"
 }
-`
+`, interFace, interFace)
 }

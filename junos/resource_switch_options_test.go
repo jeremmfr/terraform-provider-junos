@@ -31,7 +31,7 @@ func TestAccJunosSwitchOptions_basic(t *testing.T) {
 
 func testAccJunosSwitchOptionsConfigCreate() string {
 	return `
-resource junos_interface_logical "testacc_switchOpts" {
+resource "junos_interface_logical" "testacc_switchOpts" {
   lifecycle {
     create_before_destroy = true
   }

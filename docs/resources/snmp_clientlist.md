@@ -10,7 +10,7 @@ Provides a snmp client-list resource.
 
 ```hcl
 # Add a snmp clientlist
-resource junos_snmp_clientlist "list1" {
+resource "junos_snmp_clientlist" "list1" {
   name   = "list1"
   prefix = ["192.0.2.0/24"]
 }

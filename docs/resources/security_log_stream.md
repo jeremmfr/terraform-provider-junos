@@ -10,7 +10,7 @@ Provides a security log stream resource.
 
 ```hcl
 # Add a security log stream
-resource junos_security_log_stream "demo_logstream" {
+resource "junos_security_log_stream" "demo_logstream" {
   name     = "demo_logstream"
   category = ["idp", "screen"]
   format   = "sd-syslog"

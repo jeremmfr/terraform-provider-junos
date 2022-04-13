@@ -13,29 +13,31 @@ import (
 
 func resourceInterfaceSt0Unit() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceInterfaceSt0UnitCreate,
-		ReadContext:   resourceInterfaceSt0UnitRead,
-		DeleteContext: resourceInterfaceSt0UnitDelete,
+		CreateWithoutTimeout: resourceInterfaceSt0UnitCreate,
+		ReadWithoutTimeout:   resourceInterfaceSt0UnitRead,
+		DeleteWithoutTimeout: resourceInterfaceSt0UnitDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceInterfaceSt0UnitImport,
+			StateContext: resourceInterfaceSt0UnitImport,
 		},
 	}
 }
 
 func resourceInterfaceSt0UnitCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	newSt0, err := searchInterfaceSt0UnitToCreate(m, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
-		return append(diagWarns, diag.FromErr(fmt.Errorf("error for find new st0 unit interface : %w", err))...)
+		return append(diagWarns, diag.FromErr(fmt.Errorf("error to find new st0 unit interface: %w", err))...)
 	}
 	if err := sess.configSet([]string{"set interfaces " + newSt0}, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -68,7 +70,7 @@ func resourceInterfaceSt0UnitCreate(ctx context.Context, d *schema.ResourceData,
 
 func resourceInterfaceSt0UnitRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -95,12 +97,14 @@ func resourceInterfaceSt0UnitDelete(ctx context.Context, d *schema.ResourceData,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	ncInt, emptyInt, _, err := checkInterfaceLogicalNCEmpty(d.Id(), m, jnprSess)
 	if err != nil {
@@ -129,12 +133,13 @@ func resourceInterfaceSt0UnitDelete(ctx context.Context, d *schema.ResourceData,
 	return diagWarns
 }
 
-func resourceInterfaceSt0UnitImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceInterfaceSt0UnitImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
 	if !strings.HasPrefix(d.Id(), "st0.") {
 		return nil, fmt.Errorf("id must be start with 'st0.'")
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

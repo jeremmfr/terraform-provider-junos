@@ -169,7 +169,7 @@ func TestAccJunosFirewallFilter_basic(t *testing.T) {
 
 func testAccJunosFirewallFilterConfigCreate() string {
 	return `
-resource junos_firewall_filter "testacc_fwFilter" {
+resource "junos_firewall_filter" "testacc_fwFilter" {
   name               = "testacc_fwFilter"
   family             = "inet"
   interface_specific = true
@@ -205,11 +205,11 @@ resource junos_firewall_filter "testacc_fwFilter" {
     }
   }
 }
-resource junos_policyoptions_prefix_list "testacc_fwFilter" {
+resource "junos_policyoptions_prefix_list" "testacc_fwFilter" {
   name   = "testacc_fwFilter"
   prefix = ["192.0.2.0/25"]
 }
-resource junos_policyoptions_prefix_list "testacc_fwFilter2" {
+resource "junos_policyoptions_prefix_list" "testacc_fwFilter2" {
   name   = "testacc_fwFilter2"
   prefix = ["192.0.2.128/25"]
 }
@@ -218,7 +218,7 @@ resource junos_policyoptions_prefix_list "testacc_fwFilter2" {
 
 func testAccJunosFirewallFilterConfigUpdate() string {
 	return `
-resource junos_firewall_filter "testacc_fwFilter" {
+resource "junos_firewall_filter" "testacc_fwFilter" {
   name               = "testacc_fwFilter"
   family             = "inet"
   interface_specific = true
@@ -293,7 +293,7 @@ resource junos_firewall_filter "testacc_fwFilter" {
     }
   }
 }
-resource junos_firewall_filter "testacc_fwFilter6" {
+resource "junos_firewall_filter" "testacc_fwFilter6" {
   name   = "testacc_fwFilter6"
   family = "inet6"
   term {
@@ -306,15 +306,15 @@ resource junos_firewall_filter "testacc_fwFilter6" {
     }
   }
 }
-resource junos_policyoptions_prefix_list "testacc_fwFilter" {
+resource "junos_policyoptions_prefix_list" "testacc_fwFilter" {
   name   = "testacc_fwFilter"
   prefix = ["192.0.2.0/25"]
 }
-resource junos_policyoptions_prefix_list "testacc_fwFilter2" {
+resource "junos_policyoptions_prefix_list" "testacc_fwFilter2" {
   name   = "testacc_fwFilter2"
   prefix = ["192.0.2.128/25"]
 }
-resource junos_firewall_policer testacc_fwfilter {
+resource "junos_firewall_policer" "testacc_fwfilter" {
   name = "testacc_fwfilter"
   if_exceeding {
     bandwidth_percent = 80

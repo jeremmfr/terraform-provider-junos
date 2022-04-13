@@ -11,9 +11,9 @@ import (
 
 func resourceInterfacePhysicalDisable() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceInterfacePhysicalDisableCreate,
-		ReadContext:   resourceInterfacePhysicalDisableRead,
-		DeleteContext: resourceInterfacePhysicalDisableDelete,
+		CreateWithoutTimeout: resourceInterfacePhysicalDisableCreate,
+		ReadWithoutTimeout:   resourceInterfacePhysicalDisableRead,
+		DeleteWithoutTimeout: resourceInterfacePhysicalDisableDelete,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -33,8 +33,8 @@ func resourceInterfacePhysicalDisable() *schema.Resource {
 	}
 }
 
-func resourceInterfacePhysicalDisableCreate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceInterfacePhysicalDisableCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := addInterfacePhysicalNC(d.Get("name").(string), m, nil); err != nil {
@@ -44,12 +44,14 @@ func resourceInterfacePhysicalDisableCreate(ctx context.Context,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -109,7 +111,7 @@ func resourceInterfacePhysicalDisableCreate(ctx context.Context,
 
 func resourceInterfacePhysicalDisableRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -127,7 +129,7 @@ func resourceInterfacePhysicalDisableRead(ctx context.Context, d *schema.Resourc
 	return nil
 }
 
-func resourceInterfacePhysicalDisableDelete(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceInterfacePhysicalDisableDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	return nil
 }

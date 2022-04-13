@@ -20,12 +20,12 @@ type filterOptions struct {
 
 func resourceFirewallFilter() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceFirewallFilterCreate,
-		ReadContext:   resourceFirewallFilterRead,
-		UpdateContext: resourceFirewallFilterUpdate,
-		DeleteContext: resourceFirewallFilterDelete,
+		CreateWithoutTimeout: resourceFirewallFilterCreate,
+		ReadWithoutTimeout:   resourceFirewallFilterRead,
+		UpdateWithoutTimeout: resourceFirewallFilterUpdate,
+		DeleteWithoutTimeout: resourceFirewallFilterDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceFirewallFilterImport,
+			StateContext: resourceFirewallFilterImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -69,22 +69,34 @@ func resourceFirewallFilter() *schema.Resource {
 									"address": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateCIDRNetworkFunc(),
+										},
 									},
 									"address_except": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateCIDRNetworkFunc(),
+										},
 									},
 									"destination_address": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateCIDRNetworkFunc(),
+										},
 									},
 									"destination_address_except": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateCIDRNetworkFunc(),
+										},
 									},
 									"destination_port": {
 										Type:     schema.TypeSet,
@@ -99,12 +111,18 @@ func resourceFirewallFilter() *schema.Resource {
 									"destination_prefix_list": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+										},
 									},
 									"destination_prefix_list_except": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+										},
 									},
 									"icmp_code": {
 										Type:     schema.TypeSet,
@@ -153,12 +171,18 @@ func resourceFirewallFilter() *schema.Resource {
 									"prefix_list": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+										},
 									},
 									"prefix_list_except": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+										},
 									},
 									"protocol": {
 										Type:     schema.TypeSet,
@@ -173,12 +197,18 @@ func resourceFirewallFilter() *schema.Resource {
 									"source_address": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateCIDRNetworkFunc(),
+										},
 									},
 									"source_address_except": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateCIDRNetworkFunc(),
+										},
 									},
 									"source_port": {
 										Type:     schema.TypeSet,
@@ -193,12 +223,18 @@ func resourceFirewallFilter() *schema.Resource {
 									"source_prefix_list": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+										},
 									},
 									"source_prefix_list_except": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:             schema.TypeString,
+											ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+										},
 									},
 									"tcp_established": {
 										Type:     schema.TypeBool,
@@ -283,12 +319,14 @@ func resourceFirewallFilterCreate(ctx context.Context, d *schema.ResourceData, m
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	firewallFilterExists, err := checkFirewallFilterExists(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
 	if err != nil {
@@ -330,7 +368,7 @@ func resourceFirewallFilterCreate(ctx context.Context, d *schema.ResourceData, m
 
 func resourceFirewallFilterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -339,8 +377,8 @@ func resourceFirewallFilterRead(ctx context.Context, d *schema.ResourceData, m i
 	return resourceFirewallFilterReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceFirewallFilterReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceFirewallFilterReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	filterOptions, err := readFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
 	mutex.Unlock()
@@ -370,12 +408,14 @@ func resourceFirewallFilterUpdate(ctx context.Context, d *schema.ResourceData, m
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -408,12 +448,14 @@ func resourceFirewallFilterDelete(ctx context.Context, d *schema.ResourceData, m
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -431,9 +473,10 @@ func resourceFirewallFilterDelete(ctx context.Context, d *schema.ResourceData, m
 	return diagWarns
 }
 
-func resourceFirewallFilterImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceFirewallFilterImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -594,34 +637,18 @@ func fillFirewallFilterData(d *schema.ResourceData, filterOptions filterOptions)
 	}
 }
 
-func setFirewallFilterOptsFrom(setPrefixTermFrom string,
-	configSet []string, fromMap map[string]interface{}) ([]string, error) {
+func setFirewallFilterOptsFrom(setPrefixTermFrom string, configSet []string, fromMap map[string]interface{},
+) ([]string, error) {
 	for _, address := range sortSetOfString(fromMap["address"].(*schema.Set).List()) {
-		err := validateCIDRNetwork(address)
-		if err != nil {
-			return nil, err
-		}
 		configSet = append(configSet, setPrefixTermFrom+"address "+address)
 	}
 	for _, address := range sortSetOfString(fromMap["address_except"].(*schema.Set).List()) {
-		err := validateCIDRNetwork(address)
-		if err != nil {
-			return nil, err
-		}
 		configSet = append(configSet, setPrefixTermFrom+"address "+address+" except")
 	}
 	for _, address := range sortSetOfString(fromMap["destination_address"].(*schema.Set).List()) {
-		err := validateCIDRNetwork(address)
-		if err != nil {
-			return nil, err
-		}
 		configSet = append(configSet, setPrefixTermFrom+"destination-address "+address)
 	}
 	for _, address := range sortSetOfString(fromMap["destination_address_except"].(*schema.Set).List()) {
-		err := validateCIDRNetwork(address)
-		if err != nil {
-			return nil, err
-		}
 		configSet = append(configSet, setPrefixTermFrom+"destination-address "+address+" except")
 	}
 	if len(fromMap["destination_port"].(*schema.Set).List()) > 0 &&
@@ -700,17 +727,9 @@ func setFirewallFilterOptsFrom(setPrefixTermFrom string,
 		configSet = append(configSet, setPrefixTermFrom+"protocol-except "+protocol)
 	}
 	for _, address := range sortSetOfString(fromMap["source_address"].(*schema.Set).List()) {
-		err := validateCIDRNetwork(address)
-		if err != nil {
-			return nil, err
-		}
 		configSet = append(configSet, setPrefixTermFrom+"source-address "+address)
 	}
 	for _, address := range sortSetOfString(fromMap["source_address_except"].(*schema.Set).List()) {
-		err := validateCIDRNetwork(address)
-		if err != nil {
-			return nil, err
-		}
 		configSet = append(configSet, setPrefixTermFrom+"source-address "+address+" except")
 	}
 	if len(fromMap["source_port"].(*schema.Set).List()) > 0 &&

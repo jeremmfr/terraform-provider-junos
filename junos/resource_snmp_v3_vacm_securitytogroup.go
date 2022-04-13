@@ -19,12 +19,12 @@ type snmpV3VacmSecurityToGroupOptions struct {
 
 func resourceSnmpV3VacmSecurityToGroup() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSnmpV3VacmSecurityToGroupCreate,
-		ReadContext:   resourceSnmpV3VacmSecurityToGroupRead,
-		UpdateContext: resourceSnmpV3VacmSecurityToGroupUpdate,
-		DeleteContext: resourceSnmpV3VacmSecurityToGroupDelete,
+		CreateWithoutTimeout: resourceSnmpV3VacmSecurityToGroupCreate,
+		ReadWithoutTimeout:   resourceSnmpV3VacmSecurityToGroupRead,
+		UpdateWithoutTimeout: resourceSnmpV3VacmSecurityToGroupUpdate,
+		DeleteWithoutTimeout: resourceSnmpV3VacmSecurityToGroupDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSnmpV3VacmSecurityToGroupImport,
+			StateContext: resourceSnmpV3VacmSecurityToGroupImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"model": {
@@ -46,8 +46,8 @@ func resourceSnmpV3VacmSecurityToGroup() *schema.Resource {
 	}
 }
 
-func resourceSnmpV3VacmSecurityToGroupCreate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSnmpV3VacmSecurityToGroupCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setSnmpV3VacmSecurityToGroup(d, m, nil); err != nil {
@@ -57,12 +57,14 @@ func resourceSnmpV3VacmSecurityToGroupCreate(ctx context.Context,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	snmpV3VacmSecurityToGroupExists, err := checkSnmpV3VacmSecurityToGroupExists(
 		d.Get("model").(string), d.Get("name").(string), m, jnprSess)
@@ -107,10 +109,10 @@ func resourceSnmpV3VacmSecurityToGroupCreate(ctx context.Context,
 	return append(diagWarns, resourceSnmpV3VacmSecurityToGroupReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSnmpV3VacmSecurityToGroupRead(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSnmpV3VacmSecurityToGroupRead(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -119,8 +121,8 @@ func resourceSnmpV3VacmSecurityToGroupRead(ctx context.Context,
 	return resourceSnmpV3VacmSecurityToGroupReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSnmpV3VacmSecurityToGroupReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSnmpV3VacmSecurityToGroupReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	snmpV3VacmSecurityToGroupOptions, err := readSnmpV3VacmSecurityToGroup(
 		d.Get("model").(string), d.Get("name").(string), m, jnprSess)
@@ -137,8 +139,8 @@ func resourceSnmpV3VacmSecurityToGroupReadWJnprSess(
 	return nil
 }
 
-func resourceSnmpV3VacmSecurityToGroupUpdate(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSnmpV3VacmSecurityToGroupUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -152,12 +154,14 @@ func resourceSnmpV3VacmSecurityToGroupUpdate(ctx context.Context,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSnmpV3VacmSecurityToGroup(d.Get("model").(string), d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -181,8 +185,8 @@ func resourceSnmpV3VacmSecurityToGroupUpdate(ctx context.Context,
 	return append(diagWarns, resourceSnmpV3VacmSecurityToGroupReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSnmpV3VacmSecurityToGroupDelete(ctx context.Context,
-	d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSnmpV3VacmSecurityToGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delSnmpV3VacmSecurityToGroup(d.Get("model").(string), d.Get("name").(string), m, nil); err != nil {
@@ -191,12 +195,14 @@ func resourceSnmpV3VacmSecurityToGroupDelete(ctx context.Context,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSnmpV3VacmSecurityToGroup(d.Get("model").(string), d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -214,9 +220,10 @@ func resourceSnmpV3VacmSecurityToGroupDelete(ctx context.Context,
 	return diagWarns
 }
 
-func resourceSnmpV3VacmSecurityToGroupImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSnmpV3VacmSecurityToGroupImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -318,7 +325,8 @@ func delSnmpV3VacmSecurityToGroup(model, name string, m interface{}, jnprSess *N
 }
 
 func fillSnmpV3VacmSecurityToGroupData(
-	d *schema.ResourceData, snmpV3VacmSecurityToGroupOptions snmpV3VacmSecurityToGroupOptions) {
+	d *schema.ResourceData, snmpV3VacmSecurityToGroupOptions snmpV3VacmSecurityToGroupOptions,
+) {
 	if tfErr := d.Set("model", snmpV3VacmSecurityToGroupOptions.model); tfErr != nil {
 		panic(tfErr)
 	}

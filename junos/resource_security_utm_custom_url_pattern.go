@@ -16,12 +16,12 @@ type utmCustomURLPatternOptions struct {
 
 func resourceSecurityUtmCustomURLPattern() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityUtmCustomURLPatternCreate,
-		ReadContext:   resourceSecurityUtmCustomURLPatternRead,
-		UpdateContext: resourceSecurityUtmCustomURLPatternUpdate,
-		DeleteContext: resourceSecurityUtmCustomURLPatternDelete,
+		CreateWithoutTimeout: resourceSecurityUtmCustomURLPatternCreate,
+		ReadWithoutTimeout:   resourceSecurityUtmCustomURLPatternRead,
+		UpdateWithoutTimeout: resourceSecurityUtmCustomURLPatternUpdate,
+		DeleteWithoutTimeout: resourceSecurityUtmCustomURLPatternDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityUtmCustomURLPatternImport,
+			StateContext: resourceSecurityUtmCustomURLPatternImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -40,8 +40,8 @@ func resourceSecurityUtmCustomURLPattern() *schema.Resource {
 	}
 }
 
-func resourceSecurityUtmCustomURLPatternCreate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityUtmCustomURLPatternCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setUtmCustomURLPattern(d, m, nil); err != nil {
@@ -51,7 +51,7 @@ func resourceSecurityUtmCustomURLPatternCreate(
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -60,7 +60,9 @@ func resourceSecurityUtmCustomURLPatternCreate(
 		return diag.FromErr(fmt.Errorf("security utm custom-objects url-pattern "+
 			"not compatible with Junos device %s", jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	utmCustomURLPatternExists, err := checkUtmCustomURLPatternsExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -100,10 +102,10 @@ func resourceSecurityUtmCustomURLPatternCreate(
 	return append(diagWarns, resourceSecurityUtmCustomURLPatternReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSecurityUtmCustomURLPatternRead(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityUtmCustomURLPatternRead(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -112,8 +114,8 @@ func resourceSecurityUtmCustomURLPatternRead(
 	return resourceSecurityUtmCustomURLPatternReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityUtmCustomURLPatternReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityUtmCustomURLPatternReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	utmCustomURLPatternOptions, err := readUtmCustomURLPattern(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -129,8 +131,8 @@ func resourceSecurityUtmCustomURLPatternReadWJnprSess(
 	return nil
 }
 
-func resourceSecurityUtmCustomURLPatternUpdate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityUtmCustomURLPatternUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -144,12 +146,14 @@ func resourceSecurityUtmCustomURLPatternUpdate(
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delUtmCustomURLPattern(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -173,8 +177,8 @@ func resourceSecurityUtmCustomURLPatternUpdate(
 	return append(diagWarns, resourceSecurityUtmCustomURLPatternReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourceSecurityUtmCustomURLPatternDelete(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSecurityUtmCustomURLPatternDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delUtmCustomURLPattern(d.Get("name").(string), m, nil); err != nil {
@@ -183,12 +187,14 @@ func resourceSecurityUtmCustomURLPatternDelete(
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delUtmCustomURLPattern(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -206,9 +212,10 @@ func resourceSecurityUtmCustomURLPatternDelete(
 	return diagWarns
 }
 
-func resourceSecurityUtmCustomURLPatternImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityUtmCustomURLPatternImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -258,8 +265,8 @@ func setUtmCustomURLPattern(d *schema.ResourceData, m interface{}, jnprSess *Net
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readUtmCustomURLPattern(urlPattern string, m interface{}, jnprSess *NetconfObject) (
-	utmCustomURLPatternOptions, error) {
+func readUtmCustomURLPattern(urlPattern string, m interface{}, jnprSess *NetconfObject,
+) (utmCustomURLPatternOptions, error) {
 	sess := m.(*Session)
 	var confRead utmCustomURLPatternOptions
 

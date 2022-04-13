@@ -9,7 +9,7 @@ import (
 
 func dataSourceSystemInformation() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceSystemInformationRead,
+		ReadWithoutTimeout: dataSourceSystemInformationRead,
 
 		Schema: map[string]*schema.Schema{
 			"hardware_model": {
@@ -38,7 +38,7 @@ func dataSourceSystemInformation() *schema.Resource {
 
 func dataSourceSystemInformationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	j, err := sess.startNewSession()
+	j, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}

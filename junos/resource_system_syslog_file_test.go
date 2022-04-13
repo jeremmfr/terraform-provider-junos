@@ -113,7 +113,7 @@ func TestAccJunosSystemSyslogFile_basic(t *testing.T) {
 
 func testAccJunosSystemSyslogFileConfigCreate() string {
 	return `
-resource junos_system_syslog_file testacc_syslogFile {
+resource "junos_system_syslog_file" "testacc_syslogFile" {
   filename                     = "testacc"
   allow_duplicates             = true
   explicit_priority            = true
@@ -139,7 +139,7 @@ resource junos_system_syslog_file testacc_syslogFile {
 
 func testAccJunosSystemSyslogFileConfigUpdate() string {
 	return `
-resource junos_system_syslog_file testacc_syslogFile {
+resource "junos_system_syslog_file" "testacc_syslogFile" {
   filename                     = "testacc"
   allow_duplicates             = true
   match                        = "match testacc"
@@ -160,7 +160,7 @@ resource junos_system_syslog_file testacc_syslogFile {
   structured_data {}
   archive {}
 }
-resource junos_system_syslog_file testacc_syslogFile2 {
+resource "junos_system_syslog_file" "testacc_syslogFile2" {
   filename          = "testacc2"
   explicit_priority = true
 }
@@ -169,10 +169,10 @@ resource junos_system_syslog_file testacc_syslogFile2 {
 
 func testAccJunosSystemSyslogFileConfigUpdate2() string {
 	return `
-resource junos_routing_instance testacc_syslogFile {
+resource "junos_routing_instance" "testacc_syslogFile" {
   name = "testacc_syslogFile"
 }
-resource junos_system_syslog_file testacc_syslogFile {
+resource "junos_system_syslog_file" "testacc_syslogFile" {
   filename                     = "testacc"
   allow_duplicates             = true
   match                        = "match testacc"

@@ -39,12 +39,12 @@ type ospfOptions struct {
 
 func resourceOspf() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceOspfCreate,
-		ReadContext:   resourceOspfRead,
-		UpdateContext: resourceOspfUpdate,
-		DeleteContext: resourceOspfDelete,
+		CreateWithoutTimeout: resourceOspfCreate,
+		ReadWithoutTimeout:   resourceOspfRead,
+		UpdateWithoutTimeout: resourceOspfUpdate,
+		DeleteWithoutTimeout: resourceOspfDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceOspfImport,
+			StateContext: resourceOspfImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"routing_instance": {
@@ -110,7 +110,10 @@ func resourceOspf() *schema.Resource {
 			"export": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+				},
 			},
 			"external_preference": {
 				Type:         schema.TypeInt,
@@ -163,7 +166,10 @@ func resourceOspf() *schema.Resource {
 			"import": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+				},
 			},
 			"labeled_preference": {
 				Type:         schema.TypeInt,
@@ -285,12 +291,14 @@ func resourceOspfCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
@@ -325,7 +333,7 @@ func resourceOspfCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 func resourceOspfRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -374,12 +382,14 @@ func resourceOspfUpdate(ctx context.Context, d *schema.ResourceData, m interface
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delOspf(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -413,12 +423,14 @@ func resourceOspfDelete(ctx context.Context, d *schema.ResourceData, m interface
 		return nil
 	}
 
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delOspf(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -436,9 +448,10 @@ func resourceOspfDelete(ctx context.Context, d *schema.ResourceData, m interface
 	return diagWarns
 }
 
-func resourceOspfImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceOspfImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -621,8 +634,8 @@ func setOspf(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readOspf(version, routingInstance string,
-	m interface{}, jnprSess *NetconfObject) (ospfOptions, error) {
+func readOspf(version, routingInstance string, m interface{}, jnprSess *NetconfObject,
+) (ospfOptions, error) {
 	sess := m.(*Session)
 	var confRead ospfOptions
 	confRead.externalPreference = -1

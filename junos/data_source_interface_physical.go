@@ -13,7 +13,7 @@ import (
 
 func dataSourceInterfacePhysical() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceInterfacePhysicalRead,
+		ReadWithoutTimeout: dataSourceInterfacePhysicalRead,
 		Schema: map[string]*schema.Schema{
 			"config_interface": {
 				Type:     schema.TypeString,
@@ -339,7 +339,7 @@ func dataSourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf("no arguments provided, 'config_interface' and 'match' empty"))
 	}
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -370,8 +370,7 @@ func dataSourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData
 	return nil
 }
 
-func searchInterfacePhysicalID(configInterface string, match string,
-	m interface{}, jnprSess *NetconfObject) (string, error) {
+func searchInterfacePhysicalID(configInterface, match string, m interface{}, jnprSess *NetconfObject) (string, error) {
 	sess := m.(*Session)
 	intConfigList := make([]string, 0)
 	showConfig, err := sess.command(cmdShowConfig+"interfaces "+configInterface+pipeDisplaySet, jnprSess)
@@ -391,7 +390,7 @@ func searchInterfacePhysicalID(configInterface string, match string,
 		itemTrim := strings.TrimPrefix(item, "set interfaces ")
 		matched, err := regexp.MatchString(match, itemTrim)
 		if err != nil {
-			return "", fmt.Errorf("failed to regexp with %s : %w", match, err)
+			return "", fmt.Errorf("failed to regexp with '%s': %w", match, err)
 		}
 		if !matched {
 			continue

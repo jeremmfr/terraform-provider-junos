@@ -10,7 +10,7 @@ Provides a security ipsec proposal resource.
 
 ```hcl
 # Add an ipsec proposal
-resource junos_security_ipsec_proposal "demo_vpn_proposal" {
+resource "junos_security_ipsec_proposal" "demo_vpn_proposal" {
   name                     = "ipsec-proposal"
   authentication_algorithm = "hmac-sha1-96"
   encryption_algorithm     = "aes-128-cbc"

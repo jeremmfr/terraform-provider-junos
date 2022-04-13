@@ -21,12 +21,12 @@ type natDestinationOptions struct {
 
 func resourceSecurityNatDestination() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSecurityNatDestinationCreate,
-		ReadContext:   resourceSecurityNatDestinationRead,
-		UpdateContext: resourceSecurityNatDestinationUpdate,
-		DeleteContext: resourceSecurityNatDestinationDelete,
+		CreateWithoutTimeout: resourceSecurityNatDestinationCreate,
+		ReadWithoutTimeout:   resourceSecurityNatDestinationRead,
+		UpdateWithoutTimeout: resourceSecurityNatDestinationUpdate,
+		DeleteWithoutTimeout: resourceSecurityNatDestinationDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceSecurityNatDestinationImport,
+			StateContext: resourceSecurityNatDestinationImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -92,7 +92,10 @@ func resourceSecurityNatDestination() *schema.Resource {
 						"source_address": {
 							Type:     schema.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem: &schema.Schema{
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validateCIDRNetworkFunc(),
+							},
 						},
 						"source_address_name": {
 							Type:     schema.TypeSet,
@@ -139,7 +142,7 @@ func resourceSecurityNatDestinationCreate(ctx context.Context, d *schema.Resourc
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -148,7 +151,9 @@ func resourceSecurityNatDestinationCreate(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(fmt.Errorf("security nat destination not compatible with Junos device %s",
 			jnprSess.SystemInformation.HardwareModel))
 	}
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	securityNatDestinationExists, err := checkSecurityNatDestinationExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -191,7 +196,7 @@ func resourceSecurityNatDestinationCreate(ctx context.Context, d *schema.Resourc
 
 func resourceSecurityNatDestinationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -200,8 +205,8 @@ func resourceSecurityNatDestinationRead(ctx context.Context, d *schema.ResourceD
 	return resourceSecurityNatDestinationReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceSecurityNatDestinationReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityNatDestinationReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	natDestinationOptions, err := readSecurityNatDestination(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -231,12 +236,14 @@ func resourceSecurityNatDestinationUpdate(ctx context.Context, d *schema.Resourc
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityNatDestination(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -269,12 +276,14 @@ func resourceSecurityNatDestinationDelete(ctx context.Context, d *schema.Resourc
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delSecurityNatDestination(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -292,9 +301,10 @@ func resourceSecurityNatDestinationDelete(ctx context.Context, d *schema.Resourc
 	return diagWarns
 }
 
-func resourceSecurityNatDestinationImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceSecurityNatDestinationImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -379,9 +389,6 @@ func setSecurityNatDestination(d *schema.ResourceData, m interface{}, jnprSess *
 			configSet = append(configSet, setPrefixRule+" match protocol "+vv)
 		}
 		for _, vv := range sortSetOfString(rule["source_address"].(*schema.Set).List()) {
-			if err := validateCIDRNetwork(vv); err != nil {
-				return err
-			}
 			configSet = append(configSet, setPrefixRule+" match source-address "+vv)
 		}
 		for _, vv := range sortSetOfString(rule["source_address_name"].(*schema.Set).List()) {

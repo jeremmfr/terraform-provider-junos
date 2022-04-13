@@ -31,12 +31,12 @@ type instanceOptions struct {
 
 func resourceRoutingInstance() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceRoutingInstanceCreate,
-		ReadContext:   resourceRoutingInstanceRead,
-		UpdateContext: resourceRoutingInstanceUpdate,
-		DeleteContext: resourceRoutingInstanceDelete,
+		CreateWithoutTimeout: resourceRoutingInstanceCreate,
+		ReadWithoutTimeout:   resourceRoutingInstanceRead,
+		UpdateWithoutTimeout: resourceRoutingInstanceUpdate,
+		DeleteWithoutTimeout: resourceRoutingInstanceDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceRoutingInstanceImport,
+			StateContext: resourceRoutingInstanceImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -80,12 +80,18 @@ func resourceRoutingInstance() *schema.Resource {
 			"instance_export": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+				},
 			},
 			"instance_import": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+				},
 			},
 			"route_distinguisher": {
 				Type:     schema.TypeString,
@@ -96,12 +102,18 @@ func resourceRoutingInstance() *schema.Resource {
 			"vrf_export": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+				},
 			},
 			"vrf_import": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+				},
 			},
 			"vrf_target": {
 				Type:     schema.TypeString,
@@ -152,12 +164,14 @@ func resourceRoutingInstanceCreate(ctx context.Context, d *schema.ResourceData, 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	routingInstanceExists, err := checkRoutingInstanceExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -198,7 +212,7 @@ func resourceRoutingInstanceCreate(ctx context.Context, d *schema.ResourceData, 
 
 func resourceRoutingInstanceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -207,8 +221,8 @@ func resourceRoutingInstanceRead(ctx context.Context, d *schema.ResourceData, m 
 	return resourceRoutingInstanceReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceRoutingInstanceReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceRoutingInstanceReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	instanceOptions, err := readRoutingInstance(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -238,12 +252,14 @@ func resourceRoutingInstanceUpdate(ctx context.Context, d *schema.ResourceData, 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delRoutingInstanceOpts(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -276,12 +292,14 @@ func resourceRoutingInstanceDelete(ctx context.Context, d *schema.ResourceData, 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delRoutingInstance(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -299,9 +317,10 @@ func resourceRoutingInstanceDelete(ctx context.Context, d *schema.ResourceData, 
 	return diagWarns
 }
 
-func resourceRoutingInstanceImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceRoutingInstanceImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

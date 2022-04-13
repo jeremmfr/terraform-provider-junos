@@ -30,12 +30,12 @@ type vlanOptions struct {
 
 func resourceVlan() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceVlanCreate,
-		ReadContext:   resourceVlanRead,
-		UpdateContext: resourceVlanUpdate,
-		DeleteContext: resourceVlanDelete,
+		CreateWithoutTimeout: resourceVlanCreate,
+		ReadWithoutTimeout:   resourceVlanRead,
+		UpdateWithoutTimeout: resourceVlanUpdate,
+		DeleteWithoutTimeout: resourceVlanDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceVlanImport,
+			StateContext: resourceVlanImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -162,12 +162,14 @@ func resourceVlanCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	vlanExists, err := checkVlansExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -209,7 +211,7 @@ func resourceVlanCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 func resourceVlanRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -253,12 +255,14 @@ func resourceVlanUpdate(ctx context.Context, d *schema.ResourceData, m interface
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if d.HasChange("vxlan") {
 		oldVxlan, _ := d.GetChange("vxlan")
@@ -298,12 +302,14 @@ func resourceVlanDelete(ctx context.Context, d *schema.ResourceData, m interface
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delVlan(d.Get("name").(string), d.Get("vxlan").([]interface{}), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -321,9 +327,10 @@ func resourceVlanDelete(ctx context.Context, d *schema.ResourceData, m interface
 	return diagWarns
 }
 
-func resourceVlanImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceVlanImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

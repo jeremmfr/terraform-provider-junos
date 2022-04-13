@@ -69,7 +69,7 @@ func TestAccJunosSecurityLogStream_basic(t *testing.T) {
 
 func testAccJunosSecurityLogStreamConfigPreCreate() string {
 	return `
-resource junos_security "security" {
+resource "junos_security" "security" {
   log {
     source_address = "192.0.2.2"
   }
@@ -79,13 +79,13 @@ resource junos_security "security" {
 
 func testAccJunosSecurityLogStreamConfigCreate() string {
 	return `
-resource junos_routing_instance "testacc_logstream" {
+resource "junos_routing_instance" "testacc_logstream" {
   lifecycle {
     create_before_destroy = true
   }
   name = "testacclogstream"
 }
-resource junos_security_log_stream "testacc_logstream" {
+resource "junos_security_log_stream" "testacc_logstream" {
   name     = "testacc_logstream"
   category = ["idp"]
   format   = "syslog"
@@ -102,7 +102,7 @@ resource junos_security_log_stream "testacc_logstream" {
 
 func testAccJunosSecurityLogStreamConfigUpdate() string {
 	return `
-resource junos_security_log_stream "testacc_logstream" {
+resource "junos_security_log_stream" "testacc_logstream" {
   name = "testacc_logstream"
   file {
     name             = "test"

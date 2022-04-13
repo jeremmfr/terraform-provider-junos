@@ -25,12 +25,12 @@ type chassisRedundancyOptions struct {
 
 func resourceChassisRedundancy() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceChassisRedundancyCreate,
-		ReadContext:   resourceChassisRedundancyRead,
-		UpdateContext: resourceChassisRedundancyUpdate,
-		DeleteContext: resourceChassisRedundancyDelete,
+		CreateWithoutTimeout: resourceChassisRedundancyCreate,
+		ReadWithoutTimeout:   resourceChassisRedundancyRead,
+		UpdateWithoutTimeout: resourceChassisRedundancyUpdate,
+		DeleteWithoutTimeout: resourceChassisRedundancyDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceChassisRedundancyImport,
+			StateContext: resourceChassisRedundancyImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"failover_disk_read_threshold": {
@@ -97,12 +97,14 @@ func resourceChassisRedundancyCreate(ctx context.Context, d *schema.ResourceData
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := setChassisRedundancy(d, m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -123,7 +125,7 @@ func resourceChassisRedundancyCreate(ctx context.Context, d *schema.ResourceData
 
 func resourceChassisRedundancyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -132,8 +134,8 @@ func resourceChassisRedundancyRead(ctx context.Context, d *schema.ResourceData, 
 	return resourceChassisRedundancyReadWJnprSess(d, m, jnprSess)
 }
 
-func resourceChassisRedundancyReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceChassisRedundancyReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	redundancyOptions, err := readChassisRedundancy(m, jnprSess)
 	mutex.Unlock()
@@ -159,12 +161,14 @@ func resourceChassisRedundancyUpdate(ctx context.Context, d *schema.ResourceData
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delChassisRedundancy(m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -197,12 +201,14 @@ func resourceChassisRedundancyDelete(ctx context.Context, d *schema.ResourceData
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delChassisRedundancy(m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -220,9 +226,10 @@ func resourceChassisRedundancyDelete(ctx context.Context, d *schema.ResourceData
 	return diagWarns
 }
 
-func resourceChassisRedundancyImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceChassisRedundancyImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -14,7 +14,7 @@ candidate configuration on device, and commit
 ```hcl
 # Load file and commit
 variable "setfile" { default = "~/junos/setfile" }
-resource junos_null_commit_file "setfile" {
+resource "junos_null_commit_file" "setfile" {
   filename = var.setfile
   triggers = {
     md5 = filemd5(var.setfile)

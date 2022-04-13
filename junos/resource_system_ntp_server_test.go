@@ -42,7 +42,7 @@ func TestAccJunosSystemNtpServer_basic(t *testing.T) {
 
 func testAccJunosSystemNtpServerConfigCreate() string {
 	return `
-resource junos_system_ntp_server testacc_ntpServer {
+resource "junos_system_ntp_server" "testacc_ntpServer" {
   address = "192.0.2.1"
   prefer  = true
   version = 4
@@ -53,10 +53,10 @@ resource junos_system_ntp_server testacc_ntpServer {
 
 func testAccJunosSystemNtpServerConfigUpdate() string {
 	return `
-resource junos_routing_instance testacc_ntpServer {
+resource "junos_routing_instance" "testacc_ntpServer" {
   name = "testacc_ntpServer"
 }
-resource junos_system_ntp_server testacc_ntpServer {
+resource "junos_system_ntp_server" "testacc_ntpServer" {
   address          = "192.0.2.1"
   prefer           = true
   version          = 4

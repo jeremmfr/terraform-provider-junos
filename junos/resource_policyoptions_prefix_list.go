@@ -18,12 +18,12 @@ type prefixListOptions struct {
 
 func resourcePolicyoptionsPrefixList() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourcePolicyoptionsPrefixListCreate,
-		ReadContext:   resourcePolicyoptionsPrefixListRead,
-		UpdateContext: resourcePolicyoptionsPrefixListUpdate,
-		DeleteContext: resourcePolicyoptionsPrefixListDelete,
+		CreateWithoutTimeout: resourcePolicyoptionsPrefixListCreate,
+		ReadWithoutTimeout:   resourcePolicyoptionsPrefixListRead,
+		UpdateWithoutTimeout: resourcePolicyoptionsPrefixListUpdate,
+		DeleteWithoutTimeout: resourcePolicyoptionsPrefixListDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourcePolicyoptionsPrefixListImport,
+			StateContext: resourcePolicyoptionsPrefixListImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -43,14 +43,17 @@ func resourcePolicyoptionsPrefixList() *schema.Resource {
 			"prefix": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validateCIDRNetworkFunc(),
+				},
 			},
 		},
 	}
 }
 
-func resourcePolicyoptionsPrefixListCreate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourcePolicyoptionsPrefixListCreate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
 		if err := setPolicyoptionsPrefixList(d, m, nil); err != nil {
@@ -60,12 +63,14 @@ func resourcePolicyoptionsPrefixListCreate(
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	policyoptsPrefixListExists, err := checkPolicyoptionsPrefixListExists(d.Get("name").(string), m, jnprSess)
 	if err != nil {
@@ -108,7 +113,7 @@ func resourcePolicyoptionsPrefixListCreate(
 
 func resourcePolicyoptionsPrefixListRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -117,8 +122,8 @@ func resourcePolicyoptionsPrefixListRead(ctx context.Context, d *schema.Resource
 	return resourcePolicyoptionsPrefixListReadWJnprSess(d, m, jnprSess)
 }
 
-func resourcePolicyoptionsPrefixListReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourcePolicyoptionsPrefixListReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+) diag.Diagnostics {
 	mutex.Lock()
 	prefixListOptions, err := readPolicyoptionsPrefixList(d.Get("name").(string), m, jnprSess)
 	mutex.Unlock()
@@ -134,8 +139,8 @@ func resourcePolicyoptionsPrefixListReadWJnprSess(
 	return nil
 }
 
-func resourcePolicyoptionsPrefixListUpdate(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourcePolicyoptionsPrefixListUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
@@ -149,12 +154,14 @@ func resourcePolicyoptionsPrefixListUpdate(
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delPolicyoptionsPrefixList(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -178,8 +185,8 @@ func resourcePolicyoptionsPrefixListUpdate(
 	return append(diagWarns, resourcePolicyoptionsPrefixListReadWJnprSess(d, m, jnprSess)...)
 }
 
-func resourcePolicyoptionsPrefixListDelete(
-	ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourcePolicyoptionsPrefixListDelete(ctx context.Context, d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delPolicyoptionsPrefixList(d.Get("name").(string), m, nil); err != nil {
@@ -188,12 +195,14 @@ func resourcePolicyoptionsPrefixListDelete(
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	defer sess.closeSession(jnprSess)
-	sess.configLock(jnprSess)
+	if err := sess.configLock(ctx, jnprSess); err != nil {
+		return diag.FromErr(err)
+	}
 	var diagWarns diag.Diagnostics
 	if err := delPolicyoptionsPrefixList(d.Get("name").(string), m, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
@@ -211,9 +220,10 @@ func resourcePolicyoptionsPrefixListDelete(
 	return diagWarns
 }
 
-func resourcePolicyoptionsPrefixListImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourcePolicyoptionsPrefixListImport(ctx context.Context, d *schema.ResourceData, m interface{},
+) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession()
+	jnprSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -266,10 +276,6 @@ func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess 
 		configSet = append(configSet, setPrefix+" dynamic-db")
 	}
 	for _, v := range sortSetOfString(d.Get("prefix").(*schema.Set).List()) {
-		err := validateCIDRNetwork(v)
-		if err != nil {
-			return err
-		}
 		configSet = append(configSet, setPrefix+" "+v)
 	}
 

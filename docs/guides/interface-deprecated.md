@@ -19,7 +19,7 @@ For example :
 
 ```hcl
 # deprecated junos_interface
-resource junos_interface "interface_physical_demo" {
+resource "junos_interface" "interface_physical_demo" {
   name         = "ge-0/0/0"
   description  = "interfacePhysicalDemo"
   trunk        = true
@@ -27,7 +27,7 @@ resource junos_interface "interface_physical_demo" {
 }
 
 # new junos_interface_physical
-resource junos_interface_physical "interface_physical_demo" {
+resource "junos_interface_physical" "interface_physical_demo" {
   name         = "ge-0/0/0"
   description  = "interfacePhysicalDemo"
   trunk        = true
@@ -51,7 +51,7 @@ For example :
 
 ```hcl
 # deprecated junos_interface 
-resource junos_interface "interface_logical_demo_100" {
+resource "junos_interface" "interface_logical_demo_100" {
   name        = "ge-0/0/2.100"
   description = "interfaceLogicalDemo100"
   inet_address {
@@ -59,14 +59,14 @@ resource junos_interface "interface_logical_demo_100" {
   }
   inet_filter_input = "filter_demo"
 }
-resource junos_interface "st0_100" {
+resource "junos_interface" "st0_100" {
   name        = "st0.100"
   description = "st0_100"
   inet        = true
 }
 
 # new junos_interface_logical
-resource junos_interface_logical "interface_logical_demo_100" {
+resource "junos_interface_logical" "interface_logical_demo_100" {
   name        = "ge-0/0/2.100"
   description = "interfaceLogicalDemo100"
   family_inet {
@@ -76,7 +76,7 @@ resource junos_interface_logical "interface_logical_demo_100" {
     filter_input = "filter_demo"
   }
 }
-resource junos_interface_logical "st0_100" {
+resource "junos_interface_logical" "st0_100" {
   name        = "st0.100"
   description = "st0_100"
   family_inet {}
