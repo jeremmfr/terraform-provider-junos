@@ -3,6 +3,12 @@
 
 ENHANCEMENTS:
 
+BUG FIXES:
+
+## 1.26.0 (April 13, 2022)
+
+ENHANCEMENTS:
+
 * resource/`junos_*`: move validation of some list of string to Plan phase and not during Apply
 * resource/`junos_aggregate_route`: add validation to elements of `policy` argument
 * resource/`junos_application_set`: add validation to elements of `applications` argument
@@ -20,15 +26,13 @@ ENHANCEMENTS:
 * resource/`junos_security_address_book`: add validation to elements of `attach_zone`, `address_set.*.address` and `address_set.*.address_set` arguments
 * resource/`junos_security_zone`: add validation to elements of `address_book_set.*.address` and `address_book_set.*.address_set` arguments
 * resource/`junos_security_zone_book_address_set`: add validation to elements of `address` and `address_set` arguments
-* resource/`junos_system`: add `console` block, `time_format_millisecond` and `time_format_year` arguments inside `syslog` block argument (Fixes #375, #376)
-* resource/`junos_system_root_authentication`: add `plain_text_password` argument to be able to set password in plain text format (Fixes #368)
-* release now with golang 1.18
+* resource/`junos_system`: add `console` block, `time_format_millisecond` and `time_format_year` arguments inside `syslog` block argument (Fixes [#375](https://github.com/jeremmfr/terraform-provider-junos/issues/375), [#376](https://github.com/jeremmfr/terraform-provider-junos/issues/376))
+* resource/`junos_system_root_authentication`: add `plain_text_password` argument to be able to set password in plain text format (Fixes [#368](https://github.com/jeremmfr/terraform-provider-junos/issues/368))
 * provider: normalize reading `JUNOS_FAKEUPDATE_ALSO` and `JUNOS_FAKEDELETE_ALSO` environment variables (use SDK function)
 * provider: add `ssh_timeout_to_establish` argument to configure a timeout for establishing TCP connections when initiating SSH connections
 * provider: A gracefully shutting down of Terraform with `Ctrl-c` now stop threads waiting for candidate configuration lock (stop after a loop of `cmd_sleep_lock` seconds)  
   and cancel the TCP connection attempt to establish SSH session if it's not yet complete
-
-BUG FIXES:
+* release now with golang 1.18
 
 ## 1.25.0 (March 18, 2022)
 
