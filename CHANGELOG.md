@@ -3,6 +3,9 @@
 
 ENHANCEMENTS:
 
+* resource/`junos_security_dynamic_address_feed_server`: add `url`, `tls_profile` and `validate_certificate_attributes_subject_or_san` arguments. (Fixes #381)  
+  Now one of `hostname` or `url` arguments is required.
+
 BUG FIXES:
 
 ## 1.26.0 (April 13, 2022)
