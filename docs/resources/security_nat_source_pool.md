@@ -40,7 +40,8 @@ The following arguments are supported:
 - **port_overloading_factor** (Optional, Number)  
   Port overloading factor for each IP.
 - **port_range** (Optional, String)  
-  Range of port for source nat.
+  Range of port for source nat.  
+  Format need to match `\d+(-\d+)?` with minimum low port 1024 and maximum high port 65535.
 - **routing_instance** (Optional, String)  
   Name of routing instance for switch with nat.
 
