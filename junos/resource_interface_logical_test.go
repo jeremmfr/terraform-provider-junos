@@ -294,6 +294,15 @@ resource "junos_interface_logical" "testacc_interface_logical" {
     }
   }
 }
+resource "junos_interface_logical" "testacc_interface_logical2" {
+  name = "ip-0/0/0.0"
+  tunnel {
+    destination         = "192.0.2.10"
+    source              = "192.0.2.11"
+    allow_fragmentation = true
+    path_mtu_discovery  = true
+  }
+}
 `, interFace)
 }
 
@@ -385,6 +394,18 @@ resource "junos_interface_logical" "testacc_interface_logical" {
     address {
       cidr_ip = "fe80::1/64"
     }
+  }
+}
+resource "junos_interface_logical" "testacc_interface_logical2" {
+  name = "ip-0/0/0.0"
+  tunnel {
+    destination                  = "192.0.2.12"
+    source                       = "192.0.2.13"
+    do_not_fragment              = true
+    no_path_mtu_discovery        = true
+    routing_instance_destination = junos_routing_instance.testacc_interface_logical.name
+    traffic_class                = 202
+    ttl                          = 203
   }
 }
 `, interFace)

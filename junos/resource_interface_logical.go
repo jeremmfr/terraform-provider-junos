@@ -23,6 +23,7 @@ type interfaceLogicalOptions struct {
 	securityInboundServices  []string
 	familyInet               []map[string]interface{}
 	familyInet6              []map[string]interface{}
+	tunnel                   []map[string]interface{}
 }
 
 func resourceInterfaceLogical() *schema.Resource {
@@ -604,6 +605,67 @@ func resourceInterfaceLogical() *schema.Resource {
 				Optional:         true,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
 			},
+			"tunnel": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"destination": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsIPAddress,
+						},
+						"source": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsIPAddress,
+						},
+						"allow_fragmentation": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"tunnel.0.do_not_fragment"},
+						},
+						"do_not_fragment": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"tunnel.0.allow_fragmentation"},
+						},
+						"flow_label": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      -1,
+							ValidateFunc: validation.IntBetween(0, 1048575),
+						},
+						"no_path_mtu_discovery": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"tunnel.0.path_mtu_discovery"},
+						},
+						"path_mtu_discovery": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"tunnel.0.no_path_mtu_discovery"},
+						},
+						"routing_instance_destination": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+						},
+						"traffic_class": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      -1,
+							ValidateFunc: validation.IntBetween(0, 255),
+						},
+						"ttl": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 255),
+						},
+					},
+				},
+			},
 			"vlan_id": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -1155,6 +1217,35 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 				" interfaces "+d.Get("name").(string)+" host-inbound-traffic system-services "+v)
 		}
 	}
+	for _, tunnelElem := range d.Get("tunnel").([]interface{}) {
+		tunnel := tunnelElem.(map[string]interface{})
+		configSet = append(configSet, setPrefix+"tunnel destination "+tunnel["destination"].(string))
+		configSet = append(configSet, setPrefix+"tunnel source "+tunnel["source"].(string))
+		if tunnel["allow_fragmentation"].(bool) {
+			configSet = append(configSet, setPrefix+"tunnel allow-fragmentation")
+		}
+		if tunnel["do_not_fragment"].(bool) {
+			configSet = append(configSet, setPrefix+"tunnel do-not-fragment")
+		}
+		if v := tunnel["flow_label"].(int); v != -1 {
+			configSet = append(configSet, setPrefix+"tunnel flow-label "+strconv.Itoa(v))
+		}
+		if tunnel["no_path_mtu_discovery"].(bool) {
+			configSet = append(configSet, setPrefix+"tunnel no-path-mtu-discovery")
+		}
+		if tunnel["path_mtu_discovery"].(bool) {
+			configSet = append(configSet, setPrefix+"tunnel path-mtu-discovery")
+		}
+		if v := tunnel["routing_instance_destination"].(string); v != "" {
+			configSet = append(configSet, setPrefix+"tunnel routing-instance destination "+v)
+		}
+		if v := tunnel["traffic_class"].(int); v != -1 {
+			configSet = append(configSet, setPrefix+"tunnel traffic-class "+strconv.Itoa(v))
+		}
+		if v := tunnel["ttl"].(int); v != 0 {
+			configSet = append(configSet, setPrefix+"tunnel ttl "+strconv.Itoa(v))
+		}
+	}
 	if d.Get("vlan_id").(int) != 0 {
 		configSet = append(configSet, setPrefix+"vlan-id "+strconv.Itoa(d.Get("vlan_id").(int)))
 	} else if !bchk.StringInSlice(intCut[0], []string{st0Word, "irb", "vlan"}) &&
@@ -1351,6 +1442,56 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 				case itemTrim == "family inet sampling output":
 					confRead.familyInet[0]["sampling_output"] = true
 				}
+			case strings.HasPrefix(itemTrim, "tunnel "):
+				if len(confRead.tunnel) == 0 {
+					confRead.tunnel = append(confRead.tunnel, map[string]interface{}{
+						"destination":                  "",
+						"source":                       "",
+						"allow_fragmentation":          false,
+						"do_not_fragment":              false,
+						"flow_label":                   -1,
+						"no_path_mtu_discovery":        false,
+						"path_mtu_discovery":           false,
+						"routing_instance_destination": "",
+						"traffic_class":                -1,
+						"ttl":                          0,
+					})
+				}
+				switch {
+				case strings.HasPrefix(itemTrim, "tunnel destination "):
+					confRead.tunnel[0]["destination"] = strings.TrimPrefix(itemTrim, "tunnel destination ")
+				case strings.HasPrefix(itemTrim, "tunnel source "):
+					confRead.tunnel[0]["source"] = strings.TrimPrefix(itemTrim, "tunnel source ")
+				case itemTrim == "tunnel allow-fragmentation":
+					confRead.tunnel[0]["allow_fragmentation"] = true
+				case itemTrim == "tunnel do-not-fragment":
+					confRead.tunnel[0]["do_not_fragment"] = true
+				case strings.HasPrefix(itemTrim, "tunnel flow-label "):
+					var err error
+					confRead.tunnel[0]["flow_label"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "tunnel flow-label "))
+					if err != nil {
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
+					}
+				case itemTrim == "tunnel no-path-mtu-discovery":
+					confRead.tunnel[0]["no_path_mtu_discovery"] = true
+				case itemTrim == "tunnel path-mtu-discovery":
+					confRead.tunnel[0]["path_mtu_discovery"] = true
+				case strings.HasPrefix(itemTrim, "tunnel routing-instance destination "):
+					confRead.tunnel[0]["routing_instance_destination"] = strings.TrimPrefix(
+						itemTrim, "tunnel routing-instance destination ")
+				case strings.HasPrefix(itemTrim, "tunnel traffic-class "):
+					var err error
+					confRead.tunnel[0]["traffic_class"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "tunnel traffic-class "))
+					if err != nil {
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
+					}
+				case strings.HasPrefix(itemTrim, "tunnel ttl "):
+					var err error
+					confRead.tunnel[0]["ttl"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "tunnel ttl "))
+					if err != nil {
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
+					}
+				}
 			case strings.HasPrefix(itemTrim, "vlan-id "):
 				var err error
 				confRead.vlanID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vlan-id "))
@@ -1469,7 +1610,9 @@ func delInterfaceLogicalOpts(d *schema.ResourceData, m interface{}, jnprSess *Ne
 	configSet = append(configSet,
 		delPrefix+"description",
 		delPrefix+"family inet",
-		delPrefix+"family inet6")
+		delPrefix+"family inet6",
+		delPrefix+"tunnel",
+	)
 
 	return sess.configSet(configSet, jnprSess)
 }
@@ -1508,6 +1651,9 @@ func fillInterfaceLogicalData(d *schema.ResourceData, interfaceLogicalOpt interf
 		panic(tfErr)
 	}
 	if tfErr := d.Set("security_inbound_services", interfaceLogicalOpt.securityInboundServices); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("tunnel", interfaceLogicalOpt.tunnel); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("security_zone", interfaceLogicalOpt.securityZone); tfErr != nil {

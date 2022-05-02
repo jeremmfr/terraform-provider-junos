@@ -3,6 +3,8 @@
 
 ENHANCEMENTS:
 
+* resource/`junos_interface_logical`: add `tunnel` block argument (Fixes #383)
+
 BUG FIXES:
 
 ## 1.26.0 (April 13, 2022)
