@@ -4,6 +4,7 @@
 ENHANCEMENTS:
 
 * resource/`junos_interface_logical`: add `tunnel` block argument (Fixes #383)
+* data-source/`junos_interface_logical`: add `tunnel` block attribute (like resource)
 
 BUG FIXES:
 
