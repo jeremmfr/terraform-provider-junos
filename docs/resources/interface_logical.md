@@ -96,6 +96,9 @@ The following arguments are supported:
 - **security_zone** (Optional, String)  
   Add this interface in security_zone.  
   Need to be created before.
+- **tunnel** (Optional, Block)  
+  Tunnel parameters.  
+  See [below for nested schema](#tunnel-arguments).
 - **vlan_id** (Optional, Computed, Number)  
   802.1q VLAN ID for unit interface.  
   If not set, computed with `name` of interface (ge-0/0/0.100 = 100)
@@ -103,6 +106,35 @@ The following arguments are supported:
 - **vlan_no_compute** (Optional, Boolean)  
   Disable the automatic compute of the `vlan_id` argument when not set.  
   Unnecessary if name has `.0` suffix or `st0.`, `irb.`, `vlan.` prefix because it's already disabled.
+
+---
+
+### tunnel arguments
+
+- **destination** (Required, String)  
+  Tunnel destination.
+- **source** (Required, String)  
+  Tunnel source.
+- **allow_fragmentation** (Optional, Boolean)  
+  Do not set DF bit on packets.  
+  Conflict with `do_not_fragment`.
+- **do_not_fragment** (Optional, Boolean)  
+  Set DF bit on packets.  
+  Conflict with `allow_fragmentation`.
+- **flow_label** (Optional, Number)  
+  Flow label field of IP6-header (0..1048575).
+- **no_path_mtu_discovery** (Optional, Boolean)  
+  Don't enable path MTU discovery for tunnels.  
+  Conflict with `path_mtu_discovery`.
+- **path_mtu_discovery** (Optional, Boolean)  
+  Enable path MTU discovery for tunnels.  
+  Conflict with `no_path_mtu_discovery`.
+- **routing_instance_destination** (Optional, String)  
+  Routing instance to which tunnel ends belong.
+- **traffic_class** (Optional, Number)  
+  TOS/Traffic class field of IP-header (0..255).
+- **ttl** (Optional, Number)  
+  Time to live (1..255).
 
 ---
 

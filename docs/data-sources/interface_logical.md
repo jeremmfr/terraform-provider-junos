@@ -94,8 +94,36 @@ The following attributes are exported:
   The inbound services allowed.
 - **security_zone** (String)  
   Security zone where the interface is.
+- **tunnel** (Block)  
+  Tunnel parameters.  
+  See [below for nested schema](#tunnel-arguments).
 - **vlan_id** (Number)  
   802.1q VLAN ID for unit interface.
+
+---
+
+### tunnel arguments
+
+- **destination** (String)  
+  Tunnel destination.
+- **source** (String)  
+  Tunnel source.
+- **allow_fragmentation** (Boolean)  
+  Do not set DF bit on packets.
+- **do_not_fragment** (Boolean)  
+  Set DF bit on packets.
+- **flow_label** (Number)  
+  Flow label field of IP6-header (0..1048575).
+- **no_path_mtu_discovery** (Boolean)  
+  Don't enable path MTU discovery for tunnels.
+- **path_mtu_discovery** (Boolean)  
+  Enable path MTU discovery for tunnels.
+- **routing_instance_destination** (String)  
+  Routing instance to which tunnel ends belong.
+- **traffic_class** (Number)  
+  TOS/Traffic class field of IP-header (0..255).
+- **ttl** (Number)  
+  Time to live (1..255).
 
 ---
 

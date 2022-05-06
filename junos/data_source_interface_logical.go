@@ -500,10 +500,57 @@ func dataSourceInterfaceLogical() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-
 			"security_zone": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"tunnel": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"destination": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"source": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"allow_fragmentation": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"do_not_fragment": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"flow_label": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"no_path_mtu_discovery": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"path_mtu_discovery": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"routing_instance_destination": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"traffic_class": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"ttl": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+					},
+				},
 			},
 			"vlan_id": {
 				Type:     schema.TypeInt,
