@@ -3,6 +3,9 @@
 
 ENHANCEMENTS:
 
+* resource/`junos_security_dynamic_address_feed_server`: add `url`, `tls_profile` and `validate_certificate_attributes_subject_or_san` arguments. (Fixes #381)  
+  Now one of `hostname` or `url` arguments is required.
+
 BUG FIXES:
 
 * resource/`junos_security_nat_source_pool`: fix crash and set correctly with a single port in `port_range`, add format precision in docs (Fixes #382)

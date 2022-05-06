@@ -13,12 +13,15 @@ import (
 )
 
 type dynamicAddressFeedServerOptions struct {
-	holdInterval   int
-	updateInterval int
-	description    string
-	hostname       string
-	name           string
-	feedName       []map[string]interface{}
+	validateCertAttrSubOrSan bool
+	holdInterval             int
+	updateInterval           int
+	description              string
+	hostname                 string
+	name                     string
+	url                      string
+	tlsProfile               string
+	feedName                 []map[string]interface{}
 }
 
 func resourceSecurityDynamicAddressFeedServer() *schema.Resource {
@@ -38,8 +41,16 @@ func resourceSecurityDynamicAddressFeedServer() *schema.Resource {
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 16, formatDefault),
 			},
 			"hostname": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"hostname", "url"},
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			"url": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"hostname", "url"},
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -83,10 +94,19 @@ func resourceSecurityDynamicAddressFeedServer() *schema.Resource {
 				Default:      -1,
 				ValidateFunc: validation.IntBetween(0, 4294967295),
 			},
+			"tls_profile": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"update_interval": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(30, 4294967295),
+			},
+			"validate_certificate_attributes_subject_or_san": {
+				Type:         schema.TypeBool,
+				Optional:     true,
+				RequiredWith: []string{"tls_profile"},
 			},
 		},
 	}
@@ -315,7 +335,12 @@ func setSecurityDynamicAddressFeedServer(d *schema.ResourceData, m interface{}, 
 
 	setPrefix := "set security dynamic-address feed-server " + d.Get("name").(string) + " "
 
-	configSet = append(configSet, setPrefix+"hostname \""+d.Get("hostname").(string)+"\"")
+	if v := d.Get("hostname").(string); v != "" {
+		configSet = append(configSet, setPrefix+"hostname \""+v+"\"")
+	}
+	if v := d.Get("url").(string); v != "" {
+		configSet = append(configSet, setPrefix+"url \""+v+"\"")
+	}
 	if v := d.Get("description").(string); v != "" {
 		configSet = append(configSet, setPrefix+"description \""+v+"\"")
 	}
@@ -342,8 +367,14 @@ func setSecurityDynamicAddressFeedServer(d *schema.ResourceData, m interface{}, 
 	if v := d.Get("hold_interval").(int); v != -1 {
 		configSet = append(configSet, setPrefix+"hold-interval "+strconv.Itoa(v))
 	}
+	if v := d.Get("tls_profile").(string); v != "" {
+		configSet = append(configSet, setPrefix+"tls-profile \""+v+"\"")
+	}
 	if v := d.Get("update_interval").(int); v != 0 {
 		configSet = append(configSet, setPrefix+"update-interval "+strconv.Itoa(v))
+	}
+	if d.Get("validate_certificate_attributes_subject_or_san").(bool) {
+		configSet = append(configSet, setPrefix+"validate-certificate-attributes subject-or-subject-alternative-names")
 	}
 
 	return sess.configSet(configSet, jnprSess)
@@ -374,6 +405,8 @@ func readSecurityDynamicAddressFeedServer(name string, m interface{}, jnprSess *
 			switch {
 			case strings.HasPrefix(itemTrim, "hostname "):
 				confRead.hostname = strings.Trim(strings.TrimPrefix(itemTrim, "hostname "), "\"")
+			case strings.HasPrefix(itemTrim, "url "):
+				confRead.url = strings.Trim(strings.TrimPrefix(itemTrim, "url "), "\"")
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
 			case strings.HasPrefix(itemTrim, "feed-name "):
@@ -412,12 +445,16 @@ func readSecurityDynamicAddressFeedServer(name string, m interface{}, jnprSess *
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
+			case strings.HasPrefix(itemTrim, "tls-profile "):
+				confRead.tlsProfile = strings.Trim(strings.TrimPrefix(itemTrim, "tls-profile "), "\"")
 			case strings.HasPrefix(itemTrim, "update-interval "):
 				var err error
 				confRead.updateInterval, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "update-interval "))
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
+			case itemTrim == "validate-certificate-attributes subject-or-subject-alternative-names":
+				confRead.validateCertAttrSubOrSan = true
 			}
 		}
 	}
@@ -441,6 +478,9 @@ func fillSecurityDynamicAddressFeedServerData(
 	if tfErr := d.Set("hostname", dynamicAddressFeedServerOptions.hostname); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("url", dynamicAddressFeedServerOptions.url); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("description", dynamicAddressFeedServerOptions.description); tfErr != nil {
 		panic(tfErr)
 	}
@@ -450,7 +490,16 @@ func fillSecurityDynamicAddressFeedServerData(
 	if tfErr := d.Set("hold_interval", dynamicAddressFeedServerOptions.holdInterval); tfErr != nil {
 		panic(tfErr)
 	}
+	if tfErr := d.Set("tls_profile", dynamicAddressFeedServerOptions.tlsProfile); tfErr != nil {
+		panic(tfErr)
+	}
 	if tfErr := d.Set("update_interval", dynamicAddressFeedServerOptions.updateInterval); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set(
+		"validate_certificate_attributes_subject_or_san",
+		dynamicAddressFeedServerOptions.validateCertAttrSubOrSan,
+	); tfErr != nil {
 		panic(tfErr)
 	}
 }
