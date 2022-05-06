@@ -5,6 +5,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* resource/`junos_security_nat_source_pool`: fix crash and set correctly with a single port in `port_range`, add format precision in docs (Fixes #382)
+
 ## 1.26.0 (April 13, 2022)
 
 ENHANCEMENTS:

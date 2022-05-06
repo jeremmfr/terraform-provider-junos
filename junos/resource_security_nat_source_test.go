@@ -135,6 +135,13 @@ resource "junos_security_nat_source_pool" "testacc_securitySNATPool" {
   pool_utilization_alarm_raise_threshold = 80
   pool_utilization_alarm_clear_threshold = 60
 }
+resource "junos_security_nat_source_pool" "testacc_securitySNATPool2" {
+  name             = "testacc_securitySNATPool2"
+  description      = "testacc securitySNATPool2"
+  address          = ["192.0.2.2/32"]
+  routing_instance = junos_routing_instance.testacc_securitySNAT.name
+  port_range       = "1300"
+}
 
 resource "junos_security_zone" "testacc_securitySNAT" {
   name = "testacc_securitySNAT"
@@ -205,6 +212,13 @@ resource "junos_security_nat_source_pool" "testacc_securitySNATPool" {
   routing_instance        = junos_routing_instance.testacc_securitySNAT.name
   address_pooling         = "no-paired"
   port_overloading_factor = 3
+}
+resource "junos_security_nat_source_pool" "testacc_securitySNATPool2" {
+  name             = "testacc_securitySNATPool2"
+  description      = "testacc securitySNATPool2"
+  address          = ["192.0.2.2/32"]
+  routing_instance = junos_routing_instance.testacc_securitySNAT.name
+  port_range       = "1300-62000"
 }
 
 resource "junos_security_zone" "testacc_securitySNAT" {
