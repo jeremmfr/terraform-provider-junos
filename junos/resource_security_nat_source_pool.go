@@ -3,6 +3,7 @@ package junos
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -338,7 +339,11 @@ func setSecurityNatSourcePool(d *schema.ResourceData, m interface{}, jnprSess *N
 	}
 	if d.Get("port_range").(string) != "" {
 		rangePort := strings.Split(d.Get("port_range").(string), "-")
-		configSet = append(configSet, setPrefix+" port range "+rangePort[0]+" to "+rangePort[1])
+		if len(rangePort) > 1 {
+			configSet = append(configSet, setPrefix+" port range "+rangePort[0]+" to "+rangePort[1])
+		} else {
+			configSet = append(configSet, setPrefix+" port range "+rangePort[0])
+		}
 	}
 	if d.Get("routing_instance").(string) != "" {
 		configSet = append(configSet, setPrefix+" routing-instance "+d.Get("routing_instance").(string))
@@ -455,14 +460,16 @@ func validateSourcePoolPortRange() schema.SchemaValidateDiagFunc {
 	return func(i interface{}, path cty.Path) diag.Diagnostics {
 		var diags diag.Diagnostics
 		v := i.(string)
-		vSplit := strings.Split(v, "-")
-		if len(vSplit) < 2 {
+		if ok := regexp.MustCompile(`^\d+(-\d+)?$`).MatchString(v); !ok {
 			diags = append(diags, diag.Diagnostic{
 				Severity:      diag.Error,
-				Summary:       fmt.Sprintf("missing range separtor - in %s", v),
+				Summary:       fmt.Sprintf(`expected value of port_range to match regular expression \d+(-\d+)?, got %v`, v),
 				AttributePath: path,
 			})
+
+			return diags
 		}
+		vSplit := strings.Split(v, "-")
 		low, err := strconv.Atoi(vSplit[0])
 		if err != nil {
 			diags = append(diags, diag.Diagnostic{
@@ -470,14 +477,22 @@ func validateSourcePoolPortRange() schema.SchemaValidateDiagFunc {
 				Summary:       err.Error(),
 				AttributePath: path,
 			})
+
+			return diags
 		}
-		high, err := strconv.Atoi(vSplit[1])
-		if err != nil {
-			diags = append(diags, diag.Diagnostic{
-				Severity:      diag.Error,
-				Summary:       err.Error(),
-				AttributePath: path,
-			})
+		high := low
+		if len(vSplit) > 1 {
+			var err error
+			high, err = strconv.Atoi(vSplit[1])
+			if err != nil {
+				diags = append(diags, diag.Diagnostic{
+					Severity:      diag.Error,
+					Summary:       err.Error(),
+					AttributePath: path,
+				})
+
+				return diags
+			}
 		}
 		if low > high {
 			diags = append(diags, diag.Diagnostic{
@@ -493,10 +508,10 @@ func validateSourcePoolPortRange() schema.SchemaValidateDiagFunc {
 				AttributePath: path,
 			})
 		}
-		if high > 63487 {
+		if high > 65535 {
 			diags = append(diags, diag.Diagnostic{
 				Severity:      diag.Error,
-				Summary:       fmt.Sprintf("high(%d) in %s is too big (max 63487)", high, v),
+				Summary:       fmt.Sprintf("high(%d) in %s is too big (max 65535)", high, v),
 				AttributePath: path,
 			})
 		}

@@ -24,12 +24,16 @@ resource "junos_security_dynamic_address_feed_server" "demo_feed_srv" {
 
 ## Argument Reference
 
+-> **Note:** One of `hostname` or `url` arguments is required.
+
 The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
   Security dynamic address feed-server name.
-- **hostname** (Required, String)  
-  Hostname or IP address of feed-server
+- **hostname** (Optional, String)  
+  Hostname or IP address of feed-server.
+- **url** (Optional, String)  
+  URL.
 - **description** (Optional, String)  
   Text description of feed-server.
 - **feed_name** (Optional, Block List)  
@@ -46,8 +50,14 @@ The following arguments are supported:
     Interval to retrieve update (30..4294967295 seconds).
 - **hold_interval** (Optional, Number)  
   Time to keep IP entry when update failed (0..4294967295 seconds).
+- **tls_profile** (Optional, String)  
+  TLS profile.
 - **update_interval** (Optional, Number)  
   Interval to retrieve update (30..4294967295 seconds).
+- **validate_certificate_attributes_subject_or_san** (Optional, Boolean)  
+  Validate certificate attributes subject or subject alternative names
+  must match feed server host name.  
+  `tls_profile` need to be set.
 
 ## Attributes Reference
 

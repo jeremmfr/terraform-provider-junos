@@ -5,6 +5,19 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+## 1.27.0 (May 06, 2022)
+
+ENHANCEMENTS:
+
+* resource/`junos_security_dynamic_address_feed_server`: add `url`, `tls_profile` and `validate_certificate_attributes_subject_or_san` arguments. (Fixes [#381](https://github.com/jeremmfr/terraform-provider-junos/issues/381))  
+  Now one of `hostname` or `url` arguments is required.
+* resource/`junos_interface_logical`: add `tunnel` block argument (Fixes [#383](https://github.com/jeremmfr/terraform-provider-junos/issues/383))
+* data-source/`junos_interface_logical`: add `tunnel` block attribute (like resource)
+
+BUG FIXES:
+
+* resource/`junos_security_nat_source_pool`: fix crash and set correctly with a single port in `port_range`, add format precision in docs (Fixes [#382](https://github.com/jeremmfr/terraform-provider-junos/issues/382))
+
 ## 1.26.0 (April 13, 2022)
 
 ENHANCEMENTS:
