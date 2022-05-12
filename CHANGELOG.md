@@ -5,6 +5,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* provider: correctly set address to connect to Junos host when an IPv6 is used for provider `ip` argument (enclose IPv6 in square brackets)
+
 ## 1.27.0 (May 06, 2022)
 
 ENHANCEMENTS:

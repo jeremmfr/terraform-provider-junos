@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"path"
 	"strconv"
@@ -54,7 +55,7 @@ func (sess *Session) startNewSession(ctx context.Context) (*NetconfObject, error
 		auth.Password = sess.junosPassword
 	}
 	auth.Timeout = sess.junosSSHTimeoutToEstab
-	jnpr, err := netconfNewSession(ctx, sess.junosIP+":"+strconv.Itoa(sess.junosPort), &auth)
+	jnpr, err := netconfNewSession(ctx, net.JoinHostPort(sess.junosIP, strconv.Itoa(sess.junosPort)), &auth)
 	if err != nil {
 		return nil, err
 	}
