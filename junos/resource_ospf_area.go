@@ -17,6 +17,7 @@ import (
 type ospfAreaOptions struct {
 	areaID          string
 	routingInstance string
+	realm           string
 	version         string
 	interFace       []map[string]interface{}
 }
@@ -42,6 +43,12 @@ func resourceOspfArea() *schema.Resource {
 				ForceNew:         true,
 				Default:          defaultW,
 				ValidateDiagFunc: validateNameObjectJunos([]string{}, 64, formatDefault),
+			},
+			"realm": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice([]string{"ipv4-unicast", "ipv4-multicast", "ipv6-multicast"}, false),
 			},
 			"version": {
 				Type:         schema.TypeString,
@@ -345,8 +352,13 @@ func resourceOspfAreaCreate(ctx context.Context, d *schema.ResourceData, m inter
 		if err := setOspfArea(d, m, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		d.SetId(d.Get("area_id").(string) + idSeparator + d.Get("version").(string) +
-			idSeparator + d.Get("routing_instance").(string))
+		if realm := d.Get("realm").(string); realm != "" {
+			d.SetId(d.Get("area_id").(string) + idSeparator + d.Get("version").(string) +
+				idSeparator + realm + idSeparator + d.Get("routing_instance").(string))
+		} else {
+			d.SetId(d.Get("area_id").(string) + idSeparator + d.Get("version").(string) +
+				idSeparator + d.Get("routing_instance").(string))
+		}
 
 		return nil
 	}
@@ -359,8 +371,12 @@ func resourceOspfAreaCreate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	ospfAreaExists, err := checkOspfAreaExists(d.Get("area_id").(string), d.Get("version").(string),
-		d.Get("routing_instance").(string), m, jnprSess)
+	ospfAreaExists, err := checkOspfAreaExists(
+		d.Get("area_id").(string),
+		d.Get("version").(string),
+		d.Get("realm").(string),
+		d.Get("routing_instance").(string),
+		m, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -368,6 +384,11 @@ func resourceOspfAreaCreate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	if ospfAreaExists {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+
+		if realm := d.Get("realm").(string); realm != "" {
+			return append(diagWarns, diag.FromErr(fmt.Errorf("ospf %v realm %v area %v already exists in routing instance %v",
+				d.Get("version").(string), realm, d.Get("area_id").(string), d.Get("routing_instance").(string)))...)
+		}
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("ospf %v area %v already exists in routing instance %v",
 			d.Get("version").(string), d.Get("area_id").(string), d.Get("routing_instance").(string)))...)
@@ -384,15 +405,31 @@ func resourceOspfAreaCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	ospfAreaExists, err = checkOspfAreaExists(d.Get("area_id").(string), d.Get("version").(string),
-		d.Get("routing_instance").(string), m, jnprSess)
+	ospfAreaExists, err = checkOspfAreaExists(
+		d.Get("area_id").(string),
+		d.Get("version").(string),
+		d.Get("realm").(string),
+		d.Get("routing_instance").(string),
+		m, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if ospfAreaExists {
-		d.SetId(d.Get("area_id").(string) + idSeparator + d.Get("version").(string) +
-			idSeparator + d.Get("routing_instance").(string))
+		if realm := d.Get("realm").(string); realm != "" {
+			d.SetId(d.Get("area_id").(string) + idSeparator + d.Get("version").(string) +
+				idSeparator + realm + idSeparator + d.Get("routing_instance").(string))
+		} else {
+			d.SetId(d.Get("area_id").(string) + idSeparator + d.Get("version").(string) +
+				idSeparator + d.Get("routing_instance").(string))
+		}
 	} else {
+		if realm := d.Get("realm").(string); realm != "" {
+			return append(diagWarns,
+				diag.FromErr(fmt.Errorf("ospf %v realm %v area %v in routing instance %v "+
+					"not exists after commit => check your config",
+					d.Get("version").(string), realm, d.Get("area_id").(string), d.Get("routing_instance").(string)))...)
+		}
+
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("ospf %v area %v in routing instance %v not exists after commit => check your config",
 				d.Get("version").(string), d.Get("area_id").(string), d.Get("routing_instance").(string)))...)
@@ -414,8 +451,12 @@ func resourceOspfAreaRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 func resourceOspfAreaReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
-	ospfAreaOptions, err := readOspfArea(d.Get("area_id").(string), d.Get("version").(string),
-		d.Get("routing_instance").(string), m, jnprSess)
+	ospfAreaOptions, err := readOspfArea(
+		d.Get("area_id").(string),
+		d.Get("version").(string),
+		d.Get("realm").(string),
+		d.Get("routing_instance").(string),
+		m, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -521,25 +562,48 @@ func resourceOspfAreaImport(ctx context.Context, d *schema.ResourceData, m inter
 	if len(idSplit) < 3 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", idSeparator)
 	}
-	ospfAreaExists, err := checkOspfAreaExists(idSplit[0], idSplit[1], idSplit[2], m, jnprSess)
+	if len(idSplit) == 3 {
+		ospfAreaExists, err := checkOspfAreaExists(idSplit[0], idSplit[1], "", idSplit[2], m, jnprSess)
+		if err != nil {
+			return nil, err
+		}
+		if !ospfAreaExists {
+			return nil, fmt.Errorf("don't find ospf area with id '%v' (id must be "+
+				"<aread_id>"+idSeparator+"<version>"+idSeparator+"<routing_instance> or "+
+				"<aread_id>"+idSeparator+"<version>"+idSeparator+"<realm>"+idSeparator+"<routing_instance>)", d.Id())
+		}
+		ospfAreaOptions, err := readOspfArea(idSplit[0], idSplit[1], "", idSplit[2], m, jnprSess)
+		if err != nil {
+			return nil, err
+		}
+		fillOspfAreaData(d, ospfAreaOptions)
+		result[0] = d
+
+		return result, nil
+	}
+	ospfAreaExists, err := checkOspfAreaExists(idSplit[0], idSplit[1], idSplit[2], idSplit[3], m, jnprSess)
 	if err != nil {
 		return nil, err
 	}
 	if !ospfAreaExists {
 		return nil, fmt.Errorf("don't find ospf area with id '%v' (id must be "+
-			"<aread_id>"+idSeparator+"<version>"+idSeparator+"<routing_instance>)", d.Id())
+			"<aread_id>"+idSeparator+"<version>"+idSeparator+"<routing_instance> or "+
+			"<aread_id>"+idSeparator+"<version>"+idSeparator+"<realm>"+idSeparator+"<routing_instance>)", d.Id())
 	}
-	ospfAreaOptions, err := readOspfArea(idSplit[0], idSplit[1], idSplit[2], m, jnprSess)
+	ospfAreaOptions, err := readOspfArea(idSplit[0], idSplit[1], idSplit[2], idSplit[3], m, jnprSess)
 	if err != nil {
 		return nil, err
 	}
 	fillOspfAreaData(d, ospfAreaOptions)
+	if ospfAreaOptions.realm == "" {
+		d.SetId(idSplit[0] + idSeparator + idSplit[1] + idSeparator + idSplit[3])
+	}
 	result[0] = d
 
 	return result, nil
 }
 
-func checkOspfAreaExists(idArea, version, routingInstance string, m interface{}, jnprSess *NetconfObject,
+func checkOspfAreaExists(idArea, version, realm, routingInstance string, m interface{}, jnprSess *NetconfObject,
 ) (bool, error) {
 	sess := m.(*Session)
 	var showConfig string
@@ -547,14 +611,29 @@ func checkOspfAreaExists(idArea, version, routingInstance string, m interface{},
 	ospfVersion := ospfV2
 	if version == "v3" {
 		ospfVersion = ospfV3
+	} else if realm != "" {
+		return false, fmt.Errorf("realm can't set if version != v3")
 	}
-	if routingInstance == defaultW {
+	switch {
+	case routingInstance == defaultW && realm == "":
 		showConfig, err = sess.command(cmdShowConfig+
 			"protocols "+ospfVersion+" area "+idArea+pipeDisplaySet, jnprSess)
 		if err != nil {
 			return false, err
 		}
-	} else {
+	case routingInstance == defaultW && realm != "":
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols "+ospfVersion+" realm "+realm+" area "+idArea+pipeDisplaySet, jnprSess)
+		if err != nil {
+			return false, err
+		}
+	case realm != "":
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
+			"protocols "+ospfVersion+" realm "+realm+" area "+idArea+pipeDisplaySet, jnprSess)
+		if err != nil {
+			return false, err
+		}
+	default:
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
 			"protocols "+ospfVersion+" area "+idArea+pipeDisplaySet, jnprSess)
 		if err != nil {
@@ -578,8 +657,14 @@ func setOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	ospfVersion := ospfV2
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = ospfV3
+	} else if d.Get("realm").(string) != "" {
+		return fmt.Errorf("realm can't set if version != v3")
 	}
-	setPrefix += "protocols " + ospfVersion + " area " + d.Get("area_id").(string) + " "
+	setPrefix += "protocols " + ospfVersion + " "
+	if realm := d.Get("realm").(string); realm != "" {
+		setPrefix += "realm " + realm + " "
+	}
+	setPrefix += "area " + d.Get("area_id").(string) + " "
 
 	interfaceNameList := make([]string, 0)
 	for _, v := range d.Get("interface").([]interface{}) {
@@ -797,7 +882,7 @@ func setOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readOspfArea(idArea, version, routingInstance string, m interface{}, jnprSess *NetconfObject,
+func readOspfArea(idArea, version, realm, routingInstance string, m interface{}, jnprSess *NetconfObject,
 ) (ospfAreaOptions, error) {
 	sess := m.(*Session)
 	var confRead ospfAreaOptions
@@ -806,14 +891,29 @@ func readOspfArea(idArea, version, routingInstance string, m interface{}, jnprSe
 	ospfVersion := ospfV2
 	if version == "v3" {
 		ospfVersion = ospfV3
+	} else if realm != "" {
+		return confRead, fmt.Errorf("realm can't set if version != v3")
 	}
-	if routingInstance == defaultW {
+	switch {
+	case routingInstance == defaultW && realm == "":
 		showConfig, err = sess.command(cmdShowConfig+
 			"protocols "+ospfVersion+" area "+idArea+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
 			return confRead, err
 		}
-	} else {
+	case routingInstance == defaultW && realm != "":
+		showConfig, err = sess.command(cmdShowConfig+
+			"protocols "+ospfVersion+" realm "+realm+" area "+idArea+pipeDisplaySetRelative, jnprSess)
+		if err != nil {
+			return confRead, err
+		}
+	case realm != "":
+		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
+			"protocols "+ospfVersion+" realm "+realm+" area "+idArea+pipeDisplaySetRelative, jnprSess)
+		if err != nil {
+			return confRead, err
+		}
+	default:
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
 			"protocols "+ospfVersion+" area "+idArea+pipeDisplaySetRelative, jnprSess)
 		if err != nil {
@@ -823,6 +923,7 @@ func readOspfArea(idArea, version, routingInstance string, m interface{}, jnprSe
 
 	if showConfig != emptyW {
 		confRead.areaID = idArea
+		confRead.realm = realm
 		confRead.version = version
 		confRead.routingInstance = routingInstance
 		for _, item := range strings.Split(showConfig, "\n") {
@@ -1152,12 +1253,28 @@ func delOspfArea(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	ospfVersion := ospfV2
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = ospfV3
+	} else if d.Get("realm").(string) != "" {
+		return fmt.Errorf("realm can't set if version != v3")
 	}
-	if d.Get("routing_instance").(string) == defaultW {
-		configSet = append(configSet, "delete protocols "+ospfVersion+" area "+d.Get("area_id").(string))
-	} else {
+	switch {
+	case d.Get("routing_instance").(string) == defaultW && d.Get("realm").(string) == "":
+		configSet = append(configSet, deleteW+
+			" protocols "+ospfVersion+
+			" area "+d.Get("area_id").(string))
+	case d.Get("routing_instance").(string) == defaultW && d.Get("realm").(string) != "":
+		configSet = append(configSet, deleteW+
+			" protocols "+ospfVersion+
+			" realm "+d.Get("realm").(string)+
+			" area "+d.Get("area_id").(string))
+	case d.Get("realm").(string) != "":
 		configSet = append(configSet, delRoutingInstances+d.Get("routing_instance").(string)+
-			" protocols "+ospfVersion+" area "+d.Get("area_id").(string))
+			" protocols "+ospfVersion+
+			" realm "+d.Get("realm").(string)+
+			" area "+d.Get("area_id").(string))
+	default:
+		configSet = append(configSet, delRoutingInstances+d.Get("routing_instance").(string)+
+			" protocols "+ospfVersion+
+			" area "+d.Get("area_id").(string))
 	}
 
 	return sess.configSet(configSet, jnprSess)
@@ -1171,6 +1288,9 @@ func fillOspfAreaData(d *schema.ResourceData, ospfAreaOptions ospfAreaOptions) {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("routing_instance", ospfAreaOptions.routingInstance); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("realm", ospfAreaOptions.realm); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("version", ospfAreaOptions.version); tfErr != nil {

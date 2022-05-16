@@ -73,6 +73,21 @@ func TestAccJunosOspfArea_basic(t *testing.T) {
 					ImportState:       true,
 					ImportStateVerify: true,
 				},
+				{
+					ResourceName:      "junos_ospf_area.testacc_ospfarea2",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				{
+					ResourceName:      "junos_ospf_area.testacc_ospfareav3ipv4",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				{
+					ResourceName:      "junos_ospf_area.testacc_ospfarea2v3realm",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
 			},
 		})
 	}
@@ -90,6 +105,19 @@ resource "junos_ospf_area" "testacc_ospfarea" {
     retransmit_interval = 12
     hello_interval      = 11
     dead_interval       = 10
+  }
+  interface {
+    name      = junos_interface_logical.testacc_ospfarea.name
+    secondary = true
+  }
+}
+resource "junos_ospf_area" "testacc_ospfareav3ipv4" {
+  area_id = "0.0.0.0"
+  version = "v3"
+  realm   = "ipv4-unicast"
+  interface {
+    name    = "all"
+    disable = true
   }
   interface {
     name      = junos_interface_logical.testacc_ospfarea.name
@@ -143,6 +171,21 @@ resource "junos_ospf_area" "testacc_ospfarea" {
     neighbor {
       address  = "192.0.2.5"
       eligible = "true"
+    }
+  }
+}
+resource "junos_ospf_area" "testacc_ospfareav3ipv4" {
+  area_id = "0.0.0.0"
+  version = "v3"
+  realm   = "ipv4-unicast"
+  interface {
+    name     = junos_interface_logical.testacc_ospfarea.name
+    priority = 0
+    bfd_liveness_detection {
+      full_neighbors_only                = true
+      minimum_receive_interval           = 27
+      transmit_interval_minimum_interval = 50
+      transmit_interval_threshold        = 51
     }
   }
 }
@@ -204,6 +247,25 @@ resource "junos_ospf_area" "testacc_ospfarea2" {
       transmit_interval_minimum_interval = 18
       transmit_interval_threshold        = 19
       version                            = "automatic"
+    }
+  }
+}
+resource "junos_ospf_area" "testacc_ospfarea2v3realm" {
+  area_id          = "0.0.0.0"
+  version          = "v3"
+  realm            = "ipv4-multicast"
+  routing_instance = junos_routing_instance.testacc_ospfarea.name
+  interface {
+    name    = "all"
+    passive = true
+  }
+  interface {
+    name = junos_interface_logical.testacc_ospfarea2.name
+    bfd_liveness_detection {
+      version                            = "automatic"
+      minimum_receive_interval           = 270
+      transmit_interval_minimum_interval = 500
+      transmit_interval_threshold        = 510
     }
   }
 }

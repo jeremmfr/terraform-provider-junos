@@ -3,6 +3,8 @@
 
 ENHANCEMENTS:
 
+* resource/`junos_ospf_area`: add `realm` argument to add a OSPFv3 realm area. (Fixes #392)
+
 BUG FIXES:
 
 ## 1.27.0 (May 06, 2022)

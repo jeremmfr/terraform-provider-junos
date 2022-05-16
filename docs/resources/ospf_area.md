@@ -26,11 +26,15 @@ The following arguments are supported:
 
 - **area_id** (Required, String, Forces new resource)  
   The id of ospf area.
-- **routing_instance** (Optional, String)  
+- **routing_instance** (Optional, String, Forces new resource)  
   Routing instance for area.  
   Need to be `default` or name of routing instance.  
   Defaults to `default`.
-- **version** (Optional, String)  
+- **realm** (Optional, String, Forces new resource)  
+  OSPFv3 realm configuration.  
+  Need to be `ipv4-unicast`, `ipv4-multicast` or `ipv6-multicast`.  
+  `version` need to be `v3`.
+- **version** (Optional, String, Forces new resource)  
   Version of ospf.  
   Need to be `v2` or `v3`.  
   Defaults to `v2`.
@@ -185,13 +189,17 @@ The following arguments are supported:
 The following attributes are exported:
 
 - **id** (String)  
-  An identifier for the resource with format `<aread_id>_-_<version>_-_<routing_instance>`.
+  An identifier for the resource with format  
+  `<aread_id>_-_<version>_-_<routing_instance>`  
+  or `<aread_id>_-_<version>_-_<realm>_-_<routing_instance>` if realm is set.
 
 ## Import
 
-Junos ospf area can be imported using an id made up of
-`<aread_id>_-_<version>_-_<routing_instance>`, e.g.
+Junos ospf area can be imported using an id made up of  
+`<aread_id>_-_<version>_-_<routing_instance>` or  
+`<aread_id>_-_<version>_-_<realm>_-_<routing_instance>`, e.g.
 
 ```shell
 $ terraform import junos_ospf_area.demo_area 0.0.0.0_-_v2_-_default
+$ terraform import junos_ospf_area.demo_area2 0.0.0.0_-_v3_-_ipv4-unicast_-_default
 ```
