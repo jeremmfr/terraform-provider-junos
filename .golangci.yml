@@ -7,20 +7,23 @@ linters:
     - interfacer # deprecated 1.38
     - scopelint # deprecated 1.39
     - golint # deprecated 1.41
+    - exhaustivestruct # deprecated 1.46
     - funlen
     - dupl
     - wsl
     - gomnd
     - goerr113 
     - nestif
-    - exhaustivestruct
+    - exhaustruct
     - paralleltest
     - gci
     - cyclop
     - forcetypeassert
     - gomoddirectives
     - varnamelen
+    - nonamedreturns
     - maintidx
+    - execinquery
 linters-settings:
   gocognit:
     # minimal code complexity to report, 30 by default
