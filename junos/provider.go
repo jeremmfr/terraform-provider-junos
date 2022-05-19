@@ -223,6 +223,7 @@ func Provider() *schema.Provider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"junos_interface":                   dataSourceInterface(),
 			"junos_interface_logical":           dataSourceInterfaceLogical(),
+			"junos_interface_logical_info":      dataSourceInterfaceLogicalInfo(),
 			"junos_interface_physical":          dataSourceInterfacePhysical(),
 			"junos_interfaces_physical_present": dataSourceInterfacesPhysicalPresent(),
 			"junos_routing_instance":            dataSourceRoutingInstance(),

@@ -1,6 +1,10 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 ## upcoming release
 
+FEATURES:
+
+* add `junos_interface_logical_info` data source (Fixes #393)
+
 ENHANCEMENTS:
 
 BUG FIXES:
