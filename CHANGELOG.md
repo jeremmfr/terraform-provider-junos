@@ -3,6 +3,8 @@
 
 ENHANCEMENTS:
 
+* resource/`junos_interface_logical`: add `disable` argument (Fixes #395)
+
 BUG FIXES:
 
 ## 1.27.0 (May 06, 2022)
