@@ -5,6 +5,7 @@ ENHANCEMENTS:
 
 * resource/`junos_interface_logical`: add `disable` argument (Fixes #395)
 * data-source/`junos_interface_logical`: add `disable` attribute (like resource)
+* resource/`junos_interface_physical`: add `disable` argument
 
 BUG FIXES:
 

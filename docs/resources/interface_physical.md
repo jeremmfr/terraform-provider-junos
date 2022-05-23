@@ -49,6 +49,8 @@ The following arguments are supported:
   Deprecated argument, use the `parent_ether_opts` argument instead.
 - **description** (Optional, String)  
   Description for interface.
+- **disable** (Optional, Boolean)  
+  Disable this interface.
 - **esi** (Optional, Block)  
   Define ESI Config parameters.  
   See [below for nested schema](#esi-arguments).
