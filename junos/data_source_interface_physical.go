@@ -40,6 +40,10 @@ func dataSourceInterfacePhysical() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"disable": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 			"ae_lacp": {
 				Type:       schema.TypeString,
 				Computed:   true,
