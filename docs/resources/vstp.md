@@ -23,7 +23,7 @@ resource "junos_vstp" "vstp" {
 
 The following arguments are supported:
 
-- **routing_instance** (Optional, String)  
+- **routing_instance** (Optional, String, Forces new resource)  
   Routing instance.  
   Need to be `default` (for root level) or the name of routing instance.  
   Defaults to `default`.
