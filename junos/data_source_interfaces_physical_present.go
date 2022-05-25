@@ -106,18 +106,18 @@ func searchInterfacesPhysicalPresent(d *schema.ResourceData, m interface{}, jnpr
 ) (interfacesPresentOpts, error) {
 	sess := m.(*Session)
 	var result interfacesPresentOpts
-	replyData, err := sess.commandXML(rpcGetInterfaceInformationTerse, jnprSess)
+	replyData, err := sess.commandXML(rpcGetInterfacesInformationTerse, jnprSess)
 	if err != nil {
 		return result, err
 	}
-	var iface getInterfaceTerseReply
+	var iface getPhysicalInterfaceTerseReply
 	err = xml.Unmarshal([]byte(replyData), &iface.InterfaceInfo)
 	if err != nil {
 		return result, fmt.Errorf("failed to xml unmarshal reply data '%s': %w", replyData, err)
 	}
 	for _, iFace := range iface.InterfaceInfo.PhysicalInterface {
 		if mName := d.Get("match_name").(string); mName != "" {
-			matched, err := regexp.MatchString(mName, strings.Trim(iFace.Name, " \n\t"))
+			matched, err := regexp.MatchString(mName, strings.TrimSpace(iFace.Name))
 			if err != nil {
 				return result, fmt.Errorf("failed to regexp with '%s': %w", mName, err)
 			}
@@ -125,17 +125,17 @@ func searchInterfacesPhysicalPresent(d *schema.ResourceData, m interface{}, jnpr
 				continue
 			}
 		}
-		if d.Get("match_admin_up").(bool) && strings.Trim(iFace.AdminStatus, " \n\t") != "up" {
+		if d.Get("match_admin_up").(bool) && strings.TrimSpace(iFace.AdminStatus) != "up" {
 			continue
 		}
-		if d.Get("match_oper_up").(bool) && strings.Trim(iFace.OperStatus, " \n\t") != "up" {
+		if d.Get("match_oper_up").(bool) && strings.TrimSpace(iFace.OperStatus) != "up" {
 			continue
 		}
-		result.interfaceNames = append(result.interfaceNames, strings.Trim(iFace.Name, " \n\t"))
+		result.interfaceNames = append(result.interfaceNames, strings.TrimSpace(iFace.Name))
 		result.interfaceStatuses = append(result.interfaceStatuses, map[string]interface{}{
-			"name":         strings.Trim(iFace.Name, " \n\t"),
-			"admin_status": strings.Trim(iFace.AdminStatus, " \n\t"),
-			"oper_status":  strings.Trim(iFace.OperStatus, " \n\t"),
+			"name":         strings.TrimSpace(iFace.Name),
+			"admin_status": strings.TrimSpace(iFace.AdminStatus),
+			"oper_status":  strings.TrimSpace(iFace.OperStatus),
 		})
 	}
 

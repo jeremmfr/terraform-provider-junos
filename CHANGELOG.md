@@ -1,6 +1,10 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 ## upcoming release
 
+FEATURES:
+
+* add `junos_interface_logical_info` data source (Fixes #393)
+
 ENHANCEMENTS:
 
 * resource/`junos_ospf_area`: add `realm` argument to add a OSPFv3 realm area. (Fixes #392),  

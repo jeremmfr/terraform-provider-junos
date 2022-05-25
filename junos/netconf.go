@@ -29,7 +29,8 @@ const (
 	rpcClearCandidate  = "<delete-config><target><candidate/></target></delete-config>"
 	rpcClose           = "<close-session/>"
 
-	rpcGetInterfaceInformationTerse = `<get-interface-information><terse/></get-interface-information>`
+	rpcGetInterfacesInformationTerse = `<get-interface-information><terse/></get-interface-information>`
+	rpcGetInterfaceInformationTerse  = `<get-interface-information>%s<terse/></get-interface-information>`
 
 	xmlStartTagConfigOut = "<configuration-output>"
 	xmlEndTagConfigOut   = "</configuration-output>"
@@ -69,13 +70,29 @@ type commitResults struct {
 	Errors  []netconf.RPCError `xml:"rpc-error"`
 }
 
-type getInterfaceTerseReply struct {
+type getPhysicalInterfaceTerseReply struct {
 	InterfaceInfo struct {
 		PhysicalInterface []struct {
 			Name        string `xml:"name"`
 			AdminStatus string `xml:"admin-status"`
 			OperStatus  string `xml:"oper-status"`
 		} `xml:"physical-interface"`
+	} `xml:"interface-information"`
+}
+
+type getLogicalInterfaceTerseReply struct {
+	InterfaceInfo struct {
+		LogicalInterface []struct {
+			Name          string `xml:"name"`
+			AdminStatus   string `xml:"admin-status"`
+			OperStatus    string `xml:"oper-status"`
+			AddressFamily []struct {
+				Name    string `xml:"address-family-name"`
+				Address []struct {
+					Local string `xml:"ifa-local"`
+				} `xml:"interface-address"`
+			} `xml:"address-family"`
+		} `xml:"logical-interface"`
 	} `xml:"interface-information"`
 }
 

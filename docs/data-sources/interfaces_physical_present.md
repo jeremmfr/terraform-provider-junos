@@ -5,7 +5,7 @@ page_title: "Junos: junos_interfaces_physical_present"
 # junos_interfaces_physical_present
 
 Get list of all of filtered physical interfaces present on the Junos device and their
-admin/operational status.
+admin/operational statuses.
 
 ## Example Usage
 
