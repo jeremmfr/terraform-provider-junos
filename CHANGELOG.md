@@ -3,6 +3,10 @@
 
 ENHANCEMENTS:
 
+* resource/`junos_ospf_area`: add `realm` argument to add a OSPFv3 realm area. (Fixes #392),  
+  add new `area_range`, `context_identifier`, `inter_area_prefix_export`, `inter_area_prefix_import`, `network_summary_export`, `network_summary_import`, `no_context_identifier_advertisement`, `nssa`, `stub` and `virtual_link` arguments,  
+  add validation of `area_id`
+
 BUG FIXES:
 
 * provider: correctly set address to connect to Junos host when an IPv6 is used for provider `ip` argument (enclose IPv6 in square brackets)
