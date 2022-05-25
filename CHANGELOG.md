@@ -1,6 +1,10 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 ## upcoming release
 
+FEATURES:
+
+* add `junos_rip_group` resource
+
 ENHANCEMENTS:
 
 BUG FIXES:
