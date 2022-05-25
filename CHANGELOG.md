@@ -4,6 +4,7 @@
 FEATURES:
 
 * add `junos_rip_group` resource
+* add `junos_rip_neighbor` resource
 
 ENHANCEMENTS:
 
