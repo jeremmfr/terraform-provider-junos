@@ -63,8 +63,7 @@ type bgpOptions struct {
 	gracefulRestart              []map[string]interface{}
 }
 
-func delBgpOpts(d *schema.ResourceData, typebgp string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delBgpOpts(d *schema.ResourceData, typebgp string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 	delPrefix := deleteLS
 	if d.Get("routing_instance").(string) != defaultW {
@@ -118,8 +117,7 @@ func delBgpOpts(d *schema.ResourceData, typebgp string, m interface{}, jnprSess 
 	return sess.configSet(configSet, jnprSess)
 }
 
-func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := []string{setPrefix}
 	if d.Get("accept_remote_nexthop").(bool) {
 		configSet = append(configSet, setPrefix+"accept-remote-nexthop")
@@ -422,9 +420,8 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 	return nil
 }
 
-func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{}, m interface{}, jnprSess *NetconfObject,
+func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{}, sess *Session, jnprSess *NetconfObject,
 ) error {
-	sess := m.(*Session)
 	configSet := make([]string, 0)
 
 	setPrefixBfd := setPrefix + "bfd-liveness-detection "
@@ -549,9 +546,8 @@ func readBgpOptsBfd(item string, bfdRead map[string]interface{}) error {
 }
 
 func setBgpOptsFamily(
-	setPrefix, familyType string, familyOptsList []interface{}, m interface{}, jnprSess *NetconfObject,
+	setPrefix, familyType string, familyOptsList []interface{}, sess *Session, jnprSess *NetconfObject,
 ) error {
-	sess := m.(*Session)
 	configSet := make([]string, 0)
 	setPrefixFamily := setPrefix + "family "
 	switch familyType {
@@ -726,9 +722,8 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 	return append(opts, readOpts), nil
 }
 
-func setBgpOptsGrafefulRestart(setPrefix string, gracefulRestarts []interface{}, m interface{}, jnprSess *NetconfObject,
+func setBgpOptsGrafefulRestart(setPrefix string, gracefulRestarts []interface{}, sess *Session, jnprSess *NetconfObject,
 ) error {
-	sess := m.(*Session)
 	configSet := make([]string, 0)
 
 	for _, v := range gracefulRestarts {

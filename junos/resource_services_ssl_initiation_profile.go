@@ -104,7 +104,7 @@ func resourceServicesSSLInitiationProfileCreate(ctx context.Context, d *schema.R
 ) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setServicesSSLInitiationProfile(d, m, nil); err != nil {
+		if err := setServicesSSLInitiationProfile(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -120,7 +120,7 @@ func resourceServicesSSLInitiationProfileCreate(ctx context.Context, d *schema.R
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	svcSSLInitiationProfileExists, err := checkServicesSSLInitiationProfileExists(d.Get("name").(string), m, jnprSess)
+	svcSSLInitiationProfileExists, err := checkServicesSSLInitiationProfileExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -134,7 +134,7 @@ func resourceServicesSSLInitiationProfileCreate(ctx context.Context, d *schema.R
 				"services ssl initiation profile %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setServicesSSLInitiationProfile(d, m, jnprSess); err != nil {
+	if err := setServicesSSLInitiationProfile(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -146,7 +146,7 @@ func resourceServicesSSLInitiationProfileCreate(ctx context.Context, d *schema.R
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	svcSSLInitiationProfileExists, err = checkServicesSSLInitiationProfileExists(d.Get("name").(string), m, jnprSess)
+	svcSSLInitiationProfileExists, err = checkServicesSSLInitiationProfileExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -158,7 +158,7 @@ func resourceServicesSSLInitiationProfileCreate(ctx context.Context, d *schema.R
 				"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceServicesSSLInitiationProfileReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceServicesSSLInitiationProfileReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceServicesSSLInitiationProfileRead(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -170,13 +170,13 @@ func resourceServicesSSLInitiationProfileRead(ctx context.Context, d *schema.Res
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceServicesSSLInitiationProfileReadWJnprSess(d, m, jnprSess)
+	return resourceServicesSSLInitiationProfileReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceServicesSSLInitiationProfileReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceServicesSSLInitiationProfileReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	svcSSLInitiationProfileOptions, err := readServicesSSLInitiationProfile(d.Get("name").(string), m, jnprSess)
+	svcSSLInitiationProfileOptions, err := readServicesSSLInitiationProfile(d.Get("name").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -195,10 +195,10 @@ func resourceServicesSSLInitiationProfileUpdate(ctx context.Context, d *schema.R
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delServicesSSLInitiationProfile(d.Get("name").(string), m, nil); err != nil {
+		if err := delServicesSSLInitiationProfile(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setServicesSSLInitiationProfile(d, m, nil); err != nil {
+		if err := setServicesSSLInitiationProfile(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -214,12 +214,12 @@ func resourceServicesSSLInitiationProfileUpdate(ctx context.Context, d *schema.R
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delServicesSSLInitiationProfile(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delServicesSSLInitiationProfile(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setServicesSSLInitiationProfile(d, m, jnprSess); err != nil {
+	if err := setServicesSSLInitiationProfile(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -233,14 +233,14 @@ func resourceServicesSSLInitiationProfileUpdate(ctx context.Context, d *schema.R
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceServicesSSLInitiationProfileReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceServicesSSLInitiationProfileReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceServicesSSLInitiationProfileDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delServicesSSLInitiationProfile(d.Get("name").(string), m, nil); err != nil {
+		if err := delServicesSSLInitiationProfile(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -255,7 +255,7 @@ func resourceServicesSSLInitiationProfileDelete(ctx context.Context, d *schema.R
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delServicesSSLInitiationProfile(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delServicesSSLInitiationProfile(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -280,14 +280,14 @@ func resourceServicesSSLInitiationProfileImport(ctx context.Context, d *schema.R
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-	svcSSLInitiationProfileExists, err := checkServicesSSLInitiationProfileExists(d.Id(), m, jnprSess)
+	svcSSLInitiationProfileExists, err := checkServicesSSLInitiationProfileExists(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
 	if !svcSSLInitiationProfileExists {
 		return nil, fmt.Errorf("don't find services ssl initiation profile with id '%v' (id must be <name>)", d.Id())
 	}
-	svcSSLInitiationProfileOptions, err := readServicesSSLInitiationProfile(d.Id(), m, jnprSess)
+	svcSSLInitiationProfileOptions, err := readServicesSSLInitiationProfile(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -298,9 +298,8 @@ func resourceServicesSSLInitiationProfileImport(ctx context.Context, d *schema.R
 	return result, nil
 }
 
-func checkServicesSSLInitiationProfileExists(profile string, m interface{}, jnprSess *NetconfObject,
+func checkServicesSSLInitiationProfileExists(profile string, sess *Session, jnprSess *NetconfObject,
 ) (bool, error) {
-	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
 		"services ssl initiation profile \""+profile+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
@@ -313,8 +312,7 @@ func checkServicesSSLInitiationProfileExists(profile string, m interface{}, jnpr
 	return true, nil
 }
 
-func setServicesSSLInitiationProfile(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setServicesSSLInitiationProfile(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set services ssl initiation profile \"" + d.Get("name").(string) + "\" "
@@ -362,9 +360,8 @@ func setServicesSSLInitiationProfile(d *schema.ResourceData, m interface{}, jnpr
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readServicesSSLInitiationProfile(profile string, m interface{}, jnprSess *NetconfObject,
+func readServicesSSLInitiationProfile(profile string, sess *Session, jnprSess *NetconfObject,
 ) (svcSSLInitiationProfileOptions, error) {
-	sess := m.(*Session)
 	var confRead svcSSLInitiationProfileOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
@@ -424,8 +421,7 @@ func readServicesSSLInitiationProfile(profile string, m interface{}, jnprSess *N
 	return confRead, nil
 }
 
-func delServicesSSLInitiationProfile(profile string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delServicesSSLInitiationProfile(profile string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := []string{
 		"delete services ssl initiation profile \"" + profile + "\"",
 	}

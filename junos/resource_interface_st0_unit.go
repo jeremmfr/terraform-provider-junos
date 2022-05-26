@@ -33,7 +33,7 @@ func resourceInterfaceSt0UnitCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	newSt0, err := searchInterfaceSt0UnitToCreate(m, jnprSess)
+	newSt0, err := searchInterfaceSt0UnitToCreate(sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -51,7 +51,7 @@ func resourceInterfaceSt0UnitCreate(ctx context.Context, d *schema.ResourceData,
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(newSt0, m, jnprSess)
+	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(newSt0, sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -76,7 +76,7 @@ func resourceInterfaceSt0UnitRead(ctx context.Context, d *schema.ResourceData, m
 	}
 	defer sess.closeSession(jnprSess)
 	mutex.Lock()
-	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Id(), m, jnprSess)
+	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Id(), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -106,7 +106,7 @@ func resourceInterfaceSt0UnitDelete(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	ncInt, emptyInt, _, err := checkInterfaceLogicalNCEmpty(d.Id(), m, jnprSess)
+	ncInt, emptyInt, _, err := checkInterfaceLogicalNCEmpty(d.Id(), sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -145,7 +145,7 @@ func resourceInterfaceSt0UnitImport(ctx context.Context, d *schema.ResourceData,
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Id(), m, jnprSess)
+	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -161,8 +161,7 @@ func resourceInterfaceSt0UnitImport(ctx context.Context, d *schema.ResourceData,
 	return result, nil
 }
 
-func searchInterfaceSt0UnitToCreate(m interface{}, jnprSess *NetconfObject) (string, error) {
-	sess := m.(*Session)
+func searchInterfaceSt0UnitToCreate(sess *Session, jnprSess *NetconfObject) (string, error) {
 	st0, err := sess.command("show interfaces st0 terse", jnprSess)
 	if err != nil {
 		return "", err

@@ -65,7 +65,7 @@ func resourceServicesUserIdentDeviceIdentityProfileCreate(ctx context.Context, d
 ) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setServicesUserIdentDeviceIdentityProfile(d, m, nil); err != nil {
+		if err := setServicesUserIdentDeviceIdentityProfile(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -82,7 +82,8 @@ func resourceServicesUserIdentDeviceIdentityProfileCreate(ctx context.Context, d
 	}
 	var diagWarns diag.Diagnostics
 	svcUserIdentDevIdentProfileExists, err := checkServicesUserIdentDeviceIdentityProfileExists(
-		d.Get("name").(string), m, jnprSess)
+		d.Get("name").(string),
+		sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -96,7 +97,7 @@ func resourceServicesUserIdentDeviceIdentityProfileCreate(ctx context.Context, d
 				"services user-identification device-information end-user-profile %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setServicesUserIdentDeviceIdentityProfile(d, m, jnprSess); err != nil {
+	if err := setServicesUserIdentDeviceIdentityProfile(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -109,7 +110,8 @@ func resourceServicesUserIdentDeviceIdentityProfileCreate(ctx context.Context, d
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	svcUserIdentDevIdentProfileExists, err = checkServicesUserIdentDeviceIdentityProfileExists(
-		d.Get("name").(string), m, jnprSess)
+		d.Get("name").(string),
+		sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -121,7 +123,7 @@ func resourceServicesUserIdentDeviceIdentityProfileCreate(ctx context.Context, d
 				"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceServicesUserIdentDeviceIdentityProfileReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceServicesUserIdentDeviceIdentityProfileReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceServicesUserIdentDeviceIdentityProfileRead(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -133,15 +135,16 @@ func resourceServicesUserIdentDeviceIdentityProfileRead(ctx context.Context, d *
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceServicesUserIdentDeviceIdentityProfileReadWJnprSess(d, m, jnprSess)
+	return resourceServicesUserIdentDeviceIdentityProfileReadWJnprSess(d, sess, jnprSess)
 }
 
 func resourceServicesUserIdentDeviceIdentityProfileReadWJnprSess(
-	d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+	d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
 	svcUserIdentDevIdentProfileOptions, err := readServicesUserIdentDeviceIdentityProfile(
-		d.Get("name").(string), m, jnprSess)
+		d.Get("name").(string),
+		sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -160,10 +163,10 @@ func resourceServicesUserIdentDeviceIdentityProfileUpdate(ctx context.Context, d
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delServicesUserIdentDeviceIdentityProfile(d.Get("name").(string), m, nil); err != nil {
+		if err := delServicesUserIdentDeviceIdentityProfile(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setServicesUserIdentDeviceIdentityProfile(d, m, nil); err != nil {
+		if err := setServicesUserIdentDeviceIdentityProfile(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -179,12 +182,12 @@ func resourceServicesUserIdentDeviceIdentityProfileUpdate(ctx context.Context, d
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delServicesUserIdentDeviceIdentityProfile(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delServicesUserIdentDeviceIdentityProfile(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setServicesUserIdentDeviceIdentityProfile(d, m, jnprSess); err != nil {
+	if err := setServicesUserIdentDeviceIdentityProfile(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -198,14 +201,14 @@ func resourceServicesUserIdentDeviceIdentityProfileUpdate(ctx context.Context, d
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceServicesUserIdentDeviceIdentityProfileReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceServicesUserIdentDeviceIdentityProfileReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceServicesUserIdentDeviceIdentityProfileDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delServicesUserIdentDeviceIdentityProfile(d.Get("name").(string), m, nil); err != nil {
+		if err := delServicesUserIdentDeviceIdentityProfile(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -221,7 +224,7 @@ func resourceServicesUserIdentDeviceIdentityProfileDelete(ctx context.Context, d
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delServicesUserIdentDeviceIdentityProfile(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delServicesUserIdentDeviceIdentityProfile(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -246,7 +249,7 @@ func resourceServicesUserIdentDeviceIdentityProfileImport(ctx context.Context, d
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-	svcUserIdentDevIdentProfileExists, err := checkServicesUserIdentDeviceIdentityProfileExists(d.Id(), m, jnprSess)
+	svcUserIdentDevIdentProfileExists, err := checkServicesUserIdentDeviceIdentityProfileExists(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +257,7 @@ func resourceServicesUserIdentDeviceIdentityProfileImport(ctx context.Context, d
 		return nil, fmt.Errorf("don't find services user-identification "+
 			"device-information end-user-profile with id '%v' (id must be <name>)", d.Id())
 	}
-	svcUserIdentDevIdentProfileOptions, err := readServicesUserIdentDeviceIdentityProfile(d.Id(), m, jnprSess)
+	svcUserIdentDevIdentProfileOptions, err := readServicesUserIdentDeviceIdentityProfile(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -265,9 +268,8 @@ func resourceServicesUserIdentDeviceIdentityProfileImport(ctx context.Context, d
 	return result, nil
 }
 
-func checkServicesUserIdentDeviceIdentityProfileExists(profile string, m interface{}, jnprSess *NetconfObject,
+func checkServicesUserIdentDeviceIdentityProfileExists(profile string, sess *Session, jnprSess *NetconfObject,
 ) (bool, error) {
-	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
 		"services user-identification device-information end-user-profile profile-name "+profile+pipeDisplaySet, jnprSess)
 	if err != nil {
@@ -280,8 +282,7 @@ func checkServicesUserIdentDeviceIdentityProfileExists(profile string, m interfa
 	return true, nil
 }
 
-func setServicesUserIdentDeviceIdentityProfile(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setServicesUserIdentDeviceIdentityProfile(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set services user-identification device-information end-user-profile profile-name " +
@@ -303,9 +304,8 @@ func setServicesUserIdentDeviceIdentityProfile(d *schema.ResourceData, m interfa
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readServicesUserIdentDeviceIdentityProfile(profile string, m interface{}, jnprSess *NetconfObject,
+func readServicesUserIdentDeviceIdentityProfile(profile string, sess *Session, jnprSess *NetconfObject,
 ) (svcUserIdentDevIdentProfileOptions, error) {
-	sess := m.(*Session)
 	var confRead svcUserIdentDevIdentProfileOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
@@ -344,8 +344,7 @@ func readServicesUserIdentDeviceIdentityProfile(profile string, m interface{}, j
 	return confRead, nil
 }
 
-func delServicesUserIdentDeviceIdentityProfile(profile string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delServicesUserIdentDeviceIdentityProfile(profile string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := []string{
 		"delete services user-identification device-information end-user-profile profile-name " + profile,
 	}

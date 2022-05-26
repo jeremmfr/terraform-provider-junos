@@ -100,7 +100,7 @@ func resourceSecurityNatSourcePool() *schema.Resource {
 func resourceSecurityNatSourcePoolCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setSecurityNatSourcePool(d, m, nil); err != nil {
+		if err := setSecurityNatSourcePool(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -120,7 +120,7 @@ func resourceSecurityNatSourcePoolCreate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	securityNatSourcePoolExists, err := checkSecurityNatSourcePoolExists(d.Get("name").(string), m, jnprSess)
+	securityNatSourcePoolExists, err := checkSecurityNatSourcePoolExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -133,7 +133,7 @@ func resourceSecurityNatSourcePoolCreate(ctx context.Context, d *schema.Resource
 			diag.FromErr(fmt.Errorf("security nat source pool %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setSecurityNatSourcePool(d, m, jnprSess); err != nil {
+	if err := setSecurityNatSourcePool(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -145,7 +145,7 @@ func resourceSecurityNatSourcePoolCreate(ctx context.Context, d *schema.Resource
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	securityNatSourcePoolExists, err = checkSecurityNatSourcePoolExists(d.Get("name").(string), m, jnprSess)
+	securityNatSourcePoolExists, err = checkSecurityNatSourcePoolExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -156,7 +156,7 @@ func resourceSecurityNatSourcePoolCreate(ctx context.Context, d *schema.Resource
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityNatSourcePoolReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSecurityNatSourcePoolReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSecurityNatSourcePoolRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -167,13 +167,13 @@ func resourceSecurityNatSourcePoolRead(ctx context.Context, d *schema.ResourceDa
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceSecurityNatSourcePoolReadWJnprSess(d, m, jnprSess)
+	return resourceSecurityNatSourcePoolReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceSecurityNatSourcePoolReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceSecurityNatSourcePoolReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	natSourcePoolOptions, err := readSecurityNatSourcePool(d.Get("name").(string), m, jnprSess)
+	natSourcePoolOptions, err := readSecurityNatSourcePool(d.Get("name").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -191,10 +191,10 @@ func resourceSecurityNatSourcePoolUpdate(ctx context.Context, d *schema.Resource
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delSecurityNatSourcePool(d.Get("name").(string), m, nil); err != nil {
+		if err := delSecurityNatSourcePool(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSecurityNatSourcePool(d, m, nil); err != nil {
+		if err := setSecurityNatSourcePool(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -210,12 +210,12 @@ func resourceSecurityNatSourcePoolUpdate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityNatSourcePool(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delSecurityNatSourcePool(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurityNatSourcePool(d, m, jnprSess); err != nil {
+	if err := setSecurityNatSourcePool(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -229,13 +229,13 @@ func resourceSecurityNatSourcePoolUpdate(ctx context.Context, d *schema.Resource
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityNatSourcePoolReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSecurityNatSourcePoolReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSecurityNatSourcePoolDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delSecurityNatSourcePool(d.Get("name").(string), m, nil); err != nil {
+		if err := delSecurityNatSourcePool(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -250,7 +250,7 @@ func resourceSecurityNatSourcePoolDelete(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityNatSourcePool(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delSecurityNatSourcePool(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -276,14 +276,14 @@ func resourceSecurityNatSourcePoolImport(ctx context.Context, d *schema.Resource
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
 
-	securityNatSourcePoolExists, err := checkSecurityNatSourcePoolExists(d.Id(), m, jnprSess)
+	securityNatSourcePoolExists, err := checkSecurityNatSourcePoolExists(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
 	if !securityNatSourcePoolExists {
 		return nil, fmt.Errorf("don't find nat source pool with id '%v' (id must be <name>)", d.Id())
 	}
-	natSourcePoolOptions, err := readSecurityNatSourcePool(d.Id(), m, jnprSess)
+	natSourcePoolOptions, err := readSecurityNatSourcePool(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -294,8 +294,7 @@ func resourceSecurityNatSourcePoolImport(ctx context.Context, d *schema.Resource
 	return result, nil
 }
 
-func checkSecurityNatSourcePoolExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkSecurityNatSourcePoolExists(name string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+
 		"security nat source pool "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
@@ -308,8 +307,7 @@ func checkSecurityNatSourcePoolExists(name string, m interface{}, jnprSess *Netc
 	return true, nil
 }
 
-func setSecurityNatSourcePool(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setSecurityNatSourcePool(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security nat source pool " + d.Get("name").(string)
@@ -352,8 +350,7 @@ func setSecurityNatSourcePool(d *schema.ResourceData, m interface{}, jnprSess *N
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSecurityNatSourcePool(name string, m interface{}, jnprSess *NetconfObject) (natSourcePoolOptions, error) {
-	sess := m.(*Session)
+func readSecurityNatSourcePool(name string, sess *Session, jnprSess *NetconfObject) (natSourcePoolOptions, error) {
 	var confRead natSourcePoolOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
@@ -413,8 +410,7 @@ func readSecurityNatSourcePool(name string, m interface{}, jnprSess *NetconfObje
 	return confRead, nil
 }
 
-func delSecurityNatSourcePool(natSourcePool string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delSecurityNatSourcePool(natSourcePool string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security nat source pool "+natSourcePool)
 

@@ -79,7 +79,7 @@ func dataSourceInterfacesPhysicalPresentRead(ctx context.Context, d *schema.Reso
 	}
 	defer sess.closeSession(jnprSess)
 	mutex.Lock()
-	iPresent, err := searchInterfacesPhysicalPresent(d, m, jnprSess)
+	iPresent, err := searchInterfacesPhysicalPresent(d, sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -102,9 +102,8 @@ func dataSourceInterfacesPhysicalPresentRead(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func searchInterfacesPhysicalPresent(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func searchInterfacesPhysicalPresent(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) (interfacesPresentOpts, error) {
-	sess := m.(*Session)
 	var result interfacesPresentOpts
 	replyData, err := sess.commandXML(rpcGetInterfacesInformationTerse, jnprSess)
 	if err != nil {

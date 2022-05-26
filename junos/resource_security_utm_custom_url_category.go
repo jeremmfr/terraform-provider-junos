@@ -44,7 +44,7 @@ func resourceSecurityUtmCustomURLCategoryCreate(ctx context.Context, d *schema.R
 ) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setUtmCustomURLCategory(d, m, nil); err != nil {
+		if err := setUtmCustomURLCategory(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -64,7 +64,7 @@ func resourceSecurityUtmCustomURLCategoryCreate(ctx context.Context, d *schema.R
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	utmCustomURLCategoryExists, err := checkUtmCustomURLCategorysExists(d.Get("name").(string), m, jnprSess)
+	utmCustomURLCategoryExists, err := checkUtmCustomURLCategorysExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -77,7 +77,7 @@ func resourceSecurityUtmCustomURLCategoryCreate(ctx context.Context, d *schema.R
 			"security utm custom-objects custom-url-category %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setUtmCustomURLCategory(d, m, jnprSess); err != nil {
+	if err := setUtmCustomURLCategory(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -89,7 +89,7 @@ func resourceSecurityUtmCustomURLCategoryCreate(ctx context.Context, d *schema.R
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	utmCustomURLCategoryExists, err = checkUtmCustomURLCategorysExists(d.Get("name").(string), m, jnprSess)
+	utmCustomURLCategoryExists, err = checkUtmCustomURLCategorysExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -100,7 +100,7 @@ func resourceSecurityUtmCustomURLCategoryCreate(ctx context.Context, d *schema.R
 			"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityUtmCustomURLCategoryReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSecurityUtmCustomURLCategoryReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSecurityUtmCustomURLCategoryRead(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -112,13 +112,13 @@ func resourceSecurityUtmCustomURLCategoryRead(ctx context.Context, d *schema.Res
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceSecurityUtmCustomURLCategoryReadWJnprSess(d, m, jnprSess)
+	return resourceSecurityUtmCustomURLCategoryReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceSecurityUtmCustomURLCategoryReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceSecurityUtmCustomURLCategoryReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	utmCustomURLCategoryOptions, err := readUtmCustomURLCategory(d.Get("name").(string), m, jnprSess)
+	utmCustomURLCategoryOptions, err := readUtmCustomURLCategory(d.Get("name").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -137,10 +137,10 @@ func resourceSecurityUtmCustomURLCategoryUpdate(ctx context.Context, d *schema.R
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delUtmCustomURLCategory(d.Get("name").(string), m, nil); err != nil {
+		if err := delUtmCustomURLCategory(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setUtmCustomURLCategory(d, m, nil); err != nil {
+		if err := setUtmCustomURLCategory(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -156,12 +156,12 @@ func resourceSecurityUtmCustomURLCategoryUpdate(ctx context.Context, d *schema.R
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delUtmCustomURLCategory(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delUtmCustomURLCategory(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setUtmCustomURLCategory(d, m, jnprSess); err != nil {
+	if err := setUtmCustomURLCategory(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -175,14 +175,14 @@ func resourceSecurityUtmCustomURLCategoryUpdate(ctx context.Context, d *schema.R
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityUtmCustomURLCategoryReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSecurityUtmCustomURLCategoryReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSecurityUtmCustomURLCategoryDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delUtmCustomURLCategory(d.Get("name").(string), m, nil); err != nil {
+		if err := delUtmCustomURLCategory(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -197,7 +197,7 @@ func resourceSecurityUtmCustomURLCategoryDelete(ctx context.Context, d *schema.R
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delUtmCustomURLCategory(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delUtmCustomURLCategory(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -222,7 +222,7 @@ func resourceSecurityUtmCustomURLCategoryImport(ctx context.Context, d *schema.R
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-	utmCustomURLCategoryExists, err := checkUtmCustomURLCategorysExists(d.Id(), m, jnprSess)
+	utmCustomURLCategoryExists, err := checkUtmCustomURLCategorysExists(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +230,7 @@ func resourceSecurityUtmCustomURLCategoryImport(ctx context.Context, d *schema.R
 		return nil, fmt.Errorf(
 			"missing security utm custom-objects custom-url-category with id '%v' (id must be <name>)", d.Id())
 	}
-	utmCustomURLCategoryOptions, err := readUtmCustomURLCategory(d.Id(), m, jnprSess)
+	utmCustomURLCategoryOptions, err := readUtmCustomURLCategory(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -241,8 +241,7 @@ func resourceSecurityUtmCustomURLCategoryImport(ctx context.Context, d *schema.R
 	return result, nil
 }
 
-func checkUtmCustomURLCategorysExists(urlCategory string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkUtmCustomURLCategorysExists(urlCategory string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+
 		"security utm custom-objects custom-url-category "+urlCategory+pipeDisplaySet, jnprSess)
 	if err != nil {
@@ -255,8 +254,7 @@ func checkUtmCustomURLCategorysExists(urlCategory string, m interface{}, jnprSes
 	return true, nil
 }
 
-func setUtmCustomURLCategory(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setUtmCustomURLCategory(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security utm custom-objects custom-url-category " + d.Get("name").(string) + " "
@@ -267,9 +265,8 @@ func setUtmCustomURLCategory(d *schema.ResourceData, m interface{}, jnprSess *Ne
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readUtmCustomURLCategory(urlCategory string, m interface{}, jnprSess *NetconfObject,
+func readUtmCustomURLCategory(urlCategory string, sess *Session, jnprSess *NetconfObject,
 ) (utmCustomURLCategoryOptions, error) {
-	sess := m.(*Session)
 	var confRead utmCustomURLCategoryOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
@@ -296,8 +293,7 @@ func readUtmCustomURLCategory(urlCategory string, m interface{}, jnprSess *Netco
 	return confRead, nil
 }
 
-func delUtmCustomURLCategory(urlCategory string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delUtmCustomURLCategory(urlCategory string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security utm custom-objects custom-url-category "+urlCategory)
 

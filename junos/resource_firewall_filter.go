@@ -312,7 +312,7 @@ func resourceFirewallFilter() *schema.Resource {
 func resourceFirewallFilterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setFirewallFilter(d, m, nil); err != nil {
+		if err := setFirewallFilter(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string) + idSeparator + d.Get("family").(string))
@@ -328,7 +328,10 @@ func resourceFirewallFilterCreate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	firewallFilterExists, err := checkFirewallFilterExists(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
+	firewallFilterExists, err := checkFirewallFilterExists(
+		d.Get("name").(string),
+		d.Get("family").(string),
+		sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -340,7 +343,7 @@ func resourceFirewallFilterCreate(ctx context.Context, d *schema.ResourceData, m
 		return append(diagWarns, diag.FromErr(fmt.Errorf("firewall filter %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setFirewallFilter(d, m, jnprSess); err != nil {
+	if err := setFirewallFilter(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -352,7 +355,7 @@ func resourceFirewallFilterCreate(ctx context.Context, d *schema.ResourceData, m
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	firewallFilterExists, err = checkFirewallFilterExists(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
+	firewallFilterExists, err = checkFirewallFilterExists(d.Get("name").(string), d.Get("family").(string), sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -363,7 +366,7 @@ func resourceFirewallFilterCreate(ctx context.Context, d *schema.ResourceData, m
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceFirewallFilterReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceFirewallFilterReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceFirewallFilterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -374,13 +377,13 @@ func resourceFirewallFilterRead(ctx context.Context, d *schema.ResourceData, m i
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceFirewallFilterReadWJnprSess(d, m, jnprSess)
+	return resourceFirewallFilterReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceFirewallFilterReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceFirewallFilterReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	filterOptions, err := readFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess)
+	filterOptions, err := readFirewallFilter(d.Get("name").(string), d.Get("family").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -398,10 +401,10 @@ func resourceFirewallFilterUpdate(ctx context.Context, d *schema.ResourceData, m
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, nil); err != nil {
+		if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setFirewallFilter(d, m, nil); err != nil {
+		if err := setFirewallFilter(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -417,12 +420,12 @@ func resourceFirewallFilterUpdate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess); err != nil {
+	if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setFirewallFilter(d, m, jnprSess); err != nil {
+	if err := setFirewallFilter(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -436,13 +439,13 @@ func resourceFirewallFilterUpdate(ctx context.Context, d *schema.ResourceData, m
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceFirewallFilterReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceFirewallFilterReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceFirewallFilterDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, nil); err != nil {
+		if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -457,7 +460,7 @@ func resourceFirewallFilterDelete(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), m, jnprSess); err != nil {
+	if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -486,14 +489,14 @@ func resourceFirewallFilterImport(ctx context.Context, d *schema.ResourceData, m
 	if len(idList) < 2 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", idSeparator)
 	}
-	firewallFilterExists, err := checkFirewallFilterExists(idList[0], idList[1], m, jnprSess)
+	firewallFilterExists, err := checkFirewallFilterExists(idList[0], idList[1], sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
 	if !firewallFilterExists {
 		return nil, fmt.Errorf("don't find firewall filter with id '%v' (id must be <name>"+idSeparator+"<family>)", d.Id())
 	}
-	filterOptions, err := readFirewallFilter(idList[0], idList[1], m, jnprSess)
+	filterOptions, err := readFirewallFilter(idList[0], idList[1], sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -504,8 +507,7 @@ func resourceFirewallFilterImport(ctx context.Context, d *schema.ResourceData, m
 	return result, nil
 }
 
-func checkFirewallFilterExists(name, family string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkFirewallFilterExists(name, family string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+
 		"firewall family "+family+" filter "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
@@ -518,8 +520,7 @@ func checkFirewallFilterExists(name, family string, m interface{}, jnprSess *Net
 	return true, nil
 }
 
-func setFirewallFilter(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setFirewallFilter(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 	var err error
 	setPrefix := "set firewall family " + d.Get("family").(string) + " filter " + d.Get("name").(string)
@@ -553,8 +554,7 @@ func setFirewallFilter(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfObject) (filterOptions, error) {
-	sess := m.(*Session)
+func readFirewallFilter(filter, family string, sess *Session, jnprSess *NetconfObject) (filterOptions, error) {
 	var confRead filterOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
@@ -614,8 +614,7 @@ func readFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfO
 	return confRead, nil
 }
 
-func delFirewallFilter(filter, family string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delFirewallFilter(filter, family string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete firewall family "+family+" filter "+filter)
 

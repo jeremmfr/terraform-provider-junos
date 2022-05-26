@@ -131,7 +131,7 @@ func resourceSnmpV3VacmAccessGroup() *schema.Resource {
 func resourceSnmpV3VacmAccessGroupCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setSnmpV3VacmAccessGroup(d, m, nil); err != nil {
+		if err := setSnmpV3VacmAccessGroup(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -147,7 +147,7 @@ func resourceSnmpV3VacmAccessGroupCreate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	snmpV3VacmAccessGroupExists, err := checkSnmpV3VacmAccessGroupExists(d.Get("name").(string), m, jnprSess)
+	snmpV3VacmAccessGroupExists, err := checkSnmpV3VacmAccessGroupExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -160,7 +160,7 @@ func resourceSnmpV3VacmAccessGroupCreate(ctx context.Context, d *schema.Resource
 			"snmp v3 vacm access group %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setSnmpV3VacmAccessGroup(d, m, jnprSess); err != nil {
+	if err := setSnmpV3VacmAccessGroup(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -172,7 +172,7 @@ func resourceSnmpV3VacmAccessGroupCreate(ctx context.Context, d *schema.Resource
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	snmpV3VacmAccessGroupExists, err = checkSnmpV3VacmAccessGroupExists(d.Get("name").(string), m, jnprSess)
+	snmpV3VacmAccessGroupExists, err = checkSnmpV3VacmAccessGroupExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -183,7 +183,7 @@ func resourceSnmpV3VacmAccessGroupCreate(ctx context.Context, d *schema.Resource
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSnmpV3VacmAccessGroupReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSnmpV3VacmAccessGroupReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSnmpV3VacmAccessGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -194,13 +194,13 @@ func resourceSnmpV3VacmAccessGroupRead(ctx context.Context, d *schema.ResourceDa
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceSnmpV3VacmAccessGroupReadWJnprSess(d, m, jnprSess)
+	return resourceSnmpV3VacmAccessGroupReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceSnmpV3VacmAccessGroupReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceSnmpV3VacmAccessGroupReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	snmpV3VacmAccessGroupOptions, err := readSnmpV3VacmAccessGroup(d.Get("name").(string), m, jnprSess)
+	snmpV3VacmAccessGroupOptions, err := readSnmpV3VacmAccessGroup(d.Get("name").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -218,10 +218,10 @@ func resourceSnmpV3VacmAccessGroupUpdate(ctx context.Context, d *schema.Resource
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delSnmpV3VacmAccessGroup(d.Get("name").(string), m, nil); err != nil {
+		if err := delSnmpV3VacmAccessGroup(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSnmpV3VacmAccessGroup(d, m, nil); err != nil {
+		if err := setSnmpV3VacmAccessGroup(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -237,12 +237,12 @@ func resourceSnmpV3VacmAccessGroupUpdate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSnmpV3VacmAccessGroup(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delSnmpV3VacmAccessGroup(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSnmpV3VacmAccessGroup(d, m, jnprSess); err != nil {
+	if err := setSnmpV3VacmAccessGroup(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -256,13 +256,13 @@ func resourceSnmpV3VacmAccessGroupUpdate(ctx context.Context, d *schema.Resource
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSnmpV3VacmAccessGroupReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSnmpV3VacmAccessGroupReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSnmpV3VacmAccessGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delSnmpV3VacmAccessGroup(d.Get("name").(string), m, nil); err != nil {
+		if err := delSnmpV3VacmAccessGroup(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -277,7 +277,7 @@ func resourceSnmpV3VacmAccessGroupDelete(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSnmpV3VacmAccessGroup(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delSnmpV3VacmAccessGroup(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -303,14 +303,14 @@ func resourceSnmpV3VacmAccessGroupImport(ctx context.Context, d *schema.Resource
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
 
-	snmpV3VacmAccessGroupExists, err := checkSnmpV3VacmAccessGroupExists(d.Id(), m, jnprSess)
+	snmpV3VacmAccessGroupExists, err := checkSnmpV3VacmAccessGroupExists(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
 	if !snmpV3VacmAccessGroupExists {
 		return nil, fmt.Errorf("don't find snmp v3 vacm access group with id '%v' (id must be <name>)", d.Id())
 	}
-	snmpV3VacmAccessGroupOptions, err := readSnmpV3VacmAccessGroup(d.Id(), m, jnprSess)
+	snmpV3VacmAccessGroupOptions, err := readSnmpV3VacmAccessGroup(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -321,8 +321,7 @@ func resourceSnmpV3VacmAccessGroupImport(ctx context.Context, d *schema.Resource
 	return result, nil
 }
 
-func checkSnmpV3VacmAccessGroupExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkSnmpV3VacmAccessGroupExists(name string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+"snmp v3 vacm access group \""+name+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
@@ -334,9 +333,7 @@ func checkSnmpV3VacmAccessGroupExists(name string, m interface{}, jnprSess *Netc
 	return true, nil
 }
 
-func setSnmpV3VacmAccessGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
-
+func setSnmpV3VacmAccessGroup(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	setPrefix := "set snmp v3 vacm access group \"" + d.Get("name").(string) + "\" "
 	configSet := make([]string, 0)
 
@@ -410,9 +407,8 @@ func setSnmpV3VacmAccessGroup(d *schema.ResourceData, m interface{}, jnprSess *N
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSnmpV3VacmAccessGroup(name string, m interface{}, jnprSess *NetconfObject,
+func readSnmpV3VacmAccessGroup(name string, sess *Session, jnprSess *NetconfObject,
 ) (snmpV3VacmAccessGroupOptions, error) {
-	sess := m.(*Session)
 	var confRead snmpV3VacmAccessGroupOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
@@ -496,9 +492,7 @@ func readSnmpV3VacmAccessGroupContextPrefixConfig(itemTrim string, config map[st
 	}
 }
 
-func delSnmpV3VacmAccessGroup(name string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
-
+func delSnmpV3VacmAccessGroup(name string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := []string{"delete snmp v3 vacm access group \"" + name + "\""}
 
 	return sess.configSet(configSet, jnprSess)

@@ -47,7 +47,7 @@ func resourceSecurityScreenWhiteListCreate(ctx context.Context, d *schema.Resour
 ) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setSecurityScreenWhiteList(d, m, nil); err != nil {
+		if err := setSecurityScreenWhiteList(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -67,7 +67,7 @@ func resourceSecurityScreenWhiteListCreate(ctx context.Context, d *schema.Resour
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	securityScreenWhiteListExists, err := checkSecurityScreenWhiteListExists(d.Get("name").(string), m, jnprSess)
+	securityScreenWhiteListExists, err := checkSecurityScreenWhiteListExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -80,7 +80,7 @@ func resourceSecurityScreenWhiteListCreate(ctx context.Context, d *schema.Resour
 			diag.FromErr(fmt.Errorf("security screen white-list %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setSecurityScreenWhiteList(d, m, jnprSess); err != nil {
+	if err := setSecurityScreenWhiteList(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -92,7 +92,7 @@ func resourceSecurityScreenWhiteListCreate(ctx context.Context, d *schema.Resour
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	securityScreenWhiteListExists, err = checkSecurityScreenWhiteListExists(d.Get("name").(string), m, jnprSess)
+	securityScreenWhiteListExists, err = checkSecurityScreenWhiteListExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -103,7 +103,7 @@ func resourceSecurityScreenWhiteListCreate(ctx context.Context, d *schema.Resour
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityScreenWhiteListReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSecurityScreenWhiteListReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSecurityScreenWhiteListRead(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -115,13 +115,13 @@ func resourceSecurityScreenWhiteListRead(ctx context.Context, d *schema.Resource
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceSecurityScreenWhiteListReadWJnprSess(d, m, jnprSess)
+	return resourceSecurityScreenWhiteListReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceSecurityScreenWhiteListReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceSecurityScreenWhiteListReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	whiteListOptions, err := readSecurityScreenWhiteList(d.Get("name").(string), m, jnprSess)
+	whiteListOptions, err := readSecurityScreenWhiteList(d.Get("name").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -140,10 +140,10 @@ func resourceSecurityScreenWhiteListUpdate(ctx context.Context, d *schema.Resour
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delSecurityScreenWhiteList(d.Get("name").(string), m, nil); err != nil {
+		if err := delSecurityScreenWhiteList(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSecurityScreenWhiteList(d, m, nil); err != nil {
+		if err := setSecurityScreenWhiteList(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -159,12 +159,12 @@ func resourceSecurityScreenWhiteListUpdate(ctx context.Context, d *schema.Resour
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityScreenWhiteList(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delSecurityScreenWhiteList(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurityScreenWhiteList(d, m, jnprSess); err != nil {
+	if err := setSecurityScreenWhiteList(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -178,14 +178,14 @@ func resourceSecurityScreenWhiteListUpdate(ctx context.Context, d *schema.Resour
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityScreenWhiteListReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSecurityScreenWhiteListReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSecurityScreenWhiteListDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delSecurityScreenWhiteList(d.Get("name").(string), m, nil); err != nil {
+		if err := delSecurityScreenWhiteList(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -200,7 +200,7 @@ func resourceSecurityScreenWhiteListDelete(ctx context.Context, d *schema.Resour
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityScreenWhiteList(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delSecurityScreenWhiteList(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -225,14 +225,14 @@ func resourceSecurityScreenWhiteListImport(ctx context.Context, d *schema.Resour
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-	securityScreenWhiteListExists, err := checkSecurityScreenWhiteListExists(d.Id(), m, jnprSess)
+	securityScreenWhiteListExists, err := checkSecurityScreenWhiteListExists(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
 	if !securityScreenWhiteListExists {
 		return nil, fmt.Errorf("don't find screen white-list with id '%v' (id must be <name>)", d.Id())
 	}
-	whiteListOptions, err := readSecurityScreenWhiteList(d.Id(), m, jnprSess)
+	whiteListOptions, err := readSecurityScreenWhiteList(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -243,8 +243,7 @@ func resourceSecurityScreenWhiteListImport(ctx context.Context, d *schema.Resour
 	return result, nil
 }
 
-func checkSecurityScreenWhiteListExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkSecurityScreenWhiteListExists(name string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+"security screen white-list "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
@@ -256,8 +255,7 @@ func checkSecurityScreenWhiteListExists(name string, m interface{}, jnprSess *Ne
 	return true, nil
 }
 
-func setSecurityScreenWhiteList(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setSecurityScreenWhiteList(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security screen white-list " + d.Get("name").(string) + " "
@@ -269,8 +267,7 @@ func setSecurityScreenWhiteList(d *schema.ResourceData, m interface{}, jnprSess 
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSecurityScreenWhiteList(name string, m interface{}, jnprSess *NetconfObject) (screenWhiteListOptions, error) {
-	sess := m.(*Session)
+func readSecurityScreenWhiteList(name string, sess *Session, jnprSess *NetconfObject) (screenWhiteListOptions, error) {
 	var confRead screenWhiteListOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
@@ -297,8 +294,7 @@ func readSecurityScreenWhiteList(name string, m interface{}, jnprSess *NetconfOb
 	return confRead, nil
 }
 
-func delSecurityScreenWhiteList(name string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delSecurityScreenWhiteList(name string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security screen white-list "+name)
 

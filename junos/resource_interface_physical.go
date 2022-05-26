@@ -495,10 +495,10 @@ func resourceInterfacePhysical() *schema.Resource {
 func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := delInterfaceNC(d, m, nil); err != nil {
+		if err := delInterfaceNC(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setInterfacePhysical(d, m, nil); err != nil {
+		if err := setInterfacePhysical(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -514,7 +514,7 @@ func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), m, jnprSess)
+	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -526,13 +526,13 @@ func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData
 		return append(diagWarns, diag.FromErr(fmt.Errorf("interface %s already configured", d.Get("name").(string)))...)
 	}
 	if ncInt {
-		if err := delInterfaceNC(d, m, jnprSess); err != nil {
+		if err := delInterfaceNC(d, sess, jnprSess); err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 	}
-	if err := setInterfacePhysical(d, m, jnprSess); err != nil {
+	if err := setInterfacePhysical(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -544,7 +544,7 @@ func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	ncInt, emptyInt, err = checkInterfacePhysicalNCEmpty(d.Get("name").(string), m, jnprSess)
+	ncInt, emptyInt, err = checkInterfacePhysicalNCEmpty(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -553,7 +553,7 @@ func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData
 			"=> check your config", d.Get("name").(string)))...)
 	}
 	if emptyInt {
-		intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
+		intExists, err := checkInterfaceExists(d.Get("name").(string), sess, jnprSess)
 		if err != nil {
 			return append(diagWarns, diag.FromErr(err)...)
 		}
@@ -564,7 +564,7 @@ func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData
 	}
 	d.SetId(d.Get("name").(string))
 
-	return append(diagWarns, resourceInterfacePhysicalReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceInterfacePhysicalReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -575,13 +575,13 @@ func resourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData, 
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceInterfacePhysicalReadWJnprSess(d, m, jnprSess)
+	return resourceInterfacePhysicalReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceInterfacePhysicalReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceInterfacePhysicalReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), m, jnprSess)
+	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		mutex.Unlock()
 
@@ -594,7 +594,7 @@ func resourceInterfacePhysicalReadWJnprSess(d *schema.ResourceData, m interface{
 		return nil
 	}
 	if emptyInt {
-		intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
+		intExists, err := checkInterfaceExists(d.Get("name").(string), sess, jnprSess)
 		if err != nil {
 			mutex.Unlock()
 
@@ -607,7 +607,7 @@ func resourceInterfacePhysicalReadWJnprSess(d *schema.ResourceData, m interface{
 			return nil
 		}
 	}
-	interfaceOpt, err := readInterfacePhysical(d.Get("name").(string), m, jnprSess)
+	interfaceOpt, err := readInterfacePhysical(d.Get("name").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -621,10 +621,10 @@ func resourceInterfacePhysicalUpdate(ctx context.Context, d *schema.ResourceData
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delInterfacePhysicalOpts(d, m, nil); err != nil {
+		if err := delInterfacePhysicalOpts(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setInterfacePhysical(d, m, nil); err != nil {
+		if err := setInterfacePhysical(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -640,17 +640,17 @@ func resourceInterfacePhysicalUpdate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delInterfacePhysicalOpts(d, m, jnprSess); err != nil {
+	if err := delInterfacePhysicalOpts(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := unsetInterfacePhysicalAE(d, m, jnprSess); err != nil {
+	if err := unsetInterfacePhysicalAE(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setInterfacePhysical(d, m, jnprSess); err != nil {
+	if err := setInterfacePhysical(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -664,13 +664,13 @@ func resourceInterfacePhysicalUpdate(ctx context.Context, d *schema.ResourceData
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceInterfacePhysicalReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceInterfacePhysicalReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceInterfacePhysicalDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delInterfacePhysical(d, m, nil); err != nil {
+		if err := delInterfacePhysical(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -685,7 +685,7 @@ func resourceInterfacePhysicalDelete(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delInterfacePhysical(d, m, jnprSess); err != nil {
+	if err := delInterfacePhysical(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -698,11 +698,11 @@ func resourceInterfacePhysicalDelete(ctx context.Context, d *schema.ResourceData
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if !d.Get("no_disable_on_destroy").(bool) {
-		intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
+		intExists, err := checkInterfaceExists(d.Get("name").(string), sess, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, []error{err})
 		} else if intExists {
-			err = addInterfacePhysicalNC(d.Get("name").(string), m, jnprSess)
+			err = addInterfacePhysicalNC(d.Get("name").(string), sess, jnprSess)
 			if err != nil {
 				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -732,7 +732,7 @@ func resourceInterfacePhysicalImport(ctx context.Context, d *schema.ResourceData
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Id(), m, jnprSess)
+	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -740,7 +740,7 @@ func resourceInterfacePhysicalImport(ctx context.Context, d *schema.ResourceData
 		return nil, fmt.Errorf("interface '%v' is disabled (NC), import is not possible", d.Id())
 	}
 	if emptyInt {
-		intExists, err := checkInterfaceExists(d.Id(), m, jnprSess)
+		intExists, err := checkInterfaceExists(d.Id(), sess, jnprSess)
 		if err != nil {
 			return nil, err
 		}
@@ -748,7 +748,7 @@ func resourceInterfacePhysicalImport(ctx context.Context, d *schema.ResourceData
 			return nil, fmt.Errorf("don't find interface with id '%v' (id must be <name>)", d.Id())
 		}
 	}
-	interfaceOpt, err := readInterfacePhysical(d.Id(), m, jnprSess)
+	interfaceOpt, err := readInterfacePhysical(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -762,9 +762,8 @@ func resourceInterfacePhysicalImport(ctx context.Context, d *schema.ResourceData
 	return result, nil
 }
 
-func checkInterfacePhysicalNCEmpty(interFace string, m interface{}, jnprSess *NetconfObject,
+func checkInterfacePhysicalNCEmpty(interFace string, sess *Session, jnprSess *NetconfObject,
 ) (ncInt, emtyInt bool, errFunc error) {
-	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return false, false, err
@@ -807,9 +806,9 @@ func checkInterfacePhysicalNCEmpty(interFace string, m interface{}, jnprSess *Ne
 	return false, false, nil
 }
 
-func addInterfacePhysicalNC(interFace string, m interface{}, jnprSess *NetconfObject) error {
+func addInterfacePhysicalNC(interFace string, sess *Session, jnprSess *NetconfObject) error {
 	var err error
-	if sess := m.(*Session); sess.junosGroupIntDel == "" {
+	if sess.junosGroupIntDel == "" {
 		err = sess.configSet([]string{"set interfaces " + interFace + " disable description NC"}, jnprSess)
 	} else {
 		err = sess.configSet([]string{"set interfaces " + interFace +
@@ -822,8 +821,7 @@ func addInterfacePhysicalNC(interFace string, m interface{}, jnprSess *NetconfOb
 	return nil
 }
 
-func checkInterfaceExists(interFace string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkInterfaceExists(interFace string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	rpcIntName := "<get-interface-information><interface-name>" + interFace +
 		"</interface-name></get-interface-information>"
 	reply, err := sess.commandXML(rpcIntName, jnprSess)
@@ -842,8 +840,7 @@ func checkInterfaceExists(interFace string, m interface{}, jnprSess *NetconfObje
 	return true, nil
 }
 
-func unsetInterfacePhysicalAE(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func unsetInterfacePhysicalAE(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	var oldAE string
 	switch {
 	case d.HasChange("ether802_3ad"):
@@ -869,7 +866,7 @@ func unsetInterfacePhysicalAE(d *schema.ResourceData, m interface{}, jnprSess *N
 		}
 	}
 	if oldAE != "" {
-		aggregatedCount, err := interfaceAggregatedCountSearchMax("ae-1", oldAE, d.Get("name").(string), m, jnprSess)
+		aggregatedCount, err := interfaceAggregatedCountSearchMax("ae-1", oldAE, d.Get("name").(string), sess, jnprSess)
 		if err != nil {
 			return err
 		}
@@ -883,8 +880,7 @@ func unsetInterfacePhysicalAE(d *schema.ResourceData, m interface{}, jnprSess *N
 	return nil
 }
 
-func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setInterfacePhysical(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 	setPrefix := "set interfaces " + d.Get("name").(string) + " "
 	configSet = append(configSet, setPrefix)
@@ -919,11 +915,11 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 		}
 		configSet = append(configSet, setPrefix+"disable")
 	}
-	if err := setInterfacePhysicalEsi(setPrefix, d.Get("esi").([]interface{}), m, jnprSess); err != nil {
+	if err := setInterfacePhysicalEsi(setPrefix, d.Get("esi").([]interface{}), sess, jnprSess); err != nil {
 		return err
 	}
 	if v := d.Get("name").(string); strings.HasPrefix(v, "ae") && jnprSess != nil {
-		aggregatedCount, err := interfaceAggregatedCountSearchMax(v, "ae-1", v, m, jnprSess)
+		aggregatedCount, err := interfaceAggregatedCountSearchMax(v, "ae-1", v, sess, jnprSess)
 		if err != nil {
 			return err
 		}
@@ -1033,8 +1029,11 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 			}
 		}
 		if newAE != "" && jnprSess != nil {
-			aggregatedCount, err := interfaceAggregatedCountSearchMax(newAE, oldAE,
-				d.Get("name").(string), m, jnprSess)
+			aggregatedCount, err := interfaceAggregatedCountSearchMax(
+				newAE,
+				oldAE,
+				d.Get("name").(string),
+				sess, jnprSess)
 			if err != nil {
 				return err
 			}
@@ -1046,7 +1045,10 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 			return fmt.Errorf("parent_ether_opts block is empty")
 		}
 		if err := setInterfacePhysicalParentEtherOpts(
-			v.(map[string]interface{}), d.Get("name").(string), m, jnprSess); err != nil {
+			v.(map[string]interface{}),
+			d.Get("name").(string),
+			sess, jnprSess,
+		); err != nil {
 			return err
 		}
 	}
@@ -1067,9 +1069,8 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	return sess.configSet(configSet, jnprSess)
 }
 
-func setInterfacePhysicalEsi(setPrefix string, esiParams []interface{}, m interface{}, jnprSess *NetconfObject,
+func setInterfacePhysicalEsi(setPrefix string, esiParams []interface{}, sess *Session, jnprSess *NetconfObject,
 ) error {
-	sess := m.(*Session)
 	configSet := make([]string, 0)
 
 	for _, v := range esiParams {
@@ -1095,9 +1096,8 @@ func setInterfacePhysicalEsi(setPrefix string, esiParams []interface{}, m interf
 }
 
 func setInterfacePhysicalParentEtherOpts(
-	ethOpts map[string]interface{}, interfaceName string, m interface{}, jnprSess *NetconfObject,
+	ethOpts map[string]interface{}, interfaceName string, sess *Session, jnprSess *NetconfObject,
 ) error {
-	sess := m.(*Session)
 	configSet := make([]string, 0)
 	setPrefix := "set interfaces " + interfaceName + " "
 	switch {
@@ -1212,8 +1212,7 @@ func setInterfacePhysicalParentEtherOpts(
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObject) (interfacePhysicalOptions, error) {
-	sess := m.(*Session)
+func readInterfacePhysical(interFace string, sess *Session, jnprSess *NetconfObject) (interfacePhysicalOptions, error) {
 	var confRead interfacePhysicalOptions
 
 	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+pipeDisplaySetRelative, jnprSess)
@@ -1580,10 +1579,9 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 	return nil
 }
 
-func delInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delInterfacePhysical(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	if jnprSess != nil {
-		if containsUnit, err := checkInterfacePhysicalContainsUnit(d.Get("name").(string), m, jnprSess); err != nil {
+		if containsUnit, err := checkInterfacePhysicalContainsUnit(d.Get("name").(string), sess, jnprSess); err != nil {
 			return err
 		} else if containsUnit {
 			return fmt.Errorf("interface %s is used for a logical unit interface", d.Get("name").(string))
@@ -1596,7 +1594,7 @@ func delInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 		return nil
 	}
 	if v := d.Get("name").(string); strings.HasPrefix(v, "ae") {
-		aggregatedCount, err := interfaceAggregatedCountSearchMax("ae-1", v, v, m, jnprSess)
+		aggregatedCount, err := interfaceAggregatedCountSearchMax("ae-1", v, v, sess, jnprSess)
 		if err != nil {
 			return err
 		}
@@ -1626,13 +1624,16 @@ func delInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 			aeDel = v["ae_8023ad"].(string)
 		}
 		if aeDel != "" {
-			lastAEchild, err := interfaceAggregatedLastChild(aeDel, d.Get("name").(string), m, jnprSess)
+			lastAEchild, err := interfaceAggregatedLastChild(aeDel, d.Get("name").(string), sess, jnprSess)
 			if err != nil {
 				return err
 			}
 			if lastAEchild {
-				aggregatedCount, err := interfaceAggregatedCountSearchMax("ae-1", aeDel,
-					d.Get("name").(string), m, jnprSess)
+				aggregatedCount, err := interfaceAggregatedCountSearchMax(
+					"ae-1",
+					aeDel,
+					d.Get("name").(string),
+					sess, jnprSess)
 				if err != nil {
 					return err
 				}
@@ -1654,8 +1655,7 @@ func delInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	return nil
 }
 
-func checkInterfacePhysicalContainsUnit(interFace string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkInterfacePhysicalContainsUnit(interFace string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return false, err
@@ -1679,8 +1679,7 @@ func checkInterfacePhysicalContainsUnit(interFace string, m interface{}, jnprSes
 	return false, nil
 }
 
-func delInterfaceNC(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delInterfaceNC(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	delPrefix := "delete interfaces " + d.Get("name").(string) + " "
 	if sess.junosGroupIntDel != "" {
@@ -1692,8 +1691,7 @@ func delInterfaceNC(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	return sess.configSet(configSet, jnprSess)
 }
 
-func delInterfacePhysicalOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delInterfacePhysicalOpts(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	delPrefix := "delete interfaces " + d.Get("name").(string) + " "
 	configSet = append(configSet,
@@ -1772,8 +1770,7 @@ func fillInterfacePhysicalData(d *schema.ResourceData, interfaceOpt interfacePhy
 	}
 }
 
-func interfaceAggregatedLastChild(ae, interFace string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func interfaceAggregatedLastChild(ae, interFace string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+"interfaces"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return false, err
@@ -1789,9 +1786,8 @@ func interfaceAggregatedLastChild(ae, interFace string, m interface{}, jnprSess 
 	return lastAE, nil
 }
 
-func interfaceAggregatedCountSearchMax(newAE, oldAE, interFace string, m interface{}, jnprSess *NetconfObject,
+func interfaceAggregatedCountSearchMax(newAE, oldAE, interFace string, sess *Session, jnprSess *NetconfObject,
 ) (string, error) {
-	sess := m.(*Session)
 	newAENum := strings.TrimPrefix(newAE, "ae")
 	newAENumInt, err := strconv.Atoi(newAENum)
 	if err != nil {
@@ -1826,7 +1822,7 @@ func interfaceAggregatedCountSearchMax(newAE, oldAE, interFace string, m interfa
 			}
 		}
 	}
-	lastOldAE, err := interfaceAggregatedLastChild(oldAE, interFace, m, jnprSess)
+	lastOldAE, err := interfaceAggregatedLastChild(oldAE, interFace, sess, jnprSess)
 	if err != nil {
 		return "", err
 	}

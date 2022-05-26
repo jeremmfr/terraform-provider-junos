@@ -575,7 +575,7 @@ func dataSourceInterfaceLogicalRead(ctx context.Context, d *schema.ResourceData,
 	}
 	defer sess.closeSession(jnprSess)
 	mutex.Lock()
-	nameFound, err := searchInterfaceLogicalID(d.Get("config_interface").(string), d.Get("match").(string), m, jnprSess)
+	nameFound, err := searchInterfaceLogicalID(d.Get("config_interface").(string), d.Get("match").(string), sess, jnprSess)
 	if err != nil {
 		mutex.Unlock()
 
@@ -586,7 +586,7 @@ func dataSourceInterfaceLogicalRead(ctx context.Context, d *schema.ResourceData,
 
 		return diag.FromErr(fmt.Errorf("no logical interface found with arguments provided"))
 	}
-	interfaceOpt, err := readInterfaceLogical(nameFound, m, jnprSess)
+	interfaceOpt, err := readInterfaceLogical(nameFound, sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -600,9 +600,8 @@ func dataSourceInterfaceLogicalRead(ctx context.Context, d *schema.ResourceData,
 	return nil
 }
 
-func searchInterfaceLogicalID(configInterface, match string, m interface{}, jnprSess *NetconfObject,
+func searchInterfaceLogicalID(configInterface, match string, sess *Session, jnprSess *NetconfObject,
 ) (string, error) {
-	sess := m.(*Session)
 	intConfigList := make([]string, 0)
 	showConfig, err := sess.command(cmdShowConfig+"interfaces "+configInterface+pipeDisplaySet, jnprSess)
 	if err != nil {

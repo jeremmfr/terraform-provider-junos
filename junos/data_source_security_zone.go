@@ -207,7 +207,7 @@ func dataSourceSecurityZoneRead(ctx context.Context, d *schema.ResourceData, m i
 	}
 	defer sess.closeSession(jnprSess)
 	mutex.Lock()
-	zoneOptions, err := readSecurityZone(d.Get("name").(string), m, jnprSess)
+	zoneOptions, err := readSecurityZone(d.Get("name").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)

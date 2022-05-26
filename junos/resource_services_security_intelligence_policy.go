@@ -61,7 +61,7 @@ func resourceServicesSecurityIntellPolicyCreate(ctx context.Context, d *schema.R
 ) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setServicesSecurityIntellPolicy(d, m, nil); err != nil {
+		if err := setServicesSecurityIntellPolicy(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -77,7 +77,7 @@ func resourceServicesSecurityIntellPolicyCreate(ctx context.Context, d *schema.R
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	securityIntellPolicyExists, err := checkServicesSecurityIntellPolicyExists(d.Get("name").(string), m, jnprSess)
+	securityIntellPolicyExists, err := checkServicesSecurityIntellPolicyExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -90,7 +90,7 @@ func resourceServicesSecurityIntellPolicyCreate(ctx context.Context, d *schema.R
 			diag.FromErr(fmt.Errorf("services security-intelligence policy %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setServicesSecurityIntellPolicy(d, m, jnprSess); err != nil {
+	if err := setServicesSecurityIntellPolicy(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -102,7 +102,7 @@ func resourceServicesSecurityIntellPolicyCreate(ctx context.Context, d *schema.R
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	securityIntellPolicyExists, err = checkServicesSecurityIntellPolicyExists(d.Get("name").(string), m, jnprSess)
+	securityIntellPolicyExists, err = checkServicesSecurityIntellPolicyExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -113,7 +113,7 @@ func resourceServicesSecurityIntellPolicyCreate(ctx context.Context, d *schema.R
 			"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceServicesSecurityIntellPolicyReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceServicesSecurityIntellPolicyReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceServicesSecurityIntellPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -125,13 +125,13 @@ func resourceServicesSecurityIntellPolicyRead(ctx context.Context, d *schema.Res
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceServicesSecurityIntellPolicyReadWJnprSess(d, m, jnprSess)
+	return resourceServicesSecurityIntellPolicyReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceServicesSecurityIntellPolicyReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceServicesSecurityIntellPolicyReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	securityIntellPolicyOptions, err := readServicesSecurityIntellPolicy(d.Get("name").(string), m, jnprSess)
+	securityIntellPolicyOptions, err := readServicesSecurityIntellPolicy(d.Get("name").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -150,10 +150,10 @@ func resourceServicesSecurityIntellPolicyUpdate(ctx context.Context, d *schema.R
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delServicesSecurityIntellPolicy(d.Get("name").(string), m, nil); err != nil {
+		if err := delServicesSecurityIntellPolicy(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setServicesSecurityIntellPolicy(d, m, nil); err != nil {
+		if err := setServicesSecurityIntellPolicy(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -169,12 +169,12 @@ func resourceServicesSecurityIntellPolicyUpdate(ctx context.Context, d *schema.R
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delServicesSecurityIntellPolicy(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delServicesSecurityIntellPolicy(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setServicesSecurityIntellPolicy(d, m, jnprSess); err != nil {
+	if err := setServicesSecurityIntellPolicy(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -188,14 +188,14 @@ func resourceServicesSecurityIntellPolicyUpdate(ctx context.Context, d *schema.R
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceServicesSecurityIntellPolicyReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceServicesSecurityIntellPolicyReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceServicesSecurityIntellPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delServicesSecurityIntellPolicy(d.Get("name").(string), m, nil); err != nil {
+		if err := delServicesSecurityIntellPolicy(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -210,7 +210,7 @@ func resourceServicesSecurityIntellPolicyDelete(ctx context.Context, d *schema.R
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delServicesSecurityIntellPolicy(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delServicesSecurityIntellPolicy(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -235,14 +235,14 @@ func resourceServicesSecurityIntellPolicyImport(ctx context.Context, d *schema.R
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-	securityIntellPolicyExists, err := checkServicesSecurityIntellPolicyExists(d.Id(), m, jnprSess)
+	securityIntellPolicyExists, err := checkServicesSecurityIntellPolicyExists(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
 	if !securityIntellPolicyExists {
 		return nil, fmt.Errorf("don't find services security-intelligence policy with id '%v' (id must be <name>)", d.Id())
 	}
-	securityIntellPolicyOptions, err := readServicesSecurityIntellPolicy(d.Id(), m, jnprSess)
+	securityIntellPolicyOptions, err := readServicesSecurityIntellPolicy(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -253,8 +253,7 @@ func resourceServicesSecurityIntellPolicyImport(ctx context.Context, d *schema.R
 	return result, nil
 }
 
-func checkServicesSecurityIntellPolicyExists(policy string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkServicesSecurityIntellPolicyExists(policy string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+
 		"services security-intelligence policy \""+policy+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
@@ -267,8 +266,7 @@ func checkServicesSecurityIntellPolicyExists(policy string, m interface{}, jnprS
 	return true, nil
 }
 
-func setServicesSecurityIntellPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setServicesSecurityIntellPolicy(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set services security-intelligence policy \"" + d.Get("name").(string) + "\" "
@@ -289,9 +287,8 @@ func setServicesSecurityIntellPolicy(d *schema.ResourceData, m interface{}, jnpr
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readServicesSecurityIntellPolicy(policy string, m interface{}, jnprSess *NetconfObject,
+func readServicesSecurityIntellPolicy(policy string, sess *Session, jnprSess *NetconfObject,
 ) (securityIntellPolicyOptions, error) {
-	sess := m.(*Session)
 	var confRead securityIntellPolicyOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
@@ -325,8 +322,7 @@ func readServicesSecurityIntellPolicy(policy string, m interface{}, jnprSess *Ne
 	return confRead, nil
 }
 
-func delServicesSecurityIntellPolicy(policy string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delServicesSecurityIntellPolicy(policy string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := []string{"delete services security-intelligence policy \"" + policy + "\""}
 
 	return sess.configSet(configSet, jnprSess)

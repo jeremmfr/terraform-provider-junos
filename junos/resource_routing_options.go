@@ -190,7 +190,7 @@ func resourceRoutingOptions() *schema.Resource {
 func resourceRoutingOptionsCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setRoutingOptions(d, m, nil); err != nil {
+		if err := setRoutingOptions(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId("routing_options")
@@ -206,7 +206,7 @@ func resourceRoutingOptionsCreate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := setRoutingOptions(d, m, jnprSess); err != nil {
+	if err := setRoutingOptions(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -220,7 +220,7 @@ func resourceRoutingOptionsCreate(ctx context.Context, d *schema.ResourceData, m
 	}
 	d.SetId("routing_options")
 
-	return append(diagWarns, resourceRoutingOptionsReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceRoutingOptionsReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceRoutingOptionsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -231,13 +231,13 @@ func resourceRoutingOptionsRead(ctx context.Context, d *schema.ResourceData, m i
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceRoutingOptionsReadWJnprSess(d, m, jnprSess)
+	return resourceRoutingOptionsReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceRoutingOptionsReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceRoutingOptionsReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	routingOptionsOptions, err := readRoutingOptions(m, jnprSess)
+	routingOptionsOptions, err := readRoutingOptions(sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -274,10 +274,10 @@ func resourceRoutingOptionsUpdate(ctx context.Context, d *schema.ResourceData, m
 	}
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delRoutingOptions(fwTableExportConfigSingly, m, nil); err != nil {
+		if err := delRoutingOptions(fwTableExportConfigSingly, sess, nil); err != nil {
 			return append(diagWarns, diag.FromErr(err)...)
 		}
-		if err := setRoutingOptions(d, m, nil); err != nil {
+		if err := setRoutingOptions(d, sess, nil); err != nil {
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 		d.Partial(false)
@@ -292,12 +292,12 @@ func resourceRoutingOptionsUpdate(ctx context.Context, d *schema.ResourceData, m
 	if err := sess.configLock(ctx, jnprSess); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := delRoutingOptions(fwTableExportConfigSingly, m, jnprSess); err != nil {
+	if err := delRoutingOptions(fwTableExportConfigSingly, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setRoutingOptions(d, m, jnprSess); err != nil {
+	if err := setRoutingOptions(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -311,14 +311,14 @@ func resourceRoutingOptionsUpdate(ctx context.Context, d *schema.ResourceData, m
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceRoutingOptionsReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceRoutingOptionsReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceRoutingOptionsDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	if d.Get("clean_on_destroy").(bool) {
 		sess := m.(*Session)
 		if sess.junosFakeDeleteAlso {
-			if err := delRoutingOptions(d.Get("forwarding_table_export_configure_singly").(bool), m, nil); err != nil {
+			if err := delRoutingOptions(d.Get("forwarding_table_export_configure_singly").(bool), sess, nil); err != nil {
 				return diag.FromErr(err)
 			}
 
@@ -333,7 +333,7 @@ func resourceRoutingOptionsDelete(ctx context.Context, d *schema.ResourceData, m
 			return diag.FromErr(err)
 		}
 		var diagWarns diag.Diagnostics
-		if err := delRoutingOptions(d.Get("forwarding_table_export_configure_singly").(bool), m, jnprSess); err != nil {
+		if err := delRoutingOptions(d.Get("forwarding_table_export_configure_singly").(bool), sess, jnprSess); err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
@@ -359,7 +359,7 @@ func resourceRoutingOptionsImport(ctx context.Context, d *schema.ResourceData, m
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-	routingOptionsOptions, err := readRoutingOptions(m, jnprSess)
+	routingOptionsOptions, err := readRoutingOptions(sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -370,9 +370,7 @@ func resourceRoutingOptionsImport(ctx context.Context, d *schema.ResourceData, m
 	return result, nil
 }
 
-func setRoutingOptions(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
-
+func setRoutingOptions(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	setPrefix := "set routing-options "
 	configSet := make([]string, 0)
 
@@ -461,7 +459,7 @@ func setRoutingOptions(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	return sess.configSet(configSet, jnprSess)
 }
 
-func delRoutingOptions(fwTableExportConfigSingly bool, m interface{}, jnprSess *NetconfObject) error {
+func delRoutingOptions(fwTableExportConfigSingly bool, sess *Session, jnprSess *NetconfObject) error {
 	listLinesToDelete := []string{
 		"autonomous-system",
 		"graceful-restart",
@@ -488,7 +486,6 @@ func delRoutingOptions(fwTableExportConfigSingly bool, m interface{}, jnprSess *
 	} else {
 		listLinesToDelete = append(listLinesToDelete, "forwarding-table")
 	}
-	sess := m.(*Session)
 	configSet := make([]string, 0)
 	delPrefix := "delete routing-options "
 	for _, line := range listLinesToDelete {
@@ -499,8 +496,7 @@ func delRoutingOptions(fwTableExportConfigSingly bool, m interface{}, jnprSess *
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readRoutingOptions(m interface{}, jnprSess *NetconfObject) (routingOptionsOptions, error) {
-	sess := m.(*Session)
+func readRoutingOptions(sess *Session, jnprSess *NetconfObject) (routingOptionsOptions, error) {
 	var confRead routingOptionsOptions
 
 	showConfig, err := sess.command(cmdShowConfig+

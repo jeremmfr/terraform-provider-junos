@@ -189,7 +189,7 @@ func resourceSecurityGlobalPolicy() *schema.Resource {
 func resourceSecurityGlobalPolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setSecurityGlobalPolicy(d, m, nil); err != nil {
+		if err := setSecurityGlobalPolicy(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId("security_global_policy")
@@ -209,7 +209,7 @@ func resourceSecurityGlobalPolicyCreate(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	glbPolicy, err := readSecurityGlobalPolicy(m, jnprSess)
+	glbPolicy, err := readSecurityGlobalPolicy(sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -221,7 +221,7 @@ func resourceSecurityGlobalPolicyCreate(ctx context.Context, d *schema.ResourceD
 		return append(diagWarns, diag.FromErr(fmt.Errorf("security policies global already set"))...)
 	}
 
-	if err := setSecurityGlobalPolicy(d, m, jnprSess); err != nil {
+	if err := setSecurityGlobalPolicy(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -235,7 +235,7 @@ func resourceSecurityGlobalPolicyCreate(ctx context.Context, d *schema.ResourceD
 	}
 	d.SetId("security_global_policy")
 
-	return append(diagWarns, resourceSecurityGlobalPolicyReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSecurityGlobalPolicyReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSecurityGlobalPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -246,13 +246,13 @@ func resourceSecurityGlobalPolicyRead(ctx context.Context, d *schema.ResourceDat
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceSecurityGlobalPolicyReadWJnprSess(d, m, jnprSess)
+	return resourceSecurityGlobalPolicyReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceSecurityGlobalPolicyReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceSecurityGlobalPolicyReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	globalPolicyOptions, err := readSecurityGlobalPolicy(m, jnprSess)
+	globalPolicyOptions, err := readSecurityGlobalPolicy(sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -266,10 +266,10 @@ func resourceSecurityGlobalPolicyUpdate(ctx context.Context, d *schema.ResourceD
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delSecurityGlobalPolicy(m, nil); err != nil {
+		if err := delSecurityGlobalPolicy(sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSecurityGlobalPolicy(d, m, nil); err != nil {
+		if err := setSecurityGlobalPolicy(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -285,12 +285,12 @@ func resourceSecurityGlobalPolicyUpdate(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityGlobalPolicy(m, jnprSess); err != nil {
+	if err := delSecurityGlobalPolicy(sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurityGlobalPolicy(d, m, jnprSess); err != nil {
+	if err := setSecurityGlobalPolicy(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -304,13 +304,13 @@ func resourceSecurityGlobalPolicyUpdate(ctx context.Context, d *schema.ResourceD
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityGlobalPolicyReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSecurityGlobalPolicyReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSecurityGlobalPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delSecurityGlobalPolicy(m, nil); err != nil {
+		if err := delSecurityGlobalPolicy(sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -326,7 +326,7 @@ func resourceSecurityGlobalPolicyDelete(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityGlobalPolicy(m, jnprSess); err != nil {
+	if err := delSecurityGlobalPolicy(sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -351,7 +351,7 @@ func resourceSecurityGlobalPolicyImport(ctx context.Context, d *schema.ResourceD
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-	globalPolicyOptions, err := readSecurityGlobalPolicy(m, jnprSess)
+	globalPolicyOptions, err := readSecurityGlobalPolicy(sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -361,8 +361,7 @@ func resourceSecurityGlobalPolicyImport(ctx context.Context, d *schema.ResourceD
 	return result, nil
 }
 
-func setSecurityGlobalPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setSecurityGlobalPolicy(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security policies global policy "
@@ -436,8 +435,7 @@ func setSecurityGlobalPolicy(d *schema.ResourceData, m interface{}, jnprSess *Ne
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSecurityGlobalPolicy(m interface{}, jnprSess *NetconfObject) (globalPolicyOptions, error) {
-	sess := m.(*Session)
+func readSecurityGlobalPolicy(sess *Session, jnprSess *NetconfObject) (globalPolicyOptions, error) {
 	var confRead globalPolicyOptions
 
 	showConfig, err := sess.command(cmdShowConfig+"security policies global"+pipeDisplaySetRelative, jnprSess)
@@ -531,8 +529,7 @@ func readSecurityGlobalPolicy(m interface{}, jnprSess *NetconfObject) (globalPol
 	return confRead, nil
 }
 
-func delSecurityGlobalPolicy(m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delSecurityGlobalPolicy(sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security policies global")
 

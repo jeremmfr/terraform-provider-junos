@@ -349,7 +349,10 @@ func dataSourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData
 	}
 	defer sess.closeSession(jnprSess)
 	mutex.Lock()
-	nameFound, err := searchInterfacePhysicalID(d.Get("config_interface").(string), d.Get("match").(string), m, jnprSess)
+	nameFound, err := searchInterfacePhysicalID(
+		d.Get("config_interface").(string),
+		d.Get("match").(string),
+		sess, jnprSess)
 	if err != nil {
 		mutex.Unlock()
 
@@ -360,7 +363,7 @@ func dataSourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData
 
 		return diag.FromErr(fmt.Errorf("no physical interface found with arguments provided"))
 	}
-	interfaceOpt, err := readInterfacePhysical(nameFound, m, jnprSess)
+	interfaceOpt, err := readInterfacePhysical(nameFound, sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -374,8 +377,7 @@ func dataSourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData
 	return nil
 }
 
-func searchInterfacePhysicalID(configInterface, match string, m interface{}, jnprSess *NetconfObject) (string, error) {
-	sess := m.(*Session)
+func searchInterfacePhysicalID(configInterface, match string, sess *Session, jnprSess *NetconfObject) (string, error) {
 	intConfigList := make([]string, 0)
 	showConfig, err := sess.command(cmdShowConfig+"interfaces "+configInterface+pipeDisplaySet, jnprSess)
 	if err != nil {

@@ -57,7 +57,7 @@ func resourceIpsecPolicy() *schema.Resource {
 func resourceIpsecPolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setIpsecPolicy(d, m, nil); err != nil {
+		if err := setIpsecPolicy(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -77,7 +77,7 @@ func resourceIpsecPolicyCreate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	ipsecPolicyExists, err := checkIpsecPolicyExists(d.Get("name").(string), m, jnprSess)
+	ipsecPolicyExists, err := checkIpsecPolicyExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -89,7 +89,7 @@ func resourceIpsecPolicyCreate(ctx context.Context, d *schema.ResourceData, m in
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("security ipsec policy %v already exists", d.Get("name").(string)))...)
 	}
-	if err := setIpsecPolicy(d, m, jnprSess); err != nil {
+	if err := setIpsecPolicy(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -101,7 +101,7 @@ func resourceIpsecPolicyCreate(ctx context.Context, d *schema.ResourceData, m in
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	ipsecPolicyExists, err = checkIpsecPolicyExists(d.Get("name").(string), m, jnprSess)
+	ipsecPolicyExists, err = checkIpsecPolicyExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -112,7 +112,7 @@ func resourceIpsecPolicyCreate(ctx context.Context, d *schema.ResourceData, m in
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceIpsecPolicyReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceIpsecPolicyReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceIpsecPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -123,12 +123,12 @@ func resourceIpsecPolicyRead(ctx context.Context, d *schema.ResourceData, m inte
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceIpsecPolicyReadWJnprSess(d, m, jnprSess)
+	return resourceIpsecPolicyReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceIpsecPolicyReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceIpsecPolicyReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
-	ipsecPolicyOptions, err := readIpsecPolicy(d.Get("name").(string), m, jnprSess)
+	ipsecPolicyOptions, err := readIpsecPolicy(d.Get("name").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -146,10 +146,10 @@ func resourceIpsecPolicyUpdate(ctx context.Context, d *schema.ResourceData, m in
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delIpsecPolicy(d, m, nil); err != nil {
+		if err := delIpsecPolicy(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setIpsecPolicy(d, m, nil); err != nil {
+		if err := setIpsecPolicy(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -165,12 +165,12 @@ func resourceIpsecPolicyUpdate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delIpsecPolicy(d, m, jnprSess); err != nil {
+	if err := delIpsecPolicy(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setIpsecPolicy(d, m, jnprSess); err != nil {
+	if err := setIpsecPolicy(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -184,13 +184,13 @@ func resourceIpsecPolicyUpdate(ctx context.Context, d *schema.ResourceData, m in
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceIpsecPolicyReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceIpsecPolicyReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceIpsecPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delIpsecPolicy(d, m, nil); err != nil {
+		if err := delIpsecPolicy(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -205,7 +205,7 @@ func resourceIpsecPolicyDelete(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delIpsecPolicy(d, m, jnprSess); err != nil {
+	if err := delIpsecPolicy(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -230,14 +230,14 @@ func resourceIpsecPolicyImport(ctx context.Context, d *schema.ResourceData, m in
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-	ipsecPolicyExists, err := checkIpsecPolicyExists(d.Id(), m, jnprSess)
+	ipsecPolicyExists, err := checkIpsecPolicyExists(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
 	if !ipsecPolicyExists {
 		return nil, fmt.Errorf("don't find security ipsec policy with id '%v' (id must be <name>)", d.Id())
 	}
-	ipsecPolicyOptions, err := readIpsecPolicy(d.Id(), m, jnprSess)
+	ipsecPolicyOptions, err := readIpsecPolicy(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -247,8 +247,7 @@ func resourceIpsecPolicyImport(ctx context.Context, d *schema.ResourceData, m in
 	return result, nil
 }
 
-func checkIpsecPolicyExists(ipsecPolicy string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkIpsecPolicyExists(ipsecPolicy string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+
 		"security ipsec policy "+ipsecPolicy+pipeDisplaySet, jnprSess)
 	if err != nil {
@@ -261,8 +260,7 @@ func checkIpsecPolicyExists(ipsecPolicy string, m interface{}, jnprSess *Netconf
 	return true, nil
 }
 
-func setIpsecPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setIpsecPolicy(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security ipsec policy " + d.Get("name").(string)
@@ -279,8 +277,7 @@ func setIpsecPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readIpsecPolicy(ipsecPolicy string, m interface{}, jnprSess *NetconfObject) (ipsecPolicyOptions, error) {
-	sess := m.(*Session)
+func readIpsecPolicy(ipsecPolicy string, sess *Session, jnprSess *NetconfObject) (ipsecPolicyOptions, error) {
 	var confRead ipsecPolicyOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
@@ -312,8 +309,7 @@ func readIpsecPolicy(ipsecPolicy string, m interface{}, jnprSess *NetconfObject)
 	return confRead, nil
 }
 
-func delIpsecPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delIpsecPolicy(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ipsec policy "+d.Get("name").(string))
 

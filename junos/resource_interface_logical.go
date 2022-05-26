@@ -688,10 +688,10 @@ func resourceInterfaceLogical() *schema.Resource {
 func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := delInterfaceNC(d, m, nil); err != nil {
+		if err := delInterfaceNC(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setInterfaceLogical(d, m, nil); err != nil {
+		if err := setInterfaceLogical(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -707,7 +707,7 @@ func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	ncInt, emptyInt, _, err := checkInterfaceLogicalNCEmpty(d.Get("name").(string), m, jnprSess)
+	ncInt, emptyInt, _, err := checkInterfaceLogicalNCEmpty(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -719,7 +719,7 @@ func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData,
 		return append(diagWarns, diag.FromErr(fmt.Errorf("interface %s already configured", d.Get("name").(string)))...)
 	}
 	if ncInt {
-		if err := delInterfaceNC(d, m, jnprSess); err != nil {
+		if err := delInterfaceNC(d, sess, jnprSess); err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
@@ -732,7 +732,7 @@ func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData,
 			return append(diagWarns, diag.FromErr(fmt.Errorf("security zone not compatible with Junos device %s",
 				jnprSess.SystemInformation.HardwareModel))...)
 		}
-		zonesExists, err := checkSecurityZonesExists(d.Get("security_zone").(string), m, jnprSess)
+		zonesExists, err := checkSecurityZonesExists(d.Get("security_zone").(string), sess, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -746,7 +746,7 @@ func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData,
 		}
 	}
 	if d.Get("routing_instance").(string) != "" {
-		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), sess, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -759,7 +759,7 @@ func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData,
 				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))...)
 		}
 	}
-	if err := setInterfaceLogical(d, m, jnprSess); err != nil {
+	if err := setInterfaceLogical(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -771,7 +771,7 @@ func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData,
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Get("name").(string), m, jnprSess)
+	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -780,7 +780,7 @@ func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData,
 			"=> check your config", d.Get("name").(string)))...)
 	}
 	if emptyInt && !setInt {
-		intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
+		intExists, err := checkInterfaceExists(d.Get("name").(string), sess, jnprSess)
 		if err != nil {
 			return append(diagWarns, diag.FromErr(err)...)
 		}
@@ -791,7 +791,7 @@ func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData,
 	}
 	d.SetId(d.Get("name").(string))
 
-	return append(diagWarns, resourceInterfaceLogicalReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceInterfaceLogicalReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceInterfaceLogicalRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -802,13 +802,13 @@ func resourceInterfaceLogicalRead(ctx context.Context, d *schema.ResourceData, m
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceInterfaceLogicalReadWJnprSess(d, m, jnprSess)
+	return resourceInterfaceLogicalReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceInterfaceLogicalReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceInterfaceLogicalReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Get("name").(string), m, jnprSess)
+	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		mutex.Unlock()
 
@@ -821,7 +821,7 @@ func resourceInterfaceLogicalReadWJnprSess(d *schema.ResourceData, m interface{}
 		return nil
 	}
 	if emptyInt && !setInt {
-		intExists, err := checkInterfaceExists(d.Get("name").(string), m, jnprSess)
+		intExists, err := checkInterfaceExists(d.Get("name").(string), sess, jnprSess)
 		if err != nil {
 			mutex.Unlock()
 
@@ -834,7 +834,7 @@ func resourceInterfaceLogicalReadWJnprSess(d *schema.ResourceData, m interface{}
 			return nil
 		}
 	}
-	interfaceLogicalOpt, err := readInterfaceLogical(d.Get("name").(string), m, jnprSess)
+	interfaceLogicalOpt, err := readInterfaceLogical(d.Get("name").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -848,28 +848,28 @@ func resourceInterfaceLogicalUpdate(ctx context.Context, d *schema.ResourceData,
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delInterfaceLogicalOpts(d, m, nil); err != nil {
+		if err := delInterfaceLogicalOpts(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		if d.HasChange("security_zone") {
 			if oSecurityZone, _ := d.GetChange("security_zone"); oSecurityZone.(string) != "" {
-				if err := delZoneInterfaceLogical(oSecurityZone.(string), d, m, nil); err != nil {
+				if err := delZoneInterfaceLogical(oSecurityZone.(string), d, sess, nil); err != nil {
 					return diag.FromErr(err)
 				}
 			}
 		} else if v := d.Get("security_zone").(string); v != "" {
-			if err := delZoneInterfaceLogical(v, d, m, nil); err != nil {
+			if err := delZoneInterfaceLogical(v, d, sess, nil); err != nil {
 				return diag.FromErr(err)
 			}
 		}
 		if d.HasChange("routing_instance") {
 			if oRoutingInstance, _ := d.GetChange("routing_instance"); oRoutingInstance.(string) != "" {
-				if err := delRoutingInstanceInterfaceLogical(oRoutingInstance.(string), d, m, nil); err != nil {
+				if err := delRoutingInstanceInterfaceLogical(oRoutingInstance.(string), d, sess, nil); err != nil {
 					return diag.FromErr(err)
 				}
 			}
 		}
-		if err := setInterfaceLogical(d, m, nil); err != nil {
+		if err := setInterfaceLogical(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -885,7 +885,7 @@ func resourceInterfaceLogicalUpdate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delInterfaceLogicalOpts(d, m, jnprSess); err != nil {
+	if err := delInterfaceLogicalOpts(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -899,7 +899,7 @@ func resourceInterfaceLogicalUpdate(ctx context.Context, d *schema.ResourceData,
 				return append(diagWarns, diag.FromErr(fmt.Errorf("security zone not compatible with Junos device %s",
 					jnprSess.SystemInformation.HardwareModel))...)
 			}
-			zonesExists, err := checkSecurityZonesExists(nSecurityZone.(string), m, jnprSess)
+			zonesExists, err := checkSecurityZonesExists(nSecurityZone.(string), sess, jnprSess)
 			if err != nil {
 				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -912,7 +912,7 @@ func resourceInterfaceLogicalUpdate(ctx context.Context, d *schema.ResourceData,
 			}
 		}
 		if oSecurityZone.(string) != "" {
-			err = delZoneInterfaceLogical(oSecurityZone.(string), d, m, jnprSess)
+			err = delZoneInterfaceLogical(oSecurityZone.(string), d, sess, jnprSess)
 			if err != nil {
 				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -920,7 +920,7 @@ func resourceInterfaceLogicalUpdate(ctx context.Context, d *schema.ResourceData,
 			}
 		}
 	} else if v := d.Get("security_zone").(string); v != "" {
-		if err := delZoneInterfaceLogical(v, d, m, jnprSess); err != nil {
+		if err := delZoneInterfaceLogical(v, d, sess, jnprSess); err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
@@ -929,7 +929,7 @@ func resourceInterfaceLogicalUpdate(ctx context.Context, d *schema.ResourceData,
 	if d.HasChange("routing_instance") {
 		oRoutingInstance, nRoutingInstance := d.GetChange("routing_instance")
 		if nRoutingInstance.(string) != "" {
-			instanceExists, err := checkRoutingInstanceExists(nRoutingInstance.(string), m, jnprSess)
+			instanceExists, err := checkRoutingInstanceExists(nRoutingInstance.(string), sess, jnprSess)
 			if err != nil {
 				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -943,7 +943,7 @@ func resourceInterfaceLogicalUpdate(ctx context.Context, d *schema.ResourceData,
 			}
 		}
 		if oRoutingInstance.(string) != "" {
-			err = delRoutingInstanceInterfaceLogical(oRoutingInstance.(string), d, m, jnprSess)
+			err = delRoutingInstanceInterfaceLogical(oRoutingInstance.(string), d, sess, jnprSess)
 			if err != nil {
 				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -951,7 +951,7 @@ func resourceInterfaceLogicalUpdate(ctx context.Context, d *schema.ResourceData,
 			}
 		}
 	}
-	if err := setInterfaceLogical(d, m, jnprSess); err != nil {
+	if err := setInterfaceLogical(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -965,13 +965,13 @@ func resourceInterfaceLogicalUpdate(ctx context.Context, d *schema.ResourceData,
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceInterfaceLogicalReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceInterfaceLogicalReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceInterfaceLogicalDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delInterfaceLogical(d, m, nil); err != nil {
+		if err := delInterfaceLogical(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -986,7 +986,7 @@ func resourceInterfaceLogicalDelete(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delInterfaceLogical(d, m, jnprSess); err != nil {
+	if err := delInterfaceLogical(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -1014,7 +1014,7 @@ func resourceInterfaceLogicalImport(ctx context.Context, d *schema.ResourceData,
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Id(), m, jnprSess)
+	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -1022,7 +1022,7 @@ func resourceInterfaceLogicalImport(ctx context.Context, d *schema.ResourceData,
 		return nil, fmt.Errorf("interface '%v' is disabled (NC), import is not possible", d.Id())
 	}
 	if emptyInt && !setInt {
-		intExists, err := checkInterfaceExists(d.Id(), m, jnprSess)
+		intExists, err := checkInterfaceExists(d.Id(), sess, jnprSess)
 		if err != nil {
 			return nil, err
 		}
@@ -1030,7 +1030,7 @@ func resourceInterfaceLogicalImport(ctx context.Context, d *schema.ResourceData,
 			return nil, fmt.Errorf("don't find interface with id '%v' (id must be <name>)", d.Id())
 		}
 	}
-	interfaceLogicalOpt, err := readInterfaceLogical(d.Id(), m, jnprSess)
+	interfaceLogicalOpt, err := readInterfaceLogical(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -1054,9 +1054,8 @@ func resourceInterfaceLogicalImport(ctx context.Context, d *schema.ResourceData,
 	return result, nil
 }
 
-func checkInterfaceLogicalNCEmpty(interFace string, m interface{}, jnprSess *NetconfObject,
+func checkInterfaceLogicalNCEmpty(interFace string, sess *Session, jnprSess *NetconfObject,
 ) (ncInt, emtyInt, justSet bool, _err error) {
-	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
 		return false, false, false, err
@@ -1102,8 +1101,7 @@ func checkInterfaceLogicalNCEmpty(interFace string, m interface{}, jnprSess *Net
 	}
 }
 
-func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setInterfaceLogical(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	intCut := strings.Split(d.Get("name").(string), ".")
 	if len(intCut) != 2 {
 		return fmt.Errorf("the name %s doesn't contain one dot", d.Get("name").(string))
@@ -1268,8 +1266,7 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObject) (interfaceLogicalOptions, error) {
-	sess := m.(*Session)
+func readInterfaceLogical(interFace string, sess *Session, jnprSess *NetconfObject) (interfaceLogicalOptions, error) {
 	var confRead interfaceLogicalOptions
 
 	showConfig, err := sess.command(cmdShowConfig+"interfaces "+interFace+pipeDisplaySetRelative, jnprSess)
@@ -1541,7 +1538,7 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 			if intMatch {
 				itemTrimSplit := strings.Split(strings.TrimPrefix(item, "set security-zone "), " ")
 				confRead.securityZone = itemTrimSplit[0]
-				if err := readInterfaceLogicalSecurityInboundTraffic(interFace, &confRead, m, jnprSess); err != nil {
+				if err := readInterfaceLogicalSecurityInboundTraffic(interFace, &confRead, sess, jnprSess); err != nil {
 					return confRead, err
 				}
 
@@ -1554,10 +1551,8 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 }
 
 func readInterfaceLogicalSecurityInboundTraffic(
-	interFace string, confRead *interfaceLogicalOptions, m interface{}, jnprSess *NetconfObject,
+	interFace string, confRead *interfaceLogicalOptions, sess *Session, jnprSess *NetconfObject,
 ) error {
-	sess := m.(*Session)
-
 	showConfig, err := sess.command(cmdShowConfig+
 		"security zones security-zone "+confRead.securityZone+" interfaces "+interFace+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
@@ -1587,8 +1582,7 @@ func readInterfaceLogicalSecurityInboundTraffic(
 	return nil
 }
 
-func delInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delInterfaceLogical(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	if err := sess.configSet([]string{"delete interfaces " + d.Get("name").(string)}, jnprSess); err != nil {
 		return err
 	}
@@ -1602,13 +1596,13 @@ func delInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 		}
 	}
 	if d.Get("routing_instance").(string) != "" {
-		if err := delRoutingInstanceInterfaceLogical(d.Get("routing_instance").(string), d, m, jnprSess); err != nil {
+		if err := delRoutingInstanceInterfaceLogical(d.Get("routing_instance").(string), d, sess, jnprSess); err != nil {
 			return err
 		}
 	}
 	if d.Get("security_zone").(string) != "" {
 		if jnprSess == nil || checkCompatibilitySecurity(jnprSess) {
-			if err := delZoneInterfaceLogical(d.Get("security_zone").(string), d, m, jnprSess); err != nil {
+			if err := delZoneInterfaceLogical(d.Get("security_zone").(string), d, sess, jnprSess); err != nil {
 				return err
 			}
 		}
@@ -1617,8 +1611,7 @@ func delInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 	return nil
 }
 
-func delInterfaceLogicalOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delInterfaceLogicalOpts(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	delPrefix := "delete interfaces " + d.Get("name").(string) + " "
 	configSet = append(configSet,
@@ -1632,17 +1625,15 @@ func delInterfaceLogicalOpts(d *schema.ResourceData, m interface{}, jnprSess *Ne
 	return sess.configSet(configSet, jnprSess)
 }
 
-func delZoneInterfaceLogical(zone string, d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delZoneInterfaceLogical(zone string, d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security zones security-zone "+zone+" interfaces "+d.Get("name").(string))
 
 	return sess.configSet(configSet, jnprSess)
 }
 
-func delRoutingInstanceInterfaceLogical(instance string, d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func delRoutingInstanceInterfaceLogical(instance string, d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) error {
-	sess := m.(*Session)
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, delRoutingInstances+instance+" interface "+d.Get("name").(string))
 

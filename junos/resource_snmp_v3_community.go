@@ -56,7 +56,7 @@ func resourceSnmpV3Community() *schema.Resource {
 func resourceSnmpV3CommunityCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setSnmpV3Community(d, m, nil); err != nil {
+		if err := setSnmpV3Community(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("community_index").(string))
@@ -72,7 +72,7 @@ func resourceSnmpV3CommunityCreate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	snmpV3CommunityExists, err := checkSnmpV3CommunityExists(d.Get("community_index").(string), m, jnprSess)
+	snmpV3CommunityExists, err := checkSnmpV3CommunityExists(d.Get("community_index").(string), sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -85,7 +85,7 @@ func resourceSnmpV3CommunityCreate(ctx context.Context, d *schema.ResourceData, 
 			"snmp v3 snmp-community %v already exists", d.Get("community_index").(string)))...)
 	}
 
-	if err := setSnmpV3Community(d, m, jnprSess); err != nil {
+	if err := setSnmpV3Community(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -97,7 +97,7 @@ func resourceSnmpV3CommunityCreate(ctx context.Context, d *schema.ResourceData, 
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	snmpV3CommunityExists, err = checkSnmpV3CommunityExists(d.Get("community_index").(string), m, jnprSess)
+	snmpV3CommunityExists, err = checkSnmpV3CommunityExists(d.Get("community_index").(string), sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -108,7 +108,7 @@ func resourceSnmpV3CommunityCreate(ctx context.Context, d *schema.ResourceData, 
 			"=> check your config", d.Get("community_index").(string)))...)
 	}
 
-	return append(diagWarns, resourceSnmpV3CommunityReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSnmpV3CommunityReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSnmpV3CommunityRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -119,13 +119,13 @@ func resourceSnmpV3CommunityRead(ctx context.Context, d *schema.ResourceData, m 
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceSnmpV3CommunityReadWJnprSess(d, m, jnprSess)
+	return resourceSnmpV3CommunityReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceSnmpV3CommunityReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceSnmpV3CommunityReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	snmpV3CommunityOptions, err := readSnmpV3Community(d.Get("community_index").(string), m, jnprSess)
+	snmpV3CommunityOptions, err := readSnmpV3Community(d.Get("community_index").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -143,10 +143,10 @@ func resourceSnmpV3CommunityUpdate(ctx context.Context, d *schema.ResourceData, 
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delSnmpV3Community(d.Get("community_index").(string), m, nil); err != nil {
+		if err := delSnmpV3Community(d.Get("community_index").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSnmpV3Community(d, m, nil); err != nil {
+		if err := setSnmpV3Community(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -162,12 +162,12 @@ func resourceSnmpV3CommunityUpdate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSnmpV3Community(d.Get("community_index").(string), m, jnprSess); err != nil {
+	if err := delSnmpV3Community(d.Get("community_index").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSnmpV3Community(d, m, jnprSess); err != nil {
+	if err := setSnmpV3Community(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -181,13 +181,13 @@ func resourceSnmpV3CommunityUpdate(ctx context.Context, d *schema.ResourceData, 
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSnmpV3CommunityReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSnmpV3CommunityReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSnmpV3CommunityDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delSnmpV3Community(d.Get("community_index").(string), m, nil); err != nil {
+		if err := delSnmpV3Community(d.Get("community_index").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -202,7 +202,7 @@ func resourceSnmpV3CommunityDelete(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSnmpV3Community(d.Get("community_index").(string), m, jnprSess); err != nil {
+	if err := delSnmpV3Community(d.Get("community_index").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -228,14 +228,14 @@ func resourceSnmpV3CommunityImport(ctx context.Context, d *schema.ResourceData, 
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
 
-	snmpV3CommunityExists, err := checkSnmpV3CommunityExists(d.Id(), m, jnprSess)
+	snmpV3CommunityExists, err := checkSnmpV3CommunityExists(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
 	if !snmpV3CommunityExists {
 		return nil, fmt.Errorf("don't find snmp v3 snmp-community with id '%v' (id must be <community_index>)", d.Id())
 	}
-	snmpV3CommunityOptions, err := readSnmpV3Community(d.Id(), m, jnprSess)
+	snmpV3CommunityOptions, err := readSnmpV3Community(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -246,8 +246,7 @@ func resourceSnmpV3CommunityImport(ctx context.Context, d *schema.ResourceData, 
 	return result, nil
 }
 
-func checkSnmpV3CommunityExists(communityIndex string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkSnmpV3CommunityExists(communityIndex string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+
 		"snmp v3 snmp-community \""+communityIndex+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
@@ -260,9 +259,7 @@ func checkSnmpV3CommunityExists(communityIndex string, m interface{}, jnprSess *
 	return true, nil
 }
 
-func setSnmpV3Community(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
-
+func setSnmpV3Community(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	setPrefix := "set snmp v3 snmp-community \"" + d.Get("community_index").(string) + "\" "
 	configSet := make([]string, 0)
 
@@ -280,9 +277,8 @@ func setSnmpV3Community(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSnmpV3Community(communityIndex string, m interface{}, jnprSess *NetconfObject,
+func readSnmpV3Community(communityIndex string, sess *Session, jnprSess *NetconfObject,
 ) (snmpV3CommunityOptions, error) {
-	sess := m.(*Session)
 	var confRead snmpV3CommunityOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
@@ -320,9 +316,7 @@ func readSnmpV3Community(communityIndex string, m interface{}, jnprSess *Netconf
 	return confRead, nil
 }
 
-func delSnmpV3Community(communityIndex string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
-
+func delSnmpV3Community(communityIndex string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := []string{"delete snmp v3 snmp-community \"" + communityIndex + "\""}
 
 	return sess.configSet(configSet, jnprSess)

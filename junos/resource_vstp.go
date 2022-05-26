@@ -86,7 +86,7 @@ func resourceVstp() *schema.Resource {
 func resourceVstpCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setVstp(d, m, nil); err != nil {
+		if err := setVstp(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("routing_instance").(string))
@@ -103,7 +103,7 @@ func resourceVstpCreate(ctx context.Context, d *schema.ResourceData, m interface
 	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), sess, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -116,7 +116,7 @@ func resourceVstpCreate(ctx context.Context, d *schema.ResourceData, m interface
 				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))...)
 		}
 	}
-	if err := setVstp(d, m, jnprSess); err != nil {
+	if err := setVstp(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -130,7 +130,7 @@ func resourceVstpCreate(ctx context.Context, d *schema.ResourceData, m interface
 	}
 	d.SetId(d.Get("routing_instance").(string))
 
-	return append(diagWarns, resourceVstpReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceVstpReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceVstpRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -141,13 +141,13 @@ func resourceVstpRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceVstpReadWJnprSess(d, m, jnprSess)
+	return resourceVstpReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceVstpReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceVstpReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
 	if d.Get("routing_instance").(string) != defaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), sess, jnprSess)
 		if err != nil {
 			mutex.Unlock()
 
@@ -160,7 +160,7 @@ func resourceVstpReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *
 			return nil
 		}
 	}
-	vstpOptions, err := readVstp(d.Get("routing_instance").(string), m, jnprSess)
+	vstpOptions, err := readVstp(d.Get("routing_instance").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -174,10 +174,10 @@ func resourceVstpUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delVstp(d, m, nil); err != nil {
+		if err := delVstp(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setVstp(d, m, nil); err != nil {
+		if err := setVstp(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -193,12 +193,12 @@ func resourceVstpUpdate(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delVstp(d, m, jnprSess); err != nil {
+	if err := delVstp(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setVstp(d, m, jnprSess); err != nil {
+	if err := setVstp(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -212,13 +212,13 @@ func resourceVstpUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceVstpReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceVstpReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceVstpDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delVstp(d, m, nil); err != nil {
+		if err := delVstp(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -233,7 +233,7 @@ func resourceVstpDelete(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delVstp(d, m, jnprSess); err != nil {
+	if err := delVstp(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -258,7 +258,7 @@ func resourceVstpImport(ctx context.Context, d *schema.ResourceData, m interface
 	}
 	defer sess.closeSession(jnprSess)
 	if d.Id() != defaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Id(), m, jnprSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Id(), sess, jnprSess)
 		if err != nil {
 			return nil, err
 		}
@@ -267,7 +267,7 @@ func resourceVstpImport(ctx context.Context, d *schema.ResourceData, m interface
 		}
 	}
 	result := make([]*schema.ResourceData, 1)
-	vstpOptions, err := readVstp(d.Id(), m, jnprSess)
+	vstpOptions, err := readVstp(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -277,8 +277,7 @@ func resourceVstpImport(ctx context.Context, d *schema.ResourceData, m interface
 	return result, nil
 }
 
-func setVstp(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setVstp(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 	setPrefix := setLS
 	if d.Get("routing_instance").(string) != defaultW {
@@ -317,8 +316,7 @@ func setVstp(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readVstp(routingInstance string, m interface{}, jnprSess *NetconfObject) (vstpOptions, error) {
-	sess := m.(*Session)
+func readVstp(routingInstance string, sess *Session, jnprSess *NetconfObject) (vstpOptions, error) {
 	var confRead vstpOptions
 
 	var showConfig string
@@ -385,8 +383,7 @@ func readVstp(routingInstance string, m interface{}, jnprSess *NetconfObject) (v
 	return confRead, nil
 }
 
-func delVstp(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delVstp(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	delPrefix := deleteLS
 	if d.Get("routing_instance").(string) != defaultW {

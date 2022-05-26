@@ -49,7 +49,7 @@ func resourceSnmpView() *schema.Resource {
 func resourceSnmpViewCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setSnmpView(d, m, nil); err != nil {
+		if err := setSnmpView(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -65,7 +65,7 @@ func resourceSnmpViewCreate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	snmpViewExists, err := checkSnmpViewExists(d.Get("name").(string), m, jnprSess)
+	snmpViewExists, err := checkSnmpViewExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -77,7 +77,7 @@ func resourceSnmpViewCreate(ctx context.Context, d *schema.ResourceData, m inter
 		return append(diagWarns, diag.FromErr(fmt.Errorf("snmp view %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setSnmpView(d, m, jnprSess); err != nil {
+	if err := setSnmpView(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -89,7 +89,7 @@ func resourceSnmpViewCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	snmpViewExists, err = checkSnmpViewExists(d.Get("name").(string), m, jnprSess)
+	snmpViewExists, err = checkSnmpViewExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -100,7 +100,7 @@ func resourceSnmpViewCreate(ctx context.Context, d *schema.ResourceData, m inter
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSnmpViewReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSnmpViewReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSnmpViewRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -111,13 +111,13 @@ func resourceSnmpViewRead(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceSnmpViewReadWJnprSess(d, m, jnprSess)
+	return resourceSnmpViewReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceSnmpViewReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceSnmpViewReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	snmpViewOptions, err := readSnmpView(d.Get("name").(string), m, jnprSess)
+	snmpViewOptions, err := readSnmpView(d.Get("name").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -135,10 +135,10 @@ func resourceSnmpViewUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delSnmpView(d.Get("name").(string), m, nil); err != nil {
+		if err := delSnmpView(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSnmpView(d, m, nil); err != nil {
+		if err := setSnmpView(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -154,12 +154,12 @@ func resourceSnmpViewUpdate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSnmpView(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delSnmpView(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSnmpView(d, m, jnprSess); err != nil {
+	if err := setSnmpView(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -173,13 +173,13 @@ func resourceSnmpViewUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSnmpViewReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSnmpViewReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSnmpViewDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delSnmpView(d.Get("name").(string), m, nil); err != nil {
+		if err := delSnmpView(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -194,7 +194,7 @@ func resourceSnmpViewDelete(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSnmpView(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delSnmpView(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -220,14 +220,14 @@ func resourceSnmpViewImport(ctx context.Context, d *schema.ResourceData, m inter
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
 
-	snmpViewExists, err := checkSnmpViewExists(d.Id(), m, jnprSess)
+	snmpViewExists, err := checkSnmpViewExists(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
 	if !snmpViewExists {
 		return nil, fmt.Errorf("don't find snmp view with id '%v' (id must be <name>)", d.Id())
 	}
-	snmpViewOptions, err := readSnmpView(d.Id(), m, jnprSess)
+	snmpViewOptions, err := readSnmpView(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -238,8 +238,7 @@ func resourceSnmpViewImport(ctx context.Context, d *schema.ResourceData, m inter
 	return result, nil
 }
 
-func checkSnmpViewExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkSnmpViewExists(name string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+"snmp view \""+name+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
@@ -251,9 +250,7 @@ func checkSnmpViewExists(name string, m interface{}, jnprSess *NetconfObject) (b
 	return true, nil
 }
 
-func setSnmpView(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
-
+func setSnmpView(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	setPrefix := "set snmp view \"" + d.Get("name").(string) + "\" "
 	configSet := make([]string, 0)
 
@@ -267,8 +264,7 @@ func setSnmpView(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSnmpView(name string, m interface{}, jnprSess *NetconfObject) (snmpViewOptions, error) {
-	sess := m.(*Session)
+func readSnmpView(name string, sess *Session, jnprSess *NetconfObject) (snmpViewOptions, error) {
 	var confRead snmpViewOptions
 
 	showConfig, err := sess.command(cmdShowConfig+"snmp view \""+name+"\""+pipeDisplaySetRelative, jnprSess)
@@ -300,8 +296,7 @@ func readSnmpView(name string, m interface{}, jnprSess *NetconfObject) (snmpView
 	return confRead, nil
 }
 
-func delSnmpView(name string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delSnmpView(name string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := []string{"delete snmp view \"" + name + "\""}
 
 	return sess.configSet(configSet, jnprSess)

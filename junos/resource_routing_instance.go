@@ -157,7 +157,7 @@ func resourceRoutingInstance() *schema.Resource {
 func resourceRoutingInstanceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setRoutingInstance(d, m, nil); err != nil {
+		if err := setRoutingInstance(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -173,7 +173,7 @@ func resourceRoutingInstanceCreate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	routingInstanceExists, err := checkRoutingInstanceExists(d.Get("name").(string), m, jnprSess)
+	routingInstanceExists, err := checkRoutingInstanceExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -184,7 +184,7 @@ func resourceRoutingInstanceCreate(ctx context.Context, d *schema.ResourceData, 
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("routing-instance %v already exists", d.Get("name").(string)))...)
 	}
-	if err := setRoutingInstance(d, m, jnprSess); err != nil {
+	if err := setRoutingInstance(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -196,7 +196,7 @@ func resourceRoutingInstanceCreate(ctx context.Context, d *schema.ResourceData, 
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	routingInstanceExists, err = checkRoutingInstanceExists(d.Get("name").(string), m, jnprSess)
+	routingInstanceExists, err = checkRoutingInstanceExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -207,7 +207,7 @@ func resourceRoutingInstanceCreate(ctx context.Context, d *schema.ResourceData, 
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceRoutingInstanceReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceRoutingInstanceReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceRoutingInstanceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -218,13 +218,13 @@ func resourceRoutingInstanceRead(ctx context.Context, d *schema.ResourceData, m 
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceRoutingInstanceReadWJnprSess(d, m, jnprSess)
+	return resourceRoutingInstanceReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceRoutingInstanceReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceRoutingInstanceReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	instanceOptions, err := readRoutingInstance(d.Get("name").(string), m, jnprSess)
+	instanceOptions, err := readRoutingInstance(d.Get("name").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -242,10 +242,10 @@ func resourceRoutingInstanceUpdate(ctx context.Context, d *schema.ResourceData, 
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delRoutingInstanceOpts(d, m, nil); err != nil {
+		if err := delRoutingInstanceOpts(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setRoutingInstance(d, m, nil); err != nil {
+		if err := setRoutingInstance(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -261,12 +261,12 @@ func resourceRoutingInstanceUpdate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delRoutingInstanceOpts(d, m, jnprSess); err != nil {
+	if err := delRoutingInstanceOpts(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setRoutingInstance(d, m, jnprSess); err != nil {
+	if err := setRoutingInstance(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -280,13 +280,13 @@ func resourceRoutingInstanceUpdate(ctx context.Context, d *schema.ResourceData, 
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceRoutingInstanceReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceRoutingInstanceReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceRoutingInstanceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delRoutingInstance(d, m, nil); err != nil {
+		if err := delRoutingInstance(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -301,7 +301,7 @@ func resourceRoutingInstanceDelete(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delRoutingInstance(d, m, jnprSess); err != nil {
+	if err := delRoutingInstance(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -326,14 +326,14 @@ func resourceRoutingInstanceImport(ctx context.Context, d *schema.ResourceData, 
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-	routingInstanceExists, err := checkRoutingInstanceExists(d.Id(), m, jnprSess)
+	routingInstanceExists, err := checkRoutingInstanceExists(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
 	if !routingInstanceExists {
 		return nil, fmt.Errorf("don't find routing instance with id '%v' (id must be <name>)", d.Id())
 	}
-	instanceOptions, err := readRoutingInstance(d.Id(), m, jnprSess)
+	instanceOptions, err := readRoutingInstance(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -343,8 +343,7 @@ func resourceRoutingInstanceImport(ctx context.Context, d *schema.ResourceData, 
 	return result, nil
 }
 
-func checkRoutingInstanceExists(instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkRoutingInstanceExists(instance string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+routingInstancesWS+instance+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
@@ -356,8 +355,7 @@ func checkRoutingInstanceExists(instance string, m interface{}, jnprSess *Netcon
 	return true, nil
 }
 
-func setRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setRoutingInstance(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 
 	setPrefix := setRoutingInstances + d.Get("name").(string) + " "
@@ -412,8 +410,7 @@ func setRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject) (instanceOptions, error) {
-	sess := m.(*Session)
+func readRoutingInstance(instance string, sess *Session, jnprSess *NetconfObject) (instanceOptions, error) {
 	var confRead instanceOptions
 
 	showConfig, err := sess.command(cmdShowConfig+routingInstancesWS+instance+pipeDisplaySetRelative, jnprSess)
@@ -469,8 +466,7 @@ func readRoutingInstance(instance string, m interface{}, jnprSess *NetconfObject
 	return confRead, nil
 }
 
-func delRoutingInstanceOpts(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delRoutingInstanceOpts(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 	setPrefix := delRoutingInstances + d.Get("name").(string) + " "
 	configSet = append(configSet,
@@ -495,8 +491,7 @@ func delRoutingInstanceOpts(d *schema.ResourceData, m interface{}, jnprSess *Net
 	return sess.configSet(configSet, jnprSess)
 }
 
-func delRoutingInstance(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delRoutingInstance(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, delRoutingInstances+d.Get("name").(string))
 

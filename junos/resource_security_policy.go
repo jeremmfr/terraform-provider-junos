@@ -195,7 +195,7 @@ func resourceSecurityPolicy() *schema.Resource {
 func resourceSecurityPolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setSecurityPolicy(d, m, nil); err != nil {
+		if err := setSecurityPolicy(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("from_zone").(string) + idSeparator + d.Get("to_zone").(string))
@@ -215,8 +215,10 @@ func resourceSecurityPolicyCreate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	securityPolicyExists, err := checkSecurityPolicyExists(d.Get("from_zone").(string), d.Get("to_zone").(string),
-		m, jnprSess)
+	securityPolicyExists, err := checkSecurityPolicyExists(
+		d.Get("from_zone").(string),
+		d.Get("to_zone").(string),
+		sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -229,7 +231,7 @@ func resourceSecurityPolicyCreate(ctx context.Context, d *schema.ResourceData, m
 			d.Get("from_zone").(string), d.Get("to_zone").(string)))...)
 	}
 
-	if err := setSecurityPolicy(d, m, jnprSess); err != nil {
+	if err := setSecurityPolicy(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -241,8 +243,10 @@ func resourceSecurityPolicyCreate(ctx context.Context, d *schema.ResourceData, m
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	securityPolicyExists, err = checkSecurityPolicyExists(d.Get("from_zone").(string), d.Get("to_zone").(string),
-		m, jnprSess)
+	securityPolicyExists, err = checkSecurityPolicyExists(
+		d.Get("from_zone").(string),
+		d.Get("to_zone").(string),
+		sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -253,7 +257,7 @@ func resourceSecurityPolicyCreate(ctx context.Context, d *schema.ResourceData, m
 			"=> check your config", d.Get("from_zone").(string), d.Get("to_zone").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityPolicyReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSecurityPolicyReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSecurityPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -264,14 +268,15 @@ func resourceSecurityPolicyRead(ctx context.Context, d *schema.ResourceData, m i
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceSecurityPolicyReadWJnprSess(d, m, jnprSess)
+	return resourceSecurityPolicyReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceSecurityPolicyReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceSecurityPolicyReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	policyOptions, err := readSecurityPolicy(d.Get("from_zone").(string)+idSeparator+d.Get("to_zone").(string),
-		m, jnprSess)
+	policyOptions, err := readSecurityPolicy(
+		d.Get("from_zone").(string)+idSeparator+d.Get("to_zone").(string),
+		sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -289,10 +294,10 @@ func resourceSecurityPolicyUpdate(ctx context.Context, d *schema.ResourceData, m
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), m, nil); err != nil {
+		if err := delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSecurityPolicy(d, m, nil); err != nil {
+		if err := setSecurityPolicy(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -309,18 +314,22 @@ func resourceSecurityPolicyUpdate(ctx context.Context, d *schema.ResourceData, m
 	}
 	var diagWarns diag.Diagnostics
 	listLinesToPairPolicy := make([]string, 0)
-	if err := readSecurityPolicyTunnelPairPolicyLines(&listLinesToPairPolicy,
-		d.Get("from_zone").(string), d.Get("to_zone").(string), m, jnprSess); err != nil {
+	if err := readSecurityPolicyTunnelPairPolicyLines(
+		&listLinesToPairPolicy,
+		d.Get("from_zone").(string),
+		d.Get("to_zone").(string),
+		sess, jnprSess,
+	); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), m, jnprSess); err != nil {
+	if err := delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurityPolicy(d, m, jnprSess); err != nil {
+	if err := setSecurityPolicy(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -339,13 +348,13 @@ func resourceSecurityPolicyUpdate(ctx context.Context, d *schema.ResourceData, m
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityPolicyReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSecurityPolicyReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSecurityPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), m, nil); err != nil {
+		if err := delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -360,7 +369,7 @@ func resourceSecurityPolicyDelete(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), m, jnprSess); err != nil {
+	if err := delSecurityPolicy(d.Get("from_zone").(string), d.Get("to_zone").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -389,14 +398,14 @@ func resourceSecurityPolicyImport(ctx context.Context, d *schema.ResourceData, m
 	if len(idList) < 2 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", idSeparator)
 	}
-	securityPolicyExists, err := checkSecurityPolicyExists(idList[0], idList[1], m, jnprSess)
+	securityPolicyExists, err := checkSecurityPolicyExists(idList[0], idList[1], sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
 	if !securityPolicyExists {
 		return nil, fmt.Errorf("don't find policy with id '%v' (id must be <from_zone>"+idSeparator+"<to_zone>)", d.Id())
 	}
-	policyOptions, err := readSecurityPolicy(d.Id(), m, jnprSess)
+	policyOptions, err := readSecurityPolicy(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -407,8 +416,7 @@ func resourceSecurityPolicyImport(ctx context.Context, d *schema.ResourceData, m
 	return result, nil
 }
 
-func checkSecurityPolicyExists(fromZone, toZone string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkSecurityPolicyExists(fromZone, toZone string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+
 		"security policies from-zone "+fromZone+" to-zone "+toZone+pipeDisplaySet, jnprSess)
 	if err != nil {
@@ -421,8 +429,7 @@ func checkSecurityPolicyExists(fromZone, toZone string, m interface{}, jnprSess 
 	return true, nil
 }
 
-func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setSecurityPolicy(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security policies" +
@@ -501,14 +508,12 @@ func setSecurityPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject) (policyOptions, error) {
+func readSecurityPolicy(idPolicy string, sess *Session, jnprSess *NetconfObject) (policyOptions, error) {
+	var confRead policyOptions
+
 	zone := strings.Split(idPolicy, idSeparator)
 	fromZone := zone[0]
 	toZone := zone[1]
-
-	sess := m.(*Session)
-	var confRead policyOptions
-
 	showConfig, err := sess.command(cmdShowConfig+
 		"security policies from-zone "+fromZone+" to-zone "+toZone+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
@@ -602,9 +607,8 @@ func readSecurityPolicy(idPolicy string, m interface{}, jnprSess *NetconfObject)
 }
 
 func readSecurityPolicyTunnelPairPolicyLines(
-	listLines *[]string, fromZone, toZone string, m interface{}, jnprSess *NetconfObject,
+	listLines *[]string, fromZone, toZone string, sess *Session, jnprSess *NetconfObject,
 ) error {
-	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
 		"security policies from-zone "+fromZone+" to-zone "+toZone+pipeDisplaySet, jnprSess)
 	if err != nil {
@@ -627,8 +631,7 @@ func readSecurityPolicyTunnelPairPolicyLines(
 	return nil
 }
 
-func delSecurityPolicy(fromZone, toZone string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delSecurityPolicy(fromZone, toZone string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security policies from-zone "+fromZone+" to-zone "+toZone)
 

@@ -174,7 +174,7 @@ func resourceSecurityNatSource() *schema.Resource {
 func resourceSecurityNatSourceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setSecurityNatSource(d, m, nil); err != nil {
+		if err := setSecurityNatSource(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -194,7 +194,7 @@ func resourceSecurityNatSourceCreate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	securityNatSourceExists, err := checkSecurityNatSourceExists(d.Get("name").(string), m, jnprSess)
+	securityNatSourceExists, err := checkSecurityNatSourceExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -206,7 +206,7 @@ func resourceSecurityNatSourceCreate(ctx context.Context, d *schema.ResourceData
 		return append(diagWarns, diag.FromErr(fmt.Errorf("security nat source %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setSecurityNatSource(d, m, jnprSess); err != nil {
+	if err := setSecurityNatSource(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -218,7 +218,7 @@ func resourceSecurityNatSourceCreate(ctx context.Context, d *schema.ResourceData
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	securityNatSourceExists, err = checkSecurityNatSourceExists(d.Get("name").(string), m, jnprSess)
+	securityNatSourceExists, err = checkSecurityNatSourceExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -229,7 +229,7 @@ func resourceSecurityNatSourceCreate(ctx context.Context, d *schema.ResourceData
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityNatSourceReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSecurityNatSourceReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSecurityNatSourceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -240,13 +240,13 @@ func resourceSecurityNatSourceRead(ctx context.Context, d *schema.ResourceData, 
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceSecurityNatSourceReadWJnprSess(d, m, jnprSess)
+	return resourceSecurityNatSourceReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceSecurityNatSourceReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceSecurityNatSourceReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	natSourceOptions, err := readSecurityNatSource(d.Get("name").(string), m, jnprSess)
+	natSourceOptions, err := readSecurityNatSource(d.Get("name").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -264,10 +264,10 @@ func resourceSecurityNatSourceUpdate(ctx context.Context, d *schema.ResourceData
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delSecurityNatSource(d.Get("name").(string), m, nil); err != nil {
+		if err := delSecurityNatSource(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSecurityNatSource(d, m, nil); err != nil {
+		if err := setSecurityNatSource(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -283,12 +283,12 @@ func resourceSecurityNatSourceUpdate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityNatSource(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delSecurityNatSource(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurityNatSource(d, m, jnprSess); err != nil {
+	if err := setSecurityNatSource(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -302,13 +302,13 @@ func resourceSecurityNatSourceUpdate(ctx context.Context, d *schema.ResourceData
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityNatSourceReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSecurityNatSourceReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSecurityNatSourceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delSecurityNatSource(d.Get("name").(string), m, nil); err != nil {
+		if err := delSecurityNatSource(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -323,7 +323,7 @@ func resourceSecurityNatSourceDelete(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityNatSource(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delSecurityNatSource(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -349,14 +349,14 @@ func resourceSecurityNatSourceImport(ctx context.Context, d *schema.ResourceData
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
 
-	securityNatSourceExists, err := checkSecurityNatSourceExists(d.Id(), m, jnprSess)
+	securityNatSourceExists, err := checkSecurityNatSourceExists(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
 	if !securityNatSourceExists {
 		return nil, fmt.Errorf("don't find nat source with id '%v' (id must be <name>)", d.Id())
 	}
-	natSourceOptions, err := readSecurityNatSource(d.Id(), m, jnprSess)
+	natSourceOptions, err := readSecurityNatSource(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -367,8 +367,7 @@ func resourceSecurityNatSourceImport(ctx context.Context, d *schema.ResourceData
 	return result, nil
 }
 
-func checkSecurityNatSourceExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkSecurityNatSourceExists(name string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+
 		"security nat source rule-set "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
@@ -381,8 +380,7 @@ func checkSecurityNatSourceExists(name string, m interface{}, jnprSess *NetconfO
 	return true, nil
 }
 
-func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setSecurityNatSource(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 	regexpPort := regexp.MustCompile(`^\d+( to \d+)?$`)
 
@@ -474,8 +472,7 @@ func setSecurityNatSource(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSecurityNatSource(name string, m interface{}, jnprSess *NetconfObject) (natSourceOptions, error) {
-	sess := m.(*Session)
+func readSecurityNatSource(name string, sess *Session, jnprSess *NetconfObject) (natSourceOptions, error) {
 	var confRead natSourceOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
@@ -591,8 +588,7 @@ func readSecurityNatSource(name string, m interface{}, jnprSess *NetconfObject) 
 	return confRead, nil
 }
 
-func delSecurityNatSource(natSource string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delSecurityNatSource(natSource string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security nat source rule-set "+natSource)
 

@@ -96,7 +96,7 @@ func resourceSystemLoginUser() *schema.Resource {
 func resourceSystemLoginUserCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setSystemLoginUser(d, m, nil); err != nil {
+		if err := setSystemLoginUser(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -112,7 +112,7 @@ func resourceSystemLoginUserCreate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	systemLoginUserExists, err := checkSystemLoginUserExists(d.Get("name").(string), m, jnprSess)
+	systemLoginUserExists, err := checkSystemLoginUserExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -124,7 +124,7 @@ func resourceSystemLoginUserCreate(ctx context.Context, d *schema.ResourceData, 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("system login user %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setSystemLoginUser(d, m, jnprSess); err != nil {
+	if err := setSystemLoginUser(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -136,7 +136,7 @@ func resourceSystemLoginUserCreate(ctx context.Context, d *schema.ResourceData, 
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	systemLoginUserExists, err = checkSystemLoginUserExists(d.Get("name").(string), m, jnprSess)
+	systemLoginUserExists, err = checkSystemLoginUserExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -147,7 +147,7 @@ func resourceSystemLoginUserCreate(ctx context.Context, d *schema.ResourceData, 
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSystemLoginUserReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSystemLoginUserReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSystemLoginUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -158,14 +158,14 @@ func resourceSystemLoginUserRead(ctx context.Context, d *schema.ResourceData, m 
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceSystemLoginUserReadWJnprSess(d, m, jnprSess)
+	return resourceSystemLoginUserReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceSystemLoginUserReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceSystemLoginUserReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	plainTextPassword := readSystemLoginUserReadDataPlainTextPassword(d)
 	mutex.Lock()
-	systemLoginUserOptions, err := readSystemLoginUser(d.Get("name").(string), plainTextPassword, m, jnprSess)
+	systemLoginUserOptions, err := readSystemLoginUser(d.Get("name").(string), plainTextPassword, sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -183,10 +183,10 @@ func resourceSystemLoginUserUpdate(ctx context.Context, d *schema.ResourceData, 
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delSystemLoginUser(d.Get("name").(string), m, nil); err != nil {
+		if err := delSystemLoginUser(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSystemLoginUser(d, m, nil); err != nil {
+		if err := setSystemLoginUser(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -202,12 +202,12 @@ func resourceSystemLoginUserUpdate(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSystemLoginUser(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delSystemLoginUser(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSystemLoginUser(d, m, jnprSess); err != nil {
+	if err := setSystemLoginUser(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -222,13 +222,13 @@ func resourceSystemLoginUserUpdate(ctx context.Context, d *schema.ResourceData, 
 
 	d.Partial(false)
 
-	return append(diagWarns, resourceSystemLoginUserReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSystemLoginUserReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSystemLoginUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delSystemLoginUser(d.Get("name").(string), m, nil); err != nil {
+		if err := delSystemLoginUser(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -243,7 +243,7 @@ func resourceSystemLoginUserDelete(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSystemLoginUser(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delSystemLoginUser(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -269,14 +269,14 @@ func resourceSystemLoginUserImport(ctx context.Context, d *schema.ResourceData, 
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
 
-	systemLoginUserExists, err := checkSystemLoginUserExists(d.Id(), m, jnprSess)
+	systemLoginUserExists, err := checkSystemLoginUserExists(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
 	if !systemLoginUserExists {
 		return nil, fmt.Errorf("don't find system login user with id '%v' (id must be <name>)", d.Id())
 	}
-	systemLoginUserOptions, err := readSystemLoginUser(d.Id(), "", m, jnprSess)
+	systemLoginUserOptions, err := readSystemLoginUser(d.Id(), "", sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -287,8 +287,7 @@ func resourceSystemLoginUserImport(ctx context.Context, d *schema.ResourceData, 
 	return result, nil
 }
 
-func checkSystemLoginUserExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkSystemLoginUserExists(name string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+"system login user "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
@@ -300,8 +299,7 @@ func checkSystemLoginUserExists(name string, m interface{}, jnprSess *NetconfObj
 	return true, nil
 }
 
-func setSystemLoginUser(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setSystemLoginUser(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 	setPrefix := "set system login user " + d.Get("name").(string) + " "
 
@@ -364,9 +362,8 @@ func readSystemLoginUserReadDataPlainTextPassword(d *schema.ResourceData) string
 	return ""
 }
 
-func readSystemLoginUser(name, plainTextPassword string, m interface{}, jnprSess *NetconfObject,
+func readSystemLoginUser(name, plainTextPassword string, sess *Session, jnprSess *NetconfObject,
 ) (systemLoginUserOptions, error) {
-	sess := m.(*Session)
 	var confRead systemLoginUserOptions
 
 	showConfig, err := sess.command(cmdShowConfig+"system login user "+name+pipeDisplaySetRelative, jnprSess)
@@ -435,8 +432,7 @@ func readSystemLoginUser(name, plainTextPassword string, m interface{}, jnprSess
 	return confRead, nil
 }
 
-func delSystemLoginUser(systemLoginUser string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delSystemLoginUser(systemLoginUser string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system login user "+systemLoginUser)
 

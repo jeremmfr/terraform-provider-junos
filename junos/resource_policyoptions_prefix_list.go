@@ -56,7 +56,7 @@ func resourcePolicyoptionsPrefixListCreate(ctx context.Context, d *schema.Resour
 ) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setPolicyoptionsPrefixList(d, m, nil); err != nil {
+		if err := setPolicyoptionsPrefixList(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -72,7 +72,7 @@ func resourcePolicyoptionsPrefixListCreate(ctx context.Context, d *schema.Resour
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	policyoptsPrefixListExists, err := checkPolicyoptionsPrefixListExists(d.Get("name").(string), m, jnprSess)
+	policyoptsPrefixListExists, err := checkPolicyoptionsPrefixListExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -85,7 +85,7 @@ func resourcePolicyoptionsPrefixListCreate(ctx context.Context, d *schema.Resour
 			diag.FromErr(fmt.Errorf("policy-options prefix-list %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setPolicyoptionsPrefixList(d, m, jnprSess); err != nil {
+	if err := setPolicyoptionsPrefixList(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -97,7 +97,7 @@ func resourcePolicyoptionsPrefixListCreate(ctx context.Context, d *schema.Resour
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	policyoptsPrefixListExists, err = checkPolicyoptionsPrefixListExists(d.Get("name").(string), m, jnprSess)
+	policyoptsPrefixListExists, err = checkPolicyoptionsPrefixListExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -108,7 +108,7 @@ func resourcePolicyoptionsPrefixListCreate(ctx context.Context, d *schema.Resour
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourcePolicyoptionsPrefixListReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourcePolicyoptionsPrefixListReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourcePolicyoptionsPrefixListRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -119,13 +119,13 @@ func resourcePolicyoptionsPrefixListRead(ctx context.Context, d *schema.Resource
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourcePolicyoptionsPrefixListReadWJnprSess(d, m, jnprSess)
+	return resourcePolicyoptionsPrefixListReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourcePolicyoptionsPrefixListReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourcePolicyoptionsPrefixListReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	prefixListOptions, err := readPolicyoptionsPrefixList(d.Get("name").(string), m, jnprSess)
+	prefixListOptions, err := readPolicyoptionsPrefixList(d.Get("name").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -144,10 +144,10 @@ func resourcePolicyoptionsPrefixListUpdate(ctx context.Context, d *schema.Resour
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delPolicyoptionsPrefixList(d.Get("name").(string), m, nil); err != nil {
+		if err := delPolicyoptionsPrefixList(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setPolicyoptionsPrefixList(d, m, nil); err != nil {
+		if err := setPolicyoptionsPrefixList(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -163,12 +163,12 @@ func resourcePolicyoptionsPrefixListUpdate(ctx context.Context, d *schema.Resour
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delPolicyoptionsPrefixList(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delPolicyoptionsPrefixList(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setPolicyoptionsPrefixList(d, m, jnprSess); err != nil {
+	if err := setPolicyoptionsPrefixList(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -182,14 +182,14 @@ func resourcePolicyoptionsPrefixListUpdate(ctx context.Context, d *schema.Resour
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourcePolicyoptionsPrefixListReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourcePolicyoptionsPrefixListReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourcePolicyoptionsPrefixListDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delPolicyoptionsPrefixList(d.Get("name").(string), m, nil); err != nil {
+		if err := delPolicyoptionsPrefixList(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -204,7 +204,7 @@ func resourcePolicyoptionsPrefixListDelete(ctx context.Context, d *schema.Resour
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delPolicyoptionsPrefixList(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delPolicyoptionsPrefixList(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -230,14 +230,14 @@ func resourcePolicyoptionsPrefixListImport(ctx context.Context, d *schema.Resour
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
 
-	policyoptsPrefixListExists, err := checkPolicyoptionsPrefixListExists(d.Id(), m, jnprSess)
+	policyoptsPrefixListExists, err := checkPolicyoptionsPrefixListExists(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
 	if !policyoptsPrefixListExists {
 		return nil, fmt.Errorf("don't find policy-options prefix-list with id '%v' (id must be <name>)", d.Id())
 	}
-	prefixListOptions, err := readPolicyoptionsPrefixList(d.Id(), m, jnprSess)
+	prefixListOptions, err := readPolicyoptionsPrefixList(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -248,8 +248,7 @@ func resourcePolicyoptionsPrefixListImport(ctx context.Context, d *schema.Resour
 	return result, nil
 }
 
-func checkPolicyoptionsPrefixListExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkPolicyoptionsPrefixListExists(name string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+"policy-options prefix-list "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
@@ -261,8 +260,7 @@ func checkPolicyoptionsPrefixListExists(name string, m interface{}, jnprSess *Ne
 	return true, nil
 }
 
-func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setPolicyoptionsPrefixList(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set policy-options prefix-list " + d.Get("name").(string)
@@ -282,8 +280,7 @@ func setPolicyoptionsPrefixList(d *schema.ResourceData, m interface{}, jnprSess 
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readPolicyoptionsPrefixList(name string, m interface{}, jnprSess *NetconfObject) (prefixListOptions, error) {
-	sess := m.(*Session)
+func readPolicyoptionsPrefixList(name string, sess *Session, jnprSess *NetconfObject) (prefixListOptions, error) {
 	var confRead prefixListOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
@@ -317,8 +314,7 @@ func readPolicyoptionsPrefixList(name string, m interface{}, jnprSess *NetconfOb
 	return confRead, nil
 }
 
-func delPolicyoptionsPrefixList(prefixList string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delPolicyoptionsPrefixList(prefixList string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete policy-options prefix-list "+prefixList)
 

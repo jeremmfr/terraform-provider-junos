@@ -104,7 +104,7 @@ func resourceSnmpV3UsmUser() *schema.Resource {
 func resourceSnmpV3UsmUserCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setSnmpV3UsmUser(d, m, nil); err != nil {
+		if err := setSnmpV3UsmUser(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		if d.Get("engine_type").(string) == "local" {
@@ -125,7 +125,10 @@ func resourceSnmpV3UsmUserCreate(ctx context.Context, d *schema.ResourceData, m 
 	}
 	var diagWarns diag.Diagnostics
 	snmpV3UsmUserExists, err := checkSnmpV3UsmUserExists(
-		d.Get("name").(string), d.Get("engine_type").(string), d.Get("engine_id").(string), m, jnprSess)
+		d.Get("name").(string),
+		d.Get("engine_type").(string),
+		d.Get("engine_id").(string),
+		sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -143,7 +146,7 @@ func resourceSnmpV3UsmUserCreate(ctx context.Context, d *schema.ResourceData, m 
 			d.Get("name").(string)))...)
 	}
 
-	if err := setSnmpV3UsmUser(d, m, jnprSess); err != nil {
+	if err := setSnmpV3UsmUser(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -156,7 +159,10 @@ func resourceSnmpV3UsmUserCreate(ctx context.Context, d *schema.ResourceData, m 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	snmpV3UsmUserExists, err = checkSnmpV3UsmUserExists(
-		d.Get("name").(string), d.Get("engine_type").(string), d.Get("engine_id").(string), m, jnprSess)
+		d.Get("name").(string),
+		d.Get("engine_type").(string),
+		d.Get("engine_id").(string),
+		sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -176,7 +182,7 @@ func resourceSnmpV3UsmUserCreate(ctx context.Context, d *schema.ResourceData, m 
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSnmpV3UsmUserReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSnmpV3UsmUserReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSnmpV3UsmUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -187,10 +193,10 @@ func resourceSnmpV3UsmUserRead(ctx context.Context, d *schema.ResourceData, m in
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceSnmpV3UsmUserReadWJnprSess(d, m, jnprSess)
+	return resourceSnmpV3UsmUserReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceSnmpV3UsmUserReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceSnmpV3UsmUserReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	configSrc := snmpV3UsmUserOptions{
 		name:                   d.Get("name").(string),
@@ -202,7 +208,7 @@ func resourceSnmpV3UsmUserReadWJnprSess(d *schema.ResourceData, m interface{}, j
 		privacyType:            d.Get("privacy_type").(string),
 	}
 	mutex.Lock()
-	snmpV3UsmUserOptions, err := readSnmpV3UsmUser(configSrc, m, jnprSess)
+	snmpV3UsmUserOptions, err := readSnmpV3UsmUser(configSrc, sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -221,10 +227,14 @@ func resourceSnmpV3UsmUserUpdate(ctx context.Context, d *schema.ResourceData, m 
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
 		if err := delSnmpV3UsmUser(
-			d.Get("name").(string), d.Get("engine_type").(string), d.Get("engine_id").(string), m, nil); err != nil {
+			d.Get("name").(string),
+			d.Get("engine_type").(string),
+			d.Get("engine_id").(string),
+			sess, nil,
+		); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSnmpV3UsmUser(d, m, nil); err != nil {
+		if err := setSnmpV3UsmUser(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -241,12 +251,16 @@ func resourceSnmpV3UsmUserUpdate(ctx context.Context, d *schema.ResourceData, m 
 	}
 	var diagWarns diag.Diagnostics
 	if err := delSnmpV3UsmUser(
-		d.Get("name").(string), d.Get("engine_type").(string), d.Get("engine_id").(string), m, jnprSess); err != nil {
+		d.Get("name").(string),
+		d.Get("engine_type").(string),
+		d.Get("engine_id").(string),
+		sess, jnprSess,
+	); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSnmpV3UsmUser(d, m, jnprSess); err != nil {
+	if err := setSnmpV3UsmUser(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -260,14 +274,18 @@ func resourceSnmpV3UsmUserUpdate(ctx context.Context, d *schema.ResourceData, m 
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSnmpV3UsmUserReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSnmpV3UsmUserReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSnmpV3UsmUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delSnmpV3UsmUser(
-			d.Get("name").(string), d.Get("engine_type").(string), d.Get("engine_id").(string), m, nil); err != nil {
+			d.Get("name").(string),
+			d.Get("engine_type").(string),
+			d.Get("engine_id").(string),
+			sess, nil,
+		); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -283,7 +301,11 @@ func resourceSnmpV3UsmUserDelete(ctx context.Context, d *schema.ResourceData, m 
 	}
 	var diagWarns diag.Diagnostics
 	if err := delSnmpV3UsmUser(
-		d.Get("name").(string), d.Get("engine_type").(string), d.Get("engine_id").(string), m, jnprSess); err != nil {
+		d.Get("name").(string),
+		d.Get("engine_type").(string),
+		d.Get("engine_id").(string),
+		sess, jnprSess,
+	); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -312,7 +334,7 @@ func resourceSnmpV3UsmUserImport(ctx context.Context, d *schema.ResourceData, m 
 	var configImport snmpV3UsmUserOptions
 	switch {
 	case len(idSplit) == 2 && idSplit[0] == "local":
-		snmpV3UsmUserExists, err := checkSnmpV3UsmUserExists(idSplit[1], idSplit[0], "", m, jnprSess)
+		snmpV3UsmUserExists, err := checkSnmpV3UsmUserExists(idSplit[1], idSplit[0], "", sess, jnprSess)
 		if err != nil {
 			return nil, err
 		}
@@ -322,7 +344,7 @@ func resourceSnmpV3UsmUserImport(ctx context.Context, d *schema.ResourceData, m 
 		configImport.name = idSplit[1]
 		configImport.engineType = idSplit[0]
 	case len(idSplit) == 3 && idSplit[0] == "remote":
-		snmpV3UsmUserExists, err := checkSnmpV3UsmUserExists(idSplit[2], idSplit[0], idSplit[1], m, jnprSess)
+		snmpV3UsmUserExists, err := checkSnmpV3UsmUserExists(idSplit[2], idSplit[0], idSplit[1], sess, jnprSess)
 		if err != nil {
 			return nil, err
 		}
@@ -337,7 +359,7 @@ func resourceSnmpV3UsmUserImport(ctx context.Context, d *schema.ResourceData, m 
 		return nil, fmt.Errorf("can't find snmp v3 usm user with id "+
 			"'%v' (id must be local%s<name> or remote%s<engine_id>%s<name>)", d.Id(), idSeparator, idSeparator, idSeparator)
 	}
-	snmpV3UsmUserOptions, err := readSnmpV3UsmUser(configImport, m, jnprSess)
+	snmpV3UsmUserOptions, err := readSnmpV3UsmUser(configImport, sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -348,8 +370,7 @@ func resourceSnmpV3UsmUserImport(ctx context.Context, d *schema.ResourceData, m 
 	return result, nil
 }
 
-func checkSnmpV3UsmUserExists(name, engineType, engineID string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkSnmpV3UsmUserExists(name, engineType, engineID string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	if engineType == "local" {
 		showConfig, err := sess.command(cmdShowConfig+
 			"snmp v3 usm local-engine user \""+name+"\""+pipeDisplaySet, jnprSess)
@@ -373,9 +394,7 @@ func checkSnmpV3UsmUserExists(name, engineType, engineID string, m interface{}, 
 	return true, nil
 }
 
-func setSnmpV3UsmUser(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
-
+func setSnmpV3UsmUser(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	setPrefix := "set snmp v3 usm local-engine user \"" + d.Get("name").(string) + "\" "
 	if d.Get("engine_type").(string) != "local" {
 		engineID := d.Get("engine_id").(string)
@@ -436,9 +455,8 @@ func setSnmpV3UsmUser(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, m interface{}, jnprSess *NetconfObject,
+func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, sess *Session, jnprSess *NetconfObject,
 ) (snmpV3UsmUserOptions, error) {
-	sess := m.(*Session)
 	var confRead snmpV3UsmUserOptions
 
 	showCommand := cmdShowConfig + "snmp v3 usm local-engine user \"" + confSrc.name + "\"" + pipeDisplaySetRelative
@@ -534,8 +552,7 @@ func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, m interface{}, jnprSess *Ne
 	return confRead, nil
 }
 
-func delSnmpV3UsmUser(name, engineType, engineID string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delSnmpV3UsmUser(name, engineType, engineID string, sess *Session, jnprSess *NetconfObject) error {
 	var configSet []string
 	if engineType == "local" {
 		configSet = append(configSet, "delete snmp v3 usm local-engine user \""+name+"\"")

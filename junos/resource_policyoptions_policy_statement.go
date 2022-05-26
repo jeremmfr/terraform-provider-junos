@@ -439,11 +439,11 @@ func resourcePolicyoptionsPolicyStatementCreate(ctx context.Context, d *schema.R
 ) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setPolicyStatement(d, m, nil); err != nil {
+		if err := setPolicyStatement(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		if d.Get("add_it_to_forwarding_table_export").(bool) {
-			if err := setPolicyStatementFwTableExport(d.Get("name").(string), m, nil); err != nil {
+			if err := setPolicyStatementFwTableExport(d.Get("name").(string), sess, nil); err != nil {
 				return diag.FromErr(err)
 			}
 		}
@@ -460,7 +460,7 @@ func resourcePolicyoptionsPolicyStatementCreate(ctx context.Context, d *schema.R
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	policyStatementExists, err := checkPolicyStatementExists(d.Get("name").(string), m, jnprSess)
+	policyStatementExists, err := checkPolicyStatementExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -473,13 +473,13 @@ func resourcePolicyoptionsPolicyStatementCreate(ctx context.Context, d *schema.R
 			diag.FromErr(fmt.Errorf("policy-options policy-statement %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setPolicyStatement(d, m, jnprSess); err != nil {
+	if err := setPolicyStatement(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if d.Get("add_it_to_forwarding_table_export").(bool) {
-		if err := setPolicyStatementFwTableExport(d.Get("name").(string), m, jnprSess); err != nil {
+		if err := setPolicyStatementFwTableExport(d.Get("name").(string), sess, jnprSess); err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
@@ -492,7 +492,7 @@ func resourcePolicyoptionsPolicyStatementCreate(ctx context.Context, d *schema.R
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	policyStatementExists, err = checkPolicyStatementExists(d.Get("name").(string), m, jnprSess)
+	policyStatementExists, err = checkPolicyStatementExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -503,7 +503,7 @@ func resourcePolicyoptionsPolicyStatementCreate(ctx context.Context, d *schema.R
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourcePolicyoptionsPolicyStatementReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourcePolicyoptionsPolicyStatementReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourcePolicyoptionsPolicyStatementRead(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -515,20 +515,20 @@ func resourcePolicyoptionsPolicyStatementRead(ctx context.Context, d *schema.Res
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourcePolicyoptionsPolicyStatementReadWJnprSess(d, m, jnprSess)
+	return resourcePolicyoptionsPolicyStatementReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourcePolicyoptionsPolicyStatementReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourcePolicyoptionsPolicyStatementReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	policyStatementOptions, err := readPolicyStatement(d.Get("name").(string), m, jnprSess)
+	policyStatementOptions, err := readPolicyStatement(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		mutex.Unlock()
 
 		return diag.FromErr(err)
 	}
 	if d.Get("add_it_to_forwarding_table_export").(bool) {
-		export, err := readPolicyStatementFwTableExport(d.Get("name").(string), m, jnprSess)
+		export, err := readPolicyStatementFwTableExport(d.Get("name").(string), sess, jnprSess)
 		if err != nil {
 			mutex.Unlock()
 
@@ -556,21 +556,21 @@ func resourcePolicyoptionsPolicyStatementUpdate(ctx context.Context, d *schema.R
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delPolicyStatement(d.Get("name").(string), m, nil); err != nil {
+		if err := delPolicyStatement(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		if d.HasChange("add_it_to_forwarding_table_export") {
 			if o, _ := d.GetChange("add_it_to_forwarding_table_export"); o.(bool) {
-				if err := delPolicyStatementFwTableExport(d.Get("name").(string), m, nil); err != nil {
+				if err := delPolicyStatementFwTableExport(d.Get("name").(string), sess, nil); err != nil {
 					return diag.FromErr(err)
 				}
 			}
 		}
-		if err := setPolicyStatement(d, m, nil); err != nil {
+		if err := setPolicyStatement(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		if d.Get("add_it_to_forwarding_table_export").(bool) {
-			if err := setPolicyStatementFwTableExport(d.Get("name").(string), m, nil); err != nil {
+			if err := setPolicyStatementFwTableExport(d.Get("name").(string), sess, nil); err != nil {
 				return diag.FromErr(err)
 			}
 		}
@@ -587,27 +587,27 @@ func resourcePolicyoptionsPolicyStatementUpdate(ctx context.Context, d *schema.R
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delPolicyStatement(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delPolicyStatement(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if d.HasChange("add_it_to_forwarding_table_export") {
 		if o, _ := d.GetChange("add_it_to_forwarding_table_export"); o.(bool) {
-			if err := delPolicyStatementFwTableExport(d.Get("name").(string), m, jnprSess); err != nil {
+			if err := delPolicyStatementFwTableExport(d.Get("name").(string), sess, jnprSess); err != nil {
 				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 				return append(diagWarns, diag.FromErr(err)...)
 			}
 		}
 	}
-	if err := setPolicyStatement(d, m, jnprSess); err != nil {
+	if err := setPolicyStatement(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if d.Get("add_it_to_forwarding_table_export").(bool) {
-		if err := setPolicyStatementFwTableExport(d.Get("name").(string), m, jnprSess); err != nil {
+		if err := setPolicyStatementFwTableExport(d.Get("name").(string), sess, jnprSess); err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
@@ -622,18 +622,18 @@ func resourcePolicyoptionsPolicyStatementUpdate(ctx context.Context, d *schema.R
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourcePolicyoptionsPolicyStatementReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourcePolicyoptionsPolicyStatementReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourcePolicyoptionsPolicyStatementDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delPolicyStatement(d.Get("name").(string), m, nil); err != nil {
+		if err := delPolicyStatement(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		if d.Get("add_it_to_forwarding_table_export").(bool) {
-			if err := delPolicyStatementFwTableExport(d.Get("name").(string), m, nil); err != nil {
+			if err := delPolicyStatementFwTableExport(d.Get("name").(string), sess, nil); err != nil {
 				return diag.FromErr(err)
 			}
 		}
@@ -649,13 +649,13 @@ func resourcePolicyoptionsPolicyStatementDelete(ctx context.Context, d *schema.R
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delPolicyStatement(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delPolicyStatement(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if d.Get("add_it_to_forwarding_table_export").(bool) {
-		if err := delPolicyStatementFwTableExport(d.Get("name").(string), m, jnprSess); err != nil {
+		if err := delPolicyStatementFwTableExport(d.Get("name").(string), sess, jnprSess); err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
@@ -682,14 +682,14 @@ func resourcePolicyoptionsPolicyStatementImport(ctx context.Context, d *schema.R
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
 
-	policyStatementExists, err := checkPolicyStatementExists(d.Id(), m, jnprSess)
+	policyStatementExists, err := checkPolicyStatementExists(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
 	if !policyStatementExists {
 		return nil, fmt.Errorf("don't find policy-options policy-statement with id '%v' (id must be <name>)", d.Id())
 	}
-	policyStatementOptions, err := readPolicyStatement(d.Id(), m, jnprSess)
+	policyStatementOptions, err := readPolicyStatement(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -700,8 +700,7 @@ func resourcePolicyoptionsPolicyStatementImport(ctx context.Context, d *schema.R
 	return result, nil
 }
 
-func checkPolicyStatementExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkPolicyStatementExists(name string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+
 		"policy-options policy-statement "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
@@ -714,8 +713,7 @@ func checkPolicyStatementExists(name string, m interface{}, jnprSess *NetconfObj
 	return true, nil
 }
 
-func setPolicyStatement(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setPolicyStatement(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set policy-options policy-statement " + d.Get("name").(string)
@@ -774,15 +772,13 @@ func setPolicyStatement(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 	return sess.configSet(configSet, jnprSess)
 }
 
-func setPolicyStatementFwTableExport(policyName string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setPolicyStatementFwTableExport(policyName string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := []string{"set routing-options forwarding-table export " + policyName}
 
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readPolicyStatement(name string, m interface{}, jnprSess *NetconfObject) (policyStatementOptions, error) {
-	sess := m.(*Session)
+func readPolicyStatement(name string, sess *Session, jnprSess *NetconfObject) (policyStatementOptions, error) {
 	var confRead policyStatementOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
@@ -869,9 +865,8 @@ func readPolicyStatement(name string, m interface{}, jnprSess *NetconfObject) (p
 	return confRead, nil
 }
 
-func readPolicyStatementFwTableExport(policyName string, m interface{}, jnprSess *NetconfObject,
+func readPolicyStatementFwTableExport(policyName string, sess *Session, jnprSess *NetconfObject,
 ) (bool, error) {
-	sess := m.(*Session)
 	showConfig, err := sess.command(cmdShowConfig+
 		"routing-options forwarding-table export"+pipeDisplaySetRelative, jnprSess)
 	if err != nil {
@@ -896,15 +891,13 @@ func readPolicyStatementFwTableExport(policyName string, m interface{}, jnprSess
 	return false, nil
 }
 
-func delPolicyStatement(policyName string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delPolicyStatement(policyName string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := []string{"delete policy-options policy-statement " + policyName}
 
 	return sess.configSet(configSet, jnprSess)
 }
 
-func delPolicyStatementFwTableExport(policyName string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delPolicyStatementFwTableExport(policyName string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := []string{"delete routing-options forwarding-table export " + policyName}
 
 	return sess.configSet(configSet, jnprSess)

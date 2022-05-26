@@ -477,7 +477,7 @@ func resourceAccessAddressAssignPoolCreate(ctx context.Context, d *schema.Resour
 ) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setAccessAddressAssignPool(d, m, nil); err != nil {
+		if err := setAccessAddressAssignPool(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string) + idSeparator + d.Get("routing_instance").(string))
@@ -494,7 +494,7 @@ func resourceAccessAddressAssignPoolCreate(ctx context.Context, d *schema.Resour
 	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), sess, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -508,7 +508,9 @@ func resourceAccessAddressAssignPoolCreate(ctx context.Context, d *schema.Resour
 		}
 	}
 	accessAddressAssignPoolExists, err := checkAccessAddressAssignPoolExists(
-		d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
+		d.Get("name").(string),
+		d.Get("routing_instance").(string),
+		sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -521,7 +523,7 @@ func resourceAccessAddressAssignPoolCreate(ctx context.Context, d *schema.Resour
 			fmt.Errorf("access address-assignment pool %v already exists in routing-instance %s",
 				d.Get("name").(string), d.Get("routing_instance").(string)))...)
 	}
-	if err := setAccessAddressAssignPool(d, m, jnprSess); err != nil {
+	if err := setAccessAddressAssignPool(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -534,7 +536,9 @@ func resourceAccessAddressAssignPoolCreate(ctx context.Context, d *schema.Resour
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	accessAddressAssignPoolExists, err = checkAccessAddressAssignPoolExists(
-		d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
+		d.Get("name").(string),
+		d.Get("routing_instance").(string),
+		sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -546,7 +550,7 @@ func resourceAccessAddressAssignPoolCreate(ctx context.Context, d *schema.Resour
 				"=> check your config", d.Get("name").(string), d.Get("routing_instance").(string)))...)
 	}
 
-	return append(diagWarns, resourceAccessAddressAssignPoolReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceAccessAddressAssignPoolReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceAccessAddressAssignPoolRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -557,14 +561,16 @@ func resourceAccessAddressAssignPoolRead(ctx context.Context, d *schema.Resource
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceAccessAddressAssignPoolReadWJnprSess(d, m, jnprSess)
+	return resourceAccessAddressAssignPoolReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceAccessAddressAssignPoolReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceAccessAddressAssignPoolReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
 	accessAddressAssignPoolOptions, err := readAccessAddressAssignPool(
-		d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
+		d.Get("name").(string),
+		d.Get("routing_instance").(string),
+		sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -584,10 +590,13 @@ func resourceAccessAddressAssignPoolUpdate(ctx context.Context, d *schema.Resour
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
 		if err := delAccessAddressAssignPool(
-			d.Get("name").(string), d.Get("routing_instance").(string), m, nil); err != nil {
+			d.Get("name").(string),
+			d.Get("routing_instance").(string),
+			sess, nil,
+		); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setAccessAddressAssignPool(d, m, nil); err != nil {
+		if err := setAccessAddressAssignPool(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -603,13 +612,16 @@ func resourceAccessAddressAssignPoolUpdate(ctx context.Context, d *schema.Resour
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delAccessAddressAssignPool(d.Get("name").(string), d.Get("routing_instance").(string),
-		m, jnprSess); err != nil {
+	if err := delAccessAddressAssignPool(
+		d.Get("name").(string),
+		d.Get("routing_instance").(string),
+		sess, jnprSess,
+	); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setAccessAddressAssignPool(d, m, jnprSess); err != nil {
+	if err := setAccessAddressAssignPool(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -623,7 +635,7 @@ func resourceAccessAddressAssignPoolUpdate(ctx context.Context, d *schema.Resour
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceAccessAddressAssignPoolReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceAccessAddressAssignPoolReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceAccessAddressAssignPoolDelete(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -631,7 +643,10 @@ func resourceAccessAddressAssignPoolDelete(ctx context.Context, d *schema.Resour
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delAccessAddressAssignPool(
-			d.Get("name").(string), d.Get("routing_instance").(string), m, nil); err != nil {
+			d.Get("name").(string),
+			d.Get("routing_instance").(string),
+			sess, nil,
+		); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -646,8 +661,11 @@ func resourceAccessAddressAssignPoolDelete(ctx context.Context, d *schema.Resour
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delAccessAddressAssignPool(d.Get("name").(string), d.Get("routing_instance").(string),
-		m, jnprSess); err != nil {
+	if err := delAccessAddressAssignPool(
+		d.Get("name").(string),
+		d.Get("routing_instance").(string),
+		sess, jnprSess,
+	); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -676,7 +694,7 @@ func resourceAccessAddressAssignPoolImport(ctx context.Context, d *schema.Resour
 	if len(idSplit) < 2 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", idSeparator)
 	}
-	accessAddressAssignPoolExists, err := checkAccessAddressAssignPoolExists(idSplit[0], idSplit[1], m, jnprSess)
+	accessAddressAssignPoolExists, err := checkAccessAddressAssignPoolExists(idSplit[0], idSplit[1], sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -684,7 +702,7 @@ func resourceAccessAddressAssignPoolImport(ctx context.Context, d *schema.Resour
 		return nil, fmt.Errorf("don't find access address-assignment pool with id '%v' (id must be "+
 			"<name>"+idSeparator+"<routing_instance>)", d.Id())
 	}
-	accessAddressAssignPoolOptions, err := readAccessAddressAssignPool(idSplit[0], idSplit[1], m, jnprSess)
+	accessAddressAssignPoolOptions, err := readAccessAddressAssignPool(idSplit[0], idSplit[1], sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -695,8 +713,7 @@ func resourceAccessAddressAssignPoolImport(ctx context.Context, d *schema.Resour
 	return result, nil
 }
 
-func checkAccessAddressAssignPoolExists(name, instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkAccessAddressAssignPoolExists(name, instance string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	var showConfig string
 	var err error
 	if instance == defaultW {
@@ -720,8 +737,7 @@ func checkAccessAddressAssignPoolExists(name, instance string, m interface{}, jn
 	return true, nil
 }
 
-func setAccessAddressAssignPool(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setAccessAddressAssignPool(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 
 	setPrefix := setLS
@@ -1050,9 +1066,8 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(dhcpAttr map[string]interfac
 	return configSet, nil
 }
 
-func readAccessAddressAssignPool(name, instance string, m interface{}, jnprSess *NetconfObject,
+func readAccessAddressAssignPool(name, instance string, sess *Session, jnprSess *NetconfObject,
 ) (accessAddressAssignPoolOptions, error) {
-	sess := m.(*Session)
 	var confRead accessAddressAssignPoolOptions
 	var showConfig string
 	var err error
@@ -1348,8 +1363,7 @@ func readAccessAddressAssignPoolFamily(itemTrim string, family map[string]interf
 	return nil
 }
 
-func delAccessAddressAssignPool(name, instance string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delAccessAddressAssignPool(name, instance string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	if instance == defaultW {
 		configSet = append(configSet, "delete access address-assignment pool "+name)

@@ -186,7 +186,7 @@ func resourceVstpInterfaceReadID(resourceID string) (vType vstpInterfaceVIdType,
 func resourceVstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setVstpInterface(d, m, nil); err != nil {
+		if err := setVstpInterface(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(resourceVstpInterfaceNewID(d))
@@ -206,7 +206,7 @@ func resourceVstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 	vlan := d.Get("vlan").(string)
 	vlanGroup := d.Get("vlan_group").(string)
 	if routingInstance != defaultW {
-		instanceExists, err := checkRoutingInstanceExists(routingInstance, m, jnprSess)
+		instanceExists, err := checkRoutingInstanceExists(routingInstance, sess, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -220,7 +220,7 @@ func resourceVstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 		}
 	}
 	if vlan != "" {
-		vstpVlanExists, err := checkVstpVlanExists(vlan, routingInstance, m, jnprSess)
+		vstpVlanExists, err := checkVstpVlanExists(vlan, routingInstance, sess, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -238,7 +238,7 @@ func resourceVstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 		}
 	}
 	if vlanGroup != "" {
-		vstpVlanGroupExists, err := checkVstpVlanGroupExists(vlanGroup, routingInstance, m, jnprSess)
+		vstpVlanGroupExists, err := checkVstpVlanGroupExists(vlanGroup, routingInstance, sess, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -256,7 +256,7 @@ func resourceVstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 					"protocol vstp vlan-group group %v in routing-instance %v doesn't exist", vlanGroup, routingInstance))...)
 		}
 	}
-	vstpInterfaceExists, err := checkVstpInterfaceExists(name, routingInstance, vlan, vlanGroup, m, jnprSess)
+	vstpInterfaceExists, err := checkVstpInterfaceExists(name, routingInstance, vlan, vlanGroup, sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -293,7 +293,7 @@ func resourceVstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 				name, vlanGroup, routingInstance))...)
 		}
 	}
-	if err := setVstpInterface(d, m, jnprSess); err != nil {
+	if err := setVstpInterface(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -305,7 +305,7 @@ func resourceVstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	vstpInterfaceExists, err = checkVstpInterfaceExists(name, routingInstance, vlan, vlanGroup, m, jnprSess)
+	vstpInterfaceExists, err = checkVstpInterfaceExists(name, routingInstance, vlan, vlanGroup, sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -346,7 +346,7 @@ func resourceVstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 		}
 	}
 
-	return append(diagWarns, resourceVstpInterfaceReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceVstpInterfaceReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceVstpInterfaceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -357,16 +357,18 @@ func resourceVstpInterfaceRead(ctx context.Context, d *schema.ResourceData, m in
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceVstpInterfaceReadWJnprSess(d, m, jnprSess)
+	return resourceVstpInterfaceReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceVstpInterfaceReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceVstpInterfaceReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
 	vstpInterfaceOptions, err := readVstpInterface(
-		d.Get("name").(string), d.Get("routing_instance").(string),
-		d.Get("vlan").(string), d.Get("vlan_group").(string),
-		m, jnprSess)
+		d.Get("name").(string),
+		d.Get("routing_instance").(string),
+		d.Get("vlan").(string),
+		d.Get("vlan_group").(string),
+		sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -385,12 +387,15 @@ func resourceVstpInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m 
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
 		if err := delVstpInterface(
-			d.Get("name").(string), d.Get("routing_instance").(string),
-			d.Get("vlan").(string), d.Get("vlan_group").(string),
-			m, nil); err != nil {
+			d.Get("name").(string),
+			d.Get("routing_instance").(string),
+			d.Get("vlan").(string),
+			d.Get("vlan_group").(string),
+			sess, nil,
+		); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setVstpInterface(d, m, nil); err != nil {
+		if err := setVstpInterface(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -407,14 +412,17 @@ func resourceVstpInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m 
 	}
 	var diagWarns diag.Diagnostics
 	if err := delVstpInterface(
-		d.Get("name").(string), d.Get("routing_instance").(string),
-		d.Get("vlan").(string), d.Get("vlan_group").(string),
-		m, jnprSess); err != nil {
+		d.Get("name").(string),
+		d.Get("routing_instance").(string),
+		d.Get("vlan").(string),
+		d.Get("vlan_group").(string),
+		sess, jnprSess,
+	); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setVstpInterface(d, m, jnprSess); err != nil {
+	if err := setVstpInterface(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -428,16 +436,19 @@ func resourceVstpInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m 
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceVstpInterfaceReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceVstpInterfaceReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceVstpInterfaceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delVstpInterface(
-			d.Get("name").(string), d.Get("routing_instance").(string),
-			d.Get("vlan").(string), d.Get("vlan_group").(string),
-			m, nil); err != nil {
+			d.Get("name").(string),
+			d.Get("routing_instance").(string),
+			d.Get("vlan").(string),
+			d.Get("vlan_group").(string),
+			sess, nil,
+		); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -453,9 +464,12 @@ func resourceVstpInterfaceDelete(ctx context.Context, d *schema.ResourceData, m 
 	}
 	var diagWarns diag.Diagnostics
 	if err := delVstpInterface(
-		d.Get("name").(string), d.Get("routing_instance").(string),
-		d.Get("vlan").(string), d.Get("vlan_group").(string),
-		m, jnprSess); err != nil {
+		d.Get("name").(string),
+		d.Get("routing_instance").(string),
+		d.Get("vlan").(string),
+		d.Get("vlan_group").(string),
+		sess, jnprSess,
+	); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -487,11 +501,11 @@ func resourceVstpInterfaceImport(ctx context.Context, d *schema.ResourceData, m 
 	var vstpInterfaceExists bool
 	switch vType {
 	case vstpInterfaceVIdTypeNone:
-		vstpInterfaceExists, err = checkVstpInterfaceExists(name, routingInstance, "", "", m, jnprSess)
+		vstpInterfaceExists, err = checkVstpInterfaceExists(name, routingInstance, "", "", sess, jnprSess)
 	case vstpInterfaceVIdTypeVlan:
-		vstpInterfaceExists, err = checkVstpInterfaceExists(name, routingInstance, vName, "", m, jnprSess)
+		vstpInterfaceExists, err = checkVstpInterfaceExists(name, routingInstance, vName, "", sess, jnprSess)
 	case vstpInterfaceVIdTypeVlanGroup:
-		vstpInterfaceExists, err = checkVstpInterfaceExists(name, routingInstance, "", vName, m, jnprSess)
+		vstpInterfaceExists, err = checkVstpInterfaceExists(name, routingInstance, "", vName, sess, jnprSess)
 	}
 	if err != nil {
 		return nil, err
@@ -507,11 +521,11 @@ func resourceVstpInterfaceImport(ctx context.Context, d *schema.ResourceData, m 
 	var vstpInterfaceOptions vstpInterfaceOptions
 	switch vType {
 	case vstpInterfaceVIdTypeNone:
-		vstpInterfaceOptions, err = readVstpInterface(name, routingInstance, "", "", m, jnprSess)
+		vstpInterfaceOptions, err = readVstpInterface(name, routingInstance, "", "", sess, jnprSess)
 	case vstpInterfaceVIdTypeVlan:
-		vstpInterfaceOptions, err = readVstpInterface(name, routingInstance, vName, "", m, jnprSess)
+		vstpInterfaceOptions, err = readVstpInterface(name, routingInstance, vName, "", sess, jnprSess)
 	case vstpInterfaceVIdTypeVlanGroup:
-		vstpInterfaceOptions, err = readVstpInterface(name, routingInstance, "", vName, m, jnprSess)
+		vstpInterfaceOptions, err = readVstpInterface(name, routingInstance, "", vName, sess, jnprSess)
 	}
 	if err != nil {
 		return nil, err
@@ -523,9 +537,8 @@ func resourceVstpInterfaceImport(ctx context.Context, d *schema.ResourceData, m 
 	return result, nil
 }
 
-func checkVstpInterfaceExists(name, routingInstance, vlan, vlanGroup string, m interface{}, jnprSess *NetconfObject,
+func checkVstpInterfaceExists(name, routingInstance, vlan, vlanGroup string, sess *Session, jnprSess *NetconfObject,
 ) (bool, error) {
-	sess := m.(*Session)
 	var showConfig string
 	var err error
 	if vlan != "" && vlanGroup != "" {
@@ -566,8 +579,7 @@ func checkVstpInterfaceExists(name, routingInstance, vlan, vlanGroup string, m i
 	return true, nil
 }
 
-func setVstpInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setVstpInterface(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 
 	name := d.Get("name").(string)
@@ -615,9 +627,8 @@ func setVstpInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readVstpInterface(name, routingInstance, vlan, vlanGroup string, m interface{}, jnprSess *NetconfObject,
+func readVstpInterface(name, routingInstance, vlan, vlanGroup string, sess *Session, jnprSess *NetconfObject,
 ) (vstpInterfaceOptions, error) {
-	sess := m.(*Session)
 	var confRead vstpInterfaceOptions
 	if vlan != "" && vlanGroup != "" {
 		return confRead, fmt.Errorf("internal error: readVstpInterface called with vlan and vlanGroup")
@@ -698,8 +709,7 @@ func readVstpInterface(name, routingInstance, vlan, vlanGroup string, m interfac
 	return confRead, nil
 }
 
-func delVstpInterface(name, routingInstance, vlan, vlanGroup string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delVstpInterface(name, routingInstance, vlan, vlanGroup string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	if vlan != "" && vlanGroup != "" {
 		return fmt.Errorf("internal error: delVstpInterface called with vlan and vlanGroup")

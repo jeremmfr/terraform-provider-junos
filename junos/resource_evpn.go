@@ -119,7 +119,7 @@ func resourceEvpn() *schema.Resource {
 func resourceEvpnCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setEvpn(d, m, nil); err != nil {
+		if err := setEvpn(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("routing_instance").(string))
@@ -136,7 +136,7 @@ func resourceEvpnCreate(ctx context.Context, d *schema.ResourceData, m interface
 	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), sess, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -149,7 +149,7 @@ func resourceEvpnCreate(ctx context.Context, d *schema.ResourceData, m interface
 				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))...)
 		}
 	}
-	if err := setEvpn(d, m, jnprSess); err != nil {
+	if err := setEvpn(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -163,7 +163,7 @@ func resourceEvpnCreate(ctx context.Context, d *schema.ResourceData, m interface
 	}
 	d.SetId(d.Get("routing_instance").(string))
 
-	return append(diagWarns, resourceEvpnReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceEvpnReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceEvpnRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -174,13 +174,13 @@ func resourceEvpnRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceEvpnReadWJnprSess(d, m, jnprSess)
+	return resourceEvpnReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceEvpnReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceEvpnReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
 	if d.Get("routing_instance").(string) != defaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), sess, jnprSess)
 		if err != nil {
 			mutex.Unlock()
 
@@ -194,7 +194,7 @@ func resourceEvpnReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *
 			return nil
 		}
 	}
-	evpnOptions, err := readEvpn(d.Get("routing_instance").(string), m, jnprSess)
+	evpnOptions, err := readEvpn(d.Get("routing_instance").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -212,10 +212,10 @@ func resourceEvpnUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delEvpn(false, d, m, nil); err != nil {
+		if err := delEvpn(false, d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setEvpn(d, m, nil); err != nil {
+		if err := setEvpn(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -231,12 +231,12 @@ func resourceEvpnUpdate(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delEvpn(false, d, m, jnprSess); err != nil {
+	if err := delEvpn(false, d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setEvpn(d, m, jnprSess); err != nil {
+	if err := setEvpn(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -250,13 +250,13 @@ func resourceEvpnUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceEvpnReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceEvpnReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceEvpnDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delEvpn(true, d, m, nil); err != nil {
+		if err := delEvpn(true, d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -271,7 +271,7 @@ func resourceEvpnDelete(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delEvpn(true, d, m, jnprSess); err != nil {
+	if err := delEvpn(true, d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -298,7 +298,7 @@ func resourceEvpnImport(ctx context.Context, d *schema.ResourceData, m interface
 	result := make([]*schema.ResourceData, 1)
 	idList := strings.Split(d.Id(), idSeparator)
 	if idList[0] != defaultW {
-		instanceExists, err := checkRoutingInstanceExists(idList[0], m, jnprSess)
+		instanceExists, err := checkRoutingInstanceExists(idList[0], sess, jnprSess)
 		if err != nil {
 			return nil, err
 		}
@@ -306,7 +306,7 @@ func resourceEvpnImport(ctx context.Context, d *schema.ResourceData, m interface
 			return nil, fmt.Errorf("routing instance %v doesn't exist", idList[0])
 		}
 	}
-	evpnOptions, err := readEvpn(idList[0], m, jnprSess)
+	evpnOptions, err := readEvpn(idList[0], sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -325,8 +325,7 @@ func resourceEvpnImport(ctx context.Context, d *schema.ResourceData, m interface
 	return result, nil
 }
 
-func setEvpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setEvpn(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 	setPrefix := setLS
 	setPrefixSwitchRIVRF := setLS
@@ -388,9 +387,8 @@ func setEvpn(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) err
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readEvpn(routingInstance string, m interface{}, jnprSess *NetconfObject,
+func readEvpn(routingInstance string, sess *Session, jnprSess *NetconfObject,
 ) (evpnOptions, error) {
-	sess := m.(*Session)
 	var confRead evpnOptions
 	var showConfig string
 	var showConfigSwitchRI string
@@ -491,8 +489,7 @@ func readEvpn(routingInstance string, m interface{}, jnprSess *NetconfObject,
 	return confRead, nil
 }
 
-func delEvpn(destroy bool, d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delEvpn(destroy bool, d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 
 	delPrefix := "delete protocols evpn "

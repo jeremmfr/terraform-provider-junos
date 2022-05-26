@@ -209,7 +209,7 @@ func resourceStaticRoute() *schema.Resource {
 func resourceStaticRouteCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setStaticRoute(d, m, nil); err != nil {
+		if err := setStaticRoute(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("destination").(string) + idSeparator + d.Get("routing_instance").(string))
@@ -226,7 +226,7 @@ func resourceStaticRouteCreate(ctx context.Context, d *schema.ResourceData, m in
 	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), sess, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -239,8 +239,10 @@ func resourceStaticRouteCreate(ctx context.Context, d *schema.ResourceData, m in
 				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))...)
 		}
 	}
-	staticRouteExists, err := checkStaticRouteExists(d.Get("destination").(string), d.Get("routing_instance").(string),
-		m, jnprSess)
+	staticRouteExists, err := checkStaticRouteExists(
+		d.Get("destination").(string),
+		d.Get("routing_instance").(string),
+		sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -252,7 +254,7 @@ func resourceStaticRouteCreate(ctx context.Context, d *schema.ResourceData, m in
 		return append(diagWarns, diag.FromErr(fmt.Errorf("static route %v already exists on table %s",
 			d.Get("destination").(string), d.Get("routing_instance").(string)))...)
 	}
-	if err := setStaticRoute(d, m, jnprSess); err != nil {
+	if err := setStaticRoute(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -264,8 +266,10 @@ func resourceStaticRouteCreate(ctx context.Context, d *schema.ResourceData, m in
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	staticRouteExists, err = checkStaticRouteExists(d.Get("destination").(string), d.Get("routing_instance").(string),
-		m, jnprSess)
+	staticRouteExists, err = checkStaticRouteExists(
+		d.Get("destination").(string),
+		d.Get("routing_instance").(string),
+		sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -276,7 +280,7 @@ func resourceStaticRouteCreate(ctx context.Context, d *schema.ResourceData, m in
 			"=> check your config", d.Get("destination").(string), d.Get("routing_instance").(string)))...)
 	}
 
-	return append(diagWarns, resourceStaticRouteReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceStaticRouteReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceStaticRouteRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -287,13 +291,15 @@ func resourceStaticRouteRead(ctx context.Context, d *schema.ResourceData, m inte
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceStaticRouteReadWJnprSess(d, m, jnprSess)
+	return resourceStaticRouteReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceStaticRouteReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceStaticRouteReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) diag.Diagnostics {
 	mutex.Lock()
-	staticRouteOptions, err := readStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string),
-		m, jnprSess)
+	staticRouteOptions, err := readStaticRoute(
+		d.Get("destination").(string),
+		d.Get("routing_instance").(string),
+		sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -311,10 +317,10 @@ func resourceStaticRouteUpdate(ctx context.Context, d *schema.ResourceData, m in
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, nil); err != nil {
+		if err := delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setStaticRoute(d, m, nil); err != nil {
+		if err := setStaticRoute(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -330,12 +336,16 @@ func resourceStaticRouteUpdate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess); err != nil {
+	if err := delStaticRoute(
+		d.Get("destination").(string),
+		d.Get("routing_instance").(string),
+		sess, jnprSess,
+	); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setStaticRoute(d, m, jnprSess); err != nil {
+	if err := setStaticRoute(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -350,13 +360,13 @@ func resourceStaticRouteUpdate(ctx context.Context, d *schema.ResourceData, m in
 
 	d.Partial(false)
 
-	return append(diagWarns, resourceStaticRouteReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceStaticRouteReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceStaticRouteDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, nil); err != nil {
+		if err := delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -371,7 +381,11 @@ func resourceStaticRouteDelete(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess); err != nil {
+	if err := delStaticRoute(
+		d.Get("destination").(string),
+		d.Get("routing_instance").(string),
+		sess, jnprSess,
+	); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -400,7 +414,7 @@ func resourceStaticRouteImport(ctx context.Context, d *schema.ResourceData, m in
 	if len(idSplit) < 2 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", idSeparator)
 	}
-	staticRouteExists, err := checkStaticRouteExists(idSplit[0], idSplit[1], m, jnprSess)
+	staticRouteExists, err := checkStaticRouteExists(idSplit[0], idSplit[1], sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -408,7 +422,7 @@ func resourceStaticRouteImport(ctx context.Context, d *schema.ResourceData, m in
 		return nil, fmt.Errorf("don't find static route with id '%v' (id must be "+
 			"<destination>"+idSeparator+"<routing_instance>)", d.Id())
 	}
-	staticRouteOptions, err := readStaticRoute(idSplit[0], idSplit[1], m, jnprSess)
+	staticRouteOptions, err := readStaticRoute(idSplit[0], idSplit[1], sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -419,8 +433,7 @@ func resourceStaticRouteImport(ctx context.Context, d *schema.ResourceData, m in
 	return result, nil
 }
 
-func checkStaticRouteExists(destination, instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkStaticRouteExists(destination, instance string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	var showConfig string
 	var err error
 	if instance == defaultW {
@@ -460,8 +473,7 @@ func checkStaticRouteExists(destination, instance string, m interface{}, jnprSes
 	return true, nil
 }
 
-func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setStaticRoute(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 
 	var setPrefix string
@@ -579,8 +591,7 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readStaticRoute(destination, instance string, m interface{}, jnprSess *NetconfObject) (staticRouteOptions, error) {
-	sess := m.(*Session)
+func readStaticRoute(destination, instance string, sess *Session, jnprSess *NetconfObject) (staticRouteOptions, error) {
 	var confRead staticRouteOptions
 	var showConfig string
 	var err error
@@ -705,8 +716,7 @@ func readStaticRoute(destination, instance string, m interface{}, jnprSess *Netc
 	return confRead, nil
 }
 
-func delStaticRoute(destination, instance string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delStaticRoute(destination, instance string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	switch {
 	case instance == defaultW && !strings.Contains(destination, ":"):

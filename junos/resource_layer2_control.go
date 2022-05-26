@@ -115,7 +115,7 @@ func resourceLayer2Control() *schema.Resource {
 func resourceLayer2ControlCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setLayer2Control(d, m, nil); err != nil {
+		if err := setLayer2Control(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId("layer2_control")
@@ -131,7 +131,7 @@ func resourceLayer2ControlCreate(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := setLayer2Control(d, m, jnprSess); err != nil {
+	if err := setLayer2Control(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -145,7 +145,7 @@ func resourceLayer2ControlCreate(ctx context.Context, d *schema.ResourceData, m 
 	}
 	d.SetId("layer2_control")
 
-	return append(diagWarns, resourceLayer2ControlReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceLayer2ControlReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceLayer2ControlRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -156,13 +156,13 @@ func resourceLayer2ControlRead(ctx context.Context, d *schema.ResourceData, m in
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceLayer2ControlReadWJnprSess(d, m, jnprSess)
+	return resourceLayer2ControlReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceLayer2ControlReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceLayer2ControlReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	layer2ControlOptions, err := readLayer2Control(m, jnprSess)
+	layer2ControlOptions, err := readLayer2Control(sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -176,10 +176,10 @@ func resourceLayer2ControlUpdate(ctx context.Context, d *schema.ResourceData, m 
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delLayer2Control(m, nil); err != nil {
+		if err := delLayer2Control(sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setLayer2Control(d, m, nil); err != nil {
+		if err := setLayer2Control(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -195,12 +195,12 @@ func resourceLayer2ControlUpdate(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delLayer2Control(m, jnprSess); err != nil {
+	if err := delLayer2Control(sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setLayer2Control(d, m, jnprSess); err != nil {
+	if err := setLayer2Control(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -214,13 +214,13 @@ func resourceLayer2ControlUpdate(ctx context.Context, d *schema.ResourceData, m 
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceLayer2ControlReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceLayer2ControlReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceLayer2ControlDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delLayer2Control(m, nil); err != nil {
+		if err := delLayer2Control(sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -235,7 +235,7 @@ func resourceLayer2ControlDelete(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delLayer2Control(m, jnprSess); err != nil {
+	if err := delLayer2Control(sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -260,7 +260,7 @@ func resourceLayer2ControlImport(ctx context.Context, d *schema.ResourceData, m 
 	}
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
-	layer2ControlOptions, err := readLayer2Control(m, jnprSess)
+	layer2ControlOptions, err := readLayer2Control(sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -271,8 +271,7 @@ func resourceLayer2ControlImport(ctx context.Context, d *schema.ResourceData, m 
 	return result, nil
 }
 
-func setLayer2Control(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setLayer2Control(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 	setPrefix := "set protocols layer2-control "
 
@@ -324,8 +323,7 @@ func setLayer2Control(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readLayer2Control(m interface{}, jnprSess *NetconfObject) (layer2ControlOptions, error) {
-	sess := m.(*Session)
+func readLayer2Control(sess *Session, jnprSess *NetconfObject) (layer2ControlOptions, error) {
 	var confRead layer2ControlOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
@@ -407,8 +405,7 @@ func readLayer2Control(m interface{}, jnprSess *NetconfObject) (layer2ControlOpt
 	return confRead, nil
 }
 
-func delLayer2Control(m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delLayer2Control(sess *Session, jnprSess *NetconfObject) error {
 	configSet := []string{"delete protocols layer2-control"}
 
 	return sess.configSet(configSet, jnprSess)

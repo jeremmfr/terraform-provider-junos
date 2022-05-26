@@ -98,7 +98,7 @@ func resourceRstpInterface() *schema.Resource {
 func resourceRstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setRstpInterface(d, m, nil); err != nil {
+		if err := setRstpInterface(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string) + idSeparator + d.Get("routing_instance").(string))
@@ -115,7 +115,7 @@ func resourceRstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), sess, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -129,7 +129,9 @@ func resourceRstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 		}
 	}
 	rstpInterfaceExists, err := checkRstpInterfaceExists(
-		d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
+		d.Get("name").(string),
+		d.Get("routing_instance").(string),
+		sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -147,7 +149,7 @@ func resourceRstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 			d.Get("name").(string), d.Get("routing_instance").(string)))...)
 	}
 
-	if err := setRstpInterface(d, m, jnprSess); err != nil {
+	if err := setRstpInterface(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -160,7 +162,9 @@ func resourceRstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	rstpInterfaceExists, err = checkRstpInterfaceExists(
-		d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
+		d.Get("name").(string),
+		d.Get("routing_instance").(string),
+		sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -177,7 +181,7 @@ func resourceRstpInterfaceCreate(ctx context.Context, d *schema.ResourceData, m 
 				"=> check your config", d.Get("name").(string), d.Get("routing_instance").(string)))...)
 	}
 
-	return append(diagWarns, resourceRstpInterfaceReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceRstpInterfaceReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceRstpInterfaceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -188,14 +192,16 @@ func resourceRstpInterfaceRead(ctx context.Context, d *schema.ResourceData, m in
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceRstpInterfaceReadWJnprSess(d, m, jnprSess)
+	return resourceRstpInterfaceReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceRstpInterfaceReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceRstpInterfaceReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
 	rstpInterfaceOptions, err := readRstpInterface(
-		d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
+		d.Get("name").(string),
+		d.Get("routing_instance").(string),
+		sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -213,10 +219,10 @@ func resourceRstpInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m 
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delRstpInterface(d.Get("name").(string), d.Get("routing_instance").(string), m, nil); err != nil {
+		if err := delRstpInterface(d.Get("name").(string), d.Get("routing_instance").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setRstpInterface(d, m, nil); err != nil {
+		if err := setRstpInterface(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -232,12 +238,12 @@ func resourceRstpInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delRstpInterface(d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess); err != nil {
+	if err := delRstpInterface(d.Get("name").(string), d.Get("routing_instance").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setRstpInterface(d, m, jnprSess); err != nil {
+	if err := setRstpInterface(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -251,13 +257,13 @@ func resourceRstpInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m 
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceRstpInterfaceReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceRstpInterfaceReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceRstpInterfaceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delRstpInterface(d.Get("name").(string), d.Get("routing_instance").(string), m, nil); err != nil {
+		if err := delRstpInterface(d.Get("name").(string), d.Get("routing_instance").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -272,7 +278,7 @@ func resourceRstpInterfaceDelete(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delRstpInterface(d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess); err != nil {
+	if err := delRstpInterface(d.Get("name").(string), d.Get("routing_instance").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -301,7 +307,7 @@ func resourceRstpInterfaceImport(ctx context.Context, d *schema.ResourceData, m 
 	if len(idSplit) < 2 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", idSeparator)
 	}
-	rstpInterfaceExists, err := checkRstpInterfaceExists(idSplit[0], idSplit[1], m, jnprSess)
+	rstpInterfaceExists, err := checkRstpInterfaceExists(idSplit[0], idSplit[1], sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -309,7 +315,7 @@ func resourceRstpInterfaceImport(ctx context.Context, d *schema.ResourceData, m 
 		return nil, fmt.Errorf("don't find protocols rstp interface with id '%v' "+
 			"(id must be <name>%s<routing_instance>)", d.Id(), idSeparator)
 	}
-	rstpInterfaceOptions, err := readRstpInterface(idSplit[0], idSplit[1], m, jnprSess)
+	rstpInterfaceOptions, err := readRstpInterface(idSplit[0], idSplit[1], sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -320,8 +326,7 @@ func resourceRstpInterfaceImport(ctx context.Context, d *schema.ResourceData, m 
 	return result, nil
 }
 
-func checkRstpInterfaceExists(name, routingInstance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkRstpInterfaceExists(name, routingInstance string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	var showConfig string
 	var err error
 	if routingInstance == defaultW {
@@ -341,8 +346,7 @@ func checkRstpInterfaceExists(name, routingInstance string, m interface{}, jnprS
 	return true, nil
 }
 
-func setRstpInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setRstpInterface(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 
 	setPrefix := setLS
@@ -380,9 +384,8 @@ func setRstpInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfOb
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readRstpInterface(name, routingInstance string, m interface{}, jnprSess *NetconfObject,
+func readRstpInterface(name, routingInstance string, sess *Session, jnprSess *NetconfObject,
 ) (rstpInterfaceOptions, error) {
-	sess := m.(*Session)
 	var confRead rstpInterfaceOptions
 	confRead.priority = -1 // default -1
 	var showConfig string
@@ -440,8 +443,7 @@ func readRstpInterface(name, routingInstance string, m interface{}, jnprSess *Ne
 	return confRead, nil
 }
 
-func delRstpInterface(name, routingInstance string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delRstpInterface(name, routingInstance string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 
 	if routingInstance == defaultW {

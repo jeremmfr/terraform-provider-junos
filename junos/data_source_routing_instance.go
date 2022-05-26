@@ -90,7 +90,7 @@ func dataSourceRoutingInstanceRead(ctx context.Context, d *schema.ResourceData, 
 	}
 	defer sess.closeSession(jnprSess)
 	mutex.Lock()
-	instanceOptions, err := readRoutingInstance(d.Get("name").(string), m, jnprSess)
+	instanceOptions, err := readRoutingInstance(d.Get("name").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)

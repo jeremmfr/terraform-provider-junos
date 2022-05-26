@@ -129,7 +129,7 @@ func resourceAggregateRoute() *schema.Resource {
 func resourceAggregateRouteCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setAggregateRoute(d, m, nil); err != nil {
+		if err := setAggregateRoute(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("destination").(string) + idSeparator + d.Get("routing_instance").(string))
@@ -146,7 +146,7 @@ func resourceAggregateRouteCreate(ctx context.Context, d *schema.ResourceData, m
 	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), sess, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -160,7 +160,9 @@ func resourceAggregateRouteCreate(ctx context.Context, d *schema.ResourceData, m
 		}
 	}
 	aggregateRouteExists, err := checkAggregateRouteExists(
-		d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess)
+		d.Get("destination").(string),
+		d.Get("routing_instance").(string),
+		sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -172,7 +174,7 @@ func resourceAggregateRouteCreate(ctx context.Context, d *schema.ResourceData, m
 		return append(diagWarns, diag.FromErr(fmt.Errorf("aggregate route %v already exists on table %s",
 			d.Get("destination").(string), d.Get("routing_instance").(string)))...)
 	}
-	if err := setAggregateRoute(d, m, jnprSess); err != nil {
+	if err := setAggregateRoute(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -185,7 +187,9 @@ func resourceAggregateRouteCreate(ctx context.Context, d *schema.ResourceData, m
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	aggregateRouteExists, err = checkAggregateRouteExists(
-		d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess)
+		d.Get("destination").(string),
+		d.Get("routing_instance").(string),
+		sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -197,7 +201,7 @@ func resourceAggregateRouteCreate(ctx context.Context, d *schema.ResourceData, m
 				"=> check your config", d.Get("destination").(string), d.Get("routing_instance").(string)))...)
 	}
 
-	return append(diagWarns, resourceAggregateRouteReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceAggregateRouteReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceAggregateRouteRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -208,14 +212,16 @@ func resourceAggregateRouteRead(ctx context.Context, d *schema.ResourceData, m i
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceAggregateRouteReadWJnprSess(d, m, jnprSess)
+	return resourceAggregateRouteReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceAggregateRouteReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceAggregateRouteReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	aggregateRouteOptions, err := readAggregateRoute(d.Get("destination").(string), d.Get("routing_instance").(string),
-		m, jnprSess)
+	aggregateRouteOptions, err := readAggregateRoute(
+		d.Get("destination").(string),
+		d.Get("routing_instance").(string),
+		sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -234,10 +240,13 @@ func resourceAggregateRouteUpdate(ctx context.Context, d *schema.ResourceData, m
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
 		if err := delAggregateRoute(
-			d.Get("destination").(string), d.Get("routing_instance").(string), m, nil); err != nil {
+			d.Get("destination").(string),
+			d.Get("routing_instance").(string),
+			sess, nil,
+		); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setAggregateRoute(d, m, nil); err != nil {
+		if err := setAggregateRoute(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -253,13 +262,16 @@ func resourceAggregateRouteUpdate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delAggregateRoute(d.Get("destination").(string), d.Get("routing_instance").(string),
-		m, jnprSess); err != nil {
+	if err := delAggregateRoute(
+		d.Get("destination").(string),
+		d.Get("routing_instance").(string),
+		sess, jnprSess,
+	); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setAggregateRoute(d, m, jnprSess); err != nil {
+	if err := setAggregateRoute(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -273,14 +285,17 @@ func resourceAggregateRouteUpdate(ctx context.Context, d *schema.ResourceData, m
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceAggregateRouteReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceAggregateRouteReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceAggregateRouteDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
 		if err := delAggregateRoute(
-			d.Get("destination").(string), d.Get("routing_instance").(string), m, nil); err != nil {
+			d.Get("destination").(string),
+			d.Get("routing_instance").(string),
+			sess, nil,
+		); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -295,8 +310,11 @@ func resourceAggregateRouteDelete(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delAggregateRoute(d.Get("destination").(string), d.Get("routing_instance").(string),
-		m, jnprSess); err != nil {
+	if err := delAggregateRoute(
+		d.Get("destination").(string),
+		d.Get("routing_instance").(string),
+		sess, jnprSess,
+	); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -325,7 +343,7 @@ func resourceAggregateRouteImport(ctx context.Context, d *schema.ResourceData, m
 	if len(idSplit) < 2 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", idSeparator)
 	}
-	aggregateRouteExists, err := checkAggregateRouteExists(idSplit[0], idSplit[1], m, jnprSess)
+	aggregateRouteExists, err := checkAggregateRouteExists(idSplit[0], idSplit[1], sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -333,7 +351,7 @@ func resourceAggregateRouteImport(ctx context.Context, d *schema.ResourceData, m
 		return nil, fmt.Errorf("don't find aggregate route with id '%v' (id must be "+
 			"<destination>"+idSeparator+"<routing_instance>)", d.Id())
 	}
-	aggregateRouteOptions, err := readAggregateRoute(idSplit[0], idSplit[1], m, jnprSess)
+	aggregateRouteOptions, err := readAggregateRoute(idSplit[0], idSplit[1], sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -344,8 +362,7 @@ func resourceAggregateRouteImport(ctx context.Context, d *schema.ResourceData, m
 	return result, nil
 }
 
-func checkAggregateRouteExists(destination, instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkAggregateRouteExists(destination, instance string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	var showConfig string
 	var err error
 	if instance == defaultW {
@@ -385,8 +402,7 @@ func checkAggregateRouteExists(destination, instance string, m interface{}, jnpr
 	return true, nil
 }
 
-func setAggregateRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setAggregateRoute(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 
 	var setPrefix string
@@ -453,9 +469,8 @@ func setAggregateRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readAggregateRoute(destination, instance string, m interface{}, jnprSess *NetconfObject,
+func readAggregateRoute(destination, instance string, sess *Session, jnprSess *NetconfObject,
 ) (aggregateRouteOptions, error) {
-	sess := m.(*Session)
 	var confRead aggregateRouteOptions
 	var showConfig string
 	var err error
@@ -534,8 +549,7 @@ func readAggregateRoute(destination, instance string, m interface{}, jnprSess *N
 	return confRead, nil
 }
 
-func delAggregateRoute(destination, instance string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delAggregateRoute(destination, instance string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	if instance == defaultW {
 		if !strings.Contains(destination, ":") {

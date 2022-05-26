@@ -187,7 +187,7 @@ func resourceSystemLoginClass() *schema.Resource {
 func resourceSystemLoginClassCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setSystemLoginClass(d, m, nil); err != nil {
+		if err := setSystemLoginClass(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -203,7 +203,7 @@ func resourceSystemLoginClassCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	systemLoginClassExists, err := checkSystemLoginClassExists(d.Get("name").(string), m, jnprSess)
+	systemLoginClassExists, err := checkSystemLoginClassExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -215,7 +215,7 @@ func resourceSystemLoginClassCreate(ctx context.Context, d *schema.ResourceData,
 		return append(diagWarns, diag.FromErr(fmt.Errorf("system login class %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setSystemLoginClass(d, m, jnprSess); err != nil {
+	if err := setSystemLoginClass(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -227,7 +227,7 @@ func resourceSystemLoginClassCreate(ctx context.Context, d *schema.ResourceData,
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	systemLoginClassExists, err = checkSystemLoginClassExists(d.Get("name").(string), m, jnprSess)
+	systemLoginClassExists, err = checkSystemLoginClassExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -238,7 +238,7 @@ func resourceSystemLoginClassCreate(ctx context.Context, d *schema.ResourceData,
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSystemLoginClassReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSystemLoginClassReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSystemLoginClassRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -249,13 +249,13 @@ func resourceSystemLoginClassRead(ctx context.Context, d *schema.ResourceData, m
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceSystemLoginClassReadWJnprSess(d, m, jnprSess)
+	return resourceSystemLoginClassReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceSystemLoginClassReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceSystemLoginClassReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	systemLoginClassOptions, err := readSystemLoginClass(d.Get("name").(string), m, jnprSess)
+	systemLoginClassOptions, err := readSystemLoginClass(d.Get("name").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -273,10 +273,10 @@ func resourceSystemLoginClassUpdate(ctx context.Context, d *schema.ResourceData,
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delSystemLoginClass(d.Get("name").(string), m, nil); err != nil {
+		if err := delSystemLoginClass(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSystemLoginClass(d, m, nil); err != nil {
+		if err := setSystemLoginClass(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -292,12 +292,12 @@ func resourceSystemLoginClassUpdate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSystemLoginClass(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delSystemLoginClass(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSystemLoginClass(d, m, jnprSess); err != nil {
+	if err := setSystemLoginClass(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -311,13 +311,13 @@ func resourceSystemLoginClassUpdate(ctx context.Context, d *schema.ResourceData,
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSystemLoginClassReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSystemLoginClassReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceSystemLoginClassDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delSystemLoginClass(d.Get("name").(string), m, nil); err != nil {
+		if err := delSystemLoginClass(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -332,7 +332,7 @@ func resourceSystemLoginClassDelete(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSystemLoginClass(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delSystemLoginClass(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -358,14 +358,14 @@ func resourceSystemLoginClassImport(ctx context.Context, d *schema.ResourceData,
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
 
-	systemLoginClassExists, err := checkSystemLoginClassExists(d.Id(), m, jnprSess)
+	systemLoginClassExists, err := checkSystemLoginClassExists(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
 	if !systemLoginClassExists {
 		return nil, fmt.Errorf("don't find system login class with id '%v' (id must be <name>)", d.Id())
 	}
-	systemLoginClassOptions, err := readSystemLoginClass(d.Id(), m, jnprSess)
+	systemLoginClassOptions, err := readSystemLoginClass(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -376,8 +376,7 @@ func resourceSystemLoginClassImport(ctx context.Context, d *schema.ResourceData,
 	return result, nil
 }
 
-func checkSystemLoginClassExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkSystemLoginClassExists(name string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+"system login class "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
@@ -389,8 +388,7 @@ func checkSystemLoginClassExists(name string, m interface{}, jnprSess *NetconfOb
 	return true, nil
 }
 
-func setSystemLoginClass(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setSystemLoginClass(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 	setPrefix := "set system login class " + d.Get("name").(string) + " "
 
@@ -470,8 +468,7 @@ func setSystemLoginClass(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readSystemLoginClass(name string, m interface{}, jnprSess *NetconfObject) (systemLoginClassOptions, error) {
-	sess := m.(*Session)
+func readSystemLoginClass(name string, sess *Session, jnprSess *NetconfObject) (systemLoginClassOptions, error) {
 	var confRead systemLoginClassOptions
 
 	showConfig, err := sess.command(cmdShowConfig+"system login class "+name+pipeDisplaySetRelative, jnprSess)
@@ -557,8 +554,7 @@ func readSystemLoginClass(name string, m interface{}, jnprSess *NetconfObject) (
 	return confRead, nil
 }
 
-func delSystemLoginClass(systemLoginClass string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delSystemLoginClass(systemLoginClass string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system login class "+systemLoginClass)
 

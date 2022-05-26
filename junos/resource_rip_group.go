@@ -193,7 +193,7 @@ func resourceRipGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	var diagWarns diag.Diagnostics
 	if routingInstance != defaultW {
-		instanceExists, err := checkRoutingInstanceExists(routingInstance, m, jnprSess)
+		instanceExists, err := checkRoutingInstanceExists(routingInstance, sess, jnprSess)
 		if err != nil {
 			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 

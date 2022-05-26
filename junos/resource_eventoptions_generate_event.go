@@ -59,7 +59,7 @@ func resourceEventoptionsGenerateEventCreate(ctx context.Context, d *schema.Reso
 ) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setEventoptionsGenerateEvent(d, m, nil); err != nil {
+		if err := setEventoptionsGenerateEvent(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -75,7 +75,7 @@ func resourceEventoptionsGenerateEventCreate(ctx context.Context, d *schema.Reso
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	eventoptionsGenerateEventExists, err := checkEventoptionsGenerateEventExists(d.Get("name").(string), m, jnprSess)
+	eventoptionsGenerateEventExists, err := checkEventoptionsGenerateEventExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -88,7 +88,7 @@ func resourceEventoptionsGenerateEventCreate(ctx context.Context, d *schema.Reso
 			diag.FromErr(fmt.Errorf("event-options generate-event %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setEventoptionsGenerateEvent(d, m, jnprSess); err != nil {
+	if err := setEventoptionsGenerateEvent(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -100,7 +100,7 @@ func resourceEventoptionsGenerateEventCreate(ctx context.Context, d *schema.Reso
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	eventoptionsGenerateEventExists, err = checkEventoptionsGenerateEventExists(d.Get("name").(string), m, jnprSess)
+	eventoptionsGenerateEventExists, err = checkEventoptionsGenerateEventExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -111,7 +111,7 @@ func resourceEventoptionsGenerateEventCreate(ctx context.Context, d *schema.Reso
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceEventoptionsGenerateEventReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceEventoptionsGenerateEventReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceEventoptionsGenerateEventRead(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -123,13 +123,13 @@ func resourceEventoptionsGenerateEventRead(ctx context.Context, d *schema.Resour
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceEventoptionsGenerateEventReadWJnprSess(d, m, jnprSess)
+	return resourceEventoptionsGenerateEventReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceEventoptionsGenerateEventReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceEventoptionsGenerateEventReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	eventoptionsGenerateEventOptions, err := readEventoptionsGenerateEvent(d.Get("name").(string), m, jnprSess)
+	eventoptionsGenerateEventOptions, err := readEventoptionsGenerateEvent(d.Get("name").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -148,10 +148,10 @@ func resourceEventoptionsGenerateEventUpdate(ctx context.Context, d *schema.Reso
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delEventoptionsGenerateEvent(d.Get("name").(string), m, nil); err != nil {
+		if err := delEventoptionsGenerateEvent(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setEventoptionsGenerateEvent(d, m, nil); err != nil {
+		if err := setEventoptionsGenerateEvent(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -167,12 +167,12 @@ func resourceEventoptionsGenerateEventUpdate(ctx context.Context, d *schema.Reso
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delEventoptionsGenerateEvent(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delEventoptionsGenerateEvent(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setEventoptionsGenerateEvent(d, m, jnprSess); err != nil {
+	if err := setEventoptionsGenerateEvent(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -186,14 +186,14 @@ func resourceEventoptionsGenerateEventUpdate(ctx context.Context, d *schema.Reso
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceEventoptionsGenerateEventReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceEventoptionsGenerateEventReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceEventoptionsGenerateEventDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delEventoptionsGenerateEvent(d.Get("name").(string), m, nil); err != nil {
+		if err := delEventoptionsGenerateEvent(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -208,7 +208,7 @@ func resourceEventoptionsGenerateEventDelete(ctx context.Context, d *schema.Reso
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delEventoptionsGenerateEvent(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delEventoptionsGenerateEvent(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -234,14 +234,14 @@ func resourceEventoptionsGenerateEventImport(ctx context.Context, d *schema.Reso
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
 
-	eventoptionsGenerateEventExists, err := checkEventoptionsGenerateEventExists(d.Id(), m, jnprSess)
+	eventoptionsGenerateEventExists, err := checkEventoptionsGenerateEventExists(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
 	if !eventoptionsGenerateEventExists {
 		return nil, fmt.Errorf("don't find event-options generate-event with id '%v' (id must be <name>)", d.Id())
 	}
-	eventoptionsGenerateEventOptions, err := readEventoptionsGenerateEvent(d.Id(), m, jnprSess)
+	eventoptionsGenerateEventOptions, err := readEventoptionsGenerateEvent(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -252,8 +252,7 @@ func resourceEventoptionsGenerateEventImport(ctx context.Context, d *schema.Reso
 	return result, nil
 }
 
-func checkEventoptionsGenerateEventExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkEventoptionsGenerateEventExists(name string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+"event-options generate-event \""+name+"\""+pipeDisplaySet, jnprSess)
 	if err != nil {
 		return false, err
@@ -265,8 +264,7 @@ func checkEventoptionsGenerateEventExists(name string, m interface{}, jnprSess *
 	return true, nil
 }
 
-func setEventoptionsGenerateEvent(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setEventoptionsGenerateEvent(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0)
 	setPrefix := "set event-options generate-event \"" + d.Get("name").(string) + "\" "
 
@@ -283,9 +281,8 @@ func setEventoptionsGenerateEvent(d *schema.ResourceData, m interface{}, jnprSes
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readEventoptionsGenerateEvent(name string, m interface{}, jnprSess *NetconfObject,
+func readEventoptionsGenerateEvent(name string, sess *Session, jnprSess *NetconfObject,
 ) (eventoptionsGenerateEventOptions, error) {
-	sess := m.(*Session)
 	var confRead eventoptionsGenerateEventOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
@@ -321,8 +318,7 @@ func readEventoptionsGenerateEvent(name string, m interface{}, jnprSess *Netconf
 	return confRead, nil
 }
 
-func delEventoptionsGenerateEvent(event string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delEventoptionsGenerateEvent(event string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete event-options generate-event \""+event+"\"")
 

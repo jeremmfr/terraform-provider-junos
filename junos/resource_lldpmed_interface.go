@@ -133,7 +133,7 @@ func resourceLldpMedInterface() *schema.Resource {
 func resourceLldpMedInterfaceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeCreateSetFile != "" {
-		if err := setLldpMedInterface(d, m, nil); err != nil {
+		if err := setLldpMedInterface(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
@@ -149,7 +149,7 @@ func resourceLldpMedInterfaceCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	lldpMedInterfaceExists, err := checkLldpMedInterfaceExists(d.Get("name").(string), m, jnprSess)
+	lldpMedInterfaceExists, err := checkLldpMedInterfaceExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
@@ -162,7 +162,7 @@ func resourceLldpMedInterfaceCreate(ctx context.Context, d *schema.ResourceData,
 			"protocols lldp-med interface %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setLldpMedInterface(d, m, jnprSess); err != nil {
+	if err := setLldpMedInterface(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -174,7 +174,7 @@ func resourceLldpMedInterfaceCreate(ctx context.Context, d *schema.ResourceData,
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	lldpMedInterfaceExists, err = checkLldpMedInterfaceExists(d.Get("name").(string), m, jnprSess)
+	lldpMedInterfaceExists, err = checkLldpMedInterfaceExists(d.Get("name").(string), sess, jnprSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -185,7 +185,7 @@ func resourceLldpMedInterfaceCreate(ctx context.Context, d *schema.ResourceData,
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceLldpMedInterfaceReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceLldpMedInterfaceReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceLldpMedInterfaceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -196,13 +196,13 @@ func resourceLldpMedInterfaceRead(ctx context.Context, d *schema.ResourceData, m
 	}
 	defer sess.closeSession(jnprSess)
 
-	return resourceLldpMedInterfaceReadWJnprSess(d, m, jnprSess)
+	return resourceLldpMedInterfaceReadWJnprSess(d, sess, jnprSess)
 }
 
-func resourceLldpMedInterfaceReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceLldpMedInterfaceReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
 ) diag.Diagnostics {
 	mutex.Lock()
-	lldpMedInterfaceOptions, err := readLldpMedInterface(d.Get("name").(string), m, jnprSess)
+	lldpMedInterfaceOptions, err := readLldpMedInterface(d.Get("name").(string), sess, jnprSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -220,10 +220,10 @@ func resourceLldpMedInterfaceUpdate(ctx context.Context, d *schema.ResourceData,
 	d.Partial(true)
 	sess := m.(*Session)
 	if sess.junosFakeUpdateAlso {
-		if err := delLldpMedInterface(d.Get("name").(string), m, nil); err != nil {
+		if err := delLldpMedInterface(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setLldpMedInterface(d, m, nil); err != nil {
+		if err := setLldpMedInterface(d, sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
@@ -239,12 +239,12 @@ func resourceLldpMedInterfaceUpdate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delLldpMedInterface(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delLldpMedInterface(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setLldpMedInterface(d, m, jnprSess); err != nil {
+	if err := setLldpMedInterface(d, sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -258,13 +258,13 @@ func resourceLldpMedInterfaceUpdate(ctx context.Context, d *schema.ResourceData,
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceLldpMedInterfaceReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceLldpMedInterfaceReadWJnprSess(d, sess, jnprSess)...)
 }
 
 func resourceLldpMedInterfaceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
 	if sess.junosFakeDeleteAlso {
-		if err := delLldpMedInterface(d.Get("name").(string), m, nil); err != nil {
+		if err := delLldpMedInterface(d.Get("name").(string), sess, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -279,7 +279,7 @@ func resourceLldpMedInterfaceDelete(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delLldpMedInterface(d.Get("name").(string), m, jnprSess); err != nil {
+	if err := delLldpMedInterface(d.Get("name").(string), sess, jnprSess); err != nil {
 		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
@@ -305,14 +305,14 @@ func resourceLldpMedInterfaceImport(ctx context.Context, d *schema.ResourceData,
 	defer sess.closeSession(jnprSess)
 	result := make([]*schema.ResourceData, 1)
 
-	lldpMedInterfaceExists, err := checkLldpMedInterfaceExists(d.Id(), m, jnprSess)
+	lldpMedInterfaceExists, err := checkLldpMedInterfaceExists(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
 	if !lldpMedInterfaceExists {
 		return nil, fmt.Errorf("don't find protocols lldp-med interface with id '%v' (id must be <name>)", d.Id())
 	}
-	lldpMedInterfaceOptions, err := readLldpMedInterface(d.Id(), m, jnprSess)
+	lldpMedInterfaceOptions, err := readLldpMedInterface(d.Id(), sess, jnprSess)
 	if err != nil {
 		return nil, err
 	}
@@ -323,8 +323,7 @@ func resourceLldpMedInterfaceImport(ctx context.Context, d *schema.ResourceData,
 	return result, nil
 }
 
-func checkLldpMedInterfaceExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkLldpMedInterfaceExists(name string, sess *Session, jnprSess *NetconfObject) (bool, error) {
 	showConfig, err := sess.command(
 		cmdShowConfig+"protocols lldp-med interface "+name+pipeDisplaySet, jnprSess)
 	if err != nil {
@@ -337,9 +336,7 @@ func checkLldpMedInterfaceExists(name string, m interface{}, jnprSess *NetconfOb
 	return true, nil
 }
 
-func setLldpMedInterface(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
-
+func setLldpMedInterface(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
 	setPrefix := "set protocols lldp-med interface " + d.Get("name").(string) + " "
 	configSet := make([]string, 0)
 
@@ -391,9 +388,8 @@ func setLldpMedInterface(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 	return sess.configSet(configSet, jnprSess)
 }
 
-func readLldpMedInterface(name string, m interface{}, jnprSess *NetconfObject,
+func readLldpMedInterface(name string, sess *Session, jnprSess *NetconfObject,
 ) (lldpMedInterfaceOptions, error) {
-	sess := m.(*Session)
 	var confRead lldpMedInterfaceOptions
 
 	showConfig, err := sess.command(
@@ -498,9 +494,7 @@ func readLldpMedInterface(name string, m interface{}, jnprSess *NetconfObject,
 	return confRead, nil
 }
 
-func delLldpMedInterface(name string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
-
+func delLldpMedInterface(name string, sess *Session, jnprSess *NetconfObject) error {
 	configSet := []string{"delete protocols lldp-med interface " + name}
 
 	return sess.configSet(configSet, jnprSess)
