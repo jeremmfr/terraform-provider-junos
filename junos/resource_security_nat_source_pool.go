@@ -98,54 +98,54 @@ func resourceSecurityNatSourcePool() *schema.Resource {
 }
 
 func resourceSecurityNatSourcePoolCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setSecurityNatSourcePool(d, sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setSecurityNatSourcePool(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 	if !checkCompatibilitySecurity(junSess) {
 		return diag.FromErr(fmt.Errorf("security nat source pool not compatible with Junos device %s",
 			junSess.SystemInformation.HardwareModel))
 	}
-	if err := sess.configLock(ctx, junSess); err != nil {
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	securityNatSourcePoolExists, err := checkSecurityNatSourcePoolExists(d.Get("name").(string), sess, junSess)
+	securityNatSourcePoolExists, err := checkSecurityNatSourcePoolExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityNatSourcePoolExists {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("security nat source pool %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setSecurityNatSourcePool(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setSecurityNatSourcePool(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_security_nat_source_pool", junSess)
+	warns, err := clt.commitConf("create resource junos_security_nat_source_pool", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	securityNatSourcePoolExists, err = checkSecurityNatSourcePoolExists(d.Get("name").(string), sess, junSess)
+	securityNatSourcePoolExists, err = checkSecurityNatSourcePoolExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -156,24 +156,24 @@ func resourceSecurityNatSourcePoolCreate(ctx context.Context, d *schema.Resource
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityNatSourcePoolReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourceSecurityNatSourcePoolReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSecurityNatSourcePoolRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 
-	return resourceSecurityNatSourcePoolReadWJunSess(d, sess, junSess)
+	return resourceSecurityNatSourcePoolReadWJunSess(d, clt, junSess)
 }
 
-func resourceSecurityNatSourcePoolReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
+func resourceSecurityNatSourcePoolReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	natSourcePoolOptions, err := readSecurityNatSourcePool(d.Get("name").(string), sess, junSess)
+	natSourcePoolOptions, err := readSecurityNatSourcePool(d.Get("name").(string), clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -189,76 +189,76 @@ func resourceSecurityNatSourcePoolReadWJunSess(d *schema.ResourceData, sess *Ses
 
 func resourceSecurityNatSourcePoolUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
-		if err := delSecurityNatSourcePool(d.Get("name").(string), sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
+		if err := delSecurityNatSourcePool(d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSecurityNatSourcePool(d, sess, nil); err != nil {
+		if err := setSecurityNatSourcePool(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityNatSourcePool(d.Get("name").(string), sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := delSecurityNatSourcePool(d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurityNatSourcePool(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setSecurityNatSourcePool(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_security_nat_source_pool", junSess)
+	warns, err := clt.commitConf("update resource junos_security_nat_source_pool", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityNatSourcePoolReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourceSecurityNatSourcePoolReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSecurityNatSourcePoolDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := delSecurityNatSourcePool(d.Get("name").(string), sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := delSecurityNatSourcePool(d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityNatSourcePool(d.Get("name").(string), sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := delSecurityNatSourcePool(d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_security_nat_source_pool", junSess)
+	warns, err := clt.commitConf("delete resource junos_security_nat_source_pool", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -268,22 +268,22 @@ func resourceSecurityNatSourcePoolDelete(ctx context.Context, d *schema.Resource
 
 func resourceSecurityNatSourcePoolImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 
-	securityNatSourcePoolExists, err := checkSecurityNatSourcePoolExists(d.Id(), sess, junSess)
+	securityNatSourcePoolExists, err := checkSecurityNatSourcePoolExists(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !securityNatSourcePoolExists {
 		return nil, fmt.Errorf("don't find nat source pool with id '%v' (id must be <name>)", d.Id())
 	}
-	natSourcePoolOptions, err := readSecurityNatSourcePool(d.Id(), sess, junSess)
+	natSourcePoolOptions, err := readSecurityNatSourcePool(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -294,8 +294,8 @@ func resourceSecurityNatSourcePoolImport(ctx context.Context, d *schema.Resource
 	return result, nil
 }
 
-func checkSecurityNatSourcePoolExists(name string, sess *Session, junSess *junosSession) (bool, error) {
-	showConfig, err := sess.command(cmdShowConfig+
+func checkSecurityNatSourcePoolExists(name string, clt *Client, junSess *junosSession) (bool, error) {
+	showConfig, err := clt.command(cmdShowConfig+
 		"security nat source pool "+name+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
@@ -307,7 +307,7 @@ func checkSecurityNatSourcePoolExists(name string, sess *Session, junSess *junos
 	return true, nil
 }
 
-func setSecurityNatSourcePool(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
+func setSecurityNatSourcePool(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security nat source pool " + d.Get("name").(string)
@@ -347,13 +347,13 @@ func setSecurityNatSourcePool(d *schema.ResourceData, sess *Session, junSess *ju
 		configSet = append(configSet, setPrefix+" routing-instance "+d.Get("routing_instance").(string))
 	}
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func readSecurityNatSourcePool(name string, sess *Session, junSess *junosSession) (natSourcePoolOptions, error) {
+func readSecurityNatSourcePool(name string, clt *Client, junSess *junosSession) (natSourcePoolOptions, error) {
 	var confRead natSourcePoolOptions
 
-	showConfig, err := sess.command(cmdShowConfig+
+	showConfig, err := clt.command(cmdShowConfig+
 		"security nat source pool "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -410,11 +410,11 @@ func readSecurityNatSourcePool(name string, sess *Session, junSess *junosSession
 	return confRead, nil
 }
 
-func delSecurityNatSourcePool(natSourcePool string, sess *Session, junSess *junosSession) error {
+func delSecurityNatSourcePool(natSourcePool string, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security nat source pool "+natSourcePool)
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func fillSecurityNatSourcePoolData(d *schema.ResourceData, natSourcePoolOptions natSourcePoolOptions) {

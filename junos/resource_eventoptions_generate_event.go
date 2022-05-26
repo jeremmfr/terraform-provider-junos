@@ -57,50 +57,50 @@ func resourceEventoptionsGenerateEvent() *schema.Resource {
 
 func resourceEventoptionsGenerateEventCreate(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setEventoptionsGenerateEvent(d, sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setEventoptionsGenerateEvent(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	eventoptionsGenerateEventExists, err := checkEventoptionsGenerateEventExists(d.Get("name").(string), sess, junSess)
+	eventoptionsGenerateEventExists, err := checkEventoptionsGenerateEventExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if eventoptionsGenerateEventExists {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("event-options generate-event %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setEventoptionsGenerateEvent(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setEventoptionsGenerateEvent(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_eventoptions_generate_event", junSess)
+	warns, err := clt.commitConf("create resource junos_eventoptions_generate_event", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	eventoptionsGenerateEventExists, err = checkEventoptionsGenerateEventExists(d.Get("name").(string), sess, junSess)
+	eventoptionsGenerateEventExists, err = checkEventoptionsGenerateEventExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -111,25 +111,25 @@ func resourceEventoptionsGenerateEventCreate(ctx context.Context, d *schema.Reso
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceEventoptionsGenerateEventReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourceEventoptionsGenerateEventReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceEventoptionsGenerateEventRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 
-	return resourceEventoptionsGenerateEventReadWJunSess(d, sess, junSess)
+	return resourceEventoptionsGenerateEventReadWJunSess(d, clt, junSess)
 }
 
-func resourceEventoptionsGenerateEventReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
+func resourceEventoptionsGenerateEventReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	eventoptionsGenerateEventOptions, err := readEventoptionsGenerateEvent(d.Get("name").(string), sess, junSess)
+	eventoptionsGenerateEventOptions, err := readEventoptionsGenerateEvent(d.Get("name").(string), clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -146,77 +146,77 @@ func resourceEventoptionsGenerateEventReadWJunSess(d *schema.ResourceData, sess 
 func resourceEventoptionsGenerateEventUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
-		if err := delEventoptionsGenerateEvent(d.Get("name").(string), sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
+		if err := delEventoptionsGenerateEvent(d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setEventoptionsGenerateEvent(d, sess, nil); err != nil {
+		if err := setEventoptionsGenerateEvent(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delEventoptionsGenerateEvent(d.Get("name").(string), sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := delEventoptionsGenerateEvent(d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setEventoptionsGenerateEvent(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setEventoptionsGenerateEvent(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_eventoptions_generate_event", junSess)
+	warns, err := clt.commitConf("update resource junos_eventoptions_generate_event", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceEventoptionsGenerateEventReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourceEventoptionsGenerateEventReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceEventoptionsGenerateEventDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := delEventoptionsGenerateEvent(d.Get("name").(string), sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := delEventoptionsGenerateEvent(d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delEventoptionsGenerateEvent(d.Get("name").(string), sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := delEventoptionsGenerateEvent(d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_eventoptions_generate_event", junSess)
+	warns, err := clt.commitConf("delete resource junos_eventoptions_generate_event", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -226,22 +226,22 @@ func resourceEventoptionsGenerateEventDelete(ctx context.Context, d *schema.Reso
 
 func resourceEventoptionsGenerateEventImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 
-	eventoptionsGenerateEventExists, err := checkEventoptionsGenerateEventExists(d.Id(), sess, junSess)
+	eventoptionsGenerateEventExists, err := checkEventoptionsGenerateEventExists(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !eventoptionsGenerateEventExists {
 		return nil, fmt.Errorf("don't find event-options generate-event with id '%v' (id must be <name>)", d.Id())
 	}
-	eventoptionsGenerateEventOptions, err := readEventoptionsGenerateEvent(d.Id(), sess, junSess)
+	eventoptionsGenerateEventOptions, err := readEventoptionsGenerateEvent(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -252,8 +252,8 @@ func resourceEventoptionsGenerateEventImport(ctx context.Context, d *schema.Reso
 	return result, nil
 }
 
-func checkEventoptionsGenerateEventExists(name string, sess *Session, junSess *junosSession) (bool, error) {
-	showConfig, err := sess.command(cmdShowConfig+"event-options generate-event \""+name+"\""+pipeDisplaySet, junSess)
+func checkEventoptionsGenerateEventExists(name string, clt *Client, junSess *junosSession) (bool, error) {
+	showConfig, err := clt.command(cmdShowConfig+"event-options generate-event \""+name+"\""+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -264,7 +264,7 @@ func checkEventoptionsGenerateEventExists(name string, sess *Session, junSess *j
 	return true, nil
 }
 
-func setEventoptionsGenerateEvent(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
+func setEventoptionsGenerateEvent(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0)
 	setPrefix := "set event-options generate-event \"" + d.Get("name").(string) + "\" "
 
@@ -278,14 +278,14 @@ func setEventoptionsGenerateEvent(d *schema.ResourceData, sess *Session, junSess
 		configSet = append(configSet, setPrefix+"no-drift")
 	}
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func readEventoptionsGenerateEvent(name string, sess *Session, junSess *junosSession,
+func readEventoptionsGenerateEvent(name string, clt *Client, junSess *junosSession,
 ) (eventoptionsGenerateEventOptions, error) {
 	var confRead eventoptionsGenerateEventOptions
 
-	showConfig, err := sess.command(cmdShowConfig+
+	showConfig, err := clt.command(cmdShowConfig+
 		"event-options generate-event \""+name+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -318,11 +318,11 @@ func readEventoptionsGenerateEvent(name string, sess *Session, junSess *junosSes
 	return confRead, nil
 }
 
-func delEventoptionsGenerateEvent(event string, sess *Session, junSess *junosSession) error {
+func delEventoptionsGenerateEvent(event string, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete event-options generate-event \""+event+"\"")
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func fillEventoptionsGenerateEventData(

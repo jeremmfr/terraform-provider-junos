@@ -75,14 +75,14 @@ func dataSourceInterfaceLogicalInfo() *schema.Resource {
 
 func dataSourceInterfaceLogicalInfoRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 	mutex.Lock()
-	ifaceInfo, err := readInterfaceLogicalInfo(d, sess, junSess)
+	ifaceInfo, err := readInterfaceLogicalInfo(d, clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -93,10 +93,10 @@ func dataSourceInterfaceLogicalInfoRead(ctx context.Context, d *schema.ResourceD
 	return nil
 }
 
-func readInterfaceLogicalInfo(d *schema.ResourceData, sess *Session, junSess *junosSession,
+func readInterfaceLogicalInfo(d *schema.ResourceData, clt *Client, junSess *junosSession,
 ) (interfaceLogicalInfo, error) {
 	var result interfaceLogicalInfo
-	replyData, err := sess.commandXML(fmt.Sprintf(rpcGetInterfaceInformationTerse, d.Get("name").(string)), junSess)
+	replyData, err := clt.commandXML(fmt.Sprintf(rpcGetInterfaceInformationTerse, d.Get("name").(string)), junSess)
 	if err != nil {
 		return result, err
 	}

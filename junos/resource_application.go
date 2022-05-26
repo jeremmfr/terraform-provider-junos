@@ -176,48 +176,48 @@ func resourceApplication() *schema.Resource {
 }
 
 func resourceApplicationCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setApplication(d, sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setApplication(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	appExists, err := checkApplicationExists(d.Get("name").(string), sess, junSess)
+	appExists, err := checkApplicationExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if appExists {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("application %v already exists", d.Get("name").(string)))...)
 	}
-	if err := setApplication(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setApplication(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_application", junSess)
+	warns, err := clt.commitConf("create resource junos_application", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	appExists, err = checkApplicationExists(d.Get("name").(string), sess, junSess)
+	appExists, err = checkApplicationExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -228,23 +228,23 @@ func resourceApplicationCreate(ctx context.Context, d *schema.ResourceData, m in
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceApplicationReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourceApplicationReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceApplicationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 
-	return resourceApplicationReadWJunSess(d, sess, junSess)
+	return resourceApplicationReadWJunSess(d, clt, junSess)
 }
 
-func resourceApplicationReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession) diag.Diagnostics {
+func resourceApplicationReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession) diag.Diagnostics {
 	mutex.Lock()
-	applicationOptions, err := readApplication(d.Get("name").(string), sess, junSess)
+	applicationOptions, err := readApplication(d.Get("name").(string), clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -260,76 +260,76 @@ func resourceApplicationReadWJunSess(d *schema.ResourceData, sess *Session, junS
 
 func resourceApplicationUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
-		if err := delApplication(d, sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
+		if err := delApplication(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setApplication(d, sess, nil); err != nil {
+		if err := setApplication(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delApplication(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := delApplication(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setApplication(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setApplication(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_application", junSess)
+	warns, err := clt.commitConf("update resource junos_application", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceApplicationReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourceApplicationReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceApplicationDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := delApplication(d, sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := delApplication(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delApplication(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := delApplication(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_application", junSess)
+	warns, err := clt.commitConf("delete resource junos_application", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -339,21 +339,21 @@ func resourceApplicationDelete(ctx context.Context, d *schema.ResourceData, m in
 
 func resourceApplicationImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	appExists, err := checkApplicationExists(d.Id(), sess, junSess)
+	appExists, err := checkApplicationExists(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !appExists {
 		return nil, fmt.Errorf("don't find application with id '%v' (id must be <name>)", d.Id())
 	}
-	applicationOptions, err := readApplication(d.Id(), sess, junSess)
+	applicationOptions, err := readApplication(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -363,8 +363,8 @@ func resourceApplicationImport(ctx context.Context, d *schema.ResourceData, m in
 	return result, nil
 }
 
-func checkApplicationExists(application string, sess *Session, junSess *junosSession) (bool, error) {
-	showConfig, err := sess.command(cmdShowConfig+
+func checkApplicationExists(application string, clt *Client, junSess *junosSession) (bool, error) {
+	showConfig, err := clt.command(cmdShowConfig+
 		"applications application "+application+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
@@ -376,7 +376,7 @@ func checkApplicationExists(application string, sess *Session, junSess *junosSes
 	return true, nil
 }
 
-func setApplication(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
+func setApplication(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set applications application " + d.Get("name").(string) + " "
@@ -413,7 +413,7 @@ func setApplication(d *schema.ResourceData, sess *Session, junSess *junosSession
 			return fmt.Errorf("multiple blocks term with the same name %s", term["name"].(string))
 		}
 		termName = append(termName, term["name"].(string))
-		if err := setApplicationTerm(setPrefix, term, sess, junSess); err != nil {
+		if err := setApplicationTerm(setPrefix, term, clt, junSess); err != nil {
 			return err
 		}
 	}
@@ -421,10 +421,10 @@ func setApplication(d *schema.ResourceData, sess *Session, junSess *junosSession
 		configSet = append(configSet, setPrefix+"uuid "+v)
 	}
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func setApplicationTerm(setApp string, term map[string]interface{}, sess *Session, junSess *junosSession) error {
+func setApplicationTerm(setApp string, term map[string]interface{}, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0)
 	setPrefix := setApp + "term " + term["name"].(string) + " "
 
@@ -467,13 +467,13 @@ func setApplicationTerm(setApp string, term map[string]interface{}, sess *Sessio
 		configSet = append(configSet, setPrefix+"uuid "+v)
 	}
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func readApplication(application string, sess *Session, junSess *junosSession) (applicationOptions, error) {
+func readApplication(application string, clt *Client, junSess *junosSession) (applicationOptions, error) {
 	var confRead applicationOptions
 
-	showConfig, err := sess.command(cmdShowConfig+
+	showConfig, err := clt.command(cmdShowConfig+
 		"applications application "+application+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -577,11 +577,11 @@ func readApplicationTerm(itemTrim string, term map[string]interface{}) error {
 	return nil
 }
 
-func delApplication(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
+func delApplication(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete applications application "+d.Get("name").(string))
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func fillApplicationData(d *schema.ResourceData, applicationOptions applicationOptions) {

@@ -187,72 +187,72 @@ func resourceSecurityGlobalPolicy() *schema.Resource {
 }
 
 func resourceSecurityGlobalPolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setSecurityGlobalPolicy(d, sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setSecurityGlobalPolicy(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId("security_global_policy")
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 	if !checkCompatibilitySecurity(junSess) {
 		return diag.FromErr(fmt.Errorf("security policies global not compatible with Junos device %s",
 			junSess.SystemInformation.HardwareModel))
 	}
-	if err := sess.configLock(ctx, junSess); err != nil {
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	glbPolicy, err := readSecurityGlobalPolicy(sess, junSess)
+	glbPolicy, err := readSecurityGlobalPolicy(clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if len(glbPolicy.policy) != 0 {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("security policies global already set"))...)
 	}
 
-	if err := setSecurityGlobalPolicy(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setSecurityGlobalPolicy(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_security_global_policy", junSess)
+	warns, err := clt.commitConf("create resource junos_security_global_policy", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.SetId("security_global_policy")
 
-	return append(diagWarns, resourceSecurityGlobalPolicyReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourceSecurityGlobalPolicyReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSecurityGlobalPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 
-	return resourceSecurityGlobalPolicyReadWJunSess(d, sess, junSess)
+	return resourceSecurityGlobalPolicyReadWJunSess(d, clt, junSess)
 }
 
-func resourceSecurityGlobalPolicyReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
+func resourceSecurityGlobalPolicyReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	globalPolicyOptions, err := readSecurityGlobalPolicy(sess, junSess)
+	globalPolicyOptions, err := readSecurityGlobalPolicy(clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -264,77 +264,77 @@ func resourceSecurityGlobalPolicyReadWJunSess(d *schema.ResourceData, sess *Sess
 
 func resourceSecurityGlobalPolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
-		if err := delSecurityGlobalPolicy(sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
+		if err := delSecurityGlobalPolicy(clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSecurityGlobalPolicy(d, sess, nil); err != nil {
+		if err := setSecurityGlobalPolicy(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityGlobalPolicy(sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := delSecurityGlobalPolicy(clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurityGlobalPolicy(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setSecurityGlobalPolicy(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_security_global_policy", junSess)
+	warns, err := clt.commitConf("update resource junos_security_global_policy", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityGlobalPolicyReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourceSecurityGlobalPolicyReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSecurityGlobalPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := delSecurityGlobalPolicy(sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := delSecurityGlobalPolicy(clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
 
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityGlobalPolicy(sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := delSecurityGlobalPolicy(clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_security_global_policy", junSess)
+	warns, err := clt.commitConf("delete resource junos_security_global_policy", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -344,14 +344,14 @@ func resourceSecurityGlobalPolicyDelete(ctx context.Context, d *schema.ResourceD
 
 func resourceSecurityGlobalPolicyImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	globalPolicyOptions, err := readSecurityGlobalPolicy(sess, junSess)
+	globalPolicyOptions, err := readSecurityGlobalPolicy(clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -361,7 +361,7 @@ func resourceSecurityGlobalPolicyImport(ctx context.Context, d *schema.ResourceD
 	return result, nil
 }
 
-func setSecurityGlobalPolicy(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
+func setSecurityGlobalPolicy(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security policies global policy "
@@ -432,13 +432,13 @@ func setSecurityGlobalPolicy(d *schema.ResourceData, sess *Session, junSess *jun
 		}
 	}
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func readSecurityGlobalPolicy(sess *Session, junSess *junosSession) (globalPolicyOptions, error) {
+func readSecurityGlobalPolicy(clt *Client, junSess *junosSession) (globalPolicyOptions, error) {
 	var confRead globalPolicyOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"security policies global"+pipeDisplaySetRelative, junSess)
+	showConfig, err := clt.command(cmdShowConfig+"security policies global"+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -529,11 +529,11 @@ func readSecurityGlobalPolicy(sess *Session, junSess *junosSession) (globalPolic
 	return confRead, nil
 }
 
-func delSecurityGlobalPolicy(sess *Session, junSess *junosSession) error {
+func delSecurityGlobalPolicy(clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security policies global")
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func fillSecurityGlobalPolicyData(d *schema.ResourceData, globalPolicyOptions globalPolicyOptions) {

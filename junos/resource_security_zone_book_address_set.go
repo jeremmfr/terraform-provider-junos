@@ -67,36 +67,36 @@ func resourceSecurityZoneBookAddressSet() *schema.Resource {
 
 func resourceSecurityZoneBookAddressSetCreate(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setSecurityZoneBookAddressSet(d, sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setSecurityZoneBookAddressSet(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("zone").(string) + idSeparator + d.Get("name").(string))
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 	if !checkCompatibilitySecurity(junSess) {
 		return diag.FromErr(fmt.Errorf("security zone address-book address-set not compatible with Junos device %s",
 			junSess.SystemInformation.HardwareModel))
 	}
-	if err := sess.configLock(ctx, junSess); err != nil {
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	zonesExists, err := checkSecurityZonesExists(d.Get("zone").(string), sess, junSess)
+	zonesExists, err := checkSecurityZonesExists(d.Get("zone").(string), clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if !zonesExists {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("security zone %v doesn't exist", d.Get("zone").(string)))...)
@@ -104,36 +104,36 @@ func resourceSecurityZoneBookAddressSetCreate(ctx context.Context, d *schema.Res
 	securityZoneBookAddressSetExists, err := checkSecurityZoneBookAddressSetsExists(
 		d.Get("zone").(string),
 		d.Get("name").(string),
-		sess, junSess)
+		clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityZoneBookAddressSetExists {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf(
 			"security zone address-book address-set %v already exists in zone %s",
 			d.Get("name").(string), d.Get("zone").(string)))...)
 	}
 
-	if err := setSecurityZoneBookAddressSet(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setSecurityZoneBookAddressSet(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_security_zone_book_address_set", junSess)
+	warns, err := clt.commitConf("create resource junos_security_zone_book_address_set", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	securityZoneBookAddressSetExists, err = checkSecurityZoneBookAddressSetsExists(
 		d.Get("zone").(string),
 		d.Get("name").(string),
-		sess, junSess)
+		clt, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -145,28 +145,28 @@ func resourceSecurityZoneBookAddressSetCreate(ctx context.Context, d *schema.Res
 				"=> check your config", d.Get("name").(string), d.Get("zone").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityZoneBookAddressSetReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourceSecurityZoneBookAddressSetReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSecurityZoneBookAddressSetRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 
-	return resourceSecurityZoneBookAddressSetReadWJunSess(d, sess, junSess)
+	return resourceSecurityZoneBookAddressSetReadWJunSess(d, clt, junSess)
 }
 
-func resourceSecurityZoneBookAddressSetReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
+func resourceSecurityZoneBookAddressSetReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
 	zoneBookAddressSetOptions, err := readSecurityZoneBookAddressSet(
 		d.Get("zone").(string),
 		d.Get("name").(string),
-		sess, junSess)
+		clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -183,77 +183,77 @@ func resourceSecurityZoneBookAddressSetReadWJunSess(d *schema.ResourceData, sess
 func resourceSecurityZoneBookAddressSetUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
-		if err := delSecurityZoneBookAddressSet(d.Get("zone").(string), d.Get("name").(string), sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
+		if err := delSecurityZoneBookAddressSet(d.Get("zone").(string), d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSecurityZoneBookAddressSet(d, sess, nil); err != nil {
+		if err := setSecurityZoneBookAddressSet(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityZoneBookAddressSet(d.Get("zone").(string), d.Get("name").(string), sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := delSecurityZoneBookAddressSet(d.Get("zone").(string), d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurityZoneBookAddressSet(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setSecurityZoneBookAddressSet(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_security_zone_book_address_set", junSess)
+	warns, err := clt.commitConf("update resource junos_security_zone_book_address_set", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityZoneBookAddressSetReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourceSecurityZoneBookAddressSetReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSecurityZoneBookAddressSetDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := delSecurityZoneBookAddressSet(d.Get("zone").(string), d.Get("name").(string), sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := delSecurityZoneBookAddressSet(d.Get("zone").(string), d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityZoneBookAddressSet(d.Get("zone").(string), d.Get("name").(string), sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := delSecurityZoneBookAddressSet(d.Get("zone").(string), d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_security_zone_book_address_set", junSess)
+	warns, err := clt.commitConf("delete resource junos_security_zone_book_address_set", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -263,18 +263,18 @@ func resourceSecurityZoneBookAddressSetDelete(ctx context.Context, d *schema.Res
 
 func resourceSecurityZoneBookAddressSetImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 	idList := strings.Split(d.Id(), idSeparator)
 	if len(idList) < 2 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", idSeparator)
 	}
-	securityZoneBookAddressSetExists, err := checkSecurityZoneBookAddressSetsExists(idList[0], idList[1], sess, junSess)
+	securityZoneBookAddressSetExists, err := checkSecurityZoneBookAddressSetsExists(idList[0], idList[1], clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -282,7 +282,7 @@ func resourceSecurityZoneBookAddressSetImport(ctx context.Context, d *schema.Res
 		return nil, fmt.Errorf(
 			"don't find zone address-book address-set with id '%v' (id must be <zone>"+idSeparator+"<name>)", d.Id())
 	}
-	zoneBookAddressSetOptions, err := readSecurityZoneBookAddressSet(idList[0], idList[1], sess, junSess)
+	zoneBookAddressSetOptions, err := readSecurityZoneBookAddressSet(idList[0], idList[1], clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -293,9 +293,9 @@ func resourceSecurityZoneBookAddressSetImport(ctx context.Context, d *schema.Res
 	return result, nil
 }
 
-func checkSecurityZoneBookAddressSetsExists(zone, addressSet string, sess *Session, junSess *junosSession,
+func checkSecurityZoneBookAddressSetsExists(zone, addressSet string, clt *Client, junSess *junosSession,
 ) (bool, error) {
-	showConfig, err := sess.command(cmdShowConfig+
+	showConfig, err := clt.command(cmdShowConfig+
 		"security zones security-zone "+zone+" address-book address-set "+addressSet+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
@@ -307,7 +307,7 @@ func checkSecurityZoneBookAddressSetsExists(zone, addressSet string, sess *Sessi
 	return true, nil
 }
 
-func setSecurityZoneBookAddressSet(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
+func setSecurityZoneBookAddressSet(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security zones security-zone " +
@@ -326,14 +326,14 @@ func setSecurityZoneBookAddressSet(d *schema.ResourceData, sess *Session, junSes
 		configSet = append(configSet, setPrefix+"description \""+v+"\"")
 	}
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func readSecurityZoneBookAddressSet(zone, addressSet string, sess *Session, junSess *junosSession,
+func readSecurityZoneBookAddressSet(zone, addressSet string, clt *Client, junSess *junosSession,
 ) (zoneBookAddressSetOptions, error) {
 	var confRead zoneBookAddressSetOptions
 
-	showConfig, err := sess.command(cmdShowConfig+
+	showConfig, err := clt.command(cmdShowConfig+
 		"security zones security-zone "+zone+" address-book address-set "+addressSet+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -363,10 +363,10 @@ func readSecurityZoneBookAddressSet(zone, addressSet string, sess *Session, junS
 	return confRead, nil
 }
 
-func delSecurityZoneBookAddressSet(zone, addressSet string, sess *Session, junSess *junosSession) error {
+func delSecurityZoneBookAddressSet(zone, addressSet string, clt *Client, junSess *junosSession) error {
 	configSet := []string{"delete security zones security-zone " + zone + " address-book address-set " + addressSet}
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func fillSecurityZoneBookAddressSetData(d *schema.ResourceData, zoneBookAddressSetOptions zoneBookAddressSetOptions) {

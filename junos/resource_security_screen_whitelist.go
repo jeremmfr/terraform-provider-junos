@@ -45,54 +45,54 @@ func resourceSecurityScreenWhiteList() *schema.Resource {
 
 func resourceSecurityScreenWhiteListCreate(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setSecurityScreenWhiteList(d, sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setSecurityScreenWhiteList(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 	if !checkCompatibilitySecurity(junSess) {
 		return diag.FromErr(fmt.Errorf("security screen white-list not compatible with Junos device %s",
 			junSess.SystemInformation.HardwareModel))
 	}
-	if err := sess.configLock(ctx, junSess); err != nil {
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	securityScreenWhiteListExists, err := checkSecurityScreenWhiteListExists(d.Get("name").(string), sess, junSess)
+	securityScreenWhiteListExists, err := checkSecurityScreenWhiteListExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityScreenWhiteListExists {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("security screen white-list %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setSecurityScreenWhiteList(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setSecurityScreenWhiteList(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_security_screen_whitelist", junSess)
+	warns, err := clt.commitConf("create resource junos_security_screen_whitelist", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	securityScreenWhiteListExists, err = checkSecurityScreenWhiteListExists(d.Get("name").(string), sess, junSess)
+	securityScreenWhiteListExists, err = checkSecurityScreenWhiteListExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -103,25 +103,25 @@ func resourceSecurityScreenWhiteListCreate(ctx context.Context, d *schema.Resour
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityScreenWhiteListReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourceSecurityScreenWhiteListReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSecurityScreenWhiteListRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 
-	return resourceSecurityScreenWhiteListReadWJunSess(d, sess, junSess)
+	return resourceSecurityScreenWhiteListReadWJunSess(d, clt, junSess)
 }
 
-func resourceSecurityScreenWhiteListReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
+func resourceSecurityScreenWhiteListReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	whiteListOptions, err := readSecurityScreenWhiteList(d.Get("name").(string), sess, junSess)
+	whiteListOptions, err := readSecurityScreenWhiteList(d.Get("name").(string), clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -138,77 +138,77 @@ func resourceSecurityScreenWhiteListReadWJunSess(d *schema.ResourceData, sess *S
 func resourceSecurityScreenWhiteListUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
-		if err := delSecurityScreenWhiteList(d.Get("name").(string), sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
+		if err := delSecurityScreenWhiteList(d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSecurityScreenWhiteList(d, sess, nil); err != nil {
+		if err := setSecurityScreenWhiteList(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityScreenWhiteList(d.Get("name").(string), sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := delSecurityScreenWhiteList(d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurityScreenWhiteList(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setSecurityScreenWhiteList(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_security_screen_whitelist", junSess)
+	warns, err := clt.commitConf("update resource junos_security_screen_whitelist", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityScreenWhiteListReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourceSecurityScreenWhiteListReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSecurityScreenWhiteListDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := delSecurityScreenWhiteList(d.Get("name").(string), sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := delSecurityScreenWhiteList(d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityScreenWhiteList(d.Get("name").(string), sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := delSecurityScreenWhiteList(d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_security_screen_whitelist", junSess)
+	warns, err := clt.commitConf("delete resource junos_security_screen_whitelist", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -218,21 +218,21 @@ func resourceSecurityScreenWhiteListDelete(ctx context.Context, d *schema.Resour
 
 func resourceSecurityScreenWhiteListImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	securityScreenWhiteListExists, err := checkSecurityScreenWhiteListExists(d.Id(), sess, junSess)
+	securityScreenWhiteListExists, err := checkSecurityScreenWhiteListExists(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !securityScreenWhiteListExists {
 		return nil, fmt.Errorf("don't find screen white-list with id '%v' (id must be <name>)", d.Id())
 	}
-	whiteListOptions, err := readSecurityScreenWhiteList(d.Id(), sess, junSess)
+	whiteListOptions, err := readSecurityScreenWhiteList(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -243,8 +243,8 @@ func resourceSecurityScreenWhiteListImport(ctx context.Context, d *schema.Resour
 	return result, nil
 }
 
-func checkSecurityScreenWhiteListExists(name string, sess *Session, junSess *junosSession) (bool, error) {
-	showConfig, err := sess.command(cmdShowConfig+"security screen white-list "+name+pipeDisplaySet, junSess)
+func checkSecurityScreenWhiteListExists(name string, clt *Client, junSess *junosSession) (bool, error) {
+	showConfig, err := clt.command(cmdShowConfig+"security screen white-list "+name+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -255,7 +255,7 @@ func checkSecurityScreenWhiteListExists(name string, sess *Session, junSess *jun
 	return true, nil
 }
 
-func setSecurityScreenWhiteList(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
+func setSecurityScreenWhiteList(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security screen white-list " + d.Get("name").(string) + " "
@@ -264,13 +264,13 @@ func setSecurityScreenWhiteList(d *schema.ResourceData, sess *Session, junSess *
 		configSet = append(configSet, setPrefix+"address "+v)
 	}
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func readSecurityScreenWhiteList(name string, sess *Session, junSess *junosSession) (screenWhiteListOptions, error) {
+func readSecurityScreenWhiteList(name string, clt *Client, junSess *junosSession) (screenWhiteListOptions, error) {
 	var confRead screenWhiteListOptions
 
-	showConfig, err := sess.command(cmdShowConfig+
+	showConfig, err := clt.command(cmdShowConfig+
 		"security screen white-list "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -294,11 +294,11 @@ func readSecurityScreenWhiteList(name string, sess *Session, junSess *junosSessi
 	return confRead, nil
 }
 
-func delSecurityScreenWhiteList(name string, sess *Session, junSess *junosSession) error {
+func delSecurityScreenWhiteList(name string, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security screen white-list "+name)
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func fillSecurityScreenWhiteListData(d *schema.ResourceData, whiteListOptions screenWhiteListOptions) {

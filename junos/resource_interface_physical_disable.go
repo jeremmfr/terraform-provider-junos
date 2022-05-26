@@ -35,68 +35,68 @@ func resourceInterfacePhysicalDisable() *schema.Resource {
 
 func resourceInterfacePhysicalDisableCreate(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := addInterfacePhysicalNC(d.Get("name").(string), sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := addInterfacePhysicalNC(d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), sess, junSess)
+	ncInt, emptyInt, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if !ncInt && !emptyInt {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("interface %s is configured", d.Get("name").(string)))...)
 	}
 	if ncInt {
 		d.SetId(d.Get("name").(string))
-		if errs := sess.configClear(junSess); len(errs) > 0 {
+		if errs := clt.configClear(junSess); len(errs) > 0 {
 			return diagWarns
 		}
 
 		return nil
 	}
 	if emptyInt {
-		if containsUnit, err := checkInterfacePhysicalContainsUnit(d.Get("name").(string), sess, junSess); err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		if containsUnit, err := checkInterfacePhysicalContainsUnit(d.Get("name").(string), clt, junSess); err != nil {
+			appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		} else if containsUnit {
-			appendDiagWarns(&diagWarns, sess.configClear(junSess))
+			appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(
 				fmt.Errorf("interface %s is used for a logical unit interface", d.Get("name").(string)))...)
 		}
 	}
-	if err := addInterfacePhysicalNC(d.Get("name").(string), sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := addInterfacePhysicalNC(d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_interface_physical_disable", junSess)
+	warns, err := clt.commitConf("create resource junos_interface_physical_disable", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	ncInt, _, err = checkInterfacePhysicalNCEmpty(d.Get("name").(string), sess, junSess)
+	ncInt, _, err = checkInterfacePhysicalNCEmpty(d.Get("name").(string), clt, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -110,14 +110,14 @@ func resourceInterfacePhysicalDisableCreate(ctx context.Context, d *schema.Resou
 }
 
 func resourceInterfacePhysicalDisableRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 	mutex.Lock()
-	ncInt, _, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), sess, junSess)
+	ncInt, _, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)

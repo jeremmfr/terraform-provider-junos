@@ -310,52 +310,52 @@ func resourceFirewallFilter() *schema.Resource {
 }
 
 func resourceFirewallFilterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setFirewallFilter(d, sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setFirewallFilter(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string) + idSeparator + d.Get("family").(string))
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	firewallFilterExists, err := checkFirewallFilterExists(
 		d.Get("name").(string),
 		d.Get("family").(string),
-		sess, junSess)
+		clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if firewallFilterExists {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("firewall filter %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setFirewallFilter(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setFirewallFilter(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_firewall_filter", junSess)
+	warns, err := clt.commitConf("create resource junos_firewall_filter", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	firewallFilterExists, err = checkFirewallFilterExists(d.Get("name").(string), d.Get("family").(string), sess, junSess)
+	firewallFilterExists, err = checkFirewallFilterExists(d.Get("name").(string), d.Get("family").(string), clt, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -366,24 +366,24 @@ func resourceFirewallFilterCreate(ctx context.Context, d *schema.ResourceData, m
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceFirewallFilterReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourceFirewallFilterReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceFirewallFilterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 
-	return resourceFirewallFilterReadWJunSess(d, sess, junSess)
+	return resourceFirewallFilterReadWJunSess(d, clt, junSess)
 }
 
-func resourceFirewallFilterReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
+func resourceFirewallFilterReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	filterOptions, err := readFirewallFilter(d.Get("name").(string), d.Get("family").(string), sess, junSess)
+	filterOptions, err := readFirewallFilter(d.Get("name").(string), d.Get("family").(string), clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -399,76 +399,76 @@ func resourceFirewallFilterReadWJunSess(d *schema.ResourceData, sess *Session, j
 
 func resourceFirewallFilterUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
-		if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
+		if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setFirewallFilter(d, sess, nil); err != nil {
+		if err := setFirewallFilter(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setFirewallFilter(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setFirewallFilter(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_firewall_filter", junSess)
+	warns, err := clt.commitConf("update resource junos_firewall_filter", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceFirewallFilterReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourceFirewallFilterReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceFirewallFilterDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := delFirewallFilter(d.Get("name").(string), d.Get("family").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_firewall_filter", junSess)
+	warns, err := clt.commitConf("delete resource junos_firewall_filter", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -478,25 +478,25 @@ func resourceFirewallFilterDelete(ctx context.Context, d *schema.ResourceData, m
 
 func resourceFirewallFilterImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 	idList := strings.Split(d.Id(), idSeparator)
 	if len(idList) < 2 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", idSeparator)
 	}
-	firewallFilterExists, err := checkFirewallFilterExists(idList[0], idList[1], sess, junSess)
+	firewallFilterExists, err := checkFirewallFilterExists(idList[0], idList[1], clt, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !firewallFilterExists {
 		return nil, fmt.Errorf("don't find firewall filter with id '%v' (id must be <name>"+idSeparator+"<family>)", d.Id())
 	}
-	filterOptions, err := readFirewallFilter(idList[0], idList[1], sess, junSess)
+	filterOptions, err := readFirewallFilter(idList[0], idList[1], clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -507,8 +507,8 @@ func resourceFirewallFilterImport(ctx context.Context, d *schema.ResourceData, m
 	return result, nil
 }
 
-func checkFirewallFilterExists(name, family string, sess *Session, junSess *junosSession) (bool, error) {
-	showConfig, err := sess.command(cmdShowConfig+
+func checkFirewallFilterExists(name, family string, clt *Client, junSess *junosSession) (bool, error) {
+	showConfig, err := clt.command(cmdShowConfig+
 		"firewall family "+family+" filter "+name+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
@@ -520,7 +520,7 @@ func checkFirewallFilterExists(name, family string, sess *Session, junSess *juno
 	return true, nil
 }
 
-func setFirewallFilter(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
+func setFirewallFilter(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0)
 	var err error
 	setPrefix := "set firewall family " + d.Get("family").(string) + " filter " + d.Get("name").(string)
@@ -551,13 +551,13 @@ func setFirewallFilter(d *schema.ResourceData, sess *Session, junSess *junosSess
 		}
 	}
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func readFirewallFilter(filter, family string, sess *Session, junSess *junosSession) (filterOptions, error) {
+func readFirewallFilter(filter, family string, clt *Client, junSess *junosSession) (filterOptions, error) {
 	var confRead filterOptions
 
-	showConfig, err := sess.command(cmdShowConfig+
+	showConfig, err := clt.command(cmdShowConfig+
 		"firewall family "+family+" filter "+filter+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -614,11 +614,11 @@ func readFirewallFilter(filter, family string, sess *Session, junSess *junosSess
 	return confRead, nil
 }
 
-func delFirewallFilter(filter, family string, sess *Session, junSess *junosSession) error {
+func delFirewallFilter(filter, family string, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete firewall family "+family+" filter "+filter)
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func fillFirewallFilterData(d *schema.ResourceData, filterOptions filterOptions) {

@@ -59,50 +59,50 @@ func resourceSystemNtpServer() *schema.Resource {
 }
 
 func resourceSystemNtpServerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setSystemNtpServer(d, sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setSystemNtpServer(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("address").(string))
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	ntpServerExists, err := checkSystemNtpServerExists(d.Get("address").(string), sess, junSess)
+	ntpServerExists, err := checkSystemNtpServerExists(d.Get("address").(string), clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if ntpServerExists {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("system ntp server %v already exists", d.Get("address").(string)))...)
 	}
 
-	if err := setSystemNtpServer(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setSystemNtpServer(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_system_ntp_server", junSess)
+	warns, err := clt.commitConf("create resource junos_system_ntp_server", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	ntpServerExists, err = checkSystemNtpServerExists(d.Get("address").(string), sess, junSess)
+	ntpServerExists, err = checkSystemNtpServerExists(d.Get("address").(string), clt, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -113,24 +113,24 @@ func resourceSystemNtpServerCreate(ctx context.Context, d *schema.ResourceData, 
 			"=> check your config", d.Get("address").(string)))...)
 	}
 
-	return append(diagWarns, resourceSystemNtpServerReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourceSystemNtpServerReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSystemNtpServerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 
-	return resourceSystemNtpServerReadWJunSess(d, sess, junSess)
+	return resourceSystemNtpServerReadWJunSess(d, clt, junSess)
 }
 
-func resourceSystemNtpServerReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
+func resourceSystemNtpServerReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	ntpServerOptions, err := readSystemNtpServer(d.Get("address").(string), sess, junSess)
+	ntpServerOptions, err := readSystemNtpServer(d.Get("address").(string), clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -146,77 +146,77 @@ func resourceSystemNtpServerReadWJunSess(d *schema.ResourceData, sess *Session, 
 
 func resourceSystemNtpServerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
-		if err := delSystemNtpServer(d.Get("address").(string), sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
+		if err := delSystemNtpServer(d.Get("address").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSystemNtpServer(d, sess, nil); err != nil {
+		if err := setSystemNtpServer(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSystemNtpServer(d.Get("address").(string), sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := delSystemNtpServer(d.Get("address").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSystemNtpServer(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setSystemNtpServer(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_system_ntp_server", junSess)
+	warns, err := clt.commitConf("update resource junos_system_ntp_server", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	d.Partial(false)
 
-	return append(diagWarns, resourceSystemNtpServerReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourceSystemNtpServerReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSystemNtpServerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := delSystemNtpServer(d.Get("address").(string), sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := delSystemNtpServer(d.Get("address").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSystemNtpServer(d.Get("address").(string), sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := delSystemNtpServer(d.Get("address").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_system_ntp_server", junSess)
+	warns, err := clt.commitConf("delete resource junos_system_ntp_server", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -226,22 +226,22 @@ func resourceSystemNtpServerDelete(ctx context.Context, d *schema.ResourceData, 
 
 func resourceSystemNtpServerImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 
-	ntpServerExists, err := checkSystemNtpServerExists(d.Id(), sess, junSess)
+	ntpServerExists, err := checkSystemNtpServerExists(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !ntpServerExists {
 		return nil, fmt.Errorf("don't find system ntp server with id '%v' (id must be <address>)", d.Id())
 	}
-	ntpServerOptions, err := readSystemNtpServer(d.Id(), sess, junSess)
+	ntpServerOptions, err := readSystemNtpServer(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -252,8 +252,8 @@ func resourceSystemNtpServerImport(ctx context.Context, d *schema.ResourceData, 
 	return result, nil
 }
 
-func checkSystemNtpServerExists(address string, sess *Session, junSess *junosSession) (bool, error) {
-	showConfig, err := sess.command(cmdShowConfig+"system ntp server "+address+pipeDisplaySet, junSess)
+func checkSystemNtpServerExists(address string, clt *Client, junSess *junosSession) (bool, error) {
+	showConfig, err := clt.command(cmdShowConfig+"system ntp server "+address+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -264,7 +264,7 @@ func checkSystemNtpServerExists(address string, sess *Session, junSess *junosSes
 	return true, nil
 }
 
-func setSystemNtpServer(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
+func setSystemNtpServer(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	setPrefix := "set system ntp server " + d.Get("address").(string)
 	configSet := []string{setPrefix}
 
@@ -281,13 +281,13 @@ func setSystemNtpServer(d *schema.ResourceData, sess *Session, junSess *junosSes
 		configSet = append(configSet, setPrefix+" version "+strconv.Itoa(d.Get("version").(int)))
 	}
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func readSystemNtpServer(address string, sess *Session, junSess *junosSession) (ntpServerOptions, error) {
+func readSystemNtpServer(address string, clt *Client, junSess *junosSession) (ntpServerOptions, error) {
 	var confRead ntpServerOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"system ntp server "+address+pipeDisplaySetRelative, junSess)
+	showConfig, err := clt.command(cmdShowConfig+"system ntp server "+address+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -325,11 +325,11 @@ func readSystemNtpServer(address string, sess *Session, junSess *junosSession) (
 	return confRead, nil
 }
 
-func delSystemNtpServer(address string, sess *Session, junSess *junosSession) error {
+func delSystemNtpServer(address string, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system ntp server "+address)
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func fillSystemNtpServerData(d *schema.ResourceData, ntpServerOptions ntpServerOptions) {

@@ -837,59 +837,59 @@ func resourceSecurity() *schema.Resource {
 }
 
 func resourceSecurityCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setSecurity(d, sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setSecurity(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId("security")
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 	if !checkCompatibilitySecurity(junSess) {
 		return diag.FromErr(fmt.Errorf("security not compatible with Junos device %s",
 			junSess.SystemInformation.HardwareModel))
 	}
-	if err := sess.configLock(ctx, junSess); err != nil {
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := setSecurity(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setSecurity(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_security", junSess)
+	warns, err := clt.commitConf("create resource junos_security", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.SetId("security")
 
-	return append(diagWarns, resourceSecurityReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourceSecurityReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSecurityRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 
-	return resourceSecurityReadWJunSess(d, sess, junSess)
+	return resourceSecurityReadWJunSess(d, clt, junSess)
 }
 
-func resourceSecurityReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession) diag.Diagnostics {
+func resourceSecurityReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession) diag.Diagnostics {
 	mutex.Lock()
-	securityOptions, err := readSecurity(sess, junSess)
+	securityOptions, err := readSecurity(clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -901,77 +901,77 @@ func resourceSecurityReadWJunSess(d *schema.ResourceData, sess *Session, junSess
 
 func resourceSecurityUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
-		if err := delSecurity(sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
+		if err := delSecurity(clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSecurity(d, sess, nil); err != nil {
+		if err := setSecurity(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurity(sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := delSecurity(clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurity(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setSecurity(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_security", junSess)
+	warns, err := clt.commitConf("update resource junos_security", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourceSecurityReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSecurityDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	if d.Get("clean_on_destroy").(bool) {
-		sess := m.(*Session)
-		if sess.junosFakeDeleteAlso {
-			if err := delSecurity(sess, nil); err != nil {
+		clt := m.(*Client)
+		if clt.fakeDeleteAlso {
+			if err := delSecurity(clt, nil); err != nil {
 				return diag.FromErr(err)
 			}
 
 			return nil
 		}
-		junSess, err := sess.startNewSession(ctx)
+		junSess, err := clt.startNewSession(ctx)
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		defer sess.closeSession(junSess)
-		if err := sess.configLock(ctx, junSess); err != nil {
+		defer clt.closeSession(junSess)
+		if err := clt.configLock(ctx, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		var diagWarns diag.Diagnostics
-		if err := delSecurity(sess, junSess); err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		if err := delSecurity(clt, junSess); err != nil {
+			appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
-		warns, err := sess.commitConf("delete resource junos_security", junSess)
+		warns, err := clt.commitConf("delete resource junos_security", junSess)
 		appendDiagWarns(&diagWarns, warns)
 		if err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(junSess))
+			appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
@@ -982,14 +982,14 @@ func resourceSecurityDelete(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceSecurityImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	securityOptions, err := readSecurity(sess, junSess)
+	securityOptions, err := readSecurity(clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -1000,7 +1000,7 @@ func resourceSecurityImport(ctx context.Context, d *schema.ResourceData, m inter
 	return result, nil
 }
 
-func setSecurity(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
+func setSecurity(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	setPrefix := "set security "
 	configSet := make([]string, 0)
 
@@ -1136,7 +1136,7 @@ func setSecurity(d *schema.ResourceData, sess *Session, junSess *junosSession) e
 		}
 	}
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func setSecurityAlg(alg interface{}) ([]string, error) {
@@ -1756,7 +1756,7 @@ func listLinesSecurityUtm() []string {
 	}
 }
 
-func delSecurity(sess *Session, junSess *junosSession) error {
+func delSecurity(clt *Client, junSess *junosSession) error {
 	listLinesToDelete := []string{
 		"ike traceoptions",
 	}
@@ -1778,13 +1778,13 @@ func delSecurity(sess *Session, junSess *junosSession) error {
 			delPrefix+line)
 	}
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func readSecurity(sess *Session, junSess *junosSession) (securityOptions, error) {
+func readSecurity(clt *Client, junSess *junosSession) (securityOptions, error) {
 	var confRead securityOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"security"+pipeDisplaySetRelative, junSess)
+	showConfig, err := clt.command(cmdShowConfig+"security"+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}

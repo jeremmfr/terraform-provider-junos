@@ -44,41 +44,41 @@ func resourceNullCommitFile() *schema.Resource {
 }
 
 func resourceNullCommitFileCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	fileName := d.Get("filename").(string)
 	configSet, err := readNullCommitFile(fileName)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	for _, v := range d.Get("append_lines").([]interface{}) {
 		configSet = append(configSet, v.(string))
 	}
-	if err := sess.configSet(configSet, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := clt.configSet(configSet, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("commit a file with resource junos_null_commit_file", junSess)
+	warns, err := clt.commitConf("commit a file with resource junos_null_commit_file", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.SetId(fileName)
 	if d.Get("clear_file_after_commit").(bool) {
-		if err := cleanNullCommitFile(fileName, sess); err != nil {
+		if err := cleanNullCommitFile(fileName, clt); err != nil {
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 	}
@@ -111,11 +111,11 @@ func readNullCommitFile(filename string) ([]string, error) {
 	return strings.Split(string(fileReadByte), "\n"), nil
 }
 
-func cleanNullCommitFile(filename string, sess *Session) error {
+func cleanNullCommitFile(filename string, clt *Client) error {
 	if err := replaceTildeToHomeDir(&filename); err != nil {
 		return err
 	}
-	f, err := os.OpenFile(filename, os.O_TRUNC, os.FileMode(sess.junosFilePermission))
+	f, err := os.OpenFile(filename, os.O_TRUNC, os.FileMode(clt.filePermission))
 	if err != nil {
 		return fmt.Errorf("could not open file '%s' to truncate after commit: %w", filename, err)
 	}

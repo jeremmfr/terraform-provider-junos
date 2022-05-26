@@ -54,50 +54,50 @@ func resourcePolicyoptionsPrefixList() *schema.Resource {
 
 func resourcePolicyoptionsPrefixListCreate(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setPolicyoptionsPrefixList(d, sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setPolicyoptionsPrefixList(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	policyoptsPrefixListExists, err := checkPolicyoptionsPrefixListExists(d.Get("name").(string), sess, junSess)
+	policyoptsPrefixListExists, err := checkPolicyoptionsPrefixListExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if policyoptsPrefixListExists {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("policy-options prefix-list %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setPolicyoptionsPrefixList(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setPolicyoptionsPrefixList(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_policyoptions_prefix_list", junSess)
+	warns, err := clt.commitConf("create resource junos_policyoptions_prefix_list", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	policyoptsPrefixListExists, err = checkPolicyoptionsPrefixListExists(d.Get("name").(string), sess, junSess)
+	policyoptsPrefixListExists, err = checkPolicyoptionsPrefixListExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -108,24 +108,24 @@ func resourcePolicyoptionsPrefixListCreate(ctx context.Context, d *schema.Resour
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourcePolicyoptionsPrefixListReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourcePolicyoptionsPrefixListReadWJunSess(d, clt, junSess)...)
 }
 
 func resourcePolicyoptionsPrefixListRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 
-	return resourcePolicyoptionsPrefixListReadWJunSess(d, sess, junSess)
+	return resourcePolicyoptionsPrefixListReadWJunSess(d, clt, junSess)
 }
 
-func resourcePolicyoptionsPrefixListReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
+func resourcePolicyoptionsPrefixListReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	prefixListOptions, err := readPolicyoptionsPrefixList(d.Get("name").(string), sess, junSess)
+	prefixListOptions, err := readPolicyoptionsPrefixList(d.Get("name").(string), clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -142,77 +142,77 @@ func resourcePolicyoptionsPrefixListReadWJunSess(d *schema.ResourceData, sess *S
 func resourcePolicyoptionsPrefixListUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
-		if err := delPolicyoptionsPrefixList(d.Get("name").(string), sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
+		if err := delPolicyoptionsPrefixList(d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setPolicyoptionsPrefixList(d, sess, nil); err != nil {
+		if err := setPolicyoptionsPrefixList(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delPolicyoptionsPrefixList(d.Get("name").(string), sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := delPolicyoptionsPrefixList(d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setPolicyoptionsPrefixList(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setPolicyoptionsPrefixList(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_policyoptions_prefix_list", junSess)
+	warns, err := clt.commitConf("update resource junos_policyoptions_prefix_list", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourcePolicyoptionsPrefixListReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourcePolicyoptionsPrefixListReadWJunSess(d, clt, junSess)...)
 }
 
 func resourcePolicyoptionsPrefixListDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := delPolicyoptionsPrefixList(d.Get("name").(string), sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := delPolicyoptionsPrefixList(d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delPolicyoptionsPrefixList(d.Get("name").(string), sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := delPolicyoptionsPrefixList(d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_policyoptions_prefix_list", junSess)
+	warns, err := clt.commitConf("delete resource junos_policyoptions_prefix_list", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -222,22 +222,22 @@ func resourcePolicyoptionsPrefixListDelete(ctx context.Context, d *schema.Resour
 
 func resourcePolicyoptionsPrefixListImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 
-	policyoptsPrefixListExists, err := checkPolicyoptionsPrefixListExists(d.Id(), sess, junSess)
+	policyoptsPrefixListExists, err := checkPolicyoptionsPrefixListExists(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !policyoptsPrefixListExists {
 		return nil, fmt.Errorf("don't find policy-options prefix-list with id '%v' (id must be <name>)", d.Id())
 	}
-	prefixListOptions, err := readPolicyoptionsPrefixList(d.Id(), sess, junSess)
+	prefixListOptions, err := readPolicyoptionsPrefixList(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -248,8 +248,8 @@ func resourcePolicyoptionsPrefixListImport(ctx context.Context, d *schema.Resour
 	return result, nil
 }
 
-func checkPolicyoptionsPrefixListExists(name string, sess *Session, junSess *junosSession) (bool, error) {
-	showConfig, err := sess.command(cmdShowConfig+"policy-options prefix-list "+name+pipeDisplaySet, junSess)
+func checkPolicyoptionsPrefixListExists(name string, clt *Client, junSess *junosSession) (bool, error) {
+	showConfig, err := clt.command(cmdShowConfig+"policy-options prefix-list "+name+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -260,7 +260,7 @@ func checkPolicyoptionsPrefixListExists(name string, sess *Session, junSess *jun
 	return true, nil
 }
 
-func setPolicyoptionsPrefixList(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
+func setPolicyoptionsPrefixList(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set policy-options prefix-list " + d.Get("name").(string)
@@ -277,13 +277,13 @@ func setPolicyoptionsPrefixList(d *schema.ResourceData, sess *Session, junSess *
 		configSet = append(configSet, setPrefix+" "+v)
 	}
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func readPolicyoptionsPrefixList(name string, sess *Session, junSess *junosSession) (prefixListOptions, error) {
+func readPolicyoptionsPrefixList(name string, clt *Client, junSess *junosSession) (prefixListOptions, error) {
 	var confRead prefixListOptions
 
-	showConfig, err := sess.command(cmdShowConfig+
+	showConfig, err := clt.command(cmdShowConfig+
 		"policy-options prefix-list "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -314,11 +314,11 @@ func readPolicyoptionsPrefixList(name string, sess *Session, junSess *junosSessi
 	return confRead, nil
 }
 
-func delPolicyoptionsPrefixList(prefixList string, sess *Session, junSess *junosSession) error {
+func delPolicyoptionsPrefixList(prefixList string, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete policy-options prefix-list "+prefixList)
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func fillPolicyoptionsPrefixListData(d *schema.ResourceData, prefixListOptions prefixListOptions) {

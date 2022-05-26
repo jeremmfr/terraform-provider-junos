@@ -599,53 +599,53 @@ func resourceSecurityScreen() *schema.Resource {
 }
 
 func resourceSecurityScreenCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setSecurityScreen(d, sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setSecurityScreen(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 	if !checkCompatibilitySecurity(junSess) {
 		return diag.FromErr(fmt.Errorf("security screen not compatible with Junos device %s",
 			junSess.SystemInformation.HardwareModel))
 	}
-	if err := sess.configLock(ctx, junSess); err != nil {
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	securityScreenExists, err := checkSecurityScreenExists(d.Get("name").(string), sess, junSess)
+	securityScreenExists, err := checkSecurityScreenExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityScreenExists {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("security screen %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setSecurityScreen(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setSecurityScreen(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_security_screen", junSess)
+	warns, err := clt.commitConf("create resource junos_security_screen", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	securityScreenExists, err = checkSecurityScreenExists(d.Get("name").(string), sess, junSess)
+	securityScreenExists, err = checkSecurityScreenExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -656,24 +656,24 @@ func resourceSecurityScreenCreate(ctx context.Context, d *schema.ResourceData, m
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityScreenReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourceSecurityScreenReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSecurityScreenRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 
-	return resourceSecurityScreenReadWJunSess(d, sess, junSess)
+	return resourceSecurityScreenReadWJunSess(d, clt, junSess)
 }
 
-func resourceSecurityScreenReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
+func resourceSecurityScreenReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	screenOptions, err := readSecurityScreen(d.Get("name").(string), sess, junSess)
+	screenOptions, err := readSecurityScreen(d.Get("name").(string), clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -689,76 +689,76 @@ func resourceSecurityScreenReadWJunSess(d *schema.ResourceData, sess *Session, j
 
 func resourceSecurityScreenUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
-		if err := delSecurityScreen(d.Get("name").(string), sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
+		if err := delSecurityScreen(d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSecurityScreen(d, sess, nil); err != nil {
+		if err := setSecurityScreen(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityScreen(d.Get("name").(string), sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := delSecurityScreen(d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurityScreen(d, sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := setSecurityScreen(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_security_screen", junSess)
+	warns, err := clt.commitConf("update resource junos_security_screen", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityScreenReadWJunSess(d, sess, junSess)...)
+	return append(diagWarns, resourceSecurityScreenReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSecurityScreenDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := delSecurityScreen(d.Get("name").(string), sess, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := delSecurityScreen(d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
-	junSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(junSess)
-	if err := sess.configLock(ctx, junSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityScreen(d.Get("name").(string), sess, junSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+	if err := delSecurityScreen(d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_security_screen", junSess)
+	warns, err := clt.commitConf("delete resource junos_security_screen", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(junSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -768,21 +768,21 @@ func resourceSecurityScreenDelete(ctx context.Context, d *schema.ResourceData, m
 
 func resourceSecurityScreenImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	junSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(junSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	securityScreenExists, err := checkSecurityScreenExists(d.Id(), sess, junSess)
+	securityScreenExists, err := checkSecurityScreenExists(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !securityScreenExists {
 		return nil, fmt.Errorf("don't find screen with id '%v' (id must be <name>)", d.Id())
 	}
-	screenOptions, err := readSecurityScreen(d.Id(), sess, junSess)
+	screenOptions, err := readSecurityScreen(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -793,8 +793,8 @@ func resourceSecurityScreenImport(ctx context.Context, d *schema.ResourceData, m
 	return result, nil
 }
 
-func checkSecurityScreenExists(name string, sess *Session, junSess *junosSession) (bool, error) {
-	showConfig, err := sess.command(cmdShowConfig+"security screen ids-option \""+name+"\""+pipeDisplaySet, junSess)
+func checkSecurityScreenExists(name string, clt *Client, junSess *junosSession) (bool, error) {
+	showConfig, err := clt.command(cmdShowConfig+"security screen ids-option \""+name+"\""+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -805,7 +805,7 @@ func checkSecurityScreenExists(name string, sess *Session, junSess *junosSession
 	return true, nil
 }
 
-func setSecurityScreen(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
+func setSecurityScreen(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security screen ids-option \"" + d.Get("name").(string) + "\" "
@@ -863,7 +863,7 @@ func setSecurityScreen(d *schema.ResourceData, sess *Session, junSess *junosSess
 		configSet = append(configSet, setSecurityScreenUDP(udp, setPrefix)...)
 	}
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func setSecurityScreenIcmp(icmp map[string]interface{}, setPrefix string) []string {
@@ -1244,10 +1244,10 @@ func setSecurityScreenUDP(udp map[string]interface{}, setPrefix string) []string
 	return configSet
 }
 
-func readSecurityScreen(name string, sess *Session, junSess *junosSession) (screenOptions, error) {
+func readSecurityScreen(name string, clt *Client, junSess *junosSession) (screenOptions, error) {
 	var confRead screenOptions
 
-	showConfig, err := sess.command(cmdShowConfig+
+	showConfig, err := clt.command(cmdShowConfig+
 		"security screen ids-option \""+name+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -1803,11 +1803,11 @@ func readSecurityScreenUDP(confRead *screenOptions, itemTrim string) error {
 	return nil
 }
 
-func delSecurityScreen(name string, sess *Session, junSess *junosSession) error {
+func delSecurityScreen(name string, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security screen ids-option \""+name+"\"")
 
-	return sess.configSet(configSet, junSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func fillSecurityScreenData(d *schema.ResourceData, screenOptions screenOptions) {

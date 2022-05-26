@@ -37,36 +37,36 @@ func dataSourceSystemInformation() *schema.Resource {
 }
 
 func dataSourceSystemInformationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	j, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(j)
+	defer clt.closeSession(junSess)
 
 	// Catches case where hostname is not set
-	if j.SystemInformation.HostName != "" {
-		d.SetId(j.SystemInformation.HostName)
+	if junSess.SystemInformation.HostName != "" {
+		d.SetId(junSess.SystemInformation.HostName)
 	} else {
 		d.SetId("Null-Hostname")
 	}
 
-	if tfErr := d.Set("hardware_model", j.SystemInformation.HardwareModel); tfErr != nil {
+	if tfErr := d.Set("hardware_model", junSess.SystemInformation.HardwareModel); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("os_name", j.SystemInformation.OsName); tfErr != nil {
+	if tfErr := d.Set("os_name", junSess.SystemInformation.OsName); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("os_version", j.SystemInformation.OsVersion); tfErr != nil {
+	if tfErr := d.Set("os_version", junSess.SystemInformation.OsVersion); tfErr != nil {
 		panic(tfErr)
 	}
-	if tfErr := d.Set("serial_number", j.SystemInformation.SerialNumber); tfErr != nil {
+	if tfErr := d.Set("serial_number", junSess.SystemInformation.SerialNumber); tfErr != nil {
 		panic(tfErr)
 	}
 	// Fix recommended in https://stackoverflow.com/a/23725010 due ot the lack of being able to Unmarshal self-closing
 	// xml tags. This issue is tracked here - https://github.com/golang/go/issues/21399
 	// Pointer to bool in sysInfo struct will be nil if the tag does not exist
-	if j.SystemInformation.ClusterNode != nil {
+	if junSess.SystemInformation.ClusterNode != nil {
 		if tfErr := d.Set("cluster_node", true); tfErr != nil {
 			panic(tfErr)
 		}
