@@ -191,40 +191,40 @@ func resourceGroupDualSystemCreate(ctx context.Context, d *schema.ResourceData, 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	groupDualSystemExists, err := checkGroupDualSystemExists(d.Get("name").(string), sess, jnprSess)
+	groupDualSystemExists, err := checkGroupDualSystemExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if groupDualSystemExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("group %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setGroupDualSystem(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setGroupDualSystem(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_group_dual_system", jnprSess)
+	warns, err := sess.commitConf("create resource junos_group_dual_system", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	groupDualSystemExists, err = checkGroupDualSystemExists(d.Get("name").(string), sess, jnprSess)
+	groupDualSystemExists, err = checkGroupDualSystemExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -235,24 +235,24 @@ func resourceGroupDualSystemCreate(ctx context.Context, d *schema.ResourceData, 
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceGroupDualSystemReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceGroupDualSystemReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceGroupDualSystemRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 
-	return resourceGroupDualSystemReadWJnprSess(d, sess, jnprSess)
+	return resourceGroupDualSystemReadWJunSess(d, sess, junSess)
 }
 
-func resourceGroupDualSystemReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
+func resourceGroupDualSystemReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	groupDualSystemOpts, err := readGroupDualSystem(d.Get("name").(string), sess, jnprSess)
+	groupDualSystemOpts, err := readGroupDualSystem(d.Get("name").(string), sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -287,46 +287,46 @@ func resourceGroupDualSystemUpdate(ctx context.Context, d *schema.ResourceData, 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delGroupDualSystem(d.Get("name").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delGroupDualSystem(d.Get("name").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if strings.HasPrefix(d.Get("name").(string), "node") {
-		if err := sess.configSet([]string{"delete apply-groups \"${node}\""}, jnprSess); err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		if err := sess.configSet([]string{"delete apply-groups \"${node}\""}, junSess); err != nil {
+			appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
-	} else if err := sess.configSet([]string{"delete apply-groups " + d.Get("name").(string)}, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	} else if err := sess.configSet([]string{"delete apply-groups " + d.Get("name").(string)}, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setGroupDualSystem(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setGroupDualSystem(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_group_dual_system", jnprSess)
+	warns, err := sess.commitConf("update resource junos_group_dual_system", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceGroupDualSystemReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceGroupDualSystemReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceGroupDualSystemDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -345,35 +345,35 @@ func resourceGroupDualSystemDelete(ctx context.Context, d *schema.ResourceData, 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delGroupDualSystem(d.Get("name").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delGroupDualSystem(d.Get("name").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if strings.HasPrefix(d.Get("name").(string), "node") {
-		if err := sess.configSet([]string{"delete apply-groups \"${node}\""}, jnprSess); err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		if err := sess.configSet([]string{"delete apply-groups \"${node}\""}, junSess); err != nil {
+			appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
-	} else if err := sess.configSet([]string{"delete apply-groups " + d.Get("name").(string)}, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	} else if err := sess.configSet([]string{"delete apply-groups " + d.Get("name").(string)}, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_group_dual_system", jnprSess)
+	warns, err := sess.commitConf("delete resource junos_group_dual_system", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -384,24 +384,24 @@ func resourceGroupDualSystemDelete(ctx context.Context, d *schema.ResourceData, 
 func resourceGroupDualSystemImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 
 	if !bchk.StringInSlice(d.Id(), []string{"node0", "node1", "re0", "re1"}) {
 		return nil, fmt.Errorf("invalid group id '%v' (id must be <name>)", d.Id())
 	}
-	groupDualSystemExists, err := checkGroupDualSystemExists(d.Id(), sess, jnprSess)
+	groupDualSystemExists, err := checkGroupDualSystemExists(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !groupDualSystemExists {
 		return nil, fmt.Errorf("don't find group with id '%v' (id must be <name>)", d.Id())
 	}
-	groupDualSystemOptions, err := readGroupDualSystem(d.Id(), sess, jnprSess)
+	groupDualSystemOptions, err := readGroupDualSystem(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -412,8 +412,8 @@ func resourceGroupDualSystemImport(ctx context.Context, d *schema.ResourceData, 
 	return result, nil
 }
 
-func checkGroupDualSystemExists(name string, sess *Session, jnprSess *NetconfObject) (bool, error) {
-	showConfig, err := sess.command(cmdShowConfig+"groups "+name+pipeDisplaySet, jnprSess)
+func checkGroupDualSystemExists(name string, sess *Session, junSess *junosSession) (bool, error) {
+	showConfig, err := sess.command(cmdShowConfig+"groups "+name+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -424,7 +424,7 @@ func checkGroupDualSystemExists(name string, sess *Session, jnprSess *NetconfObj
 	return true, nil
 }
 
-func setGroupDualSystem(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setGroupDualSystem(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	if d.Get("apply_groups").(bool) {
@@ -533,13 +533,13 @@ func setGroupDualSystem(d *schema.ResourceData, sess *Session, jnprSess *Netconf
 		}
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func readGroupDualSystem(group string, sess *Session, jnprSess *NetconfObject) (groupDualSystemOptions, error) {
+func readGroupDualSystem(group string, sess *Session, junSess *junosSession) (groupDualSystemOptions, error) {
 	var confRead groupDualSystemOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"groups "+group+pipeDisplaySetRelative, jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"groups "+group+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -665,7 +665,7 @@ func readGroupDualSystem(group string, sess *Session, jnprSess *NetconfObject) (
 			}
 		}
 	}
-	showConfigApplyGroups, err := sess.command(cmdShowConfig+"apply-groups"+pipeDisplaySetRelative, jnprSess)
+	showConfigApplyGroups, err := sess.command(cmdShowConfig+"apply-groups"+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -690,11 +690,11 @@ func readGroupDualSystem(group string, sess *Session, jnprSess *NetconfObject) (
 	return confRead, nil
 }
 
-func delGroupDualSystem(group string, sess *Session, jnprSess *NetconfObject) error {
+func delGroupDualSystem(group string, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete groups "+group)
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func fillGroupDualSystemData(d *schema.ResourceData, groupDualSystemOptions groupDualSystemOptions) {

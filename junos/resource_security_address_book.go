@@ -194,44 +194,44 @@ func resourceSecurityAddressBookCreate(ctx context.Context, d *schema.ResourceDa
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if !checkCompatibilitySecurity(jnprSess) {
+	defer sess.closeSession(junSess)
+	if !checkCompatibilitySecurity(junSess) {
 		return diag.FromErr(fmt.Errorf("security policy not compatible with Junos device %s",
-			jnprSess.SystemInformation.HardwareModel))
+			junSess.SystemInformation.HardwareModel))
 	}
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	addressBookExists, err := checkSecurityAddressBookExists(d.Get("name").(string), sess, jnprSess)
+	addressBookExists, err := checkSecurityAddressBookExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if addressBookExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("security address book %v already exists", d.Get("name").(string)))...)
 	}
-	if err := setSecurityAddressBook(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSecurityAddressBook(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_security_address_book", jnprSess)
+	warns, err := sess.commitConf("create resource junos_security_address_book", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	addressBookExists, err = checkSecurityAddressBookExists(d.Get("name").(string), sess, jnprSess)
+	addressBookExists, err = checkSecurityAddressBookExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -242,24 +242,24 @@ func resourceSecurityAddressBookCreate(ctx context.Context, d *schema.ResourceDa
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityAddressBookReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceSecurityAddressBookReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceSecurityAddressBookRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 
-	return resourceSecurityAddressBookReadWJnprSess(d, sess, jnprSess)
+	return resourceSecurityAddressBookReadWJunSess(d, sess, junSess)
 }
 
-func resourceSecurityAddressBookReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
+func resourceSecurityAddressBookReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	addressOptions, err := readSecurityAddressBook(d.Get("name").(string), sess, jnprSess)
+	addressOptions, err := readSecurityAddressBook(d.Get("name").(string), sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -287,35 +287,35 @@ func resourceSecurityAddressBookUpdate(ctx context.Context, d *schema.ResourceDa
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityAddressBook(d.Get("name").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delSecurityAddressBook(d.Get("name").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurityAddressBook(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSecurityAddressBook(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_security_address_book", jnprSess)
+	warns, err := sess.commitConf("update resource junos_security_address_book", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityAddressBookReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceSecurityAddressBookReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceSecurityAddressBookDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -327,24 +327,24 @@ func resourceSecurityAddressBookDelete(ctx context.Context, d *schema.ResourceDa
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityAddressBook(d.Get("name").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delSecurityAddressBook(d.Get("name").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_security_address_book", jnprSess)
+	warns, err := sess.commitConf("delete resource junos_security_address_book", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -355,20 +355,20 @@ func resourceSecurityAddressBookDelete(ctx context.Context, d *schema.ResourceDa
 func resourceSecurityAddressBookImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	securityAddressBookExists, err := checkSecurityAddressBookExists(d.Id(), sess, jnprSess)
+	securityAddressBookExists, err := checkSecurityAddressBookExists(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !securityAddressBookExists {
 		return nil, fmt.Errorf("don't find address book with id '%v' (id must be <name>)", d.Id())
 	}
-	addressOptions, err := readSecurityAddressBook(d.Id(), sess, jnprSess)
+	addressOptions, err := readSecurityAddressBook(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -379,9 +379,9 @@ func resourceSecurityAddressBookImport(ctx context.Context, d *schema.ResourceDa
 	return result, nil
 }
 
-func checkSecurityAddressBookExists(addrBook string, sess *Session, jnprSess *NetconfObject) (bool, error) {
+func checkSecurityAddressBookExists(addrBook string, sess *Session, junSess *junosSession) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+
-		"security address-book "+addrBook+pipeDisplaySet, jnprSess)
+		"security address-book "+addrBook+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -392,7 +392,7 @@ func checkSecurityAddressBookExists(addrBook string, sess *Session, jnprSess *Ne
 	return true, nil
 }
 
-func setSecurityAddressBook(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setSecurityAddressBook(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0)
 	setPrefix := "set security address-book " + d.Get("name").(string)
 
@@ -478,14 +478,14 @@ func setSecurityAddressBook(d *schema.ResourceData, sess *Session, jnprSess *Net
 		}
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func readSecurityAddressBook(addrBook string, sess *Session, jnprSess *NetconfObject) (addressBookOptions, error) {
+func readSecurityAddressBook(addrBook string, sess *Session, junSess *junosSession) (addressBookOptions, error) {
 	var confRead addressBookOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security address-book "+addrBook+pipeDisplaySetRelative, jnprSess)
+		"security address-book "+addrBook+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -571,11 +571,11 @@ func readSecurityAddressBook(addrBook string, sess *Session, jnprSess *NetconfOb
 	return confRead, nil
 }
 
-func delSecurityAddressBook(addrBook string, sess *Session, jnprSess *NetconfObject) error {
+func delSecurityAddressBook(addrBook string, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security address-book "+addrBook)
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func fillSecurityAddressBookData(d *schema.ResourceData, addressOptions addressBookOptions) {

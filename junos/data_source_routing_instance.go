@@ -84,13 +84,13 @@ func dataSourceRoutingInstance() *schema.Resource {
 
 func dataSourceRoutingInstanceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	mutex.Lock()
-	instanceOptions, err := readRoutingInstance(d.Get("name").(string), sess, jnprSess)
+	instanceOptions, err := readRoutingInstance(d.Get("name").(string), sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)

@@ -73,41 +73,41 @@ func resourceEventoptionsDestinationCreate(ctx context.Context, d *schema.Resour
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	eventoptionsDestinationExists, err := checkEventoptionsDestinationExists(d.Get("name").(string), sess, jnprSess)
+	eventoptionsDestinationExists, err := checkEventoptionsDestinationExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if eventoptionsDestinationExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("event-options destinations %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setEventoptionsDestination(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setEventoptionsDestination(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_eventoptions_destination", jnprSess)
+	warns, err := sess.commitConf("create resource junos_eventoptions_destination", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	eventoptionsDestinationExists, err = checkEventoptionsDestinationExists(d.Get("name").(string), sess, jnprSess)
+	eventoptionsDestinationExists, err = checkEventoptionsDestinationExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -118,24 +118,24 @@ func resourceEventoptionsDestinationCreate(ctx context.Context, d *schema.Resour
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceEventoptionsDestinationReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceEventoptionsDestinationReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceEventoptionsDestinationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 
-	return resourceEventoptionsDestinationReadWJnprSess(d, sess, jnprSess)
+	return resourceEventoptionsDestinationReadWJunSess(d, sess, junSess)
 }
 
-func resourceEventoptionsDestinationReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
+func resourceEventoptionsDestinationReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	eventoptionsDestinationOptions, err := readEventoptionsDestination(d.Get("name").(string), sess, jnprSess)
+	eventoptionsDestinationOptions, err := readEventoptionsDestination(d.Get("name").(string), sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -164,35 +164,35 @@ func resourceEventoptionsDestinationUpdate(ctx context.Context, d *schema.Resour
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delEventoptionsDestination(d.Get("name").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delEventoptionsDestination(d.Get("name").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setEventoptionsDestination(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setEventoptionsDestination(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_eventoptions_destination", jnprSess)
+	warns, err := sess.commitConf("update resource junos_eventoptions_destination", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceEventoptionsDestinationReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceEventoptionsDestinationReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceEventoptionsDestinationDelete(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -205,24 +205,24 @@ func resourceEventoptionsDestinationDelete(ctx context.Context, d *schema.Resour
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delEventoptionsDestination(d.Get("name").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delEventoptionsDestination(d.Get("name").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_eventoptions_destination", jnprSess)
+	warns, err := sess.commitConf("delete resource junos_eventoptions_destination", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -233,21 +233,21 @@ func resourceEventoptionsDestinationDelete(ctx context.Context, d *schema.Resour
 func resourceEventoptionsDestinationImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 
-	eventoptionsDestinationExists, err := checkEventoptionsDestinationExists(d.Id(), sess, jnprSess)
+	eventoptionsDestinationExists, err := checkEventoptionsDestinationExists(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !eventoptionsDestinationExists {
 		return nil, fmt.Errorf("don't find event-options destinations with id '%v' (id must be <name>)", d.Id())
 	}
-	eventoptionsDestinationOptions, err := readEventoptionsDestination(d.Id(), sess, jnprSess)
+	eventoptionsDestinationOptions, err := readEventoptionsDestination(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -258,8 +258,8 @@ func resourceEventoptionsDestinationImport(ctx context.Context, d *schema.Resour
 	return result, nil
 }
 
-func checkEventoptionsDestinationExists(name string, sess *Session, jnprSess *NetconfObject) (bool, error) {
-	showConfig, err := sess.command(cmdShowConfig+"event-options destinations \""+name+"\""+pipeDisplaySet, jnprSess)
+func checkEventoptionsDestinationExists(name string, sess *Session, junSess *junosSession) (bool, error) {
+	showConfig, err := sess.command(cmdShowConfig+"event-options destinations \""+name+"\""+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -270,7 +270,7 @@ func checkEventoptionsDestinationExists(name string, sess *Session, jnprSess *Ne
 	return true, nil
 }
 
-func setEventoptionsDestination(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setEventoptionsDestination(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0)
 	setPrefix := "set event-options destinations \"" + d.Get("name").(string) + "\" "
 
@@ -290,16 +290,16 @@ func setEventoptionsDestination(d *schema.ResourceData, sess *Session, jnprSess 
 		configSet = append(configSet, setPrefix+"transfer-delay "+strconv.Itoa(v))
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func readEventoptionsDestination(name string, sess *Session, jnprSess *NetconfObject,
+func readEventoptionsDestination(name string, sess *Session, junSess *junosSession,
 ) (eventoptionsDestinationOptions, error) {
 	var confRead eventoptionsDestinationOptions
 	confRead.transferDelay = -1 // default value
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"event-options destinations \""+name+"\""+pipeDisplaySetRelative, jnprSess)
+		"event-options destinations \""+name+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -344,11 +344,11 @@ func readEventoptionsDestination(name string, sess *Session, jnprSess *NetconfOb
 	return confRead, nil
 }
 
-func delEventoptionsDestination(destination string, sess *Session, jnprSess *NetconfObject) error {
+func delEventoptionsDestination(destination string, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete event-options destinations \""+destination+"\"")
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func fillEventoptionsDestinationData(

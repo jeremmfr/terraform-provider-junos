@@ -63,7 +63,7 @@ type bgpOptions struct {
 	gracefulRestart              []map[string]interface{}
 }
 
-func delBgpOpts(d *schema.ResourceData, typebgp string, sess *Session, jnprSess *NetconfObject) error {
+func delBgpOpts(d *schema.ResourceData, typebgp string, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0)
 	delPrefix := deleteLS
 	if d.Get("routing_instance").(string) != defaultW {
@@ -114,10 +114,10 @@ func delBgpOpts(d *schema.ResourceData, typebgp string, sess *Session, jnprSess 
 		delPrefix+"type",
 	)
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := []string{setPrefix}
 	if d.Get("accept_remote_nexthop").(bool) {
 		configSet = append(configSet, setPrefix+"accept-remote-nexthop")
@@ -268,7 +268,7 @@ func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, sess *Session, j
 		configSet = append(configSet, setPrefix+"remove-private")
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func readBgpOptsSimple(item string, confRead *bgpOptions) error {
@@ -420,7 +420,7 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 	return nil
 }
 
-func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{}, sess *Session, jnprSess *NetconfObject,
+func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{}, sess *Session, junSess *junosSession,
 ) error {
 	configSet := make([]string, 0)
 
@@ -474,7 +474,7 @@ func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{}, sess *S
 		}
 	}
 	if len(configSet) > 0 {
-		err := sess.configSet(configSet, jnprSess)
+		err := sess.configSet(configSet, junSess)
 		if err != nil {
 			return err
 		}
@@ -546,7 +546,7 @@ func readBgpOptsBfd(item string, bfdRead map[string]interface{}) error {
 }
 
 func setBgpOptsFamily(
-	setPrefix, familyType string, familyOptsList []interface{}, sess *Session, jnprSess *NetconfObject,
+	setPrefix, familyType string, familyOptsList []interface{}, sess *Session, junSess *junosSession,
 ) error {
 	configSet := make([]string, 0)
 	setPrefixFamily := setPrefix + "family "
@@ -593,7 +593,7 @@ func setBgpOptsFamily(
 		}
 	}
 	if len(configSet) > 0 {
-		err := sess.configSet(configSet, jnprSess)
+		err := sess.configSet(configSet, junSess)
 		if err != nil {
 			return err
 		}
@@ -722,7 +722,7 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 	return append(opts, readOpts), nil
 }
 
-func setBgpOptsGrafefulRestart(setPrefix string, gracefulRestarts []interface{}, sess *Session, jnprSess *NetconfObject,
+func setBgpOptsGrafefulRestart(setPrefix string, gracefulRestarts []interface{}, sess *Session, junSess *junosSession,
 ) error {
 	configSet := make([]string, 0)
 
@@ -743,7 +743,7 @@ func setBgpOptsGrafefulRestart(setPrefix string, gracefulRestarts []interface{},
 		}
 	}
 	if len(configSet) > 0 {
-		err := sess.configSet(configSet, jnprSess)
+		err := sess.configSet(configSet, junSess)
 		if err != nil {
 			return err
 		}

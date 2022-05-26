@@ -73,44 +73,44 @@ func resourceIpsecProposalCreate(ctx context.Context, d *schema.ResourceData, m 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if !checkCompatibilitySecurity(jnprSess) {
+	defer sess.closeSession(junSess)
+	if !checkCompatibilitySecurity(junSess) {
 		return diag.FromErr(fmt.Errorf("security ipsec proposal not compatible with Junos device %s",
-			jnprSess.SystemInformation.HardwareModel))
+			junSess.SystemInformation.HardwareModel))
 	}
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	ipsecProposalExists, err := checkIpsecProposalExists(d.Get("name").(string), sess, jnprSess)
+	ipsecProposalExists, err := checkIpsecProposalExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if ipsecProposalExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("security ipsec proposal %v already exists", d.Get("name").(string)))...)
 	}
-	if err := setIpsecProposal(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setIpsecProposal(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_security_ipsec_proposal", jnprSess)
+	warns, err := sess.commitConf("create resource junos_security_ipsec_proposal", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	ipsecProposalExists, err = checkIpsecProposalExists(d.Get("name").(string), sess, jnprSess)
+	ipsecProposalExists, err = checkIpsecProposalExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -121,24 +121,24 @@ func resourceIpsecProposalCreate(ctx context.Context, d *schema.ResourceData, m 
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceIpsecProposalReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceIpsecProposalReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceIpsecProposalRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 
-	return resourceIpsecProposalReadWJnprSess(d, sess, jnprSess)
+	return resourceIpsecProposalReadWJunSess(d, sess, junSess)
 }
 
-func resourceIpsecProposalReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
+func resourceIpsecProposalReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	ipsecProposalOptions, err := readIpsecProposal(d.Get("name").(string), sess, jnprSess)
+	ipsecProposalOptions, err := readIpsecProposal(d.Get("name").(string), sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -166,35 +166,35 @@ func resourceIpsecProposalUpdate(ctx context.Context, d *schema.ResourceData, m 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delIpsecProposal(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delIpsecProposal(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setIpsecProposal(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setIpsecProposal(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_security_ipsec_proposal", jnprSess)
+	warns, err := sess.commitConf("update resource junos_security_ipsec_proposal", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceIpsecProposalReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceIpsecProposalReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceIpsecProposalDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -206,24 +206,24 @@ func resourceIpsecProposalDelete(ctx context.Context, d *schema.ResourceData, m 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delIpsecProposal(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delIpsecProposal(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_security_ipsec_proposal", jnprSess)
+	warns, err := sess.commitConf("delete resource junos_security_ipsec_proposal", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -234,20 +234,20 @@ func resourceIpsecProposalDelete(ctx context.Context, d *schema.ResourceData, m 
 func resourceIpsecProposalImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	ipsecProposalExists, err := checkIpsecProposalExists(d.Id(), sess, jnprSess)
+	ipsecProposalExists, err := checkIpsecProposalExists(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !ipsecProposalExists {
 		return nil, fmt.Errorf("don't find security ipsec proposal with id '%v' (id must be <name>)", d.Id())
 	}
-	ipsecProposalOptions, err := readIpsecProposal(d.Id(), sess, jnprSess)
+	ipsecProposalOptions, err := readIpsecProposal(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -257,9 +257,9 @@ func resourceIpsecProposalImport(ctx context.Context, d *schema.ResourceData, m 
 	return result, nil
 }
 
-func checkIpsecProposalExists(ipsecProposal string, sess *Session, jnprSess *NetconfObject) (bool, error) {
+func checkIpsecProposalExists(ipsecProposal string, sess *Session, junSess *junosSession) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+
-		"security ipsec proposal "+ipsecProposal+pipeDisplaySet, jnprSess)
+		"security ipsec proposal "+ipsecProposal+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -270,7 +270,7 @@ func checkIpsecProposalExists(ipsecProposal string, sess *Session, jnprSess *Net
 	return true, nil
 }
 
-func setIpsecProposal(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setIpsecProposal(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security ipsec proposal " + d.Get("name").(string)
@@ -290,14 +290,14 @@ func setIpsecProposal(d *schema.ResourceData, sess *Session, jnprSess *NetconfOb
 		configSet = append(configSet, setPrefix+" protocol "+d.Get("protocol").(string))
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func readIpsecProposal(ipsecProposal string, sess *Session, jnprSess *NetconfObject) (ipsecProposalOptions, error) {
+func readIpsecProposal(ipsecProposal string, sess *Session, junSess *junosSession) (ipsecProposalOptions, error) {
 	var confRead ipsecProposalOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security ipsec proposal "+ipsecProposal+pipeDisplaySetRelative, jnprSess)
+		"security ipsec proposal "+ipsecProposal+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -335,11 +335,11 @@ func readIpsecProposal(ipsecProposal string, sess *Session, jnprSess *NetconfObj
 	return confRead, nil
 }
 
-func delIpsecProposal(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func delIpsecProposal(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ipsec proposal "+d.Get("name").(string))
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func fillIpsecProposalData(d *schema.ResourceData, ipsecProposalOptions ipsecProposalOptions) {

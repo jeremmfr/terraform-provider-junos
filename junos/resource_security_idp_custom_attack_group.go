@@ -50,44 +50,44 @@ func resourceSecurityIdpCustomAttackGroupCreate(ctx context.Context, d *schema.R
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if !checkCompatibilitySecurity(jnprSess) {
+	defer sess.closeSession(junSess)
+	if !checkCompatibilitySecurity(junSess) {
 		return diag.FromErr(fmt.Errorf("security idp custom-attack-group not compatible with Junos device %s",
-			jnprSess.SystemInformation.HardwareModel))
+			junSess.SystemInformation.HardwareModel))
 	}
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	idpCustomAttackGroupExists, err := checkSecurityIdpCustomAttackGroupExists(d.Get("name").(string), sess, jnprSess)
+	idpCustomAttackGroupExists, err := checkSecurityIdpCustomAttackGroupExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if idpCustomAttackGroupExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("security idp custom-attack-group %v already exists", d.Get("name").(string)))...)
 	}
-	if err := setSecurityIdpCustomAttackGroup(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSecurityIdpCustomAttackGroup(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_security_idp_custom_attack_group", jnprSess)
+	warns, err := sess.commitConf("create resource junos_security_idp_custom_attack_group", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	idpCustomAttackGroupExists, err = checkSecurityIdpCustomAttackGroupExists(d.Get("name").(string), sess, jnprSess)
+	idpCustomAttackGroupExists, err = checkSecurityIdpCustomAttackGroupExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -98,25 +98,25 @@ func resourceSecurityIdpCustomAttackGroupCreate(ctx context.Context, d *schema.R
 			"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityIdpCustomAttackGroupReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceSecurityIdpCustomAttackGroupReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceSecurityIdpCustomAttackGroupRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 
-	return resourceSecurityIdpCustomAttackGroupReadWJnprSess(d, sess, jnprSess)
+	return resourceSecurityIdpCustomAttackGroupReadWJunSess(d, sess, junSess)
 }
 
-func resourceSecurityIdpCustomAttackGroupReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
+func resourceSecurityIdpCustomAttackGroupReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	idpCustomAttackGroupOptions, err := readSecurityIdpCustomAttackGroup(d.Get("name").(string), sess, jnprSess)
+	idpCustomAttackGroupOptions, err := readSecurityIdpCustomAttackGroup(d.Get("name").(string), sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -146,35 +146,35 @@ func resourceSecurityIdpCustomAttackGroupUpdate(ctx context.Context, d *schema.R
 		return nil
 	}
 
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityIdpCustomAttackGroup(d.Get("name").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delSecurityIdpCustomAttackGroup(d.Get("name").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurityIdpCustomAttackGroup(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSecurityIdpCustomAttackGroup(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_security_idp_custom_attack_group", jnprSess)
+	warns, err := sess.commitConf("update resource junos_security_idp_custom_attack_group", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityIdpCustomAttackGroupReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceSecurityIdpCustomAttackGroupReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceSecurityIdpCustomAttackGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -187,24 +187,24 @@ func resourceSecurityIdpCustomAttackGroupDelete(ctx context.Context, d *schema.R
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityIdpCustomAttackGroup(d.Get("name").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delSecurityIdpCustomAttackGroup(d.Get("name").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_security_idp_custom_attack_group", jnprSess)
+	warns, err := sess.commitConf("delete resource junos_security_idp_custom_attack_group", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -215,20 +215,20 @@ func resourceSecurityIdpCustomAttackGroupDelete(ctx context.Context, d *schema.R
 func resourceSecurityIdpCustomAttackGroupImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	idpCustomAttackGroupExists, err := checkSecurityIdpCustomAttackGroupExists(d.Id(), sess, jnprSess)
+	idpCustomAttackGroupExists, err := checkSecurityIdpCustomAttackGroupExists(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !idpCustomAttackGroupExists {
 		return nil, fmt.Errorf("don't find security idp custom-attack-group with id '%v' (id must be <name>)", d.Id())
 	}
-	idpCustomAttackGroupOptions, err := readSecurityIdpCustomAttackGroup(d.Id(), sess, jnprSess)
+	idpCustomAttackGroupOptions, err := readSecurityIdpCustomAttackGroup(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -239,10 +239,10 @@ func resourceSecurityIdpCustomAttackGroupImport(ctx context.Context, d *schema.R
 	return result, nil
 }
 
-func checkSecurityIdpCustomAttackGroupExists(customAttackGroup string, sess *Session, jnprSess *NetconfObject,
+func checkSecurityIdpCustomAttackGroupExists(customAttackGroup string, sess *Session, junSess *junosSession,
 ) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+
-		"security idp custom-attack-group \""+customAttackGroup+"\""+pipeDisplaySet, jnprSess)
+		"security idp custom-attack-group \""+customAttackGroup+"\""+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -253,7 +253,7 @@ func checkSecurityIdpCustomAttackGroupExists(customAttackGroup string, sess *Ses
 	return true, nil
 }
 
-func setSecurityIdpCustomAttackGroup(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setSecurityIdpCustomAttackGroup(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security idp custom-attack-group \"" + d.Get("name").(string) + "\" "
@@ -262,15 +262,15 @@ func setSecurityIdpCustomAttackGroup(d *schema.ResourceData, sess *Session, jnpr
 		configSet = append(configSet, setPrefix+"group-members \""+v+"\"")
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func readSecurityIdpCustomAttackGroup(customAttackGroup string, sess *Session, jnprSess *NetconfObject,
+func readSecurityIdpCustomAttackGroup(customAttackGroup string, sess *Session, junSess *junosSession,
 ) (idpCustomAttackGroupOptions, error) {
 	var confRead idpCustomAttackGroupOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security idp custom-attack-group \""+customAttackGroup+"\""+pipeDisplaySetRelative, jnprSess)
+		"security idp custom-attack-group \""+customAttackGroup+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -293,10 +293,10 @@ func readSecurityIdpCustomAttackGroup(customAttackGroup string, sess *Session, j
 	return confRead, nil
 }
 
-func delSecurityIdpCustomAttackGroup(customAttack string, sess *Session, jnprSess *NetconfObject) error {
+func delSecurityIdpCustomAttackGroup(customAttack string, sess *Session, junSess *junosSession) error {
 	configSet := []string{"delete security idp custom-attack-group \"" + customAttack + "\""}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func fillSecurityIdpCustomAttackGroupData(

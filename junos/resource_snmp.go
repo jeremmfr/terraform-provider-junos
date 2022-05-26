@@ -166,46 +166,46 @@ func resourceSnmpCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := setSnmp(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSnmp(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_snmp", jnprSess)
+	warns, err := sess.commitConf("create resource junos_snmp", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.SetId("snmp")
 
-	return append(diagWarns, resourceSnmpReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceSnmpReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceSnmpRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 
-	return resourceSnmpReadWJnprSess(d, sess, jnprSess)
+	return resourceSnmpReadWJunSess(d, sess, junSess)
 }
 
-func resourceSnmpReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSnmpReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession) diag.Diagnostics {
 	mutex.Lock()
-	snmpOptions, err := readSnmp(sess, jnprSess)
+	snmpOptions, err := readSnmp(sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -229,35 +229,35 @@ func resourceSnmpUpdate(ctx context.Context, d *schema.ResourceData, m interface
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSnmp(sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delSnmp(sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSnmp(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSnmp(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_snmp", jnprSess)
+	warns, err := sess.commitConf("update resource junos_snmp", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSnmpReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceSnmpReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceSnmpDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -270,24 +270,24 @@ func resourceSnmpDelete(ctx context.Context, d *schema.ResourceData, m interface
 
 			return nil
 		}
-		jnprSess, err := sess.startNewSession(ctx)
+		junSess, err := sess.startNewSession(ctx)
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		defer sess.closeSession(jnprSess)
-		if err := sess.configLock(ctx, jnprSess); err != nil {
+		defer sess.closeSession(junSess)
+		if err := sess.configLock(ctx, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		var diagWarns diag.Diagnostics
-		if err := delSnmp(sess, jnprSess); err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		if err := delSnmp(sess, junSess); err != nil {
+			appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
-		warns, err := sess.commitConf("delete resource junos_snmp", jnprSess)
+		warns, err := sess.commitConf("delete resource junos_snmp", junSess)
 		appendDiagWarns(&diagWarns, warns)
 		if err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+			appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
@@ -299,13 +299,13 @@ func resourceSnmpDelete(ctx context.Context, d *schema.ResourceData, m interface
 func resourceSnmpImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	snmpOptions, err := readSnmp(sess, jnprSess)
+	snmpOptions, err := readSnmp(sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -316,7 +316,7 @@ func resourceSnmpImport(ctx context.Context, d *schema.ResourceData, m interface
 	return result, nil
 }
 
-func setSnmp(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setSnmp(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	setPrefix := "set snmp "
 	configSet := make([]string, 0)
 
@@ -387,10 +387,10 @@ func setSnmp(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) err
 		configSet = append(configSet, setPrefix+"routing-instance-access access-list \""+v+"\"")
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func delSnmp(sess *Session, jnprSess *NetconfObject) error {
+func delSnmp(sess *Session, junSess *junosSession) error {
 	listLinesToDelete := []string{
 		"arp",
 		"contact",
@@ -412,13 +412,13 @@ func delSnmp(sess *Session, jnprSess *NetconfObject) error {
 			delPrefix+line)
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func readSnmp(sess *Session, jnprSess *NetconfObject) (snmpOptions, error) {
+func readSnmp(sess *Session, junSess *junosSession) (snmpOptions, error) {
 	var confRead snmpOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"snmp"+pipeDisplaySetRelative, jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"snmp"+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}

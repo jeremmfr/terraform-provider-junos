@@ -55,41 +55,41 @@ func resourcePolicyoptionsCommunityCreate(ctx context.Context, d *schema.Resourc
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	policyoptsCommunityExists, err := checkPolicyoptionsCommunityExists(d.Get("name").(string), sess, jnprSess)
+	policyoptsCommunityExists, err := checkPolicyoptionsCommunityExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if policyoptsCommunityExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("policy-options community %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setPolicyoptionsCommunity(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setPolicyoptionsCommunity(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_policyoptions_community", jnprSess)
+	warns, err := sess.commitConf("create resource junos_policyoptions_community", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	policyoptsCommunityExists, err = checkPolicyoptionsCommunityExists(d.Get("name").(string), sess, jnprSess)
+	policyoptsCommunityExists, err = checkPolicyoptionsCommunityExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -100,24 +100,24 @@ func resourcePolicyoptionsCommunityCreate(ctx context.Context, d *schema.Resourc
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourcePolicyoptionsCommunityReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourcePolicyoptionsCommunityReadWJunSess(d, sess, junSess)...)
 }
 
 func resourcePolicyoptionsCommunityRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 
-	return resourcePolicyoptionsCommunityReadWJnprSess(d, sess, jnprSess)
+	return resourcePolicyoptionsCommunityReadWJunSess(d, sess, junSess)
 }
 
-func resourcePolicyoptionsCommunityReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
+func resourcePolicyoptionsCommunityReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	communityOptions, err := readPolicyoptionsCommunity(d.Get("name").(string), sess, jnprSess)
+	communityOptions, err := readPolicyoptionsCommunity(d.Get("name").(string), sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -145,35 +145,35 @@ func resourcePolicyoptionsCommunityUpdate(ctx context.Context, d *schema.Resourc
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delPolicyoptionsCommunity(d.Get("name").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delPolicyoptionsCommunity(d.Get("name").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setPolicyoptionsCommunity(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setPolicyoptionsCommunity(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_policyoptions_community", jnprSess)
+	warns, err := sess.commitConf("update resource junos_policyoptions_community", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourcePolicyoptionsCommunityReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourcePolicyoptionsCommunityReadWJunSess(d, sess, junSess)...)
 }
 
 func resourcePolicyoptionsCommunityDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -185,24 +185,24 @@ func resourcePolicyoptionsCommunityDelete(ctx context.Context, d *schema.Resourc
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delPolicyoptionsCommunity(d.Get("name").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delPolicyoptionsCommunity(d.Get("name").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_policyoptions_community", jnprSess)
+	warns, err := sess.commitConf("delete resource junos_policyoptions_community", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -213,21 +213,21 @@ func resourcePolicyoptionsCommunityDelete(ctx context.Context, d *schema.Resourc
 func resourcePolicyoptionsCommunityImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 
-	policyoptsCommunityExists, err := checkPolicyoptionsCommunityExists(d.Id(), sess, jnprSess)
+	policyoptsCommunityExists, err := checkPolicyoptionsCommunityExists(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !policyoptsCommunityExists {
 		return nil, fmt.Errorf("don't find policy-options community with id '%v' (id must be <name>)", d.Id())
 	}
-	communityOptions, err := readPolicyoptionsCommunity(d.Id(), sess, jnprSess)
+	communityOptions, err := readPolicyoptionsCommunity(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -238,8 +238,8 @@ func resourcePolicyoptionsCommunityImport(ctx context.Context, d *schema.Resourc
 	return result, nil
 }
 
-func checkPolicyoptionsCommunityExists(name string, sess *Session, jnprSess *NetconfObject) (bool, error) {
-	showConfig, err := sess.command(cmdShowConfig+"policy-options community "+name+pipeDisplaySet, jnprSess)
+func checkPolicyoptionsCommunityExists(name string, sess *Session, junSess *junosSession) (bool, error) {
+	showConfig, err := sess.command(cmdShowConfig+"policy-options community "+name+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -250,7 +250,7 @@ func checkPolicyoptionsCommunityExists(name string, sess *Session, jnprSess *Net
 	return true, nil
 }
 
-func setPolicyoptionsCommunity(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setPolicyoptionsCommunity(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set policy-options community " + d.Get("name").(string) + " "
@@ -261,14 +261,14 @@ func setPolicyoptionsCommunity(d *schema.ResourceData, sess *Session, jnprSess *
 		configSet = append(configSet, setPrefix+"invert-match")
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func readPolicyoptionsCommunity(name string, sess *Session, jnprSess *NetconfObject) (communityOptions, error) {
+func readPolicyoptionsCommunity(name string, sess *Session, junSess *junosSession) (communityOptions, error) {
 	var confRead communityOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"policy-options community "+name+pipeDisplaySetRelative, jnprSess)
+		"policy-options community "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -294,11 +294,11 @@ func readPolicyoptionsCommunity(name string, sess *Session, jnprSess *NetconfObj
 	return confRead, nil
 }
 
-func delPolicyoptionsCommunity(community string, sess *Session, jnprSess *NetconfObject) error {
+func delPolicyoptionsCommunity(community string, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete policy-options community "+community)
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func fillPolicyoptionsCommunityData(d *schema.ResourceData, communityOptions communityOptions) {

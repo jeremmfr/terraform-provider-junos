@@ -846,50 +846,50 @@ func resourceSecurityCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if !checkCompatibilitySecurity(jnprSess) {
+	defer sess.closeSession(junSess)
+	if !checkCompatibilitySecurity(junSess) {
 		return diag.FromErr(fmt.Errorf("security not compatible with Junos device %s",
-			jnprSess.SystemInformation.HardwareModel))
+			junSess.SystemInformation.HardwareModel))
 	}
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := setSecurity(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSecurity(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_security", jnprSess)
+	warns, err := sess.commitConf("create resource junos_security", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.SetId("security")
 
-	return append(diagWarns, resourceSecurityReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceSecurityReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceSecurityRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 
-	return resourceSecurityReadWJnprSess(d, sess, jnprSess)
+	return resourceSecurityReadWJunSess(d, sess, junSess)
 }
 
-func resourceSecurityReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceSecurityReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession) diag.Diagnostics {
 	mutex.Lock()
-	securityOptions, err := readSecurity(sess, jnprSess)
+	securityOptions, err := readSecurity(sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -913,35 +913,35 @@ func resourceSecurityUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurity(sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delSecurity(sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurity(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSecurity(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_security", jnprSess)
+	warns, err := sess.commitConf("update resource junos_security", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceSecurityReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceSecurityDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -954,24 +954,24 @@ func resourceSecurityDelete(ctx context.Context, d *schema.ResourceData, m inter
 
 			return nil
 		}
-		jnprSess, err := sess.startNewSession(ctx)
+		junSess, err := sess.startNewSession(ctx)
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		defer sess.closeSession(jnprSess)
-		if err := sess.configLock(ctx, jnprSess); err != nil {
+		defer sess.closeSession(junSess)
+		if err := sess.configLock(ctx, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		var diagWarns diag.Diagnostics
-		if err := delSecurity(sess, jnprSess); err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		if err := delSecurity(sess, junSess); err != nil {
+			appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
-		warns, err := sess.commitConf("delete resource junos_security", jnprSess)
+		warns, err := sess.commitConf("delete resource junos_security", junSess)
 		appendDiagWarns(&diagWarns, warns)
 		if err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+			appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
@@ -983,13 +983,13 @@ func resourceSecurityDelete(ctx context.Context, d *schema.ResourceData, m inter
 func resourceSecurityImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	securityOptions, err := readSecurity(sess, jnprSess)
+	securityOptions, err := readSecurity(sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -1000,7 +1000,7 @@ func resourceSecurityImport(ctx context.Context, d *schema.ResourceData, m inter
 	return result, nil
 }
 
-func setSecurity(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setSecurity(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	setPrefix := "set security "
 	configSet := make([]string, 0)
 
@@ -1136,7 +1136,7 @@ func setSecurity(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject)
 		}
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func setSecurityAlg(alg interface{}) ([]string, error) {
@@ -1756,7 +1756,7 @@ func listLinesSecurityUtm() []string {
 	}
 }
 
-func delSecurity(sess *Session, jnprSess *NetconfObject) error {
+func delSecurity(sess *Session, junSess *junosSession) error {
 	listLinesToDelete := []string{
 		"ike traceoptions",
 	}
@@ -1778,13 +1778,13 @@ func delSecurity(sess *Session, jnprSess *NetconfObject) error {
 			delPrefix+line)
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func readSecurity(sess *Session, jnprSess *NetconfObject) (securityOptions, error) {
+func readSecurity(sess *Session, junSess *junosSession) (securityOptions, error) {
 	var confRead securityOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"security"+pipeDisplaySetRelative, jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"security"+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}

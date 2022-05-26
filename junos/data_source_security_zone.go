@@ -201,13 +201,13 @@ func dataSourceSecurityZone() *schema.Resource {
 
 func dataSourceSecurityZoneRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	mutex.Lock()
-	zoneOptions, err := readSecurityZone(d.Get("name").(string), sess, jnprSess)
+	zoneOptions, err := readSecurityZone(d.Get("name").(string), sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)

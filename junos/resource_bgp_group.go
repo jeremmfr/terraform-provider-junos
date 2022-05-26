@@ -613,54 +613,54 @@ func resourceBgpGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), sess, jnprSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), sess, junSess)
 		if err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+			appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if !instanceExists {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+			appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 			return append(diagWarns,
 				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))...)
 		}
 	}
-	bgpGroupxists, err := checkBgpGroupExists(d.Get("name").(string), d.Get("routing_instance").(string), sess, jnprSess)
+	bgpGroupxists, err := checkBgpGroupExists(d.Get("name").(string), d.Get("routing_instance").(string), sess, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if bgpGroupxists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("bgp group %v already exists in routing-instance %v",
 			d.Get("name").(string), d.Get("routing_instance").(string)))...)
 	}
-	if err := setBgpGroup(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setBgpGroup(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_bgp_group", jnprSess)
+	warns, err := sess.commitConf("create resource junos_bgp_group", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	bgpGroupxists, err = checkBgpGroupExists(d.Get("name").(string), d.Get("routing_instance").(string), sess, jnprSess)
+	bgpGroupxists, err = checkBgpGroupExists(d.Get("name").(string), d.Get("routing_instance").(string), sess, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -671,23 +671,23 @@ func resourceBgpGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 			"=> check your config", d.Get("name").(string), d.Get("routing_instance").(string)))...)
 	}
 
-	return append(diagWarns, resourceBgpGroupReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceBgpGroupReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceBgpGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 
-	return resourceBgpGroupReadWJnprSess(d, sess, jnprSess)
+	return resourceBgpGroupReadWJunSess(d, sess, junSess)
 }
 
-func resourceBgpGroupReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceBgpGroupReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession) diag.Diagnostics {
 	mutex.Lock()
-	bgpGroupOptions, err := readBgpGroup(d.Get("name").(string), d.Get("routing_instance").(string), sess, jnprSess)
+	bgpGroupOptions, err := readBgpGroup(d.Get("name").(string), d.Get("routing_instance").(string), sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -715,35 +715,35 @@ func resourceBgpGroupUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delBgpOpts(d, "group", sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delBgpOpts(d, "group", sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setBgpGroup(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setBgpGroup(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_bgp_group", jnprSess)
+	warns, err := sess.commitConf("update resource junos_bgp_group", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceBgpGroupReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceBgpGroupReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceBgpGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -755,24 +755,24 @@ func resourceBgpGroupDelete(ctx context.Context, d *schema.ResourceData, m inter
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delBgpGroup(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delBgpGroup(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_bgp_group", jnprSess)
+	warns, err := sess.commitConf("delete resource junos_bgp_group", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -783,17 +783,17 @@ func resourceBgpGroupDelete(ctx context.Context, d *schema.ResourceData, m inter
 func resourceBgpGroupImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 	idSplit := strings.Split(d.Id(), idSeparator)
 	if len(idSplit) < 2 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", idSeparator)
 	}
-	bgpGroupxists, err := checkBgpGroupExists(idSplit[0], idSplit[1], sess, jnprSess)
+	bgpGroupxists, err := checkBgpGroupExists(idSplit[0], idSplit[1], sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -801,7 +801,7 @@ func resourceBgpGroupImport(ctx context.Context, d *schema.ResourceData, m inter
 		return nil, fmt.Errorf("don't find bgp group with id '%v' "+
 			"(id must be <name>"+idSeparator+"<routing_instance>)", d.Id())
 	}
-	bgpGroupOptions, err := readBgpGroup(idSplit[0], idSplit[1], sess, jnprSess)
+	bgpGroupOptions, err := readBgpGroup(idSplit[0], idSplit[1], sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -811,18 +811,18 @@ func resourceBgpGroupImport(ctx context.Context, d *schema.ResourceData, m inter
 	return result, nil
 }
 
-func checkBgpGroupExists(bgpGroup, instance string, sess *Session, jnprSess *NetconfObject) (bool, error) {
+func checkBgpGroupExists(bgpGroup, instance string, sess *Session, junSess *junosSession) (bool, error) {
 	var showConfig string
 	var err error
 	if instance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
-			"protocols bgp group "+bgpGroup+pipeDisplaySet, jnprSess)
+			"protocols bgp group "+bgpGroup+pipeDisplaySet, junSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-			"protocols bgp group "+bgpGroup+pipeDisplaySet, jnprSess)
+			"protocols bgp group "+bgpGroup+pipeDisplaySet, junSess)
 		if err != nil {
 			return false, err
 		}
@@ -834,14 +834,14 @@ func checkBgpGroupExists(bgpGroup, instance string, sess *Session, jnprSess *Net
 	return true, nil
 }
 
-func setBgpGroup(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setBgpGroup(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	setPrefix := setLS
 	if d.Get("routing_instance").(string) != defaultW {
 		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
 	setPrefix += "protocols bgp group " + d.Get("name").(string) + " "
 
-	if err := sess.configSet([]string{setPrefix + "type " + d.Get("type").(string)}, jnprSess); err != nil {
+	if err := sess.configSet([]string{setPrefix + "type " + d.Get("type").(string)}, junSess); err != nil {
 		return err
 	}
 	if d.Get("type").(string) == "external" {
@@ -852,26 +852,26 @@ func setBgpGroup(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject)
 			return fmt.Errorf("conflict between type=external and accept_remote_nexthop + multihop")
 		}
 	}
-	if err := setBgpOptsSimple(setPrefix, d, sess, jnprSess); err != nil {
+	if err := setBgpOptsSimple(setPrefix, d, sess, junSess); err != nil {
 		return err
 	}
-	if err := setBgpOptsBfd(setPrefix, d.Get("bfd_liveness_detection").([]interface{}), sess, jnprSess); err != nil {
+	if err := setBgpOptsBfd(setPrefix, d.Get("bfd_liveness_detection").([]interface{}), sess, junSess); err != nil {
 		return err
 	}
-	if err := setBgpOptsFamily(setPrefix, "evpn", d.Get("family_evpn").([]interface{}), sess, jnprSess); err != nil {
+	if err := setBgpOptsFamily(setPrefix, "evpn", d.Get("family_evpn").([]interface{}), sess, junSess); err != nil {
 		return err
 	}
-	if err := setBgpOptsFamily(setPrefix, inetW, d.Get("family_inet").([]interface{}), sess, jnprSess); err != nil {
+	if err := setBgpOptsFamily(setPrefix, inetW, d.Get("family_inet").([]interface{}), sess, junSess); err != nil {
 		return err
 	}
-	if err := setBgpOptsFamily(setPrefix, inet6W, d.Get("family_inet6").([]interface{}), sess, jnprSess); err != nil {
+	if err := setBgpOptsFamily(setPrefix, inet6W, d.Get("family_inet6").([]interface{}), sess, junSess); err != nil {
 		return err
 	}
 
-	return setBgpOptsGrafefulRestart(setPrefix, d.Get("graceful_restart").([]interface{}), sess, jnprSess)
+	return setBgpOptsGrafefulRestart(setPrefix, d.Get("graceful_restart").([]interface{}), sess, junSess)
 }
 
-func readBgpGroup(bgpGroup, instance string, sess *Session, jnprSess *NetconfObject) (bgpOptions, error) {
+func readBgpGroup(bgpGroup, instance string, sess *Session, junSess *junosSession) (bgpOptions, error) {
 	var confRead bgpOptions
 	var showConfig string
 	var err error
@@ -882,13 +882,13 @@ func readBgpGroup(bgpGroup, instance string, sess *Session, jnprSess *NetconfObj
 
 	if instance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
-			"protocols bgp group "+bgpGroup+pipeDisplaySetRelative, jnprSess)
+			"protocols bgp group "+bgpGroup+pipeDisplaySetRelative, junSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-			"protocols bgp group "+bgpGroup+pipeDisplaySetRelative, jnprSess)
+			"protocols bgp group "+bgpGroup+pipeDisplaySetRelative, junSess)
 		if err != nil {
 			return confRead, err
 		}
@@ -964,7 +964,7 @@ func readBgpGroup(bgpGroup, instance string, sess *Session, jnprSess *NetconfObj
 	return confRead, nil
 }
 
-func delBgpGroup(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func delBgpGroup(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	if d.Get("routing_instance").(string) == defaultW {
 		configSet = append(configSet, "delete protocols bgp group "+d.Get("name").(string))
@@ -973,7 +973,7 @@ func delBgpGroup(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject)
 			" protocols bgp group "+d.Get("name").(string))
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func fillBgpGroupData(d *schema.ResourceData, bgpGroupOptions bgpOptions) {

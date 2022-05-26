@@ -65,30 +65,30 @@ func resourceSecurityPolicyTunnelPairPolicyCreate(ctx context.Context, d *schema
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if !checkCompatibilitySecurity(jnprSess) {
+	defer sess.closeSession(junSess)
+	if !checkCompatibilitySecurity(junSess) {
 		return diag.FromErr(fmt.Errorf("security policy tunnel pair policy not compatible with Junos device %s",
-			jnprSess.SystemInformation.HardwareModel))
+			junSess.SystemInformation.HardwareModel))
 	}
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	securityPolicyExists, err := checkSecurityPolicyExists(
 		d.Get("zone_a").(string),
 		d.Get("zone_b").(string),
-		sess, jnprSess)
+		sess, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if !securityPolicyExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("security policy from %v to %v not exists",
 			d.Get("zone_a").(string), d.Get("zone_b").(string)))...)
@@ -96,14 +96,14 @@ func resourceSecurityPolicyTunnelPairPolicyCreate(ctx context.Context, d *schema
 	securityPolicyExists, err = checkSecurityPolicyExists(
 		d.Get("zone_b").(string),
 		d.Get("zone_a").(string),
-		sess, jnprSess)
+		sess, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if !securityPolicyExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("security policy from %v to %v not exists",
 			d.Get("zone_b").(string), d.Get("zone_a").(string)))...)
@@ -113,28 +113,28 @@ func resourceSecurityPolicyTunnelPairPolicyCreate(ctx context.Context, d *schema
 		d.Get("policy_a_to_b").(string),
 		d.Get("zone_b").(string),
 		d.Get("policy_b_to_a").(string),
-		sess, jnprSess)
+		sess, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if pairPolicyExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("security policy pair policy %v(%v) / %v(%v) already exists",
 			d.Get("zone_a").(string), d.Get("policy_a_to_b").(string),
 			d.Get("zone_b").(string), d.Get("policy_b_to_a").(string)))...)
 	}
-	if err := setSecurityPolicyTunnelPairPolicy(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSecurityPolicyTunnelPairPolicy(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_security_policy_tunnel_pair_policy", jnprSess)
+	warns, err := sess.commitConf("create resource junos_security_policy_tunnel_pair_policy", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -143,7 +143,7 @@ func resourceSecurityPolicyTunnelPairPolicyCreate(ctx context.Context, d *schema
 		d.Get("policy_a_to_b").(string),
 		d.Get("zone_b").(string),
 		d.Get("policy_b_to_a").(string),
-		sess, jnprSess)
+		sess, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -155,22 +155,22 @@ func resourceSecurityPolicyTunnelPairPolicyCreate(ctx context.Context, d *schema
 			"=> check your config"))...)
 	}
 
-	return append(diagWarns, resourceSecurityPolicyTunnelPairPolicyReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceSecurityPolicyTunnelPairPolicyReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceSecurityPolicyTunnelPairPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 
-	return resourceSecurityPolicyTunnelPairPolicyReadWJnprSess(d, sess, jnprSess)
+	return resourceSecurityPolicyTunnelPairPolicyReadWJunSess(d, sess, junSess)
 }
 
-func resourceSecurityPolicyTunnelPairPolicyReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
+func resourceSecurityPolicyTunnelPairPolicyReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
 	policyPairPolicyOptions, err := readSecurityPolicyTunnelPairPolicy(
@@ -178,7 +178,7 @@ func resourceSecurityPolicyTunnelPairPolicyReadWJnprSess(d *schema.ResourceData,
 			d.Get("policy_a_to_b").(string)+idSeparator+
 			d.Get("zone_b").(string)+idSeparator+
 			d.Get("policy_b_to_a").(string),
-		sess, jnprSess)
+		sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -202,24 +202,24 @@ func resourceSecurityPolicyTunnelPairPolicyDelete(ctx context.Context, d *schema
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityPolicyTunnelPairPolicy(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delSecurityPolicyTunnelPairPolicy(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_security_policy_tunnel_pair_policy", jnprSess)
+	warns, err := sess.commitConf("delete resource junos_security_policy_tunnel_pair_policy", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -230,17 +230,17 @@ func resourceSecurityPolicyTunnelPairPolicyDelete(ctx context.Context, d *schema
 func resourceSecurityPolicyTunnelPairPolicyImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 	idList := strings.Split(d.Id(), idSeparator)
 	if len(idList) < 4 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", idSeparator)
 	}
-	poliyPairPolicyExists, err := checkSecurityPolicyPairExists(idList[0], idList[1], idList[2], idList[3], sess, jnprSess)
+	poliyPairPolicyExists, err := checkSecurityPolicyPairExists(idList[0], idList[1], idList[2], idList[3], sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +250,7 @@ func resourceSecurityPolicyTunnelPairPolicyImport(ctx context.Context, d *schema
 			"<zone_b>"+idSeparator+"<policy_b_to_a>)", d.Id())
 	}
 
-	policyPairPolicyOptions, err := readSecurityPolicyTunnelPairPolicy(d.Id(), sess, jnprSess)
+	policyPairPolicyOptions, err := readSecurityPolicyTunnelPairPolicy(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -261,17 +261,17 @@ func resourceSecurityPolicyTunnelPairPolicyImport(ctx context.Context, d *schema
 	return result, nil
 }
 
-func checkSecurityPolicyPairExists(zoneA, policyAtoB, zoneB, policyBtoA string, sess *Session, jnprSess *NetconfObject,
+func checkSecurityPolicyPairExists(zoneA, policyAtoB, zoneB, policyBtoA string, sess *Session, junSess *junosSession,
 ) (bool, error) {
 	showConfigPairAtoB, err := sess.command(cmdShowConfig+
 		"security policies from-zone "+zoneA+" to-zone "+zoneB+" policy "+policyAtoB+
-		" then permit tunnel pair-policy"+pipeDisplaySet, jnprSess)
+		" then permit tunnel pair-policy"+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
 	showConfigPairBtoA, err := sess.command(cmdShowConfig+
 		"security policies from-zone "+zoneB+" to-zone "+zoneA+" policy "+policyBtoA+
-		" then permit tunnel pair-policy"+pipeDisplaySet, jnprSess)
+		" then permit tunnel pair-policy"+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -282,7 +282,7 @@ func checkSecurityPolicyPairExists(zoneA, policyAtoB, zoneB, policyBtoA string, 
 	return true, nil
 }
 
-func setSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0, 2)
 
 	configSet = append(configSet, "set security policies from-zone "+
@@ -294,10 +294,10 @@ func setSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, sess *Session, jn
 		" policy "+d.Get("policy_b_to_a").(string)+
 		" then permit tunnel pair-policy "+d.Get("policy_a_to_b").(string))
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func readSecurityPolicyTunnelPairPolicy(idRessource string, sess *Session, jnprSess *NetconfObject,
+func readSecurityPolicyTunnelPairPolicy(idRessource string, sess *Session, junSess *junosSession,
 ) (policyPairPolicyOptions, error) {
 	zone := strings.Split(idRessource, idSeparator)
 	zoneA := zone[0]
@@ -309,7 +309,7 @@ func readSecurityPolicyTunnelPairPolicy(idRessource string, sess *Session, jnprS
 
 	showConfig, err := sess.command(cmdShowConfig+
 		"security policies from-zone "+zoneA+" to-zone "+zoneB+" policy "+policyAtoB+
-		" then permit tunnel pair-policy"+pipeDisplaySet, jnprSess)
+		" then permit tunnel pair-policy"+pipeDisplaySet, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -332,7 +332,7 @@ func readSecurityPolicyTunnelPairPolicy(idRessource string, sess *Session, jnprS
 	}
 	showConfig, err = sess.command(cmdShowConfig+
 		"security policies from-zone "+zoneB+" to-zone "+zoneA+" policy "+policyBtoA+
-		" then permit tunnel pair-policy"+pipeDisplaySet, jnprSess)
+		" then permit tunnel pair-policy"+pipeDisplaySet, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -357,7 +357,7 @@ func readSecurityPolicyTunnelPairPolicy(idRessource string, sess *Session, jnprS
 	return confRead, nil
 }
 
-func delSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func delSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0, 2)
 	configSet = append(configSet, "delete security policies"+
 		" from-zone "+d.Get("zone_a").(string)+" to-zone "+d.Get("zone_b").(string)+
@@ -368,7 +368,7 @@ func delSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, sess *Session, jn
 		" policy "+d.Get("policy_b_to_a").(string)+
 		" then permit tunnel pair-policy "+d.Get("policy_a_to_b").(string))
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func fillSecurityPolicyPairData(d *schema.ResourceData, policyPairPolicyOptions policyPairPolicyOptions) {

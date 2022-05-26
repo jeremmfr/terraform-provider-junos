@@ -54,47 +54,47 @@ func resourceSwitchOptionsCreate(ctx context.Context, d *schema.ResourceData, m 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := setSwitchOptions(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSwitchOptions(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_switch_options", jnprSess)
+	warns, err := sess.commitConf("create resource junos_switch_options", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.SetId("switch_options")
 
-	return append(diagWarns, resourceSwitchOptionsReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceSwitchOptionsReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceSwitchOptionsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 
-	return resourceSwitchOptionsReadWJnprSess(d, sess, jnprSess)
+	return resourceSwitchOptionsReadWJunSess(d, sess, junSess)
 }
 
-func resourceSwitchOptionsReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
+func resourceSwitchOptionsReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	switchOptionsOptions, err := readSwitchOptions(sess, jnprSess)
+	switchOptionsOptions, err := readSwitchOptions(sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -118,35 +118,35 @@ func resourceSwitchOptionsUpdate(ctx context.Context, d *schema.ResourceData, m 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSwitchOptions(sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delSwitchOptions(sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSwitchOptions(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSwitchOptions(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_switch_options", jnprSess)
+	warns, err := sess.commitConf("update resource junos_switch_options", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSwitchOptionsReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceSwitchOptionsReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceSwitchOptionsDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -159,24 +159,24 @@ func resourceSwitchOptionsDelete(ctx context.Context, d *schema.ResourceData, m 
 
 			return nil
 		}
-		jnprSess, err := sess.startNewSession(ctx)
+		junSess, err := sess.startNewSession(ctx)
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		defer sess.closeSession(jnprSess)
-		if err := sess.configLock(ctx, jnprSess); err != nil {
+		defer sess.closeSession(junSess)
+		if err := sess.configLock(ctx, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		var diagWarns diag.Diagnostics
-		if err := delSwitchOptions(sess, jnprSess); err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		if err := delSwitchOptions(sess, junSess); err != nil {
+			appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
-		warns, err := sess.commitConf("delete resource junos_switch_options", jnprSess)
+		warns, err := sess.commitConf("delete resource junos_switch_options", junSess)
 		appendDiagWarns(&diagWarns, warns)
 		if err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+			appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
@@ -188,13 +188,13 @@ func resourceSwitchOptionsDelete(ctx context.Context, d *schema.ResourceData, m 
 func resourceSwitchOptionsImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	switchOptionsOptions, err := readSwitchOptions(sess, jnprSess)
+	switchOptionsOptions, err := readSwitchOptions(sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func resourceSwitchOptionsImport(ctx context.Context, d *schema.ResourceData, m 
 	return result, nil
 }
 
-func setSwitchOptions(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setSwitchOptions(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	setPrefix := "set switch-options "
 	configSet := make([]string, 0)
 
@@ -213,10 +213,10 @@ func setSwitchOptions(d *schema.ResourceData, sess *Session, jnprSess *NetconfOb
 		configSet = append(configSet, setPrefix+"vtep-source-interface "+v)
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func delSwitchOptions(sess *Session, jnprSess *NetconfObject) error {
+func delSwitchOptions(sess *Session, junSess *junosSession) error {
 	listLinesToDelete := []string{"vtep-source-interface"}
 
 	configSet := make([]string, 0)
@@ -226,13 +226,13 @@ func delSwitchOptions(sess *Session, jnprSess *NetconfObject) error {
 			delPrefix+line)
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func readSwitchOptions(sess *Session, jnprSess *NetconfObject) (switchOptionsOptions, error) {
+func readSwitchOptions(sess *Session, junSess *junosSession) (switchOptionsOptions, error) {
 	var confRead switchOptionsOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"switch-options"+pipeDisplaySetRelative, jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"switch-options"+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}

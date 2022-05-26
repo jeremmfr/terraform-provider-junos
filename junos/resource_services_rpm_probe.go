@@ -329,41 +329,41 @@ func resourceServicesRpmProbeCreate(ctx context.Context, d *schema.ResourceData,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	rpmProbeExists, err := checkServicesRpmProbeExists(d.Get("name").(string), sess, jnprSess)
+	rpmProbeExists, err := checkServicesRpmProbeExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if rpmProbeExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("services rpm probe %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setServicesRpmProbe(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setServicesRpmProbe(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_services_rpm_probe", jnprSess)
+	warns, err := sess.commitConf("create resource junos_services_rpm_probe", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	rpmProbeExists, err = checkServicesRpmProbeExists(d.Get("name").(string), sess, jnprSess)
+	rpmProbeExists, err = checkServicesRpmProbeExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -374,25 +374,25 @@ func resourceServicesRpmProbeCreate(ctx context.Context, d *schema.ResourceData,
 			"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceServicesRpmProbeReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceServicesRpmProbeReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceServicesRpmProbeRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 
-	return resourceServicesRpmProbeReadWJnprSess(d, sess, jnprSess)
+	return resourceServicesRpmProbeReadWJunSess(d, sess, junSess)
 }
 
-func resourceServicesRpmProbeReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
+func resourceServicesRpmProbeReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	rpmProbeOptions, err := readServicesRpmProbe(d.Get("name").(string), sess, jnprSess)
+	rpmProbeOptions, err := readServicesRpmProbe(d.Get("name").(string), sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -421,35 +421,35 @@ func resourceServicesRpmProbeUpdate(ctx context.Context, d *schema.ResourceData,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delServicesRpmProbe(d.Get("name").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delServicesRpmProbe(d.Get("name").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setServicesRpmProbe(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setServicesRpmProbe(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_services_rpm_probe", jnprSess)
+	warns, err := sess.commitConf("update resource junos_services_rpm_probe", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceServicesRpmProbeReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceServicesRpmProbeReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceServicesRpmProbeDelete(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -462,24 +462,24 @@ func resourceServicesRpmProbeDelete(ctx context.Context, d *schema.ResourceData,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delServicesRpmProbe(d.Get("name").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delServicesRpmProbe(d.Get("name").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_services_rpm_probe", jnprSess)
+	warns, err := sess.commitConf("delete resource junos_services_rpm_probe", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -490,20 +490,20 @@ func resourceServicesRpmProbeDelete(ctx context.Context, d *schema.ResourceData,
 func resourceServicesRpmProbeImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	rpmProbeExists, err := checkServicesRpmProbeExists(d.Id(), sess, jnprSess)
+	rpmProbeExists, err := checkServicesRpmProbeExists(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !rpmProbeExists {
 		return nil, fmt.Errorf("don't find services rpm probe with id '%v' (id must be <name>)", d.Id())
 	}
-	rpmProbeOptions, err := readServicesRpmProbe(d.Id(), sess, jnprSess)
+	rpmProbeOptions, err := readServicesRpmProbe(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -514,8 +514,8 @@ func resourceServicesRpmProbeImport(ctx context.Context, d *schema.ResourceData,
 	return result, nil
 }
 
-func checkServicesRpmProbeExists(probe string, sess *Session, jnprSess *NetconfObject) (bool, error) {
-	showConfig, err := sess.command(cmdShowConfig+"services rpm probe \""+probe+"\""+pipeDisplaySet, jnprSess)
+func checkServicesRpmProbeExists(probe string, sess *Session, junSess *junosSession) (bool, error) {
+	showConfig, err := sess.command(cmdShowConfig+"services rpm probe \""+probe+"\""+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -526,7 +526,7 @@ func checkServicesRpmProbeExists(probe string, sess *Session, jnprSess *NetconfO
 	return true, nil
 }
 
-func setServicesRpmProbe(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setServicesRpmProbe(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set services rpm probe \"" + d.Get("name").(string) + "\" "
@@ -691,14 +691,14 @@ func setServicesRpmProbe(d *schema.ResourceData, sess *Session, jnprSess *Netcon
 		}
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func readServicesRpmProbe(probe string, sess *Session, jnprSess *NetconfObject,
+func readServicesRpmProbe(probe string, sess *Session, junSess *junosSession,
 ) (rpmProbeOptions, error) {
 	var confRead rpmProbeOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"services rpm probe \""+probe+"\""+pipeDisplaySetRelative, jnprSess)
+	showConfig, err := sess.command(cmdShowConfig+"services rpm probe \""+probe+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -977,10 +977,10 @@ func readServicesRpmProbeTest(itemTrim string, test map[string]interface{}) erro
 	return nil
 }
 
-func delServicesRpmProbe(probe string, sess *Session, jnprSess *NetconfObject) error {
+func delServicesRpmProbe(probe string, sess *Session, junSess *junosSession) error {
 	configSet := []string{"delete services rpm probe \"" + probe + "\""}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func fillServicesRpmProbeData(d *schema.ResourceData, rpmProbeOptions rpmProbeOptions,

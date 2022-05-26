@@ -143,24 +143,24 @@ func resourceGenerateRouteCreate(ctx context.Context, d *schema.ResourceData, m 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), sess, jnprSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), sess, junSess)
 		if err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+			appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if !instanceExists {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+			appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 			return append(diagWarns,
 				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))...)
@@ -169,34 +169,34 @@ func resourceGenerateRouteCreate(ctx context.Context, d *schema.ResourceData, m 
 	generateRouteExists, err := checkGenerateRouteExists(
 		d.Get("destination").(string),
 		d.Get("routing_instance").(string),
-		sess, jnprSess)
+		sess, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if generateRouteExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("generate route %v already exists on table %s",
 			d.Get("destination").(string), d.Get("routing_instance").(string)))...)
 	}
-	if err := setGenerateRoute(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setGenerateRoute(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_generate_route", jnprSess)
+	warns, err := sess.commitConf("create resource junos_generate_route", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	generateRouteExists, err = checkGenerateRouteExists(
 		d.Get("destination").(string),
 		d.Get("routing_instance").(string),
-		sess, jnprSess)
+		sess, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -207,27 +207,27 @@ func resourceGenerateRouteCreate(ctx context.Context, d *schema.ResourceData, m 
 			"=> check your config", d.Get("destination").(string), d.Get("routing_instance").(string)))...)
 	}
 
-	return append(diagWarns, resourceGenerateRouteReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceGenerateRouteReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceGenerateRouteRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 
-	return resourceGenerateRouteReadWJnprSess(d, sess, jnprSess)
+	return resourceGenerateRouteReadWJunSess(d, sess, junSess)
 }
 
-func resourceGenerateRouteReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
+func resourceGenerateRouteReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
 	generateRouteOptions, err := readGenerateRoute(
 		d.Get("destination").(string),
 		d.Get("routing_instance").(string),
-		sess, jnprSess)
+		sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -259,40 +259,40 @@ func resourceGenerateRouteUpdate(ctx context.Context, d *schema.ResourceData, m 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	if err := delGenerateRoute(
 		d.Get("destination").(string),
 		d.Get("routing_instance").(string),
-		sess, jnprSess,
+		sess, junSess,
 	); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setGenerateRoute(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setGenerateRoute(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_generate_route", jnprSess)
+	warns, err := sess.commitConf("update resource junos_generate_route", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	d.Partial(false)
 
-	return append(diagWarns, resourceGenerateRouteReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceGenerateRouteReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceGenerateRouteDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -308,28 +308,28 @@ func resourceGenerateRouteDelete(ctx context.Context, d *schema.ResourceData, m 
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	if err := delGenerateRoute(
 		d.Get("destination").(string),
 		d.Get("routing_instance").(string),
-		sess, jnprSess,
+		sess, junSess,
 	); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_generate_route", jnprSess)
+	warns, err := sess.commitConf("delete resource junos_generate_route", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -340,17 +340,17 @@ func resourceGenerateRouteDelete(ctx context.Context, d *schema.ResourceData, m 
 func resourceGenerateRouteImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 	idSplit := strings.Split(d.Id(), idSeparator)
 	if len(idSplit) < 2 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", idSeparator)
 	}
-	generateRouteExists, err := checkGenerateRouteExists(idSplit[0], idSplit[1], sess, jnprSess)
+	generateRouteExists, err := checkGenerateRouteExists(idSplit[0], idSplit[1], sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -358,7 +358,7 @@ func resourceGenerateRouteImport(ctx context.Context, d *schema.ResourceData, m 
 		return nil, fmt.Errorf("don't find generate route with id '%v' (id must be "+
 			"<destination>"+idSeparator+"<routing_instance>)", d.Id())
 	}
-	generateRouteOptions, err := readGenerateRoute(idSplit[0], idSplit[1], sess, jnprSess)
+	generateRouteOptions, err := readGenerateRoute(idSplit[0], idSplit[1], sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -369,19 +369,19 @@ func resourceGenerateRouteImport(ctx context.Context, d *schema.ResourceData, m 
 	return result, nil
 }
 
-func checkGenerateRouteExists(destination, instance string, sess *Session, jnprSess *NetconfObject) (bool, error) {
+func checkGenerateRouteExists(destination, instance string, sess *Session, junSess *junosSession) (bool, error) {
 	var showConfig string
 	var err error
 	if instance == defaultW {
 		if !strings.Contains(destination, ":") {
 			showConfig, err = sess.command(cmdShowConfig+
-				"routing-options generate route "+destination+pipeDisplaySet, jnprSess)
+				"routing-options generate route "+destination+pipeDisplaySet, junSess)
 			if err != nil {
 				return false, err
 			}
 		} else {
 			showConfig, err = sess.command(cmdShowConfig+
-				"routing-options rib inet6.0 "+"generate route "+destination+pipeDisplaySet, jnprSess)
+				"routing-options rib inet6.0 "+"generate route "+destination+pipeDisplaySet, junSess)
 			if err != nil {
 				return false, err
 			}
@@ -389,13 +389,13 @@ func checkGenerateRouteExists(destination, instance string, sess *Session, jnprS
 	} else {
 		if !strings.Contains(destination, ":") {
 			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-				"routing-options generate route "+destination+pipeDisplaySet, jnprSess)
+				"routing-options generate route "+destination+pipeDisplaySet, junSess)
 			if err != nil {
 				return false, err
 			}
 		} else {
 			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-				"routing-options rib "+instance+".inet6.0 generate route "+destination+pipeDisplaySet, jnprSess)
+				"routing-options rib "+instance+".inet6.0 generate route "+destination+pipeDisplaySet, junSess)
 			if err != nil {
 				return false, err
 			}
@@ -409,7 +409,7 @@ func checkGenerateRouteExists(destination, instance string, sess *Session, jnprS
 	return true, nil
 }
 
-func setGenerateRoute(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setGenerateRoute(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	var setPrefix string
@@ -475,10 +475,10 @@ func setGenerateRoute(d *schema.ResourceData, sess *Session, jnprSess *NetconfOb
 		configSet = append(configSet, setPrefix+"preference "+strconv.Itoa(d.Get("preference").(int)))
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func readGenerateRoute(destination, instance string, sess *Session, jnprSess *NetconfObject,
+func readGenerateRoute(destination, instance string, sess *Session, junSess *junosSession,
 ) (generateRouteOptions, error) {
 	var confRead generateRouteOptions
 	var showConfig string
@@ -487,18 +487,18 @@ func readGenerateRoute(destination, instance string, sess *Session, jnprSess *Ne
 	if instance == defaultW {
 		if !strings.Contains(destination, ":") {
 			showConfig, err = sess.command(cmdShowConfig+
-				"routing-options generate route "+destination+pipeDisplaySetRelative, jnprSess)
+				"routing-options generate route "+destination+pipeDisplaySetRelative, junSess)
 		} else {
 			showConfig, err = sess.command(cmdShowConfig+
-				"routing-options rib inet6.0 generate route "+destination+pipeDisplaySetRelative, jnprSess)
+				"routing-options rib inet6.0 generate route "+destination+pipeDisplaySetRelative, junSess)
 		}
 	} else {
 		if !strings.Contains(destination, ":") {
 			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-				"routing-options generate route "+destination+pipeDisplaySetRelative, jnprSess)
+				"routing-options generate route "+destination+pipeDisplaySetRelative, junSess)
 		} else {
 			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-				"routing-options rib "+instance+".inet6.0 generate route "+destination+pipeDisplaySetRelative, jnprSess)
+				"routing-options rib "+instance+".inet6.0 generate route "+destination+pipeDisplaySetRelative, junSess)
 		}
 	}
 	if err != nil {
@@ -560,7 +560,7 @@ func readGenerateRoute(destination, instance string, sess *Session, jnprSess *Ne
 	return confRead, nil
 }
 
-func delGenerateRoute(destination, instance string, sess *Session, jnprSess *NetconfObject) error {
+func delGenerateRoute(destination, instance string, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	if instance == defaultW {
 		if !strings.Contains(destination, ":") {
@@ -578,7 +578,7 @@ func delGenerateRoute(destination, instance string, sess *Session, jnprSess *Net
 		}
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func fillGenerateRouteData(d *schema.ResourceData, generateRouteOptions generateRouteOptions) {

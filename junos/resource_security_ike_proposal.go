@@ -72,44 +72,44 @@ func resourceIkeProposalCreate(ctx context.Context, d *schema.ResourceData, m in
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if !checkCompatibilitySecurity(jnprSess) {
+	defer sess.closeSession(junSess)
+	if !checkCompatibilitySecurity(junSess) {
 		return diag.FromErr(fmt.Errorf("security ike proposal not compatible with Junos device %s",
-			jnprSess.SystemInformation.HardwareModel))
+			junSess.SystemInformation.HardwareModel))
 	}
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	ikeProposalExists, err := checkIkeProposalExists(d.Get("name").(string), sess, jnprSess)
+	ikeProposalExists, err := checkIkeProposalExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if ikeProposalExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("security ike proposal %v already exists", d.Get("name").(string)))...)
 	}
-	if err := setIkeProposal(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setIkeProposal(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_security_ike_proposal", jnprSess)
+	warns, err := sess.commitConf("create resource junos_security_ike_proposal", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	ikeProposalExists, err = checkIkeProposalExists(d.Get("name").(string), sess, jnprSess)
+	ikeProposalExists, err = checkIkeProposalExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -120,23 +120,23 @@ func resourceIkeProposalCreate(ctx context.Context, d *schema.ResourceData, m in
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceIkeProposalReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceIkeProposalReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceIkeProposalRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 
-	return resourceIkeProposalReadWJnprSess(d, sess, jnprSess)
+	return resourceIkeProposalReadWJunSess(d, sess, junSess)
 }
 
-func resourceIkeProposalReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceIkeProposalReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession) diag.Diagnostics {
 	mutex.Lock()
-	ikeProposalOptions, err := readIkeProposal(d.Get("name").(string), sess, jnprSess)
+	ikeProposalOptions, err := readIkeProposal(d.Get("name").(string), sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -164,35 +164,35 @@ func resourceIkeProposalUpdate(ctx context.Context, d *schema.ResourceData, m in
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delIkeProposal(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delIkeProposal(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setIkeProposal(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setIkeProposal(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_security_ike_proposal", jnprSess)
+	warns, err := sess.commitConf("update resource junos_security_ike_proposal", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceIkeProposalReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceIkeProposalReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceIkeProposalDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -204,24 +204,24 @@ func resourceIkeProposalDelete(ctx context.Context, d *schema.ResourceData, m in
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delIkeProposal(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delIkeProposal(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_security_ike_proposal", jnprSess)
+	warns, err := sess.commitConf("delete resource junos_security_ike_proposal", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -232,20 +232,20 @@ func resourceIkeProposalDelete(ctx context.Context, d *schema.ResourceData, m in
 func resourceIkeProposalImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	ikeProposalExists, err := checkIkeProposalExists(d.Id(), sess, jnprSess)
+	ikeProposalExists, err := checkIkeProposalExists(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !ikeProposalExists {
 		return nil, fmt.Errorf("don't find security ike proposal with id '%v' (id must be <name>)", d.Id())
 	}
-	ikeProposalOptions, err := readIkeProposal(d.Id(), sess, jnprSess)
+	ikeProposalOptions, err := readIkeProposal(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -255,9 +255,9 @@ func resourceIkeProposalImport(ctx context.Context, d *schema.ResourceData, m in
 	return result, nil
 }
 
-func checkIkeProposalExists(ikeProposal string, sess *Session, jnprSess *NetconfObject) (bool, error) {
+func checkIkeProposalExists(ikeProposal string, sess *Session, junSess *junosSession) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+
-		"security ike proposal "+ikeProposal+pipeDisplaySet, jnprSess)
+		"security ike proposal "+ikeProposal+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -268,7 +268,7 @@ func checkIkeProposalExists(ikeProposal string, sess *Session, jnprSess *Netconf
 	return true, nil
 }
 
-func setIkeProposal(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setIkeProposal(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security ike proposal " + d.Get("name").(string)
@@ -288,14 +288,14 @@ func setIkeProposal(d *schema.ResourceData, sess *Session, jnprSess *NetconfObje
 		configSet = append(configSet, setPrefix+" lifetime-seconds "+strconv.Itoa(d.Get("lifetime_seconds").(int)))
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func readIkeProposal(ikeProposal string, sess *Session, jnprSess *NetconfObject) (ikeProposalOptions, error) {
+func readIkeProposal(ikeProposal string, sess *Session, junSess *junosSession) (ikeProposalOptions, error) {
 	var confRead ikeProposalOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security ike proposal "+ikeProposal+pipeDisplaySetRelative, jnprSess)
+		"security ike proposal "+ikeProposal+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -330,11 +330,11 @@ func readIkeProposal(ikeProposal string, sess *Session, jnprSess *NetconfObject)
 	return confRead, nil
 }
 
-func delIkeProposal(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func delIkeProposal(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ike proposal "+d.Get("name").(string))
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func fillIkeProposalData(d *schema.ResourceData, ikeProposalOptions ikeProposalOptions) {

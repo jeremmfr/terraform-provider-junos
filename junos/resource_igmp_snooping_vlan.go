@@ -162,24 +162,24 @@ func resourceIgmpSnoopingVlanCreate(ctx context.Context, d *schema.ResourceData,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), sess, jnprSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), sess, junSess)
 		if err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+			appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if !instanceExists {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+			appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 			return append(diagWarns,
 				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))...)
@@ -188,14 +188,14 @@ func resourceIgmpSnoopingVlanCreate(ctx context.Context, d *schema.ResourceData,
 	igmpSnoopingVlanExists, err := checkIgmpSnoopingVlanExists(
 		d.Get("name").(string),
 		d.Get("routing_instance").(string),
-		sess, jnprSess)
+		sess, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if igmpSnoopingVlanExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 		if d.Get("routing_instance").(string) == defaultW {
 			return append(diagWarns, diag.FromErr(fmt.Errorf("protocols igmp-snooping vlan %v already exists",
 				d.Get("name").(string)))...)
@@ -206,22 +206,22 @@ func resourceIgmpSnoopingVlanCreate(ctx context.Context, d *schema.ResourceData,
 			d.Get("name").(string), d.Get("routing_instance").(string)))...)
 	}
 
-	if err := setIgmpSnoopingVlan(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setIgmpSnoopingVlan(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_igmp_snooping_vlan", jnprSess)
+	warns, err := sess.commitConf("create resource junos_igmp_snooping_vlan", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	igmpSnoopingVlanExists, err = checkIgmpSnoopingVlanExists(
 		d.Get("name").(string),
 		d.Get("routing_instance").(string),
-		sess, jnprSess)
+		sess, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -238,27 +238,27 @@ func resourceIgmpSnoopingVlanCreate(ctx context.Context, d *schema.ResourceData,
 				"=> check your config", d.Get("name").(string), d.Get("routing_instance").(string)))...)
 	}
 
-	return append(diagWarns, resourceIgmpSnoopingVlanReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceIgmpSnoopingVlanReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceIgmpSnoopingVlanRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 
-	return resourceIgmpSnoopingVlanReadWJnprSess(d, sess, jnprSess)
+	return resourceIgmpSnoopingVlanReadWJunSess(d, sess, junSess)
 }
 
-func resourceIgmpSnoopingVlanReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
+func resourceIgmpSnoopingVlanReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
 	igmpSnoopingVlanOptions, err := readIgmpSnoopingVlan(
 		d.Get("name").(string),
 		d.Get("routing_instance").(string),
-		sess, jnprSess)
+		sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -286,35 +286,35 @@ func resourceIgmpSnoopingVlanUpdate(ctx context.Context, d *schema.ResourceData,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delIgmpSnoopingVlan(d.Get("name").(string), d.Get("routing_instance").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delIgmpSnoopingVlan(d.Get("name").(string), d.Get("routing_instance").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setIgmpSnoopingVlan(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setIgmpSnoopingVlan(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_igmp_snooping_vlan", jnprSess)
+	warns, err := sess.commitConf("update resource junos_igmp_snooping_vlan", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceIgmpSnoopingVlanReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceIgmpSnoopingVlanReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceIgmpSnoopingVlanDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -326,24 +326,24 @@ func resourceIgmpSnoopingVlanDelete(ctx context.Context, d *schema.ResourceData,
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delIgmpSnoopingVlan(d.Get("name").(string), d.Get("routing_instance").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delIgmpSnoopingVlan(d.Get("name").(string), d.Get("routing_instance").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_igmp_snooping_vlan", jnprSess)
+	warns, err := sess.commitConf("delete resource junos_igmp_snooping_vlan", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -354,17 +354,17 @@ func resourceIgmpSnoopingVlanDelete(ctx context.Context, d *schema.ResourceData,
 func resourceIgmpSnoopingVlanImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 	idSplit := strings.Split(d.Id(), idSeparator)
 	if len(idSplit) < 2 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", idSeparator)
 	}
-	igmpSnoopingVlanExists, err := checkIgmpSnoopingVlanExists(idSplit[0], idSplit[1], sess, jnprSess)
+	igmpSnoopingVlanExists, err := checkIgmpSnoopingVlanExists(idSplit[0], idSplit[1], sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -372,7 +372,7 @@ func resourceIgmpSnoopingVlanImport(ctx context.Context, d *schema.ResourceData,
 		return nil, fmt.Errorf("don't find protocols igmp-snooping vlan with id '%v' "+
 			"(id must be <name>%s<routing_instance>)", d.Id(), idSeparator)
 	}
-	igmpSnoopingVlanOptions, err := readIgmpSnoopingVlan(idSplit[0], idSplit[1], sess, jnprSess)
+	igmpSnoopingVlanOptions, err := readIgmpSnoopingVlan(idSplit[0], idSplit[1], sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -383,15 +383,15 @@ func resourceIgmpSnoopingVlanImport(ctx context.Context, d *schema.ResourceData,
 	return result, nil
 }
 
-func checkIgmpSnoopingVlanExists(name, routingInstance string, sess *Session, jnprSess *NetconfObject) (bool, error) {
+func checkIgmpSnoopingVlanExists(name, routingInstance string, sess *Session, junSess *junosSession) (bool, error) {
 	var showConfig string
 	var err error
 	if routingInstance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
-			"protocols igmp-snooping vlan "+name+pipeDisplaySet, jnprSess)
+			"protocols igmp-snooping vlan "+name+pipeDisplaySet, junSess)
 	} else {
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
-			"protocols igmp-snooping vlan "+name+pipeDisplaySet, jnprSess)
+			"protocols igmp-snooping vlan "+name+pipeDisplaySet, junSess)
 	}
 	if err != nil {
 		return false, err
@@ -403,7 +403,7 @@ func checkIgmpSnoopingVlanExists(name, routingInstance string, sess *Session, jn
 	return true, nil
 }
 
-func setIgmpSnoopingVlan(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setIgmpSnoopingVlan(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := setLS
@@ -474,20 +474,20 @@ func setIgmpSnoopingVlan(d *schema.ResourceData, sess *Session, jnprSess *Netcon
 		configSet = append(configSet, setPrefix+"robust-count "+strconv.Itoa(v))
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func readIgmpSnoopingVlan(name, routingInstance string, sess *Session, jnprSess *NetconfObject,
+func readIgmpSnoopingVlan(name, routingInstance string, sess *Session, junSess *junosSession,
 ) (igmpSnoopingVlanOptions, error) {
 	var confRead igmpSnoopingVlanOptions
 	var showConfig string
 	var err error
 	if routingInstance == defaultW {
 		showConfig, err = sess.command(cmdShowConfig+
-			"protocols igmp-snooping vlan "+name+pipeDisplaySetRelative, jnprSess)
+			"protocols igmp-snooping vlan "+name+pipeDisplaySetRelative, junSess)
 	} else {
 		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
-			"protocols igmp-snooping vlan "+name+pipeDisplaySetRelative, jnprSess)
+			"protocols igmp-snooping vlan "+name+pipeDisplaySetRelative, junSess)
 	}
 	if err != nil {
 		return confRead, err
@@ -575,7 +575,7 @@ func readIgmpSnoopingVlan(name, routingInstance string, sess *Session, jnprSess 
 	return confRead, nil
 }
 
-func delIgmpSnoopingVlan(name, routingInstance string, sess *Session, jnprSess *NetconfObject) error {
+func delIgmpSnoopingVlan(name, routingInstance string, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 
 	if routingInstance == defaultW {
@@ -584,7 +584,7 @@ func delIgmpSnoopingVlan(name, routingInstance string, sess *Session, jnprSess *
 		configSet = append(configSet, delRoutingInstances+routingInstance+" protocols igmp-snooping vlan "+name)
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func fillIgmpSnoopingVlanData(d *schema.ResourceData, igmpSnoopingVlanOptions igmpSnoopingVlanOptions) {

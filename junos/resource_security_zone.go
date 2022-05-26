@@ -250,44 +250,44 @@ func resourceSecurityZoneCreate(ctx context.Context, d *schema.ResourceData, m i
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if !checkCompatibilitySecurity(jnprSess) {
+	defer sess.closeSession(junSess)
+	if !checkCompatibilitySecurity(junSess) {
 		return diag.FromErr(fmt.Errorf("security zone not compatible with Junos device %s",
-			jnprSess.SystemInformation.HardwareModel))
+			junSess.SystemInformation.HardwareModel))
 	}
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	securityZoneExists, err := checkSecurityZonesExists(d.Get("name").(string), sess, jnprSess)
+	securityZoneExists, err := checkSecurityZonesExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityZoneExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("security zone %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setSecurityZone(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSecurityZone(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_security_zone", jnprSess)
+	warns, err := sess.commitConf("create resource junos_security_zone", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	securityZoneExists, err = checkSecurityZonesExists(d.Get("name").(string), sess, jnprSess)
+	securityZoneExists, err = checkSecurityZonesExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -298,24 +298,24 @@ func resourceSecurityZoneCreate(ctx context.Context, d *schema.ResourceData, m i
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityZoneReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceSecurityZoneReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceSecurityZoneRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 
-	return resourceSecurityZoneReadWJnprSess(d, sess, jnprSess)
+	return resourceSecurityZoneReadWJunSess(d, sess, junSess)
 }
 
-func resourceSecurityZoneReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
+func resourceSecurityZoneReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	zoneOptions, err := readSecurityZone(d.Get("name").(string), sess, jnprSess)
+	zoneOptions, err := readSecurityZone(d.Get("name").(string), sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -369,38 +369,38 @@ func resourceSecurityZoneUpdate(ctx context.Context, d *schema.ResourceData, m i
 
 		return diagWarns
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := delSecurityZoneOpts(
 		d.Get("name").(string),
 		addressBookConfiguredSingly,
-		sess, jnprSess,
+		sess, junSess,
 	); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurityZone(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSecurityZone(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_security_zone", jnprSess)
+	warns, err := sess.commitConf("update resource junos_security_zone", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityZoneReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceSecurityZoneReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceSecurityZoneDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -412,24 +412,24 @@ func resourceSecurityZoneDelete(ctx context.Context, d *schema.ResourceData, m i
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityZone(d.Get("name").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delSecurityZone(d.Get("name").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_security_zone", jnprSess)
+	warns, err := sess.commitConf("delete resource junos_security_zone", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -440,20 +440,20 @@ func resourceSecurityZoneDelete(ctx context.Context, d *schema.ResourceData, m i
 func resourceSecurityZoneImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	securityZoneExists, err := checkSecurityZonesExists(d.Id(), sess, jnprSess)
+	securityZoneExists, err := checkSecurityZonesExists(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !securityZoneExists {
 		return nil, fmt.Errorf("don't find zone with id '%v' (id must be <name>)", d.Id())
 	}
-	zoneOptions, err := readSecurityZone(d.Id(), sess, jnprSess)
+	zoneOptions, err := readSecurityZone(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -464,8 +464,8 @@ func resourceSecurityZoneImport(ctx context.Context, d *schema.ResourceData, m i
 	return result, nil
 }
 
-func checkSecurityZonesExists(zone string, sess *Session, jnprSess *NetconfObject) (bool, error) {
-	showConfig, err := sess.command(cmdShowConfig+"security zones security-zone "+zone+pipeDisplaySet, jnprSess)
+func checkSecurityZonesExists(zone string, sess *Session, junSess *junosSession) (bool, error) {
+	showConfig, err := sess.command(cmdShowConfig+"security zones security-zone "+zone+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -476,7 +476,7 @@ func checkSecurityZonesExists(zone string, sess *Session, jnprSess *NetconfObjec
 	return true, nil
 }
 
-func setSecurityZone(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setSecurityZone(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security zones security-zone " + d.Get("name").(string)
@@ -597,14 +597,14 @@ func setSecurityZone(d *schema.ResourceData, sess *Session, jnprSess *NetconfObj
 		configSet = append(configSet, setPrefix+" tcp-rst")
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func readSecurityZone(zone string, sess *Session, jnprSess *NetconfObject) (zoneOptions, error) {
+func readSecurityZone(zone string, sess *Session, junSess *junosSession) (zoneOptions, error) {
 	var confRead zoneOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security zones security-zone "+zone+pipeDisplaySetRelative, jnprSess)
+		"security zones security-zone "+zone+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -733,7 +733,7 @@ func readSecurityZone(zone string, sess *Session, jnprSess *NetconfObject) (zone
 	return confRead, nil
 }
 
-func delSecurityZoneOpts(zone string, addressBookSingly bool, sess *Session, jnprSess *NetconfObject) error {
+func delSecurityZoneOpts(zone string, addressBookSingly bool, sess *Session, junSess *junosSession) error {
 	listLinesToDelete := []string{
 		"advance-policy-based-routing-profile",
 		"description",
@@ -753,14 +753,14 @@ func delSecurityZoneOpts(zone string, addressBookSingly bool, sess *Session, jnp
 		configSet = append(configSet, delPrefix+line)
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func delSecurityZone(zone string, sess *Session, jnprSess *NetconfObject) error {
+func delSecurityZone(zone string, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security zones security-zone "+zone)
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func fillSecurityZoneData(d *schema.ResourceData, zoneOptions zoneOptions) {

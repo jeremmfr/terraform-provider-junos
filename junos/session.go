@@ -35,7 +35,7 @@ type Session struct {
 	junosSSHCiphers        []string
 }
 
-func (sess *Session) startNewSession(ctx context.Context) (*NetconfObject, error) {
+func (sess *Session) startNewSession(ctx context.Context) (*junosSession, error) {
 	var auth netconfAuthMethod
 	auth.Username = sess.junosUserName
 	auth.Ciphers = sess.junosSSHCiphers
@@ -55,20 +55,20 @@ func (sess *Session) startNewSession(ctx context.Context) (*NetconfObject, error
 		auth.Password = sess.junosPassword
 	}
 	auth.Timeout = sess.junosSSHTimeoutToEstab
-	jnpr, err := netconfNewSession(ctx, net.JoinHostPort(sess.junosIP, strconv.Itoa(sess.junosPort)), &auth)
+	junSess, err := netconfNewSession(ctx, net.JoinHostPort(sess.junosIP, strconv.Itoa(sess.junosPort)), &auth)
 	if err != nil {
 		return nil, err
 	}
-	if jnpr.SystemInformation.HardwareModel == "" {
-		return jnpr, fmt.Errorf("can't read model of device with <get-system-information/> netconf command")
+	if junSess.SystemInformation.HardwareModel == "" {
+		return junSess, fmt.Errorf("can't read model of device with <get-system-information/> netconf command")
 	}
 	sess.logFile("[startNewSession] started")
 
-	return jnpr, nil
+	return junSess, nil
 }
 
-func (sess *Session) closeSession(jnpr *NetconfObject) {
-	err := jnpr.close(sess.junosSleepSSHClosed)
+func (sess *Session) closeSession(junSess *junosSession) {
+	err := junSess.close(sess.junosSleepSSHClosed)
 	if err != nil {
 		sess.logFile(fmt.Sprintf("[closeSession] err: %q", err))
 	} else {
@@ -76,8 +76,8 @@ func (sess *Session) closeSession(jnpr *NetconfObject) {
 	}
 }
 
-func (sess *Session) command(cmd string, jnpr *NetconfObject) (string, error) {
-	read, err := jnpr.netconfCommand(cmd)
+func (sess *Session) command(cmd string, junSess *junosSession) (string, error) {
+	read, err := junSess.netconfCommand(cmd)
 	sess.logFile(fmt.Sprintf("[command] cmd: %q", cmd))
 	sess.logFile(fmt.Sprintf("[command] read: %q", read))
 	sleepShort(sess.junosSleepShort)
@@ -90,8 +90,8 @@ func (sess *Session) command(cmd string, jnpr *NetconfObject) (string, error) {
 	return read, nil
 }
 
-func (sess *Session) commandXML(cmd string, jnpr *NetconfObject) (string, error) {
-	read, err := jnpr.netconfCommandXML(cmd)
+func (sess *Session) commandXML(cmd string, junSess *junosSession) (string, error) {
+	read, err := junSess.netconfCommandXML(cmd)
 	sess.logFile(fmt.Sprintf("[commandXML] cmd: %q", cmd))
 	sess.logFile(fmt.Sprintf("[commandXML] read: %q", read))
 	sleepShort(sess.junosSleepShort)
@@ -104,9 +104,9 @@ func (sess *Session) commandXML(cmd string, jnpr *NetconfObject) (string, error)
 	return read, nil
 }
 
-func (sess *Session) configSet(cmd []string, jnpr *NetconfObject) error {
-	if jnpr != nil {
-		message, err := jnpr.netconfConfigSet(cmd)
+func (sess *Session) configSet(cmd []string, junSess *junosSession) error {
+	if junSess != nil {
+		message, err := junSess.netconfConfigSet(cmd)
 		sleepShort(sess.junosSleepShort)
 		sess.logFile(fmt.Sprintf("[configSet] cmd: %q", cmd))
 		sess.logFile(fmt.Sprintf("[configSet] message: %q", message))
@@ -146,9 +146,9 @@ func (sess *Session) appendFakeCreateSetFile(lines []string) error {
 	return nil
 }
 
-func (sess *Session) commitConf(logMessage string, jnpr *NetconfObject) (_warnings []error, _err error) {
+func (sess *Session) commitConf(logMessage string, junSess *junosSession) (_warnings []error, _err error) {
 	sess.logFile(fmt.Sprintf("[commitConf] commit %q", logMessage))
-	warns, err := jnpr.netconfCommit(logMessage)
+	warns, err := junSess.netconfCommit(logMessage)
 	sleepShort(sess.junosSleepShort)
 	if len(warns) > 0 {
 		for _, w := range warns {
@@ -164,7 +164,7 @@ func (sess *Session) commitConf(logMessage string, jnpr *NetconfObject) (_warnin
 	return warns, nil
 }
 
-func (sess *Session) configLock(ctx context.Context, jnpr *NetconfObject) error {
+func (sess *Session) configLock(ctx context.Context, junSess *junosSession) error {
 	for {
 		select {
 		case <-ctx.Done():
@@ -172,7 +172,7 @@ func (sess *Session) configLock(ctx context.Context, jnpr *NetconfObject) error 
 
 			return fmt.Errorf("candidate configuration lock attempt aborted")
 		default:
-			if jnpr.netconfConfigLock() {
+			if junSess.netconfConfigLock() {
 				sess.logFile("[configLock] locked")
 				sleepShort(sess.junosSleepShort)
 
@@ -184,12 +184,12 @@ func (sess *Session) configLock(ctx context.Context, jnpr *NetconfObject) error 
 	}
 }
 
-func (sess *Session) configClear(jnpr *NetconfObject) (errs []error) {
-	errs = append(errs, jnpr.netconfConfigClear()...)
+func (sess *Session) configClear(junSess *junosSession) (errs []error) {
+	errs = append(errs, junSess.netconfConfigClear()...)
 	sleepShort(sess.junosSleepShort)
 	sess.logFile("[configClear] config clear")
 
-	errs = append(errs, jnpr.netconfConfigUnlock()...)
+	errs = append(errs, junSess.netconfConfigUnlock()...)
 	sleepShort(sess.junosSleepShort)
 	sess.logFile("[configClear] config unlock")
 

@@ -638,46 +638,46 @@ func resourceForwardingoptionsSamplingInstanceCreate(ctx context.Context, d *sch
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	fwdoptsSamplingInstanceExists, err := checkForwardingoptionsSamplingInstanceExists(
 		d.Get("name").(string),
-		sess, jnprSess)
+		sess, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if fwdoptsSamplingInstanceExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("forwarding-options sampling instance %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setForwardingoptionsSamplingInstance(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setForwardingoptionsSamplingInstance(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	warns, err := sess.commitConf("create resource junos_forwardingoptions_sampling_instance", jnprSess)
+	warns, err := sess.commitConf("create resource junos_forwardingoptions_sampling_instance", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	fwdoptsSamplingInstanceExists, err = checkForwardingoptionsSamplingInstanceExists(
 		d.Get("name").(string),
-		sess, jnprSess)
+		sess, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -688,26 +688,26 @@ func resourceForwardingoptionsSamplingInstanceCreate(ctx context.Context, d *sch
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceForwardingoptionsSamplingInstanceReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceForwardingoptionsSamplingInstanceReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceForwardingoptionsSamplingInstanceRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 
-	return resourceForwardingoptionsSamplingInstanceReadWJnprSess(d, sess, jnprSess)
+	return resourceForwardingoptionsSamplingInstanceReadWJunSess(d, sess, junSess)
 }
 
-func resourceForwardingoptionsSamplingInstanceReadWJnprSess(
-	d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
+func resourceForwardingoptionsSamplingInstanceReadWJunSess(
+	d *schema.ResourceData, sess *Session, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	samplingInstanceOptions, err := readForwardingoptionsSamplingInstance(d.Get("name").(string), sess, jnprSess)
+	samplingInstanceOptions, err := readForwardingoptionsSamplingInstance(d.Get("name").(string), sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -736,36 +736,36 @@ func resourceForwardingoptionsSamplingInstanceUpdate(ctx context.Context, d *sch
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delForwardingoptionsSamplingInstance(d.Get("name").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delForwardingoptionsSamplingInstance(d.Get("name").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setForwardingoptionsSamplingInstance(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setForwardingoptionsSamplingInstance(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
-	warns, err := sess.commitConf("update resource junos_forwardingoptions_sampling_instance", jnprSess)
+	warns, err := sess.commitConf("update resource junos_forwardingoptions_sampling_instance", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceForwardingoptionsSamplingInstanceReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceForwardingoptionsSamplingInstanceReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceForwardingoptionsSamplingInstanceDelete(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -778,24 +778,24 @@ func resourceForwardingoptionsSamplingInstanceDelete(ctx context.Context, d *sch
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delForwardingoptionsSamplingInstance(d.Get("name").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delForwardingoptionsSamplingInstance(d.Get("name").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_forwardingoptions_sampling_instance", jnprSess)
+	warns, err := sess.commitConf("delete resource junos_forwardingoptions_sampling_instance", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -806,21 +806,21 @@ func resourceForwardingoptionsSamplingInstanceDelete(ctx context.Context, d *sch
 func resourceForwardingoptionsSamplingInstanceImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 
-	fwdoptsSamplingInstanceExists, err := checkForwardingoptionsSamplingInstanceExists(d.Id(), sess, jnprSess)
+	fwdoptsSamplingInstanceExists, err := checkForwardingoptionsSamplingInstanceExists(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !fwdoptsSamplingInstanceExists {
 		return nil, fmt.Errorf("don't find forwarding-options sampling instance with id '%v' (id must be <name>)", d.Id())
 	}
-	samplingInstanceOptions, err := readForwardingoptionsSamplingInstance(d.Id(), sess, jnprSess)
+	samplingInstanceOptions, err := readForwardingoptionsSamplingInstance(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -831,10 +831,10 @@ func resourceForwardingoptionsSamplingInstanceImport(ctx context.Context, d *sch
 	return result, nil
 }
 
-func checkForwardingoptionsSamplingInstanceExists(name string, sess *Session, jnprSess *NetconfObject,
+func checkForwardingoptionsSamplingInstanceExists(name string, sess *Session, junSess *junosSession,
 ) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+
-		"forwarding-options sampling instance \""+name+"\""+pipeDisplaySet, jnprSess)
+		"forwarding-options sampling instance \""+name+"\""+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -845,7 +845,7 @@ func checkForwardingoptionsSamplingInstanceExists(name string, sess *Session, jn
 	return true, nil
 }
 
-func setForwardingoptionsSamplingInstance(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setForwardingoptionsSamplingInstance(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set forwarding-options sampling instance \"" + d.Get("name").(string) + "\" "
@@ -854,7 +854,7 @@ func setForwardingoptionsSamplingInstance(d *schema.ResourceData, sess *Session,
 	}
 	for _, v := range d.Get("family_inet_input").([]interface{}) {
 		if err := setForwardingoptionsSamplingInstanceInput(setPrefix,
-			v.(map[string]interface{}), inetW, sess, jnprSess); err != nil {
+			v.(map[string]interface{}), inetW, sess, junSess); err != nil {
 			return err
 		}
 	}
@@ -863,13 +863,13 @@ func setForwardingoptionsSamplingInstance(d *schema.ResourceData, sess *Session,
 			return fmt.Errorf("family_inet_output block is empty")
 		}
 		if err := setForwardingoptionsSamplingInstanceOutput(setPrefix,
-			v.(map[string]interface{}), inetW, sess, jnprSess); err != nil {
+			v.(map[string]interface{}), inetW, sess, junSess); err != nil {
 			return err
 		}
 	}
 	for _, v := range d.Get("family_inet6_input").([]interface{}) {
 		if err := setForwardingoptionsSamplingInstanceInput(setPrefix,
-			v.(map[string]interface{}), inet6W, sess, jnprSess); err != nil {
+			v.(map[string]interface{}), inet6W, sess, junSess); err != nil {
 			return err
 		}
 	}
@@ -878,13 +878,13 @@ func setForwardingoptionsSamplingInstance(d *schema.ResourceData, sess *Session,
 			return fmt.Errorf("family_inet6_output block is empty")
 		}
 		if err := setForwardingoptionsSamplingInstanceOutput(setPrefix,
-			v.(map[string]interface{}), inet6W, sess, jnprSess); err != nil {
+			v.(map[string]interface{}), inet6W, sess, junSess); err != nil {
 			return err
 		}
 	}
 	for _, v := range d.Get("family_mpls_input").([]interface{}) {
 		if err := setForwardingoptionsSamplingInstanceInput(setPrefix,
-			v.(map[string]interface{}), mplsW, sess, jnprSess); err != nil {
+			v.(map[string]interface{}), mplsW, sess, junSess); err != nil {
 			return err
 		}
 	}
@@ -893,22 +893,22 @@ func setForwardingoptionsSamplingInstance(d *schema.ResourceData, sess *Session,
 			return fmt.Errorf("family_mpls_output block is empty")
 		}
 		if err := setForwardingoptionsSamplingInstanceOutput(setPrefix,
-			v.(map[string]interface{}), mplsW, sess, jnprSess); err != nil {
+			v.(map[string]interface{}), mplsW, sess, junSess); err != nil {
 			return err
 		}
 	}
 	for _, v := range d.Get("input").([]interface{}) {
 		if err := setForwardingoptionsSamplingInstanceInput(setPrefix,
-			v.(map[string]interface{}), "", sess, jnprSess); err != nil {
+			v.(map[string]interface{}), "", sess, junSess); err != nil {
 			return err
 		}
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func setForwardingoptionsSamplingInstanceInput(
-	setPrefix string, input map[string]interface{}, family string, sess *Session, jnprSess *NetconfObject,
+	setPrefix string, input map[string]interface{}, family string, sess *Session, junSess *junosSession,
 ) error {
 	configSet := make([]string, 0)
 	switch family {
@@ -946,11 +946,11 @@ func setForwardingoptionsSamplingInstanceInput(
 		}
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func setForwardingoptionsSamplingInstanceOutput(
-	setPrefix string, output map[string]interface{}, family string, sess *Session, jnprSess *NetconfObject,
+	setPrefix string, output map[string]interface{}, family string, sess *Session, junSess *junosSession,
 ) error {
 	configSet := make([]string, 0)
 	switch family {
@@ -1066,15 +1066,15 @@ func setForwardingoptionsSamplingInstanceOutput(
 		}
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func readForwardingoptionsSamplingInstance(name string, sess *Session, jnprSess *NetconfObject,
+func readForwardingoptionsSamplingInstance(name string, sess *Session, junSess *junosSession,
 ) (samplingInstanceOptions, error) {
 	var confRead samplingInstanceOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"forwarding-options sampling instance \""+name+"\""+pipeDisplaySetRelative, jnprSess)
+		"forwarding-options sampling instance \""+name+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -1375,10 +1375,10 @@ func readForwardingoptionsSamplingInstanceOutput(outputRead map[string]interface
 	return nil
 }
 
-func delForwardingoptionsSamplingInstance(samplingInstance string, sess *Session, jnprSess *NetconfObject) error {
+func delForwardingoptionsSamplingInstance(samplingInstance string, sess *Session, junSess *junosSession) error {
 	configSet := []string{"delete forwarding-options sampling instance \"" + samplingInstance + "\""}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func fillForwardingoptionsSamplingInstanceData(

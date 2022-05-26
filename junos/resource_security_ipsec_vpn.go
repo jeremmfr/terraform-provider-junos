@@ -157,34 +157,34 @@ func resourceIpsecVpnCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if !checkCompatibilitySecurity(jnprSess) {
+	defer sess.closeSession(junSess)
+	if !checkCompatibilitySecurity(junSess) {
 		return diag.FromErr(fmt.Errorf("security ipsec vpn not compatible with Junos device %s",
-			jnprSess.SystemInformation.HardwareModel))
+			junSess.SystemInformation.HardwareModel))
 	}
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	ipsecVpnExists, err := checkIpsecVpnExists(d.Get("name").(string), sess, jnprSess)
+	ipsecVpnExists, err := checkIpsecVpnExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if ipsecVpnExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("security ipsec vpn %v already exists", d.Get("name").(string)))...)
 	}
 	if d.Get("bind_interface_auto").(bool) {
-		newSt0, err := searchInterfaceSt0UnitToCreate(sess, jnprSess)
+		newSt0, err := searchInterfaceSt0UnitToCreate(sess, junSess)
 		if err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+			appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(fmt.Errorf("error to find new bind interface: %w", err))...)
 		}
@@ -193,19 +193,19 @@ func resourceIpsecVpnCreate(ctx context.Context, d *schema.ResourceData, m inter
 			panic(tfErr)
 		}
 	}
-	if err := setIpsecVpn(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setIpsecVpn(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_security_ipsec_vpn", jnprSess)
+	warns, err := sess.commitConf("create resource junos_security_ipsec_vpn", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	ipsecVpnExists, err = checkIpsecVpnExists(d.Get("name").(string), sess, jnprSess)
+	ipsecVpnExists, err = checkIpsecVpnExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -216,23 +216,23 @@ func resourceIpsecVpnCreate(ctx context.Context, d *schema.ResourceData, m inter
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceIpsecVpnReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceIpsecVpnReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceIpsecVpnRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 
-	return resourceIpsecVpnReadWJnprSess(d, sess, jnprSess)
+	return resourceIpsecVpnReadWJunSess(d, sess, junSess)
 }
 
-func resourceIpsecVpnReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceIpsecVpnReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession) diag.Diagnostics {
 	mutex.Lock()
-	ipsecVpnOptions, err := readIpsecVpn(d.Get("name").(string), sess, jnprSess)
+	ipsecVpnOptions, err := readIpsecVpn(d.Get("name").(string), sess, junSess)
 	mutex.Unlock()
 	// copy state vpn_monitor.0.source_interface_auto to struct
 	if len(ipsecVpnOptions.vpnMonitor) > 0 {
@@ -283,50 +283,50 @@ func resourceIpsecVpnUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 		return diagWarns
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := delIpsecVpnConf(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delIpsecVpnConf(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if d.HasChanges("bind_interface") && d.Get("bind_interface_auto").(bool) {
 		oldInt, _ := d.GetChange("bind_interface")
-		st0NC, st0Emtpy, _, err := checkInterfaceLogicalNCEmpty(oldInt.(string), sess, jnprSess)
+		st0NC, st0Emtpy, _, err := checkInterfaceLogicalNCEmpty(oldInt.(string), sess, junSess)
 		if err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+			appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if st0NC || st0Emtpy {
-			if err := sess.configSet([]string{"delete interfaces " + oldInt.(string)}, jnprSess); err != nil {
-				appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+			if err := sess.configSet([]string{"delete interfaces " + oldInt.(string)}, junSess); err != nil {
+				appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 				return append(diagWarns, diag.FromErr(err)...)
 			}
 		}
 	}
-	if err := setIpsecVpn(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setIpsecVpn(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_security_ipsec_vpn", jnprSess)
+	warns, err := sess.commitConf("update resource junos_security_ipsec_vpn", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceIpsecVpnReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceIpsecVpnReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceIpsecVpnDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -338,24 +338,24 @@ func resourceIpsecVpnDelete(ctx context.Context, d *schema.ResourceData, m inter
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delIpsecVpn(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delIpsecVpn(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_security_ipsec_vpn", jnprSess)
+	warns, err := sess.commitConf("delete resource junos_security_ipsec_vpn", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -366,20 +366,20 @@ func resourceIpsecVpnDelete(ctx context.Context, d *schema.ResourceData, m inter
 func resourceIpsecVpnImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	ipsecVpnExists, err := checkIpsecVpnExists(d.Id(), sess, jnprSess)
+	ipsecVpnExists, err := checkIpsecVpnExists(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !ipsecVpnExists {
 		return nil, fmt.Errorf("don't find security ipsec vpn with id '%v' (id must be <name>)", d.Id())
 	}
-	ipsecVpnOptions, err := readIpsecVpn(d.Id(), sess, jnprSess)
+	ipsecVpnOptions, err := readIpsecVpn(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -389,8 +389,8 @@ func resourceIpsecVpnImport(ctx context.Context, d *schema.ResourceData, m inter
 	return result, nil
 }
 
-func checkIpsecVpnExists(ipsecVpn string, sess *Session, jnprSess *NetconfObject) (bool, error) {
-	showConfig, err := sess.command(cmdShowConfig+"security ipsec vpn "+ipsecVpn+pipeDisplaySet, jnprSess)
+func checkIpsecVpnExists(ipsecVpn string, sess *Session, junSess *junosSession) (bool, error) {
+	showConfig, err := sess.command(cmdShowConfig+"security ipsec vpn "+ipsecVpn+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -401,7 +401,7 @@ func checkIpsecVpnExists(ipsecVpn string, sess *Session, jnprSess *NetconfObject
 	return true, nil
 }
 
-func setIpsecVpn(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setIpsecVpn(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	if d.Get("bind_interface").(string) != "" {
@@ -463,14 +463,14 @@ func setIpsecVpn(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject)
 		}
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func readIpsecVpn(ipsecVpn string, sess *Session, jnprSess *NetconfObject) (ipsecVpnOptions, error) {
+func readIpsecVpn(ipsecVpn string, sess *Session, junSess *junosSession) (ipsecVpnOptions, error) {
 	var confRead ipsecVpnOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security ipsec vpn "+ipsecVpn+pipeDisplaySetRelative, jnprSess)
+		"security ipsec vpn "+ipsecVpn+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -554,21 +554,21 @@ func readIpsecVpn(ipsecVpn string, sess *Session, jnprSess *NetconfObject) (ipse
 	return confRead, nil
 }
 
-func delIpsecVpnConf(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func delIpsecVpnConf(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ipsec vpn "+d.Get("name").(string))
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func delIpsecVpn(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func delIpsecVpn(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ipsec vpn "+d.Get("name").(string))
 	if d.Get("bind_interface_auto").(bool) {
-		if jnprSess == nil {
+		if junSess == nil {
 			configSet = append(configSet, "delete interfaces "+d.Get("bind_interface").(string))
 		} else {
-			st0NC, st0Emtpy, _, err := checkInterfaceLogicalNCEmpty(d.Get("bind_interface").(string), sess, jnprSess)
+			st0NC, st0Emtpy, _, err := checkInterfaceLogicalNCEmpty(d.Get("bind_interface").(string), sess, junSess)
 			if err != nil {
 				return err
 			}
@@ -578,7 +578,7 @@ func delIpsecVpn(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject)
 		}
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func fillIpsecVpnData(d *schema.ResourceData, ipsecVpnOptions ipsecVpnOptions) {

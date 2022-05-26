@@ -141,46 +141,46 @@ func resourceServicesFlowMonitoringVIPFixTemplateCreate(ctx context.Context, d *
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	flowMonitoringVIPFixTemplateExists, err := checkServicesFlowMonitoringVIPFixTemplateExists(
 		d.Get("name").(string),
-		sess, jnprSess)
+		sess, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if flowMonitoringVIPFixTemplateExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("services flow-monitoring version-ipfix template "+
 				" %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setServicesFlowMonitoringVIPFixTemplate(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setServicesFlowMonitoringVIPFixTemplate(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_services_flowmonitoring_vipfix_template", jnprSess)
+	warns, err := sess.commitConf("create resource junos_services_flowmonitoring_vipfix_template", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	flowMonitoringVIPFixTemplateExists, err = checkServicesFlowMonitoringVIPFixTemplateExists(
 		d.Get("name").(string),
-		sess, jnprSess)
+		sess, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -191,28 +191,28 @@ func resourceServicesFlowMonitoringVIPFixTemplateCreate(ctx context.Context, d *
 			"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceServicesFlowMonitoringVIPFixTemplateReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceServicesFlowMonitoringVIPFixTemplateReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceServicesFlowMonitoringVIPFixTemplateRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 
-	return resourceServicesFlowMonitoringVIPFixTemplateReadWJnprSess(d, sess, jnprSess)
+	return resourceServicesFlowMonitoringVIPFixTemplateReadWJunSess(d, sess, junSess)
 }
 
-func resourceServicesFlowMonitoringVIPFixTemplateReadWJnprSess(
-	d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
+func resourceServicesFlowMonitoringVIPFixTemplateReadWJunSess(
+	d *schema.ResourceData, sess *Session, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
 	flowMonitoringVIPFixTemplateOptions, err := readServicesFlowMonitoringVIPFixTemplate(
 		d.Get("name").(string),
-		sess, jnprSess)
+		sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -241,35 +241,35 @@ func resourceServicesFlowMonitoringVIPFixTemplateUpdate(ctx context.Context, d *
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delServicesFlowMonitoringVIPFixTemplate(d.Get("name").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delServicesFlowMonitoringVIPFixTemplate(d.Get("name").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setServicesFlowMonitoringVIPFixTemplate(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setServicesFlowMonitoringVIPFixTemplate(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_services_flowmonitoring_vipfix_template", jnprSess)
+	warns, err := sess.commitConf("update resource junos_services_flowmonitoring_vipfix_template", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceServicesFlowMonitoringVIPFixTemplateReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceServicesFlowMonitoringVIPFixTemplateReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceServicesFlowMonitoringVIPFixTemplateDelete(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -282,24 +282,24 @@ func resourceServicesFlowMonitoringVIPFixTemplateDelete(ctx context.Context, d *
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delServicesFlowMonitoringVIPFixTemplate(d.Get("name").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delServicesFlowMonitoringVIPFixTemplate(d.Get("name").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_services_flowmonitoring_vipfix_template", jnprSess)
+	warns, err := sess.commitConf("delete resource junos_services_flowmonitoring_vipfix_template", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -310,13 +310,13 @@ func resourceServicesFlowMonitoringVIPFixTemplateDelete(ctx context.Context, d *
 func resourceServicesFlowMonitoringVIPFixTemplateImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	flowMonitoringVIPFixTemplateExists, err := checkServicesFlowMonitoringVIPFixTemplateExists(d.Id(), sess, jnprSess)
+	flowMonitoringVIPFixTemplateExists, err := checkServicesFlowMonitoringVIPFixTemplateExists(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -324,7 +324,7 @@ func resourceServicesFlowMonitoringVIPFixTemplateImport(ctx context.Context, d *
 		return nil, fmt.Errorf("don't find services flow-monitoring version-ipfix template with "+
 			"id '%v' (id must be <name>)", d.Id())
 	}
-	flowMonitoringVIPFixTemplateOptions, err := readServicesFlowMonitoringVIPFixTemplate(d.Id(), sess, jnprSess)
+	flowMonitoringVIPFixTemplateOptions, err := readServicesFlowMonitoringVIPFixTemplate(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -335,10 +335,10 @@ func resourceServicesFlowMonitoringVIPFixTemplateImport(ctx context.Context, d *
 	return result, nil
 }
 
-func checkServicesFlowMonitoringVIPFixTemplateExists(template string, sess *Session, jnprSess *NetconfObject,
+func checkServicesFlowMonitoringVIPFixTemplateExists(template string, sess *Session, junSess *junosSession,
 ) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+
-		"services flow-monitoring version-ipfix template \""+template+"\""+pipeDisplaySet, jnprSess)
+		"services flow-monitoring version-ipfix template \""+template+"\""+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -349,7 +349,7 @@ func checkServicesFlowMonitoringVIPFixTemplateExists(template string, sess *Sess
 	return true, nil
 }
 
-func setServicesFlowMonitoringVIPFixTemplate(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setServicesFlowMonitoringVIPFixTemplate(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set services flow-monitoring version-ipfix template \"" + d.Get("name").(string) + "\" "
@@ -406,17 +406,17 @@ func setServicesFlowMonitoringVIPFixTemplate(d *schema.ResourceData, sess *Sessi
 		configSet = append(configSet, setPrefix+"tunnel-observation ipv6")
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func readServicesFlowMonitoringVIPFixTemplate(template string, sess *Session, jnprSess *NetconfObject,
+func readServicesFlowMonitoringVIPFixTemplate(template string, sess *Session, junSess *junosSession,
 ) (flowMonitoringVIPFixTemplateOptions, error) {
 	var confRead flowMonitoringVIPFixTemplateOptions
 	// setup default value
 	confRead.observationDomainID = -1
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"services flow-monitoring version-ipfix template \""+template+"\""+pipeDisplaySetRelative, jnprSess)
+		"services flow-monitoring version-ipfix template \""+template+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -511,10 +511,10 @@ func readServicesFlowMonitoringVIPFixTemplate(template string, sess *Session, jn
 	return confRead, nil
 }
 
-func delServicesFlowMonitoringVIPFixTemplate(template string, sess *Session, jnprSess *NetconfObject) error {
+func delServicesFlowMonitoringVIPFixTemplate(template string, sess *Session, junSess *junosSession) error {
 	configSet := []string{"delete services flow-monitoring version-ipfix template \"" + template + "\""}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func fillServicesFlowMonitoringVIPFixTemplateData(

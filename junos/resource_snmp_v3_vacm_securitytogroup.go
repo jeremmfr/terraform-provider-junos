@@ -57,48 +57,48 @@ func resourceSnmpV3VacmSecurityToGroupCreate(ctx context.Context, d *schema.Reso
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	snmpV3VacmSecurityToGroupExists, err := checkSnmpV3VacmSecurityToGroupExists(
 		d.Get("model").(string),
 		d.Get("name").(string),
-		sess, jnprSess)
+		sess, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if snmpV3VacmSecurityToGroupExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf(
 			"snmp v3 vacm security-to-group security-model %v security-name %v already exists",
 			d.Get("model").(string), d.Get("name").(string)))...)
 	}
 
-	if err := setSnmpV3VacmSecurityToGroup(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSnmpV3VacmSecurityToGroup(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_snmp_v3_vacm_securitytogroup", jnprSess)
+	warns, err := sess.commitConf("create resource junos_snmp_v3_vacm_securitytogroup", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	snmpV3VacmSecurityToGroupExists, err = checkSnmpV3VacmSecurityToGroupExists(
 		d.Get("model").(string),
 		d.Get("name").(string),
-		sess, jnprSess)
+		sess, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -110,28 +110,28 @@ func resourceSnmpV3VacmSecurityToGroupCreate(ctx context.Context, d *schema.Reso
 				"=> check your config", d.Get("model").(string), d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSnmpV3VacmSecurityToGroupReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceSnmpV3VacmSecurityToGroupReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceSnmpV3VacmSecurityToGroupRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 
-	return resourceSnmpV3VacmSecurityToGroupReadWJnprSess(d, sess, jnprSess)
+	return resourceSnmpV3VacmSecurityToGroupReadWJunSess(d, sess, junSess)
 }
 
-func resourceSnmpV3VacmSecurityToGroupReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
+func resourceSnmpV3VacmSecurityToGroupReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
 	snmpV3VacmSecurityToGroupOptions, err := readSnmpV3VacmSecurityToGroup(
 		d.Get("model").(string),
 		d.Get("name").(string),
-		sess, jnprSess)
+		sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -160,35 +160,35 @@ func resourceSnmpV3VacmSecurityToGroupUpdate(ctx context.Context, d *schema.Reso
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSnmpV3VacmSecurityToGroup(d.Get("model").(string), d.Get("name").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delSnmpV3VacmSecurityToGroup(d.Get("model").(string), d.Get("name").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSnmpV3VacmSecurityToGroup(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSnmpV3VacmSecurityToGroup(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_snmp_v3_vacm_securitytogroup", jnprSess)
+	warns, err := sess.commitConf("update resource junos_snmp_v3_vacm_securitytogroup", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSnmpV3VacmSecurityToGroupReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceSnmpV3VacmSecurityToGroupReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceSnmpV3VacmSecurityToGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{},
@@ -201,24 +201,24 @@ func resourceSnmpV3VacmSecurityToGroupDelete(ctx context.Context, d *schema.Reso
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSnmpV3VacmSecurityToGroup(d.Get("model").(string), d.Get("name").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delSnmpV3VacmSecurityToGroup(d.Get("model").(string), d.Get("name").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_snmp_v3_vacm_securitytogroup", jnprSess)
+	warns, err := sess.commitConf("delete resource junos_snmp_v3_vacm_securitytogroup", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -229,11 +229,11 @@ func resourceSnmpV3VacmSecurityToGroupDelete(ctx context.Context, d *schema.Reso
 func resourceSnmpV3VacmSecurityToGroupImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 	idSplit := strings.Split(d.Id(), idSeparator)
 	if len(idSplit) != 2 {
@@ -244,7 +244,7 @@ func resourceSnmpV3VacmSecurityToGroupImport(ctx context.Context, d *schema.Reso
 		return nil, fmt.Errorf("can't find snmp v3 vacm security-to-group "+
 			"with id '%v' (id must be <model>%s<name>)", d.Id(), idSeparator)
 	}
-	snmpV3VacmSecurityToGroupExists, err := checkSnmpV3VacmSecurityToGroupExists(idSplit[0], idSplit[1], sess, jnprSess)
+	snmpV3VacmSecurityToGroupExists, err := checkSnmpV3VacmSecurityToGroupExists(idSplit[0], idSplit[1], sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -252,7 +252,7 @@ func resourceSnmpV3VacmSecurityToGroupImport(ctx context.Context, d *schema.Reso
 		return nil, fmt.Errorf("don't find snmp v3 vacm security-to-group "+
 			"with id '%v' (id must be <model>%s<name>)", d.Id(), idSeparator)
 	}
-	snmpV3VacmSecurityToGroupOptions, err := readSnmpV3VacmSecurityToGroup(idSplit[0], idSplit[1], sess, jnprSess)
+	snmpV3VacmSecurityToGroupOptions, err := readSnmpV3VacmSecurityToGroup(idSplit[0], idSplit[1], sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -263,9 +263,9 @@ func resourceSnmpV3VacmSecurityToGroupImport(ctx context.Context, d *schema.Reso
 	return result, nil
 }
 
-func checkSnmpV3VacmSecurityToGroupExists(model, name string, sess *Session, jnprSess *NetconfObject) (bool, error) {
+func checkSnmpV3VacmSecurityToGroupExists(model, name string, sess *Session, junSess *junosSession) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+"snmp v3 vacm security-to-group "+
-		"security-model "+model+" security-name \""+name+"\""+pipeDisplaySet, jnprSess)
+		"security-model "+model+" security-name \""+name+"\""+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -276,7 +276,7 @@ func checkSnmpV3VacmSecurityToGroupExists(model, name string, sess *Session, jnp
 	return true, nil
 }
 
-func setSnmpV3VacmSecurityToGroup(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setSnmpV3VacmSecurityToGroup(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 1)
 	if group := d.Get("group").(string); group != "" {
 		configSet[0] = "set snmp v3 vacm security-to-group" +
@@ -287,15 +287,15 @@ func setSnmpV3VacmSecurityToGroup(d *schema.ResourceData, sess *Session, jnprSes
 		return fmt.Errorf("group need to be set")
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func readSnmpV3VacmSecurityToGroup(model, name string, sess *Session, jnprSess *NetconfObject,
+func readSnmpV3VacmSecurityToGroup(model, name string, sess *Session, junSess *junosSession,
 ) (snmpV3VacmSecurityToGroupOptions, error) {
 	var confRead snmpV3VacmSecurityToGroupOptions
 
 	showConfig, err := sess.command(cmdShowConfig+"snmp v3 vacm security-to-group "+
-		"security-model "+model+" security-name \""+name+"\""+pipeDisplaySetRelative, jnprSess)
+		"security-model "+model+" security-name \""+name+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -318,11 +318,11 @@ func readSnmpV3VacmSecurityToGroup(model, name string, sess *Session, jnprSess *
 	return confRead, nil
 }
 
-func delSnmpV3VacmSecurityToGroup(model, name string, sess *Session, jnprSess *NetconfObject) error {
+func delSnmpV3VacmSecurityToGroup(model, name string, sess *Session, junSess *junosSession) error {
 	configSet := []string{"delete snmp v3 vacm security-to-group " +
 		"security-model " + model + " security-name \"" + name + "\""}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func fillSnmpV3VacmSecurityToGroupData(

@@ -142,45 +142,45 @@ func resourceSecurityNatDestinationCreate(ctx context.Context, d *schema.Resourc
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if !checkCompatibilitySecurity(jnprSess) {
+	defer sess.closeSession(junSess)
+	if !checkCompatibilitySecurity(junSess) {
 		return diag.FromErr(fmt.Errorf("security nat destination not compatible with Junos device %s",
-			jnprSess.SystemInformation.HardwareModel))
+			junSess.SystemInformation.HardwareModel))
 	}
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	securityNatDestinationExists, err := checkSecurityNatDestinationExists(d.Get("name").(string), sess, jnprSess)
+	securityNatDestinationExists, err := checkSecurityNatDestinationExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityNatDestinationExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("security nat destination %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setSecurityNatDestination(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSecurityNatDestination(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_security_nat_destination", jnprSess)
+	warns, err := sess.commitConf("create resource junos_security_nat_destination", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	securityNatDestinationExists, err = checkSecurityNatDestinationExists(d.Get("name").(string), sess, jnprSess)
+	securityNatDestinationExists, err = checkSecurityNatDestinationExists(d.Get("name").(string), sess, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -191,24 +191,24 @@ func resourceSecurityNatDestinationCreate(ctx context.Context, d *schema.Resourc
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityNatDestinationReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceSecurityNatDestinationReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceSecurityNatDestinationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 
-	return resourceSecurityNatDestinationReadWJnprSess(d, sess, jnprSess)
+	return resourceSecurityNatDestinationReadWJunSess(d, sess, junSess)
 }
 
-func resourceSecurityNatDestinationReadWJnprSess(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject,
+func resourceSecurityNatDestinationReadWJunSess(d *schema.ResourceData, sess *Session, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	natDestinationOptions, err := readSecurityNatDestination(d.Get("name").(string), sess, jnprSess)
+	natDestinationOptions, err := readSecurityNatDestination(d.Get("name").(string), sess, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -236,35 +236,35 @@ func resourceSecurityNatDestinationUpdate(ctx context.Context, d *schema.Resourc
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityNatDestination(d.Get("name").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delSecurityNatDestination(d.Get("name").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurityNatDestination(d, sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSecurityNatDestination(d, sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_security_nat_destination", jnprSess)
+	warns, err := sess.commitConf("update resource junos_security_nat_destination", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityNatDestinationReadWJnprSess(d, sess, jnprSess)...)
+	return append(diagWarns, resourceSecurityNatDestinationReadWJunSess(d, sess, junSess)...)
 }
 
 func resourceSecurityNatDestinationDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -276,24 +276,24 @@ func resourceSecurityNatDestinationDelete(ctx context.Context, d *schema.Resourc
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer sess.closeSession(junSess)
+	if err := sess.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityNatDestination(d.Get("name").(string), sess, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delSecurityNatDestination(d.Get("name").(string), sess, junSess); err != nil {
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_security_nat_destination", jnprSess)
+	warns, err := sess.commitConf("delete resource junos_security_nat_destination", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, sess.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -304,21 +304,21 @@ func resourceSecurityNatDestinationDelete(ctx context.Context, d *schema.Resourc
 func resourceSecurityNatDestinationImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
 	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := sess.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer sess.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 
-	securityNatDestinationExists, err := checkSecurityNatDestinationExists(d.Id(), sess, jnprSess)
+	securityNatDestinationExists, err := checkSecurityNatDestinationExists(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !securityNatDestinationExists {
 		return nil, fmt.Errorf("don't find nat destination with id '%v' (id must be <name>)", d.Id())
 	}
-	natDestinationOptions, err := readSecurityNatDestination(d.Id(), sess, jnprSess)
+	natDestinationOptions, err := readSecurityNatDestination(d.Id(), sess, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -329,9 +329,9 @@ func resourceSecurityNatDestinationImport(ctx context.Context, d *schema.Resourc
 	return result, nil
 }
 
-func checkSecurityNatDestinationExists(name string, sess *Session, jnprSess *NetconfObject) (bool, error) {
+func checkSecurityNatDestinationExists(name string, sess *Session, junSess *junosSession) (bool, error) {
 	showConfig, err := sess.command(cmdShowConfig+
-		"security nat destination rule-set "+name+pipeDisplaySet, jnprSess)
+		"security nat destination rule-set "+name+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -342,7 +342,7 @@ func checkSecurityNatDestinationExists(name string, sess *Session, jnprSess *Net
 	return true, nil
 }
 
-func setSecurityNatDestination(d *schema.ResourceData, sess *Session, jnprSess *NetconfObject) error {
+func setSecurityNatDestination(d *schema.ResourceData, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0)
 	regexpDestPort := regexp.MustCompile(`^\d+( to \d+)?$`)
 
@@ -410,14 +410,14 @@ func setSecurityNatDestination(d *schema.ResourceData, sess *Session, jnprSess *
 		configSet = append(configSet, setPrefix+" description \""+v+"\"")
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
-func readSecurityNatDestination(name string, sess *Session, jnprSess *NetconfObject) (natDestinationOptions, error) {
+func readSecurityNatDestination(name string, sess *Session, junSess *junosSession) (natDestinationOptions, error) {
 	var confRead natDestinationOptions
 
 	showConfig, err := sess.command(cmdShowConfig+
-		"security nat destination rule-set "+name+pipeDisplaySetRelative, jnprSess)
+		"security nat destination rule-set "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -504,11 +504,11 @@ func readSecurityNatDestination(name string, sess *Session, jnprSess *NetconfObj
 	return confRead, nil
 }
 
-func delSecurityNatDestination(natDestination string, sess *Session, jnprSess *NetconfObject) error {
+func delSecurityNatDestination(natDestination string, sess *Session, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security nat destination rule-set "+natDestination)
 
-	return sess.configSet(configSet, jnprSess)
+	return sess.configSet(configSet, junSess)
 }
 
 func fillSecurityNatDestinationData(d *schema.ResourceData, natDestinationOptions natDestinationOptions) {
