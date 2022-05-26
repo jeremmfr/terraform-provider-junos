@@ -4,6 +4,8 @@
 FEATURES:
 
 * add `junos_interface_logical_info` data source (Fixes #393)
+* add `junos_rip_group` resource
+* add `junos_rip_neighbor` resource
 
 ENHANCEMENTS:
 
