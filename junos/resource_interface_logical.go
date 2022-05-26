@@ -15,6 +15,7 @@ import (
 )
 
 type interfaceLogicalOptions struct {
+	disable                  bool
 	vlanID                   int
 	description              string
 	routingInstance          string
@@ -56,6 +57,10 @@ func resourceInterfaceLogical() *schema.Resource {
 			},
 			"description": {
 				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"disable": {
+				Type:     schema.TypeBool,
 				Optional: true,
 			},
 			"family_inet": {
@@ -771,7 +776,7 @@ func resourceInterfaceLogicalCreate(ctx context.Context, d *schema.ResourceData,
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if ncInt {
-		return append(diagWarns, diag.FromErr(fmt.Errorf("interface %v always disable after commit "+
+		return append(diagWarns, diag.FromErr(fmt.Errorf("interface %v always disable (NC) after commit "+
 			"=> check your config", d.Get("name").(string)))...)
 	}
 	if emptyInt && !setInt {
@@ -1014,7 +1019,7 @@ func resourceInterfaceLogicalImport(ctx context.Context, d *schema.ResourceData,
 		return nil, err
 	}
 	if ncInt {
-		return nil, fmt.Errorf("interface '%v' is disabled, import is not possible", d.Id())
+		return nil, fmt.Errorf("interface '%v' is disabled (NC), import is not possible", d.Id())
 	}
 	if emptyInt && !setInt {
 		intExists, err := checkInterfaceExists(d.Id(), m, jnprSess)
@@ -1108,6 +1113,13 @@ func setInterfaceLogical(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 	configSet = append(configSet, setPrefix)
 	if d.Get("description").(string) != "" {
 		configSet = append(configSet, setPrefix+"description \""+d.Get("description").(string)+"\"")
+	}
+	if d.Get("disable").(bool) {
+		if d.Get("description").(string) == "NC" {
+			return fmt.Errorf("disable=true and description=NC is not allowed " +
+				"because the provider might consider the resource deleted")
+		}
+		configSet = append(configSet, setPrefix+"disable")
 	}
 	for _, v := range d.Get("family_inet").([]interface{}) {
 		configSet = append(configSet, setPrefix+"family inet")
@@ -1281,6 +1293,8 @@ func readInterfaceLogical(interFace string, m interface{}, jnprSess *NetconfObje
 			switch {
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
+			case itemTrim == "disable":
+				confRead.disable = true
 			case strings.HasPrefix(itemTrim, "family inet6"):
 				if len(confRead.familyInet6) == 0 {
 					confRead.familyInet6 = append(confRead.familyInet6, map[string]interface{}{
@@ -1609,6 +1623,7 @@ func delInterfaceLogicalOpts(d *schema.ResourceData, m interface{}, jnprSess *Ne
 	delPrefix := "delete interfaces " + d.Get("name").(string) + " "
 	configSet = append(configSet,
 		delPrefix+"description",
+		delPrefix+"disable",
 		delPrefix+"family inet",
 		delPrefix+"family inet6",
 		delPrefix+"tunnel",
@@ -1636,6 +1651,9 @@ func delRoutingInstanceInterfaceLogical(instance string, d *schema.ResourceData,
 
 func fillInterfaceLogicalData(d *schema.ResourceData, interfaceLogicalOpt interfaceLogicalOptions) {
 	if tfErr := d.Set("description", interfaceLogicalOpt.description); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("disable", interfaceLogicalOpt.disable); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("family_inet", interfaceLogicalOpt.familyInet); tfErr != nil {

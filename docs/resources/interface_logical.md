@@ -34,6 +34,8 @@ The following arguments are supported:
   the dependency, but only if st0.x interface is empty or disable.
 - **description** (Optional, String)  
   Description for interface.
+- **disable** (Optional, Boolean)  
+  Disable this logical interface.
 - **family_inet** (Optional, Block)  
   Enable family inet and add configurations if specified.
   - **address** (Optional, Block List)  

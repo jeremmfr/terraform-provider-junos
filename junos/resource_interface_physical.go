@@ -14,6 +14,7 @@ import (
 )
 
 type interfacePhysicalOptions struct {
+	disable         bool
 	trunk           bool
 	vlanTagging     bool
 	aeMinLink       int
@@ -79,6 +80,10 @@ func resourceInterfacePhysical() *schema.Resource {
 			},
 			"description": {
 				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"disable": {
+				Type:     schema.TypeBool,
 				Optional: true,
 			},
 			"esi": {
@@ -544,7 +549,7 @@ func resourceInterfacePhysicalCreate(ctx context.Context, d *schema.ResourceData
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if ncInt {
-		return append(diagWarns, diag.FromErr(fmt.Errorf("interface %v always disable after commit "+
+		return append(diagWarns, diag.FromErr(fmt.Errorf("interface %v always disable (NC) after commit "+
 			"=> check your config", d.Get("name").(string)))...)
 	}
 	if emptyInt {
@@ -732,7 +737,7 @@ func resourceInterfacePhysicalImport(ctx context.Context, d *schema.ResourceData
 		return nil, err
 	}
 	if ncInt {
-		return nil, fmt.Errorf("interface '%v' is disabled, import is not possible", d.Id())
+		return nil, fmt.Errorf("interface '%v' is disabled (NC), import is not possible", d.Id())
 	}
 	if emptyInt {
 		intExists, err := checkInterfaceExists(d.Id(), m, jnprSess)
@@ -906,6 +911,13 @@ func setInterfacePhysical(d *schema.ResourceData, m interface{}, jnprSess *Netco
 	}
 	if d.Get("description").(string) != "" {
 		configSet = append(configSet, setPrefix+"description \""+d.Get("description").(string)+"\"")
+	}
+	if d.Get("disable").(bool) {
+		if d.Get("description").(string) == "NC" {
+			return fmt.Errorf("disable=true and description=NC is not allowed " +
+				"because the provider might consider the resource deleted")
+		}
+		configSet = append(configSet, setPrefix+"disable")
 	}
 	if err := setInterfacePhysicalEsi(setPrefix, d.Get("esi").([]interface{}), m, jnprSess); err != nil {
 		return err
@@ -1255,6 +1267,8 @@ func readInterfacePhysical(interFace string, m interface{}, jnprSess *NetconfObj
 				}
 			case strings.HasPrefix(itemTrim, "description "):
 				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
+			case itemTrim == "disable":
+				confRead.disable = true
 			case strings.HasPrefix(itemTrim, "esi "):
 				if err := readInterfacePhysicalEsi(&confRead, itemTrim); err != nil {
 					return confRead, err
@@ -1685,6 +1699,7 @@ func delInterfacePhysicalOpts(d *schema.ResourceData, m interface{}, jnprSess *N
 	configSet = append(configSet,
 		delPrefix+"aggregated-ether-options",
 		delPrefix+"description",
+		delPrefix+"disable",
 		delPrefix+"esi",
 		delPrefix+"ether-options",
 		delPrefix+"gigether-options",
@@ -1721,6 +1736,9 @@ func fillInterfacePhysicalData(d *schema.ResourceData, interfaceOpt interfacePhy
 		panic(tfErr)
 	}
 	if tfErr := d.Set("description", interfaceOpt.description); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("disable", interfaceOpt.disable); tfErr != nil {
 		panic(tfErr)
 	}
 	if _, ok := d.GetOk("ether802_3ad"); ok {

@@ -41,6 +41,10 @@ func dataSourceInterfaceLogical() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"disable": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 			"family_inet": {
 				Type:     schema.TypeList,
 				Computed: true,

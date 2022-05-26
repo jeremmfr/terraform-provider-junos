@@ -44,6 +44,8 @@ The following attributes are exported:
   Minimum number of aggregated links.
 - **description** (String)  
   Description for interface.
+- **disable** (Boolean)  
+  Interface disabled.
 - **esi** (Block)  
   ESI Config parameters.  
   See [below for nested schema](#esi-attributes).

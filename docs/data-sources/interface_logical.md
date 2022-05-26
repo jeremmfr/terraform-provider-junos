@@ -42,6 +42,8 @@ The following attributes are exported:
   Name of unit interface (with dot).
 - **description** (String)  
   Description for interface.
+- **disable** (Boolean)  
+  Interface disabled.
 - **family_inet** (Block)  
   Family inet enabled and possible configuration.
   - **address** (Block List)  
