@@ -275,7 +275,8 @@ func resourceSecurityPolicyReadWJunSess(d *schema.ResourceData, clt *Client, jun
 ) diag.Diagnostics {
 	mutex.Lock()
 	policyOptions, err := readSecurityPolicy(
-		d.Get("from_zone").(string)+idSeparator+d.Get("to_zone").(string),
+		d.Get("from_zone").(string),
+		d.Get("to_zone").(string),
 		clt, junSess)
 	mutex.Unlock()
 	if err != nil {
@@ -405,7 +406,7 @@ func resourceSecurityPolicyImport(ctx context.Context, d *schema.ResourceData, m
 	if !securityPolicyExists {
 		return nil, fmt.Errorf("don't find policy with id '%v' (id must be <from_zone>"+idSeparator+"<to_zone>)", d.Id())
 	}
-	policyOptions, err := readSecurityPolicy(d.Id(), clt, junSess)
+	policyOptions, err := readSecurityPolicy(idList[0], idList[1], clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -508,12 +509,9 @@ func setSecurityPolicy(d *schema.ResourceData, clt *Client, junSess *junosSessio
 	return clt.configSet(configSet, junSess)
 }
 
-func readSecurityPolicy(idPolicy string, clt *Client, junSess *junosSession) (policyOptions, error) {
+func readSecurityPolicy(fromZone, toZone string, clt *Client, junSess *junosSession) (policyOptions, error) {
 	var confRead policyOptions
 
-	zone := strings.Split(idPolicy, idSeparator)
-	fromZone := zone[0]
-	toZone := zone[1]
 	showConfig, err := clt.command(cmdShowConfig+
 		"security policies from-zone "+fromZone+" to-zone "+toZone+pipeDisplaySetRelative, junSess)
 	if err != nil {
