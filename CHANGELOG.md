@@ -1,21 +1,27 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 ## upcoming release
 
+ENHANCEMENTS:
+
+BUG FIXES:
+
+## 1.28.0 (May 30, 2022)
+
 FEATURES:
 
-* add `junos_interface_logical_info` data source (Fixes #393)
+* add `junos_interface_logical_info` data source (Fixes [#393](https://github.com/jeremmfr/terraform-provider-junos/issues/393))
 * add `junos_rip_group` resource
 * add `junos_rip_neighbor` resource
 
 ENHANCEMENTS:
 
-* resource/`junos_ospf_area`: add `realm` argument to add a OSPFv3 realm area. (Fixes #392),  
-  add new `area_range`, `context_identifier`, `inter_area_prefix_export`, `inter_area_prefix_import`, `network_summary_export`, `network_summary_import`, `no_context_identifier_advertisement`, `nssa`, `stub` and `virtual_link` arguments,  
-  add validation of `area_id`
-* resource/`junos_interface_logical`: add `disable` argument (Fixes #395)
+* resource/`junos_interface_logical`: add `disable` argument (Fixes [#395](https://github.com/jeremmfr/terraform-provider-junos/issues/395))
 * data-source/`junos_interface_logical`: add `disable` attribute (like resource)
 * resource/`junos_interface_physical`: add `disable` argument
 * data-source/`junos_interface_physical`: add `disable` attribute (like resource)
+* resource/`junos_ospf_area`: add `realm` argument to add a OSPFv3 realm area. (Fixes [#392](https://github.com/jeremmfr/terraform-provider-junos/issues/392)),  
+  add new `area_range`, `context_identifier`, `inter_area_prefix_export`, `inter_area_prefix_import`, `network_summary_export`, `network_summary_import`, `no_context_identifier_advertisement`, `nssa`, `stub` and `virtual_link` arguments,  
+  add validation of `area_id`
 
 BUG FIXES:
 
