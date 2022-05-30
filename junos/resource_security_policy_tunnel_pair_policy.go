@@ -174,10 +174,10 @@ func resourceSecurityPolicyTunnelPairPolicyReadWJunSess(d *schema.ResourceData, 
 ) diag.Diagnostics {
 	mutex.Lock()
 	policyPairPolicyOptions, err := readSecurityPolicyTunnelPairPolicy(
-		d.Get("zone_a").(string)+idSeparator+
-			d.Get("policy_a_to_b").(string)+idSeparator+
-			d.Get("zone_b").(string)+idSeparator+
-			d.Get("policy_b_to_a").(string),
+		d.Get("zone_a").(string),
+		d.Get("policy_a_to_b").(string),
+		d.Get("zone_b").(string),
+		d.Get("policy_b_to_a").(string),
 		clt, junSess)
 	mutex.Unlock()
 	if err != nil {
@@ -240,7 +240,12 @@ func resourceSecurityPolicyTunnelPairPolicyImport(ctx context.Context, d *schema
 	if len(idList) < 4 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", idSeparator)
 	}
-	poliyPairPolicyExists, err := checkSecurityPolicyPairExists(idList[0], idList[1], idList[2], idList[3], clt, junSess)
+	poliyPairPolicyExists, err := checkSecurityPolicyPairExists(
+		idList[0],
+		idList[1],
+		idList[2],
+		idList[3],
+		clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +255,12 @@ func resourceSecurityPolicyTunnelPairPolicyImport(ctx context.Context, d *schema
 			"<zone_b>"+idSeparator+"<policy_b_to_a>)", d.Id())
 	}
 
-	policyPairPolicyOptions, err := readSecurityPolicyTunnelPairPolicy(d.Id(), clt, junSess)
+	policyPairPolicyOptions, err := readSecurityPolicyTunnelPairPolicy(
+		idList[0],
+		idList[1],
+		idList[2],
+		idList[3],
+		clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -297,14 +307,8 @@ func setSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, clt *Client, junS
 	return clt.configSet(configSet, junSess)
 }
 
-func readSecurityPolicyTunnelPairPolicy(idRessource string, clt *Client, junSess *junosSession,
+func readSecurityPolicyTunnelPairPolicy(zoneA, policyAtoB, zoneB, policyBtoA string, clt *Client, junSess *junosSession,
 ) (policyPairPolicyOptions, error) {
-	zone := strings.Split(idRessource, idSeparator)
-	zoneA := zone[0]
-	policyAtoB := zone[1]
-	zoneB := zone[2]
-	policyBtoA := zone[3]
-
 	var confRead policyPairPolicyOptions
 
 	showConfig, err := clt.command(cmdShowConfig+
