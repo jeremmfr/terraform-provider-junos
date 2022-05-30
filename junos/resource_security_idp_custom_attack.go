@@ -817,53 +817,53 @@ func schemaSecurityIdpCustomAttackTypeSignature(chain bool) map[string]*schema.S
 
 func resourceSecurityIdpCustomAttackCreate(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setSecurityIdpCustomAttack(d, m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setSecurityIdpCustomAttack(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if !checkCompatibilitySecurity(jnprSess) {
+	defer clt.closeSession(junSess)
+	if !checkCompatibilitySecurity(junSess) {
 		return diag.FromErr(fmt.Errorf("security idp custom-attack not compatible with Junos device %s",
-			jnprSess.SystemInformation.HardwareModel))
+			junSess.SystemInformation.HardwareModel))
 	}
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	idpCustomAttackExists, err := checkSecurityIdpCustomAttackExists(d.Get("name").(string), m, jnprSess)
+	idpCustomAttackExists, err := checkSecurityIdpCustomAttackExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if idpCustomAttackExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("security idp custom-attack %v already exists", d.Get("name").(string)))...)
 	}
-	if err := setSecurityIdpCustomAttack(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSecurityIdpCustomAttack(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_security_idp_custom_attack", jnprSess)
+	warns, err := clt.commitConf("create resource junos_security_idp_custom_attack", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	idpCustomAttackExists, err = checkSecurityIdpCustomAttackExists(d.Get("name").(string), m, jnprSess)
+	idpCustomAttackExists, err = checkSecurityIdpCustomAttackExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -874,24 +874,24 @@ func resourceSecurityIdpCustomAttackCreate(ctx context.Context, d *schema.Resour
 			"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityIdpCustomAttackReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSecurityIdpCustomAttackReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSecurityIdpCustomAttackRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 
-	return resourceSecurityIdpCustomAttackReadWJnprSess(d, m, jnprSess)
+	return resourceSecurityIdpCustomAttackReadWJunSess(d, clt, junSess)
 }
 
-func resourceSecurityIdpCustomAttackReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceSecurityIdpCustomAttackReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	idpCustomAttackOptions, err := readSecurityIdpCustomAttack(d.Get("name").(string), m, jnprSess)
+	idpCustomAttackOptions, err := readSecurityIdpCustomAttack(d.Get("name").(string), clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -908,77 +908,77 @@ func resourceSecurityIdpCustomAttackReadWJnprSess(d *schema.ResourceData, m inte
 func resourceSecurityIdpCustomAttackUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
-		if err := delSecurityIdpCustomAttack(d.Get("name").(string), m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
+		if err := delSecurityIdpCustomAttack(d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSecurityIdpCustomAttack(d, m, nil); err != nil {
+		if err := setSecurityIdpCustomAttack(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityIdpCustomAttack(d.Get("name").(string), m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delSecurityIdpCustomAttack(d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurityIdpCustomAttack(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSecurityIdpCustomAttack(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_security_idp_custom_attack", jnprSess)
+	warns, err := clt.commitConf("update resource junos_security_idp_custom_attack", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityIdpCustomAttackReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSecurityIdpCustomAttackReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSecurityIdpCustomAttackDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := delSecurityIdpCustomAttack(d.Get("name").(string), m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := delSecurityIdpCustomAttack(d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityIdpCustomAttack(d.Get("name").(string), m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delSecurityIdpCustomAttack(d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_security_idp_custom_attack", jnprSess)
+	warns, err := clt.commitConf("delete resource junos_security_idp_custom_attack", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -988,21 +988,21 @@ func resourceSecurityIdpCustomAttackDelete(ctx context.Context, d *schema.Resour
 
 func resourceSecurityIdpCustomAttackImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	idpCustomAttackExists, err := checkSecurityIdpCustomAttackExists(d.Id(), m, jnprSess)
+	idpCustomAttackExists, err := checkSecurityIdpCustomAttackExists(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !idpCustomAttackExists {
 		return nil, fmt.Errorf("don't find security idp custom-attack with id '%v' (id must be <name>)", d.Id())
 	}
-	idpCustomAttackOptions, err := readSecurityIdpCustomAttack(d.Id(), m, jnprSess)
+	idpCustomAttackOptions, err := readSecurityIdpCustomAttack(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -1013,10 +1013,9 @@ func resourceSecurityIdpCustomAttackImport(ctx context.Context, d *schema.Resour
 	return result, nil
 }
 
-func checkSecurityIdpCustomAttackExists(customAttack string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+
-		"security idp custom-attack \""+customAttack+"\""+pipeDisplaySet, jnprSess)
+func checkSecurityIdpCustomAttackExists(customAttack string, clt *Client, junSess *junosSession) (bool, error) {
+	showConfig, err := clt.command(cmdShowConfig+
+		"security idp custom-attack \""+customAttack+"\""+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -1027,8 +1026,7 @@ func checkSecurityIdpCustomAttackExists(customAttack string, m interface{}, jnpr
 	return true, nil
 }
 
-func setSecurityIdpCustomAttack(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setSecurityIdpCustomAttack(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security idp custom-attack \"" + d.Get("name").(string) + "\" "
@@ -1101,7 +1099,7 @@ func setSecurityIdpCustomAttack(d *schema.ResourceData, m interface{}, jnprSess 
 		configSet = append(configSet, setPrefix+"time-binding scope "+v)
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func setSecurityIdpCustomAttackTypeAnomaly(setPrefixOrigin string, attackAnomaly map[string]interface{},
@@ -1526,14 +1524,13 @@ func setSecurityIdpCustomAttackTypeSignatureProtoUDP(setPrefixOrigin string, pro
 	return configSet
 }
 
-func readSecurityIdpCustomAttack(customAttack string, m interface{}, jnprSess *NetconfObject,
+func readSecurityIdpCustomAttack(customAttack string, clt *Client, junSess *junosSession,
 ) (idpCustomAttackOptions, error) {
-	sess := m.(*Session)
 	var confRead idpCustomAttackOptions
 	confRead.timeBindingCount = -1 // default to -1
 
-	showConfig, err := sess.command(cmdShowConfig+
-		"security idp custom-attack \""+customAttack+"\""+pipeDisplaySetRelative, jnprSess)
+	showConfig, err := clt.command(cmdShowConfig+
+		"security idp custom-attack \""+customAttack+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -2254,11 +2251,10 @@ func readSecurityIdpCustomAttackTypeSignatureProtoUDP(itemTrim string, protoUDP 
 	return nil
 }
 
-func delSecurityIdpCustomAttack(customAttack string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delSecurityIdpCustomAttack(customAttack string, clt *Client, junSess *junosSession) error {
 	configSet := []string{"delete security idp custom-attack \"" + customAttack + "\""}
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func fillSecurityIdpCustomAttackData(d *schema.ResourceData, idpCustomAttackOptions idpCustomAttackOptions) {

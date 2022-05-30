@@ -36,9 +36,9 @@ const (
 	xmlEndTagConfigOut   = "</configuration-output>"
 )
 
-// NetconfObject : store Junos device info and session.
-type NetconfObject struct {
-	Session           *netconf.Session
+// junosSession : store Junos device info and session.
+type junosSession struct {
+	session           *netconf.Session
 	SystemInformation sysInfo `xml:"system-information"`
 }
 
@@ -96,11 +96,11 @@ type getLogicalInterfaceTerseReply struct {
 	} `xml:"interface-information"`
 }
 
-// netconfNewSession establishes a new connection to a NetconfObject device that we will use
+// netconfNewSession establishes a new connection to a Junos device that we will use
 // to run our commands against.
 // Authentication methods are defined using the netconfAuthMethod struct, and are as follows:
 // username and password, SSH private key (with or without passphrase).
-func netconfNewSession(ctx context.Context, host string, auth *netconfAuthMethod) (*NetconfObject, error) {
+func netconfNewSession(ctx context.Context, host string, auth *netconfAuthMethod) (*junosSession, error) {
 	clientConfig, err := genSSHClientConfig(auth)
 	if err != nil {
 		return nil, err
@@ -109,10 +109,10 @@ func netconfNewSession(ctx context.Context, host string, auth *netconfAuthMethod
 	return netconfNewSessionWithConfig(ctx, host, clientConfig)
 }
 
-// netconfNewSessionWithConfig establishes a new connection to a NetconfObject device that we will use
+// netconfNewSessionWithConfig establishes a new connection to a Junos device that we will use
 // to run our commands against.
 func netconfNewSessionWithConfig(ctx context.Context, host string, clientConfig *ssh.ClientConfig,
-) (*NetconfObject, error) {
+) (*junosSession, error) {
 	netDialer := net.Dialer{
 		Timeout: clientConfig.Timeout,
 	}
@@ -129,9 +129,9 @@ func netconfNewSessionWithConfig(ctx context.Context, host string, clientConfig 
 }
 
 // newSessionFromNetconf uses an existing netconf.Session to run our commands against.
-func newSessionFromNetconf(s *netconf.Session) (*NetconfObject, error) {
-	n := &NetconfObject{
-		Session: s,
+func newSessionFromNetconf(s *netconf.Session) (*junosSession, error) {
+	n := &junosSession{
+		session: s,
 	}
 
 	return n, n.gatherFacts()
@@ -195,13 +195,9 @@ func defaultSSHCiphers() schema.SchemaDefaultFunc {
 }
 
 // gatherFacts gathers basic information about the device.
-func (j *NetconfObject) gatherFacts() error {
-	if j == nil {
-		return errors.New("attempt to call GatherFacts on nil NetconfObject object")
-	}
-	s := j.Session
+func (j *junosSession) gatherFacts() error {
 	// Get info for get-system-information and populate SystemInformation Struct
-	val, err := s.Exec(netconf.RawMethod(rpcSystemInfo))
+	val, err := j.session.Exec(netconf.RawMethod(rpcSystemInfo))
 	if err != nil {
 		return fmt.Errorf("failed to netconf get-system-information: %w", err)
 	}
@@ -223,9 +219,9 @@ func (j *NetconfObject) gatherFacts() error {
 }
 
 // netconfCommand (show, execute) on Junos device.
-func (j *NetconfObject) netconfCommand(cmd string) (string, error) {
+func (j *junosSession) netconfCommand(cmd string) (string, error) {
 	command := fmt.Sprintf(rpcCommand, cmd)
-	reply, err := j.Session.Exec(netconf.RawMethod(command))
+	reply, err := j.session.Exec(netconf.RawMethod(command))
 	if err != nil {
 		return "", fmt.Errorf("failed to netconf command exec: %w", err)
 	}
@@ -245,8 +241,8 @@ func (j *NetconfObject) netconfCommand(cmd string) (string, error) {
 	return output.Config, nil
 }
 
-func (j *NetconfObject) netconfCommandXML(cmd string) (string, error) {
-	reply, err := j.Session.Exec(netconf.RawMethod(cmd))
+func (j *junosSession) netconfCommandXML(cmd string) (string, error) {
+	reply, err := j.session.Exec(netconf.RawMethod(cmd))
 	if err != nil {
 		return "", fmt.Errorf("failed to netconf xml command exec: %w", err)
 	}
@@ -259,9 +255,9 @@ func (j *NetconfObject) netconfCommandXML(cmd string) (string, error) {
 	return reply.Data, nil
 }
 
-func (j *NetconfObject) netconfConfigSet(cmd []string) (string, error) {
+func (j *junosSession) netconfConfigSet(cmd []string) (string, error) {
 	command := fmt.Sprintf(rpcConfigStringSet, strings.Join(cmd, "\n"))
-	reply, err := j.Session.Exec(netconf.RawMethod(command))
+	reply, err := j.session.Exec(netconf.RawMethod(command))
 	if err != nil {
 		return "", fmt.Errorf("failed to netconf set/delete command exec: %w", err)
 	}
@@ -279,8 +275,8 @@ func (j *NetconfObject) netconfConfigSet(cmd []string) (string, error) {
 }
 
 // netConfConfigLock locks the candidate configuration.
-func (j *NetconfObject) netconfConfigLock() bool {
-	reply, err := j.Session.Exec(netconf.RawMethod(rpcCandidateLock))
+func (j *junosSession) netconfConfigLock() bool {
+	reply, err := j.session.Exec(netconf.RawMethod(rpcCandidateLock))
 	if err != nil {
 		return false
 	}
@@ -292,8 +288,8 @@ func (j *NetconfObject) netconfConfigLock() bool {
 }
 
 // Unlock unlocks the candidate configuration.
-func (j *NetconfObject) netconfConfigUnlock() []error {
-	reply, err := j.Session.Exec(netconf.RawMethod(rpcCandidateUnlock))
+func (j *junosSession) netconfConfigUnlock() []error {
+	reply, err := j.session.Exec(netconf.RawMethod(rpcCandidateUnlock))
 	if err != nil {
 		return []error{fmt.Errorf("failed to netconf config unlock: %w", err)}
 	}
@@ -309,8 +305,8 @@ func (j *NetconfObject) netconfConfigUnlock() []error {
 	return []error{}
 }
 
-func (j *NetconfObject) netconfConfigClear() []error {
-	reply, err := j.Session.Exec(netconf.RawMethod(rpcClearCandidate))
+func (j *junosSession) netconfConfigClear() []error {
+	reply, err := j.session.Exec(netconf.RawMethod(rpcClearCandidate))
 	if err != nil {
 		return []error{fmt.Errorf("failed to netconf config clear: %w", err)}
 	}
@@ -327,8 +323,8 @@ func (j *NetconfObject) netconfConfigClear() []error {
 }
 
 // netconfCommit commits the configuration.
-func (j *NetconfObject) netconfCommit(logMessage string) (_warn []error, _err error) {
-	reply, err := j.Session.Exec(netconf.RawMethod(fmt.Sprintf(rpcCommit, logMessage)))
+func (j *junosSession) netconfCommit(logMessage string) (_warn []error, _err error) {
+	reply, err := j.session.Exec(netconf.RawMethod(fmt.Sprintf(rpcCommit, logMessage)))
 	if err != nil {
 		return []error{}, fmt.Errorf("failed to netconf commit: %w", err)
 	}
@@ -369,9 +365,9 @@ func (j *NetconfObject) netconfCommit(logMessage string) (_warn []error, _err er
 }
 
 // Close disconnects our session to the device.
-func (j *NetconfObject) close(sleepClosed int) error {
-	_, err := j.Session.Exec(netconf.RawMethod(rpcClose))
-	j.Session.Transport.Close()
+func (j *junosSession) close(sleepClosed int) error {
+	_, err := j.session.Exec(netconf.RawMethod(rpcClose))
+	j.session.Transport.Close()
 	if err != nil {
 		sleep(sleepClosed)
 

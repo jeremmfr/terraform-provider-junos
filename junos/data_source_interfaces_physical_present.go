@@ -72,14 +72,14 @@ func dataSourceInterfacesPhysicalPresent() *schema.Resource {
 
 func dataSourceInterfacesPhysicalPresentRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 	mutex.Lock()
-	iPresent, err := searchInterfacesPhysicalPresent(d, m, jnprSess)
+	iPresent, err := searchInterfacesPhysicalPresent(d, clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -102,11 +102,10 @@ func dataSourceInterfacesPhysicalPresentRead(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func searchInterfacesPhysicalPresent(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func searchInterfacesPhysicalPresent(d *schema.ResourceData, clt *Client, junSess *junosSession,
 ) (interfacesPresentOpts, error) {
-	sess := m.(*Session)
 	var result interfacesPresentOpts
-	replyData, err := sess.commandXML(rpcGetInterfacesInformationTerse, jnprSess)
+	replyData, err := clt.commandXML(rpcGetInterfacesInformationTerse, junSess)
 	if err != nil {
 		return result, err
 	}

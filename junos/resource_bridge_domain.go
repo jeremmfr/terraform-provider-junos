@@ -150,69 +150,73 @@ func resourceBridgeDomain() *schema.Resource {
 }
 
 func resourceBridgeDomainCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setBridgeDomain(d, m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setBridgeDomain(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string) + idSeparator + d.Get("routing_instance").(string))
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if !checkCompatibilityRouter(jnprSess) {
+	defer clt.closeSession(junSess)
+	if !checkCompatibilityRouter(junSess) {
 		return diag.FromErr(fmt.Errorf("bridge domain "+
-			"not compatible with Junos device %s", jnprSess.SystemInformation.HardwareModel))
+			"not compatible with Junos device %s", junSess.SystemInformation.HardwareModel))
 	}
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), clt, junSess)
 		if err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+			appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if !instanceExists {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+			appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 			return append(diagWarns,
 				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))...)
 		}
 	}
 	bridgeDomainExists, err := checkBridgeDomainExists(
-		d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
+		d.Get("name").(string),
+		d.Get("routing_instance").(string),
+		clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if bridgeDomainExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("bridge domain %v already exists in routing_instance %s",
 			d.Get("name").(string), d.Get("routing_instance").(string)))...)
 	}
-	if err := setBridgeDomain(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setBridgeDomain(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_bridge_domain", jnprSess)
+	warns, err := clt.commitConf("create resource junos_bridge_domain", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	bridgeDomainExists, err = checkBridgeDomainExists(
-		d.Get("name").(string), d.Get("routing_instance").(string), m, jnprSess)
+		d.Get("name").(string),
+		d.Get("routing_instance").(string),
+		clt, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -224,25 +228,27 @@ func resourceBridgeDomainCreate(ctx context.Context, d *schema.ResourceData, m i
 				"=> check your config", d.Get("name").(string), d.Get("routing_instance").(string)))...)
 	}
 
-	return append(diagWarns, resourceBridgeDomainReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceBridgeDomainReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceBridgeDomainRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 
-	return resourceBridgeDomainReadWJnprSess(d, m, jnprSess)
+	return resourceBridgeDomainReadWJunSess(d, clt, junSess)
 }
 
-func resourceBridgeDomainReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceBridgeDomainReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	bridgeDomainOptions, err := readBridgeDomain(d.Get("name").(string), d.Get("routing_instance").(string),
-		m, jnprSess)
+	bridgeDomainOptions, err := readBridgeDomain(
+		d.Get("name").(string),
+		d.Get("routing_instance").(string),
+		clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -258,94 +264,118 @@ func resourceBridgeDomainReadWJnprSess(d *schema.ResourceData, m interface{}, jn
 
 func resourceBridgeDomainUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
 		if d.HasChange("vxlan") {
 			oldVxlan, _ := d.GetChange("vxlan")
-			if err := delBridgeDomainOpts(d.Get("name").(string), d.Get("routing_instance").(string), oldVxlan.([]interface{}),
-				m, nil); err != nil {
+			if err := delBridgeDomainOpts(
+				d.Get("name").(string),
+				d.Get("routing_instance").(string),
+				oldVxlan.([]interface{}),
+				clt, nil,
+			); err != nil {
 				return diag.FromErr(err)
 			}
 		} else if err := delBridgeDomainOpts(
-			d.Get("name").(string), d.Get("routing_instance").(string), d.Get("vxlan").([]interface{}), m, nil); err != nil {
+			d.Get("name").(string),
+			d.Get("routing_instance").(string),
+			d.Get("vxlan").([]interface{}),
+			clt, nil,
+		); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setBridgeDomain(d, m, nil); err != nil {
+		if err := setBridgeDomain(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	if d.HasChange("vxlan") {
 		oldVxlan, _ := d.GetChange("vxlan")
-		if err := delBridgeDomainOpts(d.Get("name").(string), d.Get("routing_instance").(string), oldVxlan.([]interface{}),
-			m, jnprSess); err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		if err := delBridgeDomainOpts(
+			d.Get("name").(string),
+			d.Get("routing_instance").(string),
+			oldVxlan.([]interface{}),
+			clt, junSess,
+		); err != nil {
+			appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 	} else if err := delBridgeDomainOpts(
-		d.Get("name").(string), d.Get("routing_instance").(string), d.Get("vxlan").([]interface{}), m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		d.Get("name").(string),
+		d.Get("routing_instance").(string),
+		d.Get("vxlan").([]interface{}),
+		clt, junSess,
+	); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setBridgeDomain(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setBridgeDomain(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_bridge_domain", jnprSess)
+	warns, err := clt.commitConf("update resource junos_bridge_domain", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceBridgeDomainReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceBridgeDomainReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceBridgeDomainDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := delBridgeDomain(d.Get("name").(string), d.Get("routing_instance").(string), d.Get("vxlan").([]interface{}),
-			m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := delBridgeDomain(
+			d.Get("name").(string),
+			d.Get("routing_instance").(string),
+			d.Get("vxlan").([]interface{}),
+			clt, nil,
+		); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delBridgeDomain(d.Get("name").(string), d.Get("routing_instance").(string), d.Get("vxlan").([]interface{}),
-		m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delBridgeDomain(
+		d.Get("name").(string),
+		d.Get("routing_instance").(string),
+		d.Get("vxlan").([]interface{}),
+		clt, junSess,
+	); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_bridge_domain", jnprSess)
+	warns, err := clt.commitConf("delete resource junos_bridge_domain", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -355,18 +385,18 @@ func resourceBridgeDomainDelete(ctx context.Context, d *schema.ResourceData, m i
 
 func resourceBridgeDomainImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 	idSplit := strings.Split(d.Id(), idSeparator)
 	if len(idSplit) < 2 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", idSeparator)
 	}
-	bridgeDomainExists, err := checkBridgeDomainExists(idSplit[0], idSplit[1], m, jnprSess)
+	bridgeDomainExists, err := checkBridgeDomainExists(idSplit[0], idSplit[1], clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -374,7 +404,7 @@ func resourceBridgeDomainImport(ctx context.Context, d *schema.ResourceData, m i
 		return nil, fmt.Errorf("don't find bridge domain with id '%v' (id must be "+
 			"<name>"+idSeparator+"<routing_instance>)", d.Id())
 	}
-	bridgeDomainOptions, err := readBridgeDomain(idSplit[0], idSplit[1], m, jnprSess)
+	bridgeDomainOptions, err := readBridgeDomain(idSplit[0], idSplit[1], clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -385,19 +415,18 @@ func resourceBridgeDomainImport(ctx context.Context, d *schema.ResourceData, m i
 	return result, nil
 }
 
-func checkBridgeDomainExists(name, instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkBridgeDomainExists(name, instance string, clt *Client, junSess *junosSession) (bool, error) {
 	var showConfig string
 	var err error
 	if instance == defaultW {
-		showConfig, err = sess.command(cmdShowConfig+
-			"bridge-domains \""+name+"\""+pipeDisplaySet, jnprSess)
+		showConfig, err = clt.command(cmdShowConfig+
+			"bridge-domains \""+name+"\""+pipeDisplaySet, junSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
-		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-			"bridge-domains \""+name+"\""+pipeDisplaySet, jnprSess)
+		showConfig, err = clt.command(cmdShowConfig+routingInstancesWS+instance+" "+
+			"bridge-domains \""+name+"\""+pipeDisplaySet, junSess)
 		if err != nil {
 			return false, err
 		}
@@ -410,8 +439,7 @@ func checkBridgeDomainExists(name, instance string, m interface{}, jnprSess *Net
 	return true, nil
 }
 
-func setBridgeDomain(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setBridgeDomain(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := setLS
@@ -480,21 +508,20 @@ func setBridgeDomain(d *schema.ResourceData, m interface{}, jnprSess *NetconfObj
 		}
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func readBridgeDomain(name, instance string, m interface{}, jnprSess *NetconfObject) (bridgeDomainOptions, error) {
-	sess := m.(*Session)
+func readBridgeDomain(name, instance string, clt *Client, junSess *junosSession) (bridgeDomainOptions, error) {
 	var confRead bridgeDomainOptions
 	var showConfig string
 	var err error
 
 	if instance == defaultW {
-		showConfig, err = sess.command(cmdShowConfig+
-			"bridge-domains \""+name+"\""+pipeDisplaySetRelative, jnprSess)
+		showConfig, err = clt.command(cmdShowConfig+
+			"bridge-domains \""+name+"\""+pipeDisplaySetRelative, junSess)
 	} else {
-		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-			"bridge-domains \""+name+"\""+pipeDisplaySetRelative, jnprSess)
+		showConfig, err = clt.command(cmdShowConfig+routingInstancesWS+instance+" "+
+			"bridge-domains \""+name+"\""+pipeDisplaySetRelative, junSess)
 	}
 	if err != nil {
 		return confRead, err
@@ -570,13 +597,13 @@ func readBridgeDomain(name, instance string, m interface{}, jnprSess *NetconfObj
 						var showConfigEvpn string
 						var err error
 						if confRead.routingInstance == defaultW {
-							showConfigEvpn, err = sess.command(cmdShowConfig+"protocols evpn"+pipeDisplaySetRelative, jnprSess)
+							showConfigEvpn, err = clt.command(cmdShowConfig+"protocols evpn"+pipeDisplaySetRelative, junSess)
 							if err != nil {
 								return confRead, err
 							}
 						} else {
-							showConfigEvpn, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-								"protocols evpn"+pipeDisplaySetRelative, jnprSess)
+							showConfigEvpn, err = clt.command(cmdShowConfig+routingInstancesWS+instance+" "+
+								"protocols evpn"+pipeDisplaySetRelative, junSess)
 							if err != nil {
 								return confRead, err
 							}
@@ -620,8 +647,7 @@ func readBridgeDomain(name, instance string, m interface{}, jnprSess *NetconfObj
 	return confRead, nil
 }
 
-func delBridgeDomainOpts(name, instance string, vxlan []interface{}, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delBridgeDomainOpts(name, instance string, vxlan []interface{}, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0)
 	delPrefix := deleteLS
 	if instance != defaultW {
@@ -654,11 +680,10 @@ func delBridgeDomainOpts(name, instance string, vxlan []interface{}, m interface
 		}
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func delBridgeDomain(name, instance string, vxlan []interface{}, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delBridgeDomain(name, instance string, vxlan []interface{}, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	if instance == defaultW {
 		configSet = append(configSet, "delete bridge-domains \""+name+"\"")
@@ -678,7 +703,7 @@ func delBridgeDomain(name, instance string, vxlan []interface{}, m interface{}, 
 		}
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func fillBridgeDomainData(d *schema.ResourceData, bridgeDomainOptions bridgeDomainOptions) {

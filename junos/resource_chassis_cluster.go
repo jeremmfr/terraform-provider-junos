@@ -205,14 +205,14 @@ func resourceChassisCluster() *schema.Resource {
 	}
 }
 
-func checkCompatibilityChassisCluster(jnprSess *NetconfObject) bool {
-	if strings.HasPrefix(strings.ToLower(jnprSess.SystemInformation.HardwareModel), "srx") {
+func checkCompatibilityChassisCluster(junSess *junosSession) bool {
+	if strings.HasPrefix(strings.ToLower(junSess.SystemInformation.HardwareModel), "srx") {
 		return true
 	}
-	if strings.HasPrefix(strings.ToLower(jnprSess.SystemInformation.HardwareModel), "vsrx") {
+	if strings.HasPrefix(strings.ToLower(junSess.SystemInformation.HardwareModel), "vsrx") {
 		return true
 	}
-	if strings.HasPrefix(strings.ToLower(jnprSess.SystemInformation.HardwareModel), "j") {
+	if strings.HasPrefix(strings.ToLower(junSess.SystemInformation.HardwareModel), "j") {
 		return true
 	}
 
@@ -220,60 +220,60 @@ func checkCompatibilityChassisCluster(jnprSess *NetconfObject) bool {
 }
 
 func resourceChassisClusterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setChassisCluster(d, m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setChassisCluster(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId("cluster")
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if !checkCompatibilityChassisCluster(jnprSess) {
+	defer clt.closeSession(junSess)
+	if !checkCompatibilityChassisCluster(junSess) {
 		return diag.FromErr(fmt.Errorf("chassis cluster "+
-			"not compatible with Junos device %s", jnprSess.SystemInformation.HardwareModel))
+			"not compatible with Junos device %s", junSess.SystemInformation.HardwareModel))
 	}
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := setChassisCluster(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setChassisCluster(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_chassis_cluster", jnprSess)
+	warns, err := clt.commitConf("create resource junos_chassis_cluster", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.SetId("cluster")
 
-	return append(diagWarns, resourceChassisClusterReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceChassisClusterReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceChassisClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 
-	return resourceChassisClusterReadWJnprSess(d, m, jnprSess)
+	return resourceChassisClusterReadWJunSess(d, clt, junSess)
 }
 
-func resourceChassisClusterReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceChassisClusterReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	clusterOptions, err := readChassisCluster(m, jnprSess)
+	clusterOptions, err := readChassisCluster(clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -285,76 +285,76 @@ func resourceChassisClusterReadWJnprSess(d *schema.ResourceData, m interface{}, 
 
 func resourceChassisClusterUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
-		if err := delChassisCluster(m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
+		if err := delChassisCluster(clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setChassisCluster(d, m, nil); err != nil {
+		if err := setChassisCluster(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delChassisCluster(m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delChassisCluster(clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setChassisCluster(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setChassisCluster(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_chassis_cluster", jnprSess)
+	warns, err := clt.commitConf("update resource junos_chassis_cluster", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceChassisClusterReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceChassisClusterReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceChassisClusterDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := delChassisCluster(m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := delChassisCluster(clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delChassisCluster(m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delChassisCluster(clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_chassis_cluster", jnprSess)
+	warns, err := clt.commitConf("delete resource junos_chassis_cluster", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -364,14 +364,14 @@ func resourceChassisClusterDelete(ctx context.Context, d *schema.ResourceData, m
 
 func resourceChassisClusterImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	clusterOptions, err := readChassisCluster(m, jnprSess)
+	clusterOptions, err := readChassisCluster(clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -382,8 +382,7 @@ func resourceChassisClusterImport(ctx context.Context, d *schema.ResourceData, m
 	return result, nil
 }
 
-func setChassisCluster(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setChassisCluster(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setIntPrefix := "set interfaces "
@@ -481,28 +480,26 @@ func setChassisCluster(d *schema.ResourceData, m interface{}, jnprSess *NetconfO
 			strconv.Itoa(v))
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func delChassisCluster(m interface{}, jnprSess *NetconfObject) error {
+func delChassisCluster(clt *Client, junSess *junosSession) error {
 	listLinesToDelete := make([]string, 0)
 	listLinesToDelete = append(listLinesToDelete, "chassis cluster")
 	listLinesToDelete = append(listLinesToDelete, "interfaces fab0")
 	listLinesToDelete = append(listLinesToDelete, "interfaces fab1")
-	sess := m.(*Session)
 	configSet := make([]string, 0)
 	for _, line := range listLinesToDelete {
 		configSet = append(configSet, deleteLS+line)
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterOptions, error) {
-	sess := m.(*Session)
+func readChassisCluster(clt *Client, junSess *junosSession) (chassisClusterOptions, error) {
 	var confRead chassisClusterOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"chassis cluster"+pipeDisplaySetRelative, jnprSess)
+	showConfig, err := clt.command(cmdShowConfig+"chassis cluster"+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -647,7 +644,7 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 			}
 		}
 	}
-	showConfigFab0, err := sess.command(cmdShowConfig+"interfaces fab0"+pipeDisplaySetRelative, jnprSess)
+	showConfigFab0, err := clt.command(cmdShowConfig+"interfaces fab0"+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -675,7 +672,7 @@ func readChassisCluster(m interface{}, jnprSess *NetconfObject) (chassisClusterO
 			}
 		}
 	}
-	showConfigFab1, err := sess.command(cmdShowConfig+"interfaces fab1"+pipeDisplaySetRelative, jnprSess)
+	showConfigFab1, err := clt.command(cmdShowConfig+"interfaces fab1"+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}

@@ -23,35 +23,35 @@ func resourceInterfaceSt0Unit() *schema.Resource {
 }
 
 func resourceInterfaceSt0UnitCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	newSt0, err := searchInterfaceSt0UnitToCreate(m, jnprSess)
+	newSt0, err := searchInterfaceSt0UnitToCreate(clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("error to find new st0 unit interface: %w", err))...)
 	}
-	if err := sess.configSet([]string{"set interfaces " + newSt0}, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := clt.configSet([]string{"set interfaces " + newSt0}, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_interface_st0_unit", jnprSess)
+	warns, err := clt.commitConf("create resource junos_interface_st0_unit", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(newSt0, m, jnprSess)
+	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(newSt0, clt, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -69,14 +69,14 @@ func resourceInterfaceSt0UnitCreate(ctx context.Context, d *schema.ResourceData,
 }
 
 func resourceInterfaceSt0UnitRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 	mutex.Lock()
-	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Id(), m, jnprSess)
+	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Id(), clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -89,43 +89,43 @@ func resourceInterfaceSt0UnitRead(ctx context.Context, d *schema.ResourceData, m
 }
 
 func resourceInterfaceSt0UnitDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := sess.configSet([]string{"delete interfaces " + d.Id()}, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := clt.configSet([]string{"delete interfaces " + d.Id()}, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	ncInt, emptyInt, _, err := checkInterfaceLogicalNCEmpty(d.Id(), m, jnprSess)
+	ncInt, emptyInt, _, err := checkInterfaceLogicalNCEmpty(d.Id(), clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if !ncInt && !emptyInt {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("interface %s not empty or disable", d.Id()))...)
 	}
-	if err := sess.configSet([]string{"delete interfaces " + d.Id()}, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := clt.configSet([]string{"delete interfaces " + d.Id()}, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_interface_st0_unit", jnprSess)
+	warns, err := clt.commitConf("delete resource junos_interface_st0_unit", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -135,17 +135,17 @@ func resourceInterfaceSt0UnitDelete(ctx context.Context, d *schema.ResourceData,
 
 func resourceInterfaceSt0UnitImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
+	clt := m.(*Client)
 	if !strings.HasPrefix(d.Id(), "st0.") {
 		return nil, fmt.Errorf("id must be start with 'st0.'")
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Id(), m, jnprSess)
+	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -161,9 +161,8 @@ func resourceInterfaceSt0UnitImport(ctx context.Context, d *schema.ResourceData,
 	return result, nil
 }
 
-func searchInterfaceSt0UnitToCreate(m interface{}, jnprSess *NetconfObject) (string, error) {
-	sess := m.(*Session)
-	st0, err := sess.command("show interfaces st0 terse", jnprSess)
+func searchInterfaceSt0UnitToCreate(clt *Client, junSess *junosSession) (string, error) {
+	st0, err := clt.command("show interfaces st0 terse", junSess)
 	if err != nil {
 		return "", err
 	}

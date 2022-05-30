@@ -266,5 +266,5 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		c.junosSSHCiphers = append(c.junosSSHCiphers, v.(string))
 	}
 
-	return c.prepareSession()
+	return c.newClient()
 }

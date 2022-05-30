@@ -90,54 +90,54 @@ func resourceSecurityDynamicAddressName() *schema.Resource {
 
 func resourceSecurityDynamicAddressNameCreate(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setSecurityDynamicAddressName(d, m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setSecurityDynamicAddressName(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if !checkCompatibilitySecurity(jnprSess) {
+	defer clt.closeSession(junSess)
+	if !checkCompatibilitySecurity(junSess) {
 		return diag.FromErr(fmt.Errorf("security dynamic-address address-name "+
-			"not compatible with Junos device %s", jnprSess.SystemInformation.HardwareModel))
+			"not compatible with Junos device %s", junSess.SystemInformation.HardwareModel))
 	}
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	securityDynamicAddressNameExists, err := checkSecurityDynamicAddressNamesExists(d.Get("name").(string), m, jnprSess)
+	securityDynamicAddressNameExists, err := checkSecurityDynamicAddressNamesExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if securityDynamicAddressNameExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf(
 			"security dynamic-address address-name %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setSecurityDynamicAddressName(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSecurityDynamicAddressName(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_security_dynamic_address_name", jnprSess)
+	warns, err := clt.commitConf("create resource junos_security_dynamic_address_name", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	securityDynamicAddressNameExists, err = checkSecurityDynamicAddressNamesExists(d.Get("name").(string), m, jnprSess)
+	securityDynamicAddressNameExists, err = checkSecurityDynamicAddressNamesExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -148,25 +148,25 @@ func resourceSecurityDynamicAddressNameCreate(ctx context.Context, d *schema.Res
 			"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityDynamicAddressNameReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSecurityDynamicAddressNameReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSecurityDynamicAddressNameRead(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 
-	return resourceSecurityDynamicAddressNameReadWJnprSess(d, m, jnprSess)
+	return resourceSecurityDynamicAddressNameReadWJunSess(d, clt, junSess)
 }
 
-func resourceSecurityDynamicAddressNameReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceSecurityDynamicAddressNameReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	dynamicAddressNameOptions, err := readSecurityDynamicAddressName(d.Get("name").(string), m, jnprSess)
+	dynamicAddressNameOptions, err := readSecurityDynamicAddressName(d.Get("name").(string), clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -183,77 +183,77 @@ func resourceSecurityDynamicAddressNameReadWJnprSess(d *schema.ResourceData, m i
 func resourceSecurityDynamicAddressNameUpdate(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
-		if err := delSecurityDynamicAddressName(d.Get("name").(string), m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
+		if err := delSecurityDynamicAddressName(d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSecurityDynamicAddressName(d, m, nil); err != nil {
+		if err := setSecurityDynamicAddressName(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityDynamicAddressName(d.Get("name").(string), m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delSecurityDynamicAddressName(d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurityDynamicAddressName(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSecurityDynamicAddressName(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_security_dynamic_address_name", jnprSess)
+	warns, err := clt.commitConf("update resource junos_security_dynamic_address_name", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityDynamicAddressNameReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSecurityDynamicAddressNameReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSecurityDynamicAddressNameDelete(ctx context.Context, d *schema.ResourceData, m interface{},
 ) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := delSecurityDynamicAddressName(d.Get("name").(string), m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := delSecurityDynamicAddressName(d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityDynamicAddressName(d.Get("name").(string), m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delSecurityDynamicAddressName(d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_security_dynamic_address_name", jnprSess)
+	warns, err := clt.commitConf("delete resource junos_security_dynamic_address_name", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -263,21 +263,21 @@ func resourceSecurityDynamicAddressNameDelete(ctx context.Context, d *schema.Res
 
 func resourceSecurityDynamicAddressNameImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	securityDynamicAddressNameExists, err := checkSecurityDynamicAddressNamesExists(d.Id(), m, jnprSess)
+	securityDynamicAddressNameExists, err := checkSecurityDynamicAddressNamesExists(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !securityDynamicAddressNameExists {
 		return nil, fmt.Errorf("security dynamic-address address-name with id '%v' (id must be <name>)", d.Id())
 	}
-	dynamicAddressNameOptions, err := readSecurityDynamicAddressName(d.Id(), m, jnprSess)
+	dynamicAddressNameOptions, err := readSecurityDynamicAddressName(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -288,10 +288,9 @@ func resourceSecurityDynamicAddressNameImport(ctx context.Context, d *schema.Res
 	return result, nil
 }
 
-func checkSecurityDynamicAddressNamesExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+
-		"security dynamic-address address-name "+name+pipeDisplaySet, jnprSess)
+func checkSecurityDynamicAddressNamesExists(name string, clt *Client, junSess *junosSession) (bool, error) {
+	showConfig, err := clt.command(cmdShowConfig+
+		"security dynamic-address address-name "+name+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -302,8 +301,7 @@ func checkSecurityDynamicAddressNamesExists(name string, m interface{}, jnprSess
 	return true, nil
 }
 
-func setSecurityDynamicAddressName(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setSecurityDynamicAddressName(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security dynamic-address address-name " + d.Get("name").(string) + " "
@@ -335,16 +333,15 @@ func setSecurityDynamicAddressName(d *schema.ResourceData, m interface{}, jnprSe
 		}
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func readSecurityDynamicAddressName(name string, m interface{}, jnprSess *NetconfObject,
+func readSecurityDynamicAddressName(name string, clt *Client, junSess *junosSession,
 ) (dynamicAddressNameOptions, error) {
-	sess := m.(*Session)
 	var confRead dynamicAddressNameOptions
 
-	showConfig, err := sess.command(cmdShowConfig+
-		"security dynamic-address address-name "+name+pipeDisplaySetRelative, jnprSess)
+	showConfig, err := clt.command(cmdShowConfig+
+		"security dynamic-address address-name "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -403,11 +400,10 @@ func readSecurityDynamicAddressName(name string, m interface{}, jnprSess *Netcon
 	return confRead, nil
 }
 
-func delSecurityDynamicAddressName(name string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delSecurityDynamicAddressName(name string, clt *Client, junSess *junosSession) error {
 	configSet := []string{"delete security dynamic-address address-name " + name}
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func fillSecurityDynamicAddressNameData(d *schema.ResourceData, dynamicAddressNameOptions dynamicAddressNameOptions,

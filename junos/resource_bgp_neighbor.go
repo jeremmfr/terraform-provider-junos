@@ -596,9 +596,9 @@ func resourceBgpNeighbor() *schema.Resource {
 }
 
 func resourceBgpNeighborCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setBgpNeighbor(d, m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setBgpNeighbor(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("ip").(string) +
@@ -607,67 +607,73 @@ func resourceBgpNeighborCreate(ctx context.Context, d *schema.ResourceData, m in
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), clt, junSess)
 		if err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+			appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if !instanceExists {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+			appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 			return append(diagWarns,
 				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))...)
 		}
 	}
-	bgpGroupExists, err := checkBgpGroupExists(d.Get("group").(string), d.Get("routing_instance").(string), m, jnprSess)
+	bgpGroupExists, err := checkBgpGroupExists(d.Get("group").(string), d.Get("routing_instance").(string), clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if !bgpGroupExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("bgp group %v doesn't exist", d.Get("group").(string)))...)
 	}
-	bgpNeighborxists, err := checkBgpNeighborExists(d.Get("ip").(string),
-		d.Get("routing_instance").(string), d.Get("group").(string), m, jnprSess)
+	bgpNeighborxists, err := checkBgpNeighborExists(
+		d.Get("ip").(string),
+		d.Get("routing_instance").(string),
+		d.Get("group").(string),
+		clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if bgpNeighborxists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("bgp neighbor %v already exists in group %v (routing-instance %v)",
 			d.Get("ip").(string), d.Get("group").(string), d.Get("routing_instance").(string)))...)
 	}
-	if err := setBgpNeighbor(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setBgpNeighbor(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_bgp_neighbor", jnprSess)
+	warns, err := clt.commitConf("create resource junos_bgp_neighbor", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	bgpNeighborxists, err = checkBgpNeighborExists(d.Get("ip").(string),
-		d.Get("routing_instance").(string), d.Get("group").(string), m, jnprSess)
+	bgpNeighborxists, err = checkBgpNeighborExists(
+		d.Get("ip").(string),
+		d.Get("routing_instance").(string),
+		d.Get("group").(string),
+		clt, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -681,24 +687,27 @@ func resourceBgpNeighborCreate(ctx context.Context, d *schema.ResourceData, m in
 				"=> check your config", d.Get("ip").(string), d.Get("group").(string), d.Get("routing_instance").(string)))...)
 	}
 
-	return append(diagWarns, resourceBgpNeighborReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceBgpNeighborReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceBgpNeighborRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 
-	return resourceBgpNeighborReadWJnprSess(d, m, jnprSess)
+	return resourceBgpNeighborReadWJunSess(d, clt, junSess)
 }
 
-func resourceBgpNeighborReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceBgpNeighborReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession) diag.Diagnostics {
 	mutex.Lock()
-	bgpNeighborOptions, err := readBgpNeighbor(d.Get("ip").(string),
-		d.Get("routing_instance").(string), d.Get("group").(string), m, jnprSess)
+	bgpNeighborOptions, err := readBgpNeighbor(
+		d.Get("ip").(string),
+		d.Get("routing_instance").(string),
+		d.Get("group").(string),
+		clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -714,76 +723,76 @@ func resourceBgpNeighborReadWJnprSess(d *schema.ResourceData, m interface{}, jnp
 
 func resourceBgpNeighborUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
-		if err := delBgpOpts(d, "neighbor", m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
+		if err := delBgpOpts(d, "neighbor", clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setBgpNeighbor(d, m, nil); err != nil {
+		if err := setBgpNeighbor(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delBgpOpts(d, "neighbor", m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delBgpOpts(d, "neighbor", clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setBgpNeighbor(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setBgpNeighbor(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_bgp_neighbor", jnprSess)
+	warns, err := clt.commitConf("update resource junos_bgp_neighbor", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceBgpNeighborReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceBgpNeighborReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceBgpNeighborDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := delBgpNeighbor(d, m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := delBgpNeighbor(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delBgpNeighbor(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delBgpNeighbor(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_bgp_neighbor", jnprSess)
+	warns, err := clt.commitConf("delete resource junos_bgp_neighbor", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -793,18 +802,18 @@ func resourceBgpNeighborDelete(ctx context.Context, d *schema.ResourceData, m in
 
 func resourceBgpNeighborImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 	idSplit := strings.Split(d.Id(), idSeparator)
 	if len(idSplit) < 3 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", idSeparator)
 	}
-	bgpNeighborxists, err := checkBgpNeighborExists(idSplit[0], idSplit[1], idSplit[2], m, jnprSess)
+	bgpNeighborxists, err := checkBgpNeighborExists(idSplit[0], idSplit[1], idSplit[2], clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -812,7 +821,7 @@ func resourceBgpNeighborImport(ctx context.Context, d *schema.ResourceData, m in
 		return nil, fmt.Errorf("don't find bgp neighbor with id '%v' "+
 			"(id must be <ip>"+idSeparator+"<routing_instance>"+idSeparator+"<group>)", d.Id())
 	}
-	bgpNeighborOptions, err := readBgpNeighbor(idSplit[0], idSplit[1], idSplit[2], m, jnprSess)
+	bgpNeighborOptions, err := readBgpNeighbor(idSplit[0], idSplit[1], idSplit[2], clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -822,19 +831,18 @@ func resourceBgpNeighborImport(ctx context.Context, d *schema.ResourceData, m in
 	return result, nil
 }
 
-func checkBgpNeighborExists(ip, instance, group string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkBgpNeighborExists(ip, instance, group string, clt *Client, junSess *junosSession) (bool, error) {
 	var showConfig string
 	var err error
 	if instance == defaultW {
-		showConfig, err = sess.command(cmdShowConfig+
-			"protocols bgp group "+group+" neighbor "+ip+pipeDisplaySet, jnprSess)
+		showConfig, err = clt.command(cmdShowConfig+
+			"protocols bgp group "+group+" neighbor "+ip+pipeDisplaySet, junSess)
 		if err != nil {
 			return false, err
 		}
 	} else {
-		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-			"protocols bgp group "+group+" neighbor "+ip+pipeDisplaySet, jnprSess)
+		showConfig, err = clt.command(cmdShowConfig+routingInstancesWS+instance+" "+
+			"protocols bgp group "+group+" neighbor "+ip+pipeDisplaySet, junSess)
 		if err != nil {
 			return false, err
 		}
@@ -846,34 +854,33 @@ func checkBgpNeighborExists(ip, instance, group string, m interface{}, jnprSess 
 	return true, nil
 }
 
-func setBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
+func setBgpNeighbor(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	setPrefix := setLS
 	if d.Get("routing_instance").(string) != defaultW {
 		setPrefix = setRoutingInstances + d.Get("routing_instance").(string) + " "
 	}
 	setPrefix += "protocols bgp group " + d.Get("group").(string) + " neighbor " + d.Get("ip").(string) + " "
 
-	if err := setBgpOptsSimple(setPrefix, d, m, jnprSess); err != nil {
+	if err := setBgpOptsSimple(setPrefix, d, clt, junSess); err != nil {
 		return err
 	}
-	if err := setBgpOptsBfd(setPrefix, d.Get("bfd_liveness_detection").([]interface{}), m, jnprSess); err != nil {
+	if err := setBgpOptsBfd(setPrefix, d.Get("bfd_liveness_detection").([]interface{}), clt, junSess); err != nil {
 		return err
 	}
-	if err := setBgpOptsFamily(setPrefix, "evpn", d.Get("family_evpn").([]interface{}), m, jnprSess); err != nil {
+	if err := setBgpOptsFamily(setPrefix, "evpn", d.Get("family_evpn").([]interface{}), clt, junSess); err != nil {
 		return err
 	}
-	if err := setBgpOptsFamily(setPrefix, inetW, d.Get("family_inet").([]interface{}), m, jnprSess); err != nil {
+	if err := setBgpOptsFamily(setPrefix, inetW, d.Get("family_inet").([]interface{}), clt, junSess); err != nil {
 		return err
 	}
-	if err := setBgpOptsFamily(setPrefix, inet6W, d.Get("family_inet6").([]interface{}), m, jnprSess); err != nil {
+	if err := setBgpOptsFamily(setPrefix, inet6W, d.Get("family_inet6").([]interface{}), clt, junSess); err != nil {
 		return err
 	}
 
-	return setBgpOptsGrafefulRestart(setPrefix, d.Get("graceful_restart").([]interface{}), m, jnprSess)
+	return setBgpOptsGrafefulRestart(setPrefix, d.Get("graceful_restart").([]interface{}), clt, junSess)
 }
 
-func readBgpNeighbor(ip, instance, group string, m interface{}, jnprSess *NetconfObject) (bgpOptions, error) {
-	sess := m.(*Session)
+func readBgpNeighbor(ip, instance, group string, clt *Client, junSess *junosSession) (bgpOptions, error) {
 	var confRead bgpOptions
 	var showConfig string
 	var err error
@@ -883,14 +890,14 @@ func readBgpNeighbor(ip, instance, group string, m interface{}, jnprSess *Netcon
 	confRead.preference = -1
 
 	if instance == defaultW {
-		showConfig, err = sess.command(cmdShowConfig+
-			"protocols bgp group "+group+" neighbor "+ip+pipeDisplaySetRelative, jnprSess)
+		showConfig, err = clt.command(cmdShowConfig+
+			"protocols bgp group "+group+" neighbor "+ip+pipeDisplaySetRelative, junSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
-		showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-			"protocols bgp group "+group+" neighbor "+ip+pipeDisplaySetRelative, jnprSess)
+		showConfig, err = clt.command(cmdShowConfig+routingInstancesWS+instance+" "+
+			"protocols bgp group "+group+" neighbor "+ip+pipeDisplaySetRelative, junSess)
 		if err != nil {
 			return confRead, err
 		}
@@ -967,8 +974,7 @@ func readBgpNeighbor(ip, instance, group string, m interface{}, jnprSess *Netcon
 	return confRead, nil
 }
 
-func delBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delBgpNeighbor(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	if d.Get("routing_instance").(string) == defaultW {
 		configSet = append(configSet, "delete protocols bgp"+
@@ -980,7 +986,7 @@ func delBgpNeighbor(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 			" neighbor "+d.Get("ip").(string))
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func fillBgpNeighborData(d *schema.ResourceData, bgpNeighborOptions bgpOptions) {
