@@ -229,6 +229,7 @@ resource "junos_interface_physical" "testacc_interface_logical_phy" {
 resource "junos_interface_logical" "testacc_interface_logical" {
   name                       = "${junos_interface_physical.testacc_interface_logical_phy.name}.100"
   description                = "testacc_interface_${junos_interface_physical.testacc_interface_logical_phy.name}.100"
+  disable                    = true
   security_zone              = junos_security_zone.testacc_interface_logical.name
   security_inbound_protocols = ["bgp"]
   security_inbound_services  = ["ssh"]

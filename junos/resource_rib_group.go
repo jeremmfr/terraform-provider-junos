@@ -57,48 +57,48 @@ func resourceRibGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 	if err := validateRibGroup(d); err != nil {
 		return diag.FromErr(err)
 	}
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setRibGroup(d, m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setRibGroup(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	ribGroupExists, err := checkRibGroupExists(d.Get("name").(string), m, jnprSess)
+	ribGroupExists, err := checkRibGroupExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if ribGroupExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("rib-group %v already exists", d.Get("name").(string)))...)
 	}
-	if err := setRibGroup(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setRibGroup(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_rib_group", jnprSess)
+	warns, err := clt.commitConf("create resource junos_rib_group", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	ribGroupExists, err = checkRibGroupExists(d.Get("name").(string), m, jnprSess)
+	ribGroupExists, err = checkRibGroupExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -109,23 +109,23 @@ func resourceRibGroupCreate(ctx context.Context, d *schema.ResourceData, m inter
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceRibGroupReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceRibGroupReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceRibGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 
-	return resourceRibGroupReadWJnprSess(d, m, jnprSess)
+	return resourceRibGroupReadWJunSess(d, clt, junSess)
 }
 
-func resourceRibGroupReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceRibGroupReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession) diag.Diagnostics {
 	mutex.Lock()
-	ribGroupOptions, err := readRibGroup(d.Get("name").(string), m, jnprSess)
+	ribGroupOptions, err := readRibGroup(d.Get("name").(string), clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -144,107 +144,104 @@ func resourceRibGroupUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	if err := validateRibGroup(d); err != nil {
 		return diag.FromErr(err)
 	}
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
 		if d.HasChange("import_policy") {
-			if err := delRibGroupElement("import-policy", d.Get("name").(string), m, nil); err != nil {
+			if err := delRibGroupElement("import-policy", d.Get("name").(string), clt, nil); err != nil {
 				return diag.FromErr(err)
 			}
 		}
 		if d.HasChange("import_rib") {
-			if err := delRibGroupElement("import-rib", d.Get("name").(string), m, nil); err != nil {
+			if err := delRibGroupElement("import-rib", d.Get("name").(string), clt, nil); err != nil {
 				return diag.FromErr(err)
 			}
 		}
 		if d.HasChange("export_rib") {
-			if err := delRibGroupElement("export-rib", d.Get("name").(string), m, nil); err != nil {
+			if err := delRibGroupElement("export-rib", d.Get("name").(string), clt, nil); err != nil {
 				return diag.FromErr(err)
 			}
 		}
-		if err := setRibGroup(d, m, nil); err != nil {
+		if err := setRibGroup(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	if d.HasChange("import_policy") {
-		err = delRibGroupElement("import-policy", d.Get("name").(string), m, jnprSess)
-		if err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		if err := delRibGroupElement("import-policy", d.Get("name").(string), clt, junSess); err != nil {
+			appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 	}
 	if d.HasChange("import_rib") {
-		err = delRibGroupElement("import-rib", d.Get("name").(string), m, jnprSess)
-		if err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		if err := delRibGroupElement("import-rib", d.Get("name").(string), clt, junSess); err != nil {
+			appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 	}
 	if d.HasChange("export_rib") {
-		err = delRibGroupElement("export-rib", d.Get("name").(string), m, jnprSess)
-		if err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		if err := delRibGroupElement("export-rib", d.Get("name").(string), clt, junSess); err != nil {
+			appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 	}
-	if err := setRibGroup(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setRibGroup(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_rib_group", jnprSess)
+	warns, err := clt.commitConf("update resource junos_rib_group", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceRibGroupReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceRibGroupReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceRibGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := delRibGroup(d, m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := delRibGroup(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delRibGroup(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delRibGroup(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_rib_group", jnprSess)
+	warns, err := clt.commitConf("delete resource junos_rib_group", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -254,21 +251,21 @@ func resourceRibGroupDelete(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceRibGroupImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	ribGroupExists, err := checkRibGroupExists(d.Id(), m, jnprSess)
+	ribGroupExists, err := checkRibGroupExists(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !ribGroupExists {
 		return nil, fmt.Errorf("don't find rib group with id '%v' (id must be <name>)", d.Id())
 	}
-	rigGroupOptions, err := readRibGroup(d.Id(), m, jnprSess)
+	rigGroupOptions, err := readRibGroup(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -278,9 +275,8 @@ func resourceRibGroupImport(ctx context.Context, d *schema.ResourceData, m inter
 	return result, nil
 }
 
-func checkRibGroupExists(group string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+"routing-options rib-groups "+group+pipeDisplaySet, jnprSess)
+func checkRibGroupExists(group string, clt *Client, junSess *junosSession) (bool, error) {
+	showConfig, err := clt.command(cmdShowConfig+"routing-options rib-groups "+group+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -291,8 +287,7 @@ func checkRibGroupExists(group string, m interface{}, jnprSess *NetconfObject) (
 	return true, nil
 }
 
-func setRibGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setRibGroup(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set routing-options rib-groups " + d.Get("name").(string) + " "
@@ -306,15 +301,14 @@ func setRibGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		configSet = append(configSet, setPrefix+"export-rib "+d.Get("export_rib").(string))
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func readRibGroup(group string, m interface{}, jnprSess *NetconfObject) (ribGroupOptions, error) {
-	sess := m.(*Session)
+func readRibGroup(group string, clt *Client, junSess *junosSession) (ribGroupOptions, error) {
 	var confRead ribGroupOptions
 
-	showConfig, err := sess.command(cmdShowConfig+
-		"routing-options rib-groups "+group+pipeDisplaySetRelative, jnprSess)
+	showConfig, err := clt.command(cmdShowConfig+
+		"routing-options rib-groups "+group+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -342,20 +336,18 @@ func readRibGroup(group string, m interface{}, jnprSess *NetconfObject) (ribGrou
 	return confRead, nil
 }
 
-func delRibGroupElement(element, group string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delRibGroupElement(element, group string, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete routing-options rib-groups "+group+" "+element)
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func delRibGroup(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delRibGroup(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete routing-options rib-groups "+d.Get("name").(string))
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func validateRibGroup(d *schema.ResourceData) error {

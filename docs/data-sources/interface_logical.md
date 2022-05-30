@@ -5,7 +5,7 @@ page_title: "Junos: junos_interface_logical"
 # junos_interface_logical
 
 Get information on a logical interface  
-(as with an junos_interface_logical resource import).
+(as with a junos_interface_logical resource import).
 
 ## Example Usage
 
@@ -42,6 +42,8 @@ The following attributes are exported:
   Name of unit interface (with dot).
 - **description** (String)  
   Description for interface.
+- **disable** (Boolean)  
+  Interface disabled.
 - **family_inet** (Block)  
   Family inet enabled and possible configuration.
   - **address** (Block List)  

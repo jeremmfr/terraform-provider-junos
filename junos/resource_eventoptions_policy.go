@@ -467,50 +467,50 @@ func resourceEventoptionsPolicy() *schema.Resource {
 }
 
 func resourceEventoptionsPolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setEventoptionsPolicy(d, m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setEventoptionsPolicy(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	eventoptionsPolicyExists, err := checkEventoptionsPolicyExists(d.Get("name").(string), m, jnprSess)
+	eventoptionsPolicyExists, err := checkEventoptionsPolicyExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if eventoptionsPolicyExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("event-options policy %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setEventoptionsPolicy(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setEventoptionsPolicy(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_eventoptions_policy", jnprSess)
+	warns, err := clt.commitConf("create resource junos_eventoptions_policy", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	eventoptionsPolicyExists, err = checkEventoptionsPolicyExists(d.Get("name").(string), m, jnprSess)
+	eventoptionsPolicyExists, err = checkEventoptionsPolicyExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -521,24 +521,24 @@ func resourceEventoptionsPolicyCreate(ctx context.Context, d *schema.ResourceDat
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceEventoptionsPolicyReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceEventoptionsPolicyReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceEventoptionsPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 
-	return resourceEventoptionsPolicyReadWJnprSess(d, m, jnprSess)
+	return resourceEventoptionsPolicyReadWJunSess(d, clt, junSess)
 }
 
-func resourceEventoptionsPolicyReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceEventoptionsPolicyReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	eventoptionsPolicyOptions, err := readEventoptionsPolicy(d.Get("name").(string), m, jnprSess)
+	eventoptionsPolicyOptions, err := readEventoptionsPolicy(d.Get("name").(string), clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -554,76 +554,76 @@ func resourceEventoptionsPolicyReadWJnprSess(d *schema.ResourceData, m interface
 
 func resourceEventoptionsPolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
-		if err := delEventoptionsPolicy(d.Get("name").(string), m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
+		if err := delEventoptionsPolicy(d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setEventoptionsPolicy(d, m, nil); err != nil {
+		if err := setEventoptionsPolicy(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delEventoptionsPolicy(d.Get("name").(string), m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delEventoptionsPolicy(d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setEventoptionsPolicy(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setEventoptionsPolicy(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_eventoptions_policy", jnprSess)
+	warns, err := clt.commitConf("update resource junos_eventoptions_policy", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceEventoptionsPolicyReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceEventoptionsPolicyReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceEventoptionsPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := delEventoptionsPolicy(d.Get("name").(string), m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := delEventoptionsPolicy(d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delEventoptionsPolicy(d.Get("name").(string), m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delEventoptionsPolicy(d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_eventoptions_policy", jnprSess)
+	warns, err := clt.commitConf("delete resource junos_eventoptions_policy", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -633,22 +633,22 @@ func resourceEventoptionsPolicyDelete(ctx context.Context, d *schema.ResourceDat
 
 func resourceEventoptionsPolicyImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 
-	eventoptionsPolicyExists, err := checkEventoptionsPolicyExists(d.Id(), m, jnprSess)
+	eventoptionsPolicyExists, err := checkEventoptionsPolicyExists(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !eventoptionsPolicyExists {
 		return nil, fmt.Errorf("don't find event-options policy with id '%v' (id must be <name>)", d.Id())
 	}
-	eventoptionsPolicyOptions, err := readEventoptionsPolicy(d.Id(), m, jnprSess)
+	eventoptionsPolicyOptions, err := readEventoptionsPolicy(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -659,9 +659,8 @@ func resourceEventoptionsPolicyImport(ctx context.Context, d *schema.ResourceDat
 	return result, nil
 }
 
-func checkEventoptionsPolicyExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+"event-options policy \""+name+"\""+pipeDisplaySet, jnprSess)
+func checkEventoptionsPolicyExists(name string, clt *Client, junSess *junosSession) (bool, error) {
+	showConfig, err := clt.command(cmdShowConfig+"event-options policy \""+name+"\""+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -672,8 +671,7 @@ func checkEventoptionsPolicyExists(name string, m interface{}, jnprSess *Netconf
 	return true, nil
 }
 
-func setEventoptionsPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setEventoptionsPolicy(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0)
 	setPrefix := "set event-options policy \"" + d.Get("name").(string) + "\" "
 
@@ -873,15 +871,14 @@ func setEventoptionsPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netc
 		}
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func readEventoptionsPolicy(name string, m interface{}, jnprSess *NetconfObject) (eventoptionsPolicyOptions, error) {
-	sess := m.(*Session)
+func readEventoptionsPolicy(name string, clt *Client, junSess *junosSession) (eventoptionsPolicyOptions, error) {
 	var confRead eventoptionsPolicyOptions
 
-	showConfig, err := sess.command(cmdShowConfig+
-		"event-options policy \""+name+"\""+pipeDisplaySetRelative, jnprSess)
+	showConfig, err := clt.command(cmdShowConfig+
+		"event-options policy \""+name+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -1182,12 +1179,11 @@ func readEventoptionsPolicyThen(then map[string]interface{}, itemTrim string) er
 	return nil
 }
 
-func delEventoptionsPolicy(policy string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delEventoptionsPolicy(policy string, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete event-options policy \""+policy+"\"")
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func fillEventoptionsPolicyData(d *schema.ResourceData, eventoptionsPolicyOptions eventoptionsPolicyOptions) {

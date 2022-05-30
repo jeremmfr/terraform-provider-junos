@@ -96,49 +96,49 @@ func resourceFirewallPolicer() *schema.Resource {
 }
 
 func resourceFirewallPolicerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setFirewallPolicer(d, m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setFirewallPolicer(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	firewallPolicerExists, err := checkFirewallPolicerExists(d.Get("name").(string), m, jnprSess)
+	firewallPolicerExists, err := checkFirewallPolicerExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if firewallPolicerExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("firewall policer %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setFirewallPolicer(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setFirewallPolicer(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_firewall_policer", jnprSess)
+	warns, err := clt.commitConf("create resource junos_firewall_policer", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	firewallPolicerExists, err = checkFirewallPolicerExists(d.Get("name").(string), m, jnprSess)
+	firewallPolicerExists, err = checkFirewallPolicerExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -149,24 +149,24 @@ func resourceFirewallPolicerCreate(ctx context.Context, d *schema.ResourceData, 
 			"=> check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceFirewallPolicerReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceFirewallPolicerReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceFirewallPolicerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 
-	return resourceFirewallPolicerReadWJnprSess(d, m, jnprSess)
+	return resourceFirewallPolicerReadWJunSess(d, clt, junSess)
 }
 
-func resourceFirewallPolicerReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceFirewallPolicerReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	policerOptions, err := readFirewallPolicer(d.Get("name").(string), m, jnprSess)
+	policerOptions, err := readFirewallPolicer(d.Get("name").(string), clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -182,76 +182,76 @@ func resourceFirewallPolicerReadWJnprSess(d *schema.ResourceData, m interface{},
 
 func resourceFirewallPolicerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
-		if err := delFirewallPolicer(d.Get("name").(string), m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
+		if err := delFirewallPolicer(d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setFirewallPolicer(d, m, nil); err != nil {
+		if err := setFirewallPolicer(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delFirewallPolicer(d.Get("name").(string), m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delFirewallPolicer(d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setFirewallPolicer(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setFirewallPolicer(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_firewall_policer", jnprSess)
+	warns, err := clt.commitConf("update resource junos_firewall_policer", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceFirewallPolicerReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceFirewallPolicerReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceFirewallPolicerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := delFirewallPolicer(d.Get("name").(string), m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := delFirewallPolicer(d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delFirewallPolicer(d.Get("name").(string), m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delFirewallPolicer(d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_firewall_policer", jnprSess)
+	warns, err := clt.commitConf("delete resource junos_firewall_policer", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -261,22 +261,22 @@ func resourceFirewallPolicerDelete(ctx context.Context, d *schema.ResourceData, 
 
 func resourceFirewallPolicerImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 
-	firewallPolicerExists, err := checkFirewallPolicerExists(d.Id(), m, jnprSess)
+	firewallPolicerExists, err := checkFirewallPolicerExists(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !firewallPolicerExists {
 		return nil, fmt.Errorf("don't find firewall policer with id '%v' (id must be <name>)", d.Id())
 	}
-	policerOptions, err := readFirewallPolicer(d.Id(), m, jnprSess)
+	policerOptions, err := readFirewallPolicer(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -287,9 +287,8 @@ func resourceFirewallPolicerImport(ctx context.Context, d *schema.ResourceData, 
 	return result, nil
 }
 
-func checkFirewallPolicerExists(name string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+"firewall policer "+name+pipeDisplaySet, jnprSess)
+func checkFirewallPolicerExists(name string, clt *Client, junSess *junosSession) (bool, error) {
+	showConfig, err := clt.command(cmdShowConfig+"firewall policer "+name+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -300,8 +299,7 @@ func checkFirewallPolicerExists(name string, m interface{}, jnprSess *NetconfObj
 	return true, nil
 }
 
-func setFirewallPolicer(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setFirewallPolicer(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set firewall policer " + d.Get("name").(string)
@@ -343,14 +341,13 @@ func setFirewallPolicer(d *schema.ResourceData, m interface{}, jnprSess *Netconf
 		}
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func readFirewallPolicer(name string, m interface{}, jnprSess *NetconfObject) (policerOptions, error) {
-	sess := m.(*Session)
+func readFirewallPolicer(name string, clt *Client, junSess *junosSession) (policerOptions, error) {
 	var confRead policerOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"firewall policer "+name+pipeDisplaySetRelative, jnprSess)
+	showConfig, err := clt.command(cmdShowConfig+"firewall policer "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -413,12 +410,11 @@ func readFirewallPolicer(name string, m interface{}, jnprSess *NetconfObject) (p
 	return confRead, nil
 }
 
-func delFirewallPolicer(policer string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delFirewallPolicer(policer string, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete firewall policer "+policer)
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func fillFirewallPolicerData(d *schema.ResourceData, policerOptions policerOptions) {

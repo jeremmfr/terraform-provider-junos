@@ -278,54 +278,54 @@ func schemaSecurityIdpPolicyRuleMatch(exempt bool) map[string]*schema.Schema {
 }
 
 func resourceSecurityIdpPolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setSecurityIdpPolicy(d, m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setSecurityIdpPolicy(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("name").(string))
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if !checkCompatibilitySecurity(jnprSess) {
+	defer clt.closeSession(junSess)
+	if !checkCompatibilitySecurity(junSess) {
 		return diag.FromErr(fmt.Errorf("security idp policy not compatible with Junos device %s",
-			jnprSess.SystemInformation.HardwareModel))
+			junSess.SystemInformation.HardwareModel))
 	}
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	idpPolicyExists, err := checkSecurityIdpPolicyExists(d.Get("name").(string), m, jnprSess)
+	idpPolicyExists, err := checkSecurityIdpPolicyExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if idpPolicyExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("security idp idp-policy %v already exists", d.Get("name").(string)))...)
 	}
 
-	if err := setSecurityIdpPolicy(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSecurityIdpPolicy(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_security_idp_policy", jnprSess)
+	warns, err := clt.commitConf("create resource junos_security_idp_policy", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	idpPolicyExists, err = checkSecurityIdpPolicyExists(d.Get("name").(string), m, jnprSess)
+	idpPolicyExists, err = checkSecurityIdpPolicyExists(d.Get("name").(string), clt, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -336,24 +336,24 @@ func resourceSecurityIdpPolicyCreate(ctx context.Context, d *schema.ResourceData
 			"not exists after commit => check your config", d.Get("name").(string)))...)
 	}
 
-	return append(diagWarns, resourceSecurityIdpPolicyReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSecurityIdpPolicyReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSecurityIdpPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 
-	return resourceSecurityIdpPolicyReadWJnprSess(d, m, jnprSess)
+	return resourceSecurityIdpPolicyReadWJunSess(d, clt, junSess)
 }
 
-func resourceSecurityIdpPolicyReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceSecurityIdpPolicyReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	idpPolicyOptions, err := readSecurityIdpPolicy(d.Get("name").(string), m, jnprSess)
+	idpPolicyOptions, err := readSecurityIdpPolicy(d.Get("name").(string), clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -369,76 +369,76 @@ func resourceSecurityIdpPolicyReadWJnprSess(d *schema.ResourceData, m interface{
 
 func resourceSecurityIdpPolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
-		if err := delSecurityIdpPolicy(d.Get("name").(string), m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
+		if err := delSecurityIdpPolicy(d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSecurityIdpPolicy(d, m, nil); err != nil {
+		if err := setSecurityIdpPolicy(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityIdpPolicy(d.Get("name").(string), m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delSecurityIdpPolicy(d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSecurityIdpPolicy(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSecurityIdpPolicy(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_security_idp_policy", jnprSess)
+	warns, err := clt.commitConf("update resource junos_security_idp_policy", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSecurityIdpPolicyReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSecurityIdpPolicyReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSecurityIdpPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := delSecurityIdpPolicy(d.Get("name").(string), m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := delSecurityIdpPolicy(d.Get("name").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSecurityIdpPolicy(d.Get("name").(string), m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delSecurityIdpPolicy(d.Get("name").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_security_idp_policy", jnprSess)
+	warns, err := clt.commitConf("delete resource junos_security_idp_policy", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -448,21 +448,21 @@ func resourceSecurityIdpPolicyDelete(ctx context.Context, d *schema.ResourceData
 
 func resourceSecurityIdpPolicyImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	idpPolicyExists, err := checkSecurityIdpPolicyExists(d.Id(), m, jnprSess)
+	idpPolicyExists, err := checkSecurityIdpPolicyExists(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !idpPolicyExists {
 		return nil, fmt.Errorf("don't find security idp idp-policy with id '%v' (id must be <name>)", d.Id())
 	}
-	idpPolicyOptions, err := readSecurityIdpPolicy(d.Id(), m, jnprSess)
+	idpPolicyOptions, err := readSecurityIdpPolicy(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -473,10 +473,9 @@ func resourceSecurityIdpPolicyImport(ctx context.Context, d *schema.ResourceData
 	return result, nil
 }
 
-func checkSecurityIdpPolicyExists(policy string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+
-		"security idp idp-policy \""+policy+"\""+pipeDisplaySet, jnprSess)
+func checkSecurityIdpPolicyExists(policy string, clt *Client, junSess *junosSession) (bool, error) {
+	showConfig, err := clt.command(cmdShowConfig+
+		"security idp idp-policy \""+policy+"\""+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -487,8 +486,7 @@ func checkSecurityIdpPolicyExists(policy string, m interface{}, jnprSess *Netcon
 	return true, nil
 }
 
-func setSecurityIdpPolicy(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setSecurityIdpPolicy(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	setPrefix := "set security idp idp-policy \"" + d.Get("name").(string) + "\" "
@@ -520,7 +518,7 @@ func setSecurityIdpPolicy(d *schema.ResourceData, m interface{}, jnprSess *Netco
 		configSet = append(configSet, sets...)
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func setSecurityIdpPolicyExemptRule(setPrefix string, rule map[string]interface{}) ([]string, error) {
@@ -739,13 +737,12 @@ func setSecurityIdpPolicyIpsRule(setPrefix string, rule map[string]interface{}) 
 	return configSet, nil
 }
 
-func readSecurityIdpPolicy(policy string, m interface{}, jnprSess *NetconfObject,
+func readSecurityIdpPolicy(policy string, clt *Client, junSess *junosSession,
 ) (idpPolicyOptions, error) {
-	sess := m.(*Session)
 	var confRead idpPolicyOptions
 
-	showConfig, err := sess.command(cmdShowConfig+
-		"security idp idp-policy \""+policy+"\""+pipeDisplaySetRelative, jnprSess)
+	showConfig, err := clt.command(cmdShowConfig+
+		"security idp idp-policy \""+policy+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -1002,11 +999,10 @@ func readSecurityIdpPolicy(policy string, m interface{}, jnprSess *NetconfObject
 	return confRead, nil
 }
 
-func delSecurityIdpPolicy(policy string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delSecurityIdpPolicy(policy string, clt *Client, junSess *junosSession) error {
 	configSet := []string{"delete security idp idp-policy \"" + policy + "\""}
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func fillSecurityIdpPolicyData(d *schema.ResourceData, idpPolicyOptions idpPolicyOptions) {

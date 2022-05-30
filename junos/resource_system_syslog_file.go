@@ -233,50 +233,50 @@ func resourceSystemSyslogFile() *schema.Resource {
 }
 
 func resourceSystemSyslogFileCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setSystemSyslogFile(d, m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setSystemSyslogFile(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("filename").(string))
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	syslogFileExists, err := checkSystemSyslogFileExists(d.Get("filename").(string), m, jnprSess)
+	syslogFileExists, err := checkSystemSyslogFileExists(d.Get("filename").(string), clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if syslogFileExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns,
 			diag.FromErr(fmt.Errorf("system syslog file %v already exists", d.Get("filename").(string)))...)
 	}
 
-	if err := setSystemSyslogFile(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSystemSyslogFile(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_system_syslog_file", jnprSess)
+	warns, err := clt.commitConf("create resource junos_system_syslog_file", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	syslogFileExists, err = checkSystemSyslogFileExists(d.Get("filename").(string), m, jnprSess)
+	syslogFileExists, err = checkSystemSyslogFileExists(d.Get("filename").(string), clt, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -287,24 +287,24 @@ func resourceSystemSyslogFileCreate(ctx context.Context, d *schema.ResourceData,
 			"=> check your config", d.Get("filename").(string)))...)
 	}
 
-	return append(diagWarns, resourceSystemSyslogFileReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSystemSyslogFileReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSystemSyslogFileRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 
-	return resourceSystemSyslogFileReadWJnprSess(d, m, jnprSess)
+	return resourceSystemSyslogFileReadWJunSess(d, clt, junSess)
 }
 
-func resourceSystemSyslogFileReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
+func resourceSystemSyslogFileReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession,
 ) diag.Diagnostics {
 	mutex.Lock()
-	syslogFileOptions, err := readSystemSyslogFile(d.Get("filename").(string), m, jnprSess)
+	syslogFileOptions, err := readSystemSyslogFile(d.Get("filename").(string), clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -320,76 +320,76 @@ func resourceSystemSyslogFileReadWJnprSess(d *schema.ResourceData, m interface{}
 
 func resourceSystemSyslogFileUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
-		if err := delSystemSyslogFile(d.Get("filename").(string), m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
+		if err := delSystemSyslogFile(d.Get("filename").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setSystemSyslogFile(d, m, nil); err != nil {
+		if err := setSystemSyslogFile(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSystemSyslogFile(d.Get("filename").(string), m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delSystemSyslogFile(d.Get("filename").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setSystemSyslogFile(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setSystemSyslogFile(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_system_syslog_file", jnprSess)
+	warns, err := clt.commitConf("update resource junos_system_syslog_file", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceSystemSyslogFileReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceSystemSyslogFileReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceSystemSyslogFileDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := delSystemSyslogFile(d.Get("filename").(string), m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := delSystemSyslogFile(d.Get("filename").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delSystemSyslogFile(d.Get("filename").(string), m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delSystemSyslogFile(d.Get("filename").(string), clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_system_syslog_file", jnprSess)
+	warns, err := clt.commitConf("delete resource junos_system_syslog_file", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -399,22 +399,22 @@ func resourceSystemSyslogFileDelete(ctx context.Context, d *schema.ResourceData,
 
 func resourceSystemSyslogFileImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 
-	syslogFileExists, err := checkSystemSyslogFileExists(d.Id(), m, jnprSess)
+	syslogFileExists, err := checkSystemSyslogFileExists(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
 	if !syslogFileExists {
 		return nil, fmt.Errorf("don't find system syslog file with id '%v' (id must be <filename>)", d.Id())
 	}
-	syslogFileOptions, err := readSystemSyslogFile(d.Id(), m, jnprSess)
+	syslogFileOptions, err := readSystemSyslogFile(d.Id(), clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -425,9 +425,8 @@ func resourceSystemSyslogFileImport(ctx context.Context, d *schema.ResourceData,
 	return result, nil
 }
 
-func checkSystemSyslogFileExists(filename string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
-	showConfig, err := sess.command(cmdShowConfig+"system syslog file "+filename+pipeDisplaySet, jnprSess)
+func checkSystemSyslogFileExists(filename string, clt *Client, junSess *junosSession) (bool, error) {
+	showConfig, err := clt.command(cmdShowConfig+"system syslog file "+filename+pipeDisplaySet, junSess)
 	if err != nil {
 		return false, err
 	}
@@ -438,9 +437,7 @@ func checkSystemSyslogFileExists(filename string, m interface{}, jnprSess *Netco
 	return true, nil
 }
 
-func setSystemSyslogFile(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
-
+func setSystemSyslogFile(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	setPrefix := "set system syslog file " + d.Get("filename").(string)
 	configSet := make([]string, 0)
 
@@ -564,14 +561,13 @@ func setSystemSyslogFile(d *schema.ResourceData, m interface{}, jnprSess *Netcon
 		}
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObject) (syslogFileOptions, error) {
-	sess := m.(*Session)
+func readSystemSyslogFile(filename string, clt *Client, junSess *junosSession) (syslogFileOptions, error) {
 	var confRead syslogFileOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"system syslog file "+filename+pipeDisplaySetRelative, jnprSess)
+	showConfig, err := clt.command(cmdShowConfig+"system syslog file "+filename+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
@@ -710,12 +706,11 @@ func readSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObjec
 	return confRead, nil
 }
 
-func delSystemSyslogFile(filename string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delSystemSyslogFile(filename string, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete system syslog file "+filename)
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func fillSystemSyslogFileData(d *schema.ResourceData, syslogFileOptions syslogFileOptions) {

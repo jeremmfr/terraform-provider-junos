@@ -73,6 +73,48 @@ func TestAccJunosOspfArea_basic(t *testing.T) {
 					ImportState:       true,
 					ImportStateVerify: true,
 				},
+				{
+					ResourceName:      "junos_ospf_area.testacc_ospfarea2",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				{
+					ResourceName:      "junos_ospf_area.testacc_ospfareav3ipv4",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				{
+					ResourceName:      "junos_ospf_area.testacc_ospfarea2v3realm",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				{
+					Config: testAccJunosOspfAreaConfigUpdate2(),
+				},
+				{
+					Config: testAccJunosOspfAreaConfigUpdate3(),
+				},
+				{
+					Config: testAccJunosOspfAreaConfigUpdate4(testaccOspfArea),
+				},
+				{
+					Config: testAccJunosOspfAreaConfigUpdate5(testaccOspfArea),
+				},
+				{
+					ResourceName:      "junos_ospf_area.testacc_ospfarea",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				{
+					ResourceName:      "junos_ospf_area.testacc_ospfarea2",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				{
+					ResourceName:      "junos_ospf_area.testacc_ospfarea3",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
 			},
 		})
 	}
@@ -90,6 +132,19 @@ resource "junos_ospf_area" "testacc_ospfarea" {
     retransmit_interval = 12
     hello_interval      = 11
     dead_interval       = 10
+  }
+  interface {
+    name      = junos_interface_logical.testacc_ospfarea.name
+    secondary = true
+  }
+}
+resource "junos_ospf_area" "testacc_ospfareav3ipv4" {
+  area_id = "0.0.0.0"
+  version = "v3"
+  realm   = "ipv4-unicast"
+  interface {
+    name    = "all"
+    disable = true
   }
   interface {
     name      = junos_interface_logical.testacc_ospfarea.name
@@ -143,6 +198,35 @@ resource "junos_ospf_area" "testacc_ospfarea" {
     neighbor {
       address  = "192.0.2.5"
       eligible = "true"
+    }
+  }
+  network_summary_export = [junos_policyoptions_policy_statement.testacc_ospfarea.name]
+  network_summary_import = [junos_policyoptions_policy_statement.testacc_ospfarea2.name]
+}
+resource "junos_policyoptions_policy_statement" "testacc_ospfarea" {
+  name = "testacc_ospfarea"
+  then {
+    action = "accept"
+  }
+}
+resource "junos_policyoptions_policy_statement" "testacc_ospfarea2" {
+  name = "testacc_ospfarea2"
+  then {
+    action = "reject"
+  }
+}
+resource "junos_ospf_area" "testacc_ospfareav3ipv4" {
+  area_id = "0.0.0.0"
+  version = "v3"
+  realm   = "ipv4-unicast"
+  interface {
+    name     = junos_interface_logical.testacc_ospfarea.name
+    priority = 0
+    bfd_liveness_detection {
+      full_neighbors_only                = true
+      minimum_receive_interval           = 27
+      transmit_interval_minimum_interval = 50
+      transmit_interval_threshold        = 51
     }
   }
 }
@@ -207,5 +291,206 @@ resource "junos_ospf_area" "testacc_ospfarea2" {
     }
   }
 }
+resource "junos_ospf_area" "testacc_ospfarea2v3realm" {
+  area_id          = "0.0.0.0"
+  version          = "v3"
+  realm            = "ipv4-multicast"
+  routing_instance = junos_routing_instance.testacc_ospfarea.name
+  interface {
+    name    = "all"
+    passive = true
+  }
+  interface {
+    name = junos_interface_logical.testacc_ospfarea2.name
+    bfd_liveness_detection {
+      version                            = "automatic"
+      minimum_receive_interval           = 270
+      transmit_interval_minimum_interval = 500
+      transmit_interval_threshold        = 510
+    }
+  }
+}
 `, interFace, interFace2)
+}
+
+func testAccJunosOspfAreaConfigUpdate2() string {
+	return `
+resource "junos_ospf_area" "testacc_ospfarea" {
+  area_id = "0.0.0.0"
+  version = "v3"
+  interface {
+    name    = "all"
+    disable = true
+  }
+  virtual_link {
+    neighbor_id  = "192.0.2.0"
+    transit_area = "192.0.2.1"
+  }
+}
+`
+}
+
+func testAccJunosOspfAreaConfigUpdate3() string {
+	return `
+resource "junos_ospf_area" "testacc_ospfarea" {
+  area_id = "0.0.0.0"
+  version = "v3"
+  interface {
+    name    = "all"
+    disable = true
+  }
+  virtual_link {
+    neighbor_id         = "192.0.2.100"
+    transit_area        = "192.0.2.101"
+    dead_interval       = 102
+    demand_circuit      = true
+    disable             = true
+    flood_reduction     = true
+    hello_interval      = 103
+    mtu                 = 1040
+    retransmit_interval = 105
+    transit_delay       = 106
+
+  }
+  virtual_link {
+    neighbor_id  = "192.0.2.0"
+    transit_area = "192.0.2.1"
+  }
+}
+`
+}
+
+func testAccJunosOspfAreaConfigUpdate4(interFace string) string {
+	return fmt.Sprintf(`
+resource "junos_ospf_area" "testacc_ospfarea" {
+  area_id = "1"
+  version = "v3"
+  interface {
+    name = "all"
+  }
+  area_range {
+    range = "fe80::/64"
+  }
+  no_context_identifier_advertisement = true
+  inter_area_prefix_export = [
+    junos_policyoptions_policy_statement.testacc_ospfarea2.name,
+  ]
+  inter_area_prefix_import = [
+    junos_policyoptions_policy_statement.testacc_ospfarea.name,
+  ]
+  nssa {}
+}
+resource "junos_policyoptions_policy_statement" "testacc_ospfarea" {
+  name = "testacc_ospfarea"
+  then {
+    action = "accept"
+  }
+}
+resource "junos_policyoptions_policy_statement" "testacc_ospfarea2" {
+  name = "testacc_ospfarea2"
+  then {
+    action = "reject"
+  }
+}
+resource "junos_ospf_area" "testacc_ospfarea2" {
+  area_id = "2"
+  version = "v3"
+  interface {
+    name    = "%s.0"
+    passive = true
+  }
+  stub {}
+}
+`, interFace)
+}
+
+func testAccJunosOspfAreaConfigUpdate5(interFace string) string {
+	return fmt.Sprintf(`
+resource "junos_ospf_area" "testacc_ospfarea" {
+  area_id = "1"
+  version = "v3"
+  interface {
+    name = "all"
+  }
+  area_range {
+    range = "fe80:f::/64"
+    exact = true
+  }
+  area_range {
+    range           = "fe80:e::/64"
+    exact           = true
+    override_metric = 106
+  }
+  area_range {
+    range    = "fe80::/64"
+    restrict = true
+  }
+  context_identifier = ["127.0.0.2", "127.0.0.1"]
+  inter_area_prefix_export = [
+    junos_policyoptions_policy_statement.testacc_ospfarea.name,
+    junos_policyoptions_policy_statement.testacc_ospfarea2.name,
+  ]
+  inter_area_prefix_import = [
+    junos_policyoptions_policy_statement.testacc_ospfarea2.name,
+    junos_policyoptions_policy_statement.testacc_ospfarea.name,
+  ]
+  nssa {
+    area_range {
+      range = "fe80::/64"
+      exact = true
+    }
+    area_range {
+      range           = "fe80:b::/64"
+      override_metric = 107
+    }
+    area_range {
+      range    = "fe80:a::/64"
+      restrict = true
+    }
+    default_lsa {
+      default_metric = 109
+      metric_type    = 2
+      type_7         = true
+    }
+    summaries = true
+  }
+}
+resource "junos_policyoptions_policy_statement" "testacc_ospfarea" {
+  name = "testacc_ospfarea"
+  then {
+    action = "accept"
+  }
+}
+resource "junos_policyoptions_policy_statement" "testacc_ospfarea2" {
+  name = "testacc_ospfarea2"
+  then {
+    action = "reject"
+  }
+}
+resource "junos_ospf_area" "testacc_ospfarea2" {
+  area_id = "2"
+  version = "v3"
+  interface {
+    name    = "%s.0"
+    passive = true
+  }
+  stub {
+    default_metric = 150
+    no_summaries   = true
+  }
+}
+resource "junos_ospf_area" "testacc_ospfarea3" {
+  area_id = "3"
+  version = "v3"
+  realm   = "ipv4-unicast"
+  interface {
+    name    = "%s.0"
+    passive = true
+  }
+  nssa {
+    no_summaries = true
+    default_lsa {}
+  }
+}
+`, interFace, interFace)
 }

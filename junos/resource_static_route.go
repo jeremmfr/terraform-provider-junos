@@ -207,65 +207,69 @@ func resourceStaticRoute() *schema.Resource {
 }
 
 func resourceStaticRouteCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setStaticRoute(d, m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setStaticRoute(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(d.Get("destination").(string) + idSeparator + d.Get("routing_instance").(string))
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
 	if d.Get("routing_instance").(string) != defaultW {
-		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), m, jnprSess)
+		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), clt, junSess)
 		if err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+			appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
 		if !instanceExists {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+			appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 			return append(diagWarns,
 				diag.FromErr(fmt.Errorf("routing instance %v doesn't exist", d.Get("routing_instance").(string)))...)
 		}
 	}
-	staticRouteExists, err := checkStaticRouteExists(d.Get("destination").(string), d.Get("routing_instance").(string),
-		m, jnprSess)
+	staticRouteExists, err := checkStaticRouteExists(
+		d.Get("destination").(string),
+		d.Get("routing_instance").(string),
+		clt, junSess)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	if staticRouteExists {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("static route %v already exists on table %s",
 			d.Get("destination").(string), d.Get("routing_instance").(string)))...)
 	}
-	if err := setStaticRoute(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setStaticRoute(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_static_route", jnprSess)
+	warns, err := clt.commitConf("create resource junos_static_route", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	staticRouteExists, err = checkStaticRouteExists(d.Get("destination").(string), d.Get("routing_instance").(string),
-		m, jnprSess)
+	staticRouteExists, err = checkStaticRouteExists(
+		d.Get("destination").(string),
+		d.Get("routing_instance").(string),
+		clt, junSess)
 	if err != nil {
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -276,24 +280,26 @@ func resourceStaticRouteCreate(ctx context.Context, d *schema.ResourceData, m in
 			"=> check your config", d.Get("destination").(string), d.Get("routing_instance").(string)))...)
 	}
 
-	return append(diagWarns, resourceStaticRouteReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceStaticRouteReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceStaticRouteRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 
-	return resourceStaticRouteReadWJnprSess(d, m, jnprSess)
+	return resourceStaticRouteReadWJunSess(d, clt, junSess)
 }
 
-func resourceStaticRouteReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceStaticRouteReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession) diag.Diagnostics {
 	mutex.Lock()
-	staticRouteOptions, err := readStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string),
-		m, jnprSess)
+	staticRouteOptions, err := readStaticRoute(
+		d.Get("destination").(string),
+		d.Get("routing_instance").(string),
+		clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -309,77 +315,85 @@ func resourceStaticRouteReadWJnprSess(d *schema.ResourceData, m interface{}, jnp
 
 func resourceStaticRouteUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
-		if err := delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
+		if err := delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setStaticRoute(d, m, nil); err != nil {
+		if err := setStaticRoute(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delStaticRoute(
+		d.Get("destination").(string),
+		d.Get("routing_instance").(string),
+		clt, junSess,
+	); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setStaticRoute(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setStaticRoute(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_static_route", jnprSess)
+	warns, err := clt.commitConf("update resource junos_static_route", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 
 	d.Partial(false)
 
-	return append(diagWarns, resourceStaticRouteReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceStaticRouteReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceStaticRouteDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeDeleteAlso {
-		if err := delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeDeleteAlso {
+		if err := delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delStaticRoute(d.Get("destination").(string), d.Get("routing_instance").(string), m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delStaticRoute(
+		d.Get("destination").(string),
+		d.Get("routing_instance").(string),
+		clt, junSess,
+	); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("delete resource junos_static_route", jnprSess)
+	warns, err := clt.commitConf("delete resource junos_static_route", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
@@ -389,18 +403,18 @@ func resourceStaticRouteDelete(ctx context.Context, d *schema.ResourceData, m in
 
 func resourceStaticRouteImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 	idSplit := strings.Split(d.Id(), idSeparator)
 	if len(idSplit) < 2 {
 		return nil, fmt.Errorf("missing element(s) in id with separator %v", idSeparator)
 	}
-	staticRouteExists, err := checkStaticRouteExists(idSplit[0], idSplit[1], m, jnprSess)
+	staticRouteExists, err := checkStaticRouteExists(idSplit[0], idSplit[1], clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -408,7 +422,7 @@ func resourceStaticRouteImport(ctx context.Context, d *schema.ResourceData, m in
 		return nil, fmt.Errorf("don't find static route with id '%v' (id must be "+
 			"<destination>"+idSeparator+"<routing_instance>)", d.Id())
 	}
-	staticRouteOptions, err := readStaticRoute(idSplit[0], idSplit[1], m, jnprSess)
+	staticRouteOptions, err := readStaticRoute(idSplit[0], idSplit[1], clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -419,34 +433,33 @@ func resourceStaticRouteImport(ctx context.Context, d *schema.ResourceData, m in
 	return result, nil
 }
 
-func checkStaticRouteExists(destination, instance string, m interface{}, jnprSess *NetconfObject) (bool, error) {
-	sess := m.(*Session)
+func checkStaticRouteExists(destination, instance string, clt *Client, junSess *junosSession) (bool, error) {
 	var showConfig string
 	var err error
 	if instance == defaultW {
 		if !strings.Contains(destination, ":") {
-			showConfig, err = sess.command(cmdShowConfig+
-				"routing-options static route "+destination+pipeDisplaySet, jnprSess)
+			showConfig, err = clt.command(cmdShowConfig+
+				"routing-options static route "+destination+pipeDisplaySet, junSess)
 			if err != nil {
 				return false, err
 			}
 		} else {
-			showConfig, err = sess.command(cmdShowConfig+
-				"routing-options rib inet6.0 static route "+destination+pipeDisplaySet, jnprSess)
+			showConfig, err = clt.command(cmdShowConfig+
+				"routing-options rib inet6.0 static route "+destination+pipeDisplaySet, junSess)
 			if err != nil {
 				return false, err
 			}
 		}
 	} else {
 		if !strings.Contains(destination, ":") {
-			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-				"routing-options static route "+destination+pipeDisplaySet, jnprSess)
+			showConfig, err = clt.command(cmdShowConfig+routingInstancesWS+instance+" "+
+				"routing-options static route "+destination+pipeDisplaySet, junSess)
 			if err != nil {
 				return false, err
 			}
 		} else {
-			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-				"routing-options rib "+instance+".inet6.0 static route "+destination+pipeDisplaySet, jnprSess)
+			showConfig, err = clt.command(cmdShowConfig+routingInstancesWS+instance+" "+
+				"routing-options rib "+instance+".inet6.0 static route "+destination+pipeDisplaySet, junSess)
 			if err != nil {
 				return false, err
 			}
@@ -460,8 +473,7 @@ func checkStaticRouteExists(destination, instance string, m interface{}, jnprSes
 	return true, nil
 }
 
-func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func setStaticRoute(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0)
 
 	var setPrefix string
@@ -576,30 +588,29 @@ func setStaticRoute(d *schema.ResourceData, m interface{}, jnprSess *NetconfObje
 		configSet = append(configSet, setPrefix+" no-retain")
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func readStaticRoute(destination, instance string, m interface{}, jnprSess *NetconfObject) (staticRouteOptions, error) {
-	sess := m.(*Session)
+func readStaticRoute(destination, instance string, clt *Client, junSess *junosSession) (staticRouteOptions, error) {
 	var confRead staticRouteOptions
 	var showConfig string
 	var err error
 
 	if instance == defaultW {
 		if !strings.Contains(destination, ":") {
-			showConfig, err = sess.command(cmdShowConfig+
-				"routing-options static route "+destination+pipeDisplaySetRelative, jnprSess)
+			showConfig, err = clt.command(cmdShowConfig+
+				"routing-options static route "+destination+pipeDisplaySetRelative, junSess)
 		} else {
-			showConfig, err = sess.command(cmdShowConfig+
-				"routing-options rib inet6.0 static route "+destination+pipeDisplaySetRelative, jnprSess)
+			showConfig, err = clt.command(cmdShowConfig+
+				"routing-options rib inet6.0 static route "+destination+pipeDisplaySetRelative, junSess)
 		}
 	} else {
 		if !strings.Contains(destination, ":") {
-			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-				"routing-options static route "+destination+pipeDisplaySetRelative, jnprSess)
+			showConfig, err = clt.command(cmdShowConfig+routingInstancesWS+instance+" "+
+				"routing-options static route "+destination+pipeDisplaySetRelative, junSess)
 		} else {
-			showConfig, err = sess.command(cmdShowConfig+routingInstancesWS+instance+" "+
-				"routing-options rib "+instance+".inet6.0 static route "+destination+pipeDisplaySetRelative, jnprSess)
+			showConfig, err = clt.command(cmdShowConfig+routingInstancesWS+instance+" "+
+				"routing-options rib "+instance+".inet6.0 static route "+destination+pipeDisplaySetRelative, junSess)
 		}
 	}
 	if err != nil {
@@ -705,8 +716,7 @@ func readStaticRoute(destination, instance string, m interface{}, jnprSess *Netc
 	return confRead, nil
 }
 
-func delStaticRoute(destination, instance string, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
+func delStaticRoute(destination, instance string, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0, 1)
 	switch {
 	case instance == defaultW && !strings.Contains(destination, ":"):
@@ -721,7 +731,7 @@ func delStaticRoute(destination, instance string, m interface{}, jnprSess *Netco
 			"routing-options rib "+instance+".inet6.0 static route "+destination)
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func fillStaticRouteData(d *schema.ResourceData, staticRouteOptions staticRouteOptions) {

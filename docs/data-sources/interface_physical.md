@@ -5,7 +5,7 @@ page_title: "Junos: junos_interface_physical"
 # junos_interface_physical
 
 Get information on a physical interface  
-(as with an junos_interface_physical resource import).
+(as with a junos_interface_physical resource import).
 
 ## Example Usage
 
@@ -44,6 +44,8 @@ The following attributes are exported:
   Minimum number of aggregated links.
 - **description** (String)  
   Description for interface.
+- **disable** (Boolean)  
+  Interface disabled.
 - **esi** (Block)  
   ESI Config parameters.  
   See [below for nested schema](#esi-attributes).

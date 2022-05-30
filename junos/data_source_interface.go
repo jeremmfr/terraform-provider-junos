@@ -353,14 +353,14 @@ func dataSourceInterfaceRead(ctx context.Context, d *schema.ResourceData, m inte
 	if d.Get("config_interface").(string) == "" && d.Get("match").(string) == "" {
 		return diag.FromErr(fmt.Errorf("no arguments provided, 'config_interface' and 'match' empty"))
 	}
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 	mutex.Lock()
-	nameFound, err := searchInterfaceID(d.Get("config_interface").(string), d.Get("match").(string), m, jnprSess)
+	nameFound, err := searchInterfaceID(d.Get("config_interface").(string), d.Get("match").(string), clt, junSess)
 	if err != nil {
 		mutex.Unlock()
 
@@ -371,7 +371,7 @@ func dataSourceInterfaceRead(ctx context.Context, d *schema.ResourceData, m inte
 
 		return diag.FromErr(fmt.Errorf("no interface found with arguments provided"))
 	}
-	interfaceOpt, err := readInterface(nameFound, m, jnprSess)
+	interfaceOpt, err := readInterface(nameFound, clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -385,10 +385,9 @@ func dataSourceInterfaceRead(ctx context.Context, d *schema.ResourceData, m inte
 	return nil
 }
 
-func searchInterfaceID(configInterface, match string, m interface{}, jnprSess *NetconfObject) (string, error) {
-	sess := m.(*Session)
+func searchInterfaceID(configInterface, match string, clt *Client, junSess *junosSession) (string, error) {
 	intConfigList := make([]string, 0)
-	showConfig, err := sess.command(cmdShowConfig+"interfaces "+configInterface+pipeDisplaySet, jnprSess)
+	showConfig, err := clt.command(cmdShowConfig+"interfaces "+configInterface+pipeDisplaySet, junSess)
 	if err != nil {
 		return "", err
 	}

@@ -147,6 +147,8 @@ func Provider() *schema.Provider {
 			"junos_policyoptions_policy_statement":                       resourcePolicyoptionsPolicyStatement(),
 			"junos_policyoptions_prefix_list":                            resourcePolicyoptionsPrefixList(),
 			"junos_rib_group":                                            resourceRibGroup(),
+			"junos_rip_group":                                            resourceRipGroup(),
+			"junos_rip_neighbor":                                         resourceRipNeighbor(),
 			"junos_routing_instance":                                     resourceRoutingInstance(),
 			"junos_routing_options":                                      resourceRoutingOptions(),
 			"junos_rstp":                                                 resourceRstp(),
@@ -223,6 +225,7 @@ func Provider() *schema.Provider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"junos_interface":                   dataSourceInterface(),
 			"junos_interface_logical":           dataSourceInterfaceLogical(),
+			"junos_interface_logical_info":      dataSourceInterfaceLogicalInfo(),
 			"junos_interface_physical":          dataSourceInterfacePhysical(),
 			"junos_interfaces_physical_present": dataSourceInterfacesPhysicalPresent(),
 			"junos_routing_instance":            dataSourceRoutingInstance(),
@@ -263,5 +266,5 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		c.junosSSHCiphers = append(c.junosSSHCiphers, v.(string))
 	}
 
-	return c.prepareSession()
+	return c.newClient()
 }

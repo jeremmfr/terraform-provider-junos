@@ -332,25 +332,25 @@ func copyAndRemoveItemMapList2(
 	return list
 }
 
-func checkCompatibilitySecurity(jnprSess *NetconfObject) bool {
-	if strings.HasPrefix(strings.ToLower(jnprSess.SystemInformation.HardwareModel), "srx") {
+func checkCompatibilitySecurity(junSess *junosSession) bool {
+	if strings.HasPrefix(strings.ToLower(junSess.SystemInformation.HardwareModel), "srx") {
 		return true
 	}
-	if strings.HasPrefix(strings.ToLower(jnprSess.SystemInformation.HardwareModel), "vsrx") {
+	if strings.HasPrefix(strings.ToLower(junSess.SystemInformation.HardwareModel), "vsrx") {
 		return true
 	}
-	if strings.HasPrefix(strings.ToLower(jnprSess.SystemInformation.HardwareModel), "j") {
+	if strings.HasPrefix(strings.ToLower(junSess.SystemInformation.HardwareModel), "j") {
 		return true
 	}
 
 	return false
 }
 
-func checkCompatibilityRouter(jnprSess *NetconfObject) bool {
-	if strings.HasPrefix(strings.ToLower(jnprSess.SystemInformation.HardwareModel), "mx") {
+func checkCompatibilityRouter(junSess *junosSession) bool {
+	if strings.HasPrefix(strings.ToLower(junSess.SystemInformation.HardwareModel), "mx") {
 		return true
 	}
-	if strings.HasPrefix(strings.ToLower(jnprSess.SystemInformation.HardwareModel), "vmx") {
+	if strings.HasPrefix(strings.ToLower(junSess.SystemInformation.HardwareModel), "vmx") {
 		return true
 	}
 

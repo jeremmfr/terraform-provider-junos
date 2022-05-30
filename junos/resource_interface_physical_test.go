@@ -213,6 +213,7 @@ func testAccJunosInterfacePhysicalConfigCreate(interFace, interfaceAE, interFace
 resource "junos_interface_physical" "testacc_interface" {
   name        = "%s"
   description = "testacc_interface"
+  disable     = true
   gigether_opts {
     ae_8023ad = "%s"
   }

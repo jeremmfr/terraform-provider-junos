@@ -615,55 +615,55 @@ func resourceServices() *schema.Resource {
 }
 
 func resourceServicesCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	if sess.junosFakeCreateSetFile != "" {
-		if err := setServices(d, m, nil); err != nil {
+	clt := m.(*Client)
+	if clt.fakeCreateSetFile != "" {
+		if err := setServices(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId("services")
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := setServices(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setServices(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("create resource junos_services", jnprSess)
+	warns, err := clt.commitConf("create resource junos_services", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.SetId("services")
 
-	return append(diagWarns, resourceServicesReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceServicesReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceServicesRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 
-	return resourceServicesReadWJnprSess(d, m, jnprSess)
+	return resourceServicesReadWJunSess(d, clt, junSess)
 }
 
-func resourceServicesReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) diag.Diagnostics {
+func resourceServicesReadWJunSess(d *schema.ResourceData, clt *Client, junSess *junosSession) diag.Diagnostics {
 	mutex.Lock()
-	servicesOptions, err := readServices(m, jnprSess)
+	servicesOptions, err := readServices(clt, junSess)
 	mutex.Unlock()
 	if err != nil {
 		return diag.FromErr(err)
@@ -675,77 +675,77 @@ func resourceServicesReadWJnprSess(d *schema.ResourceData, m interface{}, jnprSe
 
 func resourceServicesUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
-	sess := m.(*Session)
-	if sess.junosFakeUpdateAlso {
-		if err := delServices(d, m, nil, false); err != nil {
+	clt := m.(*Client)
+	if clt.fakeUpdateAlso {
+		if err := delServices(d, false, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setServices(d, m, nil); err != nil {
+		if err := setServices(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
 		return nil
 	}
-	jnprSess, err := sess.startNewSession(ctx)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	defer sess.closeSession(jnprSess)
-	if err := sess.configLock(ctx, jnprSess); err != nil {
+	defer clt.closeSession(junSess)
+	if err := clt.configLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
 	var diagWarns diag.Diagnostics
-	if err := delServices(d, m, jnprSess, false); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := delServices(d, false, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	if err := setServices(d, m, jnprSess); err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+	if err := setServices(d, clt, junSess); err != nil {
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
-	warns, err := sess.commitConf("update resource junos_services", jnprSess)
+	warns, err := clt.commitConf("update resource junos_services", junSess)
 	appendDiagWarns(&diagWarns, warns)
 	if err != nil {
-		appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
 	}
 	d.Partial(false)
 
-	return append(diagWarns, resourceServicesReadWJnprSess(d, m, jnprSess)...)
+	return append(diagWarns, resourceServicesReadWJunSess(d, clt, junSess)...)
 }
 
 func resourceServicesDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	if d.Get("clean_on_destroy").(bool) {
-		sess := m.(*Session)
-		if sess.junosFakeDeleteAlso {
-			if err := delServices(d, m, nil, true); err != nil {
+		clt := m.(*Client)
+		if clt.fakeDeleteAlso {
+			if err := delServices(d, true, clt, nil); err != nil {
 				return diag.FromErr(err)
 			}
 
 			return nil
 		}
-		jnprSess, err := sess.startNewSession(ctx)
+		junSess, err := clt.startNewSession(ctx)
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		defer sess.closeSession(jnprSess)
-		if err := sess.configLock(ctx, jnprSess); err != nil {
+		defer clt.closeSession(junSess)
+		if err := clt.configLock(ctx, junSess); err != nil {
 			return diag.FromErr(err)
 		}
 		var diagWarns diag.Diagnostics
-		if err := delServices(d, m, jnprSess, true); err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+		if err := delServices(d, true, clt, junSess); err != nil {
+			appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
-		warns, err := sess.commitConf("delete resource junos_services", jnprSess)
+		warns, err := clt.commitConf("delete resource junos_services", junSess)
 		appendDiagWarns(&diagWarns, warns)
 		if err != nil {
-			appendDiagWarns(&diagWarns, sess.configClear(jnprSess))
+			appendDiagWarns(&diagWarns, clt.configClear(junSess))
 
 			return append(diagWarns, diag.FromErr(err)...)
 		}
@@ -756,14 +756,14 @@ func resourceServicesDelete(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceServicesImport(ctx context.Context, d *schema.ResourceData, m interface{},
 ) ([]*schema.ResourceData, error) {
-	sess := m.(*Session)
-	jnprSess, err := sess.startNewSession(ctx)
+	clt := m.(*Client)
+	junSess, err := clt.startNewSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer sess.closeSession(jnprSess)
+	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
-	servicesOptions, err := readServices(m, jnprSess)
+	servicesOptions, err := readServices(clt, junSess)
 	if err != nil {
 		return nil, err
 	}
@@ -774,9 +774,7 @@ func resourceServicesImport(ctx context.Context, d *schema.ResourceData, m inter
 	return result, nil
 }
 
-func setServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject) error {
-	sess := m.(*Session)
-
+func setServices(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	configSet := make([]string, 0)
 	for _, v := range d.Get("advanced_anti_malware").([]interface{}) {
 		configSetAdvAntiMalware, err := setServicesAdvancedAntiMalware(d, v)
@@ -807,7 +805,7 @@ func setServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject)
 		configSet = append(configSet, configSetUserIdent...)
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
 func setServicesAdvancedAntiMalware(d *schema.ResourceData, advAntiMalware interface{}) ([]string, error) {
@@ -1236,13 +1234,13 @@ func listLinesServicesUserIdentificationAdAccess() []string {
 	}
 }
 
-func delServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject, cleanAll bool) error {
+func delServices(d *schema.ResourceData, cleanAll bool, clt *Client, junSess *junosSession) error {
 	listLinesToDelete := make([]string, 0)
 	listLinesToDelete = append(listLinesToDelete, listLinesServicesAdvancedAntiMalware()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesServicesApplicationIdentification()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesServicesSecurityIntel()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesServicesUserIdentification()...)
-	sess := m.(*Session)
+
 	configSet := make([]string, 0)
 	delPrefix := "delete services "
 	for _, line := range listLinesToDelete {
@@ -1268,14 +1266,13 @@ func delServices(d *schema.ResourceData, m interface{}, jnprSess *NetconfObject,
 		configSet = append(configSet, delPrefix+"user-identification active-directory-access")
 	}
 
-	return sess.configSet(configSet, jnprSess)
+	return clt.configSet(configSet, junSess)
 }
 
-func readServices(m interface{}, jnprSess *NetconfObject) (servicesOptions, error) {
-	sess := m.(*Session)
+func readServices(clt *Client, junSess *junosSession) (servicesOptions, error) {
 	var confRead servicesOptions
 
-	showConfig, err := sess.command(cmdShowConfig+"services"+pipeDisplaySetRelative, jnprSess)
+	showConfig, err := clt.command(cmdShowConfig+"services"+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
