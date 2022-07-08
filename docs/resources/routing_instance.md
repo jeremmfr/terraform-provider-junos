@@ -42,6 +42,8 @@ The following arguments are supported:
   Import policy for instance RIBs
 - **route_distinguisher** (Optional, String)  
   Route distinguisher for this instance.
+- **router_id** (Optional, String)  
+  Router identifier.
 - **vrf_export** (Optional, List of String)  
   Export policy for VRF instance RIBs.
 - **vrf_import** (Optional, List of String)  
