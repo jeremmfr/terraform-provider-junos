@@ -5,6 +5,12 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+## 1.29.0 (July 13, 2022)
+
+ENHANCEMENTS:
+
+* resource/`junos_routing_instance`: add `router_id` argument (Fixes [#405](https://github.com/jeremmfr/terraform-provider-junos/issues/405))
+
 ## 1.28.0 (May 30, 2022)
 
 FEATURES:

@@ -48,6 +48,10 @@ func dataSourceRoutingInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"router_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"vrf_export": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -124,6 +128,9 @@ func fillRoutingInstanceDataSource(d *schema.ResourceData, instanceOptions insta
 		panic(tfErr)
 	}
 	if tfErr := d.Set("route_distinguisher", instanceOptions.routeDistinguisher); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("router_id", instanceOptions.routerID); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("type", instanceOptions.instanceType); tfErr != nil {
