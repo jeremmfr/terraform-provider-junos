@@ -80,6 +80,7 @@ resource "junos_routing_instance" "testacc_routingInst" {
   description     = "testacc routingInst"
   instance_export = [junos_policyoptions_policy_statement.testacc_routingInst2.name]
   instance_import = [junos_policyoptions_policy_statement.testacc_routingInst2.name]
+  router_id       = "192.0.2.65"
 }
 resource "junos_policyoptions_community" "testacc_routingInst2" {
   name    = "testacc_routingInst2"
@@ -148,6 +149,7 @@ resource "junos_routing_instance" "testacc_routingInst" {
   description     = "testacc routingInst"
   instance_export = [junos_policyoptions_policy_statement.testacc_routingInst2.name]
   instance_import = [junos_policyoptions_policy_statement.testacc_routingInst2.name]
+  router_id       = "192.0.2.65"
 }
 resource "junos_policyoptions_community" "testacc_routingInst2" {
   name    = "testacc_routingInst2"

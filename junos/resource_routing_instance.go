@@ -18,6 +18,7 @@ type instanceOptions struct {
 	instanceType       string
 	name               string
 	routeDistinguisher string
+	routerID           string
 	vrfTarget          string
 	vrfTargetExport    string
 	vrfTargetImport    string
@@ -98,6 +99,11 @@ func resourceRoutingInstance() *schema.Resource {
 				Optional: true,
 				ValidateFunc: validation.StringMatch(regexp.MustCompile(
 					`^(\d|\.)+L?:\d+$`), "must have valid route distinguisher. Use format 'x:y'"),
+			},
+			"router_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsIPv4Address,
 			},
 			"vrf_export": {
 				Type:     schema.TypeList,
@@ -394,6 +400,9 @@ func setRoutingInstance(d *schema.ResourceData, clt *Client, junSess *junosSessi
 	if v := d.Get("as").(string); v != "" {
 		configSet = append(configSet, setPrefix+"routing-options autonomous-system "+v)
 	}
+	if v := d.Get("router_id").(string); v != "" {
+		configSet = append(configSet, setPrefix+"routing-options router-id "+v)
+	}
 	if v := d.Get("description").(string); v != "" {
 		configSet = append(configSet, setPrefix+"description \""+v+"\"")
 	}
@@ -442,6 +451,8 @@ func readRoutingInstance(instance string, clt *Client, junSess *junosSession) (i
 			case strings.HasPrefix(itemTrim, "routing-options instance-import "):
 				confRead.instanceImport = append(confRead.instanceImport,
 					strings.TrimPrefix(itemTrim, "routing-options instance-import "))
+			case strings.HasPrefix(itemTrim, "routing-options router-id "):
+				confRead.routerID = strings.TrimPrefix(itemTrim, "routing-options router-id ")
 			case strings.HasPrefix(itemTrim, "vrf-export "):
 				confRead.vrfExport = append(confRead.vrfExport, strings.Trim(strings.TrimPrefix(itemTrim, "vrf-export "), "\""))
 			case strings.HasPrefix(itemTrim, "vrf-import "):
@@ -474,6 +485,7 @@ func delRoutingInstanceOpts(d *schema.ResourceData, clt *Client, junSess *junosS
 		setPrefix+"routing-options autonomous-system",
 		setPrefix+"routing-options instance-export",
 		setPrefix+"routing-options instance-import",
+		setPrefix+"routing-options router-id",
 		setPrefix+"vtep-source-interface",
 	)
 	if !d.Get("configure_type_singly").(bool) {
@@ -512,6 +524,9 @@ func fillRoutingInstanceData(d *schema.ResourceData, instanceOptions instanceOpt
 		panic(tfErr)
 	}
 	if tfErr := d.Set("instance_import", instanceOptions.instanceImport); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("router_id", instanceOptions.routerID); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("vtep_source_interface", instanceOptions.vtepSourceIf); tfErr != nil {

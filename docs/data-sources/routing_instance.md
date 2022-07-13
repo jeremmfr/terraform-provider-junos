@@ -42,6 +42,8 @@ The following attributes are exported:
   List of interfaces in routing-instance.
 - **route_distinguisher** (String)  
   Route distinguisher for this instance.
+- **router_id** (String)  
+  Router identifier.
 - **vrf_export** (List of String)  
   Export policy for VRF instance RIBs.
 - **vrf_import** (List of String)  

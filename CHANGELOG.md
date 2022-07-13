@@ -3,6 +3,8 @@
 
 ENHANCEMENTS:
 
+* resource/`junos_routing_instance`: add `router_id` argument (Fixes #405)
+
 BUG FIXES:
 
 ## 1.28.0 (May 30, 2022)
