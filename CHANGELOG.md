@@ -3,6 +3,8 @@
 
 ENHANCEMENTS:
 
+* release now with golang 1.19
+
 BUG FIXES:
 
 ## 1.29.0 (July 13, 2022)

@@ -30,7 +30,7 @@ for provider and resources documentation.
 
 ### In addition to develop
 
-- [Go](https://golang.org/doc/install) 1.17
+- [Go](https://golang.org/doc/install) `v1.18` or `v1.19`
 
 ## Automatic install (Terraform 0.13 and later)
 

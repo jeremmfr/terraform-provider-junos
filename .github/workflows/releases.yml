@@ -40,10 +40,10 @@ jobs:
           - goos: windows
             goarch: arm64
     steps:
-      - name: Set up Go 1.18
+      - name: Set up Go 1.19
         uses: actions/setup-go@v3
         with:
-          go-version: ^1.18.4
+          go-version: 1.19
           check-latest: true
         id: go
       - name: Show version
