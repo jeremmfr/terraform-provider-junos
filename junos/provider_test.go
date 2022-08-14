@@ -12,10 +12,10 @@ import (
 )
 
 var (
-	testAccProviders = map[string]*schema.Provider{ // nolint: gochecknoglobals
+	testAccProviders = map[string]*schema.Provider{ //nolint: gochecknoglobals
 		"junos": testAccProvider,
 	}
-	testAccProvider = junos.Provider() // nolint: gochecknoglobals
+	testAccProvider = junos.Provider() //nolint: gochecknoglobals
 )
 
 const (

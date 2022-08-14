@@ -248,7 +248,7 @@ func TestAccJunosSystem_basic(t *testing.T) {
 	}
 }
 
-// nolint: lll
+// nolint: lll, nolintlint
 func testAccJunosSystemConfigCreate() string {
 	return `
 data "junos_system_information" "srx" {}

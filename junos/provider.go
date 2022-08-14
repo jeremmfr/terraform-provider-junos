@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-var mutex = &sync.Mutex{} // nolint: gochecknoglobals
+var mutex = &sync.Mutex{} //nolint: gochecknoglobals
 
 // Provider junos for terraform.
 func Provider() *schema.Provider {
