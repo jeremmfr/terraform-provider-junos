@@ -374,7 +374,7 @@ func setLldpMedInterface(d *schema.ResourceData, clt *Client, junSess *junosSess
 			return fmt.Errorf("civic_based_country_code need to be set with civic_based_ca_type and civic_based_what")
 		}
 		if v := location["co_ordinate_latitude"].(int); v != -1 {
-			configSet = append(configSet, setPrefixLocation+"co-ordinate lattitude "+strconv.Itoa(v)) // nolint: misspell
+			configSet = append(configSet, setPrefixLocation+"co-ordinate lattitude "+strconv.Itoa(v)) //nolint: misspell
 			configSet = append(configSet, setPrefixLocation+"co-ordinate latitude "+strconv.Itoa(v))
 		}
 		if v := location["co_ordinate_longitude"].(int); v != -1 {
@@ -463,10 +463,10 @@ func readLldpMedInterface(name string, clt *Client, junSess *junosSession,
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrimLocation, "co-ordinate lattitude "): // nolint: misspell
+				case strings.HasPrefix(itemTrimLocation, "co-ordinate lattitude "): //nolint: misspell
 					var err error
 					confRead.location[0]["co_ordinate_latitude"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrimLocation, "co-ordinate lattitude ")) // nolint: misspell
+						itemTrimLocation, "co-ordinate lattitude ")) //nolint: misspell
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}

@@ -24,6 +24,7 @@ linters:
     - nonamedreturns
     - maintidx
     - execinquery
+    - nosnakecase
 linters-settings:
   gocognit:
     # minimal code complexity to report, 30 by default
