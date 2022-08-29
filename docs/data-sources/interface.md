@@ -41,7 +41,7 @@ The following arguments are supported:
 The following attributes are exported:
 
 - **id** (String)  
-  An identifier for the resource with format `<name>`.
+  An identifier for the data source with format `<name>`.
 - **name** (String)  
   Name of interface or unit interface (with dot).
 - **description** (String)  
