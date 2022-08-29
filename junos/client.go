@@ -2,6 +2,7 @@ package junos
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -202,7 +203,11 @@ func (clt *Client) logFile(message string) {
 		f, err := os.OpenFile(clt.logFileDst,
 			os.O_WRONLY|os.O_CREATE|os.O_APPEND, os.FileMode(clt.filePermission))
 		if err != nil {
-			log.Fatal(err)
+			var perr *os.PathError
+			if !errors.As(err, &perr) {
+				log.Fatal(err)
+			}
+			log.Printf("can't append debug_netconf_log file: %s", perr.Error())
 		}
 		defer f.Close()
 
