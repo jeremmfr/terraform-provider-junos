@@ -8,6 +8,10 @@ linters:
     - scopelint # deprecated 1.39
     - golint # deprecated 1.41
     - exhaustivestruct # deprecated 1.46
+    # ifshort deprecated 1.48 but no replacement
+    - deadcode # deprecated 1.49
+    - structcheck # deprecated 1.49
+    - varcheck # deprecated 1.49
     - funlen
     - dupl
     - wsl
