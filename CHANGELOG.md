@@ -8,6 +8,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * do not crash if unable to write log in `debug_netconf_log_path` due to a path error
+* fix duplicate timestamp and incorrect level in logs
 
 ## 1.29.0 (July 13, 2022)
 

@@ -207,14 +207,12 @@ func (clt *Client) logFile(message string) {
 			if !errors.As(err, &perr) {
 				log.Fatal(err)
 			}
-			log.Printf("can't append debug_netconf_log file: %s", perr.Error())
+			log.Printf("[WARN] can't append debug_netconf_log file: %s", perr.Error())
 		}
 		defer f.Close()
+		logger := log.New(f, "", log.LstdFlags)
 
-		log.SetOutput(f)
-		log.SetPrefix(time.Now().Format("2006-01-02 15:04:05"))
-
-		log.Printf("%s", message)
+		logger.Printf("%s", message)
 	}
 }
 
