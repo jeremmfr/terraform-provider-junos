@@ -27,7 +27,7 @@ The following arguments are supported:
 The following attributes are exported:
 
 - **id** (String)  
-  An identifier for the resource with format `<name>`.
+  An identifier for the data source with format `<name>`.
 - **address_book** (Block Set)  
   For each name of address.
   - **name** (String)  

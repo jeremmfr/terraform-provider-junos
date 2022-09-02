@@ -1,6 +1,11 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 ## upcoming release
 
+FEATURES:
+
+* add `junos_application_sets` data source (Fixes #409)
+* add `junos_applications` data source (Fixes #409)
+
 ENHANCEMENTS:
 
 * release now with golang 1.19
