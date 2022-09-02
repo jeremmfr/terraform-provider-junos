@@ -161,7 +161,7 @@ func genSSHClientConfig(auth *netconfAuthMethod) (*ssh.ClientConfig, error) {
 	case os.Getenv("SSH_AUTH_SOCK") != "":
 		config, err := netconf.SSHConfigPubKeyAgent(auth.Username)
 		if err != nil {
-			log.Printf("failed to communicate with SSH agent: %s", err.Error())
+			log.Printf("[WARN] failed to communicate with SSH agent: %s", err.Error())
 		} else {
 			configs = append(configs, config)
 		}
