@@ -3,8 +3,16 @@
 
 FEATURES:
 
-* add `junos_application_sets` data source (Fixes #409)
-* add `junos_applications` data source (Fixes #409)
+ENHANCEMENTS:
+
+BUG FIXES:
+
+## 1.30.0 (September 07, 2022)
+
+FEATURES:
+
+* add `junos_application_sets` data source (Fixes [#409](https://github.com/jeremmfr/terraform-provider-junos/issues/409))
+* add `junos_applications` data source (Fixes [#409](https://github.com/jeremmfr/terraform-provider-junos/issues/409))
 * add `junos_routes` data source
 
 ENHANCEMENTS:
