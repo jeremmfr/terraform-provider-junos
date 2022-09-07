@@ -1,9 +1,28 @@
 <!-- markdownlint-disable-file MD013 MD041 -->
 ## upcoming release
 
+FEATURES:
+
 ENHANCEMENTS:
 
 BUG FIXES:
+
+## 1.30.0 (September 07, 2022)
+
+FEATURES:
+
+* add `junos_application_sets` data source (Fixes [#409](https://github.com/jeremmfr/terraform-provider-junos/issues/409))
+* add `junos_applications` data source (Fixes [#409](https://github.com/jeremmfr/terraform-provider-junos/issues/409))
+* add `junos_routes` data source
+
+ENHANCEMENTS:
+
+* release now with golang 1.19
+
+BUG FIXES:
+
+* do not crash if unable to write log in `debug_netconf_log_path` due to a path error
+* fix duplicate timestamp and incorrect level in logs
 
 ## 1.29.0 (July 13, 2022)
 

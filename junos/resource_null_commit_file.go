@@ -3,7 +3,6 @@ package junos
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -103,7 +102,7 @@ func readNullCommitFile(filename string) ([]string, error) {
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		return []string{}, fmt.Errorf("file '%s' doesn't exist", filename)
 	}
-	fileReadByte, err := ioutil.ReadFile(filename)
+	fileReadByte, err := os.ReadFile(filename)
 	if err != nil {
 		return []string{}, fmt.Errorf("could not read file '%s': %w", filename, err)
 	}

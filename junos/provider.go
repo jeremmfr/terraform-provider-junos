@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-var mutex = &sync.Mutex{} // nolint: gochecknoglobals
+var mutex = &sync.Mutex{} //nolint: gochecknoglobals
 
 // Provider junos for terraform.
 func Provider() *schema.Provider {
@@ -223,11 +223,14 @@ func Provider() *schema.Provider {
 			"junos_vstp_vlan_group":                                      resourceVstpVlanGroup(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
+			"junos_application_sets":            dataSourceApplicationSets(),
+			"junos_applications":                dataSourceApplications(),
 			"junos_interface":                   dataSourceInterface(),
 			"junos_interface_logical":           dataSourceInterfaceLogical(),
 			"junos_interface_logical_info":      dataSourceInterfaceLogicalInfo(),
 			"junos_interface_physical":          dataSourceInterfacePhysical(),
 			"junos_interfaces_physical_present": dataSourceInterfacesPhysicalPresent(),
+			"junos_routes":                      dataSourceRoutes(),
 			"junos_routing_instance":            dataSourceRoutingInstance(),
 			"junos_security_zone":               dataSourceSecurityZone(),
 			"junos_system_information":          dataSourceSystemInformation(),

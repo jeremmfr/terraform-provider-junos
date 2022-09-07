@@ -31,6 +31,8 @@ const (
 
 	rpcGetInterfacesInformationTerse = `<get-interface-information><terse/></get-interface-information>`
 	rpcGetInterfaceInformationTerse  = `<get-interface-information>%s<terse/></get-interface-information>`
+	rpcGetRouteAllInformation        = `<get-route-information><all/></get-route-information>`
+	rpcGetRouteAllTableInformation   = `<get-route-information><all/><table>%s</table></get-route-information>`
 
 	xmlStartTagConfigOut = "<configuration-output>"
 	xmlEndTagConfigOut   = "</configuration-output>"
@@ -94,6 +96,32 @@ type getLogicalInterfaceTerseReply struct {
 			} `xml:"address-family"`
 		} `xml:"logical-interface"`
 	} `xml:"interface-information"`
+}
+
+type getRouteInformationReply struct {
+	RouteInfo struct {
+		RouteTable []struct {
+			TableName string `xml:"table-name"`
+			Route     []struct {
+				Destination string `xml:"rt-destination"`
+				Entry       []struct {
+					ASPath          string    `xml:"as-path"`
+					CurrentActive   *struct{} `xml:"current-active"`
+					LocalPreference int       `xml:"local-preference"`
+					Metric          int       `xml:"metric"`
+					NextHop         []struct {
+						SelectedNextHop *struct{} `xml:"selected-next-hop"`
+						LocalInterface  string    `xml:"nh-local-interface"`
+						To              string    `xml:"to"`
+						Via             string    `xml:"via"`
+					} `xml:"nh"`
+					NextHopType string `xml:"nh-type"`
+					Preference  int    `xml:"preference"`
+					Protocol    string `xml:"protocol-name"`
+				} `xml:"rt-entry"`
+			} `xml:"rt"`
+		} `xml:"route-table"`
+	} `xml:"route-information"`
 }
 
 // netconfNewSession establishes a new connection to a Junos device that we will use
@@ -161,7 +189,7 @@ func genSSHClientConfig(auth *netconfAuthMethod) (*ssh.ClientConfig, error) {
 	case os.Getenv("SSH_AUTH_SOCK") != "":
 		config, err := netconf.SSHConfigPubKeyAgent(auth.Username)
 		if err != nil {
-			log.Printf("failed to communicate with SSH agent: %s", err.Error())
+			log.Printf("[WARN] failed to communicate with SSH agent: %s", err.Error())
 		} else {
 			configs = append(configs, config)
 		}

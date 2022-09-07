@@ -33,7 +33,7 @@ The following arguments are supported:
 The following attributes are exported:
 
 - **id** (String)  
-  An identifier for the resource.
+  An identifier for the data source.
 - **interface_names** (List of String)  
   List of interface names found.
 - **interface_statuses** (Block List)  
