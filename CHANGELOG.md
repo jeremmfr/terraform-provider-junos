@@ -5,6 +5,7 @@ FEATURES:
 
 * add `junos_application_sets` data source (Fixes #409)
 * add `junos_applications` data source (Fixes #409)
+* add `junos_routes` data source
 
 ENHANCEMENTS:
 
