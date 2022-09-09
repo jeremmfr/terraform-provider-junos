@@ -401,16 +401,15 @@ func setSecurityNatStaticRule(d *schema.ResourceData, clt *Client, junSess *juno
 	for _, v := range d.Get("then").([]interface{}) {
 		then := v.(map[string]interface{})
 		if then["type"].(string) == inetW {
-			if then["routing_instance"].(string) == "" {
-				return fmt.Errorf("missing routing_instance with type = inet")
-			}
 			if then["prefix"].(string) != "" ||
 				then["mapped_port"].(int) != 0 ||
 				then["mapped_port_to"].(int) != 0 {
-				return fmt.Errorf("only routing_instance need to be set with type = inet")
+				return fmt.Errorf("only routing_instance can be set with type = inet")
 			}
-			configSet = append(configSet, setPrefix+"then static-nat inet routing-instance "+
-				then["routing_instance"].(string))
+			configSet = append(configSet, setPrefix+"then static-nat inet")
+			if rI := then["routing_instance"].(string); rI != "" {
+				configSet = append(configSet, setPrefix+"then static-nat inet routing-instance "+rI)
+			}
 		}
 		if then["type"].(string) == "prefix" || then["type"].(string) == "prefix-name" {
 			setPrefixRuleThenStaticNat := setPrefix + "then static-nat "
@@ -533,7 +532,9 @@ func readSecurityNatStaticRule(ruleSet, name string, clt *Client, junSess *junos
 					default:
 						ruleThenOptions["prefix"] = strings.Trim(itemThen, "\"")
 					}
-				case strings.HasPrefix(itemThen, "inet "):
+				case itemThen == inetW:
+					ruleThenOptions["type"] = inetW
+				case strings.HasPrefix(itemThen, "inet routing-instance "):
 					ruleThenOptions["type"] = inetW
 					ruleThenOptions["routing_instance"] = strings.TrimPrefix(itemThen, "inet routing-instance ")
 				}

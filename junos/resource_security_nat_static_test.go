@@ -25,7 +25,7 @@ func TestAccJunosSecurityNatStatic_basic(t *testing.T) {
 						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
 							"from.0.value.0", "testacc_securityNATStt"),
 						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
-							"rule.#", "1"),
+							"rule.#", "2"),
 						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
 							"rule.0.name", "testacc_securityNATSttRule"),
 						resource.TestCheckResourceAttr("junos_security_nat_static.testacc_securityNATStt",
@@ -67,6 +67,9 @@ func TestAccJunosSecurityNatStatic_basic(t *testing.T) {
 					ImportState:   true,
 					ImportStateId: "testacc_securityNATStt_singly_-_no_rules",
 				},
+				{
+					Config: testAccJunosSecurityNatStaticConfigUpdate2(),
+				},
 			},
 		})
 	}
@@ -88,6 +91,13 @@ resource "junos_security_nat_static" "testacc_securityNATStt" {
       type             = "prefix"
       routing_instance = junos_routing_instance.testacc_securityNATStt.name
       prefix           = "192.0.2.128/25"
+    }
+  }
+  rule {
+    name                = "testacc_securityNATSttRule2"
+    destination_address = "64:ff9b::/96"
+    then {
+      type = "inet"
     }
   }
 }
@@ -183,6 +193,48 @@ resource "junos_security_nat_static" "testacc_securityNATStt_singly" {
     value = [junos_routing_instance.testacc_securityNATStt.name]
   }
   configure_rules_singly = true
+}
+`
+}
+
+func testAccJunosSecurityNatStaticConfigUpdate2() string {
+	return `
+resource "junos_security_nat_static" "testacc_securityNATStt" {
+  name = "testacc_securityNATStt"
+  from {
+    type  = "zone"
+    value = [junos_security_zone.testacc_securityNATStt.name]
+  }
+  rule {
+    name                = "testacc_securityNATSttRule"
+    destination_address = "64:ff9b::/96"
+    then {
+      type             = "inet"
+      routing_instance = junos_routing_instance.testacc_securityNATStt.name
+    }
+  }
+}
+
+resource "junos_security_zone" "testacc_securityNATStt" {
+  name = "testacc_securityNATStt"
+}
+resource "junos_routing_instance" "testacc_securityNATStt" {
+  name = "testacc_securityNATStt"
+}
+
+resource "junos_security_address_book" "testacc_securityNATStt" {
+  network_address {
+    name  = "testacc_securityNATSttRule2"
+    value = "192.0.2.128/27"
+  }
+  network_address {
+    name  = "testacc_securityNATStt-prefix"
+    value = "192.0.2.160/27"
+  }
+  network_address {
+    name  = "testacc_securityNATStt-src"
+    value = "192.0.2.224/27"
+  }
 }
 `
 }
