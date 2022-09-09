@@ -7,6 +7,10 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+## 1.30.1 (September 09, 2022)
+
+BUG FIXES:
+
 * resource/`junos_security_nat_static`: remove the need to set `routing_instance` argument with `type` = `inet` inside `then` block of `rule` block (`then static-nat inet` without `routing-instance` is correct to do NAT64) (Fixes #420)
 * resource/`junos_security_nat_static_rule`: remove the need to set `routing_instance` argument with `type` = `inet` inside `then` block (`then static-nat inet` without `routing-instance` is correct to do NAT64)
 
