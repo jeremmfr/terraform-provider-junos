@@ -460,16 +460,15 @@ func setSecurityNatStatic(d *schema.ResourceData, clt *Client, junSess *junosSes
 			for _, thenV := range rule["then"].([]interface{}) {
 				then := thenV.(map[string]interface{})
 				if then["type"].(string) == inetW {
-					if then["routing_instance"].(string) == "" {
-						return fmt.Errorf("missing routing_instance in rule %s with type = inet", rule["name"].(string))
-					}
 					if then["prefix"].(string) != "" ||
 						then["mapped_port"].(int) != 0 ||
 						then["mapped_port_to"].(int) != 0 {
-						return fmt.Errorf("only routing_instance need to be set in rule %s with type = inet", rule["name"].(string))
+						return fmt.Errorf("only routing_instance can be set in rule %s with type = inet", rule["name"].(string))
 					}
-					configSet = append(configSet, setPrefixRule+" then static-nat inet routing-instance "+
-						then["routing_instance"].(string))
+					configSet = append(configSet, setPrefixRule+" then static-nat inet")
+					if rI := then["routing_instance"].(string); rI != "" {
+						configSet = append(configSet, setPrefixRule+" then static-nat inet routing-instance "+rI)
+					}
 				}
 				if then["type"].(string) == "prefix" || then["type"].(string) == "prefix-name" {
 					setPrefixRuleThenStaticNat := setPrefixRule + " then static-nat "
@@ -624,7 +623,9 @@ func readSecurityNatStatic(name string, clt *Client, junSess *junosSession) (nat
 						default:
 							ruleThenOptions["prefix"] = strings.Trim(itemThen, "\"")
 						}
-					case strings.HasPrefix(itemThen, "inet "):
+					case itemThen == inetW:
+						ruleThenOptions["type"] = inetW
+					case strings.HasPrefix(itemThen, "inet routing-instance "):
 						ruleThenOptions["type"] = inetW
 						ruleThenOptions["routing_instance"] = strings.TrimPrefix(itemThen, "inet routing-instance ")
 					}
