@@ -3,6 +3,8 @@
 
 FEATURES:
 
+* add `junos_forwardingoptions_dhcprelay_servergroup` resource (Fixes #423)
+
 ENHANCEMENTS:
 
 BUG FIXES:
