@@ -7,6 +7,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* resource/`junos_system_services_dhcp_localserver_group`: add `client_id_exclude_headers` and `client_id_use_automatic_ascii_hex_encoding` argument and remove need to `version` = `v6` when set `client_id` = `true` inside `authentication_username_include` block argument
+
 BUG FIXES:
 
 ## 1.30.1 (September 09, 2022)

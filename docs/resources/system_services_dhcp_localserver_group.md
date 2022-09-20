@@ -52,8 +52,13 @@ The following arguments are supported:
   - **circuit_type** (Optional, Boolean)  
     Include circuit type.
   - **client_id** (Optional, Boolean)  
-    Include client ID.  
-    `version` need to be `v6`.
+    Include client ID.
+  - **client_id_exclude_headers** (Optional, Boolean)  
+    Exclude all the headers.  
+    `client_id` need to be true.
+  - **client_id_use_automatic_ascii_hex_encoding** (Optional, Boolean)  
+    Use automatic ascii hex username encoding.  
+    `client_id` need to be true.
   - **delimiter** (Optional, String)  
     Change delimiter/separator character.  
     One character maximum.

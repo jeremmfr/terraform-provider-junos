@@ -111,6 +111,16 @@ func resourceSystemServicesDhcpLocalServerGroup() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+						"client_id_exclude_headers": {
+							Type:         schema.TypeBool,
+							Optional:     true,
+							RequiredWith: []string{"authentication_username_include.0.client_id"},
+						},
+						"client_id_use_automatic_ascii_hex_encoding": {
+							Type:         schema.TypeBool,
+							Optional:     true,
+							RequiredWith: []string{"authentication_username_include.0.client_id"},
+						},
 						"delimiter": {
 							Type:         schema.TypeString,
 							Optional:     true,
@@ -1066,10 +1076,19 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, clt *Client, 
 			configSet = append(configSet, setPrefix+"authentication username-include circuit-type")
 		}
 		if authenticationUsernameInclude["client_id"].(bool) {
-			if d.Get("version").(string) == "v4" {
-				return fmt.Errorf("client_id not compatible when version = v4")
-			}
 			configSet = append(configSet, setPrefix+"authentication username-include client-id")
+			if authenticationUsernameInclude["client_id_exclude_headers"].(bool) {
+				configSet = append(configSet,
+					setPrefix+"authentication username-include client-id exclude-headers")
+			}
+			if authenticationUsernameInclude["client_id_use_automatic_ascii_hex_encoding"].(bool) {
+				configSet = append(configSet,
+					setPrefix+"authentication username-include client-id use-automatic-ascii-hex-encoding")
+			}
+		} else if authenticationUsernameInclude["client_id_exclude_headers"].(bool) ||
+			authenticationUsernameInclude["client_id_use_automatic_ascii_hex_encoding"].(bool) {
+			return fmt.Errorf("authentication_username_include.0.client_id need to be true with " +
+				"client_id_exclude_headers or client_id_use_automatic_ascii_hex_encoding")
 		}
 		if v := authenticationUsernameInclude["delimiter"].(string); v != "" {
 			configSet = append(configSet, setPrefix+"authentication username-include delimiter \""+v+"\"")
@@ -1576,6 +1595,8 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, clt 
 					confRead.authenticationUsernameInclude = append(confRead.authenticationUsernameInclude, map[string]interface{}{
 						"circuit_type":              false,
 						"client_id":                 false,
+						"client_id_exclude_headers": false,
+						"client_id_use_automatic_ascii_hex_encoding": false,
 						"delimiter":                 "",
 						"domain_name":               "",
 						"interface_description":     "",
@@ -1597,6 +1618,12 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, clt 
 				switch {
 				case itemTrimAuthUserIncl == "circuit-type":
 					confRead.authenticationUsernameInclude[0]["circuit_type"] = true
+				case itemTrimAuthUserIncl == "client-id exclude-headers":
+					confRead.authenticationUsernameInclude[0]["client_id_exclude_headers"] = true
+					confRead.authenticationUsernameInclude[0]["client_id"] = true
+				case itemTrimAuthUserIncl == "client-id use-automatic-ascii-hex-encoding":
+					confRead.authenticationUsernameInclude[0]["client_id_use_automatic_ascii_hex_encoding"] = true
+					confRead.authenticationUsernameInclude[0]["client_id"] = true
 				case itemTrimAuthUserIncl == "client-id":
 					confRead.authenticationUsernameInclude[0]["client_id"] = true
 				case strings.HasPrefix(itemTrimAuthUserIncl, "delimiter "):
