@@ -1261,7 +1261,7 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, clt *Client, 
 		if d.Get("version").(string) == "v6" {
 			return fmt.Errorf("overrides_v4 not compatible if version = v6")
 		}
-		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV4(
+		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupOverridesV4(
 			v.(map[string]interface{}), setPrefix)
 		if err != nil {
 			return err
@@ -1272,7 +1272,7 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, clt *Client, 
 		if d.Get("version").(string) == "v4" {
 			return fmt.Errorf("overrides_v6 not compatible if version = v4")
 		}
-		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV6(
+		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupOverridesV6(
 			v.(map[string]interface{}), setPrefix)
 		if err != nil {
 			return err
@@ -1378,7 +1378,7 @@ func setSystemServicesDhcpLocalServerGroupInterface(
 		if version == "v6" {
 			return configSet, fmt.Errorf("overrides_v4 not compatible if version = v6")
 		}
-		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV4(
+		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupOverridesV4(
 			v.(map[string]interface{}), setPrefix)
 		if err != nil {
 			return configSet, err
@@ -1389,7 +1389,7 @@ func setSystemServicesDhcpLocalServerGroupInterface(
 		if version == "v4" {
 			return configSet, fmt.Errorf("overrides_v6 not compatible if version = v4")
 		}
-		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV6(
+		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupOverridesV6(
 			v.(map[string]interface{}), setPrefix)
 		if err != nil {
 			return configSet, err
@@ -1415,7 +1415,7 @@ func setSystemServicesDhcpLocalServerGroupInterface(
 	return configSet, nil
 }
 
-func setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV4(overrides map[string]interface{}, setPrefix string,
+func setSystemServicesDhcpLocalServerGroupOverridesV4(overrides map[string]interface{}, setPrefix string,
 ) ([]string, error) {
 	configSet := make([]string, 0)
 	setPrefix += "overrides "
@@ -1479,7 +1479,7 @@ func setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV4(overrides map[st
 	return configSet, nil
 }
 
-func setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV6(overrides map[string]interface{}, setPrefix string,
+func setSystemServicesDhcpLocalServerGroupOverridesV6(overrides map[string]interface{}, setPrefix string,
 ) ([]string, error) {
 	configSet := make([]string, 0)
 	setPrefix += "overrides "
