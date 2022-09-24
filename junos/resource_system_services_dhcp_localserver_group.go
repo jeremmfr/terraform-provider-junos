@@ -1107,13 +1107,13 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, clt *Client, 
 		}
 		if authenticationUsernameInclude["option_60"].(bool) {
 			if d.Get("version").(string) == "v6" {
-				return fmt.Errorf("option_60 not compatible when version = v6")
+				return fmt.Errorf("authentication_username_include.0.option_60 not compatible when version = v6")
 			}
 			configSet = append(configSet, setPrefix+"authentication username-include option-60")
 		}
 		if authenticationUsernameInclude["option_82"].(bool) {
 			if d.Get("version").(string) == "v6" {
-				return fmt.Errorf("option_82 not compatible when version = v6")
+				return fmt.Errorf("authentication_username_include.0.option_82 not compatible when version = v6")
 			}
 			configSet = append(configSet, setPrefix+"authentication username-include option-82")
 			if authenticationUsernameInclude["option_82_circuit_id"].(bool) {
@@ -1129,19 +1129,19 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, clt *Client, 
 		}
 		if authenticationUsernameInclude["relay_agent_interface_id"].(bool) {
 			if d.Get("version").(string) == "v4" {
-				return fmt.Errorf("relay_agent_interface_id not compatible when version = v4")
+				return fmt.Errorf("authentication_username_include.0.relay_agent_interface_id not compatible when version = v4")
 			}
 			configSet = append(configSet, setPrefix+"authentication username-include relay-agent-interface-id")
 		}
 		if authenticationUsernameInclude["relay_agent_remote_id"].(bool) {
 			if d.Get("version").(string) == "v4" {
-				return fmt.Errorf("relay_agent_remote_id not compatible when version = v4")
+				return fmt.Errorf("authentication_username_include.0.relay_agent_remote_id not compatible when version = v4")
 			}
 			configSet = append(configSet, setPrefix+"authentication username-include relay-agent-remote-id")
 		}
 		if authenticationUsernameInclude["relay_agent_subscriber_id"].(bool) {
 			if d.Get("version").(string) == "v4" {
-				return fmt.Errorf("relay_agent_subscriber_id not compatible when version = v4")
+				return fmt.Errorf("authentication_username_include.0.relay_agent_subscriber_id not compatible when version = v4")
 			}
 			configSet = append(configSet, setPrefix+"authentication username-include relay-agent-subscriber-id")
 		}
@@ -1244,22 +1244,24 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, clt *Client, 
 		}
 	}
 	for _, ldmLayer2 := range d.Get("liveness_detection_method_layer2").([]interface{}) {
-		if ldmLayer2 != nil {
-			liveDetectMethLayer2 := ldmLayer2.(map[string]interface{})
-			setPrefixLDMLayer2 := setPrefix + "liveness-detection method layer2-liveness-detection "
-			if v := liveDetectMethLayer2["max_consecutive_retries"].(int); v != 0 {
-				configSet = append(configSet, setPrefixLDMLayer2+"max-consecutive-retries "+strconv.Itoa(v))
-			}
-			if v := liveDetectMethLayer2["transmit_interval"].(int); v != 0 {
-				configSet = append(configSet, setPrefixLDMLayer2+"transmit-interval "+strconv.Itoa(v))
-			}
-		} else {
+		if ldmLayer2 == nil {
 			return fmt.Errorf("liveness_detection_method_layer2 block is empty")
+		}
+		liveDetectMethLayer2 := ldmLayer2.(map[string]interface{})
+		setPrefixLDMLayer2 := setPrefix + "liveness-detection method layer2-liveness-detection "
+		if v := liveDetectMethLayer2["max_consecutive_retries"].(int); v != 0 {
+			configSet = append(configSet, setPrefixLDMLayer2+"max-consecutive-retries "+strconv.Itoa(v))
+		}
+		if v := liveDetectMethLayer2["transmit_interval"].(int); v != 0 {
+			configSet = append(configSet, setPrefixLDMLayer2+"transmit-interval "+strconv.Itoa(v))
 		}
 	}
 	for _, v := range d.Get("overrides_v4").([]interface{}) {
 		if d.Get("version").(string) == "v6" {
 			return fmt.Errorf("overrides_v4 not compatible if version = v6")
+		}
+		if v == nil {
+			return fmt.Errorf("overrides_v4 block is empty")
 		}
 		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupOverridesV4(
 			v.(map[string]interface{}), setPrefix)
@@ -1271,6 +1273,9 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, clt *Client, 
 	for _, v := range d.Get("overrides_v6").([]interface{}) {
 		if d.Get("version").(string) == "v4" {
 			return fmt.Errorf("overrides_v6 not compatible if version = v4")
+		}
+		if v == nil {
+			return fmt.Errorf("overrides_v6 block is empty")
 		}
 		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupOverridesV6(
 			v.(map[string]interface{}), setPrefix)
@@ -1378,6 +1383,9 @@ func setSystemServicesDhcpLocalServerGroupInterface(
 		if version == "v6" {
 			return configSet, fmt.Errorf("overrides_v4 not compatible if version = v6")
 		}
+		if v == nil {
+			return configSet, fmt.Errorf("overrides_v4 block in interface %s is empty", interFace["name"].(string))
+		}
 		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupOverridesV4(
 			v.(map[string]interface{}), setPrefix)
 		if err != nil {
@@ -1388,6 +1396,9 @@ func setSystemServicesDhcpLocalServerGroupInterface(
 	for _, v := range interFace["overrides_v6"].([]interface{}) {
 		if version == "v4" {
 			return configSet, fmt.Errorf("overrides_v6 not compatible if version = v4")
+		}
+		if v == nil {
+			return configSet, fmt.Errorf("overrides_v6 block in interface %s is empty", interFace["name"].(string))
 		}
 		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupOverridesV6(
 			v.(map[string]interface{}), setPrefix)
