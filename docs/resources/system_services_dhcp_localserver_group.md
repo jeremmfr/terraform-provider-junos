@@ -204,7 +204,7 @@ The following arguments are supported:
 
 - **name** (Required, String)  
   Interface name.  
-  Need to be a logical interface.
+  Need to be a logical interface or `all`.
 - **access_profile** (Optional, String)  
   Access profile to use for AAA services.
 - **dynamic_profile** (Optional, String)  

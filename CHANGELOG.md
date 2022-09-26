@@ -11,7 +11,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* resource/`junos_system_services_dhcp_localserver_group`: fix crash with empty `overrides_v4` or `overrides_v6` block
+* resource/`junos_system_services_dhcp_localserver_group`: fix crash with empty `overrides_v4` or `overrides_v6` block and accept `all` in `interface.*.name`
 
 ## 1.30.1 (September 09, 2022)
 

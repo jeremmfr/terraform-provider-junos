@@ -243,9 +243,12 @@ func resourceSystemServicesDhcpLocalServerGroup() *schema.Resource {
 							Required: true,
 							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
 								value := v.(string)
+								if value == "all" {
+									return
+								}
 								if strings.Count(value, ".") != 1 {
 									errors = append(errors, fmt.Errorf(
-										"%q in %q need to have 1 dot", value, k))
+										"%q in %q need to have 1 dot or be 'all'", value, k))
 								}
 
 								return
