@@ -84,6 +84,10 @@ resource "junos_rip_neighbor" "testacc_ripngneigh" {
   ng    = true
   group = junos_rip_group.testacc_ripngneigh.name
 }
+resource "junos_rip_neighbor" "testacc_ripneigh_all" {
+  name  = "all"
+  group = junos_rip_group.testacc_ripneigh.name
+}
 resource "junos_interface_physical" "testacc_ripneigh2" {
   name = "%s"
 }
