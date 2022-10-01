@@ -36,7 +36,7 @@ The following arguments are supported:
 - **name** (Required, String, Forces new resource)  
   Group name.
 - **routing_instance** (Optional, String, Forces new resource)  
-  Routing instance for pool.  
+  Routing instance for group.  
   Need to be `default` or name of routing instance.  
   Defaults to `default`
 - **version** (Optional, String, Forces new resource)  
@@ -345,9 +345,9 @@ The following attributes are exported:
 
 ## Import
 
-Junos aggregate route can be imported using an id made up of
+Junos system DHCP local server group can be imported using an id made up of
 `<name>_-_<routing_instance>_-_<version>`, e.g.
 
 ```shell
-$ terraform import junos_system_services_dhcp_localserver_group.demo_dhcp_pool demo_dhcp_group_-_default_-_v4
+$ terraform import junos_system_services_dhcp_localserver_group.demo_dhcp_group demo_dhcp_group_-_default_-_v4
 ```
