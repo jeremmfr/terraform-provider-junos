@@ -79,6 +79,13 @@ The following arguments are supported:
 - **bgp_as_path_group** (Optional, Set of String)  
   Name of AS path group.  
   See resource `junos_policyoptions_as_path_group`.
+- **bgp_as_path_unique_count** (Optional, Block Set)  
+  For each count, number of unique BGP ASes excluding confederations.
+  - **count** (Required, Number)  
+    Number of ASes (0..1024).
+  - **match** (Required, String)  
+    Type of match: equal values, higher or equal values, lower or equal values.  
+    Need to `equal`, `orhigher` or `orlower`.
 - **bgp_community** (Optional, Set of String)  
   BGP community.  
   See resource `junos_policyoptions_community`.

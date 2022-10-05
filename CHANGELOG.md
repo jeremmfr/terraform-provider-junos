@@ -5,6 +5,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* resource/`junos_policyoptions_policy_statement`: add `bgp_as_path_unique_count` block argument inside `from` block argument (Fixes #424)
+
 BUG FIXES:
 
 ## 1.30.1 (September 09, 2022)

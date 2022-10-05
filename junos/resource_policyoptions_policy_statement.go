@@ -127,6 +127,24 @@ func schemaPolicyoptionsPolicyStatementFrom() map[string]*schema.Schema {
 				ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
 			},
 		},
+		"bgp_as_path_unique_count": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"count": {
+						Type:         schema.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(0, 1024),
+					},
+					"match": {
+						Type:         schema.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice([]string{"equal", "orhigher", "orlower"}, false),
+					},
+				},
+			},
+		},
 		"bgp_community": {
 			Type:     schema.TypeSet,
 			Optional: true,
@@ -719,7 +737,10 @@ func setPolicyStatement(d *schema.ResourceData, clt *Client, junSess *junosSessi
 	setPrefix := "set policy-options policy-statement " + d.Get("name").(string)
 	for _, from := range d.Get("from").([]interface{}) {
 		if from != nil {
-			configSetFrom := setPolicyStatementOptsFrom(setPrefix, from.(map[string]interface{}))
+			configSetFrom, err := setPolicyStatementOptsFrom(setPrefix, from.(map[string]interface{}))
+			if err != nil {
+				return err
+			}
 			configSet = append(configSet, configSetFrom...)
 		}
 	}
@@ -748,7 +769,10 @@ func setPolicyStatement(d *schema.ResourceData, clt *Client, junSess *junosSessi
 		setPrefixTerm := setPrefix + " term " + termMap["name"].(string)
 		for _, from := range termMap["from"].([]interface{}) {
 			if from != nil {
-				configSetFrom := setPolicyStatementOptsFrom(setPrefixTerm, from.(map[string]interface{}))
+				configSetFrom, err := setPolicyStatementOptsFrom(setPrefixTerm, from.(map[string]interface{}))
+				if err != nil {
+					return err
+				}
 				configSet = append(configSet, configSetFrom...)
 			}
 		}
@@ -921,7 +945,7 @@ func fillPolicyStatementData(d *schema.ResourceData, policyStatementOptions poli
 	}
 }
 
-func setPolicyStatementOptsFrom(setPrefix string, opts map[string]interface{}) []string {
+func setPolicyStatementOptsFrom(setPrefix string, opts map[string]interface{}) ([]string, error) {
 	configSet := make([]string, 0)
 	setPrefixFrom := setPrefix + " from "
 
@@ -933,6 +957,17 @@ func setPolicyStatementOptsFrom(setPrefix string, opts map[string]interface{}) [
 	}
 	for _, v := range sortSetOfString(opts["bgp_as_path_group"].(*schema.Set).List()) {
 		configSet = append(configSet, setPrefixFrom+"as-path-group "+v)
+	}
+	bgpASPathUniqueCountList := make([]int, 0)
+	for _, block := range opts["bgp_as_path_unique_count"].(*schema.Set).List() {
+		bgpASPathUniqueCount := block.(map[string]interface{})
+		count := bgpASPathUniqueCount["count"].(int)
+		if bchk.IntInSlice(count, bgpASPathUniqueCountList) {
+			return configSet, fmt.Errorf("multiple blocks bgp_as_path_unique_count with the same count %d", count)
+		}
+		bgpASPathUniqueCountList = append(bgpASPathUniqueCountList, count)
+		configSet = append(configSet,
+			setPrefixFrom+"as-path-unique-count "+strconv.Itoa(count)+" "+bgpASPathUniqueCount["match"].(string))
 	}
 	for _, v := range sortSetOfString(opts["bgp_community"].(*schema.Set).List()) {
 		configSet = append(configSet, setPrefixFrom+"community "+v)
@@ -986,7 +1021,7 @@ func setPolicyStatementOptsFrom(setPrefix string, opts map[string]interface{}) [
 		configSet = append(configSet, setRoutFilter)
 	}
 
-	return configSet
+	return configSet, nil
 }
 
 func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) ([]string, error) {
@@ -1131,6 +1166,19 @@ func readPolicyStatementOptsFrom(item string, fromMap map[string]interface{}) er
 	case strings.HasPrefix(item, "as-path-group "):
 		fromMap["bgp_as_path_group"] = append(fromMap["bgp_as_path_group"].([]string),
 			strings.TrimPrefix(item, "as-path-group "))
+	case strings.HasPrefix(item, "as-path-unique-count "):
+		countStr := strings.Split(strings.TrimPrefix(item, "as-path-unique-count "), " ")[0]
+		count, err := strconv.Atoi(countStr)
+		if err != nil {
+			return fmt.Errorf(failedConvAtoiError, item, err)
+		}
+		fromMap["bgp_as_path_unique_count"] = append(
+			fromMap["bgp_as_path_unique_count"].([]map[string]interface{}),
+			map[string]interface{}{
+				"count": count,
+				"match": strings.TrimPrefix(item, "as-path-unique-count "+countStr+" "),
+			},
+		)
 	case strings.HasPrefix(item, "community "):
 		fromMap["bgp_community"] = append(fromMap["bgp_community"].([]string), strings.TrimPrefix(item, "community "))
 	case strings.HasPrefix(item, "origin "):
@@ -1337,24 +1385,25 @@ func readPolicyStatementOptsTo(item string, toMap map[string]interface{}) error 
 
 func genMapPolicyStatementOptsFrom() map[string]interface{} {
 	return map[string]interface{}{
-		"aggregate_contributor": false,
-		"bgp_as_path":           make([]string, 0),
-		"bgp_as_path_group":     make([]string, 0),
-		"bgp_community":         make([]string, 0),
-		"bgp_origin":            "",
-		"family":                "",
-		"local_preference":      0,
-		"routing_instance":      "",
-		"interface":             make([]string, 0),
-		"metric":                0,
-		"neighbor":              make([]string, 0),
-		"next_hop":              make([]string, 0),
-		"ospf_area":             "",
-		"policy":                make([]string, 0),
-		"preference":            0,
-		"prefix_list":           make([]string, 0),
-		"protocol":              make([]string, 0),
-		"route_filter":          make([]map[string]interface{}, 0),
+		"aggregate_contributor":    false,
+		"bgp_as_path":              make([]string, 0),
+		"bgp_as_path_group":        make([]string, 0),
+		"bgp_as_path_unique_count": make([]map[string]interface{}, 0),
+		"bgp_community":            make([]string, 0),
+		"bgp_origin":               "",
+		"family":                   "",
+		"local_preference":         0,
+		"routing_instance":         "",
+		"interface":                make([]string, 0),
+		"metric":                   0,
+		"neighbor":                 make([]string, 0),
+		"next_hop":                 make([]string, 0),
+		"ospf_area":                "",
+		"policy":                   make([]string, 0),
+		"preference":               0,
+		"prefix_list":              make([]string, 0),
+		"protocol":                 make([]string, 0),
+		"route_filter":             make([]map[string]interface{}, 0),
 	}
 }
 

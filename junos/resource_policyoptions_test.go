@@ -750,17 +750,25 @@ resource "junos_policyoptions_policy_statement" "testacc_policyOptions" {
   from {
     aggregate_contributor = true
     bgp_as_path           = [junos_policyoptions_as_path.testacc_policyOptions.name]
-    bgp_community         = [junos_policyoptions_community.testacc_policyOptions.name]
-    bgp_origin            = "igp"
-    family                = "inet"
-    local_preference      = 100
-    routing_instance      = junos_routing_instance.testacc_policyOptions.name
-    interface             = ["st0.0"]
-    metric                = 5
-    neighbor              = ["192.0.2.4"]
-    next_hop              = ["192.0.2.4"]
-    ospf_area             = "0.0.0.0"
-    preference            = 100
+    bgp_as_path_unique_count {
+      count = 3
+      match = "equal"
+    }
+    bgp_as_path_unique_count {
+      count = 2
+      match = "orhigher"
+    }
+    bgp_community    = [junos_policyoptions_community.testacc_policyOptions.name]
+    bgp_origin       = "igp"
+    family           = "inet"
+    local_preference = 100
+    routing_instance = junos_routing_instance.testacc_policyOptions.name
+    interface        = ["st0.0"]
+    metric           = 5
+    neighbor         = ["192.0.2.4"]
+    next_hop         = ["192.0.2.4"]
+    ospf_area        = "0.0.0.0"
+    preference       = 100
     prefix_list = [junos_policyoptions_prefix_list.testacc_policyOptions.name,
       junos_policyoptions_prefix_list.testacc_policyOptions2.name,
     ]
@@ -805,20 +813,24 @@ resource "junos_policyoptions_policy_statement" "testacc_policyOptions" {
     from {
       aggregate_contributor = true
       bgp_as_path           = [junos_policyoptions_as_path.testacc_policyOptions.name]
-      bgp_community         = [junos_policyoptions_community.testacc_policyOptions.name]
-      bgp_origin            = "igp"
-      family                = "inet"
-      local_preference      = 100
-      routing_instance      = junos_routing_instance.testacc_policyOptions.name
-      interface             = ["st0.0"]
-      metric                = 5
-      neighbor              = ["192.0.2.4"]
-      next_hop              = ["192.0.2.4"]
-      ospf_area             = "0.0.0.0"
-      policy                = [junos_policyoptions_policy_statement.testacc_policyOptions2.name]
-      preference            = 100
-      prefix_list           = [junos_policyoptions_prefix_list.testacc_policyOptions.name]
-      protocol              = ["bgp"]
+      bgp_as_path_unique_count {
+        count = 4
+        match = "orlower"
+      }
+      bgp_community    = [junos_policyoptions_community.testacc_policyOptions.name]
+      bgp_origin       = "igp"
+      family           = "inet"
+      local_preference = 100
+      routing_instance = junos_routing_instance.testacc_policyOptions.name
+      interface        = ["st0.0"]
+      metric           = 5
+      neighbor         = ["192.0.2.4"]
+      next_hop         = ["192.0.2.4"]
+      ospf_area        = "0.0.0.0"
+      policy           = [junos_policyoptions_policy_statement.testacc_policyOptions2.name]
+      preference       = 100
+      prefix_list      = [junos_policyoptions_prefix_list.testacc_policyOptions.name]
+      protocol         = ["bgp"]
       route_filter {
         route  = "192.0.2.0/25"
         option = "exact"
