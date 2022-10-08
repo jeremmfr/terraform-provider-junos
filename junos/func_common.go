@@ -280,9 +280,19 @@ func validateFilePermission() schema.SchemaValidateDiagFunc {
 }
 
 func sortSetOfString(list []interface{}) []string {
-	s := make([]string, 0)
-	for _, e := range list {
-		s = append(s, e.(string))
+	s := make([]string, len(list))
+	for k, e := range list {
+		s[k] = e.(string)
+	}
+	sort.Strings(s)
+
+	return s
+}
+
+func sortSetOfNumberToString(list []interface{}) []string {
+	s := make([]string, len(list))
+	for k, e := range list {
+		s[k] = strconv.Itoa(e.(int))
 	}
 	sort.Strings(s)
 

@@ -3,6 +3,7 @@ package junos
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -119,6 +120,24 @@ func schemaPolicyoptionsPolicyStatementFrom() map[string]*schema.Schema {
 				ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
 			},
 		},
+		"bgp_as_path_calc_length": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"count": {
+						Type:         schema.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(0, 1024),
+					},
+					"match": {
+						Type:         schema.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice([]string{"equal", "orhigher", "orlower"}, false),
+					},
+				},
+			},
+		},
 		"bgp_as_path_group": {
 			Type:     schema.TypeSet,
 			Optional: true,
@@ -153,10 +172,62 @@ func schemaPolicyoptionsPolicyStatementFrom() map[string]*schema.Schema {
 				ValidateDiagFunc: validateNameObjectJunos([]string{"default"}, 64, formatDefault),
 			},
 		},
+		"bgp_community_count": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"count": {
+						Type:         schema.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(0, 1024),
+					},
+					"match": {
+						Type:         schema.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice([]string{"equal", "orhigher", "orlower"}, false),
+					},
+				},
+			},
+		},
 		"bgp_origin": {
 			Type:         schema.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice([]string{"egp", "igp", "incomplete"}, false),
+		},
+		"bgp_srte_discriminator": {
+			Type:         schema.TypeInt,
+			Optional:     true,
+			Default:      -1,
+			ValidateFunc: validation.IntBetween(0, 4294967295),
+		},
+		"color": {
+			Type:         schema.TypeInt,
+			Optional:     true,
+			Default:      -1,
+			ValidateFunc: validation.IntBetween(0, 4294967295),
+		},
+		"evpn_esi": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(
+					`^([\d\w]{2}:){9}[\d\w]{2}$`), "bad format or length"),
+			},
+		},
+		"evpn_mac_route": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice([]string{"mac-ipv4", "mac-ipv6", "mac-only"}, false),
+		},
+		"evpn_tag": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem: &schema.Schema{
+				Type:         schema.TypeInt,
+				ValidateFunc: validation.IntBetween(0, 4294967295),
+			},
 		},
 		"family": {
 			Type:     schema.TypeString,
@@ -193,6 +264,30 @@ func schemaPolicyoptionsPolicyStatementFrom() map[string]*schema.Schema {
 			Type:     schema.TypeSet,
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+		"next_hop_type_merged": {
+			Type:     schema.TypeBool,
+			Optional: true,
+		},
+		"next_hop_weight": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"match": {
+						Type:     schema.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"equal", "greater-than", "greater-than-equal", "less-than", "less-than-equal",
+						}, false),
+					},
+					"weight": {
+						Type:         schema.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(1, 65535),
+					},
+				},
+			},
 		},
 		"ospf_area": {
 			Type:     schema.TypeString,
@@ -246,6 +341,35 @@ func schemaPolicyoptionsPolicyStatementFrom() map[string]*schema.Schema {
 					},
 				},
 			},
+		},
+		"route_type": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice([]string{"external", "internal"}, false),
+		},
+		"srte_color": {
+			Type:         schema.TypeInt,
+			Optional:     true,
+			Default:      -1,
+			ValidateFunc: validation.IntBetween(0, 4294967295),
+		},
+		"state": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice([]string{"active", "inactive"}, false),
+		},
+		"tunnel_type": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem: &schema.Schema{
+				Type:         schema.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{"gre", "ipip", "udp"}, false),
+			},
+		},
+		"validation_database": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice([]string{"invalid", "unknown", "valid"}, false),
 		},
 	}
 }
@@ -955,6 +1079,17 @@ func setPolicyStatementOptsFrom(setPrefix string, opts map[string]interface{}) (
 	for _, v := range sortSetOfString(opts["bgp_as_path"].(*schema.Set).List()) {
 		configSet = append(configSet, setPrefixFrom+"as-path "+v)
 	}
+	bgpASPathCalcLengthList := make([]int, 0)
+	for _, block := range opts["bgp_as_path_calc_length"].(*schema.Set).List() {
+		bgpASPathCalcLength := block.(map[string]interface{})
+		count := bgpASPathCalcLength["count"].(int)
+		if bchk.IntInSlice(count, bgpASPathCalcLengthList) {
+			return configSet, fmt.Errorf("multiple blocks bgp_as_path_calc_length with the same count %d", count)
+		}
+		bgpASPathCalcLengthList = append(bgpASPathCalcLengthList, count)
+		configSet = append(configSet,
+			setPrefixFrom+"as-path-calc-length "+strconv.Itoa(count)+" "+bgpASPathCalcLength["match"].(string))
+	}
 	for _, v := range sortSetOfString(opts["bgp_as_path_group"].(*schema.Set).List()) {
 		configSet = append(configSet, setPrefixFrom+"as-path-group "+v)
 	}
@@ -972,8 +1107,34 @@ func setPolicyStatementOptsFrom(setPrefix string, opts map[string]interface{}) (
 	for _, v := range sortSetOfString(opts["bgp_community"].(*schema.Set).List()) {
 		configSet = append(configSet, setPrefixFrom+"community "+v)
 	}
+	bgpCommunityCountList := make([]int, 0)
+	for _, block := range opts["bgp_community_count"].(*schema.Set).List() {
+		bgpCommunityCount := block.(map[string]interface{})
+		count := bgpCommunityCount["count"].(int)
+		if bchk.IntInSlice(count, bgpCommunityCountList) {
+			return configSet, fmt.Errorf("multiple blocks bgp_community_count with the same count %d", count)
+		}
+		bgpCommunityCountList = append(bgpCommunityCountList, count)
+		configSet = append(configSet,
+			setPrefixFrom+"community-count "+strconv.Itoa(count)+" "+bgpCommunityCount["match"].(string))
+	}
 	if opts["bgp_origin"].(string) != "" {
 		configSet = append(configSet, setPrefixFrom+"origin "+opts["bgp_origin"].(string))
+	}
+	if v := opts["bgp_srte_discriminator"].(int); v != -1 {
+		configSet = append(configSet, setPrefixFrom+"bgp-srte-discriminator "+strconv.Itoa(v))
+	}
+	if v := opts["color"].(int); v != -1 {
+		configSet = append(configSet, setPrefixFrom+"color "+strconv.Itoa(v))
+	}
+	for _, v := range sortSetOfString(opts["evpn_esi"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefixFrom+"evpn-esi "+v)
+	}
+	if v := opts["evpn_mac_route"].(string); v != "" {
+		configSet = append(configSet, setPrefixFrom+"evpn-mac-route "+v)
+	}
+	for _, v := range sortSetOfNumberToString(opts["evpn_tag"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefixFrom+"evpn-tag "+v)
 	}
 	if opts["family"].(string) != "" {
 		configSet = append(configSet, setPrefixFrom+"family "+opts["family"].(string))
@@ -995,6 +1156,14 @@ func setPolicyStatementOptsFrom(setPrefix string, opts map[string]interface{}) (
 	}
 	for _, v := range sortSetOfString(opts["next_hop"].(*schema.Set).List()) {
 		configSet = append(configSet, setPrefixFrom+"next-hop "+v)
+	}
+	if opts["next_hop_type_merged"].(bool) {
+		configSet = append(configSet, setPrefixFrom+"next-hop-type merged")
+	}
+	for _, block := range opts["next_hop_weight"].(*schema.Set).List() {
+		nextHopWeight := block.(map[string]interface{})
+		configSet = append(configSet,
+			setPrefixFrom+"nexthop-weight "+nextHopWeight["match"].(string)+" "+strconv.Itoa(nextHopWeight["weight"].(int)))
 	}
 	if opts["ospf_area"].(string) != "" {
 		configSet = append(configSet, setPrefixFrom+"area "+opts["ospf_area"].(string))
@@ -1019,6 +1188,21 @@ func setPolicyStatementOptsFrom(setPrefix string, opts map[string]interface{}) (
 			setRoutFilter += " " + routeFilter["option_value"].(string)
 		}
 		configSet = append(configSet, setRoutFilter)
+	}
+	if v := opts["route_type"].(string); v != "" {
+		configSet = append(configSet, setPrefixFrom+"route-type "+v)
+	}
+	if v := opts["srte_color"].(int); v != -1 {
+		configSet = append(configSet, setPrefixFrom+"srte-color "+strconv.Itoa(v))
+	}
+	if v := opts["state"].(string); v != "" {
+		configSet = append(configSet, setPrefixFrom+"state "+v)
+	}
+	for _, v := range sortSetOfString(opts["tunnel_type"].(*schema.Set).List()) {
+		configSet = append(configSet, setPrefixFrom+"tunnel-type "+v)
+	}
+	if v := opts["validation_database"].(string); v != "" {
+		configSet = append(configSet, setPrefixFrom+"validation-database "+v)
 	}
 
 	return configSet, nil
@@ -1163,6 +1347,19 @@ func readPolicyStatementOptsFrom(item string, fromMap map[string]interface{}) er
 		fromMap["aggregate_contributor"] = true
 	case strings.HasPrefix(item, "as-path "):
 		fromMap["bgp_as_path"] = append(fromMap["bgp_as_path"].([]string), strings.TrimPrefix(item, "as-path "))
+	case strings.HasPrefix(item, "as-path-calc-length "):
+		countStr := strings.Split(strings.TrimPrefix(item, "as-path-calc-length "), " ")[0]
+		count, err := strconv.Atoi(countStr)
+		if err != nil {
+			return fmt.Errorf(failedConvAtoiError, item, err)
+		}
+		fromMap["bgp_as_path_calc_length"] = append(
+			fromMap["bgp_as_path_calc_length"].([]map[string]interface{}),
+			map[string]interface{}{
+				"count": count,
+				"match": strings.TrimPrefix(item, "as-path-calc-length "+countStr+" "),
+			},
+		)
 	case strings.HasPrefix(item, "as-path-group "):
 		fromMap["bgp_as_path_group"] = append(fromMap["bgp_as_path_group"].([]string),
 			strings.TrimPrefix(item, "as-path-group "))
@@ -1181,8 +1378,43 @@ func readPolicyStatementOptsFrom(item string, fromMap map[string]interface{}) er
 		)
 	case strings.HasPrefix(item, "community "):
 		fromMap["bgp_community"] = append(fromMap["bgp_community"].([]string), strings.TrimPrefix(item, "community "))
+	case strings.HasPrefix(item, "community-count "):
+		countStr := strings.Split(strings.TrimPrefix(item, "community-count "), " ")[0]
+		count, err := strconv.Atoi(countStr)
+		if err != nil {
+			return fmt.Errorf(failedConvAtoiError, item, err)
+		}
+		fromMap["bgp_community_count"] = append(
+			fromMap["bgp_community_count"].([]map[string]interface{}),
+			map[string]interface{}{
+				"count": count,
+				"match": strings.TrimPrefix(item, "community-count "+countStr+" "),
+			},
+		)
 	case strings.HasPrefix(item, "origin "):
 		fromMap["bgp_origin"] = strings.TrimPrefix(item, "origin ")
+	case strings.HasPrefix(item, "bgp-srte-discriminator "):
+		var err error
+		fromMap["bgp_srte_discriminator"], err = strconv.Atoi(strings.TrimPrefix(item, "bgp-srte-discriminator "))
+		if err != nil {
+			return fmt.Errorf(failedConvAtoiError, item, err)
+		}
+	case strings.HasPrefix(item, "color "):
+		var err error
+		fromMap["color"], err = strconv.Atoi(strings.TrimPrefix(item, "color "))
+		if err != nil {
+			return fmt.Errorf(failedConvAtoiError, item, err)
+		}
+	case strings.HasPrefix(item, "evpn-esi "):
+		fromMap["evpn_esi"] = append(fromMap["evpn_esi"].([]string), strings.TrimPrefix(item, "evpn-esi "))
+	case strings.HasPrefix(item, "evpn-mac-route "):
+		fromMap["evpn_mac_route"] = strings.TrimPrefix(item, "evpn-mac-route ")
+	case strings.HasPrefix(item, "evpn-tag "):
+		tag, err := strconv.Atoi(strings.TrimPrefix(item, "evpn-tag "))
+		if err != nil {
+			return fmt.Errorf(failedConvAtoiError, item, err)
+		}
+		fromMap["evpn_tag"] = append(fromMap["evpn_tag"].([]int), tag)
 	case strings.HasPrefix(item, "family "):
 		fromMap["family"] = strings.TrimPrefix(item, "family ")
 	case strings.HasPrefix(item, "local-preference "):
@@ -1205,6 +1437,24 @@ func readPolicyStatementOptsFrom(item string, fromMap map[string]interface{}) er
 		fromMap["neighbor"] = append(fromMap["neighbor"].([]string), strings.TrimPrefix(item, "neighbor "))
 	case strings.HasPrefix(item, "next-hop "):
 		fromMap["next_hop"] = append(fromMap["next_hop"].([]string), strings.TrimPrefix(item, "next-hop "))
+	case item == "next-hop-type merged":
+		fromMap["next_hop_type_merged"] = true
+	case strings.HasPrefix(item, "nexthop-weight "):
+		itemSplit := strings.Split(strings.TrimPrefix(item, "nexthop-weight "), " ")
+		if len(itemSplit) < 2 {
+			return fmt.Errorf("can't read value for weight in %s", item)
+		}
+		weight, err := strconv.Atoi(itemSplit[1])
+		if err != nil {
+			return fmt.Errorf(failedConvAtoiError, item, err)
+		}
+		fromMap["next_hop_weight"] = append(
+			fromMap["next_hop_weight"].([]map[string]interface{}),
+			map[string]interface{}{
+				"match":  itemSplit[0],
+				"weight": weight,
+			},
+		)
 	case strings.HasPrefix(item, "area "):
 		fromMap["ospf_area"] = strings.TrimPrefix(item, "area ")
 	case strings.HasPrefix(item, "policy "):
@@ -1232,6 +1482,20 @@ func readPolicyStatementOptsFrom(item string, fromMap map[string]interface{}) er
 			routeFilterMap["option_value"] = itemSplit[3]
 		}
 		fromMap["route_filter"] = append(fromMap["route_filter"].([]map[string]interface{}), routeFilterMap)
+	case strings.HasPrefix(item, "route-type "):
+		fromMap["route_type"] = strings.TrimPrefix(item, "route-type ")
+	case strings.HasPrefix(item, "srte-color "):
+		var err error
+		fromMap["srte_color"], err = strconv.Atoi(strings.TrimPrefix(item, "srte-color "))
+		if err != nil {
+			return fmt.Errorf(failedConvAtoiError, item, err)
+		}
+	case strings.HasPrefix(item, "state "):
+		fromMap["state"] = strings.TrimPrefix(item, "state ")
+	case strings.HasPrefix(item, "tunnel-type "):
+		fromMap["tunnel_type"] = append(fromMap["tunnel_type"].([]string), strings.TrimPrefix(item, "tunnel-type "))
+	case strings.HasPrefix(item, "validation-database "):
+		fromMap["validation_database"] = strings.TrimPrefix(item, "validation-database ")
 	}
 
 	return nil
@@ -1387,10 +1651,17 @@ func genMapPolicyStatementOptsFrom() map[string]interface{} {
 	return map[string]interface{}{
 		"aggregate_contributor":    false,
 		"bgp_as_path":              make([]string, 0),
+		"bgp_as_path_calc_length":  make([]map[string]interface{}, 0),
 		"bgp_as_path_group":        make([]string, 0),
 		"bgp_as_path_unique_count": make([]map[string]interface{}, 0),
 		"bgp_community":            make([]string, 0),
+		"bgp_community_count":      make([]map[string]interface{}, 0),
 		"bgp_origin":               "",
+		"bgp_srte_discriminator":   -1,
+		"color":                    -1,
+		"evpn_esi":                 make([]string, 0),
+		"evpn_mac_route":           "",
+		"evpn_tag":                 make([]int, 0),
 		"family":                   "",
 		"local_preference":         0,
 		"routing_instance":         "",
@@ -1398,12 +1669,19 @@ func genMapPolicyStatementOptsFrom() map[string]interface{} {
 		"metric":                   0,
 		"neighbor":                 make([]string, 0),
 		"next_hop":                 make([]string, 0),
+		"next_hop_type_merged":     false,
+		"next_hop_weight":          make([]map[string]interface{}, 0),
 		"ospf_area":                "",
 		"policy":                   make([]string, 0),
 		"preference":               0,
 		"prefix_list":              make([]string, 0),
 		"protocol":                 make([]string, 0),
 		"route_filter":             make([]map[string]interface{}, 0),
+		"route_type":               "",
+		"srte_color":               -1,
+		"state":                    "",
+		"tunnel_type":              make([]string, 0),
+		"validation_database":      "",
 	}
 }
 
