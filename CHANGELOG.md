@@ -5,6 +5,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* resource/`junos_policyoptions_policy_statement`: add `bgp_as_path_calc_length`, `bgp_as_path_unique_count`, `bgp_community_count`, `bgp_srte_discriminator`, `color`, `evpn_esi`, `evpn_mac_route`, `evpn_tag`, `next_hop_type_merged`, `next_hop_weight`, `route_type`, `srte_color`, `state`, `tunnel_type` and `validation_database` arguments inside `from` block arguments (Fixes #424)
+
 BUG FIXES:
 
 ## 1.30.1 (September 09, 2022)
