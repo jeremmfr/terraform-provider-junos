@@ -233,7 +233,8 @@ The following attributes are exported:
 
 ## Import
 
-Junos aggregate route can be imported using an id made up of `<name>_-_<routing_instance>`, e.g.
+Junos access address-assignment pool can be imported using an id made up of
+`<name>_-_<routing_instance>`, e.g.
 
 ```shell
 $ terraform import junos_access_address_assignment_pool.demo_dhcp_pool demo_dhcp_pool_-_default

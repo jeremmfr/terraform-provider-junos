@@ -76,15 +76,47 @@ The following arguments are supported:
 - **bgp_as_path** (Optional, Set of String)  
   Name of AS path regular expression.  
   See resource `junos_policyoptions_as_path`.
+- **bgp_as_path_calc_length** Optional, Block Set)  
+  For each count, number of BGP ASes excluding confederations.
+  - **count** (Required, Number)  
+    Number of ASes (0..1024).
+  - **match** (Required, String)  
+    Type of match: equal values, higher or equal values, lower or equal values.  
+    Need to `equal`, `orhigher` or `orlower`.
 - **bgp_as_path_group** (Optional, Set of String)  
   Name of AS path group.  
   See resource `junos_policyoptions_as_path_group`.
+- **bgp_as_path_unique_count** (Optional, Block Set)  
+  For each count, number of unique BGP ASes excluding confederations.
+  - **count** (Required, Number)  
+    Number of ASes (0..1024).
+  - **match** (Required, String)  
+    Type of match: equal values, higher or equal values, lower or equal values.  
+    Need to `equal`, `orhigher` or `orlower`.
 - **bgp_community** (Optional, Set of String)  
   BGP community.  
   See resource `junos_policyoptions_community`.
+- **bgp_community_count** (Optional, Block Set)  
+  For each count, number of BGP communities.
+  - **count** (Required, Number)  
+    Number of communities (0..1024).
+  - **match** (Required, String)  
+    Type of match: equal values, higher or equal values, lower or equal values.  
+    Need to `equal`, `orhigher` or `orlower`.
 - **bgp_origin** (Optional, String)  
   BGP origin attribute.  
   Need to be `egp`, `igp` or `incomplete`.
+- **bgp_srte_discriminator** (Optional, Number)  
+  Srte discriminator.
+- **color** (Optional, Number)  
+  Color (preference) value.
+- **evpn_esi** (Optional, Set of String)  
+  ESI in EVPN Route.
+- **evpn_mac_route** (Optional, String)  
+  EVPN Mac Route type.  
+  Need to be `mac-ipv4`, `mac-ipv6` or `mac-only`.
+- **evpn_tag** (Optional, Set of Number)  
+  Tag in EVPN Route (0..4294967295).
 - **family** (Optional, String)  
   IP family.
 - **local_preference** (Optional, Number)  
@@ -99,6 +131,15 @@ The following arguments are supported:
   Neighboring router
 - **next_hop** (Optional, Set of String)  
   Next-hop router
+- **next_hop_type_merged** (Optional, Boolean)  
+  Merged next hop.
+- **next_hop_weight** (Optional, Block Set)  
+  For each combination of block arguments, weight of the gateway.
+  - **match** (Required, String)  
+    Type of match for weight.  
+    Need to be `equal`, `greater-than`, `greater-than-equal`, `less-than` or `less-than-equal`.
+  - **weight** (Required, Weight)  
+    Weight of the gateway (1..65535).
 - **ospf_area** (Optional, String)  
   OSPF area identifier
 - **policy** (Optional, List of String)  
@@ -119,6 +160,20 @@ The following arguments are supported:
     Need to be `address-mask`, `exact`, `longer`, `orlonger`, `prefix-length-range`, `through` or `upto`.
   - **option_value** (Optional, String)  
     For options that need an argument
+- **route_type** (Optional, String)  
+  Route type.  
+  Need to be `external` or `internal`.
+- **srte_color** (Optional, Number)  
+  Srte color.
+- **state** (Optional, String)  
+  Route state.  
+  Need to be `active` or `inactive`.
+- **tunnel_type** (Optional, Set of String)  
+  Tunnel type.  
+  Element need to be `gre`, `ipip` or `udp`.
+- **validation_database** (Optional, String)  
+  Name to identify a validation-state.  
+  Need to be `invalid`, `unknown` or `valid`.
 
 ---
 

@@ -36,7 +36,7 @@ The following arguments are supported:
 - **name** (Required, String, Forces new resource)  
   Group name.
 - **routing_instance** (Optional, String, Forces new resource)  
-  Routing instance for pool.  
+  Routing instance for group.  
   Need to be `default` or name of routing instance.  
   Defaults to `default`
 - **version** (Optional, String, Forces new resource)  
@@ -52,8 +52,13 @@ The following arguments are supported:
   - **circuit_type** (Optional, Boolean)  
     Include circuit type.
   - **client_id** (Optional, Boolean)  
-    Include client ID.  
-    `version` need to be `v6`.
+    Include client ID.
+  - **client_id_exclude_headers** (Optional, Boolean)  
+    Exclude all the headers.  
+    `client_id` need to be true.
+  - **client_id_use_automatic_ascii_hex_encoding** (Optional, Boolean)  
+    Use automatic ascii hex username encoding.  
+    `client_id` need to be true.
   - **delimiter** (Optional, String)  
     Change delimiter/separator character.  
     One character maximum.
@@ -199,7 +204,7 @@ The following arguments are supported:
 
 - **name** (Required, String)  
   Interface name.  
-  Need to be a logical interface.
+  Need to be a logical interface or `all`.
 - **access_profile** (Optional, String)  
   Access profile to use for AAA services.
 - **dynamic_profile** (Optional, String)  
@@ -340,9 +345,9 @@ The following attributes are exported:
 
 ## Import
 
-Junos aggregate route can be imported using an id made up of
+Junos system DHCP local server group can be imported using an id made up of
 `<name>_-_<routing_instance>_-_<version>`, e.g.
 
 ```shell
-$ terraform import junos_system_services_dhcp_localserver_group.demo_dhcp_pool demo_dhcp_group_-_default_-_v4
+$ terraform import junos_system_services_dhcp_localserver_group.demo_dhcp_group demo_dhcp_group_-_default_-_v4
 ```

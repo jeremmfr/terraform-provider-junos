@@ -71,6 +71,28 @@ func resourceSystemServicesDhcpLocalServerGroup() *schema.Resource {
 				ForceNew:     true,
 				Default:      "v4",
 				ValidateFunc: validation.StringInSlice([]string{"v4", "v6"}, false),
+				AtLeastOneOf: []string{
+					"access_profile",
+					"authentication_password",
+					"authentication_username_include",
+					"dynamic_profile",
+					"interface",
+					"lease_time_validation",
+					"liveness_detection_failure_action",
+					"liveness_detection_method_bfd",
+					"liveness_detection_method_layer2",
+					"overrides_v4",
+					"overrides_v6",
+					"reauthenticate_lease_renewal",
+					"reauthenticate_remote_id_mismatch",
+					"reconfigure",
+					"remote_id_mismatch_disconnect",
+					"route_suppression_access",
+					"route_suppression_access_internal",
+					"route_suppression_destination",
+					"service_profile",
+					"short_cycle_protection_lockout_max_time",
+				},
 			},
 			"access_profile": {
 				Type:     schema.TypeString,
@@ -110,6 +132,16 @@ func resourceSystemServicesDhcpLocalServerGroup() *schema.Resource {
 						"client_id": {
 							Type:     schema.TypeBool,
 							Optional: true,
+						},
+						"client_id_exclude_headers": {
+							Type:         schema.TypeBool,
+							Optional:     true,
+							RequiredWith: []string{"authentication_username_include.0.client_id"},
+						},
+						"client_id_use_automatic_ascii_hex_encoding": {
+							Type:         schema.TypeBool,
+							Optional:     true,
+							RequiredWith: []string{"authentication_username_include.0.client_id"},
 						},
 						"delimiter": {
 							Type:         schema.TypeString,
@@ -204,28 +236,7 @@ func resourceSystemServicesDhcpLocalServerGroup() *schema.Resource {
 			"interface": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				AtLeastOneOf: []string{
-					"access_profile",
-					"authentication_password",
-					"authentication_username_include",
-					"dynamic_profile",
-					"interface",
-					"lease_time_validation",
-					"liveness_detection_failure_action",
-					"liveness_detection_method_bfd",
-					"liveness_detection_method_layer2",
-					"overrides_v4",
-					"overrides_v6",
-					"reauthenticate_lease_renewal",
-					"reauthenticate_remote_id_mismatch",
-					"reconfigure",
-					"remote_id_mismatch_disconnect",
-					"route_suppression_access",
-					"route_suppression_access_internal",
-					"route_suppression_destination",
-					"service_profile",
-					"short_cycle_protection_lockout_max_time",
-				},
+
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -233,9 +244,12 @@ func resourceSystemServicesDhcpLocalServerGroup() *schema.Resource {
 							Required: true,
 							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
 								value := v.(string)
+								if value == "all" {
+									return
+								}
 								if strings.Count(value, ".") != 1 {
 									errors = append(errors, fmt.Errorf(
-										"%q in %q need to have 1 dot", value, k))
+										"%q in %q need to have 1 dot or be 'all'", value, k))
 								}
 
 								return
@@ -1066,10 +1080,19 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, clt *Client, 
 			configSet = append(configSet, setPrefix+"authentication username-include circuit-type")
 		}
 		if authenticationUsernameInclude["client_id"].(bool) {
-			if d.Get("version").(string) == "v4" {
-				return fmt.Errorf("client_id not compatible when version = v4")
-			}
 			configSet = append(configSet, setPrefix+"authentication username-include client-id")
+			if authenticationUsernameInclude["client_id_exclude_headers"].(bool) {
+				configSet = append(configSet,
+					setPrefix+"authentication username-include client-id exclude-headers")
+			}
+			if authenticationUsernameInclude["client_id_use_automatic_ascii_hex_encoding"].(bool) {
+				configSet = append(configSet,
+					setPrefix+"authentication username-include client-id use-automatic-ascii-hex-encoding")
+			}
+		} else if authenticationUsernameInclude["client_id_exclude_headers"].(bool) ||
+			authenticationUsernameInclude["client_id_use_automatic_ascii_hex_encoding"].(bool) {
+			return fmt.Errorf("authentication_username_include.0.client_id need to be true with " +
+				"client_id_exclude_headers or client_id_use_automatic_ascii_hex_encoding")
 		}
 		if v := authenticationUsernameInclude["delimiter"].(string); v != "" {
 			configSet = append(configSet, setPrefix+"authentication username-include delimiter \""+v+"\"")
@@ -1088,13 +1111,13 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, clt *Client, 
 		}
 		if authenticationUsernameInclude["option_60"].(bool) {
 			if d.Get("version").(string) == "v6" {
-				return fmt.Errorf("option_60 not compatible when version = v6")
+				return fmt.Errorf("authentication_username_include.0.option_60 not compatible when version = v6")
 			}
 			configSet = append(configSet, setPrefix+"authentication username-include option-60")
 		}
 		if authenticationUsernameInclude["option_82"].(bool) {
 			if d.Get("version").(string) == "v6" {
-				return fmt.Errorf("option_82 not compatible when version = v6")
+				return fmt.Errorf("authentication_username_include.0.option_82 not compatible when version = v6")
 			}
 			configSet = append(configSet, setPrefix+"authentication username-include option-82")
 			if authenticationUsernameInclude["option_82_circuit_id"].(bool) {
@@ -1110,19 +1133,19 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, clt *Client, 
 		}
 		if authenticationUsernameInclude["relay_agent_interface_id"].(bool) {
 			if d.Get("version").(string) == "v4" {
-				return fmt.Errorf("relay_agent_interface_id not compatible when version = v4")
+				return fmt.Errorf("authentication_username_include.0.relay_agent_interface_id not compatible when version = v4")
 			}
 			configSet = append(configSet, setPrefix+"authentication username-include relay-agent-interface-id")
 		}
 		if authenticationUsernameInclude["relay_agent_remote_id"].(bool) {
 			if d.Get("version").(string) == "v4" {
-				return fmt.Errorf("relay_agent_remote_id not compatible when version = v4")
+				return fmt.Errorf("authentication_username_include.0.relay_agent_remote_id not compatible when version = v4")
 			}
 			configSet = append(configSet, setPrefix+"authentication username-include relay-agent-remote-id")
 		}
 		if authenticationUsernameInclude["relay_agent_subscriber_id"].(bool) {
 			if d.Get("version").(string) == "v4" {
-				return fmt.Errorf("relay_agent_subscriber_id not compatible when version = v4")
+				return fmt.Errorf("authentication_username_include.0.relay_agent_subscriber_id not compatible when version = v4")
 			}
 			configSet = append(configSet, setPrefix+"authentication username-include relay-agent-subscriber-id")
 		}
@@ -1225,24 +1248,26 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, clt *Client, 
 		}
 	}
 	for _, ldmLayer2 := range d.Get("liveness_detection_method_layer2").([]interface{}) {
-		if ldmLayer2 != nil {
-			liveDetectMethLayer2 := ldmLayer2.(map[string]interface{})
-			setPrefixLDMLayer2 := setPrefix + "liveness-detection method layer2-liveness-detection "
-			if v := liveDetectMethLayer2["max_consecutive_retries"].(int); v != 0 {
-				configSet = append(configSet, setPrefixLDMLayer2+"max-consecutive-retries "+strconv.Itoa(v))
-			}
-			if v := liveDetectMethLayer2["transmit_interval"].(int); v != 0 {
-				configSet = append(configSet, setPrefixLDMLayer2+"transmit-interval "+strconv.Itoa(v))
-			}
-		} else {
+		if ldmLayer2 == nil {
 			return fmt.Errorf("liveness_detection_method_layer2 block is empty")
+		}
+		liveDetectMethLayer2 := ldmLayer2.(map[string]interface{})
+		setPrefixLDMLayer2 := setPrefix + "liveness-detection method layer2-liveness-detection "
+		if v := liveDetectMethLayer2["max_consecutive_retries"].(int); v != 0 {
+			configSet = append(configSet, setPrefixLDMLayer2+"max-consecutive-retries "+strconv.Itoa(v))
+		}
+		if v := liveDetectMethLayer2["transmit_interval"].(int); v != 0 {
+			configSet = append(configSet, setPrefixLDMLayer2+"transmit-interval "+strconv.Itoa(v))
 		}
 	}
 	for _, v := range d.Get("overrides_v4").([]interface{}) {
 		if d.Get("version").(string) == "v6" {
 			return fmt.Errorf("overrides_v4 not compatible if version = v6")
 		}
-		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV4(
+		if v == nil {
+			return fmt.Errorf("overrides_v4 block is empty")
+		}
+		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupOverridesV4(
 			v.(map[string]interface{}), setPrefix)
 		if err != nil {
 			return err
@@ -1253,7 +1278,10 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, clt *Client, 
 		if d.Get("version").(string) == "v4" {
 			return fmt.Errorf("overrides_v6 not compatible if version = v4")
 		}
-		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV6(
+		if v == nil {
+			return fmt.Errorf("overrides_v6 block is empty")
+		}
+		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupOverridesV6(
 			v.(map[string]interface{}), setPrefix)
 		if err != nil {
 			return err
@@ -1359,7 +1387,10 @@ func setSystemServicesDhcpLocalServerGroupInterface(
 		if version == "v6" {
 			return configSet, fmt.Errorf("overrides_v4 not compatible if version = v6")
 		}
-		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV4(
+		if v == nil {
+			return configSet, fmt.Errorf("overrides_v4 block in interface %s is empty", interFace["name"].(string))
+		}
+		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupOverridesV4(
 			v.(map[string]interface{}), setPrefix)
 		if err != nil {
 			return configSet, err
@@ -1370,7 +1401,10 @@ func setSystemServicesDhcpLocalServerGroupInterface(
 		if version == "v4" {
 			return configSet, fmt.Errorf("overrides_v6 not compatible if version = v4")
 		}
-		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV6(
+		if v == nil {
+			return configSet, fmt.Errorf("overrides_v6 block in interface %s is empty", interFace["name"].(string))
+		}
+		configSetOverrides, err := setSystemServicesDhcpLocalServerGroupOverridesV6(
 			v.(map[string]interface{}), setPrefix)
 		if err != nil {
 			return configSet, err
@@ -1396,7 +1430,7 @@ func setSystemServicesDhcpLocalServerGroupInterface(
 	return configSet, nil
 }
 
-func setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV4(overrides map[string]interface{}, setPrefix string,
+func setSystemServicesDhcpLocalServerGroupOverridesV4(overrides map[string]interface{}, setPrefix string,
 ) ([]string, error) {
 	configSet := make([]string, 0)
 	setPrefix += "overrides "
@@ -1460,7 +1494,7 @@ func setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV4(overrides map[st
 	return configSet, nil
 }
 
-func setSystemServicesDhcpLocalServerGroupFamilyDhcpOverridesV6(overrides map[string]interface{}, setPrefix string,
+func setSystemServicesDhcpLocalServerGroupOverridesV6(overrides map[string]interface{}, setPrefix string,
 ) ([]string, error) {
 	configSet := make([]string, 0)
 	setPrefix += "overrides "
@@ -1576,6 +1610,8 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, clt 
 					confRead.authenticationUsernameInclude = append(confRead.authenticationUsernameInclude, map[string]interface{}{
 						"circuit_type":              false,
 						"client_id":                 false,
+						"client_id_exclude_headers": false,
+						"client_id_use_automatic_ascii_hex_encoding": false,
 						"delimiter":                 "",
 						"domain_name":               "",
 						"interface_description":     "",
@@ -1597,6 +1633,12 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, clt 
 				switch {
 				case itemTrimAuthUserIncl == "circuit-type":
 					confRead.authenticationUsernameInclude[0]["circuit_type"] = true
+				case itemTrimAuthUserIncl == "client-id exclude-headers":
+					confRead.authenticationUsernameInclude[0]["client_id_exclude_headers"] = true
+					confRead.authenticationUsernameInclude[0]["client_id"] = true
+				case itemTrimAuthUserIncl == "client-id use-automatic-ascii-hex-encoding":
+					confRead.authenticationUsernameInclude[0]["client_id_use_automatic_ascii_hex_encoding"] = true
+					confRead.authenticationUsernameInclude[0]["client_id"] = true
 				case itemTrimAuthUserIncl == "client-id":
 					confRead.authenticationUsernameInclude[0]["client_id"] = true
 				case strings.HasPrefix(itemTrimAuthUserIncl, "delimiter "):

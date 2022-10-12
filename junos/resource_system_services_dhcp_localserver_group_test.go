@@ -175,7 +175,10 @@ resource "junos_system_services_dhcp_localserver_group" "testacc_dhcpgroup_v4_ri
   routing_instance = junos_routing_instance.testacc_dhcpgroup.name
 
   authentication_username_include {
-    option_82 = true
+    client_id                                  = true
+    client_id_exclude_headers                  = true
+    client_id_use_automatic_ascii_hex_encoding = true
+    option_82                                  = true
   }
   dynamic_profile                   = "junos-default-profile"
   dynamic_profile_aggregate_clients = true
