@@ -3,13 +3,21 @@
 
 FEATURES:
 
-* add `junos_forwardingoptions_dhcprelay` resource (Fixes #423)
-* add `junos_forwardingoptions_dhcprelay_group` resource (Fixes #423)
-* add `junos_forwardingoptions_dhcprelay_servergroup` resource (Fixes #423)
+ENHANCEMENTS:
+
+BUG FIXES:
+
+## 1.31.0 (October 12, 2022)
+
+FEATURES:
+
+* add `junos_forwardingoptions_dhcprelay` resource (Fixes [#423](https://github.com/jeremmfr/terraform-provider-junos/issues/423))
+* add `junos_forwardingoptions_dhcprelay_group` resource (Fixes [#423](https://github.com/jeremmfr/terraform-provider-junos/issues/423))
+* add `junos_forwardingoptions_dhcprelay_servergroup` resource (Fixes [#423](https://github.com/jeremmfr/terraform-provider-junos/issues/423))
 
 ENHANCEMENTS:
 
-* resource/`junos_policyoptions_policy_statement`: add `bgp_as_path_calc_length`, `bgp_as_path_unique_count`, `bgp_community_count`, `bgp_srte_discriminator`, `color`, `evpn_esi`, `evpn_mac_route`, `evpn_tag`, `next_hop_type_merged`, `next_hop_weight`, `route_type`, `srte_color`, `state`, `tunnel_type` and `validation_database` arguments inside `from` block arguments (Fixes #424)
+* resource/`junos_policyoptions_policy_statement`: add `bgp_as_path_calc_length`, `bgp_as_path_unique_count`, `bgp_community_count`, `bgp_srte_discriminator`, `color`, `evpn_esi`, `evpn_mac_route`, `evpn_tag`, `next_hop_type_merged`, `next_hop_weight`, `route_type`, `srte_color`, `state`, `tunnel_type` and `validation_database` arguments inside `from` block arguments (Fixes [#424](https://github.com/jeremmfr/terraform-provider-junos/issues/424))
 * resource/`junos_system_services_dhcp_localserver_group`: add `client_id_exclude_headers` and `client_id_use_automatic_ascii_hex_encoding` argument and remove need to `version` = `v6` when set `client_id` = `true` inside `authentication_username_include` block argument
 
 BUG FIXES:
