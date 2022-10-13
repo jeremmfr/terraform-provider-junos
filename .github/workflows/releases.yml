@@ -17,13 +17,11 @@ jobs:
         run: echo "RELEASE_VERSION=$(echo ${GITHUB_REF} | cut -d'/' -f3)" >> $GITHUB_ENV
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ env.RELEASE_VERSION }}
-          body: ${{ env.RELEASE_VERSION }}
+          token: ${{ secrets.RELEASE_TOKEN }}
+          name: ${{ env.RELEASE_VERSION }}
+          omitBody: true
           draft: true
           prerelease: false
 
@@ -78,14 +76,16 @@ jobs:
       - name: Create archive zip
         run: zip ${REPO_NAME}_${RELEASE_VERSION}_${{ matrix.goos }}_${{ matrix.goarch }}.zip ${REPO_NAME}_v${RELEASE_VERSION}*
       - name: Upload archive zip to release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: ncipollo/release-action@v1
         with:
-          upload_url: ${{ needs.release.outputs.upload_url }}
-          asset_path: ./${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_${{ matrix.goos }}_${{ matrix.goarch }}.zip
-          asset_name: ${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_${{ matrix.goos }}_${{ matrix.goarch }}.zip
-          asset_content_type: application/zip
+          token: ${{ secrets.RELEASE_TOKEN }}
+          allowUpdates: true
+          omitNameDuringUpdate: true
+          omitBodyDuringUpdate: true
+          omitDraftDuringUpdate: true
+          omitPrereleaseDuringUpdate: true
+          artifactContentType: application/zip
+          artifacts: "${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_*.zip"
 
   shasum_zip:
     name: Create sha256 sum for each zip
@@ -117,11 +117,13 @@ jobs:
       - name: Generate SHA256SUMS
         run: shasum -a 256 ${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_*.zip > ${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_SHA256SUMS
       - name: Upload shasum result
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: ncipollo/release-action@v1
         with:
-          upload_url: ${{ needs.release.outputs.upload_url }}
-          asset_path: ./${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_SHA256SUMS
-          asset_name: ${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_SHA256SUMS
-          asset_content_type: application/octet-stream
+          token: ${{ secrets.RELEASE_TOKEN }}
+          allowUpdates: true
+          omitNameDuringUpdate: true
+          omitBodyDuringUpdate: true
+          omitDraftDuringUpdate: true
+          omitPrereleaseDuringUpdate: true
+          artifactContentType: application/octet-stream
+          artifacts: ${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_SHA256SUMS
