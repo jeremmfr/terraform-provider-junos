@@ -7,6 +7,13 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+## 1.31.1 (October 14, 2022)
+
+BUG FIXES:
+
+* resource/`junos_security_global_policy`: fix error reading config when an element of `permit_application_services` have the suffix `permit`, `deny` or `reject` (Fixes [#430](https://github.com/jeremmfr/terraform-provider-junos/issues/430))
+* resource/`junos_security_policy`: fix error reading config when an element of `permit_application_services` have the suffix `permit`, `deny` or `reject`
+
 ## 1.31.0 (October 12, 2022)
 
 FEATURES:

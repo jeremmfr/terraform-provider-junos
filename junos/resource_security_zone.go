@@ -747,10 +747,10 @@ func delSecurityZoneOpts(zone string, addressBookSingly bool, clt *Client, junSe
 	if !addressBookSingly {
 		listLinesToDelete = append(listLinesToDelete, "address-book")
 	}
-	configSet := make([]string, 0, 1)
 	delPrefix := "delete security zones security-zone " + zone + " "
-	for _, line := range listLinesToDelete {
-		configSet = append(configSet, delPrefix+line)
+	configSet := make([]string, len(listLinesToDelete))
+	for k, line := range listLinesToDelete {
+		configSet[k] = delPrefix + line
 	}
 
 	return clt.configSet(configSet, junSess)
