@@ -488,9 +488,9 @@ func delChassisCluster(clt *Client, junSess *junosSession) error {
 	listLinesToDelete = append(listLinesToDelete, "chassis cluster")
 	listLinesToDelete = append(listLinesToDelete, "interfaces fab0")
 	listLinesToDelete = append(listLinesToDelete, "interfaces fab1")
-	configSet := make([]string, 0)
-	for _, line := range listLinesToDelete {
-		configSet = append(configSet, deleteLS+line)
+	configSet := make([]string, len(listLinesToDelete))
+	for k, line := range listLinesToDelete {
+		configSet[k] = deleteLS + line
 	}
 
 	return clt.configSet(configSet, junSess)

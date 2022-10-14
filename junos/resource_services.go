@@ -1241,29 +1241,29 @@ func delServices(d *schema.ResourceData, cleanAll bool, clt *Client, junSess *ju
 	listLinesToDelete = append(listLinesToDelete, listLinesServicesSecurityIntel()...)
 	listLinesToDelete = append(listLinesToDelete, listLinesServicesUserIdentification()...)
 
-	configSet := make([]string, 0)
 	delPrefix := "delete services "
-	for _, line := range listLinesToDelete {
-		configSet = append(configSet,
-			delPrefix+line)
-	}
+
 	if len(d.Get("advanced_anti_malware").([]interface{})) == 0 || cleanAll {
-		configSet = append(configSet, delPrefix+"advanced-anti-malware connection")
+		listLinesToDelete = append(listLinesToDelete, "advanced-anti-malware connection")
 	} else {
 		advAntiMalware := d.Get("advanced_anti_malware").([]interface{})[0].(map[string]interface{})
 		if len(advAntiMalware["connection"].([]interface{})) == 0 {
-			configSet = append(configSet, delPrefix+"advanced-anti-malware connection")
+			listLinesToDelete = append(listLinesToDelete, "advanced-anti-malware connection")
 		}
 	}
 	if len(d.Get("application_identification").([]interface{})) == 0 || cleanAll {
-		configSet = append(configSet, delPrefix+"application-identification")
+		listLinesToDelete = append(listLinesToDelete, "application-identification")
 	}
 	if len(d.Get("security_intelligence").([]interface{})) == 0 || cleanAll {
-		configSet = append(configSet, delPrefix+"security-intelligence authentication")
-		configSet = append(configSet, delPrefix+"security-intelligence url")
+		listLinesToDelete = append(listLinesToDelete, "security-intelligence authentication")
+		listLinesToDelete = append(listLinesToDelete, "security-intelligence url")
 	}
 	if len(d.Get("user_identification").([]interface{})) == 0 || cleanAll {
-		configSet = append(configSet, delPrefix+"user-identification active-directory-access")
+		listLinesToDelete = append(listLinesToDelete, "user-identification active-directory-access")
+	}
+	configSet := make([]string, len(listLinesToDelete))
+	for k, line := range listLinesToDelete {
+		configSet[k] = delPrefix + line
 	}
 
 	return clt.configSet(configSet, junSess)

@@ -384,7 +384,6 @@ func readVstp(routingInstance string, clt *Client, junSess *junosSession) (vstpO
 }
 
 func delVstp(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
-	configSet := make([]string, 0, 1)
 	delPrefix := deleteLS
 	if d.Get("routing_instance").(string) != defaultW {
 		delPrefix = delRoutingInstances + d.Get("routing_instance").(string) + " "
@@ -398,9 +397,10 @@ func delVstp(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 		"priority-hold-time",
 		"vpls-flush-on-topology-change",
 	}
-
-	for _, line := range listLinesToDelete {
-		configSet = append(configSet, delPrefix+line)
+	configSet := make([]string,
+		len(listLinesToDelete), len(listLinesToDelete)+len(d.Get("system_id").(*schema.Set).List()))
+	for k, line := range listLinesToDelete {
+		configSet[k] = delPrefix + line
 	}
 	if d.HasChange("system_id") {
 		oSysID, _ := d.GetChange("system_id")

@@ -1680,7 +1680,7 @@ func checkInterfacePhysicalContainsUnit(interFace string, clt *Client, junSess *
 }
 
 func delInterfaceNC(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
-	configSet := make([]string, 0, 1)
+	configSet := make([]string, 0, 3)
 	delPrefix := "delete interfaces " + d.Get("name").(string) + " "
 	if clt.groupIntDel != "" {
 		configSet = append(configSet, delPrefix+"apply-groups "+clt.groupIntDel)
