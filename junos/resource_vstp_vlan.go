@@ -426,7 +426,6 @@ func readVstpVlan(vlanID, routingInstance string, clt *Client, junSess *junosSes
 }
 
 func delVstpVlan(vlanID, routingInstance string, deleteAll bool, clt *Client, junSess *junosSession) error {
-	configSet := make([]string, 0, 1)
 	delPrefix := deleteLS
 	if routingInstance != defaultW {
 		delPrefix = delRoutingInstances + routingInstance + " "
@@ -444,8 +443,9 @@ func delVstpVlan(vlanID, routingInstance string, deleteAll bool, clt *Client, ju
 		"max-age",
 		"system-identifier",
 	}
-	for _, line := range listLinesToDelete {
-		configSet = append(configSet, delPrefix+line)
+	configSet := make([]string, len(listLinesToDelete))
+	for k, line := range listLinesToDelete {
+		configSet[k] = delPrefix + line
 	}
 
 	return clt.configSet(configSet, junSess)

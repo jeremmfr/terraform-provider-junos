@@ -742,7 +742,6 @@ func delRipGroup(
 	if deleteAll {
 		return clt.configSet([]string{delPrefix}, junSess)
 	}
-	configSet := make([]string, 0, 10)
 	listLinesToDelete := []string{
 		"bfd-liveness-detection",
 		"demand-circuit",
@@ -754,8 +753,9 @@ func delRipGroup(
 		"route-timeout",
 		"update-interval",
 	}
-	for _, line := range listLinesToDelete {
-		configSet = append(configSet, delPrefix+line)
+	configSet := make([]string, len(listLinesToDelete))
+	for k, line := range listLinesToDelete {
+		configSet[k] = delPrefix + line
 	}
 
 	return clt.configSet(configSet, junSess)

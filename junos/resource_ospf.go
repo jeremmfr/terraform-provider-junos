@@ -871,8 +871,6 @@ func readOspf(version, routingInstance string, clt *Client, junSess *junosSessio
 }
 
 func delOspf(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
-	configSet := make([]string, 0, 1)
-
 	ospfVersion := ospfV2
 	if d.Get("version").(string) == "v3" {
 		ospfVersion = ospfV3
@@ -904,9 +902,9 @@ func delOspf(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 		"sham-link",
 		"spf-options",
 	}
-
-	for _, line := range listLinesToDelete {
-		configSet = append(configSet, delPrefix+line)
+	configSet := make([]string, len(listLinesToDelete))
+	for k, line := range listLinesToDelete {
+		configSet[k] = delPrefix + line
 	}
 
 	return clt.configSet(configSet, junSess)
