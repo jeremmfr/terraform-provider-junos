@@ -556,9 +556,9 @@ func readSecurityPolicy(fromZone, toZone string, clt *Client, junSess *junosSess
 						itemTrimPolicy, "match source-end-user-profile "), "\"")
 				case strings.HasPrefix(itemTrimPolicy, "then "):
 					switch {
-					case strings.HasSuffix(itemTrimPolicy, permitW),
-						strings.HasSuffix(itemTrimPolicy, "deny"),
-						strings.HasSuffix(itemTrimPolicy, "reject"):
+					case itemTrimPolicy == "then permit",
+						itemTrimPolicy == "then deny",
+						itemTrimPolicy == "then reject":
 						policy["then"] = strings.TrimPrefix(itemTrimPolicy, "then ")
 					case itemTrimPolicy == "then count":
 						policy["count"] = true
