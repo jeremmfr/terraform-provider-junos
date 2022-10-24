@@ -1,0 +1,7 @@
+name: "CodeQL config"
+
+query-filters:
+  - exclude:
+      id: go/clear-text-logging
+  - exclude:
+      id: go/insecure-hostkeycallback
