@@ -124,7 +124,7 @@ The following arguments are supported in the `provider` block:
 ### Command options
 
 - **cmd_sleep_short** (Optional, Number)  
-  Milliseconds to wait after Terraform  provider executes an action on the Junos device.  
+  Milliseconds to wait after Terraform provider executes an action on the Junos device.  
   It can also be sourced from the `JUNOS_SLEEP_SHORT` environment variable.  
   Defaults to `100`.
 
@@ -173,6 +173,10 @@ The following arguments are supported in the `provider` block:
   It can also be sourced from the `JUNOS_LOG_PATH` environment variable.  
   Defaults is empty.
 
+  ~> **NOTE:** If this option is used (not empty), all Junos commands are logged in this file,
+  therefore there may be sensitive data in plain text in the file.
+  For example, when you use `plain_text_password` in the `junos_system_login_user` resource.
+
 - **fake_create_with_setfile** (Optional, String, **don't use in normal terraform run**)
   When this option is set (with a path to a file), the normal process to create resources (netconf
   connection, pre-check, generate/upload set lines in candidate configuration, commit, post-check)
@@ -201,6 +205,10 @@ The following arguments are supported in the `provider` block:
   It can also be sourced from the `JUNOS_FAKECREATE_SETFILE` environment
   variable.  
   Defaults is empty.
+
+  ~> **NOTE:** If this option is used (not empty), all Junos commands are added to this file,
+  therefore there may be sensitive data in plain text in the file.
+  For example, when you use `plain_text_password` in the `junos_system_login_user` resource.
 
 - **fake_update_also** (Optional, Boolean, **don't use in normal terraform run**)  
   As with `create` and `fake_create_with_setfile`, when this option is true, the normal
