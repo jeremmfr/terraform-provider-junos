@@ -1,8 +1,9 @@
 name: Go Analysis
-on: 
+on:
+  push:
   pull_request:
   schedule:
-    - cron: '10 10 * * 1'
+    - cron: '11 12 * * 3'
 jobs:
   Vulncheck:
     runs-on: ubuntu-latest
