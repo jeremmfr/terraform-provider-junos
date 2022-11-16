@@ -561,7 +561,7 @@ func setBgpOptsFamily(
 	familyNlriTypeList := make([]string, 0)
 	for _, familyOpts := range familyOptsList {
 		familyOptsM := familyOpts.(map[string]interface{})
-		if bchk.StringInSlice(familyOptsM["nlri_type"].(string), familyNlriTypeList) {
+		if bchk.InSlice(familyOptsM["nlri_type"].(string), familyNlriTypeList) {
 			switch familyType {
 			case evpnW:
 				return fmt.Errorf("multiple blocks family_evpn with the same nlri_type %s", familyOptsM["nlri_type"].(string))

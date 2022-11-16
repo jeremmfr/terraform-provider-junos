@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/jeremmfr/go-utils/basiccheck"
+	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
 type snmpV3VacmSecurityToGroupOptions struct {
@@ -240,7 +240,7 @@ func resourceSnmpV3VacmSecurityToGroupImport(ctx context.Context, d *schema.Reso
 		return nil, fmt.Errorf("can't find snmp v3 vacm security-to-group "+
 			"with id '%v' (id must be <model>%s<name>)", d.Id(), idSeparator)
 	}
-	if !basiccheck.StringInSlice(idSplit[0], []string{"usm", "v1", "v2c"}) {
+	if !bchk.InSlice(idSplit[0], []string{"usm", "v1", "v2c"}) {
 		return nil, fmt.Errorf("can't find snmp v3 vacm security-to-group "+
 			"with id '%v' (id must be <model>%s<name>)", d.Id(), idSeparator)
 	}

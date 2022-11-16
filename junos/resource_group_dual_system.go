@@ -391,7 +391,7 @@ func resourceGroupDualSystemImport(ctx context.Context, d *schema.ResourceData, 
 	defer clt.closeSession(junSess)
 	result := make([]*schema.ResourceData, 1)
 
-	if !bchk.StringInSlice(d.Id(), []string{"node0", "node1", "re0", "re1"}) {
+	if !bchk.InSlice(d.Id(), []string{"node0", "node1", "re0", "re1"}) {
 		return nil, fmt.Errorf("invalid group id '%v' (id must be <name>)", d.Id())
 	}
 	groupDualSystemExists, err := checkGroupDualSystemExists(d.Id(), clt, junSess)
@@ -446,7 +446,7 @@ func setGroupDualSystem(d *schema.ResourceData, clt *Client, junSess *junosSessi
 		familyInetAddressCIDRIPList := make([]string, 0)
 		for _, v2 := range interfaceFxp0["family_inet_address"].([]interface{}) {
 			familyInetAddress := v2.(map[string]interface{})
-			if bchk.StringInSlice(familyInetAddress["cidr_ip"].(string), familyInetAddressCIDRIPList) {
+			if bchk.InSlice(familyInetAddress["cidr_ip"].(string), familyInetAddressCIDRIPList) {
 				return fmt.Errorf("multiple blocks family_inet_address with the same cidr_ip %s",
 					familyInetAddress["cidr_ip"].(string))
 			}
@@ -469,7 +469,7 @@ func setGroupDualSystem(d *schema.ResourceData, clt *Client, junSess *junosSessi
 		familyInet6AddressCIDRIPList := make([]string, 0)
 		for _, v2 := range interfaceFxp0["family_inet6_address"].([]interface{}) {
 			familyInet6Address := v2.(map[string]interface{})
-			if bchk.StringInSlice(familyInet6Address["cidr_ip"].(string), familyInet6AddressCIDRIPList) {
+			if bchk.InSlice(familyInet6Address["cidr_ip"].(string), familyInet6AddressCIDRIPList) {
 				return fmt.Errorf("multiple blocks family_inet6_address with the same cidr_ip %s",
 					familyInet6Address["cidr_ip"].(string))
 			}
@@ -495,7 +495,7 @@ func setGroupDualSystem(d *schema.ResourceData, clt *Client, junSess *junosSessi
 		staticRouteDestList := make([]string, 0)
 		for _, v2 := range routingOptions["static_route"].([]interface{}) {
 			staticRoute := v2.(map[string]interface{})
-			if bchk.StringInSlice(staticRoute["destination"].(string), staticRouteDestList) {
+			if bchk.InSlice(staticRoute["destination"].(string), staticRouteDestList) {
 				return fmt.Errorf("multiple blocks static_route with the same destination %s", staticRoute["destination"].(string))
 			}
 			staticRouteDestList = append(staticRouteDestList, staticRoute["destination"].(string))

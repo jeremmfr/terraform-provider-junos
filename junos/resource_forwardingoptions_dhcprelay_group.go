@@ -945,7 +945,7 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, clt *Client, jun
 	interfaceNameList := make([]string, 0)
 	for _, v := range d.Get("interface").(*schema.Set).List() {
 		interFace := v.(map[string]interface{})
-		if bchk.StringInSlice(interFace["name"].(string), interfaceNameList) {
+		if bchk.InSlice(interFace["name"].(string), interfaceNameList) {
 			return fmt.Errorf("multiple blocks interface with the same name %s", interFace["name"].(string))
 		}
 		interfaceNameList = append(interfaceNameList, interFace["name"].(string))
@@ -1137,7 +1137,7 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, clt *Client, jun
 	serverMatchAddressList := make([]string, 0)
 	for _, v := range d.Get("server_match_address").(*schema.Set).List() {
 		serverMatchAddress := v.(map[string]interface{})
-		if bchk.StringInSlice(serverMatchAddress["address"].(string), serverMatchAddressList) {
+		if bchk.InSlice(serverMatchAddress["address"].(string), serverMatchAddressList) {
 			return fmt.Errorf("multiple blocks server_match_address with the same address %s",
 				serverMatchAddress["address"].(string))
 		}
@@ -1157,7 +1157,7 @@ func setForwardingOptionsDhcpRelayGroup(d *schema.ResourceData, clt *Client, jun
 		serverMatchDuidCompare := serverMatchDuid["compare"].(string)
 		serverMatchDuidValueType := serverMatchDuid["value_type"].(string)
 		serverMatchDuidValue := serverMatchDuid["value"].(string)
-		if bchk.StringInSlice(
+		if bchk.InSlice(
 			serverMatchDuidCompare+idSeparator+serverMatchDuidValueType+idSeparator+serverMatchDuidValue,
 			serverMatchDuidList,
 		) {

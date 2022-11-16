@@ -1179,7 +1179,7 @@ func setSecurityScreenTCP(tcp map[string]interface{}, setPrefix string) ([]strin
 					return configSet, fmt.Errorf("white-list %s need to have a source or destination address set",
 						whitelist["name"].(string))
 				}
-				if bchk.StringInSlice(whitelist["name"].(string), whitelistNameList) {
+				if bchk.InSlice(whitelist["name"].(string), whitelistNameList) {
 					return configSet, fmt.Errorf("multiple blocks whitelist with the same name %s", whitelist["name"].(string))
 				}
 				whitelistNameList = append(whitelistNameList, whitelist["name"].(string))

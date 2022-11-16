@@ -356,7 +356,7 @@ func setLldpMedInterface(d *schema.ResourceData, clt *Client, junSess *junosSess
 			civicBasedCaTypeList := make([]int, 0)
 			for _, mCaT := range location["civic_based_ca_type"].([]interface{}) {
 				caType := mCaT.(map[string]interface{})
-				if bchk.IntInSlice(caType["ca_type"].(int), civicBasedCaTypeList) {
+				if bchk.InSlice(caType["ca_type"].(int), civicBasedCaTypeList) {
 					return fmt.Errorf("multiple blocks civic_based_ca_type with the same ca_type '%d'", caType["ca_type"].(int))
 				}
 				civicBasedCaTypeList = append(civicBasedCaTypeList, caType["ca_type"].(int))

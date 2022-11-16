@@ -423,7 +423,7 @@ func searchInterfaceID(configInterface, match string, clt *Client, junSess *juno
 			}
 		}
 	}
-	intConfigList = balt.UniqueStrings(intConfigList)
+	intConfigList = balt.UniqueInSlice(intConfigList)
 	if len(intConfigList) == 0 {
 		return "", nil
 	}

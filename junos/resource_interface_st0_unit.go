@@ -175,7 +175,7 @@ func searchInterfaceSt0UnitToCreate(clt *Client, junSess *junosSession) (string,
 		}
 	}
 	for i := 0; i <= 1073741823; i++ {
-		if !bchk.StringInSlice("st0."+strconv.Itoa(i), st0int) {
+		if !bchk.InSlice("st0."+strconv.Itoa(i), st0int) {
 			return "st0." + strconv.Itoa(i), nil
 		}
 	}

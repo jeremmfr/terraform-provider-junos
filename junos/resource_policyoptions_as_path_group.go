@@ -273,7 +273,7 @@ func setPolicyoptionsAsPathGroup(d *schema.ResourceData, clt *Client, junSess *j
 	asPathNameList := make([]string, 0)
 	for _, v := range d.Get("as_path").([]interface{}) {
 		asPath := v.(map[string]interface{})
-		if bchk.StringInSlice(asPath["name"].(string), asPathNameList) {
+		if bchk.InSlice(asPath["name"].(string), asPathNameList) {
 			return fmt.Errorf("multiple blocks as_path with the same name %s", asPath["name"].(string))
 		}
 		asPathNameList = append(asPathNameList, asPath["name"].(string))

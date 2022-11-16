@@ -635,7 +635,7 @@ func setRipNeighbor(d *schema.ResourceData, clt *Client, junSess *junosSession) 
 	authSimpleMD5List := make([]int, 0)
 	for _, authSimpMd5Block := range d.Get("authentication_selective_md5").([]interface{}) {
 		authSimpMd5 := authSimpMd5Block.(map[string]interface{})
-		if bchk.IntInSlice(authSimpMd5["key_id"].(int), authSimpleMD5List) {
+		if bchk.InSlice(authSimpMd5["key_id"].(int), authSimpleMD5List) {
 			return fmt.Errorf("multiple blocks authentication_selective_md5 "+
 				"with the same key_id %d", authSimpMd5["key_id"].(int))
 		}

@@ -980,7 +980,7 @@ func setForwardingOptionsSamplingInstanceOutput(
 	flowServerHostnameList := make([]string, 0)
 	for _, vFS := range output["flow_server"].([]interface{}) {
 		flowServer := vFS.(map[string]interface{})
-		if bchk.StringInSlice(flowServer["hostname"].(string), flowServerHostnameList) {
+		if bchk.InSlice(flowServer["hostname"].(string), flowServerHostnameList) {
 			return fmt.Errorf("multiple blocks flow_server with the same hostname %s", flowServer["hostname"].(string))
 		}
 		flowServerHostnameList = append(flowServerHostnameList, flowServer["hostname"].(string))
@@ -1049,7 +1049,7 @@ func setForwardingOptionsSamplingInstanceOutput(
 	interfaceNameList := make([]string, 0)
 	for _, vIF := range output["interface"].([]interface{}) {
 		interFace := vIF.(map[string]interface{})
-		if bchk.StringInSlice(interFace["name"].(string), interfaceNameList) {
+		if bchk.InSlice(interFace["name"].(string), interfaceNameList) {
 			return fmt.Errorf("multiple blocks interface with the same name %s", interFace["name"].(string))
 		}
 		interfaceNameList = append(interfaceNameList, interFace["name"].(string))

@@ -713,7 +713,7 @@ func setEventoptionsPolicy(d *schema.ResourceData, clt *Client, junSess *junosSe
 		eventScriptFilenameList := make([]string, 0)
 		for _, v2 := range then["event_script"].([]interface{}) {
 			eventScript := v2.(map[string]interface{})
-			if bchk.StringInSlice(eventScript["filename"].(string), eventScriptFilenameList) {
+			if bchk.InSlice(eventScript["filename"].(string), eventScriptFilenameList) {
 				return fmt.Errorf("multiple blocks event_script with the same filename %s", eventScript["filename"].(string))
 			}
 			eventScriptFilenameList = append(eventScriptFilenameList, eventScript["filename"].(string))
@@ -722,7 +722,7 @@ func setEventoptionsPolicy(d *schema.ResourceData, clt *Client, junSess *junosSe
 			argumentsNameList := make([]string, 0)
 			for _, v3 := range eventScript["arguments"].([]interface{}) {
 				arguments := v3.(map[string]interface{})
-				if bchk.StringInSlice(arguments["name"].(string), argumentsNameList) {
+				if bchk.InSlice(arguments["name"].(string), argumentsNameList) {
 					return fmt.Errorf("multiple blocks arguments with the same name %s", arguments["name"].(string))
 				}
 				argumentsNameList = append(argumentsNameList, arguments["name"].(string))
@@ -807,7 +807,7 @@ func setEventoptionsPolicy(d *schema.ResourceData, clt *Client, junSess *junosSe
 			upload := v2.(map[string]interface{})
 			setPrefixThenUpload := setPrefix + "then upload filename \"" + upload["filename"].(string) + "\" " +
 				"destination \"" + upload["destination"].(string) + "\" "
-			if bchk.StringInSlice(setPrefixThenUpload, uploadFileDestList) {
+			if bchk.InSlice(setPrefixThenUpload, uploadFileDestList) {
 				return fmt.Errorf("multiple blocks upload with the same filename %s and destination %s",
 					upload["filename"].(string), upload["destination"].(string))
 			}
@@ -836,7 +836,7 @@ func setEventoptionsPolicy(d *schema.ResourceData, clt *Client, junSess *junosSe
 		attriMatch := v.(map[string]interface{})
 		setAttriMatch := setPrefix + "attributes-match \"" + attriMatch["from"].(string) + "\" " +
 			attriMatch["compare"].(string) + " \"" + attriMatch["to"].(string) + "\""
-		if bchk.StringInSlice(setAttriMatch, attriMatchList) {
+		if bchk.InSlice(setAttriMatch, attriMatchList) {
 			return fmt.Errorf("multiple blocks attributes_match with the same from %s, compare %s and to %s",
 				attriMatch["from"].(string), attriMatch["compare"].(string), attriMatch["to"].(string))
 		}
@@ -846,7 +846,7 @@ func setEventoptionsPolicy(d *schema.ResourceData, clt *Client, junSess *junosSe
 	withinTimeInterval := make([]int, 0)
 	for _, v := range d.Get("within").([]interface{}) {
 		within := v.(map[string]interface{})
-		if bchk.IntInSlice(within["time_interval"].(int), withinTimeInterval) {
+		if bchk.InSlice(within["time_interval"].(int), withinTimeInterval) {
 			return fmt.Errorf("multiple blocks within with the same time_interval %d", within["time_interval"].(int))
 		}
 		withinTimeInterval = append(withinTimeInterval, within["time_interval"].(int))

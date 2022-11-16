@@ -1183,7 +1183,7 @@ func setSystemServicesDhcpLocalServerGroup(d *schema.ResourceData, clt *Client, 
 	interfaceNameList := make([]string, 0)
 	for _, v := range d.Get("interface").(*schema.Set).List() {
 		interFace := v.(map[string]interface{})
-		if bchk.StringInSlice(interFace["name"].(string), interfaceNameList) {
+		if bchk.InSlice(interFace["name"].(string), interfaceNameList) {
 			return fmt.Errorf("multiple blocks interface with the same name %s", interFace["name"].(string))
 		}
 		interfaceNameList = append(interfaceNameList, interFace["name"].(string))

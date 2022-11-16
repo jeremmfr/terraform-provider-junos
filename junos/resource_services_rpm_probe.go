@@ -537,7 +537,7 @@ func setServicesRpmProbe(d *schema.ResourceData, clt *Client, junSess *junosSess
 	testNameList := make([]string, 0)
 	for _, t := range d.Get("test").([]interface{}) {
 		test := t.(map[string]interface{})
-		if bchk.StringInSlice(test["name"].(string), testNameList) {
+		if bchk.InSlice(test["name"].(string), testNameList) {
 			return fmt.Errorf("multiple blocks test with the same name %s", test["name"].(string))
 		}
 		testNameList = append(testNameList, test["name"].(string))

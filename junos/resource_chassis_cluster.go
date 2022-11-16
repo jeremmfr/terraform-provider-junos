@@ -429,7 +429,7 @@ func setChassisCluster(d *schema.ResourceData, clt *Client, junSess *junosSessio
 		interfaceMonitorNameList := make([]string, 0)
 		for _, v2 := range redundancyGroup["interface_monitor"].([]interface{}) {
 			interfaceMonitor := v2.(map[string]interface{})
-			if bchk.StringInSlice(interfaceMonitor["name"].(string), interfaceMonitorNameList) {
+			if bchk.InSlice(interfaceMonitor["name"].(string), interfaceMonitorNameList) {
 				return fmt.Errorf("multiple blocks interface_monitor with the same name %s", interfaceMonitor["name"].(string))
 			}
 			interfaceMonitorNameList = append(interfaceMonitorNameList, interfaceMonitor["name"].(string))

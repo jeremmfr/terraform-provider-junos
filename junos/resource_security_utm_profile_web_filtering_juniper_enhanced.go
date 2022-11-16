@@ -424,7 +424,7 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, clt *Client, junSess *jun
 	categoryNameList := make([]string, 0)
 	for _, v := range d.Get("category").([]interface{}) {
 		category := v.(map[string]interface{})
-		if bchk.StringInSlice(category["name"].(string), categoryNameList) {
+		if bchk.InSlice(category["name"].(string), categoryNameList) {
 			return fmt.Errorf("multiple blocks category with the same name %s", category["name"].(string))
 		}
 		categoryNameList = append(categoryNameList, category["name"].(string))
@@ -433,7 +433,7 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, clt *Client, junSess *jun
 		reputationActionSiteList := make([]string, 0)
 		for _, r := range category["reputation_action"].([]interface{}) {
 			reputation := r.(map[string]interface{})
-			if bchk.StringInSlice(reputation["site_reputation"].(string), reputationActionSiteList) {
+			if bchk.InSlice(reputation["site_reputation"].(string), reputationActionSiteList) {
 				return fmt.Errorf("multiple blocks reputation_action with the same site_reputation %s",
 					reputation["site_reputation"].(string))
 			}
@@ -494,7 +494,7 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, clt *Client, junSess *jun
 	siteReputationNameList := make([]string, 0)
 	for _, v := range d.Get("site_reputation_action").([]interface{}) {
 		siteReputation := v.(map[string]interface{})
-		if bchk.StringInSlice(siteReputation["site_reputation"].(string), siteReputationNameList) {
+		if bchk.InSlice(siteReputation["site_reputation"].(string), siteReputationNameList) {
 			return fmt.Errorf("multiple blocks site_reputation_action with the same site_reputation %s",
 				siteReputation["site_reputation"].(string))
 		}

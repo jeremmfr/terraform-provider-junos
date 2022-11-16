@@ -541,7 +541,7 @@ func setStaticRoute(d *schema.ResourceData, clt *Client, junSess *junosSession) 
 	qualifiedNextHopList := make([]string, 0)
 	for _, qualifiedNextHop := range d.Get("qualified_next_hop").([]interface{}) {
 		qualifiedNextHopMap := qualifiedNextHop.(map[string]interface{})
-		if bchk.StringInSlice(qualifiedNextHopMap["next_hop"].(string), qualifiedNextHopList) {
+		if bchk.InSlice(qualifiedNextHopMap["next_hop"].(string), qualifiedNextHopList) {
 			return fmt.Errorf("multiple blocks qualified_next_hop with the same next_hop %s",
 				qualifiedNextHopMap["next_hop"].(string))
 		}

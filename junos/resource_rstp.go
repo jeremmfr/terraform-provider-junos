@@ -372,7 +372,7 @@ func setRstp(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	systemIDList := make([]string, 0)
 	for _, mSysID := range d.Get("system_id").(*schema.Set).List() {
 		systemID := mSysID.(map[string]interface{})
-		if bchk.StringInSlice(systemID["id"].(string), systemIDList) {
+		if bchk.InSlice(systemID["id"].(string), systemIDList) {
 			return fmt.Errorf("multiple blocks system_id with the same id '%s'", systemID["id"].(string))
 		}
 		systemIDList = append(systemIDList, systemID["id"].(string))
