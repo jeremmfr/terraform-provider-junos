@@ -8,7 +8,7 @@ require (
 	github.com/jeremmfr/go-netconf v0.4.7
 	github.com/jeremmfr/go-utils v0.6.0
 	github.com/jeremmfr/junosdecode v1.1.0
-	golang.org/x/crypto v0.1.0
+	golang.org/x/crypto v0.2.0
 )
 
 require (
@@ -48,8 +48,8 @@ require (
 	github.com/vmihailenco/msgpack/v4 v4.3.12 // indirect
 	github.com/vmihailenco/tagparser v0.1.1 // indirect
 	github.com/zclconf/go-cty v1.12.1 // indirect
-	golang.org/x/net v0.1.0 // indirect
-	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/net v0.2.0 // indirect
+	golang.org/x/sys v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	google.golang.org/appengine v1.6.6 // indirect
 	google.golang.org/genproto v0.0.0-20200711021454-869866162049 // indirect
