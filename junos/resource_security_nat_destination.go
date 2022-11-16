@@ -356,7 +356,7 @@ func setSecurityNatDestination(d *schema.ResourceData, clt *Client, junSess *jun
 	ruleNameList := make([]string, 0)
 	for _, v := range d.Get("rule").([]interface{}) {
 		rule := v.(map[string]interface{})
-		if bchk.StringInSlice(rule["name"].(string), ruleNameList) {
+		if bchk.InSlice(rule["name"].(string), ruleNameList) {
 			return fmt.Errorf("multiple blocks rule with the same name %s", rule["name"].(string))
 		}
 		ruleNameList = append(ruleNameList, rule["name"].(string))

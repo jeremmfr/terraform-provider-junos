@@ -485,7 +485,7 @@ func setSecurityZone(d *schema.ResourceData, clt *Client, junSess *junosSession)
 		addressNameList := make([]string, 0)
 		for _, v := range d.Get("address_book").(*schema.Set).List() {
 			addressBook := v.(map[string]interface{})
-			if bchk.StringInSlice(addressBook["name"].(string), addressNameList) {
+			if bchk.InSlice(addressBook["name"].(string), addressNameList) {
 				return fmt.Errorf("multiple addresses with the same name %s", addressBook["name"].(string))
 			}
 			addressNameList = append(addressNameList, addressBook["name"].(string))
@@ -498,7 +498,7 @@ func setSecurityZone(d *schema.ResourceData, clt *Client, junSess *junosSession)
 		}
 		for _, v := range d.Get("address_book_dns").(*schema.Set).List() {
 			addressBook := v.(map[string]interface{})
-			if bchk.StringInSlice(addressBook["name"].(string), addressNameList) {
+			if bchk.InSlice(addressBook["name"].(string), addressNameList) {
 				return fmt.Errorf("multiple addresses with the same name %s", addressBook["name"].(string))
 			}
 			addressNameList = append(addressNameList, addressBook["name"].(string))
@@ -518,7 +518,7 @@ func setSecurityZone(d *schema.ResourceData, clt *Client, junSess *junosSession)
 		}
 		for _, v := range d.Get("address_book_range").(*schema.Set).List() {
 			addressBook := v.(map[string]interface{})
-			if bchk.StringInSlice(addressBook["name"].(string), addressNameList) {
+			if bchk.InSlice(addressBook["name"].(string), addressNameList) {
 				return fmt.Errorf("multiple addresses with the same name %s", addressBook["name"].(string))
 			}
 			addressNameList = append(addressNameList, addressBook["name"].(string))
@@ -532,7 +532,7 @@ func setSecurityZone(d *schema.ResourceData, clt *Client, junSess *junosSession)
 		}
 		for _, v := range d.Get("address_book_wildcard").(*schema.Set).List() {
 			addressBook := v.(map[string]interface{})
-			if bchk.StringInSlice(addressBook["name"].(string), addressNameList) {
+			if bchk.InSlice(addressBook["name"].(string), addressNameList) {
 				return fmt.Errorf("multiple addresses with the same name %s", addressBook["name"].(string))
 			}
 			addressNameList = append(addressNameList, addressBook["name"].(string))
@@ -545,7 +545,7 @@ func setSecurityZone(d *schema.ResourceData, clt *Client, junSess *junosSession)
 		}
 		for _, v := range d.Get("address_book_set").(*schema.Set).List() {
 			addressBookSet := v.(map[string]interface{})
-			if bchk.StringInSlice(addressBookSet["name"].(string), addressNameList) {
+			if bchk.InSlice(addressBookSet["name"].(string), addressNameList) {
 				return fmt.Errorf("multiple addresses or address-sets with the same name %s", addressBookSet["name"].(string))
 			}
 			addressNameList = append(addressNameList, addressBookSet["name"].(string))

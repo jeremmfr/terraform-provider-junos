@@ -886,7 +886,7 @@ func setPolicyStatement(d *schema.ResourceData, clt *Client, junSess *junosSessi
 	termNameList := make([]string, 0)
 	for _, term := range d.Get("term").([]interface{}) {
 		termMap := term.(map[string]interface{})
-		if bchk.StringInSlice(termMap["name"].(string), termNameList) {
+		if bchk.InSlice(termMap["name"].(string), termNameList) {
 			return fmt.Errorf("multiple blocks term with the same name %s", termMap["name"].(string))
 		}
 		termNameList = append(termNameList, termMap["name"].(string))
@@ -1083,7 +1083,7 @@ func setPolicyStatementOptsFrom(setPrefix string, opts map[string]interface{}) (
 	for _, block := range opts["bgp_as_path_calc_length"].(*schema.Set).List() {
 		bgpASPathCalcLength := block.(map[string]interface{})
 		count := bgpASPathCalcLength["count"].(int)
-		if bchk.IntInSlice(count, bgpASPathCalcLengthList) {
+		if bchk.InSlice(count, bgpASPathCalcLengthList) {
 			return configSet, fmt.Errorf("multiple blocks bgp_as_path_calc_length with the same count %d", count)
 		}
 		bgpASPathCalcLengthList = append(bgpASPathCalcLengthList, count)
@@ -1097,7 +1097,7 @@ func setPolicyStatementOptsFrom(setPrefix string, opts map[string]interface{}) (
 	for _, block := range opts["bgp_as_path_unique_count"].(*schema.Set).List() {
 		bgpASPathUniqueCount := block.(map[string]interface{})
 		count := bgpASPathUniqueCount["count"].(int)
-		if bchk.IntInSlice(count, bgpASPathUniqueCountList) {
+		if bchk.InSlice(count, bgpASPathUniqueCountList) {
 			return configSet, fmt.Errorf("multiple blocks bgp_as_path_unique_count with the same count %d", count)
 		}
 		bgpASPathUniqueCountList = append(bgpASPathUniqueCountList, count)
@@ -1111,7 +1111,7 @@ func setPolicyStatementOptsFrom(setPrefix string, opts map[string]interface{}) (
 	for _, block := range opts["bgp_community_count"].(*schema.Set).List() {
 		bgpCommunityCount := block.(map[string]interface{})
 		count := bgpCommunityCount["count"].(int)
-		if bchk.IntInSlice(count, bgpCommunityCountList) {
+		if bchk.InSlice(count, bgpCommunityCountList) {
 			return configSet, fmt.Errorf("multiple blocks bgp_community_count with the same count %d", count)
 		}
 		bgpCommunityCountList = append(bgpCommunityCountList, count)
@@ -1229,7 +1229,7 @@ func setPolicyStatementOptsThen(setPrefix string, opts map[string]interface{}) (
 	for _, v := range opts["community"].([]interface{}) {
 		community := v.(map[string]interface{})
 		setCommunityActVal := "community " + community["action"].(string) + " " + community["value"].(string)
-		if bchk.StringInSlice(setCommunityActVal, communityList) {
+		if bchk.InSlice(setCommunityActVal, communityList) {
 			return configSet, fmt.Errorf("multiple blocks community with the same action %s and value %s",
 				community["action"].(string), community["value"].(string))
 		}

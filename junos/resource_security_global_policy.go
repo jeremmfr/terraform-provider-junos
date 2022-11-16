@@ -368,7 +368,7 @@ func setSecurityGlobalPolicy(d *schema.ResourceData, clt *Client, junSess *junos
 	policyNameList := make([]string, 0)
 	for _, v := range d.Get("policy").([]interface{}) {
 		policy := v.(map[string]interface{})
-		if bchk.StringInSlice(policy["name"].(string), policyNameList) {
+		if bchk.InSlice(policy["name"].(string), policyNameList) {
 			return fmt.Errorf("multiple blocks policy with the same name %s", policy["name"].(string))
 		}
 		policyNameList = append(policyNameList, policy["name"].(string))

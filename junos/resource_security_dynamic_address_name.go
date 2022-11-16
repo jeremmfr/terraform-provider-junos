@@ -322,7 +322,7 @@ func setSecurityDynamicAddressName(d *schema.ResourceData, clt *Client, junSess 
 		propertyNameList := make([]string, 0)
 		for _, pro := range profileCategory["property"].([]interface{}) {
 			property := pro.(map[string]interface{})
-			if bchk.StringInSlice(property["name"].(string), propertyNameList) {
+			if bchk.InSlice(property["name"].(string), propertyNameList) {
 				return fmt.Errorf("multiple blocks property with the same name %s", property["name"].(string))
 			}
 			propertyNameList = append(propertyNameList, property["name"].(string))

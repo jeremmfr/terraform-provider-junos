@@ -291,7 +291,7 @@ func setServicesUserIdentDeviceIdentityProfile(d *schema.ResourceData, clt *Clie
 	attributeNameList := make([]string, 0)
 	for _, v := range d.Get("attribute").([]interface{}) {
 		attribute := v.(map[string]interface{})
-		if bchk.StringInSlice(attribute["name"].(string), attributeNameList) {
+		if bchk.InSlice(attribute["name"].(string), attributeNameList) {
 			return fmt.Errorf("multiple blocks attribute with the same name %s", attribute["name"].(string))
 		}
 		attributeNameList = append(attributeNameList, attribute["name"].(string))

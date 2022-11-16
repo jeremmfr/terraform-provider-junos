@@ -352,7 +352,7 @@ func setServicesUserIdentAdAccessDomain(d *schema.ResourceData, clt *Client, jun
 	domainControllerNameList := make([]string, 0)
 	for _, v := range d.Get("domain_controller").([]interface{}) {
 		domainController := v.(map[string]interface{})
-		if bchk.StringInSlice(domainController["name"].(string), domainControllerNameList) {
+		if bchk.InSlice(domainController["name"].(string), domainControllerNameList) {
 			return fmt.Errorf("multiple blocks domain_controller with the same name %s", domainController["name"].(string))
 		}
 		domainControllerNameList = append(domainControllerNameList, domainController["name"].(string))

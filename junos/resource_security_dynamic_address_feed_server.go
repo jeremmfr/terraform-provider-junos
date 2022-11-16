@@ -347,7 +347,7 @@ func setSecurityDynamicAddressFeedServer(d *schema.ResourceData, clt *Client, ju
 	feedNameList := make([]string, 0)
 	for _, fn := range d.Get("feed_name").([]interface{}) {
 		feedName := fn.(map[string]interface{})
-		if bchk.StringInSlice(feedName["name"].(string), feedNameList) {
+		if bchk.InSlice(feedName["name"].(string), feedNameList) {
 			return fmt.Errorf("multiple blocks feed_name with the same name %s", feedName["name"].(string))
 		}
 		feedNameList = append(feedNameList, feedName["name"].(string))

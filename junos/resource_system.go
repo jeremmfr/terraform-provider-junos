@@ -1156,7 +1156,7 @@ func setSystem(d *schema.ResourceData, clt *Client, junSess *junosSession) error
 		archiveSiteURLList := make([]string, 0)
 		for _, v2 := range archivalConfig["archive_site"].([]interface{}) {
 			archiveSite := v2.(map[string]interface{})
-			if bchk.StringInSlice(archiveSite["url"].(string), archiveSiteURLList) {
+			if bchk.InSlice(archiveSite["url"].(string), archiveSiteURLList) {
 				return fmt.Errorf("multiple blocks archive_site with the same url %s", archiveSite["url"].(string))
 			}
 			archiveSiteURLList = append(archiveSiteURLList, archiveSite["url"].(string))
