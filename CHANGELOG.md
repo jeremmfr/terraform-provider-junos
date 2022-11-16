@@ -11,7 +11,7 @@ BUG FIXES:
 
 BUG FIXES:
 
-* no expected changes in provider behavior, contains updates to dependencies such as github.com/hashicorp/terraform-plugin-sdk, which prevent go-plugin goroutine leak per Terraform command
+* no expected changes in provider behavior, contains updates to dependencies such as `github.com/hashicorp/terraform-plugin-sdk` which prevent go-plugin goroutine leak per Terraform command
 
 ## 1.31.1 (October 14, 2022)
 
