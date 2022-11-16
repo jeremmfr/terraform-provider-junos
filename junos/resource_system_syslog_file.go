@@ -515,7 +515,7 @@ func setSystemSyslogFile(d *schema.ResourceData, clt *Client, junSess *junosSess
 			sitesURLList := make([]string, 0)
 			for _, v2 := range archive["sites"].([]interface{}) {
 				sites := v2.(map[string]interface{})
-				if bchk.StringInSlice(sites["url"].(string), sitesURLList) {
+				if bchk.InSlice(sites["url"].(string), sitesURLList) {
 					return fmt.Errorf("multiple blocks sites with the same url %s", sites["url"].(string))
 				}
 				sitesURLList = append(sitesURLList, sites["url"].(string))

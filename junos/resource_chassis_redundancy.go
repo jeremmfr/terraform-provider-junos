@@ -275,7 +275,7 @@ func setChassisRedundancy(d *schema.ResourceData, clt *Client, junSess *junosSes
 	routingEngineList := make([]int, 0)
 	for _, mRE := range d.Get("routing_engine").(*schema.Set).List() {
 		routingEngine := mRE.(map[string]interface{})
-		if bchk.IntInSlice(routingEngine["slot"].(int), routingEngineList) {
+		if bchk.InSlice(routingEngine["slot"].(int), routingEngineList) {
 			return fmt.Errorf("multiple blocks routing_engine with the same slot '%d'", routingEngine["slot"].(int))
 		}
 		routingEngineList = append(routingEngineList, routingEngine["slot"].(int))

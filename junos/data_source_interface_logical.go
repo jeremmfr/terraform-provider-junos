@@ -630,12 +630,12 @@ func searchInterfaceLogicalID(configInterface, match string, clt *Client, junSes
 		case 0, 1, 2:
 			continue
 		default:
-			if itemTrimSplit[1] == "unit" && !bchk.StringInSlice("ethernet-switching", itemTrimSplit) {
+			if itemTrimSplit[1] == "unit" && !bchk.InSlice("ethernet-switching", itemTrimSplit) {
 				intConfigList = append(intConfigList, itemTrimSplit[0]+"."+itemTrimSplit[2])
 			}
 		}
 	}
-	intConfigList = balt.UniqueStrings(intConfigList)
+	intConfigList = balt.UniqueInSlice(intConfigList)
 	if len(intConfigList) == 0 {
 		return "", nil
 	}

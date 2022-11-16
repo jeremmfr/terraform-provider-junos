@@ -921,7 +921,7 @@ func setOspfArea(d *schema.ResourceData, clt *Client, junSess *junosSession) err
 	interfaceNameList := make([]string, 0)
 	for _, v := range d.Get("interface").([]interface{}) {
 		ospfInterface := v.(map[string]interface{})
-		if bchk.StringInSlice(ospfInterface["name"].(string), interfaceNameList) {
+		if bchk.InSlice(ospfInterface["name"].(string), interfaceNameList) {
 			return fmt.Errorf("multiple blocks interface with the same name %s", ospfInterface["name"].(string))
 		}
 		interfaceNameList = append(interfaceNameList, ospfInterface["name"].(string))
@@ -935,7 +935,7 @@ func setOspfArea(d *schema.ResourceData, clt *Client, junSess *junosSession) err
 	areaRangeList := make([]string, 0)
 	for _, areaRangeBlock := range d.Get("area_range").(*schema.Set).List() {
 		areaRange := areaRangeBlock.(map[string]interface{})
-		if bchk.StringInSlice(areaRange["range"].(string), areaRangeList) {
+		if bchk.InSlice(areaRange["range"].(string), areaRangeList) {
 			return fmt.Errorf("multiple blocks area_range with the same range %s", areaRange["range"].(string))
 		}
 		areaRangeList = append(areaRangeList, areaRange["range"].(string))
@@ -982,7 +982,7 @@ func setOspfArea(d *schema.ResourceData, clt *Client, junSess *junosSession) err
 			nssaAreaRangeList := make([]string, 0)
 			for _, areaRangeBlock := range nssa["area_range"].(*schema.Set).List() {
 				areaRange := areaRangeBlock.(map[string]interface{})
-				if bchk.StringInSlice(areaRange["range"].(string), nssaAreaRangeList) {
+				if bchk.InSlice(areaRange["range"].(string), nssaAreaRangeList) {
 					return fmt.Errorf("multiple blocks area_range with the same range %s in nssa block", areaRange["range"].(string))
 				}
 				nssaAreaRangeList = append(nssaAreaRangeList, areaRange["range"].(string))
@@ -1044,7 +1044,7 @@ func setOspfArea(d *schema.ResourceData, clt *Client, junSess *junosSession) err
 	virtualLinkList := make([]string, 0)
 	for _, virtualLinkBlock := range d.Get("virtual_link").(*schema.Set).List() {
 		virtualLink := virtualLinkBlock.(map[string]interface{})
-		if bchk.StringInSlice(
+		if bchk.InSlice(
 			virtualLink["neighbor_id"].(string)+idSeparator+virtualLink["transit_area"].(string),
 			virtualLinkList,
 		) {
@@ -1105,7 +1105,7 @@ func setOspfAreaInterface(setPrefix string, ospfInterface map[string]interface{}
 	authenticationMD5List := make([]int, 0)
 	for _, mAuthMD5 := range ospfInterface["authentication_md5"].([]interface{}) {
 		authMD5 := mAuthMD5.(map[string]interface{})
-		if bchk.IntInSlice(authMD5["key_id"].(int), authenticationMD5List) {
+		if bchk.InSlice(authMD5["key_id"].(int), authenticationMD5List) {
 			return configSet, fmt.Errorf("multiple blocks authentication_md5 with the same key_id %d in interface with name %s",
 				authMD5["key_id"].(int), ospfInterface["name"].(string))
 		}
@@ -1120,7 +1120,7 @@ func setOspfAreaInterface(setPrefix string, ospfInterface map[string]interface{}
 	bandwidthBasedMetricsList := make([]string, 0)
 	for _, mBandBaseMet := range ospfInterface["bandwidth_based_metrics"].(*schema.Set).List() {
 		bandwidthBaseMetrics := mBandBaseMet.(map[string]interface{})
-		if bchk.StringInSlice(bandwidthBaseMetrics["bandwidth"].(string), bandwidthBasedMetricsList) {
+		if bchk.InSlice(bandwidthBaseMetrics["bandwidth"].(string), bandwidthBasedMetricsList) {
 			return configSet, fmt.Errorf("multiple blocks bandwidth_based_metrics "+
 				"with the same bandwidth %s in interface with name %s",
 				bandwidthBaseMetrics["bandwidth"].(string), ospfInterface["name"].(string))
@@ -1236,7 +1236,7 @@ func setOspfAreaInterface(setPrefix string, ospfInterface map[string]interface{}
 	neighborList := make([]string, 0)
 	for _, mNeighbor := range ospfInterface["neighbor"].(*schema.Set).List() {
 		neighbor := mNeighbor.(map[string]interface{})
-		if bchk.StringInSlice(neighbor["address"].(string), neighborList) {
+		if bchk.InSlice(neighbor["address"].(string), neighborList) {
 			return configSet, fmt.Errorf("multiple blocks neighbor with the same address %s in interface with name %s",
 				neighbor["address"].(string), ospfInterface["name"].(string))
 		}

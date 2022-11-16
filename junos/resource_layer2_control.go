@@ -285,7 +285,7 @@ func setLayer2Control(d *schema.ResourceData, clt *Client, junSess *junosSession
 			interfaceList := make([]string, 0)
 			for _, mIntFace := range bpduBlock["interface"].(*schema.Set).List() {
 				intFace := mIntFace.(map[string]interface{})
-				if bchk.StringInSlice(intFace["name"].(string), interfaceList) {
+				if bchk.InSlice(intFace["name"].(string), interfaceList) {
 					return fmt.Errorf("multiple blocks interface with the same name '%s'", intFace["name"].(string))
 				}
 				interfaceList = append(interfaceList, intFace["name"].(string))
@@ -303,7 +303,7 @@ func setLayer2Control(d *schema.ResourceData, clt *Client, junSess *junosSession
 	macRewriteInterfaceList := make([]string, 0)
 	for _, mMacRewIntFace := range d.Get("mac_rewrite_interface").(*schema.Set).List() {
 		macRewIntFace := mMacRewIntFace.(map[string]interface{})
-		if bchk.StringInSlice(macRewIntFace["name"].(string), macRewriteInterfaceList) {
+		if bchk.InSlice(macRewIntFace["name"].(string), macRewriteInterfaceList) {
 			return fmt.Errorf("multiple blocks mac_rewrite_interface with the same name '%s'", macRewIntFace["name"].(string))
 		}
 		macRewriteInterfaceList = append(macRewriteInterfaceList, macRewIntFace["name"].(string))

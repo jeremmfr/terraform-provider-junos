@@ -277,7 +277,7 @@ func setEventoptionsDestination(d *schema.ResourceData, clt *Client, junSess *ju
 	archiveSiteURLList := make([]string, 0)
 	for _, v := range d.Get("archive_site").([]interface{}) {
 		archiveSite := v.(map[string]interface{})
-		if bchk.StringInSlice(archiveSite["url"].(string), archiveSiteURLList) {
+		if bchk.InSlice(archiveSite["url"].(string), archiveSiteURLList) {
 			return fmt.Errorf("multiple blocks archive_site with the same url %s", archiveSite["url"].(string))
 		}
 		archiveSiteURLList = append(archiveSiteURLList, archiveSite["url"].(string))

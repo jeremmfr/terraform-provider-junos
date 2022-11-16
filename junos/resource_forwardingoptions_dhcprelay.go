@@ -1114,7 +1114,7 @@ func setForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 	serverMatchAddressList := make([]string, 0)
 	for _, v := range d.Get("server_match_address").(*schema.Set).List() {
 		serverMatchAddress := v.(map[string]interface{})
-		if bchk.StringInSlice(serverMatchAddress["address"].(string), serverMatchAddressList) {
+		if bchk.InSlice(serverMatchAddress["address"].(string), serverMatchAddressList) {
 			return fmt.Errorf("multiple blocks server_match_address with the same address %s",
 				serverMatchAddress["address"].(string))
 		}
@@ -1134,7 +1134,7 @@ func setForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 		serverMatchDuidCompare := serverMatchDuid["compare"].(string)
 		serverMatchDuidValueType := serverMatchDuid["value_type"].(string)
 		serverMatchDuidValue := serverMatchDuid["value"].(string)
-		if bchk.StringInSlice(
+		if bchk.InSlice(
 			serverMatchDuidCompare+idSeparator+serverMatchDuidValueType+idSeparator+serverMatchDuidValue,
 			serverMatchDuidList,
 		) {

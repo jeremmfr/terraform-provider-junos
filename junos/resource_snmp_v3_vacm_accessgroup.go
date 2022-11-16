@@ -340,7 +340,7 @@ func setSnmpV3VacmAccessGroup(d *schema.ResourceData, clt *Client, junSess *juno
 	defaultContextPrefixList := make([]string, 0)
 	for _, mDefCtxPref := range d.Get("default_context_prefix").(*schema.Set).List() {
 		defaultContextPrefix := mDefCtxPref.(map[string]interface{})
-		if bchk.StringInSlice(defaultContextPrefix["model"].(string)+idSeparator+defaultContextPrefix["level"].(string),
+		if bchk.InSlice(defaultContextPrefix["model"].(string)+idSeparator+defaultContextPrefix["level"].(string),
 			defaultContextPrefixList) {
 			return fmt.Errorf("multiple blocks default_context_prefix with the same model '%s' and level '%s'",
 				defaultContextPrefix["model"].(string), defaultContextPrefix["level"].(string))
@@ -369,14 +369,14 @@ func setSnmpV3VacmAccessGroup(d *schema.ResourceData, clt *Client, junSess *juno
 	contextPrefixList := make([]string, 0)
 	for _, mCtxPref := range d.Get("context_prefix").([]interface{}) {
 		contextPrefix := mCtxPref.(map[string]interface{})
-		if bchk.StringInSlice(contextPrefix["prefix"].(string), contextPrefixList) {
+		if bchk.InSlice(contextPrefix["prefix"].(string), contextPrefixList) {
 			return fmt.Errorf("multiple blocks context_prefix with the same prefix '%s'", contextPrefix["prefix"].(string))
 		}
 		contextPrefixList = append(contextPrefixList, contextPrefix["prefix"].(string))
 		accessConfigList := make([]string, 0)
 		for _, mAccConf := range contextPrefix["access_config"].(*schema.Set).List() {
 			accessConfig := mAccConf.(map[string]interface{})
-			if bchk.StringInSlice(accessConfig["model"].(string)+idSeparator+accessConfig["level"].(string), accessConfigList) {
+			if bchk.InSlice(accessConfig["model"].(string)+idSeparator+accessConfig["level"].(string), accessConfigList) {
 				return fmt.Errorf(
 					"multiple blocks access_config with the same model '%s' and level '%s' in context_prefix with prefix '%s'",
 					accessConfig["model"].(string), accessConfig["level"].(string), contextPrefix["prefix"].(string))

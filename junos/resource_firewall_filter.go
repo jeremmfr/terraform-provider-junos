@@ -531,7 +531,7 @@ func setFirewallFilter(d *schema.ResourceData, clt *Client, junSess *junosSessio
 	termNameList := make([]string, 0)
 	for _, v := range d.Get("term").([]interface{}) {
 		term := v.(map[string]interface{})
-		if bchk.StringInSlice(term["name"].(string), termNameList) {
+		if bchk.InSlice(term["name"].(string), termNameList) {
 			return fmt.Errorf("multiple blocks term with the same name %s", term["name"].(string))
 		}
 		termNameList = append(termNameList, term["name"].(string))

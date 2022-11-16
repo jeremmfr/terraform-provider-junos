@@ -158,7 +158,7 @@ func validateWildcardWithMask(wildcard string) error {
 		return fmt.Errorf("mask %v is improperly formatted, must be in x.x.x.x notation", wildcardSplit[1])
 	}
 	for _, octet := range strings.Split(mask.String(), ".") {
-		if !bchk.StringInSlice(octet, []string{"255", "254", "252", "248", "240", "224", "192", "128", "0"}) {
+		if !bchk.InSlice(octet, []string{"255", "254", "252", "248", "240", "224", "192", "128", "0"}) {
 			return fmt.Errorf("mask %v must be in subnet mask format, octet [%v] is not", mask, octet)
 		}
 	}
@@ -210,7 +210,7 @@ func validateNameObjectJunos(exclude []string, length int, format formatName) sc
 				AttributePath: path,
 			})
 		}
-		if bchk.StringInSlice(v, exclude) {
+		if bchk.InSlice(v, exclude) {
 			diags = append(diags, diag.Diagnostic{
 				Severity:      diag.Error,
 				Summary:       fmt.Sprintf("expected value to not be one of %q, got %v", exclude, i),

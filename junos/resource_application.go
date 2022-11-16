@@ -409,7 +409,7 @@ func setApplication(d *schema.ResourceData, clt *Client, junSess *junosSession) 
 	termName := make([]string, 0)
 	for _, v := range d.Get("term").([]interface{}) {
 		term := v.(map[string]interface{})
-		if bchk.StringInSlice(term["name"].(string), termName) {
+		if bchk.InSlice(term["name"].(string), termName) {
 			return fmt.Errorf("multiple blocks term with the same name %s", term["name"].(string))
 		}
 		termName = append(termName, term["name"].(string))

@@ -807,7 +807,7 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 	excludedRangeNameList := make([]string, 0)
 	for _, v := range family["excluded_range"].([]interface{}) {
 		excludedRange := v.(map[string]interface{})
-		if bchk.StringInSlice(excludedRange["name"].(string), excludedRangeNameList) {
+		if bchk.InSlice(excludedRange["name"].(string), excludedRangeNameList) {
 			return configSet, fmt.Errorf("multiple blocks excluded_range with the same name %s", excludedRange["name"].(string))
 		}
 		excludedRangeNameList = append(excludedRangeNameList, excludedRange["name"].(string))
@@ -822,7 +822,7 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 			return configSet, fmt.Errorf("host not compatible when type = inet6")
 		}
 		host := v.(map[string]interface{})
-		if bchk.StringInSlice(host["name"].(string), hostNameList) {
+		if bchk.InSlice(host["name"].(string), hostNameList) {
 			return configSet, fmt.Errorf("multiple blocks host with the same name %s", host["name"].(string))
 		}
 		hostNameList = append(hostNameList, host["name"].(string))
@@ -839,7 +839,7 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 		}
 		for _, v := range family["inet_range"].([]interface{}) {
 			rangeBlck := v.(map[string]interface{})
-			if bchk.StringInSlice(rangeBlck["name"].(string), rangeNameList) {
+			if bchk.InSlice(rangeBlck["name"].(string), rangeNameList) {
 				return configSet, fmt.Errorf("multiple blocks inet_range with the same name %s", rangeBlck["name"].(string))
 			}
 			rangeNameList = append(rangeNameList, rangeBlck["name"].(string))
@@ -854,7 +854,7 @@ func setAccessAddressAssignPoolFamily(family map[string]interface{}, setPrefix s
 		}
 		for _, v := range family["inet6_range"].([]interface{}) {
 			rangeBlck := v.(map[string]interface{})
-			if bchk.StringInSlice(rangeBlck["name"].(string), rangeNameList) {
+			if bchk.InSlice(rangeBlck["name"].(string), rangeNameList) {
 				return configSet, fmt.Errorf("multiple blocks inet6_range with the same name %s", rangeBlck["name"].(string))
 			}
 			rangeNameList = append(rangeNameList, rangeBlck["name"].(string))
@@ -966,7 +966,7 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(dhcpAttr map[string]interfac
 	optionMatch82CircuitIDValueList := make([]string, 0)
 	for _, v := range dhcpAttr["option_match_82_circuit_id"].([]interface{}) {
 		opt := v.(map[string]interface{})
-		if bchk.StringInSlice(opt["value"].(string), optionMatch82CircuitIDValueList) {
+		if bchk.InSlice(opt["value"].(string), optionMatch82CircuitIDValueList) {
 			return configSet,
 				fmt.Errorf("multiple blocks option_match_82_circuit_id with the same value %s", opt["value"].(string))
 		}
@@ -978,7 +978,7 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(dhcpAttr map[string]interfac
 	optionMatch82RemoteIDValueList := make([]string, 0)
 	for _, v := range dhcpAttr["option_match_82_remote_id"].([]interface{}) {
 		opt := v.(map[string]interface{})
-		if bchk.StringInSlice(opt["value"].(string), optionMatch82RemoteIDValueList) {
+		if bchk.InSlice(opt["value"].(string), optionMatch82RemoteIDValueList) {
 			return configSet,
 				fmt.Errorf("multiple blocks option_match_82_remote_id with the same value %s", opt["value"].(string))
 		}

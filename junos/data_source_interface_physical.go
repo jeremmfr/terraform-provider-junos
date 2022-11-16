@@ -407,7 +407,7 @@ func searchInterfacePhysicalID(configInterface, match string, clt *Client, junSe
 		}
 		intConfigList = append(intConfigList, itemTrimSplit[0])
 	}
-	intConfigList = balt.UniqueStrings(intConfigList)
+	intConfigList = balt.UniqueInSlice(intConfigList)
 	if len(intConfigList) == 0 {
 		return "", nil
 	}

@@ -434,7 +434,7 @@ func setIpsecVpn(d *schema.ResourceData, clt *Client, junSess *junosSession) err
 	trafficSelectorName := make([]string, 0)
 	for _, v := range d.Get("traffic_selector").([]interface{}) {
 		tS := v.(map[string]interface{})
-		if bchk.StringInSlice(tS["name"].(string), trafficSelectorName) {
+		if bchk.InSlice(tS["name"].(string), trafficSelectorName) {
 			return fmt.Errorf("multiple blocks traffic_selector with the same name %s", tS["name"].(string))
 		}
 		trafficSelectorName = append(trafficSelectorName, tS["name"].(string))

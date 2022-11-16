@@ -1049,7 +1049,7 @@ func setSecurityIdpCustomAttack(d *schema.ResourceData, clt *Client, junSess *ju
 				len(attackChainMember["attack_type_signature"].([]interface{})) == 0 {
 				return fmt.Errorf("missing one attack type in member %s for attack_type_chain", attackChainMember["name"].(string))
 			}
-			if bchk.StringInSlice(attackChainMember["name"].(string), memberNameList) {
+			if bchk.InSlice(attackChainMember["name"].(string), memberNameList) {
 				return fmt.Errorf("multiple blocks member with the same name %s", attackChainMember["name"].(string))
 			}
 			memberNameList = append(memberNameList, attackChainMember["name"].(string))

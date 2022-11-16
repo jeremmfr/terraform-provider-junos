@@ -431,7 +431,7 @@ func readServicesFlowMonitoringVIPFixTemplate(template string, clt *Client, junS
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case bchk.StringInSlice(itemTrim, []string{"ipv4-template", "ipv6-template", "mpls-template"}):
+			case bchk.InSlice(itemTrim, []string{"ipv4-template", "ipv6-template", "mpls-template"}):
 				confRead.typeTemplate = itemTrim
 			case strings.HasPrefix(itemTrim, "ipv6-template export-extension ") ||
 				strings.HasPrefix(itemTrim, "ipv4-template export-extension "):

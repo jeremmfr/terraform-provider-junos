@@ -1033,7 +1033,7 @@ func setServicesSecurityIntell(d *schema.ResourceData, secuIntel interface{}) ([
 		defaultPolicyCatNameList := make([]string, 0)
 		for _, v := range secuIntelM["default_policy"].([]interface{}) {
 			defPolicy := v.(map[string]interface{})
-			if bchk.StringInSlice(defPolicy["category_name"].(string), defaultPolicyCatNameList) {
+			if bchk.InSlice(defPolicy["category_name"].(string), defaultPolicyCatNameList) {
 				return configSet, fmt.Errorf("multiple blocks default_policy with the same category_name %s",
 					defPolicy["category_name"].(string))
 			}

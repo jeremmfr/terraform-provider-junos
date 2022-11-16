@@ -419,7 +419,7 @@ func setIgmpSnoopingVlan(d *schema.ResourceData, clt *Client, junSess *junosSess
 	interfaceList := make([]string, 0)
 	for _, mIntface := range d.Get("interface").([]interface{}) {
 		intFace := mIntface.(map[string]interface{})
-		if bchk.StringInSlice(intFace["name"].(string), interfaceList) {
+		if bchk.InSlice(intFace["name"].(string), interfaceList) {
 			return fmt.Errorf("multiple blocks interface with the same name '%s'", intFace["name"].(string))
 		}
 		interfaceList = append(interfaceList, intFace["name"].(string))
@@ -440,7 +440,7 @@ func setIgmpSnoopingVlan(d *schema.ResourceData, clt *Client, junSess *junosSess
 		staticGroupList := make([]string, 0)
 		for _, mStaticGrp := range intFace["static_group"].(*schema.Set).List() {
 			staticGroup := mStaticGrp.(map[string]interface{})
-			if bchk.StringInSlice(staticGroup["address"].(string), staticGroupList) {
+			if bchk.InSlice(staticGroup["address"].(string), staticGroupList) {
 				return fmt.Errorf("multiple blocks static_group with the same address '%s'", staticGroup["address"].(string))
 			}
 			staticGroupList = append(staticGroupList, staticGroup["address"].(string))

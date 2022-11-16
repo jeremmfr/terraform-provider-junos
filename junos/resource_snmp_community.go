@@ -313,7 +313,7 @@ func setSnmpCommunity(d *schema.ResourceData, clt *Client, junSess *junosSession
 			return fmt.Errorf("conflict between clients and client_list_name in routing-instance %s",
 				routingInstance["name"].(string))
 		}
-		if bchk.StringInSlice(routingInstance["name"].(string), routingInstanceNameList) {
+		if bchk.InSlice(routingInstance["name"].(string), routingInstanceNameList) {
 			return fmt.Errorf("multiple blocks routing_instance with the same name %s", routingInstance["name"].(string))
 		}
 		routingInstanceNameList = append(routingInstanceNameList, routingInstance["name"].(string))
