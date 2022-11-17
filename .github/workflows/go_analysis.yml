@@ -7,6 +7,10 @@ on:
 jobs:
   Vulncheck:
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
     steps:
       - uses: actions/checkout@v3
       - name: Running govulncheck
