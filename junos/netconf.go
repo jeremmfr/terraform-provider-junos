@@ -57,7 +57,7 @@ type commandXMLConfig struct {
 	Config string `xml:",innerxml"`
 }
 
-type netconfAuthMethod struct {
+type sshAuthMethod struct {
 	Password       string
 	Username       string
 	PrivateKeyPEM  string
@@ -65,6 +65,16 @@ type netconfAuthMethod struct {
 	Passphrase     string
 	Ciphers        []string
 	Timeout        int
+}
+
+type openSSHOptions struct {
+	Retry   int
+	Timeout int
+}
+
+type sshOptions struct {
+	*openSSHOptions
+	ClientConfig *ssh.ClientConfig
 }
 
 type commitResults struct {
@@ -128,32 +138,65 @@ type getRouteInformationReply struct {
 // to run our commands against.
 // Authentication methods are defined using the netconfAuthMethod struct, and are as follows:
 // username and password, SSH private key (with or without passphrase).
-func netconfNewSession(ctx context.Context, host string, auth *netconfAuthMethod) (*junosSession, error) {
+func netconfNewSession(
+	ctx context.Context, host string, auth *sshAuthMethod, openSSH *openSSHOptions,
+) (*junosSession, error) {
 	clientConfig, err := genSSHClientConfig(auth)
 	if err != nil {
 		return nil, err
 	}
 
-	return netconfNewSessionWithConfig(ctx, host, clientConfig)
+	return netconfNewSessionWithConfig(ctx, host, &sshOptions{openSSH, clientConfig})
 }
 
 // netconfNewSessionWithConfig establishes a new connection to a Junos device that we will use
 // to run our commands against.
-func netconfNewSessionWithConfig(ctx context.Context, host string, clientConfig *ssh.ClientConfig,
-) (*junosSession, error) {
+func netconfNewSessionWithConfig(ctx context.Context, host string, sshOpts *sshOptions) (*junosSession, error) {
 	netDialer := net.Dialer{
-		Timeout: clientConfig.Timeout,
+		Timeout: time.Duration(sshOpts.Timeout) * time.Second,
 	}
-	conn, err := netDialer.DialContext(ctx, "tcp", host)
-	if err != nil {
-		return nil, fmt.Errorf("error connecting to %s: %w", host, err)
+	retry := sshOpts.Retry
+	if retry < 1 {
+		retry = 1
 	}
-	s, err := netconf.NewSSHSession(conn, clientConfig)
-	if err != nil {
-		return nil, fmt.Errorf("error initializing SSH session to %s: %w", host, err)
+	if retry > 10 {
+		retry = 10
 	}
+	sleepTime := 0
+	for retry > 0 {
+		retry--
+		conn, err := netDialer.DialContext(ctx, "tcp", host)
+		if err != nil {
+			if retry != 0 {
+				log.Printf("[WARN] error connecting to %s: %s, go retry", host, err.Error())
+				// sleep with time increasing as things try
+				sleepTime++
+				sleep(sleepTime)
 
-	return newSessionFromNetconf(s)
+				continue
+			}
+
+			return nil, fmt.Errorf("error connecting to %s: %w", host, err)
+		}
+		s, err := netconf.NewSSHSession(conn, sshOpts.ClientConfig)
+		if err != nil {
+			conn.Close()
+			if retry != 0 {
+				log.Printf("[WARN] error initializing SSH session to %s: %s, go retry", host, err.Error())
+				// sleep with time increasing as things try
+				sleepTime++
+				sleep(sleepTime)
+
+				continue
+			}
+
+			return nil, fmt.Errorf("error initializing SSH session to %s: %w", host, err)
+		}
+
+		return newSessionFromNetconf(s)
+	}
+	// this return can't happen
+	return nil, fmt.Errorf("error connecting to %s: retries exceeded", host)
 }
 
 // newSessionFromNetconf uses an existing netconf.Session to run our commands against.
@@ -168,7 +211,7 @@ func newSessionFromNetconf(s *netconf.Session) (*junosSession, error) {
 // genSSHClientConfig is a wrapper function based around the auth method defined
 // (user/password or private key) which returns the SSH client configuration used to
 // connect.
-func genSSHClientConfig(auth *netconfAuthMethod) (*ssh.ClientConfig, error) {
+func genSSHClientConfig(auth *sshAuthMethod) (*ssh.ClientConfig, error) {
 	configs := make([]*ssh.ClientConfig, 0)
 	configs = append(configs, &ssh.ClientConfig{})
 

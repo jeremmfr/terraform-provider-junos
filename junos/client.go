@@ -23,6 +23,7 @@ type Client struct {
 	sleepShort             int
 	sleepSSHClosed         int
 	junosSSHTimeoutToEstab int
+	junosSSHRetryToEstab   int
 	filePermission         int64
 	junosIP                string
 	junosUserName          string
@@ -37,7 +38,7 @@ type Client struct {
 }
 
 func (clt *Client) startNewSession(ctx context.Context) (*junosSession, error) {
-	var auth netconfAuthMethod
+	var auth sshAuthMethod
 	auth.Username = clt.junosUserName
 	auth.Ciphers = clt.junosSSHCiphers
 	if clt.junosSSHKeyPEM != "" {
@@ -56,7 +57,15 @@ func (clt *Client) startNewSession(ctx context.Context) (*junosSession, error) {
 		auth.Password = clt.junosPassword
 	}
 	auth.Timeout = clt.junosSSHTimeoutToEstab
-	junSess, err := netconfNewSession(ctx, net.JoinHostPort(clt.junosIP, strconv.Itoa(clt.junosPort)), &auth)
+	junSess, err := netconfNewSession(
+		ctx,
+		net.JoinHostPort(clt.junosIP, strconv.Itoa(clt.junosPort)),
+		&auth,
+		&openSSHOptions{
+			Retry:   clt.junosSSHRetryToEstab,
+			Timeout: clt.junosSSHTimeoutToEstab,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
