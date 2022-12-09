@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -410,11 +411,9 @@ func setServicesFlowMonitoringVIPFixTemplate(d *schema.ResourceData, clt *Client
 }
 
 func readServicesFlowMonitoringVIPFixTemplate(template string, clt *Client, junSess *junosSession,
-) (flowMonitoringVIPFixTemplateOptions, error) {
-	var confRead flowMonitoringVIPFixTemplateOptions
-	// setup default value
+) (confRead flowMonitoringVIPFixTemplateOptions, err error) {
+	// default -1
 	confRead.observationDomainID = -1
-
 	showConfig, err := clt.command(cmdShowConfig+
 		"services flow-monitoring version-ipfix template \""+template+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -433,21 +432,19 @@ func readServicesFlowMonitoringVIPFixTemplate(template string, clt *Client, junS
 			switch {
 			case bchk.InSlice(itemTrim, []string{"ipv4-template", "ipv6-template", "mpls-template"}):
 				confRead.typeTemplate = itemTrim
-			case strings.HasPrefix(itemTrim, "ipv6-template export-extension ") ||
-				strings.HasPrefix(itemTrim, "ipv4-template export-extension "):
-				itemTrimSplit := strings.Split(itemTrim, " ")
-				confRead.typeTemplate = itemTrimSplit[0]
-				confRead.ipTemplateExportExt = append(confRead.ipTemplateExportExt,
-					strings.TrimPrefix(itemTrim, itemTrimSplit[0]+" export-extension "))
-			case strings.HasPrefix(itemTrim, "flow-active-timeout "):
-				var err error
-				confRead.flowActiveTimeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "flow-active-timeout "))
+			case balt.CutPrefixInString(&itemTrim, "ipv6-template export-extension "):
+				confRead.typeTemplate = "ipv6-template"
+				confRead.ipTemplateExportExt = append(confRead.ipTemplateExportExt, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "ipv4-template export-extension "):
+				confRead.typeTemplate = "ipv4-template"
+				confRead.ipTemplateExportExt = append(confRead.ipTemplateExportExt, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "flow-active-timeout "):
+				confRead.flowActiveTimeout, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "flow-inactive-timeout "):
-				var err error
-				confRead.flowInactiveTimeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "flow-inactive-timeout "))
+			case balt.CutPrefixInString(&itemTrim, "flow-inactive-timeout "):
+				confRead.flowInactiveTimeout, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
@@ -459,13 +456,12 @@ func readServicesFlowMonitoringVIPFixTemplate(template string, clt *Client, junS
 				confRead.nexthopLearningEnable = true
 			case itemTrim == "nexthop-learning disable":
 				confRead.nexthopLearningDisable = true
-			case strings.HasPrefix(itemTrim, "observation-domain-id "):
-				var err error
-				confRead.observationDomainID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "observation-domain-id "))
+			case balt.CutPrefixInString(&itemTrim, "observation-domain-id "):
+				confRead.observationDomainID, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "option-refresh-rate"):
+			case balt.CutPrefixInString(&itemTrim, "option-refresh-rate"):
 				if len(confRead.optionRefreshRate) == 0 {
 					confRead.optionRefreshRate = append(confRead.optionRefreshRate, map[string]interface{}{
 						"packets": 0,
@@ -473,30 +469,24 @@ func readServicesFlowMonitoringVIPFixTemplate(template string, clt *Client, junS
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "option-refresh-rate packets "):
-					var err error
-					confRead.optionRefreshRate[0]["packets"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "option-refresh-rate packets "))
+				case balt.CutPrefixInString(&itemTrim, " packets "):
+					confRead.optionRefreshRate[0]["packets"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "option-refresh-rate seconds "):
-					var err error
-					confRead.optionRefreshRate[0]["seconds"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "option-refresh-rate seconds "))
+				case balt.CutPrefixInString(&itemTrim, " seconds "):
+					confRead.optionRefreshRate[0]["seconds"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
-			case strings.HasPrefix(itemTrim, "option-template-id "):
-				var err error
-				confRead.optionTemplateID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "option-template-id "))
+			case balt.CutPrefixInString(&itemTrim, "option-template-id "):
+				confRead.optionTemplateID, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "template-id "):
-				var err error
-				confRead.templateID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "template-id "))
+			case balt.CutPrefixInString(&itemTrim, "template-id "):
+				confRead.templateID, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}

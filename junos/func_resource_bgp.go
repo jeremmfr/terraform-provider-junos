@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
@@ -271,112 +272,105 @@ func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, clt *Client, jun
 	return clt.configSet(configSet, junSess)
 }
 
-func readBgpOptsSimple(item string, confRead *bgpOptions) error {
+func (confRead *bgpOptions) readBgpOptsSimple(itemTrim string) (err error) {
 	switch {
-	case item == "accept-remote-nexthop":
+	case itemTrim == "accept-remote-nexthop":
 		confRead.acceptRemoteNexthop = true
-	case item == "advertise-external":
+	case itemTrim == "advertise-external":
 		confRead.advertiseExternal = true
-	case item == "advertise-external conditional":
+	case itemTrim == "advertise-external conditional":
 		confRead.advertiseExternalConditional = true
-	case item == "advertise-inactive":
+	case itemTrim == "advertise-inactive":
 		confRead.advertiseInactive = true
-	case item == "advertise-peer-as":
+	case itemTrim == "advertise-peer-as":
 		confRead.advertisePeerAs = true
-	case item == "as-override":
+	case itemTrim == "as-override":
 		confRead.asOverride = true
-	case strings.HasPrefix(item, "authentication-algorithm "):
-		confRead.authenticationAlgorithm = strings.TrimPrefix(item, "authentication-algorithm ")
-	case strings.HasPrefix(item, "authentication-key "):
-		var err error
-		confRead.authenticationKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(item, "authentication-key "), "\""))
+	case balt.CutPrefixInString(&itemTrim, "authentication-algorithm "):
+		confRead.authenticationAlgorithm = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "authentication-key "):
+		confRead.authenticationKey, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 		if err != nil {
 			return fmt.Errorf("failed to decode authentication-key: %w", err)
 		}
-	case strings.HasPrefix(item, "authentication-key-chain "):
-		confRead.authenticationKeyChain = strings.TrimPrefix(item, "authentication-key-chain ")
-	case strings.HasPrefix(item, "cluster "):
-		confRead.cluster = strings.TrimPrefix(item, "cluster ")
-	case item == "damping":
+	case balt.CutPrefixInString(&itemTrim, "authentication-key-chain "):
+		confRead.authenticationKeyChain = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "cluster "):
+		confRead.cluster = itemTrim
+	case itemTrim == "damping":
 		confRead.damping = true
-	case strings.HasPrefix(item, "export "):
-		confRead.exportPolicy = append(confRead.exportPolicy, strings.TrimPrefix(item, "export "))
-	case strings.HasPrefix(item, "hold-time "):
-		var err error
-		confRead.holdTime, err = strconv.Atoi(strings.TrimPrefix(item, "hold-time "))
+	case balt.CutPrefixInString(&itemTrim, "export "):
+		confRead.exportPolicy = append(confRead.exportPolicy, itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "hold-time "):
+		confRead.holdTime, err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(failedConvAtoiError, item, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(item, "import "):
-		confRead.importPolicy = append(confRead.importPolicy, strings.TrimPrefix(item, "import "))
-	case item == "keep all":
+	case balt.CutPrefixInString(&itemTrim, "import "):
+		confRead.importPolicy = append(confRead.importPolicy, itemTrim)
+	case itemTrim == "keep all":
 		confRead.keepAll = true
-	case item == "keep none":
+	case itemTrim == "keep none":
 		confRead.keepNone = true
-	case strings.HasPrefix(item, "local-address "):
-		confRead.localAddress = strings.TrimPrefix(item, "local-address ")
-	case strings.HasPrefix(item, "local-as "):
+	case balt.CutPrefixInString(&itemTrim, "local-address "):
+		confRead.localAddress = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "local-as "):
 		switch {
-		case strings.HasSuffix(item, " private"):
+		case itemTrim == "private":
 			confRead.localAsPrivate = true
-		case strings.HasSuffix(item, " alias"):
+		case itemTrim == "alias":
 			confRead.localAsAlias = true
-		case strings.HasSuffix(item, " no-prepend-global-as"):
+		case itemTrim == "no-prepend-global-as":
 			confRead.localAsNoPrependGlobalAs = true
-		case strings.HasPrefix(item, "local-as loops "):
-			var err error
-			confRead.localAsLoops, err = strconv.Atoi(strings.TrimPrefix(item, "local-as loops "))
+		case balt.CutPrefixInString(&itemTrim, "loops "):
+			confRead.localAsLoops, err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(failedConvAtoiError, item, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		default:
-			confRead.localAs = strings.TrimPrefix(item, "local-as ")
+			confRead.localAs = itemTrim
 		}
-	case strings.HasPrefix(item, "local-interface "):
-		confRead.localInterface = strings.TrimPrefix(item, "local-interface ")
-	case strings.HasPrefix(item, "local-preference "):
-		var err error
-		confRead.localPreference, err = strconv.Atoi(strings.TrimPrefix(item, "local-preference "))
+	case balt.CutPrefixInString(&itemTrim, "local-interface "):
+		confRead.localInterface = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "local-preference "):
+		confRead.localPreference, err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(failedConvAtoiError, item, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case item == "log-updown":
+	case itemTrim == "log-updown":
 		confRead.logUpdown = true
-	case strings.HasPrefix(item, "metric-out "):
-		if !strings.Contains(item, "igp") {
-			var err error
-			confRead.metricOut, err = strconv.Atoi(strings.TrimPrefix(item, "metric-out "))
-			if err != nil {
-				return fmt.Errorf(failedConvAtoiError, item, err)
+	case balt.CutPrefixInString(&itemTrim, "metric-out "):
+		switch {
+		case balt.CutPrefixInString(&itemTrim, "igp"):
+			confRead.metricOutIgp = true
+			switch {
+			case itemTrim == " delay-med-update":
+				confRead.metricOutIgpDelayMedUpdate = true
+			case balt.CutPrefixInString(&itemTrim, " "):
+				confRead.metricOutIgpOffset, err = strconv.Atoi(itemTrim)
+				if err != nil {
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
+				}
 			}
-		} else {
-			if strings.HasPrefix(item, "metric-out igp") {
-				confRead.metricOutIgp = true
-				if item == "metric-out igp delay-med-update" {
-					confRead.metricOutIgpDelayMedUpdate = true
-				} else if strings.HasPrefix(item, "metric-out igp ") {
-					var err error
-					confRead.metricOutIgpOffset, err = strconv.Atoi(strings.TrimPrefix(item, "metric-out igp "))
-					if err != nil {
-						return fmt.Errorf(failedConvAtoiError, item, err)
-					}
+		case balt.CutPrefixInString(&itemTrim, "minimum-igp"):
+			confRead.metricOutMinimumIgp = true
+			if balt.CutPrefixInString(&itemTrim, " ") {
+				confRead.metricOutMinimumIgpOffset, err = strconv.Atoi(itemTrim)
+				if err != nil {
+					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			} else {
-				confRead.metricOutMinimumIgp = true
-				if strings.HasPrefix(item, "metric-out minimum-igp ") {
-					var err error
-					confRead.metricOutMinimumIgpOffset, err = strconv.Atoi(strings.TrimPrefix(item, "metric-out minimum-igp "))
-					if err != nil {
-						return fmt.Errorf(failedConvAtoiError, item, err)
-					}
-				}
+			}
+		default:
+			confRead.metricOut, err = strconv.Atoi(itemTrim)
+			if err != nil {
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
-	case item == "mtu-discovery":
+	case itemTrim == "mtu-discovery":
 		confRead.mtuDiscovery = true
-	case item == "multihop":
+	case itemTrim == "multihop":
 		confRead.multihop = true
-	case strings.HasPrefix(item, "multipath"):
+	case balt.CutPrefixInString(&itemTrim, "multipath"):
 		confRead.multipath = true
 		if len(confRead.bgpMultipath) == 0 {
 			confRead.bgpMultipath = append(confRead.bgpMultipath, map[string]interface{}{
@@ -386,35 +380,33 @@ func readBgpOptsSimple(item string, confRead *bgpOptions) error {
 			})
 		}
 		switch {
-		case item == "multipath allow-protection":
+		case itemTrim == " allow-protection":
 			confRead.bgpMultipath[0]["allow_protection"] = true
-		case item == "multipath disable":
+		case itemTrim == " disable":
 			confRead.bgpMultipath[0]["disable"] = true
-		case item == "multipath multiple-as":
+		case itemTrim == " multiple-as":
 			confRead.bgpMultipath[0]["multiple_as"] = true
 		}
-	case item == "no-advertise-peer-as":
+	case itemTrim == "no-advertise-peer-as":
 		confRead.noAdvertisePeerAs = true
-	case strings.HasPrefix(item, "out-delay "):
-		var err error
-		confRead.outDelay, err = strconv.Atoi(strings.TrimPrefix(item, "out-delay "))
+	case balt.CutPrefixInString(&itemTrim, "out-delay "):
+		confRead.outDelay, err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(failedConvAtoiError, item, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case item == "passive":
+	case itemTrim == "passive":
 		confRead.passive = true
-	case strings.HasPrefix(item, "peer-as "):
-		confRead.peerAs = strings.TrimPrefix(item, "peer-as ")
-	case strings.HasPrefix(item, "preference "):
-		var err error
-		confRead.preference, err = strconv.Atoi(strings.TrimPrefix(item, "preference "))
+	case balt.CutPrefixInString(&itemTrim, "peer-as "):
+		confRead.peerAs = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "preference "):
+		confRead.preference, err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(failedConvAtoiError, item, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case item == "remove-private":
+	case itemTrim == "remove-private":
 		confRead.removePrivate = true
-	case strings.HasPrefix(item, "type "):
-		confRead.bgpType = strings.TrimPrefix(item, "type ")
+	case balt.CutPrefixInString(&itemTrim, "type "):
+		confRead.bgpType = itemTrim
 	}
 
 	return nil
@@ -483,63 +475,53 @@ func setBgpOptsBfd(setPrefix string, bfdLivenessDetection []interface{}, clt *Cl
 	return nil
 }
 
-func readBgpOptsBfd(item string, bfdRead map[string]interface{}) error {
-	itemTrim := strings.TrimPrefix(item, "bfd-liveness-detection ")
+func readBgpOptsBfd(itemTrim string, bfdRead map[string]interface{}) (err error) {
 	switch {
-	case strings.HasPrefix(itemTrim, "authentication algorithm "):
-		bfdRead["authentication_algorithm"] = strings.TrimPrefix(itemTrim, "authentication algorithm ")
-	case strings.HasPrefix(itemTrim, "authentication key-chain "):
-		bfdRead["authentication_key_chain"] = strings.TrimPrefix(itemTrim, "authentication key-chain ")
+	case balt.CutPrefixInString(&itemTrim, "authentication algorithm "):
+		bfdRead["authentication_algorithm"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "authentication key-chain "):
+		bfdRead["authentication_key_chain"] = itemTrim
 	case itemTrim == "authentication loose-check":
 		bfdRead["authentication_loose_check"] = true
-	case strings.HasPrefix(itemTrim, "detection-time threshold "):
-		var err error
-		bfdRead["detection_time_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "detection-time threshold "))
+	case balt.CutPrefixInString(&itemTrim, "detection-time threshold "):
+		bfdRead["detection_time_threshold"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "holddown-interval "):
-		var err error
-		bfdRead["holddown_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "holddown-interval "))
+	case balt.CutPrefixInString(&itemTrim, "holddown-interval "):
+		bfdRead["holddown_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "minimum-interval "):
-		var err error
-		bfdRead["minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-interval "))
+	case balt.CutPrefixInString(&itemTrim, "minimum-interval "):
+		bfdRead["minimum_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "minimum-receive-interval "):
-		var err error
-		bfdRead["minimum_receive_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-receive-interval "))
+	case balt.CutPrefixInString(&itemTrim, "minimum-receive-interval "):
+		bfdRead["minimum_receive_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "multiplier "):
-		var err error
-		bfdRead["multiplier"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "multiplier "))
+	case balt.CutPrefixInString(&itemTrim, "multiplier "):
+		bfdRead["multiplier"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "session-mode "):
-		bfdRead["session_mode"] = strings.TrimPrefix(itemTrim, "session-mode ")
-	case strings.HasPrefix(itemTrim, "transmit-interval threshold "):
-		var err error
-		bfdRead["transmit_interval_threshold"], err = strconv.Atoi(
-			strings.TrimPrefix(itemTrim, "transmit-interval threshold "))
+	case balt.CutPrefixInString(&itemTrim, "session-mode "):
+		bfdRead["session_mode"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "transmit-interval threshold "):
+		bfdRead["transmit_interval_threshold"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "transmit-interval minimum-interval "):
-		var err error
-		bfdRead["transmit_interval_minimum_interval"], err = strconv.Atoi(
-			strings.TrimPrefix(itemTrim, "transmit-interval minimum-interval "))
+	case balt.CutPrefixInString(&itemTrim, "transmit-interval minimum-interval "):
+		bfdRead["transmit_interval_minimum_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "version "):
-		bfdRead["version"] = strings.TrimPrefix(itemTrim, "version ")
+	case balt.CutPrefixInString(&itemTrim, "version "):
+		bfdRead["version"] = itemTrim
 	}
 
 	return nil
@@ -624,27 +606,17 @@ func setBgpOptsFamilyPrefixLimit(setPrefix string, prefixLimit map[string]interf
 	return configSet, nil
 }
 
-func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) ([]map[string]interface{}, error) {
+func readBgpOptsFamily(itemTrim string, opts []map[string]interface{}) (_ []map[string]interface{}, err error) {
+	itemTrimFields := strings.Split(itemTrim, " ")
 	readOpts := map[string]interface{}{
-		"nlri_type":             "",
+		"nlri_type":             itemTrimFields[0],
 		"accepted_prefix_limit": make([]map[string]interface{}, 0),
 		"prefix_limit":          make([]map[string]interface{}, 0),
 	}
-	setPrefix := "family "
-	switch familyType {
-	case evpnW:
-		setPrefix += "evpn "
-	case inetW:
-		setPrefix += "inet "
-	case inet6W:
-		setPrefix += "inet6 "
-	}
-	trimSplit := strings.Split(strings.TrimPrefix(item, setPrefix), " ")
-	readOpts["nlri_type"] = trimSplit[0]
 	opts = copyAndRemoveItemMapList("nlri_type", readOpts, opts)
-	itemTrim := strings.TrimPrefix(item, setPrefix+readOpts["nlri_type"].(string)+" ")
+	balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 	switch {
-	case strings.HasPrefix(itemTrim, "accepted-prefix-limit "):
+	case balt.CutPrefixInString(&itemTrim, "accepted-prefix-limit "):
 		if len(readOpts["accepted_prefix_limit"].([]map[string]interface{})) == 0 {
 			readOpts["accepted_prefix_limit"] = append(readOpts["accepted_prefix_limit"].([]map[string]interface{}),
 				map[string]interface{}{
@@ -656,32 +628,28 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 		}
 		readOptsPL := readOpts["accepted_prefix_limit"].([]map[string]interface{})[0]
 		switch {
-		case strings.HasPrefix(itemTrim, "accepted-prefix-limit maximum"):
-			var err error
-			readOptsPL["maximum"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "accepted-prefix-limit maximum "))
+		case balt.CutPrefixInString(&itemTrim, "maximum "):
+			readOptsPL["maximum"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return append(opts, readOpts), fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 
-		case strings.HasPrefix(itemTrim, "accepted-prefix-limit teardown idle-timeout "):
-			var err error
-			if !strings.HasSuffix(itemTrim, " forever") {
-				readOptsPL["teardown_idle_timeout"], err = strconv.Atoi(
-					strings.TrimPrefix(itemTrim, "accepted-prefix-limit teardown idle-timeout "))
+		case balt.CutPrefixInString(&itemTrim, "teardown idle-timeout "):
+			if itemTrim == "forever" {
+				readOptsPL["teardown_idle_timeout_forever"] = true
+			} else {
+				readOptsPL["teardown_idle_timeout"], err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return append(opts, readOpts), fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			} else {
-				readOptsPL["teardown_idle_timeout_forever"] = true
 			}
-		case strings.HasPrefix(itemTrim, "accepted-prefix-limit teardown "):
-			var err error
-			readOptsPL["teardown"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "accepted-prefix-limit teardown "))
+		case balt.CutPrefixInString(&itemTrim, "teardown "):
+			readOptsPL["teardown"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return append(opts, readOpts), fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
-	case strings.HasPrefix(itemTrim, "prefix-limit "):
+	case balt.CutPrefixInString(&itemTrim, "prefix-limit "):
 		if len(readOpts["prefix_limit"].([]map[string]interface{})) == 0 {
 			readOpts["prefix_limit"] = append(readOpts["prefix_limit"].([]map[string]interface{}),
 				map[string]interface{}{
@@ -693,26 +661,22 @@ func readBgpOptsFamily(item, familyType string, opts []map[string]interface{}) (
 		}
 		readOptsPL := readOpts["prefix_limit"].([]map[string]interface{})[0]
 		switch {
-		case strings.HasPrefix(itemTrim, "prefix-limit maximum "):
-			var err error
-			readOptsPL["maximum"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "prefix-limit maximum "))
+		case balt.CutPrefixInString(&itemTrim, "maximum "):
+			readOptsPL["maximum"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return append(opts, readOpts), fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "prefix-limit teardown idle-timeout "):
-			var err error
-			if !strings.HasSuffix(itemTrim, " forever") {
-				readOptsPL["teardown_idle_timeout"], err = strconv.Atoi(
-					strings.TrimPrefix(itemTrim, "prefix-limit teardown idle-timeout "))
+		case balt.CutPrefixInString(&itemTrim, "teardown idle-timeout "):
+			if itemTrim == "forever" {
+				readOptsPL["teardown_idle_timeout_forever"] = true
+			} else {
+				readOptsPL["teardown_idle_timeout"], err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return append(opts, readOpts), fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			} else {
-				readOptsPL["teardown_idle_timeout_forever"] = true
 			}
-		case strings.HasPrefix(itemTrim, "prefix-limit teardown "):
-			var err error
-			readOptsPL["teardown"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "prefix-limit teardown "))
+		case balt.CutPrefixInString(&itemTrim, "teardown "):
+			readOptsPL["teardown"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return append(opts, readOpts), fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
@@ -752,20 +716,17 @@ func setBgpOptsGrafefulRestart(setPrefix string, gracefulRestarts []interface{},
 	return nil
 }
 
-func readBgpOptsGracefulRestart(item string, grRead map[string]interface{}) error {
-	itemTrim := strings.TrimPrefix(item, "graceful-restart ")
+func readBgpOptsGracefulRestart(itemTrim string, grRead map[string]interface{}) (err error) {
 	switch {
 	case itemTrim == disableW:
 		grRead["disable"] = true
-	case strings.HasPrefix(itemTrim, "restart-time "):
-		var err error
-		grRead["restart_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "restart-time "))
+	case balt.CutPrefixInString(&itemTrim, "restart-time "):
+		grRead["restart_time"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "stale-routes-time "):
-		var err error
-		grRead["stale_route_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "stale-routes-time "))
+	case balt.CutPrefixInString(&itemTrim, "stale-routes-time "):
+		grRead["stale_route_time"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -1190,11 +1191,10 @@ func setForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 
 func readForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 	instance, version string, clt *Client, junSess *junosSession,
-) (fwdOptsDhcpRelayOptions, error) {
-	var confRead fwdOptsDhcpRelayOptions
-	confRead.minimumWaitTime = -1    // default = -1
-	confRead.serverResponseTime = -1 // default = -1
-
+) (confRead fwdOptsDhcpRelayOptions, err error) {
+	// default -1
+	confRead.minimumWaitTime = -1
+	confRead.serverResponseTime = -1
 	showCmd := cmdShowConfig
 	if instance != defaultW {
 		showCmd += routingInstancesWS + instance + " "
@@ -1220,9 +1220,9 @@ func readForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 				break
 			}
 			switch {
-			case strings.HasPrefix(itemTrim, "access-profile "):
-				confRead.accessProfile = strings.Trim(strings.TrimPrefix(itemTrim, "access-profile "), "\"")
-			case strings.HasPrefix(itemTrim, "active-leasequery"):
+			case balt.CutPrefixInString(&itemTrim, "access-profile "):
+				confRead.accessProfile = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "active-leasequery"):
 				if len(confRead.activeLeasequery) == 0 {
 					confRead.activeLeasequery = append(confRead.activeLeasequery, map[string]interface{}{
 						"idle_timeout":      0,
@@ -1232,44 +1232,36 @@ func readForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "active-leasequery idle-timeout "):
-					var err error
-					confRead.activeLeasequery[0]["idle_timeout"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "active-leasequery idle-timeout "))
+				case balt.CutPrefixInString(&itemTrim, " idle-timeout "):
+					confRead.activeLeasequery[0]["idle_timeout"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "active-leasequery peer-address "):
-					confRead.activeLeasequery[0]["peer_address"] = strings.TrimPrefix(
-						itemTrim, "active-leasequery peer-address ")
-				case strings.HasPrefix(itemTrim, "active-leasequery timeout "):
-					var err error
-					confRead.activeLeasequery[0]["timeout"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "active-leasequery timeout "))
+				case balt.CutPrefixInString(&itemTrim, " peer-address "):
+					confRead.activeLeasequery[0]["peer_address"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, " timeout "):
+					confRead.activeLeasequery[0]["timeout"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case itemTrim == "active-leasequery topology-discover":
+				case itemTrim == " topology-discover":
 					confRead.activeLeasequery[0]["topology_discover"] = true
 				}
 			case itemTrim == "active-server-group allow-server-change":
 				confRead.activeServerGroupAllowServerChange = true
-			case strings.HasPrefix(itemTrim, "active-server-group "):
-				confRead.activeServerGroup = strings.TrimPrefix(itemTrim, "active-server-group ")
+			case balt.CutPrefixInString(&itemTrim, "active-server-group "):
+				confRead.activeServerGroup = itemTrim
 			case itemTrim == "arp-inspection":
 				confRead.arpInspection = true
-			case strings.HasPrefix(itemTrim, "authentication password "):
-				confRead.authenticationPassword = strings.Trim(strings.TrimPrefix(itemTrim, "authentication password "), "\"")
-			case strings.HasPrefix(itemTrim, "authentication username-include "):
+			case balt.CutPrefixInString(&itemTrim, "authentication password "):
+				confRead.authenticationPassword = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "authentication username-include "):
 				if len(confRead.authenticationUsernameInclude) == 0 {
 					confRead.authenticationUsernameInclude = append(confRead.authenticationUsernameInclude,
 						genForwardingOptionsDhcpRelayAuthUsernameInclude())
 				}
-				readForwardingOptionsDhcpRelayAuthUsernameInclude(
-					strings.TrimPrefix(itemTrim, "authentication username-include "),
-					confRead.authenticationUsernameInclude[0],
-				)
-			case strings.HasPrefix(itemTrim, "bulk-leasequery"):
+				readForwardingOptionsDhcpRelayAuthUsernameInclude(itemTrim, confRead.authenticationUsernameInclude[0])
+			case balt.CutPrefixInString(&itemTrim, "bulk-leasequery"):
 				if len(confRead.bulkLeasequery) == 0 {
 					confRead.bulkLeasequery = append(confRead.bulkLeasequery, map[string]interface{}{
 						"attempts":          0,
@@ -1278,55 +1270,49 @@ func readForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "bulk-leasequery attempts "):
-					var err error
-					confRead.bulkLeasequery[0]["attempts"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "bulk-leasequery attempts "))
+				case balt.CutPrefixInString(&itemTrim, " attempts "):
+					confRead.bulkLeasequery[0]["attempts"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "bulk-leasequery timeout "):
-					var err error
-					confRead.bulkLeasequery[0]["timeout"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "bulk-leasequery timeout "))
+				case balt.CutPrefixInString(&itemTrim, " timeout "):
+					confRead.bulkLeasequery[0]["timeout"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case itemTrim == "bulk-leasequery trigger automatic":
+				case itemTrim == " trigger automatic":
 					confRead.bulkLeasequery[0]["trigger_automatic"] = true
 				}
-			case strings.HasPrefix(itemTrim, "client-response-ttl "):
-				var err error
-				confRead.clientResponseTTL, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "client-response-ttl "))
+			case balt.CutPrefixInString(&itemTrim, "client-response-ttl "):
+				confRead.clientResponseTTL, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "duplicate-clients-in-subnet "):
-				confRead.duplicateClientsInSubnet = strings.TrimPrefix(itemTrim, "duplicate-clients-in-subnet ")
+			case balt.CutPrefixInString(&itemTrim, "duplicate-clients-in-subnet "):
+				confRead.duplicateClientsInSubnet = itemTrim
 			case itemTrim == "duplicate-clients incoming-interface":
 				confRead.duplicateClientsIncomingInterface = true
-			case strings.HasPrefix(itemTrim, "dynamic-profile aggregate-clients"):
+			case balt.CutPrefixInString(&itemTrim, "dynamic-profile aggregate-clients"):
 				confRead.dynamicProfileAggregateClients = true
-				if strings.HasPrefix(itemTrim, "dynamic-profile aggregate-clients ") {
-					confRead.dynamicProfileAggregateClientsAction = strings.TrimPrefix(itemTrim, "dynamic-profile aggregate-clients ")
+				if balt.CutPrefixInString(&itemTrim, " ") {
+					confRead.dynamicProfileAggregateClientsAction = itemTrim
 				}
-			case strings.HasPrefix(itemTrim, "dynamic-profile use-primary "):
-				confRead.dynamicProfileUsePrimary = strings.Trim(strings.TrimPrefix(itemTrim, "dynamic-profile use-primary "), "\"")
-			case strings.HasPrefix(itemTrim, "dynamic-profile "):
-				confRead.dynamicProfile = strings.Trim(strings.TrimPrefix(itemTrim, "dynamic-profile "), "\"")
+			case balt.CutPrefixInString(&itemTrim, "dynamic-profile use-primary "):
+				confRead.dynamicProfileUsePrimary = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "dynamic-profile "):
+				confRead.dynamicProfile = strings.Trim(itemTrim, "\"")
 			case itemTrim == "exclude-relay-agent-identifier":
 				confRead.excludeRelayAgentIdentifier = true
 			case itemTrim == "forward-only-replies":
 				confRead.forwardOnlyReplies = true
-			case strings.HasPrefix(itemTrim, "forward-only"):
+			case balt.CutPrefixInString(&itemTrim, "forward-only"):
 				confRead.forwardOnly = true
-				if strings.HasPrefix(itemTrim, "forward-only routing-instance ") {
-					confRead.forwardOnlyRoutingInstance = strings.Trim(strings.TrimPrefix(
-						itemTrim, "forward-only routing-instance "), "\"")
+				if balt.CutPrefixInString(&itemTrim, " routing-instance ") {
+					confRead.forwardOnlyRoutingInstance = strings.Trim(itemTrim, "\"")
 				}
-			case strings.HasPrefix(itemTrim, "forward-snooped-clients "):
-				confRead.forwardSnoopedClients = strings.TrimPrefix(itemTrim, "forward-snooped-clients ")
-			case strings.HasPrefix(itemTrim, "lease-time-validation"):
+			case balt.CutPrefixInString(&itemTrim, "forward-snooped-clients "):
+				confRead.forwardSnoopedClients = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "lease-time-validation"):
 				if len(confRead.leaseTimeValidation) == 0 {
 					confRead.leaseTimeValidation = append(confRead.leaseTimeValidation, map[string]interface{}{
 						"lease_time_threshold":  0,
@@ -1334,17 +1320,15 @@ func readForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "lease-time-validation lease-time-threshold "):
-					var err error
-					confRead.leaseTimeValidation[0]["lease_time_threshold"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "lease-time-validation lease-time-threshold "))
+				case balt.CutPrefixInString(&itemTrim, " lease-time-threshold "):
+					confRead.leaseTimeValidation[0]["lease_time_threshold"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case itemTrim == "lease-time-validation violation-action drop":
+				case itemTrim == " violation-action drop":
 					confRead.leaseTimeValidation[0]["violation_action_drop"] = true
 				}
-			case strings.HasPrefix(itemTrim, "leasequery"):
+			case balt.CutPrefixInString(&itemTrim, "leasequery"):
 				if len(confRead.leasequery) == 0 {
 					confRead.leasequery = append(confRead.leasequery, map[string]interface{}{
 						"attempts": 0,
@@ -1352,22 +1336,20 @@ func readForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "leasequery attempts "):
-					var err error
-					confRead.leasequery[0]["attempts"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "leasequery attempts "))
+				case balt.CutPrefixInString(&itemTrim, " attempts "):
+					confRead.leasequery[0]["attempts"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "leasequery timeout "):
-					var err error
-					confRead.leasequery[0]["timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "leasequery timeout "))
+				case balt.CutPrefixInString(&itemTrim, " timeout "):
+					confRead.leasequery[0]["timeout"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
-			case strings.HasPrefix(itemTrim, "liveness-detection failure-action "):
-				confRead.livenessDetectionFailureAction = strings.TrimPrefix(itemTrim, "liveness-detection failure-action ")
-			case strings.HasPrefix(itemTrim, "liveness-detection method bfd "):
+			case balt.CutPrefixInString(&itemTrim, "liveness-detection failure-action "):
+				confRead.livenessDetectionFailureAction = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "liveness-detection method bfd "):
 				if len(confRead.livenessDetectionMethodBfd) == 0 {
 					confRead.livenessDetectionMethodBfd = append(confRead.livenessDetectionMethodBfd, map[string]interface{}{
 						"detection_time_threshold":    -1,
@@ -1382,84 +1364,66 @@ func readForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 						"version":                     "",
 					})
 				}
-				itemTrimLiveDetMethBfd := strings.TrimPrefix(itemTrim, "liveness-detection method bfd ")
-				var err error
 				switch {
-				case strings.HasPrefix(itemTrimLiveDetMethBfd, "detection-time threshold "):
-					confRead.livenessDetectionMethodBfd[0]["detection_time_threshold"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrimLiveDetMethBfd, "detection-time threshold "))
-				case strings.HasPrefix(itemTrimLiveDetMethBfd, "holddown-interval "):
-					confRead.livenessDetectionMethodBfd[0]["holddown_interval"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrimLiveDetMethBfd, "holddown-interval "))
-				case strings.HasPrefix(itemTrimLiveDetMethBfd, "minimum-interval "):
-					confRead.livenessDetectionMethodBfd[0]["minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrimLiveDetMethBfd, "minimum-interval "))
-				case strings.HasPrefix(itemTrimLiveDetMethBfd, "minimum-receive-interval "):
-					confRead.livenessDetectionMethodBfd[0]["minimum_receive_interval"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrimLiveDetMethBfd, "minimum-receive-interval "))
-				case strings.HasPrefix(itemTrimLiveDetMethBfd, "multiplier "):
-					confRead.livenessDetectionMethodBfd[0]["multiplier"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrimLiveDetMethBfd, "multiplier "))
-				case itemTrimLiveDetMethBfd == "no-adaptation":
+				case balt.CutPrefixInString(&itemTrim, "detection-time threshold "):
+					confRead.livenessDetectionMethodBfd[0]["detection_time_threshold"], err = strconv.Atoi(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, "holddown-interval "):
+					confRead.livenessDetectionMethodBfd[0]["holddown_interval"], err = strconv.Atoi(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, "minimum-interval "):
+					confRead.livenessDetectionMethodBfd[0]["minimum_interval"], err = strconv.Atoi(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, "minimum-receive-interval "):
+					confRead.livenessDetectionMethodBfd[0]["minimum_receive_interval"], err = strconv.Atoi(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, "multiplier "):
+					confRead.livenessDetectionMethodBfd[0]["multiplier"], err = strconv.Atoi(itemTrim)
+				case itemTrim == "no-adaptation":
 					confRead.livenessDetectionMethodBfd[0]["no_adaptation"] = true
-				case strings.HasPrefix(itemTrimLiveDetMethBfd, "session-mode "):
-					confRead.livenessDetectionMethodBfd[0]["session_mode"] = strings.TrimPrefix(
-						itemTrimLiveDetMethBfd, "session-mode ")
-				case strings.HasPrefix(itemTrimLiveDetMethBfd, "transmit-interval minimum-interval "):
-					confRead.livenessDetectionMethodBfd[0]["transmit_interval_minimum"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrimLiveDetMethBfd, "transmit-interval minimum-interval "))
-				case strings.HasPrefix(itemTrimLiveDetMethBfd, "transmit-interval threshold "):
-					confRead.livenessDetectionMethodBfd[0]["transmit_interval_threshold"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrimLiveDetMethBfd, "transmit-interval threshold "))
-				case strings.HasPrefix(itemTrimLiveDetMethBfd, "version "):
-					confRead.livenessDetectionMethodBfd[0]["version"] = strings.TrimPrefix(itemTrimLiveDetMethBfd, "version ")
+				case balt.CutPrefixInString(&itemTrim, "session-mode "):
+					confRead.livenessDetectionMethodBfd[0]["session_mode"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "transmit-interval minimum-interval "):
+					confRead.livenessDetectionMethodBfd[0]["transmit_interval_minimum"], err = strconv.Atoi(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, "transmit-interval threshold "):
+					confRead.livenessDetectionMethodBfd[0]["transmit_interval_threshold"], err = strconv.Atoi(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, "version "):
+					confRead.livenessDetectionMethodBfd[0]["version"] = itemTrim
 				}
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "liveness-detection method layer2-liveness-detection "):
+			case balt.CutPrefixInString(&itemTrim, "liveness-detection method layer2-liveness-detection "):
 				if len(confRead.livenessDetectionMethodLayer2) == 0 {
 					confRead.livenessDetectionMethodLayer2 = append(confRead.livenessDetectionMethodLayer2, map[string]interface{}{
 						"max_consecutive_retries": 0,
 						"transmit_interval":       0,
 					})
 				}
-				var err error
 				switch {
-				case strings.HasPrefix(itemTrim, "liveness-detection method layer2-liveness-detection max-consecutive-retries "):
-					confRead.livenessDetectionMethodLayer2[0]["max_consecutive_retries"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "liveness-detection method layer2-liveness-detection max-consecutive-retries "))
-				case strings.HasPrefix(itemTrim, "liveness-detection method layer2-liveness-detection transmit-interval "):
-					confRead.livenessDetectionMethodLayer2[0]["transmit_interval"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "liveness-detection method layer2-liveness-detection transmit-interval "))
+				case balt.CutPrefixInString(&itemTrim, "max-consecutive-retries "):
+					confRead.livenessDetectionMethodLayer2[0]["max_consecutive_retries"], err = strconv.Atoi(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, "transmit-interval "):
+					confRead.livenessDetectionMethodLayer2[0]["transmit_interval"], err = strconv.Atoi(itemTrim)
 				}
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "maximum-hop-count "):
-				var err error
-				confRead.maximumHopCount, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "maximum-hop-count "))
+			case balt.CutPrefixInString(&itemTrim, "maximum-hop-count "):
+				confRead.maximumHopCount, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "minimum-wait-time "):
-				var err error
-				confRead.minimumWaitTime, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-wait-time "))
+			case balt.CutPrefixInString(&itemTrim, "minimum-wait-time "):
+				confRead.minimumWaitTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "no-snoop":
 				confRead.noSnoop = true
-			case strings.HasPrefix(itemTrim, "overrides "):
+			case balt.CutPrefixInString(&itemTrim, "overrides "):
 				if version == "v4" {
 					if len(confRead.overridesV4) == 0 {
 						confRead.overridesV4 = append(confRead.overridesV4,
 							genForwardingOptionsDhcpRelayOverridesV4())
 					}
-					if err := readForwardingOptionsDhcpRelayOverridesV4(
-						strings.TrimPrefix(itemTrim, "overrides "),
-						confRead.overridesV4[0],
-					); err != nil {
+					if err := readForwardingOptionsDhcpRelayOverridesV4(itemTrim, confRead.overridesV4[0]); err != nil {
 						return confRead, err
 					}
 				} else if version == "v6" {
@@ -1467,60 +1431,45 @@ func readForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 						confRead.overridesV6 = append(confRead.overridesV6,
 							genForwardingOptionsDhcpRelayOverridesV6())
 					}
-					if err := readForwardingOptionsDhcpRelayOverridesV6(
-						strings.TrimPrefix(itemTrim, "overrides "),
-						confRead.overridesV6[0],
-					); err != nil {
+					if err := readForwardingOptionsDhcpRelayOverridesV6(itemTrim, confRead.overridesV6[0]); err != nil {
 						return confRead, err
 					}
 				}
 			case itemTrim == "persistent-storage automatic":
 				confRead.persistentStorageAutomatic = true
-			case strings.HasPrefix(itemTrim, "relay-agent-interface-id"):
+			case balt.CutPrefixInString(&itemTrim, "relay-agent-interface-id"):
 				if len(confRead.relayAgentInterfaceID) == 0 {
 					confRead.relayAgentInterfaceID = append(confRead.relayAgentInterfaceID,
 						genForwardingOptionsDhcpRelayAgentID(true))
 				}
-				if strings.HasPrefix(itemTrim, "relay-agent-interface-id ") {
-					readForwardingOptionsDhcpRelayAgentID(
-						strings.TrimPrefix(itemTrim, "relay-agent-interface-id "),
-						confRead.relayAgentInterfaceID[0],
-					)
+				if balt.CutPrefixInString(&itemTrim, " ") {
+					readForwardingOptionsDhcpRelayAgentID(itemTrim, confRead.relayAgentInterfaceID[0])
 				}
 			case itemTrim == "relay-agent-option-79":
 				confRead.relayAgentOption79 = true
-			case strings.HasPrefix(itemTrim, "relay-agent-remote-id"):
+			case balt.CutPrefixInString(&itemTrim, "relay-agent-remote-id"):
 				if len(confRead.relayAgentRemoteID) == 0 {
 					confRead.relayAgentRemoteID = append(confRead.relayAgentRemoteID,
 						genForwardingOptionsDhcpRelayAgentID(false))
 				}
-				if strings.HasPrefix(itemTrim, "relay-agent-remote-id ") {
-					readForwardingOptionsDhcpRelayAgentID(
-						strings.TrimPrefix(itemTrim, "relay-agent-remote-id "),
-						confRead.relayAgentRemoteID[0],
-					)
+				if balt.CutPrefixInString(&itemTrim, " ") {
+					readForwardingOptionsDhcpRelayAgentID(itemTrim, confRead.relayAgentRemoteID[0])
 				}
-			case strings.HasPrefix(itemTrim, "relay-option-82"):
+			case balt.CutPrefixInString(&itemTrim, "relay-option-82"):
 				if len(confRead.relayOption82) == 0 {
 					confRead.relayOption82 = append(confRead.relayOption82,
 						genForwardingOptionsDhcpRelayOption82())
 				}
-				if strings.HasPrefix(itemTrim, "relay-option-82 ") {
-					readForwardingOptionsDhcpRelayOption82(
-						strings.TrimPrefix(itemTrim, "relay-option-82 "),
-						confRead.relayOption82[0],
-					)
+				if balt.CutPrefixInString(&itemTrim, " ") {
+					readForwardingOptionsDhcpRelayOption82(itemTrim, confRead.relayOption82[0])
 				}
-			case strings.HasPrefix(itemTrim, "relay-option"):
+			case balt.CutPrefixInString(&itemTrim, "relay-option"):
 				if len(confRead.relayOption) == 0 {
 					confRead.relayOption = append(confRead.relayOption,
 						genForwardingOptionsDhcpRelayOption())
 				}
-				if strings.HasPrefix(itemTrim, "relay-option ") {
-					if err := readForwardingOptionsDhcpRelayOption(
-						strings.TrimPrefix(itemTrim, "relay-option "),
-						confRead.relayOption[0],
-					); err != nil {
+				if balt.CutPrefixInString(&itemTrim, " ") {
+					if err := readForwardingOptionsDhcpRelayOption(itemTrim, confRead.relayOption[0]); err != nil {
 						return confRead, err
 					}
 				}
@@ -1532,53 +1481,48 @@ func readForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 				confRead.routeSuppressionAccessInternal = true
 			case itemTrim == "route-suppression destination":
 				confRead.routeSuppressionDestination = true
-			case strings.HasPrefix(itemTrim, "server-match address "):
-				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "server-match address "), " ")
-				if len(itemTrimSplit) < 2 {
-					return confRead, fmt.Errorf("can't read values for server_match_address in '%s'", itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "server-match address "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				if len(itemTrimFields) < 2 { // <address> <action>
+					return confRead, fmt.Errorf(cantReadValuesNotEnoughFields, "server-match address", itemTrim)
 				}
 				confRead.serverMatchAddress = append(confRead.serverMatchAddress, map[string]interface{}{
-					"address": itemTrimSplit[0],
-					"action":  itemTrimSplit[1],
+					"address": itemTrimFields[0],
+					"action":  itemTrimFields[1],
 				})
-			case strings.HasPrefix(itemTrim, "server-match default-action "):
-				confRead.serverMatchDefaultAction = strings.TrimPrefix(itemTrim, "server-match default-action ")
-			case strings.HasPrefix(itemTrim, "server-match duid "):
-				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "server-match duid "), " ")
-				if len(itemTrimSplit) < 4 {
-					return confRead, fmt.Errorf("can't read values for server_match_duid in '%s'", itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "server-match default-action "):
+				confRead.serverMatchDefaultAction = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "server-match duid "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				if len(itemTrimFields) < 4 { // <compare> <value_type> <value> <action>
+					return confRead, fmt.Errorf(cantReadValuesNotEnoughFields, "server-match duid", itemTrim)
 				}
-				if strings.Contains(itemTrimSplit[2], "\"") {
-					action := itemTrimSplit[len(itemTrimSplit)-1]
-					value := strings.Trim(strings.Join(itemTrimSplit[2:len(itemTrimSplit)-1], " "), "\"")
-					itemTrimSplit[2] = value
-					itemTrimSplit[3] = action
+				if strings.Contains(itemTrimFields[2], "\"") {
+					action := itemTrimFields[len(itemTrimFields)-1]
+					value := strings.Trim(strings.Join(itemTrimFields[2:len(itemTrimFields)-1], " "), "\"")
+					itemTrimFields[2] = value
+					itemTrimFields[3] = action
 				}
 				confRead.serverMatchDuid = append(confRead.serverMatchDuid, map[string]interface{}{
-					"compare":    itemTrimSplit[0],
-					"value_type": itemTrimSplit[1],
-					"value":      itemTrimSplit[2],
-					"action":     itemTrimSplit[3],
+					"compare":    itemTrimFields[0],
+					"value_type": itemTrimFields[1],
+					"value":      itemTrimFields[2],
+					"action":     itemTrimFields[3],
 				})
-			case strings.HasPrefix(itemTrim, "server-response-time "):
-				var err error
-				confRead.serverResponseTime, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "server-response-time "))
+			case balt.CutPrefixInString(&itemTrim, "server-response-time "):
+				confRead.serverResponseTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "service-profile "):
-				confRead.serviceProfile = strings.Trim(strings.TrimPrefix(itemTrim, "service-profile "), "\"")
-			case strings.HasPrefix(itemTrim, "short-cycle-protection lockout-max-time "):
-				var err error
-				confRead.shortCycleProtectionLockoutMaxTime, err = strconv.Atoi(strings.TrimPrefix(
-					itemTrim, "short-cycle-protection lockout-max-time "))
+			case balt.CutPrefixInString(&itemTrim, "service-profile "):
+				confRead.serviceProfile = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "short-cycle-protection lockout-max-time "):
+				confRead.shortCycleProtectionLockoutMaxTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "short-cycle-protection lockout-min-time "):
-				var err error
-				confRead.shortCycleProtectionLockoutMinTime, err = strconv.Atoi(strings.TrimPrefix(
-					itemTrim, "short-cycle-protection lockout-min-time "))
+			case balt.CutPrefixInString(&itemTrim, "short-cycle-protection lockout-min-time "):
+				confRead.shortCycleProtectionLockoutMinTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}

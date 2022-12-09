@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type natDestinationPoolOptions struct {
@@ -302,9 +303,7 @@ func setSecurityNatDestinationPool(d *schema.ResourceData, clt *Client, junSess 
 }
 
 func readSecurityNatDestinationPool(name string, clt *Client, junSess *junosSession,
-) (natDestinationPoolOptions, error) {
-	var confRead natDestinationPoolOptions
-
+) (confRead natDestinationPoolOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security nat destination pool "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -321,19 +320,19 @@ func readSecurityNatDestinationPool(name string, clt *Client, junSess *junosSess
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "address port"):
-				confRead.addressPort, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "address port "))
+			case balt.CutPrefixInString(&itemTrim, "address port "):
+				confRead.addressPort, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "address to"):
-				confRead.addressTo = strings.TrimPrefix(itemTrim, "address to ")
-			case strings.HasPrefix(itemTrim, "address "):
-				confRead.address = strings.TrimPrefix(itemTrim, "address ")
-			case strings.HasPrefix(itemTrim, "description "):
-				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
-			case strings.HasPrefix(itemTrim, "routing-instance "):
-				confRead.routingInstance = strings.TrimPrefix(itemTrim, "routing-instance ")
+			case balt.CutPrefixInString(&itemTrim, "address to "):
+				confRead.addressTo = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "address "):
+				confRead.address = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				confRead.description = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "routing-instance "):
+				confRead.routingInstance = itemTrim
 			}
 		}
 	}

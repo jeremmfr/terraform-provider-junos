@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type rstpInterfaceOptions struct {
@@ -326,9 +327,8 @@ func resourceRstpInterfaceImport(ctx context.Context, d *schema.ResourceData, m 
 	return result, nil
 }
 
-func checkRstpInterfaceExists(name, routingInstance string, clt *Client, junSess *junosSession) (bool, error) {
+func checkRstpInterfaceExists(name, routingInstance string, clt *Client, junSess *junosSession) (_ bool, err error) {
 	var showConfig string
-	var err error
 	if routingInstance == defaultW {
 		showConfig, err = clt.command(cmdShowConfig+
 			"protocols rstp interface "+name+pipeDisplaySet, junSess)
@@ -385,11 +385,10 @@ func setRstpInterface(d *schema.ResourceData, clt *Client, junSess *junosSession
 }
 
 func readRstpInterface(name, routingInstance string, clt *Client, junSess *junosSession,
-) (rstpInterfaceOptions, error) {
-	var confRead rstpInterfaceOptions
-	confRead.priority = -1 // default -1
+) (confRead rstpInterfaceOptions, err error) {
+	// default -1
+	confRead.priority = -1
 	var showConfig string
-	var err error
 	if routingInstance == defaultW {
 		showConfig, err = clt.command(cmdShowConfig+
 			"protocols rstp interface "+name+pipeDisplaySetRelative, junSess)
@@ -418,21 +417,19 @@ func readRstpInterface(name, routingInstance string, clt *Client, junSess *junos
 				confRead.bpduTimeoutActionAlarm = true
 			case itemTrim == "bpdu-timeout-action block":
 				confRead.bpduTimeoutActionBlock = true
-			case strings.HasPrefix(itemTrim, "cost "):
-				var err error
-				confRead.cost, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "cost "))
+			case balt.CutPrefixInString(&itemTrim, "cost "):
+				confRead.cost, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "edge":
 				confRead.edge = true
-			case strings.HasPrefix(itemTrim, "mode "):
-				confRead.mode = strings.TrimPrefix(itemTrim, "mode ")
+			case balt.CutPrefixInString(&itemTrim, "mode "):
+				confRead.mode = itemTrim
 			case itemTrim == "no-root-port":
 				confRead.noRootPort = true
-			case strings.HasPrefix(itemTrim, "priority "):
-				var err error
-				confRead.priority, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "priority "))
+			case balt.CutPrefixInString(&itemTrim, "priority "):
+				confRead.priority, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}

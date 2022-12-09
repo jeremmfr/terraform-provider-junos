@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type zoneBookAddressOptions struct {
@@ -367,9 +368,7 @@ func setSecurityZoneBookAddress(d *schema.ResourceData, clt *Client, junSess *ju
 }
 
 func readSecurityZoneBookAddress(zone, address string, clt *Client, junSess *junosSession,
-) (zoneBookAddressOptions, error) {
-	var confRead zoneBookAddressOptions
-
+) (confRead zoneBookAddressOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security zones security-zone "+zone+" address-book address "+address+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -387,25 +386,28 @@ func readSecurityZoneBookAddress(zone, address string, clt *Client, junSess *jun
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "description "):
-				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
-			case strings.HasPrefix(itemTrim, "dns-name "):
-				dnsValue := strings.TrimPrefix(itemTrim, "dns-name ")
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				confRead.description = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "dns-name "):
 				switch {
-				case strings.HasSuffix(itemTrim, " ipv4-only"):
+				case balt.CutSuffixInString(&itemTrim, " ipv4-only"):
 					confRead.dnsIPv4Only = true
-					dnsValue = strings.TrimSuffix(strings.TrimPrefix(itemTrim, "dns-name "), " ipv4-only")
-				case strings.HasSuffix(itemTrim, " ipv6-only"):
+					confRead.dnsName = itemTrim
+				case balt.CutSuffixInString(&itemTrim, " ipv6-only"):
 					confRead.dnsIPv6Only = true
-					dnsValue = strings.TrimSuffix(strings.TrimPrefix(itemTrim, "dns-name "), " ipv6-only")
+					confRead.dnsName = itemTrim
+				default:
+					confRead.dnsName = itemTrim
 				}
-				confRead.dnsName = dnsValue
-			case strings.HasPrefix(itemTrim, "range-address "):
-				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "range-address "), " ")
-				confRead.rangeFrom = itemTrimSplit[0]
-				confRead.rangeTo = itemTrimSplit[2]
-			case strings.HasPrefix(itemTrim, "wildcard-address "):
-				confRead.wildcard = strings.TrimPrefix(itemTrim, "wildcard-address ")
+			case balt.CutPrefixInString(&itemTrim, "range-address "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				if len(itemTrimFields) < 3 { // <from> to <to>
+					return confRead, fmt.Errorf(cantReadValuesNotEnoughFields, "range-address", itemTrim)
+				}
+				confRead.rangeFrom = itemTrimFields[0]
+				confRead.rangeTo = itemTrimFields[2]
+			case balt.CutPrefixInString(&itemTrim, "wildcard-address "):
+				confRead.wildcard = itemTrim
 			case strings.Contains(itemTrim, "/"):
 				confRead.cidr = itemTrim
 			}

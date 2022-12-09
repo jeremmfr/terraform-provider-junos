@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
@@ -1977,12 +1978,10 @@ func delSystem(clt *Client, junSess *junosSession) error {
 	return clt.configSet(configSet, junSess)
 }
 
-func readSystem(clt *Client, junSess *junosSession) (systemOptions, error) {
-	var confRead systemOptions
+func readSystem(clt *Client, junSess *junosSession) (confRead systemOptions, err error) {
 	// default -1
 	confRead.maxConfigurationRollbacks = -1
 	confRead.maxConfigurationsOnFlash = -1
-
 	showConfig, err := clt.command(cmdShowConfig+"system"+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -1997,7 +1996,7 @@ func readSystem(clt *Client, junSess *junosSession) (systemOptions, error) {
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "archival configuration "):
+			case balt.CutPrefixInString(&itemTrim, "archival configuration "):
 				if len(confRead.archivalConfiguration) == 0 {
 					confRead.archivalConfiguration = append(confRead.archivalConfiguration, map[string]interface{}{
 						"archive_site":       make([]map[string]interface{}, 0),
@@ -2006,47 +2005,44 @@ func readSystem(clt *Client, junSess *junosSession) (systemOptions, error) {
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "archival configuration archive-sites "):
-					archiveSiteSplit := strings.Split(strings.TrimPrefix(itemTrim, "archival configuration archive-sites "), " ")
-					if len(archiveSiteSplit) == 1 {
-						confRead.archivalConfiguration[0]["archive_site"] = append(
-							confRead.archivalConfiguration[0]["archive_site"].([]map[string]interface{}), map[string]interface{}{
-								"url":      strings.Trim(archiveSiteSplit[0], "\""),
-								"password": "",
-							})
-					} else {
-						passWord, err := jdecode.Decode(strings.Trim(archiveSiteSplit[2], "\""))
+				case balt.CutPrefixInString(&itemTrim, "archive-sites "):
+					itemTrimFields := strings.Split(itemTrim, " ")
+					if len(itemTrimFields) > 2 { // <url> password <password>
+						passWord, err := jdecode.Decode(strings.Trim(itemTrimFields[2], "\""))
 						if err != nil {
 							return confRead, fmt.Errorf("failed to decode archive-site password: %w", err)
 						}
 						confRead.archivalConfiguration[0]["archive_site"] = append(
 							confRead.archivalConfiguration[0]["archive_site"].([]map[string]interface{}), map[string]interface{}{
-								"url":      strings.Trim(archiveSiteSplit[0], "\""),
+								"url":      strings.Trim(itemTrimFields[0], "\""),
 								"password": passWord,
 							})
+					} else { // <url>
+						confRead.archivalConfiguration[0]["archive_site"] = append(
+							confRead.archivalConfiguration[0]["archive_site"].([]map[string]interface{}), map[string]interface{}{
+								"url":      strings.Trim(itemTrimFields[0], "\""),
+								"password": "",
+							})
 					}
-				case strings.HasPrefix(itemTrim, "archival configuration transfer-interval "):
-					var err error
-					confRead.archivalConfiguration[0]["transfer_interval"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "archival configuration transfer-interval "))
+				case balt.CutPrefixInString(&itemTrim, "transfer-interval "):
+					confRead.archivalConfiguration[0]["transfer_interval"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case itemTrim == "archival configuration transfer-on-commit":
+				case itemTrim == "transfer-on-commit":
 					confRead.archivalConfiguration[0]["transfer_on_commit"] = true
 				}
-			case strings.HasPrefix(itemTrim, "authentication-order "):
-				confRead.authenticationOrder = append(confRead.authenticationOrder,
-					strings.TrimPrefix(itemTrim, "authentication-order "))
+			case balt.CutPrefixInString(&itemTrim, "authentication-order "):
+				confRead.authenticationOrder = append(confRead.authenticationOrder, itemTrim)
 			case itemTrim == "auto-snapshot":
 				confRead.autoSnapshot = true
 			case itemTrim == "default-address-selection":
 				confRead.defaultAddressSelection = true
-			case strings.HasPrefix(itemTrim, "domain-name "):
-				confRead.domainName = strings.TrimPrefix(itemTrim, "domain-name ")
-			case strings.HasPrefix(itemTrim, "host-name "):
-				confRead.hostName = strings.TrimPrefix(itemTrim, "host-name ")
-			case strings.HasPrefix(itemTrim, "inet6-backup-router "):
+			case balt.CutPrefixInString(&itemTrim, "domain-name "):
+				confRead.domainName = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "host-name "):
+				confRead.hostName = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "inet6-backup-router "):
 				if len(confRead.inet6BackupRouter) == 0 {
 					confRead.inet6BackupRouter = append(confRead.inet6BackupRouter, map[string]interface{}{
 						"address":     "",
@@ -2054,33 +2050,33 @@ func readSystem(clt *Client, junSess *junosSession) (systemOptions, error) {
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "inet6-backup-router destination "):
-					confRead.inet6BackupRouter[0]["destination"] = append(confRead.inet6BackupRouter[0]["destination"].([]string),
-						strings.TrimPrefix(itemTrim, "inet6-backup-router destination "))
+				case balt.CutPrefixInString(&itemTrim, "destination "):
+					confRead.inet6BackupRouter[0]["destination"] = append(
+						confRead.inet6BackupRouter[0]["destination"].([]string),
+						itemTrim,
+					)
 				default:
-					confRead.inet6BackupRouter[0]["address"] = strings.TrimPrefix(itemTrim, "inet6-backup-router ")
+					confRead.inet6BackupRouter[0]["address"] = itemTrim
 				}
-			case strings.HasPrefix(itemTrim, "internet-options "):
-				if err := readSystemInternetOptions(&confRead, itemTrim); err != nil {
+			case balt.CutPrefixInString(&itemTrim, "internet-options "):
+				if err := confRead.readSystemInternetOptions(itemTrim); err != nil {
 					return confRead, err
 				}
 			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesLicense()):
-				if err := readSystemLicense(&confRead, itemTrim); err != nil {
+				if err := confRead.readSystemLicense(itemTrim); err != nil {
 					return confRead, err
 				}
 			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesLogin()):
-				if err := readSystemLogin(&confRead, itemTrim); err != nil {
+				if err := confRead.readSystemLogin(itemTrim); err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "max-configuration-rollbacks "):
-				var err error
-				confRead.maxConfigurationRollbacks, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-configuration-rollbacks "))
+			case balt.CutPrefixInString(&itemTrim, "max-configuration-rollbacks "):
+				confRead.maxConfigurationRollbacks, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "max-configurations-on-flash "):
-				var err error
-				confRead.maxConfigurationsOnFlash, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-configurations-on-flash "))
+			case balt.CutPrefixInString(&itemTrim, "max-configurations-on-flash "):
+				confRead.maxConfigurationsOnFlash, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
@@ -2097,31 +2093,29 @@ func readSystem(clt *Client, junSess *junosSession) (systemOptions, error) {
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "ntp boot-server "):
-					confRead.ntp[0]["boot_server"] = strings.TrimPrefix(itemTrim, "ntp boot-server ")
+				case balt.CutPrefixInString(&itemTrim, "ntp boot-server "):
+					confRead.ntp[0]["boot_server"] = itemTrim
 				case itemTrim == "ntp broadcast-client":
 					confRead.ntp[0]["broadcast_client"] = true
-				case strings.HasPrefix(itemTrim, "ntp interval-range "):
-					var err error
-					confRead.ntp[0]["interval_range"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "ntp interval-range "))
+				case balt.CutPrefixInString(&itemTrim, "ntp interval-range "):
+					confRead.ntp[0]["interval_range"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "ntp multicast-client"):
+				case balt.CutPrefixInString(&itemTrim, "ntp multicast-client"):
 					confRead.ntp[0]["multicast_client"] = true
-					if strings.HasPrefix(itemTrim, "ntp multicast-client ") {
-						confRead.ntp[0]["multicast_client_address"] = strings.TrimPrefix(itemTrim, "ntp multicast-client ")
+					if balt.CutPrefixInString(&itemTrim, " ") {
+						confRead.ntp[0]["multicast_client_address"] = itemTrim
 					}
-				case strings.HasPrefix(itemTrim, "ntp threshold action "):
-					confRead.ntp[0]["threshold_action"] = strings.TrimPrefix(itemTrim, "ntp threshold action ")
-				case strings.HasPrefix(itemTrim, "ntp threshold "):
-					var err error
-					confRead.ntp[0]["threshold_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "ntp threshold "))
+				case balt.CutPrefixInString(&itemTrim, "ntp threshold action "):
+					confRead.ntp[0]["threshold_action"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "ntp threshold "):
+					confRead.ntp[0]["threshold_value"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
-			case strings.HasPrefix(itemTrim, "ports "):
+			case balt.CutPrefixInString(&itemTrim, "ports "):
 				if len(confRead.ports) == 0 {
 					confRead.ports = append(confRead.ports, map[string]interface{}{
 						"auxiliary_authentication_order": make([]string, 0),
@@ -2136,35 +2130,36 @@ func readSystem(clt *Client, junSess *junosSession) (systemOptions, error) {
 						"console_type":                   "",
 					})
 				}
-				itemTrimPorts := strings.TrimPrefix(itemTrim, "ports ")
 				switch {
-				case strings.HasPrefix(itemTrimPorts, "auxiliary authentication-order "):
+				case balt.CutPrefixInString(&itemTrim, "auxiliary authentication-order "):
 					confRead.ports[0]["auxiliary_authentication_order"] = append(
 						confRead.ports[0]["auxiliary_authentication_order"].([]string),
-						strings.TrimPrefix(itemTrimPorts, "auxiliary authentication-order "))
-				case itemTrimPorts == "auxiliary disable":
+						itemTrim,
+					)
+				case itemTrim == "auxiliary disable":
 					confRead.ports[0]["auxiliary_disable"] = true
-				case itemTrimPorts == "auxiliary insecure":
+				case itemTrim == "auxiliary insecure":
 					confRead.ports[0]["auxiliary_insecure"] = true
-				case itemTrimPorts == "auxiliary log-out-on-disconnect":
+				case itemTrim == "auxiliary log-out-on-disconnect":
 					confRead.ports[0]["auxiliary_logout_on_disconnect"] = true
-				case strings.HasPrefix(itemTrimPorts, "auxiliary type "):
-					confRead.ports[0]["auxiliary_type"] = strings.TrimPrefix(itemTrimPorts, "auxiliary type ")
-				case strings.HasPrefix(itemTrimPorts, "console authentication-order "):
+				case balt.CutPrefixInString(&itemTrim, "auxiliary type "):
+					confRead.ports[0]["auxiliary_type"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "console authentication-order "):
 					confRead.ports[0]["console_authentication_order"] = append(
 						confRead.ports[0]["console_authentication_order"].([]string),
-						strings.TrimPrefix(itemTrimPorts, "console authentication-order "))
-				case itemTrimPorts == "console disable":
+						itemTrim,
+					)
+				case itemTrim == "console disable":
 					confRead.ports[0]["console_disable"] = true
-				case itemTrimPorts == "console insecure":
+				case itemTrim == "console insecure":
 					confRead.ports[0]["console_insecure"] = true
-				case itemTrimPorts == "console log-out-on-disconnect":
+				case itemTrim == "console log-out-on-disconnect":
 					confRead.ports[0]["console_logout_on_disconnect"] = true
-				case strings.HasPrefix(itemTrimPorts, "console type "):
-					confRead.ports[0]["console_type"] = strings.TrimPrefix(itemTrimPorts, "console type ")
+				case balt.CutPrefixInString(&itemTrim, "console type "):
+					confRead.ports[0]["console_type"] = itemTrim
 				}
-			case strings.HasPrefix(itemTrim, "name-server "):
-				confRead.nameServer = append(confRead.nameServer, strings.TrimPrefix(itemTrim, "name-server "))
+			case balt.CutPrefixInString(&itemTrim, "name-server "):
+				confRead.nameServer = append(confRead.nameServer, itemTrim)
 			case itemTrim == "no-multicast-echo":
 				confRead.noMulticastEcho = true
 			case itemTrim == "no-ping-record-route":
@@ -2175,9 +2170,8 @@ func readSystem(clt *Client, junSess *junosSession) (systemOptions, error) {
 				confRead.noRedirects = true
 			case itemTrim == "no-redirects-ipv6":
 				confRead.noRedirectsIPv6 = true
-			case strings.HasPrefix(itemTrim, "radius-options attributes nas-ip-address "):
-				confRead.radiusOptionsAttributesNasIPAddress = strings.TrimPrefix(itemTrim,
-					"radius-options attributes nas-ip-address ")
+			case balt.CutPrefixInString(&itemTrim, "radius-options attributes nas-ip-address "):
+				confRead.radiusOptionsAttributesNasIPAddress = itemTrim
 			case itemTrim == "radius-options enhanced-accounting":
 				confRead.radiusOptionsEnhancedAccounting = true
 			case itemTrim == "radius-options password-protocol mschap-v2":
@@ -2193,34 +2187,33 @@ func readSystem(clt *Client, junSess *junosSession) (systemOptions, error) {
 					})
 				}
 				if bchk.StringHasOneOfPrefixes(itemTrim, listLinesServicesNetconfSSH()) {
-					if err := readSystemServicesNetconfSSH(&confRead, itemTrim); err != nil {
+					if err := confRead.readSystemServicesNetconfSSH(itemTrim); err != nil {
 						return confRead, err
 					}
 				}
-				if strings.HasPrefix(itemTrim, "services netconf traceoptions ") {
-					if err := readSystemServicesNetconfTraceOpts(&confRead, itemTrim); err != nil {
+				if balt.CutPrefixInString(&itemTrim, "services netconf traceoptions ") {
+					if err := confRead.readSystemServicesNetconfTraceOpts(itemTrim); err != nil {
 						return confRead, err
 					}
 				}
 				if bchk.StringHasOneOfPrefixes(itemTrim, listLinesServicesSSH()) {
-					if err := readSystemServicesSSH(&confRead, itemTrim); err != nil {
+					if err := confRead.readSystemServicesSSH(itemTrim); err != nil {
 						return confRead, err
 					}
 				}
 				if bchk.StringHasOneOfPrefixes(itemTrim, listLinesServicesWebManagement()) {
-					if err := readSystemServicesWebManagement(&confRead, itemTrim); err != nil {
+					if err := confRead.readSystemServicesWebManagement(itemTrim); err != nil {
 						return confRead, err
 					}
 				}
 			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesSyslog()):
-				if err := readSystemSyslog(&confRead, itemTrim); err != nil {
+				if err := confRead.readSystemSyslog(itemTrim); err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "time-zone "):
-				confRead.timeZone = strings.TrimPrefix(itemTrim, "time-zone ")
-			case strings.HasPrefix(itemTrim, "tracing destination-override syslog host "):
-				confRead.tracingDestinationOverrideSyslogHost = strings.TrimPrefix(itemTrim,
-					"tracing destination-override syslog host ")
+			case balt.CutPrefixInString(&itemTrim, "time-zone "):
+				confRead.timeZone = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "tracing destination-override syslog host "):
+				confRead.tracingDestinationOverrideSyslogHost = itemTrim
 			}
 		}
 	}
@@ -2228,7 +2221,7 @@ func readSystem(clt *Client, junSess *junosSession) (systemOptions, error) {
 	return confRead, nil
 }
 
-func readSystemLogin(confRead *systemOptions, itemTrim string) error {
+func (confRead *systemOptions) readSystemLogin(itemTrim string) (err error) {
 	if len(confRead.login) == 0 {
 		confRead.login = append(confRead.login, map[string]interface{}{
 			"announcement":         "",
@@ -2240,21 +2233,21 @@ func readSystemLogin(confRead *systemOptions, itemTrim string) error {
 		})
 	}
 	switch {
-	case strings.HasPrefix(itemTrim, "login announcement "):
-		confRead.login[0]["announcement"] = html.UnescapeString(strings.Trim(strings.TrimPrefix(
-			itemTrim, "login announcement "), "\""))
-	case strings.HasPrefix(itemTrim, "login deny-sources address "):
-		confRead.login[0]["deny_sources_address"] = append(confRead.login[0]["deny_sources_address"].([]string),
-			strings.TrimPrefix(itemTrim, "login deny-sources address "))
-	case strings.HasPrefix(itemTrim, "login idle-timeout "):
-		var err error
-		confRead.login[0]["idle_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "login idle-timeout "))
+	case balt.CutPrefixInString(&itemTrim, "login announcement "):
+		confRead.login[0]["announcement"] = html.UnescapeString(strings.Trim(itemTrim, "\""))
+	case balt.CutPrefixInString(&itemTrim, "login deny-sources address "):
+		confRead.login[0]["deny_sources_address"] = append(
+			confRead.login[0]["deny_sources_address"].([]string),
+			itemTrim,
+		)
+	case balt.CutPrefixInString(&itemTrim, "login idle-timeout "):
+		confRead.login[0]["idle_timeout"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "login message "):
-		confRead.login[0]["message"] = strings.Trim(strings.TrimPrefix(itemTrim, "login message "), "\"")
-	case strings.HasPrefix(itemTrim, "login password "):
+	case balt.CutPrefixInString(&itemTrim, "login message "):
+		confRead.login[0]["message"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "login password "):
 		if len(confRead.login[0]["password"].([]map[string]interface{})) == 0 {
 			confRead.login[0]["password"] = append(confRead.login[0]["password"].([]map[string]interface{}),
 				map[string]interface{}{
@@ -2273,75 +2266,57 @@ func readSystemLogin(confRead *systemOptions, itemTrim string) error {
 		}
 		password := confRead.login[0]["password"].([]map[string]interface{})[0]
 		switch {
-		case strings.HasPrefix(itemTrim, "login password change-type "):
-			password["change_type"] = strings.TrimPrefix(itemTrim, "login password change-type ")
-		case strings.HasPrefix(itemTrim, "login password format "):
-			password["format"] = strings.TrimPrefix(itemTrim, "login password format ")
-		case strings.HasPrefix(itemTrim, "login password maximum-length "):
-			var err error
-			password["maximum_length"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "login password maximum-length "))
+		case balt.CutPrefixInString(&itemTrim, "change-type "):
+			password["change_type"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "format "):
+			password["format"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "maximum-length "):
+			password["maximum_length"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "login password minimum-changes "):
-			var err error
-			password["minimum_changes"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "login password minimum-changes "))
+		case balt.CutPrefixInString(&itemTrim, "minimum-changes "):
+			password["minimum_changes"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "login password minimum-character-changes "):
-			var err error
-			password["minimum_character_changes"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "login password minimum-character-changes "))
+		case balt.CutPrefixInString(&itemTrim, "minimum-character-changes "):
+			password["minimum_character_changes"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "login password minimum-length "):
-			var err error
-			password["minimum_length"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "login password minimum-length "))
+		case balt.CutPrefixInString(&itemTrim, "minimum-length "):
+			password["minimum_length"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "login password minimum-lower-cases "):
-			var err error
-			password["minimum_lower_cases"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "login password minimum-lower-cases "))
+		case balt.CutPrefixInString(&itemTrim, "minimum-lower-cases "):
+			password["minimum_lower_cases"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "login password minimum-numerics "):
-			var err error
-			password["minimum_numerics"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "login password minimum-numerics "))
+		case balt.CutPrefixInString(&itemTrim, "minimum-numerics "):
+			password["minimum_numerics"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "login password minimum-punctuations "):
-			var err error
-			password["minimum_punctuations"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "login password minimum-punctuations "))
+		case balt.CutPrefixInString(&itemTrim, "minimum-punctuations "):
+			password["minimum_punctuations"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "login password minimum-reuse "):
-			var err error
-			password["minimum_reuse"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "login password minimum-reuse "))
+		case balt.CutPrefixInString(&itemTrim, "minimum-reuse "):
+			password["minimum_reuse"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "login password minimum-upper-cases "):
-			var err error
-			password["minimum_upper_cases"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "login password minimum-upper-cases "))
+		case balt.CutPrefixInString(&itemTrim, "minimum-upper-cases "):
+			password["minimum_upper_cases"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
-	case strings.HasPrefix(itemTrim, "login retry-options "):
+	case balt.CutPrefixInString(&itemTrim, "login retry-options "):
 		if len(confRead.login[0]["retry_options"].([]map[string]interface{})) == 0 {
 			confRead.login[0]["retry_options"] = append(confRead.login[0]["retry_options"].([]map[string]interface{}),
 				map[string]interface{}{
@@ -2355,45 +2330,33 @@ func readSystemLogin(confRead *systemOptions, itemTrim string) error {
 		}
 		retryOptions := confRead.login[0]["retry_options"].([]map[string]interface{})[0]
 		switch {
-		case strings.HasPrefix(itemTrim, "login retry-options backoff-factor "):
-			var err error
-			retryOptions["backoff_factor"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "login retry-options backoff-factor "))
+		case balt.CutPrefixInString(&itemTrim, "backoff-factor "):
+			retryOptions["backoff_factor"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "login retry-options backoff-threshold "):
-			var err error
-			retryOptions["backoff_threshold"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "login retry-options backoff-threshold "))
+		case balt.CutPrefixInString(&itemTrim, "backoff-threshold "):
+			retryOptions["backoff_threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "login retry-options lockout-period "):
-			var err error
-			retryOptions["lockout_period"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "login retry-options lockout-period "))
+		case balt.CutPrefixInString(&itemTrim, "lockout-period "):
+			retryOptions["lockout_period"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "login retry-options maximum-time "):
-			var err error
-			retryOptions["maximum_time"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "login retry-options maximum-time "))
+		case balt.CutPrefixInString(&itemTrim, "maximum-time "):
+			retryOptions["maximum_time"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "login retry-options minimum-time "):
-			var err error
-			retryOptions["minimum_time"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "login retry-options minimum-time "))
+		case balt.CutPrefixInString(&itemTrim, "minimum-time "):
+			retryOptions["minimum_time"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "login retry-options tries-before-disconnect "):
-			var err error
-			retryOptions["tries_before_disconnect"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "login retry-options tries-before-disconnect "))
+		case balt.CutPrefixInString(&itemTrim, "tries-before-disconnect "):
+			retryOptions["tries_before_disconnect"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
@@ -2403,7 +2366,7 @@ func readSystemLogin(confRead *systemOptions, itemTrim string) error {
 	return nil
 }
 
-func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
+func (confRead *systemOptions) readSystemInternetOptions(itemTrim string) (err error) {
 	if len(confRead.internetOptions) == 0 {
 		confRead.internetOptions = append(confRead.internetOptions, map[string]interface{}{
 			"gre_path_mtu_discovery":                  false,
@@ -2431,9 +2394,9 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 		})
 	}
 	switch {
-	case itemTrim == "internet-options gre-path-mtu-discovery":
+	case itemTrim == "gre-path-mtu-discovery":
 		confRead.internetOptions[0]["gre_path_mtu_discovery"] = true
-	case strings.HasPrefix(itemTrim, "internet-options icmpv4-rate-limit"):
+	case balt.CutPrefixInString(&itemTrim, "icmpv4-rate-limit"):
 		if len(confRead.internetOptions[0]["icmpv4_rate_limit"].([]map[string]interface{})) == 0 {
 			confRead.internetOptions[0]["icmpv4_rate_limit"] = append(
 				confRead.internetOptions[0]["icmpv4_rate_limit"].([]map[string]interface{}), map[string]interface{}{
@@ -2443,22 +2406,18 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 		}
 		icmpV4RateLimit := confRead.internetOptions[0]["icmpv4_rate_limit"].([]map[string]interface{})[0]
 		switch {
-		case strings.HasPrefix(itemTrim, "internet-options icmpv4-rate-limit bucket-size "):
-			var err error
-			icmpV4RateLimit["bucket_size"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "internet-options icmpv4-rate-limit bucket-size "))
+		case balt.CutPrefixInString(&itemTrim, " bucket-size "):
+			icmpV4RateLimit["bucket_size"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "internet-options icmpv4-rate-limit packet-rate "):
-			var err error
-			icmpV4RateLimit["packet_rate"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "internet-options icmpv4-rate-limit packet-rate "))
+		case balt.CutPrefixInString(&itemTrim, " packet-rate "):
+			icmpV4RateLimit["packet_rate"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
-	case strings.HasPrefix(itemTrim, "internet-options icmpv6-rate-limit"):
+	case balt.CutPrefixInString(&itemTrim, "icmpv6-rate-limit"):
 		if len(confRead.internetOptions[0]["icmpv6_rate_limit"].([]map[string]interface{})) == 0 {
 			confRead.internetOptions[0]["icmpv6_rate_limit"] = append(
 				confRead.internetOptions[0]["icmpv6_rate_limit"].([]map[string]interface{}), map[string]interface{}{
@@ -2468,75 +2427,64 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 		}
 		icmpV6RateLimit := confRead.internetOptions[0]["icmpv6_rate_limit"].([]map[string]interface{})[0]
 		switch {
-		case strings.HasPrefix(itemTrim, "internet-options icmpv6-rate-limit bucket-size "):
-			var err error
-			icmpV6RateLimit["bucket_size"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "internet-options icmpv6-rate-limit bucket-size "))
+		case balt.CutPrefixInString(&itemTrim, " bucket-size "):
+			icmpV6RateLimit["bucket_size"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "internet-options icmpv6-rate-limit packet-rate "):
-			var err error
-			icmpV6RateLimit["packet_rate"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "internet-options icmpv6-rate-limit packet-rate "))
+		case balt.CutPrefixInString(&itemTrim, " packet-rate "):
+			icmpV6RateLimit["packet_rate"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
-	case itemTrim == "internet-options ipip-path-mtu-discovery":
+	case itemTrim == "ipip-path-mtu-discovery":
 		confRead.internetOptions[0]["ipip_path_mtu_discovery"] = true
-	case strings.HasPrefix(itemTrim, "internet-options ipv6-duplicate-addr-detection-transmits "):
-		var err error
-		confRead.internetOptions[0]["ipv6_duplicate_addr_detection_transmits"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "internet-options ipv6-duplicate-addr-detection-transmits "))
+	case balt.CutPrefixInString(&itemTrim, "ipv6-duplicate-addr-detection-transmits "):
+		confRead.internetOptions[0]["ipv6_duplicate_addr_detection_transmits"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case itemTrim == "internet-options ipv6-path-mtu-discovery":
+	case itemTrim == "ipv6-path-mtu-discovery":
 		confRead.internetOptions[0]["ipv6_path_mtu_discovery"] = true
-	case strings.HasPrefix(itemTrim, "internet-options ipv6-path-mtu-discovery-timeout "):
-		var err error
-		confRead.internetOptions[0]["ipv6_path_mtu_discovery_timeout"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "internet-options ipv6-path-mtu-discovery-timeout "))
+	case balt.CutPrefixInString(&itemTrim, "ipv6-path-mtu-discovery-timeout "):
+		confRead.internetOptions[0]["ipv6_path_mtu_discovery_timeout"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case itemTrim == "internet-options ipv6-reject-zero-hop-limit":
+	case itemTrim == "ipv6-reject-zero-hop-limit":
 		confRead.internetOptions[0]["ipv6_reject_zero_hop_limit"] = true
-	case itemTrim == "internet-options no-gre-path-mtu-discovery":
+	case itemTrim == "no-gre-path-mtu-discovery":
 		confRead.internetOptions[0]["no_gre_path_mtu_discovery"] = true
-	case itemTrim == "internet-options no-ipip-path-mtu-discovery":
+	case itemTrim == "no-ipip-path-mtu-discovery":
 		confRead.internetOptions[0]["no_ipip_path_mtu_discovery"] = true
-	case itemTrim == "internet-options no-ipv6-path-mtu-discovery":
+	case itemTrim == "no-ipv6-path-mtu-discovery":
 		confRead.internetOptions[0]["no_ipv6_path_mtu_discovery"] = true
-	case itemTrim == "internet-options no-ipv6-reject-zero-hop-limit":
+	case itemTrim == "no-ipv6-reject-zero-hop-limit":
 		confRead.internetOptions[0]["no_ipv6_reject_zero_hop_limit"] = true
-	case itemTrim == "internet-options no-path-mtu-discovery":
+	case itemTrim == "no-path-mtu-discovery":
 		confRead.internetOptions[0]["no_path_mtu_discovery"] = true
-	case itemTrim == "internet-options no-source-quench":
+	case itemTrim == "no-source-quench":
 		confRead.internetOptions[0]["no_source_quench"] = true
-	case strings.HasPrefix(itemTrim, "internet-options no-tcp-reset "):
-		confRead.internetOptions[0]["no_tcp_reset"] = strings.TrimPrefix(itemTrim, "internet-options no-tcp-reset ")
-	case itemTrim == "internet-options no-tcp-rfc1323":
+	case balt.CutPrefixInString(&itemTrim, "no-tcp-reset "):
+		confRead.internetOptions[0]["no_tcp_reset"] = itemTrim
+	case itemTrim == "no-tcp-rfc1323":
 		confRead.internetOptions[0]["no_tcp_rfc1323"] = true
-	case itemTrim == "internet-options no-tcp-rfc1323-paws":
+	case itemTrim == "no-tcp-rfc1323-paws":
 		confRead.internetOptions[0]["no_tcp_rfc1323_paws"] = true
-	case itemTrim == "internet-options path-mtu-discovery":
+	case itemTrim == "path-mtu-discovery":
 		confRead.internetOptions[0]["path_mtu_discovery"] = true
-	case strings.HasPrefix(itemTrim, "internet-options source-port upper-limit "):
-		var err error
-		confRead.internetOptions[0]["source_port_upper_limit"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "internet-options source-port upper-limit "))
+	case balt.CutPrefixInString(&itemTrim, "source-port upper-limit "):
+		confRead.internetOptions[0]["source_port_upper_limit"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case itemTrim == "internet-options source-quench":
+	case itemTrim == "source-quench":
 		confRead.internetOptions[0]["source_quench"] = true
-	case itemTrim == "internet-options tcp-drop-synfin-set":
+	case itemTrim == "tcp-drop-synfin-set":
 		confRead.internetOptions[0]["tcp_drop_synfin_set"] = true
-	case strings.HasPrefix(itemTrim, "internet-options tcp-mss "):
-		var err error
-		confRead.internetOptions[0]["tcp_mss"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "internet-options tcp-mss "))
+	case balt.CutPrefixInString(&itemTrim, "tcp-mss "):
+		confRead.internetOptions[0]["tcp_mss"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
@@ -2545,7 +2493,7 @@ func readSystemInternetOptions(confRead *systemOptions, itemTrim string) error {
 	return nil
 }
 
-func readSystemLicense(confRead *systemOptions, itemTrim string) error {
+func (confRead *systemOptions) readSystemLicense(itemTrim string) (err error) {
 	if len(confRead.license) == 0 {
 		confRead.license = append(confRead.license, map[string]interface{}{
 			"autoupdate":              false,
@@ -2558,30 +2506,25 @@ func readSystemLicense(confRead *systemOptions, itemTrim string) error {
 	switch {
 	case itemTrim == "license autoupdate":
 		confRead.license[0]["autoupdate"] = true
-	case strings.HasPrefix(itemTrim, "license autoupdate url "):
+	case balt.CutPrefixInString(&itemTrim, "license autoupdate url "):
 		confRead.license[0]["autoupdate"] = true
-		itemTrimAutoupdateSplit := strings.Split(strings.TrimPrefix(itemTrim, "license autoupdate url "), " ")
-		confRead.license[0]["autoupdate_url"] = strings.Trim(itemTrimAutoupdateSplit[0], "\"")
+		itemTrimFields := strings.Split(itemTrim, " ")
+		confRead.license[0]["autoupdate_url"] = strings.Trim(itemTrimFields[0], "\"")
 
-		itemTrimPassword := strings.TrimPrefix(itemTrim, "license autoupdate url "+itemTrimAutoupdateSplit[0]+" ")
-		if strings.HasPrefix(itemTrimPassword, "password ") {
-			var err error
-			confRead.license[0]["autoupdate_password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
-				itemTrimPassword, "password "), "\""))
+		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+		if balt.CutPrefixInString(&itemTrim, "password ") {
+			confRead.license[0]["autoupdate_password"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 			if err != nil {
 				return fmt.Errorf("failed to decode password: %w", err)
 			}
 		}
-	case strings.HasPrefix(itemTrim, "license renew before-expiration "):
-		var err error
-		confRead.license[0]["renew_before_expiration"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "license renew before-expiration "))
+	case balt.CutPrefixInString(&itemTrim, "license renew before-expiration "):
+		confRead.license[0]["renew_before_expiration"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "license renew interval "):
-		var err error
-		confRead.license[0]["renew_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "license renew interval "))
+	case balt.CutPrefixInString(&itemTrim, "license renew interval "):
+		confRead.license[0]["renew_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
@@ -2590,7 +2533,7 @@ func readSystemLicense(confRead *systemOptions, itemTrim string) error {
 	return nil
 }
 
-func readSystemServicesNetconfTraceOpts(confRead *systemOptions, itemTrimNetconfTraceOpts string) error {
+func (confRead *systemOptions) readSystemServicesNetconfTraceOpts(itemTrim string) (err error) {
 	if len(confRead.services[0]["netconf_traceoptions"].([]map[string]interface{})) == 0 {
 		confRead.services[0]["netconf_traceoptions"] = append(
 			confRead.services[0]["netconf_traceoptions"].([]map[string]interface{}),
@@ -2607,45 +2550,39 @@ func readSystemServicesNetconfTraceOpts(confRead *systemOptions, itemTrimNetconf
 			})
 	}
 	netconfTraceOpts := confRead.services[0]["netconf_traceoptions"].([]map[string]interface{})[0]
-	itemTrim := strings.TrimPrefix(itemTrimNetconfTraceOpts, "services netconf traceoptions ")
 	switch {
-	case strings.HasPrefix(itemTrim, "file files "):
-		var err error
-		netconfTraceOpts["file_files"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file files "))
+	case balt.CutPrefixInString(&itemTrim, "file files "):
+		netconfTraceOpts["file_files"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "file match "):
-		netconfTraceOpts["file_match"] = strings.Trim(strings.TrimPrefix(itemTrim, "file match "), "\"")
+	case balt.CutPrefixInString(&itemTrim, "file match "):
+		netconfTraceOpts["file_match"] = strings.Trim(itemTrim, "\"")
 	case itemTrim == "file no-world-readable":
 		netconfTraceOpts["file_no_world_readable"] = true
-	case strings.HasPrefix(itemTrim, "file size "):
-		var err error
+	case balt.CutPrefixInString(&itemTrim, "file size "):
 		switch {
-		case strings.HasSuffix(itemTrim, "k"):
-			netconfTraceOpts["file_size"], err = strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(
-				itemTrim, "file size "), "k"))
+		case balt.CutSuffixInString(&itemTrim, "k"):
+			netconfTraceOpts["file_size"], err = strconv.Atoi(itemTrim)
 			netconfTraceOpts["file_size"] = netconfTraceOpts["file_size"].(int) * 1024
-		case strings.HasSuffix(itemTrim, "m"):
-			netconfTraceOpts["file_size"], err = strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(
-				itemTrim, "file size "), "m"))
+		case balt.CutSuffixInString(&itemTrim, "m"):
+			netconfTraceOpts["file_size"], err = strconv.Atoi(itemTrim)
 			netconfTraceOpts["file_size"] = netconfTraceOpts["file_size"].(int) * 1024 * 1024
-		case strings.HasSuffix(itemTrim, "g"):
-			netconfTraceOpts["file_size"], err = strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(
-				itemTrim, "file size "), "g"))
+		case balt.CutSuffixInString(&itemTrim, "g"):
+			netconfTraceOpts["file_size"], err = strconv.Atoi(itemTrim)
 			netconfTraceOpts["file_size"] = netconfTraceOpts["file_size"].(int) * 1024 * 1024 * 1024
 		default:
-			netconfTraceOpts["file_size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file size "))
+			netconfTraceOpts["file_size"], err = strconv.Atoi(itemTrim)
 		}
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "file world-readable":
 		netconfTraceOpts["file_world_readable"] = true
-	case strings.HasPrefix(itemTrim, "file "):
-		netconfTraceOpts["file_name"] = strings.Trim(strings.TrimPrefix(itemTrim, "file "), "\"")
-	case strings.HasPrefix(itemTrim, "flag "):
-		netconfTraceOpts["flag"] = append(netconfTraceOpts["flag"].([]string), strings.TrimPrefix(itemTrim, "flag "))
+	case balt.CutPrefixInString(&itemTrim, "file "):
+		netconfTraceOpts["file_name"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "flag "):
+		netconfTraceOpts["flag"] = append(netconfTraceOpts["flag"].([]string), itemTrim)
 	case itemTrim == "no-remote-trace":
 		netconfTraceOpts["no_remote_trace"] = true
 	case itemTrim == "on-demand":
@@ -2655,7 +2592,7 @@ func readSystemServicesNetconfTraceOpts(confRead *systemOptions, itemTrimNetconf
 	return nil
 }
 
-func readSystemServicesNetconfSSH(confRead *systemOptions, itemTrim string) error {
+func (confRead *systemOptions) readSystemServicesNetconfSSH(itemTrim string) (err error) {
 	if len(confRead.services[0]["netconf_ssh"].([]map[string]interface{})) == 0 {
 		confRead.services[0]["netconf_ssh"] = append(confRead.services[0]["netconf_ssh"].([]map[string]interface{}),
 			map[string]interface{}{
@@ -2667,31 +2604,23 @@ func readSystemServicesNetconfSSH(confRead *systemOptions, itemTrim string) erro
 	}
 	netconfSSH := confRead.services[0]["netconf_ssh"].([]map[string]interface{})[0]
 	switch {
-	case strings.HasPrefix(itemTrim, "services netconf ssh client-alive-count-max "):
-		var err error
-		netconfSSH["client_alive_count_max"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "services netconf ssh client-alive-count-max "))
+	case balt.CutPrefixInString(&itemTrim, "services netconf ssh client-alive-count-max "):
+		netconfSSH["client_alive_count_max"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "services netconf ssh client-alive-interval "):
-		var err error
-		netconfSSH["client_alive_interval"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "services netconf ssh client-alive-interval "))
+	case balt.CutPrefixInString(&itemTrim, "services netconf ssh client-alive-interval "):
+		netconfSSH["client_alive_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "services netconf ssh connection-limit "):
-		var err error
-		netconfSSH["connection_limit"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "services netconf ssh connection-limit "))
+	case balt.CutPrefixInString(&itemTrim, "services netconf ssh connection-limit "):
+		netconfSSH["connection_limit"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "services netconf ssh rate-limit "):
-		var err error
-		netconfSSH["rate_limit"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "services netconf ssh rate-limit "))
+	case balt.CutPrefixInString(&itemTrim, "services netconf ssh rate-limit "):
+		netconfSSH["rate_limit"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
@@ -2700,7 +2629,7 @@ func readSystemServicesNetconfSSH(confRead *systemOptions, itemTrim string) erro
 	return nil
 }
 
-func readSystemServicesSSH(confRead *systemOptions, itemTrim string) error {
+func (confRead *systemOptions) readSystemServicesSSH(itemTrim string) (err error) {
 	if len(confRead.services[0]["ssh"].([]map[string]interface{})) == 0 {
 		confRead.services[0]["ssh"] = append(confRead.services[0]["ssh"].([]map[string]interface{}),
 			map[string]interface{}{
@@ -2728,54 +2657,42 @@ func readSystemServicesSSH(confRead *systemOptions, itemTrim string) error {
 	}
 	ssh := confRead.services[0]["ssh"].([]map[string]interface{})[0]
 	switch {
-	case strings.HasPrefix(itemTrim, "services ssh authentication-order "):
-		ssh["authentication_order"] = append(ssh["authentication_order"].([]string),
-			strings.TrimPrefix(itemTrim, "services ssh authentication-order "))
-	case strings.HasPrefix(itemTrim, "services ssh ciphers "):
-		ssh["ciphers"] = append(ssh["ciphers"].([]string),
-			strings.Trim(strings.TrimPrefix(itemTrim, "services ssh ciphers "), "\""))
-	case strings.HasPrefix(itemTrim, "services ssh client-alive-count-max "):
-		var err error
-		ssh["client_alive_count_max"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "services ssh client-alive-count-max "))
+	case balt.CutPrefixInString(&itemTrim, "services ssh authentication-order "):
+		ssh["authentication_order"] = append(ssh["authentication_order"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "services ssh ciphers "):
+		ssh["ciphers"] = append(ssh["ciphers"].([]string), strings.Trim(itemTrim, "\""))
+	case balt.CutPrefixInString(&itemTrim, "services ssh client-alive-count-max "):
+		ssh["client_alive_count_max"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "services ssh client-alive-interval "):
-		var err error
-		ssh["client_alive_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh client-alive-interval "))
+	case balt.CutPrefixInString(&itemTrim, "services ssh client-alive-interval "):
+		ssh["client_alive_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "services ssh connection-limit "):
-		var err error
-		ssh["connection_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh connection-limit "))
+	case balt.CutPrefixInString(&itemTrim, "services ssh connection-limit "):
+		ssh["connection_limit"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "services ssh fingerprint-hash "):
-		ssh["fingerprint_hash"] = strings.TrimPrefix(itemTrim, "services ssh fingerprint-hash ")
-	case strings.HasPrefix(itemTrim, "services ssh hostkey-algorithm "):
-		ssh["hostkey_algorithm"] = append(ssh["hostkey_algorithm"].([]string),
-			strings.TrimPrefix(itemTrim, "services ssh hostkey-algorithm "))
-	case strings.HasPrefix(itemTrim, "services ssh key-exchange "):
-		ssh["key_exchange"] = append(ssh["key_exchange"].([]string),
-			strings.TrimPrefix(itemTrim, "services ssh key-exchange "))
+	case balt.CutPrefixInString(&itemTrim, "services ssh fingerprint-hash "):
+		ssh["fingerprint_hash"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "services ssh hostkey-algorithm "):
+		ssh["hostkey_algorithm"] = append(ssh["hostkey_algorithm"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "services ssh key-exchange "):
+		ssh["key_exchange"] = append(ssh["key_exchange"].([]string), itemTrim)
 	case itemTrim == "services ssh log-key-changes":
 		ssh["log_key_changes"] = true
-	case strings.HasPrefix(itemTrim, "services ssh macs "):
-		ssh["macs"] = append(ssh["macs"].([]string), strings.TrimPrefix(itemTrim, "services ssh macs "))
-	case strings.HasPrefix(itemTrim, "services ssh max-pre-authentication-packets "):
-		var err error
-		ssh["max_pre_authentication_packets"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "services ssh max-pre-authentication-packets "))
+	case balt.CutPrefixInString(&itemTrim, "services ssh macs "):
+		ssh["macs"] = append(ssh["macs"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "services ssh max-pre-authentication-packets "):
+		ssh["max_pre_authentication_packets"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "services ssh max-sessions-per-connection "):
-		var err error
-		ssh["max_sessions_per_connection"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "services ssh max-sessions-per-connection "))
+	case balt.CutPrefixInString(&itemTrim, "services ssh max-sessions-per-connection "):
+		ssh["max_sessions_per_connection"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
@@ -2783,23 +2700,20 @@ func readSystemServicesSSH(confRead *systemOptions, itemTrim string) error {
 		ssh["no_passwords"] = true
 	case itemTrim == "services ssh no-public-keys":
 		ssh["no_public_keys"] = true
-	case strings.HasPrefix(itemTrim, "services ssh port "):
-		var err error
-		ssh["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh port "))
+	case balt.CutPrefixInString(&itemTrim, "services ssh port "):
+		ssh["port"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "services ssh protocol-version "):
-		ssh["protocol_version"] = append(ssh["protocol_version"].([]string),
-			strings.TrimPrefix(itemTrim, "services ssh protocol-version "))
-	case strings.HasPrefix(itemTrim, "services ssh rate-limit "):
-		var err error
-		ssh["rate_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "services ssh rate-limit "))
+	case balt.CutPrefixInString(&itemTrim, "services ssh protocol-version "):
+		ssh["protocol_version"] = append(ssh["protocol_version"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "services ssh rate-limit "):
+		ssh["rate_limit"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "services ssh root-login "):
-		ssh["root_login"] = strings.TrimPrefix(itemTrim, "services ssh root-login ")
+	case balt.CutPrefixInString(&itemTrim, "services ssh root-login "):
+		ssh["root_login"] = itemTrim
 	case itemTrim == "services ssh no-tcp-forwarding":
 		ssh["no_tcp_forwarding"] = true
 	case itemTrim == "services ssh tcp-forwarding":
@@ -2809,9 +2723,9 @@ func readSystemServicesSSH(confRead *systemOptions, itemTrim string) error {
 	return nil
 }
 
-func readSystemServicesWebManagement(confRead *systemOptions, itemTrim string) error {
+func (confRead *systemOptions) readSystemServicesWebManagement(itemTrim string) (err error) {
 	switch {
-	case strings.HasPrefix(itemTrim, "services web-management https "):
+	case balt.CutPrefixInString(&itemTrim, "services web-management https "):
 		if len(confRead.services[0]["web_management_https"].([]map[string]interface{})) == 0 {
 			confRead.services[0]["web_management_https"] = append(
 				confRead.services[0]["web_management_https"].([]map[string]interface{}),
@@ -2824,29 +2738,25 @@ func readSystemServicesWebManagement(confRead *systemOptions, itemTrim string) e
 				})
 		}
 		webMHTTPS := confRead.services[0]["web_management_https"].([]map[string]interface{})[0]
-		if strings.HasPrefix(itemTrim, "services web-management https interface ") {
-			webMHTTPS["interface"] = append(webMHTTPS["interface"].([]string),
-				strings.TrimPrefix(itemTrim, "services web-management https interface "))
+		if balt.CutPrefixInString(&itemTrim, "interface ") {
+			webMHTTPS["interface"] = append(webMHTTPS["interface"].([]string), itemTrim)
 		}
-		if strings.HasPrefix(itemTrim, "services web-management https port ") {
-			var err error
-			webMHTTPS["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "services web-management https port "))
+		if balt.CutPrefixInString(&itemTrim, "port ") {
+			webMHTTPS["port"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
-		if strings.HasPrefix(itemTrim, "services web-management https local-certificate ") {
-			webMHTTPS["local_certificate"] = strings.Trim(strings.TrimPrefix(itemTrim,
-				"services web-management https local-certificate "), "\"")
+		if balt.CutPrefixInString(&itemTrim, "local-certificate ") {
+			webMHTTPS["local_certificate"] = strings.Trim(itemTrim, "\"")
 		}
-		if strings.HasPrefix(itemTrim, "services web-management https pki-local-certificate ") {
-			webMHTTPS["pki_local_certificate"] = strings.Trim(strings.TrimPrefix(itemTrim,
-				"services web-management https pki-local-certificate "), "\"")
+		if balt.CutPrefixInString(&itemTrim, "pki-local-certificate ") {
+			webMHTTPS["pki_local_certificate"] = strings.Trim(itemTrim, "\"")
 		}
-		if itemTrim == "services web-management https system-generated-certificate" {
+		if itemTrim == "system-generated-certificate" {
 			webMHTTPS["system_generated_certificate"] = true
 		}
-	case strings.HasPrefix(itemTrim, "services web-management http"):
+	case balt.CutPrefixInString(&itemTrim, "services web-management http"):
 		if len(confRead.services[0]["web_management_http"].([]map[string]interface{})) == 0 {
 			confRead.services[0]["web_management_http"] = append(
 				confRead.services[0]["web_management_http"].([]map[string]interface{}),
@@ -2856,13 +2766,11 @@ func readSystemServicesWebManagement(confRead *systemOptions, itemTrim string) e
 				})
 		}
 		webMHTTP := confRead.services[0]["web_management_http"].([]map[string]interface{})[0]
-		if strings.HasPrefix(itemTrim, "services web-management http interface ") {
-			webMHTTP["interface"] = append(webMHTTP["interface"].([]string),
-				strings.TrimPrefix(itemTrim, "services web-management http interface "))
+		if balt.CutPrefixInString(&itemTrim, " interface ") {
+			webMHTTP["interface"] = append(webMHTTP["interface"].([]string), itemTrim)
 		}
-		if strings.HasPrefix(itemTrim, "services web-management http port ") {
-			var err error
-			webMHTTP["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "services web-management http port "))
+		if balt.CutPrefixInString(&itemTrim, " port ") {
+			webMHTTP["port"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
@@ -2872,7 +2780,7 @@ func readSystemServicesWebManagement(confRead *systemOptions, itemTrim string) e
 	return nil
 }
 
-func readSystemSyslog(confRead *systemOptions, itemTrim string) error {
+func (confRead *systemOptions) readSystemSyslog(itemTrim string) (err error) {
 	if len(confRead.syslog) == 0 {
 		confRead.syslog = append(confRead.syslog, map[string]interface{}{
 			"archive":                 make([]map[string]interface{}, 0),
@@ -2884,7 +2792,7 @@ func readSystemSyslog(confRead *systemOptions, itemTrim string) error {
 		})
 	}
 	switch {
-	case strings.HasPrefix(itemTrim, "syslog archive"):
+	case balt.CutPrefixInString(&itemTrim, "syslog archive"):
 		if len(confRead.syslog[0]["archive"].([]map[string]interface{})) == 0 {
 			confRead.syslog[0]["archive"] = append(confRead.syslog[0]["archive"].([]map[string]interface{}),
 				map[string]interface{}{
@@ -2897,30 +2805,26 @@ func readSystemSyslog(confRead *systemOptions, itemTrim string) error {
 				})
 		}
 		switch {
-		case itemTrim == "syslog archive binary-data":
+		case itemTrim == " binary-data":
 			confRead.syslog[0]["archive"].([]map[string]interface{})[0]["binary_data"] = true
-		case itemTrim == "syslog archive no-binary-data":
+		case itemTrim == " no-binary-data":
 			confRead.syslog[0]["archive"].([]map[string]interface{})[0]["no_binary_data"] = true
-		case strings.HasPrefix(itemTrim, "syslog archive files "):
-			var err error
-			confRead.syslog[0]["archive"].([]map[string]interface{})[0]["files"], err = strconv.Atoi(
-				strings.TrimPrefix(itemTrim, "syslog archive files "))
+		case balt.CutPrefixInString(&itemTrim, " files "):
+			confRead.syslog[0]["archive"].([]map[string]interface{})[0]["files"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "syslog archive size "):
-			var err error
-			confRead.syslog[0]["archive"].([]map[string]interface{})[0]["size"], err = strconv.Atoi(
-				strings.TrimPrefix(itemTrim, "syslog archive size "))
+		case balt.CutPrefixInString(&itemTrim, " size "):
+			confRead.syslog[0]["archive"].([]map[string]interface{})[0]["size"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case itemTrim == "syslog archive no-world-readable":
+		case itemTrim == " no-world-readable":
 			confRead.syslog[0]["archive"].([]map[string]interface{})[0]["no_world_readable"] = true
-		case itemTrim == "syslog archive world-readable":
+		case itemTrim == " world-readable":
 			confRead.syslog[0]["archive"].([]map[string]interface{})[0]["world_readable"] = true
 		}
-	case strings.HasPrefix(itemTrim, "syslog console "):
+	case balt.CutPrefixInString(&itemTrim, "syslog console "):
 		if len(confRead.syslog[0]["console"].([]map[string]interface{})) == 0 {
 			confRead.syslog[0]["console"] = append(confRead.syslog[0]["console"].([]map[string]interface{}),
 				map[string]interface{}{
@@ -2943,47 +2847,44 @@ func readSystemSyslog(confRead *systemOptions, itemTrim string) error {
 		}
 		console := confRead.syslog[0]["console"].([]map[string]interface{})[0]
 		switch {
-		case strings.HasPrefix(itemTrim, "syslog console any "):
-			console["any_severity"] = strings.TrimPrefix(itemTrim, "syslog console any ")
-		case strings.HasPrefix(itemTrim, "syslog console authorization "):
-			console["authorization_severity"] = strings.TrimPrefix(itemTrim, "syslog console authorization ")
-		case strings.HasPrefix(itemTrim, "syslog console change-log "):
-			console["changelog_severity"] = strings.TrimPrefix(itemTrim, "syslog console change-log ")
-		case strings.HasPrefix(itemTrim, "syslog console conflict-log "):
-			console["conflictlog_severity"] = strings.TrimPrefix(itemTrim, "syslog console conflict-log ")
-		case strings.HasPrefix(itemTrim, "syslog console daemon "):
-			console["daemon_severity"] = strings.TrimPrefix(itemTrim, "syslog console daemon ")
-		case strings.HasPrefix(itemTrim, "syslog console dfc "):
-			console["dfc_severity"] = strings.TrimPrefix(itemTrim, "syslog console dfc ")
-		case strings.HasPrefix(itemTrim, "syslog console external "):
-			console["external_severity"] = strings.TrimPrefix(itemTrim, "syslog console external ")
-		case strings.HasPrefix(itemTrim, "syslog console firewall "):
-			console["firewall_severity"] = strings.TrimPrefix(itemTrim, "syslog console firewall ")
-		case strings.HasPrefix(itemTrim, "syslog console ftp "):
-			console["ftp_severity"] = strings.TrimPrefix(itemTrim, "syslog console ftp ")
-		case strings.HasPrefix(itemTrim, "syslog console interactive-commands "):
-			console["interactivecommands_severity"] = strings.TrimPrefix(itemTrim, "syslog console interactive-commands ")
-		case strings.HasPrefix(itemTrim, "syslog console kernel "):
-			console["kernel_severity"] = strings.TrimPrefix(itemTrim, "syslog console kernel ")
-		case strings.HasPrefix(itemTrim, "syslog console ntp "):
-			console["ntp_severity"] = strings.TrimPrefix(itemTrim, "syslog console ntp ")
-		case strings.HasPrefix(itemTrim, "syslog console pfe "):
-			console["pfe_severity"] = strings.TrimPrefix(itemTrim, "syslog console pfe ")
-		case strings.HasPrefix(itemTrim, "syslog console security "):
-			console["security_severity"] = strings.TrimPrefix(itemTrim, "syslog console security ")
-		case strings.HasPrefix(itemTrim, "syslog console user "):
-			console["user_severity"] = strings.TrimPrefix(itemTrim, "syslog console user ")
+		case balt.CutPrefixInString(&itemTrim, "any "):
+			console["any_severity"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "authorization "):
+			console["authorization_severity"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "change-log "):
+			console["changelog_severity"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "conflict-log "):
+			console["conflictlog_severity"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "daemon "):
+			console["daemon_severity"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "dfc "):
+			console["dfc_severity"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "external "):
+			console["external_severity"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "firewall "):
+			console["firewall_severity"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "ftp "):
+			console["ftp_severity"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "interactive-commands "):
+			console["interactivecommands_severity"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "kernel "):
+			console["kernel_severity"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "ntp "):
+			console["ntp_severity"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "pfe "):
+			console["pfe_severity"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "security "):
+			console["security_severity"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "user "):
+			console["user_severity"] = itemTrim
 		}
-	case strings.HasPrefix(itemTrim, "syslog log-rotate-frequency "):
-		var err error
-		confRead.syslog[0]["log_rotate_frequency"], err = strconv.Atoi(
-			strings.TrimPrefix(itemTrim, "syslog log-rotate-frequency "))
+	case balt.CutPrefixInString(&itemTrim, "syslog log-rotate-frequency "):
+		confRead.syslog[0]["log_rotate_frequency"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "syslog source-address "):
-		confRead.syslog[0]["source_address"] = strings.TrimPrefix(
-			itemTrim, "syslog source-address ")
+	case balt.CutPrefixInString(&itemTrim, "syslog source-address "):
+		confRead.syslog[0]["source_address"] = itemTrim
 	case itemTrim == "syslog time-format millisecond":
 		confRead.syslog[0]["time_format_millisecond"] = true
 	case itemTrim == "syslog time-format year":

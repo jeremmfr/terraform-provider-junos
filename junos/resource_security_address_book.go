@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -481,9 +482,8 @@ func setSecurityAddressBook(d *schema.ResourceData, clt *Client, junSess *junosS
 	return clt.configSet(configSet, junSess)
 }
 
-func readSecurityAddressBook(addrBook string, clt *Client, junSess *junosSession) (addressBookOptions, error) {
-	var confRead addressBookOptions
-
+func readSecurityAddressBook(addrBook string, clt *Client, junSess *junosSession,
+) (confRead addressBookOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security address-book "+addrBook+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -501,72 +501,72 @@ func readSecurityAddressBook(addrBook string, clt *Client, junSess *junosSession
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "description "):
-				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
-			case strings.HasPrefix(itemTrim, "address "):
-				addressSplit := strings.Split(itemTrim, " ")
-				itemTrimAddress := strings.TrimPrefix(itemTrim, "address "+addressSplit[1]+" ")
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				confRead.description = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "address "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				switch {
-				case strings.HasPrefix(itemTrimAddress, "description "):
-					descMap[addressSplit[1]] = strings.Trim(strings.TrimPrefix(itemTrimAddress, "description "), "\"")
-				case strings.HasPrefix(itemTrimAddress, "wildcard-address "):
+				case balt.CutPrefixInString(&itemTrim, "description "):
+					descMap[itemTrimFields[0]] = strings.Trim(itemTrim, "\"")
+				case balt.CutPrefixInString(&itemTrim, "wildcard-address "):
 					confRead.wildcardAddress = append(confRead.wildcardAddress, map[string]interface{}{
-						"name":        addressSplit[1],
-						"value":       strings.TrimPrefix(itemTrimAddress, "wildcard-address "),
-						"description": descMap[addressSplit[1]],
+						"name":        itemTrimFields[0],
+						"value":       itemTrim,
+						"description": descMap[itemTrimFields[0]],
 					})
-				case strings.HasPrefix(itemTrimAddress, "range-address "):
-					rangeAddr := strings.TrimPrefix(itemTrimAddress, "range-address ")
-					addresses := strings.Split(rangeAddr, " ")
+				case balt.CutPrefixInString(&itemTrim, "range-address "):
+					rangeAddressFields := strings.Split(itemTrim, " ")
+					if len(rangeAddressFields) < 3 { // <from> to <to>
+						return confRead, fmt.Errorf(cantReadValuesNotEnoughFields, "range-address", itemTrim)
+					}
 					confRead.rangeAddress = append(confRead.rangeAddress, map[string]interface{}{
-						"name":        addressSplit[1],
-						"from":        addresses[0],
-						"to":          addresses[2],
-						"description": descMap[addressSplit[1]],
+						"name":        itemTrimFields[0],
+						"from":        rangeAddressFields[0],
+						"to":          rangeAddressFields[2],
+						"description": descMap[itemTrimFields[0]],
 					})
-				case strings.HasPrefix(itemTrimAddress, "dns-name "):
+				case balt.CutPrefixInString(&itemTrim, "dns-name "):
 					confRead.dnsName = append(confRead.dnsName, map[string]interface{}{
-						"name":        addressSplit[1],
-						"value":       strings.TrimPrefix(itemTrimAddress, "dns-name "),
-						"description": descMap[addressSplit[1]],
+						"name":        itemTrimFields[0],
+						"value":       itemTrim,
+						"description": descMap[itemTrimFields[0]],
 					})
 				default:
 					confRead.networkAddress = append(confRead.networkAddress, map[string]interface{}{
-						"name":        addressSplit[1],
-						"value":       itemTrimAddress,
-						"description": descMap[addressSplit[1]],
+						"name":        itemTrimFields[0],
+						"value":       itemTrim,
+						"description": descMap[itemTrimFields[0]],
 					})
 				}
-			case strings.HasPrefix(itemTrim, "address-set "):
-				addressSetSplit := strings.Split(strings.TrimPrefix(itemTrim, "address-set "), " ")
+			case balt.CutPrefixInString(&itemTrim, "address-set "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				adSet := map[string]interface{}{
-					"name":        addressSetSplit[0],
+					"name":        itemTrimFields[0],
 					"address":     make([]string, 0),
 					"address_set": make([]string, 0),
 					"description": "",
 				}
 				confRead.addressSet = copyAndRemoveItemMapList("name", adSet, confRead.addressSet)
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				switch {
-				case strings.HasPrefix(itemTrim, "address-set "+addressSetSplit[0]+" description "):
-					adSet["description"] = strings.Trim(strings.TrimPrefix(
-						itemTrim, "address-set "+addressSetSplit[0]+" description "), "\"")
-				case strings.HasPrefix(itemTrim, "address-set "+addressSetSplit[0]+" address "):
-					adSet["address"] = append(adSet["address"].([]string),
-						strings.TrimPrefix(itemTrim, "address-set "+addressSetSplit[0]+" address "))
-				case strings.HasPrefix(itemTrim, "address-set "+addressSetSplit[0]+" address-set "):
-					adSet["address_set"] = append(adSet["address_set"].([]string),
-						strings.TrimPrefix(itemTrim, "address-set "+addressSetSplit[0]+" address-set "))
+				case balt.CutPrefixInString(&itemTrim, "description "):
+					adSet["description"] = strings.Trim(itemTrim, "\"")
+				case balt.CutPrefixInString(&itemTrim, "address "):
+					adSet["address"] = append(adSet["address"].([]string), itemTrim)
+				case balt.CutPrefixInString(&itemTrim, "address-set "):
+					adSet["address_set"] = append(adSet["address_set"].([]string), itemTrim)
 				}
 				confRead.addressSet = append(confRead.addressSet, adSet)
-			case strings.HasPrefix(itemTrim, "attach zone"):
-				confRead.attachZone = append(confRead.attachZone, strings.TrimPrefix(itemTrim, "attach zone "))
+			case balt.CutPrefixInString(&itemTrim, "attach zone "):
+				confRead.attachZone = append(confRead.attachZone, itemTrim)
 			}
 		}
 	}
-	confRead.networkAddress = copySecurityAddressBookAddressDescriptions(descMap, confRead.networkAddress)
-	confRead.dnsName = copySecurityAddressBookAddressDescriptions(descMap, confRead.dnsName)
-	confRead.rangeAddress = copySecurityAddressBookAddressDescriptions(descMap, confRead.rangeAddress)
-	confRead.wildcardAddress = copySecurityAddressBookAddressDescriptions(descMap, confRead.wildcardAddress)
+	copySecurityAddressBookAddressDescriptions(descMap, confRead.networkAddress)
+	copySecurityAddressBookAddressDescriptions(descMap, confRead.dnsName)
+	copySecurityAddressBookAddressDescriptions(descMap, confRead.rangeAddress)
+	copySecurityAddressBookAddressDescriptions(descMap, confRead.wildcardAddress)
 
 	return confRead, nil
 }
@@ -605,12 +605,8 @@ func fillSecurityAddressBookData(d *schema.ResourceData, addressOptions addressB
 	}
 }
 
-func copySecurityAddressBookAddressDescriptions(descMap map[string]string, addrList []map[string]interface{},
-) (newList []map[string]interface{}) {
+func copySecurityAddressBookAddressDescriptions(descMap map[string]string, addrList []map[string]interface{}) {
 	for _, ele := range addrList {
 		ele["description"] = descMap[ele["name"].(string)]
-		newList = append(newList, ele)
 	}
-
-	return newList
 }

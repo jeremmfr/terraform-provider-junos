@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type instanceOptions struct {
@@ -419,9 +420,7 @@ func setRoutingInstance(d *schema.ResourceData, clt *Client, junSess *junosSessi
 	return clt.configSet(configSet, junSess)
 }
 
-func readRoutingInstance(instance string, clt *Client, junSess *junosSession) (instanceOptions, error) {
-	var confRead instanceOptions
-
+func readRoutingInstance(instance string, clt *Client, junSess *junosSession) (confRead instanceOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+routingInstancesWS+instance+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -437,39 +436,36 @@ func readRoutingInstance(instance string, clt *Client, junSess *junosSession) (i
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "description "):
-				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
-			case strings.HasPrefix(itemTrim, "instance-type "):
-				confRead.instanceType = strings.TrimPrefix(itemTrim, "instance-type ")
-			case strings.HasPrefix(itemTrim, "route-distinguisher "):
-				confRead.routeDistinguisher = strings.TrimPrefix(itemTrim, "route-distinguisher ")
-			case strings.HasPrefix(itemTrim, "routing-options autonomous-system "):
-				confRead.as = strings.TrimPrefix(itemTrim, "routing-options autonomous-system ")
-			case strings.HasPrefix(itemTrim, "routing-options instance-export "):
-				confRead.instanceExport = append(confRead.instanceExport,
-					strings.TrimPrefix(itemTrim, "routing-options instance-export "))
-			case strings.HasPrefix(itemTrim, "routing-options instance-import "):
-				confRead.instanceImport = append(confRead.instanceImport,
-					strings.TrimPrefix(itemTrim, "routing-options instance-import "))
-			case strings.HasPrefix(itemTrim, "routing-options router-id "):
-				confRead.routerID = strings.TrimPrefix(itemTrim, "routing-options router-id ")
-			case strings.HasPrefix(itemTrim, "vrf-export "):
-				confRead.vrfExport = append(confRead.vrfExport, strings.Trim(strings.TrimPrefix(itemTrim, "vrf-export "), "\""))
-			case strings.HasPrefix(itemTrim, "vrf-import "):
-				confRead.vrfImport = append(confRead.vrfImport, strings.Trim(strings.TrimPrefix(itemTrim, "vrf-import "), "\""))
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				confRead.description = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "instance-type "):
+				confRead.instanceType = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "route-distinguisher "):
+				confRead.routeDistinguisher = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "routing-options autonomous-system "):
+				confRead.as = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "routing-options instance-export "):
+				confRead.instanceExport = append(confRead.instanceExport, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "routing-options instance-import "):
+				confRead.instanceImport = append(confRead.instanceImport, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "routing-options router-id "):
+				confRead.routerID = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "vrf-export "):
+				confRead.vrfExport = append(confRead.vrfExport, strings.Trim(itemTrim, "\""))
+			case balt.CutPrefixInString(&itemTrim, "vrf-import "):
+				confRead.vrfImport = append(confRead.vrfImport, strings.Trim(itemTrim, "\""))
 			case itemTrim == "vrf-target auto":
 				confRead.vrfTargetAuto = true
-			case strings.HasPrefix(itemTrim, "vrf-target export "):
-				confRead.vrfTargetExport = strings.TrimPrefix(itemTrim, "vrf-target export ")
-			case strings.HasPrefix(itemTrim, "vrf-target import "):
-				confRead.vrfTargetImport = strings.TrimPrefix(itemTrim, "vrf-target import ")
-			case strings.HasPrefix(itemTrim, "vrf-target "):
-				confRead.vrfTarget = strings.TrimPrefix(itemTrim, "vrf-target ")
-			case strings.HasPrefix(itemTrim, "vtep-source-interface "):
-				confRead.vtepSourceIf = strings.TrimPrefix(itemTrim, "vtep-source-interface ")
-			case strings.HasPrefix(itemTrim, "interface "):
-				confRead.interFace = append(confRead.interFace,
-					strings.Split(strings.TrimPrefix(itemTrim, "interface "), " ")[0])
+			case balt.CutPrefixInString(&itemTrim, "vrf-target export "):
+				confRead.vrfTargetExport = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "vrf-target import "):
+				confRead.vrfTargetImport = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "vrf-target "):
+				confRead.vrfTarget = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "vtep-source-interface "):
+				confRead.vtepSourceIf = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "interface "):
+				confRead.interFace = append(confRead.interFace, strings.Split(itemTrim, " ")[0])
 			}
 		}
 	}

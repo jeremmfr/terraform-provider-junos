@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -381,11 +382,9 @@ func setSecurityDynamicAddressFeedServer(d *schema.ResourceData, clt *Client, ju
 }
 
 func readSecurityDynamicAddressFeedServer(name string, clt *Client, junSess *junosSession,
-) (dynamicAddressFeedServerOptions, error) {
-	var confRead dynamicAddressFeedServerOptions
+) (confRead dynamicAddressFeedServerOptions, err error) {
 	// default -1
 	confRead.holdInterval = -1
-
 	showConfig, err := clt.command(cmdShowConfig+
 		"security dynamic-address feed-server "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -402,53 +401,49 @@ func readSecurityDynamicAddressFeedServer(name string, clt *Client, junSess *jun
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "hostname "):
-				confRead.hostname = strings.Trim(strings.TrimPrefix(itemTrim, "hostname "), "\"")
-			case strings.HasPrefix(itemTrim, "url "):
-				confRead.url = strings.Trim(strings.TrimPrefix(itemTrim, "url "), "\"")
-			case strings.HasPrefix(itemTrim, "description "):
-				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
-			case strings.HasPrefix(itemTrim, "feed-name "):
-				itemTrimFeedSplit := strings.Split(strings.TrimPrefix(itemTrim, "feed-name "), " ")
+			case balt.CutPrefixInString(&itemTrim, "hostname "):
+				confRead.hostname = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "url "):
+				confRead.url = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				confRead.description = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "feed-name "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				feedName := map[string]interface{}{
-					"name":            itemTrimFeedSplit[0],
+					"name":            itemTrimFields[0],
 					"path":            "",
 					"description":     "",
 					"hold_interval":   -1,
 					"update_interval": 0,
 				}
 				confRead.feedName = copyAndRemoveItemMapList("name", feedName, confRead.feedName)
-				itemTrimFeedName := strings.TrimPrefix(itemTrim, "feed-name "+itemTrimFeedSplit[0]+" ")
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				switch {
-				case strings.HasPrefix(itemTrimFeedName, "path "):
-					feedName["path"] = strings.Trim(strings.TrimPrefix(itemTrimFeedName, "path "), "\"")
-				case strings.HasPrefix(itemTrimFeedName, "description "):
-					feedName["description"] = strings.Trim(strings.TrimPrefix(itemTrimFeedName, "description "), "\"")
-				case strings.HasPrefix(itemTrimFeedName, "hold-interval "):
-					var err error
-					feedName["hold_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrimFeedName, "hold-interval "))
+				case balt.CutPrefixInString(&itemTrim, "path "):
+					feedName["path"] = strings.Trim(itemTrim, "\"")
+				case balt.CutPrefixInString(&itemTrim, "description "):
+					feedName["description"] = strings.Trim(itemTrim, "\"")
+				case balt.CutPrefixInString(&itemTrim, "hold-interval "):
+					feedName["hold_interval"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrimFeedName, "update-interval "):
-					var err error
-					feedName["update_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrimFeedName, "update-interval "))
+				case balt.CutPrefixInString(&itemTrim, "update-interval "):
+					feedName["update_interval"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 				confRead.feedName = append(confRead.feedName, feedName)
-			case strings.HasPrefix(itemTrim, "hold-interval "):
-				var err error
-				confRead.holdInterval, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "hold-interval "))
+			case balt.CutPrefixInString(&itemTrim, "hold-interval "):
+				confRead.holdInterval, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "tls-profile "):
-				confRead.tlsProfile = strings.Trim(strings.TrimPrefix(itemTrim, "tls-profile "), "\"")
-			case strings.HasPrefix(itemTrim, "update-interval "):
-				var err error
-				confRead.updateInterval, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "update-interval "))
+			case balt.CutPrefixInString(&itemTrim, "tls-profile "):
+				confRead.tlsProfile = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "update-interval "):
+				confRead.updateInterval, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}

@@ -254,9 +254,7 @@ func setSnmpClientlist(d *schema.ResourceData, clt *Client, junSess *junosSessio
 	return clt.configSet(configSet, junSess)
 }
 
-func readSnmpClientlist(name string, clt *Client, junSess *junosSession) (snmpClientlistOptions, error) {
-	var confRead snmpClientlistOptions
-
+func readSnmpClientlist(name string, clt *Client, junSess *junosSession) (confRead snmpClientlistOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"snmp client-list \""+name+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err

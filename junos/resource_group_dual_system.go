@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -536,9 +537,8 @@ func setGroupDualSystem(d *schema.ResourceData, clt *Client, junSess *junosSessi
 	return clt.configSet(configSet, junSess)
 }
 
-func readGroupDualSystem(group string, clt *Client, junSess *junosSession) (groupDualSystemOptions, error) {
-	var confRead groupDualSystemOptions
-
+func readGroupDualSystem(group string, clt *Client, junSess *junosSession,
+) (confRead groupDualSystemOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"groups "+group+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -554,7 +554,7 @@ func readGroupDualSystem(group string, clt *Client, junSess *junosSession) (grou
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "interfaces fxp0 "):
+			case balt.CutPrefixInString(&itemTrim, "interfaces fxp0 "):
 				if len(confRead.interfaceFxp0) == 0 {
 					confRead.interfaceFxp0 = append(confRead.interfaceFxp0, map[string]interface{}{
 						"description":          "",
@@ -563,12 +563,12 @@ func readGroupDualSystem(group string, clt *Client, junSess *junosSession) (grou
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "interfaces fxp0 description "):
-					confRead.interfaceFxp0[0]["description"] = strings.TrimPrefix(itemTrim, "interfaces fxp0 description ")
-				case strings.HasPrefix(itemTrim, "interfaces fxp0 unit 0 family inet address "):
-					itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "interfaces fxp0 unit 0 family inet address "), " ")
+				case balt.CutPrefixInString(&itemTrim, "description "):
+					confRead.interfaceFxp0[0]["description"] = strings.Trim(itemTrim, "\"")
+				case balt.CutPrefixInString(&itemTrim, "unit 0 family inet address "):
+					itemTrimFields := strings.Split(itemTrim, " ")
 					familyInetAddress := map[string]interface{}{
-						"cidr_ip":     itemTrimSplit[0],
+						"cidr_ip":     itemTrimFields[0],
 						"master_only": false,
 						"preferred":   false,
 						"primary":     false,
@@ -585,10 +585,10 @@ func readGroupDualSystem(group string, clt *Client, junSess *junosSession) (grou
 					}
 					confRead.interfaceFxp0[0]["family_inet_address"] = append(
 						confRead.interfaceFxp0[0]["family_inet_address"].([]map[string]interface{}), familyInetAddress)
-				case strings.HasPrefix(itemTrim, "interfaces fxp0 unit 0 family inet6 address "):
-					itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "interfaces fxp0 unit 0 family inet6 address "), " ")
+				case balt.CutPrefixInString(&itemTrim, "unit 0 family inet6 address "):
+					itemTrimFields := strings.Split(itemTrim, " ")
 					familyInet6Address := map[string]interface{}{
-						"cidr_ip":     itemTrimSplit[0],
+						"cidr_ip":     itemTrimFields[0],
 						"master_only": false,
 						"preferred":   false,
 						"primary":     false,
@@ -606,37 +606,34 @@ func readGroupDualSystem(group string, clt *Client, junSess *junosSession) (grou
 					confRead.interfaceFxp0[0]["family_inet6_address"] = append(
 						confRead.interfaceFxp0[0]["family_inet6_address"].([]map[string]interface{}), familyInet6Address)
 				}
-			case strings.HasPrefix(itemTrim, "routing-options static route "):
+			case balt.CutPrefixInString(&itemTrim, "routing-options static route "):
 				if len(confRead.routingOptions) == 0 {
 					confRead.routingOptions = append(confRead.routingOptions, map[string]interface{}{
 						"static_route": make([]map[string]interface{}, 0),
 					})
 				}
-				routeTrim := strings.TrimPrefix(itemTrim, "routing-options static route ")
-				routeTrimSplit := strings.Split(routeTrim, " ")
+				itemTrimFields := strings.Split(itemTrim, " ")
 				destOptions := map[string]interface{}{
-					"destination": routeTrimSplit[0],
+					"destination": itemTrimFields[0],
 					"next_hop":    make([]string, 0),
 				}
 				confRead.routingOptions[0]["static_route"] = copyAndRemoveItemMapList(
 					"destination", destOptions, confRead.routingOptions[0]["static_route"].([]map[string]interface{}))
-				if strings.HasPrefix(routeTrim, routeTrimSplit[0]+" next-hop ") {
-					destOptions["next_hop"] = append(destOptions["next_hop"].([]string),
-						strings.TrimPrefix(routeTrim, routeTrimSplit[0]+" next-hop "))
+				if balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" next-hop ") {
+					destOptions["next_hop"] = append(destOptions["next_hop"].([]string), itemTrim)
 				}
 				confRead.routingOptions[0]["static_route"] = append(
 					confRead.routingOptions[0]["static_route"].([]map[string]interface{}), destOptions)
-			case strings.HasPrefix(itemTrim, "security"):
+			case balt.CutPrefixInString(&itemTrim, "security"):
 				if len(confRead.security) == 0 {
 					confRead.security = append(confRead.security, map[string]interface{}{
 						"log_source_address": "",
 					})
 				}
-				if strings.HasPrefix(itemTrim, "security log source-address ") {
-					confRead.security[0]["log_source_address"] = strings.TrimPrefix(
-						itemTrim, "security log source-address ")
+				if balt.CutPrefixInString(&itemTrim, " log source-address ") {
+					confRead.security[0]["log_source_address"] = itemTrim
 				}
-			case strings.HasPrefix(itemTrim, "system"):
+			case balt.CutPrefixInString(&itemTrim, "system"):
 				if len(confRead.system) == 0 {
 					confRead.system = append(confRead.system, map[string]interface{}{
 						"host_name":                       "",
@@ -647,20 +644,18 @@ func readGroupDualSystem(group string, clt *Client, junSess *junosSession) (grou
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "system host-name "):
-					confRead.system[0]["host_name"] = strings.Trim(strings.TrimPrefix(itemTrim, "system host-name "), "\"")
-				case strings.HasPrefix(itemTrim, "system backup-router destination "):
+				case balt.CutPrefixInString(&itemTrim, " host-name "):
+					confRead.system[0]["host_name"] = strings.Trim(itemTrim, "\"")
+				case balt.CutPrefixInString(&itemTrim, " backup-router destination "):
 					confRead.system[0]["backup_router_destination"] = append(
-						confRead.system[0]["backup_router_destination"].([]string),
-						strings.TrimPrefix(itemTrim, "system backup-router destination "))
-				case strings.HasPrefix(itemTrim, "system backup-router "):
-					confRead.system[0]["backup_router_address"] = strings.TrimPrefix(itemTrim, "system backup-router ")
-				case strings.HasPrefix(itemTrim, "system inet6-backup-router destination "):
+						confRead.system[0]["backup_router_destination"].([]string), itemTrim)
+				case balt.CutPrefixInString(&itemTrim, " backup-router "):
+					confRead.system[0]["backup_router_address"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, " inet6-backup-router destination "):
 					confRead.system[0]["inet6_backup_router_destination"] = append(
-						confRead.system[0]["inet6_backup_router_destination"].([]string),
-						strings.TrimPrefix(itemTrim, "system inet6-backup-router destination "))
-				case strings.HasPrefix(itemTrim, "system inet6-backup-router "):
-					confRead.system[0]["inet6_backup_router_address"] = strings.TrimPrefix(itemTrim, "system inet6-backup-router ")
+						confRead.system[0]["inet6_backup_router_destination"].([]string), itemTrim)
+				case balt.CutPrefixInString(&itemTrim, " inet6-backup-router "):
+					confRead.system[0]["inet6_backup_router_address"] = itemTrim
 				}
 			}
 		}

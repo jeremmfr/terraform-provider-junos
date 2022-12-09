@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -408,9 +409,7 @@ func setSnmpV3VacmAccessGroup(d *schema.ResourceData, clt *Client, junSess *juno
 }
 
 func readSnmpV3VacmAccessGroup(name string, clt *Client, junSess *junosSession,
-) (snmpV3VacmAccessGroupOptions, error) {
-	var confRead snmpV3VacmAccessGroupOptions
-
+) (confRead snmpV3VacmAccessGroupOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"snmp v3 vacm access group \""+name+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -427,12 +426,15 @@ func readSnmpV3VacmAccessGroup(name string, clt *Client, junSess *junosSession,
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "default-context-prefix security-model ") &&
-				strings.Contains(itemTrim, " security-level "):
-				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "default-context-prefix security-model "), " ")
+			case balt.CutPrefixInString(&itemTrim, "default-context-prefix security-model "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				if len(itemTrimFields) < 3 { // <model> security-level <level>
+					return confRead,
+						fmt.Errorf(cantReadValuesNotEnoughFields, "default-context-prefix security-model", itemTrim)
+				}
 				defaultContextPrefix := map[string]interface{}{
-					"model":         itemTrimSplit[0],
-					"level":         itemTrimSplit[2],
+					"model":         itemTrimFields[0],
+					"level":         itemTrimFields[2],
 					"context_match": "",
 					"notify_view":   "",
 					"read_view":     "",
@@ -440,24 +442,25 @@ func readSnmpV3VacmAccessGroup(name string, clt *Client, junSess *junosSession,
 				}
 				confRead.defaultContextPrefix = copyAndRemoveItemMapList2("model", "level", defaultContextPrefix,
 					confRead.defaultContextPrefix)
-				itemTrimCtxPref := strings.TrimPrefix(itemTrim,
-					"default-context-prefix security-model "+itemTrimSplit[0]+" security-level "+itemTrimSplit[2]+" ")
-				readSnmpV3VacmAccessGroupContextPrefixConfig(itemTrimCtxPref, defaultContextPrefix)
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" security-level "+itemTrimFields[2]+" ")
+				readSnmpV3VacmAccessGroupContextPrefixConfig(itemTrim, defaultContextPrefix)
 				confRead.defaultContextPrefix = append(confRead.defaultContextPrefix, defaultContextPrefix)
-			case strings.HasPrefix(itemTrim, "context-prefix "):
-				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "context-prefix "), " ")
+			case balt.CutPrefixInString(&itemTrim, "context-prefix "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				contextPrefix := map[string]interface{}{
-					"prefix":        strings.Trim(itemTrimSplit[0], "\""),
+					"prefix":        strings.Trim(itemTrimFields[0], "\""),
 					"access_config": make([]map[string]interface{}, 0),
 				}
 				confRead.contextPrefix = copyAndRemoveItemMapList("prefix", contextPrefix, confRead.contextPrefix)
-				itemTrimCtxPref := strings.TrimPrefix(itemTrim, "context-prefix "+itemTrimSplit[0]+" ")
-				if strings.HasPrefix(itemTrimCtxPref, "security-model ") &&
-					strings.Contains(itemTrimCtxPref, " security-level ") {
-					itemTrimCtxPrefSplit := strings.Split(strings.TrimPrefix(itemTrimCtxPref, "security-model "), " ")
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+				if balt.CutPrefixInString(&itemTrim, "security-model ") {
+					itemTrimSecModelFields := strings.Split(itemTrim, " ")
+					if len(itemTrimSecModelFields) < 3 { // <model> security-level <level>
+						return confRead, fmt.Errorf(cantReadValuesNotEnoughFields, "security-model", itemTrim)
+					}
 					contextPrefixAccessConfig := map[string]interface{}{
-						"model":         itemTrimCtxPrefSplit[0],
-						"level":         itemTrimCtxPrefSplit[2],
+						"model":         itemTrimSecModelFields[0],
+						"level":         itemTrimSecModelFields[2],
 						"context_match": "",
 						"notify_view":   "",
 						"read_view":     "",
@@ -465,11 +468,12 @@ func readSnmpV3VacmAccessGroup(name string, clt *Client, junSess *junosSession,
 					}
 					contextPrefix["access_config"] = copyAndRemoveItemMapList2("model", "level", contextPrefixAccessConfig,
 						contextPrefix["access_config"].([]map[string]interface{}))
-					itemTrimCtxPrefConfig := strings.TrimPrefix(itemTrimCtxPref,
-						"security-model "+itemTrimCtxPrefSplit[0]+" security-level "+itemTrimCtxPrefSplit[2]+" ")
-					readSnmpV3VacmAccessGroupContextPrefixConfig(itemTrimCtxPrefConfig, contextPrefixAccessConfig)
+					balt.CutPrefixInString(&itemTrim, itemTrimSecModelFields[0]+" security-level "+itemTrimSecModelFields[2]+" ")
+					readSnmpV3VacmAccessGroupContextPrefixConfig(itemTrim, contextPrefixAccessConfig)
 					contextPrefix["access_config"] = append(
-						contextPrefix["access_config"].([]map[string]interface{}), contextPrefixAccessConfig)
+						contextPrefix["access_config"].([]map[string]interface{}),
+						contextPrefixAccessConfig,
+					)
 				}
 				confRead.contextPrefix = append(confRead.contextPrefix, contextPrefix)
 			}
@@ -481,14 +485,14 @@ func readSnmpV3VacmAccessGroup(name string, clt *Client, junSess *junosSession,
 
 func readSnmpV3VacmAccessGroupContextPrefixConfig(itemTrim string, config map[string]interface{}) {
 	switch {
-	case strings.HasPrefix(itemTrim, "context-match "):
-		config["context_match"] = strings.TrimPrefix(itemTrim, "context-match ")
-	case strings.HasPrefix(itemTrim, "notify-view "):
-		config["notify_view"] = strings.Trim(strings.TrimPrefix(itemTrim, "notify-view "), "\"")
-	case strings.HasPrefix(itemTrim, "read-view "):
-		config["read_view"] = strings.Trim(strings.TrimPrefix(itemTrim, "read-view "), "\"")
-	case strings.HasPrefix(itemTrim, "write-view "):
-		config["write_view"] = strings.Trim(strings.TrimPrefix(itemTrim, "write-view "), "\"")
+	case balt.CutPrefixInString(&itemTrim, "context-match "):
+		config["context_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "notify-view "):
+		config["notify_view"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "read-view "):
+		config["read_view"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "write-view "):
+		config["write_view"] = strings.Trim(itemTrim, "\"")
 	}
 }
 

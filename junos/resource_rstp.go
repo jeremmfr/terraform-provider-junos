@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -391,20 +392,17 @@ func setRstp(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	return clt.configSet(configSet, junSess)
 }
 
-func readRstp(routingInstance string, clt *Client, junSess *junosSession) (rstpOptions, error) {
-	var confRead rstpOptions
+func readRstp(routingInstance string, clt *Client, junSess *junosSession) (confRead rstpOptions, err error) {
+	// default -1
 	confRead.extendedSystemID = -1
-
 	var showConfig string
 	if routingInstance == defaultW {
-		var err error
 		showConfig, err = clt.command(cmdShowConfig+
 			"protocols rstp"+pipeDisplaySetRelative, junSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
-		var err error
 		showConfig, err = clt.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
 			"protocols rstp"+pipeDisplaySetRelative, junSess)
 		if err != nil {
@@ -423,66 +421,61 @@ func readRstp(routingInstance string, clt *Client, junSess *junosSession) (rstpO
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "backup-bridge-priority "):
-				confRead.backupBridgePriority = strings.TrimPrefix(itemTrim, "backup-bridge-priority ")
+			case balt.CutPrefixInString(&itemTrim, "backup-bridge-priority "):
+				confRead.backupBridgePriority = itemTrim
 			case itemTrim == "bpdu-block-on-edge":
 				confRead.bpduBlockOnEdge = true
 			case itemTrim == "bpdu-destination-mac-address provider-bridge-group":
 				confRead.bpduDestMACAddProvBridgeGrp = true
-			case strings.HasPrefix(itemTrim, "bridge-priority "):
-				confRead.bridgePriority = strings.TrimPrefix(itemTrim, "bridge-priority ")
+			case balt.CutPrefixInString(&itemTrim, "bridge-priority "):
+				confRead.bridgePriority = itemTrim
 			case itemTrim == disableW:
 				confRead.disable = true
-			case strings.HasPrefix(itemTrim, "extended-system-id "):
-				var err error
-				confRead.extendedSystemID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "extended-system-id "))
+			case balt.CutPrefixInString(&itemTrim, "extended-system-id "):
+				confRead.extendedSystemID, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "force-version stp":
 				confRead.forceVersionStp = true
-			case strings.HasPrefix(itemTrim, "forward-delay "):
-				var err error
-				confRead.forwardDelay, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "forward-delay "))
+			case balt.CutPrefixInString(&itemTrim, "forward-delay "):
+				confRead.forwardDelay, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "hello-time "):
-				var err error
-				confRead.helloTime, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "hello-time "))
+			case balt.CutPrefixInString(&itemTrim, "hello-time "):
+				confRead.helloTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "max-age "):
-				var err error
-				confRead.maxAge, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-age "))
+			case balt.CutPrefixInString(&itemTrim, "max-age "):
+				confRead.maxAge, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "priority-hold-time "):
-				var err error
-				confRead.priorityHoldTime, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "priority-hold-time "))
+			case balt.CutPrefixInString(&itemTrim, "priority-hold-time "):
+				confRead.priorityHoldTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "system-id "):
-				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "system-id "), " ")
-				switch len(itemTrimSplit) {
+			case balt.CutPrefixInString(&itemTrim, "system-id "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				switch len(itemTrimFields) { // <id> (ip-address <ip_address>)?
 				case 1:
 					confRead.systemID = append(confRead.systemID, map[string]interface{}{
-						"id":         itemTrimSplit[0],
+						"id":         itemTrimFields[0],
 						"ip_address": "",
 					})
 				case 3:
 					confRead.systemID = append(confRead.systemID, map[string]interface{}{
-						"id":         itemTrimSplit[0],
-						"ip_address": itemTrimSplit[2],
+						"id":         itemTrimFields[0],
+						"ip_address": itemTrimFields[2],
 					})
 				default:
-					return confRead, fmt.Errorf("can't read value for system_id in '%s'", itemTrim)
+					return confRead, fmt.Errorf(cantReadValuesNotEnoughFields, "system-id", itemTrim)
 				}
-			case strings.HasPrefix(itemTrim, "system-identifier "):
-				confRead.systemIdentifier = strings.TrimPrefix(itemTrim, "system-identifier ")
+			case balt.CutPrefixInString(&itemTrim, "system-identifier "):
+				confRead.systemIdentifier = itemTrim
 			case itemTrim == "vpls-flush-on-topology-change":
 				confRead.vplsFlushOnTopologyChange = true
 			}

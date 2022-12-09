@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -456,9 +457,7 @@ func setSnmpV3UsmUser(d *schema.ResourceData, clt *Client, junSess *junosSession
 }
 
 func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, clt *Client, junSess *junosSession,
-) (snmpV3UsmUserOptions, error) {
-	var confRead snmpV3UsmUserOptions
-
+) (confRead snmpV3UsmUserOptions, err error) {
 	showCommand := cmdShowConfig + "snmp v3 usm local-engine user \"" + confSrc.name + "\"" + pipeDisplaySetRelative
 	if confSrc.engineType != "local" {
 		showCommand = cmdShowConfig + "snmp v3 usm remote-engine \"" + confSrc.engineID +
@@ -481,64 +480,54 @@ func readSnmpV3UsmUser(confSrc snmpV3UsmUserOptions, clt *Client, junSess *junos
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "authentication-md5 authentication-key "):
+			case balt.CutPrefixInString(&itemTrim, "authentication-md5 authentication-key "):
 				confRead.authenticationType = "authentication-md5"
 				if confSrc.authenticationPassword != "" && confSrc.authenticationType == confRead.authenticationType {
 					confRead.authenticationPassword = confSrc.authenticationPassword
 				} else {
-					var err error
-					confRead.authenticationKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
-						itemTrim, "authentication-md5 authentication-key "), "\""))
+					confRead.authenticationKey, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to decode authentication-key: %w", err)
 					}
 				}
 			case itemTrim == "authentication-none":
 				confRead.authenticationType = itemTrim
-			case strings.HasPrefix(itemTrim, "authentication-sha authentication-key "):
+			case balt.CutPrefixInString(&itemTrim, "authentication-sha authentication-key "):
 				confRead.authenticationType = "authentication-sha"
 				if confSrc.authenticationPassword != "" && confSrc.authenticationType == confRead.authenticationType {
 					confRead.authenticationPassword = confSrc.authenticationPassword
 				} else {
-					var err error
-					confRead.authenticationKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
-						itemTrim, "authentication-sha authentication-key "), "\""))
+					confRead.authenticationKey, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to decode authentication-key: %w", err)
 					}
 				}
-			case strings.HasPrefix(itemTrim, "privacy-3des privacy-key "):
+			case balt.CutPrefixInString(&itemTrim, "privacy-3des privacy-key "):
 				confRead.privacyType = "privacy-3des"
 				if confSrc.privacyPassword != "" && confSrc.privacyType == confRead.privacyType {
 					confRead.privacyPassword = confSrc.privacyPassword
 				} else {
-					var err error
-					confRead.privacyKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
-						itemTrim, "privacy-3des privacy-key "), "\""))
+					confRead.privacyKey, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to decode privacy-key: %w", err)
 					}
 				}
-			case strings.HasPrefix(itemTrim, "privacy-aes128 privacy-key "):
+			case balt.CutPrefixInString(&itemTrim, "privacy-aes128 privacy-key "):
 				confRead.privacyType = "privacy-aes128"
 				if confSrc.privacyPassword != "" && confSrc.privacyType == confRead.privacyType {
 					confRead.privacyPassword = confSrc.privacyPassword
 				} else {
-					var err error
-					confRead.privacyKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
-						itemTrim, "privacy-aes128 privacy-key "), "\""))
+					confRead.privacyKey, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to decode privacy-key: %w", err)
 					}
 				}
-			case strings.HasPrefix(itemTrim, "privacy-des privacy-key "):
+			case balt.CutPrefixInString(&itemTrim, "privacy-des privacy-key "):
 				confRead.privacyType = "privacy-des"
 				if confSrc.privacyPassword != "" && confSrc.privacyType == confRead.privacyType {
 					confRead.privacyPassword = confSrc.privacyPassword
 				} else {
-					var err error
-					confRead.privacyKey, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
-						itemTrim, "privacy-des privacy-key "), "\""))
+					confRead.privacyKey, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to decode privacy-key: %w", err)
 					}

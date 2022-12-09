@@ -374,9 +374,7 @@ func setForwardingOptionsDhcpRelayServerGroup(d *schema.ResourceData, clt *Clien
 }
 
 func readForwardingOptionsDhcpRelayServerGroup(name, instance, version string, clt *Client, junSess *junosSession,
-) (fwdOptsDhcpRelSrvGrpOptions, error) {
-	var confRead fwdOptsDhcpRelSrvGrpOptions
-
+) (confRead fwdOptsDhcpRelSrvGrpOptions, err error) {
 	showCmd := cmdShowConfig
 	if instance != defaultW {
 		showCmd += routingInstancesWS + instance + " "
@@ -404,7 +402,7 @@ func readForwardingOptionsDhcpRelayServerGroup(name, instance, version string, c
 				break
 			}
 			if itemTrim != "" {
-				confRead.ipAddress = append(confRead.ipAddress, strings.TrimPrefix(itemTrim, " "))
+				confRead.ipAddress = append(confRead.ipAddress, itemTrim)
 			}
 		}
 	}

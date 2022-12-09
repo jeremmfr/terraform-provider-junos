@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -314,9 +315,7 @@ func setIkePolicy(d *schema.ResourceData, clt *Client, junSess *junosSession) er
 	return clt.configSet(configSet, junSess)
 }
 
-func readIkePolicy(ikePolicy string, clt *Client, junSess *junosSession) (ikePolicyOptions, error) {
-	var confRead ikePolicyOptions
-
+func readIkePolicy(ikePolicy string, clt *Client, junSess *junosSession) (confRead ikePolicyOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security ike policy "+ikePolicy+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -333,21 +332,19 @@ func readIkePolicy(ikePolicy string, clt *Client, junSess *junosSession) (ikePol
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "mode "):
-				confRead.mode = strings.TrimPrefix(itemTrim, "mode ")
-			case strings.HasPrefix(itemTrim, "proposals "):
-				confRead.proposals = append(confRead.proposals, strings.TrimPrefix(itemTrim, "proposals "))
-			case strings.HasPrefix(itemTrim, "proposal-set "):
-				confRead.proposalSet = strings.TrimPrefix(itemTrim, "proposal-set ")
-			case strings.HasPrefix(itemTrim, "pre-shared-key hexadecimal "):
-				confRead.preSharedKeyHexa, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
-					"pre-shared-key hexadecimal "), "\""))
+			case balt.CutPrefixInString(&itemTrim, "mode "):
+				confRead.mode = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "proposals "):
+				confRead.proposals = append(confRead.proposals, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "proposal-set "):
+				confRead.proposalSet = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "pre-shared-key hexadecimal "):
+				confRead.preSharedKeyHexa, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 				if err != nil {
 					return confRead, fmt.Errorf("failed to decode pre-shared-key hexadecimal: %w", err)
 				}
-			case strings.HasPrefix(itemTrim, "pre-shared-key ascii-text "):
-				confRead.preSharedKeyText, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
-					"pre-shared-key ascii-text "), "\""))
+			case balt.CutPrefixInString(&itemTrim, "pre-shared-key ascii-text "):
+				confRead.preSharedKeyText, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 				if err != nil {
 					return confRead, fmt.Errorf("failed to decode pre-shared-key ascii-text: %w", err)
 				}

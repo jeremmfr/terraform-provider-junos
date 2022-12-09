@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -323,9 +324,7 @@ func setLayer2Control(d *schema.ResourceData, clt *Client, junSess *junosSession
 	return clt.configSet(configSet, junSess)
 }
 
-func readLayer2Control(clt *Client, junSess *junosSession) (layer2ControlOptions, error) {
-	var confRead layer2ControlOptions
-
+func readLayer2Control(clt *Client, junSess *junosSession) (confRead layer2ControlOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"protocols layer2-control"+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -342,7 +341,7 @@ func readLayer2Control(clt *Client, junSess *junosSession) (layer2ControlOptions
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "bpdu-block"):
+			case balt.CutPrefixInString(&itemTrim, "bpdu-block"):
 				if len(confRead.bpduBlock) == 0 {
 					confRead.bpduBlock = append(confRead.bpduBlock, map[string]interface{}{
 						"disable_timeout": 0,
@@ -350,17 +349,15 @@ func readLayer2Control(clt *Client, junSess *junosSession) (layer2ControlOptions
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "bpdu-block disable-timeout "):
-					var err error
-					confRead.bpduBlock[0]["disable_timeout"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "bpdu-block disable-timeout "))
+				case balt.CutPrefixInString(&itemTrim, " disable-timeout "):
+					confRead.bpduBlock[0]["disable_timeout"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "bpdu-block interface "):
-					itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "bpdu-block interface "), " ")
+				case balt.CutPrefixInString(&itemTrim, " interface "):
+					itemTrimFields := strings.Split(itemTrim, " ")
 					bpduBlockIntFace := map[string]interface{}{
-						"name":    itemTrimSplit[0],
+						"name":    itemTrimFields[0],
 						"disable": false,
 						"drop":    false,
 					}
@@ -369,31 +366,30 @@ func readLayer2Control(clt *Client, junSess *junosSession) (layer2ControlOptions
 						bpduBlockIntFace,
 						confRead.bpduBlock[0]["interface"].([]map[string]interface{}),
 					)
-					itemTrimIntFace := strings.TrimPrefix(itemTrim, "bpdu-block interface "+itemTrimSplit[0]+" ")
+					balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 					switch {
-					case itemTrimIntFace == "disable":
+					case itemTrim == "disable":
 						bpduBlockIntFace["disable"] = true
-					case itemTrimIntFace == "drop":
+					case itemTrim == "drop":
 						bpduBlockIntFace["drop"] = true
 					}
 					confRead.bpduBlock[0]["interface"] = append(confRead.bpduBlock[0]["interface"].([]map[string]interface{}),
 						bpduBlockIntFace)
 				}
-			case strings.HasPrefix(itemTrim, "mac-rewrite interface "):
-				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "mac-rewrite interface "), " ")
+			case balt.CutPrefixInString(&itemTrim, "mac-rewrite interface "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				macRewIntFace := map[string]interface{}{
-					"name":           itemTrimSplit[0],
+					"name":           itemTrimFields[0],
 					"enable_all_ifl": false,
 					"protocol":       make([]string, 0),
 				}
 				confRead.macRewriteInterface = copyAndRemoveItemMapList("name", macRewIntFace, confRead.macRewriteInterface)
-				itemTrimIntFace := strings.TrimPrefix(itemTrim, "mac-rewrite interface "+itemTrimSplit[0]+" ")
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				switch {
-				case itemTrimIntFace == "enable-all-ifl":
+				case itemTrim == "enable-all-ifl":
 					macRewIntFace["enable_all_ifl"] = true
-				case strings.HasPrefix(itemTrimIntFace, "protocol "):
-					macRewIntFace["protocol"] = append(macRewIntFace["protocol"].([]string),
-						strings.TrimPrefix(itemTrimIntFace, "protocol "))
+				case balt.CutPrefixInString(&itemTrim, "protocol "):
+					macRewIntFace["protocol"] = append(macRewIntFace["protocol"].([]string), itemTrim)
 				}
 				confRead.macRewriteInterface = append(confRead.macRewriteInterface, macRewIntFace)
 			case itemTrim == "nonstop-bridging":

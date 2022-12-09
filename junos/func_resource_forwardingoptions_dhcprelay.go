@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 func schemaForwardingOptionsDhcpRelayAuthUsernameInclude() map[string]*schema.Schema {
@@ -1383,38 +1384,36 @@ func genForwardingOptionsDhcpRelayOption82() map[string]interface{} {
 	}
 }
 
-func readForwardingOptionsDhcpRelayAuthUsernameInclude(
-	itemTrim string, authUsernameInclude map[string]interface{},
-) {
+func readForwardingOptionsDhcpRelayAuthUsernameInclude(itemTrim string, authUsernameInclude map[string]interface{}) {
 	switch {
 	case itemTrim == "circuit-type":
 		authUsernameInclude["circuit_type"] = true
-	case strings.HasPrefix(itemTrim, "client-id"):
+	case balt.CutPrefixInString(&itemTrim, "client-id"):
 		authUsernameInclude["client_id"] = true
 		switch {
-		case itemTrim == "client-id exclude-headers":
+		case itemTrim == " exclude-headers":
 			authUsernameInclude["client_id_exclude_headers"] = true
-		case itemTrim == "client-id use-automatic-ascii-hex-encoding":
+		case itemTrim == " use-automatic-ascii-hex-encoding":
 			authUsernameInclude["client_id_use_automatic_ascii_hex_encoding"] = true
 		}
-	case strings.HasPrefix(itemTrim, "delimiter "):
-		authUsernameInclude["delimiter"] = strings.Trim(strings.TrimPrefix(itemTrim, "delimiter "), "\"")
-	case strings.HasPrefix(itemTrim, "domain-name "):
-		authUsernameInclude["domain_name"] = strings.Trim(strings.TrimPrefix(itemTrim, "domain-name "), "\"")
-	case strings.HasPrefix(itemTrim, "interface-description "):
-		authUsernameInclude["interface_description"] = strings.TrimPrefix(itemTrim, "interface-description ")
+	case balt.CutPrefixInString(&itemTrim, "delimiter "):
+		authUsernameInclude["delimiter"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "domain-name "):
+		authUsernameInclude["domain_name"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "interface-description "):
+		authUsernameInclude["interface_description"] = itemTrim
 	case itemTrim == "interface-name":
 		authUsernameInclude["interface_name"] = true
 	case itemTrim == "mac-address":
 		authUsernameInclude["mac_address"] = true
 	case itemTrim == "option-60":
 		authUsernameInclude["option_60"] = true
-	case strings.HasPrefix(itemTrim, "option-82"):
+	case balt.CutPrefixInString(&itemTrim, "option-82"):
 		authUsernameInclude["option_82"] = true
 		switch {
-		case itemTrim == "option-82 circuit-id":
+		case itemTrim == " circuit-id":
 			authUsernameInclude["option_82_circuit_id"] = true
-		case itemTrim == "option-82 remote-id":
+		case itemTrim == " remote-id":
 			authUsernameInclude["option_82_remote_id"] = true
 		}
 	case itemTrim == "relay-agent-interface-id":
@@ -1425,15 +1424,14 @@ func readForwardingOptionsDhcpRelayAuthUsernameInclude(
 		authUsernameInclude["relay_agent_subscriber_id"] = true
 	case itemTrim == "routing-instance-name":
 		authUsernameInclude["routing_instance_name"] = true
-	case strings.HasPrefix(itemTrim, "user-prefix "):
-		authUsernameInclude["user_prefix"] = strings.Trim(strings.TrimPrefix(itemTrim, "user-prefix "), "\"")
+	case balt.CutPrefixInString(&itemTrim, "user-prefix "):
+		authUsernameInclude["user_prefix"] = strings.Trim(itemTrim, "\"")
 	case itemTrim == "vlan-tags":
 		authUsernameInclude["vlan_tags"] = true
 	}
 }
 
-func readForwardingOptionsDhcpRelayOverridesV4(itemTrim string, overrides map[string]interface{}) error {
-	var err error
+func readForwardingOptionsDhcpRelayOverridesV4(itemTrim string, overrides map[string]interface{}) (err error) {
 	switch {
 	case itemTrim == "allow-no-end-option":
 		overrides["allow_no_end_option"] = true
@@ -1443,22 +1441,22 @@ func readForwardingOptionsDhcpRelayOverridesV4(itemTrim string, overrides map[st
 		overrides["always_write_giaddr"] = true
 	case itemTrim == "always-write-option-82":
 		overrides["always_write_option_82"] = true
-	case strings.HasPrefix(itemTrim, "asymmetric-lease-time "):
-		overrides["asymmetric_lease_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "asymmetric-lease-time "))
+	case balt.CutPrefixInString(&itemTrim, "asymmetric-lease-time "):
+		overrides["asymmetric_lease_time"], err = strconv.Atoi(itemTrim)
 	case itemTrim == "bootp-support":
 		overrides["bootp_support"] = true
-	case strings.HasPrefix(itemTrim, "client-discover-match "):
-		overrides["client_discover_match"] = strings.TrimPrefix(itemTrim, "client-discover-match ")
+	case balt.CutPrefixInString(&itemTrim, "client-discover-match "):
+		overrides["client_discover_match"] = itemTrim
 	case itemTrim == "delay-authentication":
 		overrides["delay_authentication"] = true
 	case itemTrim == "delete-binding-on-renegotiation":
 		overrides["delete_binding_on_renegotiation"] = true
 	case itemTrim == "disable-relay":
 		overrides["disable_relay"] = true
-	case strings.HasPrefix(itemTrim, "dual-stack "):
-		overrides["dual_stack"] = strings.Trim(strings.TrimPrefix(itemTrim, "dual-stack "), "\"")
-	case strings.HasPrefix(itemTrim, "interface-client-limit "):
-		overrides["interface_client_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "interface-client-limit "))
+	case balt.CutPrefixInString(&itemTrim, "dual-stack "):
+		overrides["dual_stack"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "interface-client-limit "):
+		overrides["interface_client_limit"], err = strconv.Atoi(itemTrim)
 	case itemTrim == "layer2-unicast-replies":
 		overrides["layer2_unicast_replies"] = true
 	case itemTrim == "no-allow-snooped-clients":
@@ -1469,16 +1467,16 @@ func readForwardingOptionsDhcpRelayOverridesV4(itemTrim string, overrides map[st
 		overrides["no_unicast_replies"] = true
 	case itemTrim == "proxy-mode":
 		overrides["proxy_mode"] = true
-	case strings.HasPrefix(itemTrim, "relay-source "):
-		overrides["relay_source"] = strings.TrimPrefix(itemTrim, "relay-source ")
+	case balt.CutPrefixInString(&itemTrim, "relay-source "):
+		overrides["relay_source"] = itemTrim
 	case itemTrim == "replace-ip-source-with giaddr":
 		overrides["replace_ip_source_with_giaddr"] = true
 	case itemTrim == "send-release-on-delete":
 		overrides["send_release_on_delete"] = true
 	case itemTrim == "trust-option-82":
 		overrides["trust_option_82"] = true
-	case strings.HasPrefix(itemTrim, "user-defined-option-82 "):
-		overrides["user_defined_option_82"] = strings.Trim(strings.TrimPrefix(itemTrim, "user-defined-option-82 "), "\"")
+	case balt.CutPrefixInString(&itemTrim, "user-defined-option-82 "):
+		overrides["user_defined_option_82"] = strings.Trim(itemTrim, "\"")
 	}
 	if err != nil {
 		return fmt.Errorf(failedConvAtoiError, itemTrim, err)
@@ -1487,34 +1485,32 @@ func readForwardingOptionsDhcpRelayOverridesV4(itemTrim string, overrides map[st
 	return nil
 }
 
-func readForwardingOptionsDhcpRelayOverridesV6(itemTrim string, overrides map[string]interface{}) error {
-	var err error
+func readForwardingOptionsDhcpRelayOverridesV6(itemTrim string, overrides map[string]interface{}) (err error) {
 	switch {
 	case itemTrim == "allow-snooped-clients":
 		overrides["allow_snooped_clients"] = true
 	case itemTrim == "always-process-option-request-option":
 		overrides["always_process_option_request_option"] = true
-	case strings.HasPrefix(itemTrim, "asymmetric-lease-time "):
-		overrides["asymmetric_lease_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "asymmetric-lease-time "))
-	case strings.HasPrefix(itemTrim, "asymmetric-prefix-lease-time "):
-		overrides["asymmetric_prefix_lease_time"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "asymmetric-prefix-lease-time "))
+	case balt.CutPrefixInString(&itemTrim, "asymmetric-lease-time "):
+		overrides["asymmetric_lease_time"], err = strconv.Atoi(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "asymmetric-prefix-lease-time "):
+		overrides["asymmetric_prefix_lease_time"], err = strconv.Atoi(itemTrim)
 	case itemTrim == "client-negotiation-match incoming-interface":
 		overrides["client_negotiation_match_incoming_interface"] = true
 	case itemTrim == "delay-authentication":
 		overrides["delay_authentication"] = true
 	case itemTrim == "delete-binding-on-renegotiation":
 		overrides["delete_binding_on_renegotiation"] = true
-	case strings.HasPrefix(itemTrim, "dual-stack "):
-		overrides["dual_stack"] = strings.Trim(strings.TrimPrefix(itemTrim, "dual-stack "), "\"")
-	case strings.HasPrefix(itemTrim, "interface-client-limit "):
-		overrides["interface_client_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "interface-client-limit "))
+	case balt.CutPrefixInString(&itemTrim, "dual-stack "):
+		overrides["dual_stack"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "interface-client-limit "):
+		overrides["interface_client_limit"], err = strconv.Atoi(itemTrim)
 	case itemTrim == "no-allow-snooped-clients":
 		overrides["no_allow_snooped_clients"] = true
 	case itemTrim == "no-bind-on-request":
 		overrides["no_bind_on_request"] = true
-	case strings.HasPrefix(itemTrim, "relay-source "):
-		overrides["relay_source"] = strings.TrimPrefix(itemTrim, "relay-source ")
+	case balt.CutPrefixInString(&itemTrim, "relay-source "):
+		overrides["relay_source"] = itemTrim
 	case itemTrim == "send-release-on-delete":
 		overrides["send_release_on_delete"] = true
 	}
@@ -1542,8 +1538,8 @@ func readForwardingOptionsDhcpRelayAgentID(itemTrim string, agentID map[string]i
 		agentID["prefix_host_name"] = true
 	case itemTrim == "prefix routing-instance-name":
 		agentID["prefix_routing_instance_name"] = true
-	case strings.HasPrefix(itemTrim, "use-interface-description "):
-		agentID["use_interface_description"] = strings.TrimPrefix(itemTrim, "use-interface-description ")
+	case balt.CutPrefixInString(&itemTrim, "use-interface-description "):
+		agentID["use_interface_description"] = itemTrim
 	case itemTrim == "use-option-82":
 		agentID["use_option_82"] = true
 	case itemTrim == "use-option-82 strict":
@@ -1556,28 +1552,28 @@ func readForwardingOptionsDhcpRelayAgentID(itemTrim string, agentID map[string]i
 
 func readForwardingOptionsDhcpRelayOption(itemTrim string, relayOption map[string]interface{}) error {
 	switch {
-	case strings.HasPrefix(itemTrim, "option-15 default-action "):
-		itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "option-15 default-action "), " ")
+	case balt.CutPrefixInString(&itemTrim, "option-15 default-action "):
+		itemTrimFields := strings.Split(itemTrim, " ")
 		defAction := map[string]interface{}{
-			"action": itemTrimSplit[0],
+			"action": itemTrimFields[0],
 			"group":  "",
 		}
-		if len(itemTrimSplit) > 1 {
-			defAction["group"] = strings.Trim(strings.Join(itemTrimSplit[1:], " "), "\"")
+		if len(itemTrimFields) > 1 { // <action> <group>
+			defAction["group"] = strings.Trim(strings.Join(itemTrimFields[1:], " "), "\"")
 		}
 		relayOption["option_15_default_action"] = append(
 			relayOption["option_15_default_action"].([]map[string]interface{}),
 			defAction,
 		)
-	case strings.HasPrefix(itemTrim, "option-15 "):
-		itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "option-15 "), " ")
-		if len(itemTrimSplit) < 4 {
-			return fmt.Errorf("can't read values for option_15 in '%s'", itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "option-15 "):
+		itemTrimFields := strings.Split(itemTrim, " ")
+		if len(itemTrimFields) < 4 { // <compare> <value_type> <value> <action> <group>?
+			return fmt.Errorf(cantReadValuesNotEnoughFields, "option-15", itemTrim)
 		}
-		value := itemTrimSplit[2]
+		value := itemTrimFields[2]
 		actionIndex := 3
-		if strings.Contains(itemTrimSplit[2], "\"") {
-			for k, v := range itemTrimSplit[3:] {
+		if strings.Contains(itemTrimFields[2], "\"") {
+			for k, v := range itemTrimFields[3:] {
 				value += " " + v
 				if strings.Contains(v, "\"") {
 					actionIndex = 3 + k + 1
@@ -1587,43 +1583,43 @@ func readForwardingOptionsDhcpRelayOption(itemTrim string, relayOption map[strin
 			}
 		}
 		value = strings.Trim(value, "\"")
-		action := itemTrimSplit[actionIndex]
+		action := itemTrimFields[actionIndex]
 		option15 := map[string]interface{}{
-			"compare":    itemTrimSplit[0],
-			"value_type": itemTrimSplit[1],
+			"compare":    itemTrimFields[0],
+			"value_type": itemTrimFields[1],
 			"value":      value,
 			"action":     action,
 			"group":      "",
 		}
-		if len(itemTrimSplit) > actionIndex {
-			option15["group"] = strings.Trim(strings.Join(itemTrimSplit[actionIndex+1:], " "), "\"")
+		if len(itemTrimFields) > actionIndex+1 {
+			option15["group"] = strings.Trim(strings.Join(itemTrimFields[actionIndex+1:], " "), "\"")
 		}
 		relayOption["option_15"] = append(
 			relayOption["option_15"].([]map[string]interface{}),
 			option15,
 		)
-	case strings.HasPrefix(itemTrim, "option-16 default-action "):
-		itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "option-16 default-action "), " ")
+	case balt.CutPrefixInString(&itemTrim, "option-16 default-action "):
+		itemTrimFields := strings.Split(itemTrim, " ")
 		defAction := map[string]interface{}{
-			"action": itemTrimSplit[0],
+			"action": itemTrimFields[0],
 			"group":  "",
 		}
-		if len(itemTrimSplit) > 1 {
-			defAction["group"] = strings.Trim(strings.Join(itemTrimSplit[1:], " "), "\"")
+		if len(itemTrimFields) > 1 { // <action> <group>
+			defAction["group"] = strings.Trim(strings.Join(itemTrimFields[1:], " "), "\"")
 		}
 		relayOption["option_16_default_action"] = append(
 			relayOption["option_16_default_action"].([]map[string]interface{}),
 			defAction,
 		)
-	case strings.HasPrefix(itemTrim, "option-16 "):
-		itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "option-16 "), " ")
-		if len(itemTrimSplit) < 4 {
-			return fmt.Errorf("can't read values for option_16 in '%s'", itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "option-16 "):
+		itemTrimFields := strings.Split(itemTrim, " ")
+		if len(itemTrimFields) < 4 { // <compare> <value_type> <value> <action> <group>?
+			return fmt.Errorf(cantReadValuesNotEnoughFields, "option-16", itemTrim)
 		}
-		value := itemTrimSplit[2]
+		value := itemTrimFields[2]
 		actionIndex := 3
-		if strings.Contains(itemTrimSplit[2], "\"") {
-			for k, v := range itemTrimSplit[3:] {
+		if strings.Contains(itemTrimFields[2], "\"") {
+			for k, v := range itemTrimFields[3:] {
 				value += " " + v
 				if strings.Contains(v, "\"") {
 					actionIndex = 3 + k + 1
@@ -1633,43 +1629,43 @@ func readForwardingOptionsDhcpRelayOption(itemTrim string, relayOption map[strin
 			}
 		}
 		value = strings.Trim(value, "\"")
-		action := itemTrimSplit[actionIndex]
+		action := itemTrimFields[actionIndex]
 		option16 := map[string]interface{}{
-			"compare":    itemTrimSplit[0],
-			"value_type": itemTrimSplit[1],
+			"compare":    itemTrimFields[0],
+			"value_type": itemTrimFields[1],
 			"value":      value,
 			"action":     action,
 			"group":      "",
 		}
-		if len(itemTrimSplit) > actionIndex {
-			option16["group"] = strings.Trim(strings.Join(itemTrimSplit[actionIndex+1:], " "), "\"")
+		if len(itemTrimFields) > actionIndex+1 {
+			option16["group"] = strings.Trim(strings.Join(itemTrimFields[actionIndex+1:], " "), "\"")
 		}
 		relayOption["option_16"] = append(
 			relayOption["option_16"].([]map[string]interface{}),
 			option16,
 		)
-	case strings.HasPrefix(itemTrim, "option-60 default-action "):
-		itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "option-60 default-action "), " ")
+	case balt.CutPrefixInString(&itemTrim, "option-60 default-action "):
+		itemTrimFields := strings.Split(itemTrim, " ")
 		defAction := map[string]interface{}{
-			"action": itemTrimSplit[0],
+			"action": itemTrimFields[0],
 			"group":  "",
 		}
-		if len(itemTrimSplit) > 1 {
-			defAction["group"] = strings.Trim(strings.Join(itemTrimSplit[1:], " "), "\"")
+		if len(itemTrimFields) > 1 { // <action> <group>
+			defAction["group"] = strings.Trim(strings.Join(itemTrimFields[1:], " "), "\"")
 		}
 		relayOption["option_60_default_action"] = append(
 			relayOption["option_60_default_action"].([]map[string]interface{}),
 			defAction,
 		)
-	case strings.HasPrefix(itemTrim, "option-60 "):
-		itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "option-60 "), " ")
-		if len(itemTrimSplit) < 4 {
-			return fmt.Errorf("can't read values for option_60 in '%s'", itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "option-60 "):
+		itemTrimFields := strings.Split(itemTrim, " ")
+		if len(itemTrimFields) < 4 { // <compare> <value_type> <value> <action> <group>?
+			return fmt.Errorf(cantReadValuesNotEnoughFields, "option-60", itemTrim)
 		}
-		value := itemTrimSplit[2]
+		value := itemTrimFields[2]
 		actionIndex := 3
-		if strings.Contains(itemTrimSplit[2], "\"") {
-			for k, v := range itemTrimSplit[3:] {
+		if strings.Contains(itemTrimFields[2], "\"") {
+			for k, v := range itemTrimFields[3:] {
 				value += " " + v
 				if strings.Contains(v, "\"") {
 					actionIndex = 3 + k + 1
@@ -1679,43 +1675,43 @@ func readForwardingOptionsDhcpRelayOption(itemTrim string, relayOption map[strin
 			}
 		}
 		value = strings.Trim(value, "\"")
-		action := itemTrimSplit[actionIndex]
+		action := itemTrimFields[actionIndex]
 		option60 := map[string]interface{}{
-			"compare":    itemTrimSplit[0],
-			"value_type": itemTrimSplit[1],
+			"compare":    itemTrimFields[0],
+			"value_type": itemTrimFields[1],
 			"value":      value,
 			"action":     action,
 			"group":      "",
 		}
-		if len(itemTrimSplit) > actionIndex {
-			option60["group"] = strings.Trim(strings.Join(itemTrimSplit[actionIndex+1:], " "), "\"")
+		if len(itemTrimFields) > actionIndex+1 {
+			option60["group"] = strings.Trim(strings.Join(itemTrimFields[actionIndex+1:], " "), "\"")
 		}
 		relayOption["option_60"] = append(
 			relayOption["option_60"].([]map[string]interface{}),
 			option60,
 		)
-	case strings.HasPrefix(itemTrim, "option-77 default-action "):
-		itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "option-77 default-action "), " ")
+	case balt.CutPrefixInString(&itemTrim, "option-77 default-action "):
+		itemTrimFields := strings.Split(itemTrim, " ")
 		defAction := map[string]interface{}{
-			"action": itemTrimSplit[0],
+			"action": itemTrimFields[0],
 			"group":  "",
 		}
-		if len(itemTrimSplit) > 1 {
-			defAction["group"] = strings.Trim(strings.Join(itemTrimSplit[1:], " "), "\"")
+		if len(itemTrimFields) > 1 { // <action> <group>
+			defAction["group"] = strings.Trim(strings.Join(itemTrimFields[1:], " "), "\"")
 		}
 		relayOption["option_77_default_action"] = append(
 			relayOption["option_77_default_action"].([]map[string]interface{}),
 			defAction,
 		)
-	case strings.HasPrefix(itemTrim, "option-77 "):
-		itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "option-77 "), " ")
-		if len(itemTrimSplit) < 4 {
-			return fmt.Errorf("can't read values for option_77 in '%s'", itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "option-77 "):
+		itemTrimFields := strings.Split(itemTrim, " ")
+		if len(itemTrimFields) < 4 { // <compare> <value_type> <value> <action> <group>?
+			return fmt.Errorf(cantReadValuesNotEnoughFields, "option-77", itemTrim)
 		}
-		value := itemTrimSplit[2]
+		value := itemTrimFields[2]
 		actionIndex := 3
-		if strings.Contains(itemTrimSplit[2], "\"") {
-			for k, v := range itemTrimSplit[3:] {
+		if strings.Contains(itemTrimFields[2], "\"") {
+			for k, v := range itemTrimFields[3:] {
 				value += " " + v
 				if strings.Contains(v, "\"") {
 					actionIndex = 3 + k + 1
@@ -1725,26 +1721,23 @@ func readForwardingOptionsDhcpRelayOption(itemTrim string, relayOption map[strin
 			}
 		}
 		value = strings.Trim(value, "\"")
-		action := itemTrimSplit[actionIndex]
+		action := itemTrimFields[actionIndex]
 		option77 := map[string]interface{}{
-			"compare":    itemTrimSplit[0],
-			"value_type": itemTrimSplit[1],
+			"compare":    itemTrimFields[0],
+			"value_type": itemTrimFields[1],
 			"value":      value,
 			"action":     action,
 			"group":      "",
 		}
-		if len(itemTrimSplit) > actionIndex {
-			option77["group"] = strings.Trim(strings.Join(itemTrimSplit[actionIndex+1:], " "), "\"")
+		if len(itemTrimFields) > actionIndex+1 {
+			option77["group"] = strings.Trim(strings.Join(itemTrimFields[actionIndex+1:], " "), "\"")
 		}
 		relayOption["option_77"] = append(
 			relayOption["option_77"].([]map[string]interface{}),
 			option77,
 		)
-	case strings.HasPrefix(itemTrim, "option-order "):
-		relayOption["option_order"] = append(
-			relayOption["option_order"].([]string),
-			strings.TrimPrefix(itemTrim, "option-order "),
-		)
+	case balt.CutPrefixInString(&itemTrim, "option-order "):
+		relayOption["option_order"] = append(relayOption["option_order"].([]string), itemTrim)
 	}
 
 	return nil
@@ -1752,7 +1745,7 @@ func readForwardingOptionsDhcpRelayOption(itemTrim string, relayOption map[strin
 
 func readForwardingOptionsDhcpRelayOption82(itemTrim string, relayOption82 map[string]interface{}) {
 	switch {
-	case strings.HasPrefix(itemTrim, "circuit-id"):
+	case balt.CutPrefixInString(&itemTrim, "circuit-id"):
 		if len(relayOption82["circuit_id"].([]map[string]interface{})) == 0 {
 			relayOption82["circuit_id"] = append(relayOption82["circuit_id"].([]map[string]interface{}), map[string]interface{}{
 				"include_irb_and_l2":           false,
@@ -1766,27 +1759,26 @@ func readForwardingOptionsDhcpRelayOption82(itemTrim string, relayOption82 map[s
 				"vlan_id_only":                 false,
 			})
 		}
-		if strings.HasPrefix(itemTrim, "circuit-id ") {
+		if balt.CutPrefixInString(&itemTrim, " ") {
 			circuitID := relayOption82["circuit_id"].([]map[string]interface{})[0]
-			itemTrimCircuitID := strings.TrimPrefix(itemTrim, "circuit-id ")
 			switch {
-			case itemTrimCircuitID == "include-irb-and-l2":
+			case itemTrim == "include-irb-and-l2":
 				circuitID["include_irb_and_l2"] = true
-			case itemTrimCircuitID == "keep-incoming-circuit-id":
+			case itemTrim == "keep-incoming-circuit-id":
 				circuitID["keep_incoming_circuit_id"] = true
-			case itemTrimCircuitID == "no-vlan-interface-name":
+			case itemTrim == "no-vlan-interface-name":
 				circuitID["no_vlan_interface_name"] = true
-			case itemTrimCircuitID == "prefix host-name":
+			case itemTrim == "prefix host-name":
 				circuitID["prefix_host_name"] = true
-			case itemTrimCircuitID == "prefix routing-instance-name":
+			case itemTrim == "prefix routing-instance-name":
 				circuitID["prefix_routing_instance_name"] = true
-			case strings.HasPrefix(itemTrimCircuitID, "use-interface-description "):
-				circuitID["use_interface_description"] = strings.TrimPrefix(itemTrimCircuitID, "use-interface-description ")
-			case itemTrimCircuitID == "use-vlan-id":
+			case balt.CutPrefixInString(&itemTrim, "use-interface-description "):
+				circuitID["use_interface_description"] = itemTrim
+			case itemTrim == "use-vlan-id":
 				circuitID["use_vlan_id"] = true
-			case itemTrimCircuitID == "user-defined":
+			case itemTrim == "user-defined":
 				circuitID["user_defined"] = true
-			case itemTrimCircuitID == "vlan-id-only":
+			case itemTrim == "vlan-id-only":
 				circuitID["vlan_id_only"] = true
 			}
 		}
@@ -1794,7 +1786,7 @@ func readForwardingOptionsDhcpRelayOption82(itemTrim string, relayOption82 map[s
 		relayOption82["exclude_relay_agent_identifier"] = true
 	case itemTrim == "link-selection":
 		relayOption82["link_selection"] = true
-	case strings.HasPrefix(itemTrim, "remote-id"):
+	case balt.CutPrefixInString(&itemTrim, "remote-id"):
 		if len(relayOption82["remote_id"].([]map[string]interface{})) == 0 {
 			relayOption82["remote_id"] = append(relayOption82["remote_id"].([]map[string]interface{}), map[string]interface{}{
 				"hostname_only":                false,
@@ -1808,27 +1800,26 @@ func readForwardingOptionsDhcpRelayOption82(itemTrim string, relayOption82 map[s
 				"use_vlan_id":                  false,
 			})
 		}
-		if strings.HasPrefix(itemTrim, "remote-id ") {
+		if balt.CutPrefixInString(&itemTrim, " ") {
 			remoteID := relayOption82["remote_id"].([]map[string]interface{})[0]
-			itemTrimRemoteID := strings.TrimPrefix(itemTrim, "remote-id ")
 			switch {
-			case itemTrimRemoteID == "hostname-only":
+			case itemTrim == "hostname-only":
 				remoteID["hostname_only"] = true
-			case itemTrimRemoteID == "include-irb-and-l2":
+			case itemTrim == "include-irb-and-l2":
 				remoteID["include_irb_and_l2"] = true
-			case itemTrimRemoteID == "keep-incoming-remote-id":
+			case itemTrim == "keep-incoming-remote-id":
 				remoteID["keep_incoming_remote_id"] = true
-			case itemTrimRemoteID == "no-vlan-interface-name":
+			case itemTrim == "no-vlan-interface-name":
 				remoteID["no_vlan_interface_name"] = true
-			case itemTrimRemoteID == "prefix host-name":
+			case itemTrim == "prefix host-name":
 				remoteID["prefix_host_name"] = true
-			case itemTrimRemoteID == "prefix routing-instance-name":
+			case itemTrim == "prefix routing-instance-name":
 				remoteID["prefix_routing_instance_name"] = true
-			case strings.HasPrefix(itemTrimRemoteID, "use-interface-description "):
-				remoteID["use_interface_description"] = strings.TrimPrefix(itemTrimRemoteID, "use-interface-description ")
-			case strings.HasPrefix(itemTrimRemoteID, "use-string "):
-				remoteID["use_string"] = strings.Trim(strings.TrimPrefix(itemTrimRemoteID, "use-string "), "\"")
-			case itemTrimRemoteID == "use-vlan-id":
+			case balt.CutPrefixInString(&itemTrim, "use-interface-description "):
+				remoteID["use_interface_description"] = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "use-string "):
+				remoteID["use_string"] = strings.Trim(itemTrim, "\"")
+			case itemTrim == "use-vlan-id":
 				remoteID["use_vlan_id"] = true
 			}
 		}

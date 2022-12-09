@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -337,9 +338,7 @@ func setSecurityDynamicAddressName(d *schema.ResourceData, clt *Client, junSess 
 }
 
 func readSecurityDynamicAddressName(name string, clt *Client, junSess *junosSession,
-) (dynamicAddressNameOptions, error) {
-	var confRead dynamicAddressNameOptions
-
+) (confRead dynamicAddressNameOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security dynamic-address address-name "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -356,27 +355,27 @@ func readSecurityDynamicAddressName(name string, clt *Client, junSess *junosSess
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "description "):
-				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
-			case strings.HasPrefix(itemTrim, "profile feed-name "):
-				confRead.profileFeedName = strings.TrimPrefix(itemTrim, "profile feed-name ")
-			case strings.HasPrefix(itemTrim, "profile category "):
-				itemTrimProfileCategorySplit := strings.Split(strings.TrimPrefix(itemTrim, "profile category "), " ")
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				confRead.description = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "profile feed-name "):
+				confRead.profileFeedName = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "profile category "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				if len(confRead.profileCategory) == 0 {
 					confRead.profileCategory = append(confRead.profileCategory, map[string]interface{}{
-						"name":     itemTrimProfileCategorySplit[0],
+						"name":     itemTrimFields[0],
 						"feed":     "",
 						"property": make([]map[string]interface{}, 0),
 					})
 				}
-				itemTrimProfileCategory := strings.TrimPrefix(itemTrim, "profile category "+itemTrimProfileCategorySplit[0]+" ")
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				switch {
-				case strings.HasPrefix(itemTrimProfileCategory, "feed "):
-					confRead.profileCategory[0]["feed"] = strings.TrimPrefix(itemTrimProfileCategory, "feed ")
-				case strings.HasPrefix(itemTrimProfileCategory, "property "):
-					itemTrimPropertySplit := strings.Split(strings.TrimPrefix(itemTrimProfileCategory, "property "), " ")
+				case balt.CutPrefixInString(&itemTrim, "feed "):
+					confRead.profileCategory[0]["feed"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "property "):
+					itemTrimPropertyFields := strings.Split(itemTrim, " ")
 					property := map[string]interface{}{
-						"name":   strings.Trim(itemTrimPropertySplit[0], "\""),
+						"name":   strings.Trim(itemTrimPropertyFields[0], "\""),
 						"string": make([]string, 0),
 					}
 					confRead.profileCategory[0]["property"] = copyAndRemoveItemMapList(
@@ -384,10 +383,9 @@ func readSecurityDynamicAddressName(name string, clt *Client, junSess *junosSess
 						property,
 						confRead.profileCategory[0]["property"].([]map[string]interface{}),
 					)
-					property["string"] = append(
-						property["string"].([]string),
-						strings.Trim(strings.TrimPrefix(itemTrimProfileCategory, "property "+itemTrimPropertySplit[0]+" string "), "\""),
-					)
+					if balt.CutPrefixInString(&itemTrim, itemTrimPropertyFields[0]+" string ") {
+						property["string"] = append(property["string"].([]string), strings.Trim(itemTrim, "\""))
+					}
 					confRead.profileCategory[0]["property"] = append(
 						confRead.profileCategory[0]["property"].([]map[string]interface{}),
 						property,

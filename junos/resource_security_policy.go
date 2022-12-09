@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -509,15 +510,13 @@ func setSecurityPolicy(d *schema.ResourceData, clt *Client, junSess *junosSessio
 	return clt.configSet(configSet, junSess)
 }
 
-func readSecurityPolicy(fromZone, toZone string, clt *Client, junSess *junosSession) (policyOptions, error) {
-	var confRead policyOptions
-
+func readSecurityPolicy(fromZone, toZone string, clt *Client, junSess *junosSession,
+) (confRead policyOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security policies from-zone "+fromZone+" to-zone "+toZone+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
-	policyList := make([]map[string]interface{}, 0)
 	if showConfig != emptyW {
 		confRead.fromZone = fromZone
 		confRead.toZone = toZone
@@ -529,48 +528,54 @@ func readSecurityPolicy(fromZone, toZone string, clt *Client, junSess *junosSess
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
-			if strings.Contains(itemTrim, " match ") || strings.Contains(itemTrim, " then ") {
-				policyLineCut := strings.Split(itemTrim, " ")
-				policy := genMapPolicyWithName(policyLineCut[1])
-				policyList = copyAndRemoveItemMapList("name", policy, policyList)
-				itemTrimPolicy := strings.TrimPrefix(itemTrim, "policy "+policyLineCut[1]+" ")
+			if balt.CutPrefixInString(&itemTrim, "policy ") {
+				itemTrimFields := strings.Split(itemTrim, " ")
+				policy := genMapPolicyWithName(itemTrimFields[0])
+				confRead.policy = copyAndRemoveItemMapList("name", policy, confRead.policy)
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				switch {
-				case strings.HasPrefix(itemTrimPolicy, "match source-address "):
-					policy["match_source_address"] = append(policy["match_source_address"].([]string),
-						strings.TrimPrefix(itemTrimPolicy, "match source-address "))
-				case strings.HasPrefix(itemTrimPolicy, "match destination-address "):
-					policy["match_destination_address"] = append(policy["match_destination_address"].([]string),
-						strings.TrimPrefix(itemTrimPolicy, "match destination-address "))
-				case strings.HasPrefix(itemTrimPolicy, "match application "):
-					policy["match_application"] = append(policy["match_application"].([]string),
-						strings.TrimPrefix(itemTrimPolicy, "match application "))
-				case strings.HasPrefix(itemTrimPolicy, "match destination-address-excluded"):
+				case balt.CutPrefixInString(&itemTrim, "match source-address "):
+					policy["match_source_address"] = append(
+						policy["match_source_address"].([]string),
+						itemTrim,
+					)
+				case balt.CutPrefixInString(&itemTrim, "match destination-address "):
+					policy["match_destination_address"] = append(
+						policy["match_destination_address"].([]string),
+						itemTrim,
+					)
+				case balt.CutPrefixInString(&itemTrim, "match application "):
+					policy["match_application"] = append(
+						policy["match_application"].([]string),
+						itemTrim,
+					)
+				case itemTrim == "match destination-address-excluded":
 					policy["match_destination_address_excluded"] = true
-				case strings.HasPrefix(itemTrimPolicy, "match dynamic-application "):
-					policy["match_dynamic_application"] = append(policy["match_dynamic_application"].([]string),
-						strings.TrimPrefix(itemTrimPolicy, "match dynamic-application "))
-				case strings.HasPrefix(itemTrimPolicy, "match source-address-excluded"):
+				case balt.CutPrefixInString(&itemTrim, "match dynamic-application "):
+					policy["match_dynamic_application"] = append(
+						policy["match_dynamic_application"].([]string),
+						itemTrim,
+					)
+				case itemTrim == "match source-address-excluded":
 					policy["match_source_address_excluded"] = true
-				case strings.HasPrefix(itemTrimPolicy, "match source-end-user-profile "):
-					policy["match_source_end_user_profile"] = strings.Trim(strings.TrimPrefix(
-						itemTrimPolicy, "match source-end-user-profile "), "\"")
-				case strings.HasPrefix(itemTrimPolicy, "then "):
+				case balt.CutPrefixInString(&itemTrim, "match source-end-user-profile "):
+					policy["match_source_end_user_profile"] = strings.Trim(itemTrim, "\"")
+				case balt.CutPrefixInString(&itemTrim, "then "):
 					switch {
-					case itemTrimPolicy == "then permit",
-						itemTrimPolicy == "then deny",
-						itemTrimPolicy == "then reject":
-						policy["then"] = strings.TrimPrefix(itemTrimPolicy, "then ")
-					case itemTrimPolicy == "then count":
+					case itemTrim == "permit",
+						itemTrim == "deny",
+						itemTrim == "reject":
+						policy["then"] = itemTrim
+					case itemTrim == "count":
 						policy["count"] = true
-					case itemTrimPolicy == "then log session-init":
+					case itemTrim == "log session-init":
 						policy["log_init"] = true
-					case itemTrimPolicy == "then log session-close":
+					case itemTrim == "log session-close":
 						policy["log_close"] = true
-					case strings.HasPrefix(itemTrimPolicy, "then permit tunnel ipsec-vpn "):
+					case balt.CutPrefixInString(&itemTrim, "permit tunnel ipsec-vpn "):
 						policy["then"] = permitW
-						policy["permit_tunnel_ipsec_vpn"] = strings.TrimPrefix(itemTrimPolicy,
-							"then permit tunnel ipsec-vpn ")
-					case strings.HasPrefix(itemTrimPolicy, "then permit application-services"):
+						policy["permit_tunnel_ipsec_vpn"] = itemTrim
+					case balt.CutPrefixInString(&itemTrim, "permit application-services "):
 						policy["then"] = permitW
 						if len(policy["permit_application_services"].([]map[string]interface{})) == 0 {
 							policy["permit_application_services"] = append(
@@ -591,15 +596,14 @@ func readSecurityPolicy(fromZone, toZone string, clt *Client, junSess *junosSess
 									"utm_policy":                           "",
 								})
 						}
-						readPolicyPermitApplicationServices(itemTrimPolicy,
+						readPolicyPermitApplicationServices(itemTrim,
 							policy["permit_application_services"].([]map[string]interface{})[0])
 					}
 				}
-				policyList = append(policyList, policy)
+				confRead.policy = append(confRead.policy, policy)
 			}
 		}
 	}
-	confRead.policy = policyList
 
 	return confRead, nil
 }
@@ -667,40 +671,33 @@ func genMapPolicyWithName(name string) map[string]interface{} {
 	}
 }
 
-func readPolicyPermitApplicationServices(itemTrimPolicy string, applicationServices map[string]interface{}) {
-	itemTrimPolicyPermitAppSvc := strings.TrimPrefix(itemTrimPolicy, "then permit application-services ")
+func readPolicyPermitApplicationServices(itemTrim string, applicationServices map[string]interface{}) {
 	switch {
-	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "advanced-anti-malware-policy "):
-		applicationServices["advanced_anti_malware_policy"] = strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
-			"advanced-anti-malware-policy "), "\"")
-	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "application-firewall rule-set "):
-		applicationServices["application_firewall_rule_set"] = strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
-			"application-firewall rule-set "), "\"")
-	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "application-traffic-control rule-set "):
-		applicationServices["application_traffic_control_rule_set"] = strings.Trim(
-			strings.TrimPrefix(itemTrimPolicyPermitAppSvc, "application-traffic-control rule-set "), "\"")
-	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "gprs-gtp-profile "):
-		applicationServices["gprs_gtp_profile"] = strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
-			"gprs-gtp-profile "), "\"")
-	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "gprs-sctp-profile "):
-		applicationServices["gprs_sctp_profile"] = strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
-			"gprs-sctp-profile "), "\"")
-	case itemTrimPolicyPermitAppSvc == "idp":
+	case balt.CutPrefixInString(&itemTrim, "advanced-anti-malware-policy "):
+		applicationServices["advanced_anti_malware_policy"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "application-firewall rule-set "):
+		applicationServices["application_firewall_rule_set"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "application-traffic-control rule-set "):
+		applicationServices["application_traffic_control_rule_set"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "gprs-gtp-profile "):
+		applicationServices["gprs_gtp_profile"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "gprs-sctp-profile "):
+		applicationServices["gprs_sctp_profile"] = strings.Trim(itemTrim, "\"")
+	case itemTrim == "idp":
 		applicationServices["idp"] = true
-	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "idp-policy "):
-		applicationServices["idp_policy"] = strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc, "idp-policy "), "\"")
-	case itemTrimPolicyPermitAppSvc == "redirect-wx":
+	case balt.CutPrefixInString(&itemTrim, "idp-policy "):
+		applicationServices["idp_policy"] = strings.Trim(itemTrim, "\"")
+	case itemTrim == "redirect-wx":
 		applicationServices["redirect_wx"] = true
-	case itemTrimPolicyPermitAppSvc == "reverse-redirect-wx":
+	case itemTrim == "reverse-redirect-wx":
 		applicationServices["reverse_redirect_wx"] = true
-	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "security-intelligence-policy "):
-		applicationServices["security_intelligence_policy"] = strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc,
-			"security-intelligence-policy "), "\"")
-	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "ssl-proxy"):
-		if strings.HasPrefix(itemTrimPolicyPermitAppSvc, "ssl-proxy profile-name ") {
+	case balt.CutPrefixInString(&itemTrim, "security-intelligence-policy "):
+		applicationServices["security_intelligence_policy"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "ssl-proxy"):
+		if balt.CutPrefixInString(&itemTrim, " profile-name ") {
 			applicationServices["ssl_proxy"] = append(applicationServices["ssl_proxy"].([]map[string]interface{}),
 				map[string]interface{}{
-					"profile_name": strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc, "ssl-proxy profile-name "), "\""),
+					"profile_name": strings.Trim(itemTrim, "\""),
 				})
 		} else {
 			applicationServices["ssl_proxy"] = append(applicationServices["ssl_proxy"].([]map[string]interface{}),
@@ -708,11 +705,11 @@ func readPolicyPermitApplicationServices(itemTrimPolicy string, applicationServi
 					"profile_name": "",
 				})
 		}
-	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "uac-policy"):
-		if strings.HasPrefix(itemTrimPolicyPermitAppSvc, "uac-policy captive-portal ") {
+	case balt.CutPrefixInString(&itemTrim, "uac-policy"):
+		if balt.CutPrefixInString(&itemTrim, " captive-portal ") {
 			applicationServices["uac_policy"] = append(applicationServices["uac_policy"].([]map[string]interface{}),
 				map[string]interface{}{
-					"captive_portal": strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc, "uac-policy captive-portal "), "\""),
+					"captive_portal": strings.Trim(itemTrim, "\""),
 				})
 		} else {
 			applicationServices["uac_policy"] = append(applicationServices["uac_policy"].([]map[string]interface{}),
@@ -720,8 +717,8 @@ func readPolicyPermitApplicationServices(itemTrimPolicy string, applicationServi
 					"captive_portal": "",
 				})
 		}
-	case strings.HasPrefix(itemTrimPolicyPermitAppSvc, "utm-policy "):
-		applicationServices["utm_policy"] = strings.Trim(strings.TrimPrefix(itemTrimPolicyPermitAppSvc, "utm-policy "), "\"")
+	case balt.CutPrefixInString(&itemTrim, "utm-policy "):
+		applicationServices["utm_policy"] = strings.Trim(itemTrim, "\"")
 	}
 }
 

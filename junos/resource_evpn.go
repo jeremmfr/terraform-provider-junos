@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type evpnOptions struct {
@@ -388,13 +389,11 @@ func setEvpn(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 }
 
 func readEvpn(routingInstance string, clt *Client, junSess *junosSession,
-) (evpnOptions, error) {
-	var confRead evpnOptions
+) (confRead evpnOptions, err error) {
 	var showConfig string
 	var showConfigSwitchRI string
 
 	if routingInstance == defaultW {
-		var err error
 		showConfig, err = clt.command(cmdShowConfig+"protocols evpn"+pipeDisplaySetRelative, junSess)
 		if err != nil {
 			return confRead, err
@@ -404,7 +403,6 @@ func readEvpn(routingInstance string, clt *Client, junSess *junosSession,
 			return confRead, err
 		}
 	} else {
-		var err error
 		showConfig, err = clt.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
 			"protocols evpn"+pipeDisplaySetRelative, junSess)
 		if err != nil {
@@ -428,12 +426,12 @@ func readEvpn(routingInstance string, clt *Client, junSess *junosSession,
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "default-gateway "):
-				confRead.defaultGateway = strings.TrimPrefix(itemTrim, "default-gateway ")
-			case strings.HasPrefix(itemTrim, "encapsulation "):
-				confRead.encapsulation = strings.TrimPrefix(itemTrim, "encapsulation ")
-			case strings.HasPrefix(itemTrim, "multicast-mode "):
-				confRead.multicastMode = strings.TrimPrefix(itemTrim, "multicast-mode ")
+			case balt.CutPrefixInString(&itemTrim, "default-gateway "):
+				confRead.defaultGateway = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "encapsulation "):
+				confRead.encapsulation = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "multicast-mode "):
+				confRead.multicastMode = itemTrim
 			}
 		}
 	}
@@ -449,9 +447,9 @@ func readEvpn(routingInstance string, clt *Client, junSess *junosSession,
 			switch {
 			case itemTrim == "instance-type evpn":
 				confRead.routingInstanceEvpn = true
-			case strings.HasPrefix(itemTrim, "route-distinguisher ") ||
-				strings.HasPrefix(itemTrim, "vrf-export") ||
-				strings.HasPrefix(itemTrim, "vrf-import") ||
+			case strings.HasPrefix(itemTrim, "route-distinguisher "),
+				strings.HasPrefix(itemTrim, "vrf-export"),
+				strings.HasPrefix(itemTrim, "vrf-import"),
 				strings.HasPrefix(itemTrim, "vrf-target"):
 				if len(confRead.switchOrRIOptions) == 0 {
 					confRead.switchOrRIOptions = append(confRead.switchOrRIOptions, map[string]interface{}{
@@ -465,22 +463,26 @@ func readEvpn(routingInstance string, clt *Client, junSess *junosSession,
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "route-distinguisher "):
-					confRead.switchOrRIOptions[0]["route_distinguisher"] = strings.TrimPrefix(itemTrim, "route-distinguisher ")
-				case strings.HasPrefix(itemTrim, "vrf-export "):
-					confRead.switchOrRIOptions[0]["vrf_export"] = append(confRead.switchOrRIOptions[0]["vrf_export"].([]string),
-						strings.Trim(strings.TrimPrefix(itemTrim, "vrf-export "), "\""))
-				case strings.HasPrefix(itemTrim, "vrf-import "):
-					confRead.switchOrRIOptions[0]["vrf_import"] = append(confRead.switchOrRIOptions[0]["vrf_import"].([]string),
-						strings.Trim(strings.TrimPrefix(itemTrim, "vrf-import "), "\""))
+				case balt.CutPrefixInString(&itemTrim, "route-distinguisher "):
+					confRead.switchOrRIOptions[0]["route_distinguisher"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "vrf-export "):
+					confRead.switchOrRIOptions[0]["vrf_export"] = append(
+						confRead.switchOrRIOptions[0]["vrf_export"].([]string),
+						strings.Trim(itemTrim, "\""),
+					)
+				case balt.CutPrefixInString(&itemTrim, "vrf-import "):
+					confRead.switchOrRIOptions[0]["vrf_import"] = append(
+						confRead.switchOrRIOptions[0]["vrf_import"].([]string),
+						strings.Trim(itemTrim, "\""),
+					)
 				case itemTrim == "vrf-target auto":
 					confRead.switchOrRIOptions[0]["vrf_target_auto"] = true
-				case strings.HasPrefix(itemTrim, "vrf-target export "):
-					confRead.switchOrRIOptions[0]["vrf_target_export"] = strings.TrimPrefix(itemTrim, "vrf-target export ")
-				case strings.HasPrefix(itemTrim, "vrf-target import "):
-					confRead.switchOrRIOptions[0]["vrf_target_import"] = strings.TrimPrefix(itemTrim, "vrf-target import ")
-				case strings.HasPrefix(itemTrim, "vrf-target "):
-					confRead.switchOrRIOptions[0]["vrf_target"] = strings.TrimPrefix(itemTrim, "vrf-target ")
+				case balt.CutPrefixInString(&itemTrim, "vrf-target export "):
+					confRead.switchOrRIOptions[0]["vrf_target_export"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "vrf-target import "):
+					confRead.switchOrRIOptions[0]["vrf_target_import"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "vrf-target "):
+					confRead.switchOrRIOptions[0]["vrf_target"] = itemTrim
 				}
 			}
 		}

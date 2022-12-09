@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -1029,9 +1030,8 @@ func resourceSystemServicesDhcpLocalServerGroupImport(ctx context.Context, d *sc
 
 func checkSystemServicesDhcpLocalServerGroupExists(
 	name, instance, version string, clt *Client, junSess *junosSession,
-) (bool, error) {
+) (_ bool, err error) {
 	var showConfig string
-	var err error
 	showCmd := cmdShowConfig
 	if instance != defaultW {
 		showCmd += routingInstancesWS + instance + " "
@@ -1568,10 +1568,8 @@ func setSystemServicesDhcpLocalServerGroupOverridesV6(overrides map[string]inter
 }
 
 func readSystemServicesDhcpLocalServerGroup(name, instance, version string, clt *Client, junSess *junosSession,
-) (systemServicesDhcpLocalServerGroupOptions, error) {
-	var confRead systemServicesDhcpLocalServerGroupOptions
+) (confRead systemServicesDhcpLocalServerGroupOptions, err error) {
 	var showConfig string
-	var err error
 	showCmd := cmdShowConfig
 	if instance != defaultW {
 		showCmd += routingInstancesWS + instance + " "
@@ -1601,11 +1599,11 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, clt 
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "access-profile "):
-				confRead.accessProfile = strings.Trim(strings.TrimPrefix(itemTrim, "access-profile "), "\"")
-			case strings.HasPrefix(itemTrim, "authentication password "):
-				confRead.authenticationPassword = strings.Trim(strings.TrimPrefix(itemTrim, "authentication password "), "\"")
-			case strings.HasPrefix(itemTrim, "authentication username-include "):
+			case balt.CutPrefixInString(&itemTrim, "access-profile "):
+				confRead.accessProfile = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "authentication password "):
+				confRead.authenticationPassword = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "authentication username-include "):
 				if len(confRead.authenticationUsernameInclude) == 0 {
 					confRead.authenticationUsernameInclude = append(confRead.authenticationUsernameInclude, map[string]interface{}{
 						"circuit_type":              false,
@@ -1629,73 +1627,66 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, clt 
 						"vlan_tags":                 false,
 					})
 				}
-				itemTrimAuthUserIncl := strings.TrimPrefix(itemTrim, "authentication username-include ")
 				switch {
-				case itemTrimAuthUserIncl == "circuit-type":
+				case itemTrim == "circuit-type":
 					confRead.authenticationUsernameInclude[0]["circuit_type"] = true
-				case itemTrimAuthUserIncl == "client-id exclude-headers":
+				case itemTrim == "client-id exclude-headers":
 					confRead.authenticationUsernameInclude[0]["client_id_exclude_headers"] = true
 					confRead.authenticationUsernameInclude[0]["client_id"] = true
-				case itemTrimAuthUserIncl == "client-id use-automatic-ascii-hex-encoding":
+				case itemTrim == "client-id use-automatic-ascii-hex-encoding":
 					confRead.authenticationUsernameInclude[0]["client_id_use_automatic_ascii_hex_encoding"] = true
 					confRead.authenticationUsernameInclude[0]["client_id"] = true
-				case itemTrimAuthUserIncl == "client-id":
+				case itemTrim == "client-id":
 					confRead.authenticationUsernameInclude[0]["client_id"] = true
-				case strings.HasPrefix(itemTrimAuthUserIncl, "delimiter "):
-					confRead.authenticationUsernameInclude[0]["delimiter"] = strings.Trim(strings.TrimPrefix(
-						itemTrimAuthUserIncl, "delimiter "), "\"")
-				case strings.HasPrefix(itemTrimAuthUserIncl, "domain-name "):
-					confRead.authenticationUsernameInclude[0]["domain_name"] = strings.Trim(strings.TrimPrefix(
-						itemTrimAuthUserIncl, "domain-name "), "\"")
-				case strings.HasPrefix(itemTrimAuthUserIncl, "interface-description "):
-					confRead.authenticationUsernameInclude[0]["interface_description"] = strings.TrimPrefix(
-						itemTrimAuthUserIncl, "interface-description ")
-				case itemTrimAuthUserIncl == "interface-name":
+				case balt.CutPrefixInString(&itemTrim, "delimiter "):
+					confRead.authenticationUsernameInclude[0]["delimiter"] = strings.Trim(itemTrim, "\"")
+				case balt.CutPrefixInString(&itemTrim, "domain-name "):
+					confRead.authenticationUsernameInclude[0]["domain_name"] = strings.Trim(itemTrim, "\"")
+				case balt.CutPrefixInString(&itemTrim, "interface-description "):
+					confRead.authenticationUsernameInclude[0]["interface_description"] = itemTrim
+				case itemTrim == "interface-name":
 					confRead.authenticationUsernameInclude[0]["interface_name"] = true
-				case itemTrimAuthUserIncl == "mac-address":
+				case itemTrim == "mac-address":
 					confRead.authenticationUsernameInclude[0]["mac_address"] = true
-				case itemTrimAuthUserIncl == "option-60":
+				case itemTrim == "option-60":
 					confRead.authenticationUsernameInclude[0]["option_60"] = true
-				case itemTrimAuthUserIncl == "option-82 circuit-id":
+				case itemTrim == "option-82 circuit-id":
 					confRead.authenticationUsernameInclude[0]["option_82_circuit_id"] = true
 					confRead.authenticationUsernameInclude[0]["option_82"] = true
-				case itemTrimAuthUserIncl == "option-82 remote-id":
+				case itemTrim == "option-82 remote-id":
 					confRead.authenticationUsernameInclude[0]["option_82_remote_id"] = true
 					confRead.authenticationUsernameInclude[0]["option_82"] = true
-				case itemTrimAuthUserIncl == "option-82":
+				case itemTrim == "option-82":
 					confRead.authenticationUsernameInclude[0]["option_82"] = true
-				case itemTrimAuthUserIncl == "relay-agent-interface-id":
+				case itemTrim == "relay-agent-interface-id":
 					confRead.authenticationUsernameInclude[0]["relay_agent_interface_id"] = true
-				case itemTrimAuthUserIncl == "relay-agent-remote-id":
+				case itemTrim == "relay-agent-remote-id":
 					confRead.authenticationUsernameInclude[0]["relay_agent_remote_id"] = true
-				case itemTrimAuthUserIncl == "relay-agent-subscriber-id":
+				case itemTrim == "relay-agent-subscriber-id":
 					confRead.authenticationUsernameInclude[0]["relay_agent_subscriber_id"] = true
-				case itemTrimAuthUserIncl == "routing-instance-name":
+				case itemTrim == "routing-instance-name":
 					confRead.authenticationUsernameInclude[0]["routing_instance_name"] = true
-				case strings.HasPrefix(itemTrimAuthUserIncl, "user-prefix "):
-					confRead.authenticationUsernameInclude[0]["user_prefix"] = strings.Trim(strings.TrimPrefix(
-						itemTrimAuthUserIncl, "user-prefix "), "\"")
-				case itemTrimAuthUserIncl == "vlan-tags":
+				case balt.CutPrefixInString(&itemTrim, "user-prefix "):
+					confRead.authenticationUsernameInclude[0]["user_prefix"] = strings.Trim(itemTrim, "\"")
+				case itemTrim == "vlan-tags":
 					confRead.authenticationUsernameInclude[0]["vlan_tags"] = true
 				}
-			case strings.HasPrefix(itemTrim, "dynamic-profile "):
+			case balt.CutPrefixInString(&itemTrim, "dynamic-profile "):
 				switch {
-				case strings.HasPrefix(itemTrim, "dynamic-profile use-primary "):
-					confRead.dynamicProfileUsePrimary = strings.Trim(strings.TrimPrefix(
-						itemTrim, "dynamic-profile use-primary "), "\"")
-				case strings.HasPrefix(itemTrim, "dynamic-profile aggregate-clients"):
+				case balt.CutPrefixInString(&itemTrim, "use-primary "):
+					confRead.dynamicProfileUsePrimary = strings.Trim(itemTrim, "\"")
+				case balt.CutPrefixInString(&itemTrim, "aggregate-clients"):
 					confRead.dynamicProfileAggregateClients = true
-					if strings.HasPrefix(itemTrim, "dynamic-profile aggregate-clients ") {
-						confRead.dynamicProfileAggregateClientsAction = strings.TrimPrefix(
-							itemTrim, "dynamic-profile aggregate-clients ")
+					if balt.CutPrefixInString(&itemTrim, " ") {
+						confRead.dynamicProfileAggregateClientsAction = itemTrim
 					}
 				default:
-					confRead.dynamicProfile = strings.Trim(strings.TrimPrefix(itemTrim, "dynamic-profile "), "\"")
+					confRead.dynamicProfile = strings.Trim(itemTrim, "\"")
 				}
-			case strings.HasPrefix(itemTrim, "interface "):
-				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "interface "), " ")
+			case balt.CutPrefixInString(&itemTrim, "interface "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				interFace := map[string]interface{}{
-					"name":                                     itemTrimSplit[0],
+					"name":                                     itemTrimFields[0],
 					"access_profile":                           "",
 					"dynamic_profile":                          "",
 					"dynamic_profile_use_primary":              "",
@@ -1711,15 +1702,13 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, clt 
 					"upto":  "",
 				}
 				confRead.interFace = copyAndRemoveItemMapList("name", interFace, confRead.interFace)
-				itemTrimInterface := strings.TrimPrefix(itemTrim, "interface "+itemTrimSplit[0])
-				if strings.HasPrefix(itemTrimInterface, " ") {
-					if err := readSystemServicesDhcpLocalServerGroupInterface(
-						strings.TrimPrefix(itemTrimInterface, " "), version, interFace); err != nil {
+				if balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ") {
+					if err := readSystemServicesDhcpLocalServerGroupInterface(itemTrim, version, interFace); err != nil {
 						return confRead, err
 					}
 				}
 				confRead.interFace = append(confRead.interFace, interFace)
-			case strings.HasPrefix(itemTrim, "lease-time-validation"):
+			case balt.CutPrefixInString(&itemTrim, "lease-time-validation"):
 				if len(confRead.leaseTimeValidation) == 0 {
 					confRead.leaseTimeValidation = append(confRead.leaseTimeValidation, map[string]interface{}{
 						"lease_time_threshold": 0,
@@ -1727,20 +1716,17 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, clt 
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "lease-time-validation lease-time-threshold "):
-					var err error
-					confRead.leaseTimeValidation[0]["lease_time_threshold"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "lease-time-validation lease-time-threshold "))
+				case balt.CutPrefixInString(&itemTrim, " lease-time-threshold "):
+					confRead.leaseTimeValidation[0]["lease_time_threshold"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "lease-time-validation violation-action "):
-					confRead.leaseTimeValidation[0]["violation_action"] = strings.TrimPrefix(
-						itemTrim, "lease-time-validation violation-action ")
+				case balt.CutPrefixInString(&itemTrim, " violation-action "):
+					confRead.leaseTimeValidation[0]["violation_action"] = itemTrim
 				}
-			case strings.HasPrefix(itemTrim, "liveness-detection failure-action "):
-				confRead.livenessDetectionFailureAction = strings.TrimPrefix(itemTrim, "liveness-detection failure-action ")
-			case strings.HasPrefix(itemTrim, "liveness-detection method bfd "):
+			case balt.CutPrefixInString(&itemTrim, "liveness-detection failure-action "):
+				confRead.livenessDetectionFailureAction = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "liveness-detection method bfd "):
 				if len(confRead.livenessDetectionMethodBfd) == 0 {
 					confRead.livenessDetectionMethodBfd = append(confRead.livenessDetectionMethodBfd, map[string]interface{}{
 						"detection_time_threshold":    -1,
@@ -1755,79 +1741,60 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, clt 
 						"version":                     "",
 					})
 				}
-				itemTrimLiveDetMethBfd := strings.TrimPrefix(itemTrim, "liveness-detection method bfd ")
-				var err error
 				switch {
-				case strings.HasPrefix(itemTrimLiveDetMethBfd, "detection-time threshold "):
-					confRead.livenessDetectionMethodBfd[0]["detection_time_threshold"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrimLiveDetMethBfd, "detection-time threshold "))
-				case strings.HasPrefix(itemTrimLiveDetMethBfd, "holddown-interval "):
-					confRead.livenessDetectionMethodBfd[0]["holddown_interval"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrimLiveDetMethBfd, "holddown-interval "))
-				case strings.HasPrefix(itemTrimLiveDetMethBfd, "minimum-interval "):
-					confRead.livenessDetectionMethodBfd[0]["minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrimLiveDetMethBfd, "minimum-interval "))
-				case strings.HasPrefix(itemTrimLiveDetMethBfd, "minimum-receive-interval "):
-					confRead.livenessDetectionMethodBfd[0]["minimum_receive_interval"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrimLiveDetMethBfd, "minimum-receive-interval "))
-				case strings.HasPrefix(itemTrimLiveDetMethBfd, "multiplier "):
-					confRead.livenessDetectionMethodBfd[0]["multiplier"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrimLiveDetMethBfd, "multiplier "))
-				case itemTrimLiveDetMethBfd == "no-adaptation":
+				case balt.CutPrefixInString(&itemTrim, "detection-time threshold "):
+					confRead.livenessDetectionMethodBfd[0]["detection_time_threshold"], err = strconv.Atoi(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, "holddown-interval "):
+					confRead.livenessDetectionMethodBfd[0]["holddown_interval"], err = strconv.Atoi(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, "minimum-interval "):
+					confRead.livenessDetectionMethodBfd[0]["minimum_interval"], err = strconv.Atoi(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, "minimum-receive-interval "):
+					confRead.livenessDetectionMethodBfd[0]["minimum_receive_interval"], err = strconv.Atoi(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, "multiplier "):
+					confRead.livenessDetectionMethodBfd[0]["multiplier"], err = strconv.Atoi(itemTrim)
+				case itemTrim == "no-adaptation":
 					confRead.livenessDetectionMethodBfd[0]["no_adaptation"] = true
-				case strings.HasPrefix(itemTrimLiveDetMethBfd, "session-mode "):
-					confRead.livenessDetectionMethodBfd[0]["session_mode"] = strings.TrimPrefix(
-						itemTrimLiveDetMethBfd, "session-mode ")
-				case strings.HasPrefix(itemTrimLiveDetMethBfd, "transmit-interval minimum-interval "):
-					confRead.livenessDetectionMethodBfd[0]["transmit_interval_minimum"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrimLiveDetMethBfd, "transmit-interval minimum-interval "))
-				case strings.HasPrefix(itemTrimLiveDetMethBfd, "transmit-interval threshold "):
-					confRead.livenessDetectionMethodBfd[0]["transmit_interval_threshold"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrimLiveDetMethBfd, "transmit-interval threshold "))
-				case strings.HasPrefix(itemTrimLiveDetMethBfd, "version "):
-					confRead.livenessDetectionMethodBfd[0]["version"] = strings.TrimPrefix(itemTrimLiveDetMethBfd, "version ")
+				case balt.CutPrefixInString(&itemTrim, "session-mode "):
+					confRead.livenessDetectionMethodBfd[0]["session_mode"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "transmit-interval minimum-interval "):
+					confRead.livenessDetectionMethodBfd[0]["transmit_interval_minimum"], err = strconv.Atoi(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, "transmit-interval threshold "):
+					confRead.livenessDetectionMethodBfd[0]["transmit_interval_threshold"], err = strconv.Atoi(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, "version "):
+					confRead.livenessDetectionMethodBfd[0]["version"] = itemTrim
 				}
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "liveness-detection method layer2-liveness-detection "):
+			case balt.CutPrefixInString(&itemTrim, "liveness-detection method layer2-liveness-detection "):
 				if len(confRead.livenessDetectionMethodLayer2) == 0 {
 					confRead.livenessDetectionMethodLayer2 = append(confRead.livenessDetectionMethodLayer2, map[string]interface{}{
 						"max_consecutive_retries": 0,
 						"transmit_interval":       0,
 					})
 				}
-				var err error
 				switch {
-				case strings.HasPrefix(itemTrim, "liveness-detection method layer2-liveness-detection max-consecutive-retries "):
-					confRead.livenessDetectionMethodLayer2[0]["max_consecutive_retries"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "liveness-detection method layer2-liveness-detection max-consecutive-retries "))
-				case strings.HasPrefix(itemTrim, "liveness-detection method layer2-liveness-detection transmit-interval "):
-					confRead.livenessDetectionMethodLayer2[0]["transmit_interval"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "liveness-detection method layer2-liveness-detection transmit-interval "))
+				case balt.CutPrefixInString(&itemTrim, "max-consecutive-retries "):
+					confRead.livenessDetectionMethodLayer2[0]["max_consecutive_retries"], err = strconv.Atoi(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, "transmit-interval "):
+					confRead.livenessDetectionMethodLayer2[0]["transmit_interval"], err = strconv.Atoi(itemTrim)
 				}
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "overrides "):
+			case balt.CutPrefixInString(&itemTrim, "overrides "):
 				if version == "v4" {
 					if len(confRead.overridesV4) == 0 {
 						confRead.overridesV4 = append(confRead.overridesV4, genSystemServicesDhcpLocalServerGroupOverridesV4())
 					}
-					if err := readSystemServicesDhcpLocalServerGroupOverridesV4(
-						strings.TrimPrefix(itemTrim, "overrides "),
-						confRead.overridesV4[0],
-					); err != nil {
+					if err := readSystemServicesDhcpLocalServerGroupOverridesV4(itemTrim, confRead.overridesV4[0]); err != nil {
 						return confRead, err
 					}
 				} else if version == "v6" {
 					if len(confRead.overridesV6) == 0 {
 						confRead.overridesV6 = append(confRead.overridesV6, genSystemServicesDhcpLocalServerGroupOverridesV6())
 					}
-					if err := readSystemServicesDhcpLocalServerGroupOverridesV6(
-						strings.TrimPrefix(itemTrim, "overrides "),
-						confRead.overridesV6[0],
-					); err != nil {
+					if err := readSystemServicesDhcpLocalServerGroupOverridesV6(itemTrim, confRead.overridesV6[0]); err != nil {
 						return confRead, err
 					}
 				}
@@ -1835,7 +1802,7 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, clt 
 				confRead.reauthenticateLeaseRenewal = true
 			case itemTrim == "reauthenticate remote-id-mismatch":
 				confRead.reauthenticateRemoteIDMismatch = true
-			case strings.HasPrefix(itemTrim, "reconfigure"):
+			case balt.CutPrefixInString(&itemTrim, "reconfigure"):
 				if len(confRead.reconfigure) == 0 {
 					confRead.reconfigure = append(confRead.reconfigure, map[string]interface{}{
 						"attempts":                  0,
@@ -1846,25 +1813,22 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, clt 
 						"trigger_radius_disconnect": false,
 					})
 				}
-				if strings.HasPrefix(itemTrim, "reconfigure ") {
-					var err error
-					switch {
-					case strings.HasPrefix(itemTrim, "reconfigure attempts "):
-						confRead.reconfigure[0]["attempts"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "reconfigure attempts "))
-					case itemTrim == "reconfigure clear-on-abort":
-						confRead.reconfigure[0]["clear_on_abort"] = true
-					case itemTrim == "reconfigure support-option-pd-exclude":
-						confRead.reconfigure[0]["support_option_pd_exclude"] = true
-					case strings.HasPrefix(itemTrim, "reconfigure timeout "):
-						confRead.reconfigure[0]["timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "reconfigure timeout "))
-					case strings.HasPrefix(itemTrim, "reconfigure token "):
-						confRead.reconfigure[0]["token"] = strings.Trim(strings.TrimPrefix(itemTrim, "reconfigure token "), "\"")
-					case itemTrim == "reconfigure trigger radius-disconnect":
-						confRead.reconfigure[0]["trigger_radius_disconnect"] = true
-					}
-					if err != nil {
-						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
-					}
+				switch {
+				case balt.CutPrefixInString(&itemTrim, " attempts "):
+					confRead.reconfigure[0]["attempts"], err = strconv.Atoi(itemTrim)
+				case itemTrim == " clear-on-abort":
+					confRead.reconfigure[0]["clear_on_abort"] = true
+				case itemTrim == " support-option-pd-exclude":
+					confRead.reconfigure[0]["support_option_pd_exclude"] = true
+				case balt.CutPrefixInString(&itemTrim, " timeout "):
+					confRead.reconfigure[0]["timeout"], err = strconv.Atoi(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, " token "):
+					confRead.reconfigure[0]["token"] = strings.Trim(itemTrim, "\"")
+				case itemTrim == " trigger radius-disconnect":
+					confRead.reconfigure[0]["trigger_radius_disconnect"] = true
+				}
+				if err != nil {
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "remote-id-mismatch disconnect":
 				confRead.remoteIDMismatchDisconnect = true
@@ -1874,19 +1838,15 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, clt 
 				confRead.routeSuppressionAccessInternal = true
 			case itemTrim == "route-suppression destination":
 				confRead.routeSuppressionDestination = true
-			case strings.HasPrefix(itemTrim, "service-profile "):
-				confRead.serviceProfile = strings.Trim(strings.TrimPrefix(itemTrim, "service-profile "), "\"")
-			case strings.HasPrefix(itemTrim, "short-cycle-protection lockout-max-time "):
-				var err error
-				confRead.shortCycleProtectionLockoutMaxTime, err = strconv.Atoi(strings.TrimPrefix(
-					itemTrim, "short-cycle-protection lockout-max-time "))
+			case balt.CutPrefixInString(&itemTrim, "service-profile "):
+				confRead.serviceProfile = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "short-cycle-protection lockout-max-time "):
+				confRead.shortCycleProtectionLockoutMaxTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "short-cycle-protection lockout-min-time "):
-				var err error
-				confRead.shortCycleProtectionLockoutMinTime, err = strconv.Atoi(strings.TrimPrefix(
-					itemTrim, "short-cycle-protection lockout-min-time "))
+			case balt.CutPrefixInString(&itemTrim, "short-cycle-protection lockout-min-time "):
+				confRead.shortCycleProtectionLockoutMinTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
@@ -1897,28 +1857,26 @@ func readSystemServicesDhcpLocalServerGroup(name, instance, version string, clt 
 	return confRead, nil
 }
 
-func readSystemServicesDhcpLocalServerGroupInterface(itemTrim, version string, interFace map[string]interface{}) error {
-	var err error
+func readSystemServicesDhcpLocalServerGroupInterface(itemTrim, version string, interFace map[string]interface{},
+) (err error) {
 	switch {
-	case strings.HasPrefix(itemTrim, "access-profile "):
-		interFace["access_profile"] = strings.Trim(strings.TrimPrefix(itemTrim, "access-profile "), "\"")
-	case strings.HasPrefix(itemTrim, "dynamic-profile "):
+	case balt.CutPrefixInString(&itemTrim, "access-profile "):
+		interFace["access_profile"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "dynamic-profile "):
 		switch {
-		case strings.HasPrefix(itemTrim, "dynamic-profile use-primary "):
-			interFace["dynamic_profile_use_primary"] = strings.Trim(strings.TrimPrefix(
-				itemTrim, "dynamic-profile use-primary "), "\"")
-		case strings.HasPrefix(itemTrim, "dynamic-profile aggregate-clients"):
+		case balt.CutPrefixInString(&itemTrim, "use-primary "):
+			interFace["dynamic_profile_use_primary"] = strings.Trim(itemTrim, "\"")
+		case balt.CutPrefixInString(&itemTrim, "aggregate-clients"):
 			interFace["dynamic_profile_aggregate_clients"] = true
-			if strings.HasPrefix(itemTrim, "dynamic-profile aggregate-clients ") {
-				interFace["dynamic_profile_aggregate_clients_action"] = strings.TrimPrefix(
-					itemTrim, "dynamic-profile aggregate-clients ")
+			if balt.CutPrefixInString(&itemTrim, " ") {
+				interFace["dynamic_profile_aggregate_clients_action"] = itemTrim
 			}
 		default:
-			interFace["dynamic_profile"] = strings.Trim(strings.TrimPrefix(itemTrim, "dynamic-profile "), "\"")
+			interFace["dynamic_profile"] = strings.Trim(itemTrim, "\"")
 		}
 	case itemTrim == "exclude":
 		interFace["exclude"] = true
-	case strings.HasPrefix(itemTrim, "overrides "):
+	case balt.CutPrefixInString(&itemTrim, "overrides "):
 		if version == "v4" {
 			if len(interFace["overrides_v4"].([]map[string]interface{})) == 0 {
 				interFace["overrides_v4"] = append(
@@ -1927,7 +1885,7 @@ func readSystemServicesDhcpLocalServerGroupInterface(itemTrim, version string, i
 				)
 			}
 			if err := readSystemServicesDhcpLocalServerGroupOverridesV4(
-				strings.TrimPrefix(itemTrim, "overrides "),
+				itemTrim,
 				interFace["overrides_v4"].([]map[string]interface{})[0],
 			); err != nil {
 				return err
@@ -1940,24 +1898,22 @@ func readSystemServicesDhcpLocalServerGroupInterface(itemTrim, version string, i
 				)
 			}
 			if err := readSystemServicesDhcpLocalServerGroupOverridesV6(
-				strings.TrimPrefix(itemTrim, "overrides "),
+				itemTrim,
 				interFace["overrides_v6"].([]map[string]interface{})[0],
 			); err != nil {
 				return err
 			}
 		}
-	case strings.HasPrefix(itemTrim, "service-profile "):
-		interFace["service_profile"] = strings.Trim(strings.TrimPrefix(itemTrim, "service-profile "), "\"")
-	case strings.HasPrefix(itemTrim, "short-cycle-protection lockout-max-time "):
-		interFace["short_cycle_protection_lockout_max_time"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "short-cycle-protection lockout-max-time "))
-	case strings.HasPrefix(itemTrim, "short-cycle-protection lockout-min-time "):
-		interFace["short_cycle_protection_lockout_min_time"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "short-cycle-protection lockout-min-time "))
+	case balt.CutPrefixInString(&itemTrim, "service-profile "):
+		interFace["service_profile"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "short-cycle-protection lockout-max-time "):
+		interFace["short_cycle_protection_lockout_max_time"], err = strconv.Atoi(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "short-cycle-protection lockout-min-time "):
+		interFace["short_cycle_protection_lockout_min_time"], err = strconv.Atoi(itemTrim)
 	case itemTrim == "trace":
 		interFace["trace"] = true
-	case strings.HasPrefix(itemTrim, "upto "):
-		interFace["upto"] = strings.TrimPrefix(itemTrim, "upto ")
+	case balt.CutPrefixInString(&itemTrim, "upto "):
+		interFace["upto"] = itemTrim
 	}
 	if err != nil {
 		return fmt.Errorf(failedConvAtoiError, itemTrim, err)
@@ -2007,50 +1963,48 @@ func genSystemServicesDhcpLocalServerGroupOverridesV6() map[string]interface{} {
 	}
 }
 
-func readSystemServicesDhcpLocalServerGroupOverridesV4(itemTrim string, overrides map[string]interface{}) error {
-	var err error
+func readSystemServicesDhcpLocalServerGroupOverridesV4(itemTrim string, overrides map[string]interface{}) (err error) {
 	switch {
 	case itemTrim == "allow-no-end-option":
 		overrides["allow_no_end_option"] = true
-	case strings.HasPrefix(itemTrim, "asymmetric-lease-time "):
-		overrides["asymmetric_lease_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "asymmetric-lease-time "))
+	case balt.CutPrefixInString(&itemTrim, "asymmetric-lease-time "):
+		overrides["asymmetric_lease_time"], err = strconv.Atoi(itemTrim)
 	case itemTrim == "bootp-support":
 		overrides["bootp_support"] = true
-	case strings.HasPrefix(itemTrim, "client-discover-match "):
-		overrides["client_discover_match"] = strings.TrimPrefix(itemTrim, "client-discover-match ")
-	case strings.HasPrefix(itemTrim, "delay-offer based-on "):
-		itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "delay-offer based-on "), " ")
-		if len(itemTrimSplit) < 4 {
-			return fmt.Errorf("can't read line delay-offer based-on, not enough element")
+	case balt.CutPrefixInString(&itemTrim, "client-discover-match "):
+		overrides["client_discover_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "delay-offer based-on "):
+		itemTrimFields := strings.Split(itemTrim, " ")
+		if len(itemTrimFields) < 4 { // <option> <compare> <value_type> <value>
+			return fmt.Errorf(cantReadValuesNotEnoughFields, "delay-offer based-on", itemTrim)
 		}
 		overrides["delay_offer_based_on"] = append(
 			overrides["delay_offer_based_on"].([]map[string]interface{}),
 			map[string]interface{}{
-				"option":     itemTrimSplit[0],
-				"compare":    itemTrimSplit[1],
-				"value_type": itemTrimSplit[2],
-				"value": strings.Trim(strings.TrimPrefix(itemTrim,
-					"delay-offer based-on "+itemTrimSplit[0]+" "+itemTrimSplit[1]+" "+itemTrimSplit[2]+" "), "\""),
+				"option":     itemTrimFields[0],
+				"compare":    itemTrimFields[1],
+				"value_type": itemTrimFields[2],
+				"value":      strings.Trim(strings.Join(itemTrimFields[3:], " "), "\""),
 			})
-	case strings.HasPrefix(itemTrim, "delay-offer delay-time "):
-		overrides["delay_offer_delay_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "delay-offer delay-time "))
+	case balt.CutPrefixInString(&itemTrim, "delay-offer delay-time "):
+		overrides["delay_offer_delay_time"], err = strconv.Atoi(itemTrim)
 	case itemTrim == "delete-binding-on-renegotiation":
 		overrides["delete_binding_on_renegotiation"] = true
-	case strings.HasPrefix(itemTrim, "dual-stack "):
-		overrides["dual_stack"] = strings.Trim(strings.TrimPrefix(itemTrim, "dual-stack "), "\"")
+	case balt.CutPrefixInString(&itemTrim, "dual-stack "):
+		overrides["dual_stack"] = strings.Trim(itemTrim, "\"")
 	case itemTrim == "include-option-82 forcerenew":
 		overrides["include_option_82_forcerenew"] = true
 	case itemTrim == "include-option-82 nak":
 		overrides["include_option_82_nak"] = true
-	case strings.HasPrefix(itemTrim, "interface-client-limit "):
-		overrides["interface_client_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "interface-client-limit "))
-	case strings.HasPrefix(itemTrim, "process-inform pool "):
-		overrides["process_inform_pool"] = strings.Trim(strings.TrimPrefix(itemTrim, "process-inform pool "), "\"")
+	case balt.CutPrefixInString(&itemTrim, "interface-client-limit "):
+		overrides["interface_client_limit"], err = strconv.Atoi(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "process-inform pool "):
+		overrides["process_inform_pool"] = strings.Trim(itemTrim, "\"")
 		overrides["process_inform"] = true
 	case itemTrim == "process-inform":
 		overrides["process_inform"] = true
-	case strings.HasPrefix(itemTrim, "protocol-attributes "):
-		overrides["protocol_attributes"] = strings.Trim(strings.TrimPrefix(itemTrim, "protocol-attributes "), "\"")
+	case balt.CutPrefixInString(&itemTrim, "protocol-attributes "):
+		overrides["protocol_attributes"] = strings.Trim(itemTrim, "\"")
 	}
 	if err != nil {
 		return fmt.Errorf(failedConvAtoiError, itemTrim, err)
@@ -2059,54 +2013,50 @@ func readSystemServicesDhcpLocalServerGroupOverridesV4(itemTrim string, override
 	return nil
 }
 
-func readSystemServicesDhcpLocalServerGroupOverridesV6(itemTrim string, overrides map[string]interface{}) error {
-	var err error
+func readSystemServicesDhcpLocalServerGroupOverridesV6(itemTrim string, overrides map[string]interface{}) (err error) {
 	switch {
 	case itemTrim == "always-add-option-dns-server":
 		overrides["always_add_option_dns_server"] = true
 	case itemTrim == "always-process-option-request-option":
 		overrides["always_process_option_request_option"] = true
-	case strings.HasPrefix(itemTrim, "asymmetric-lease-time "):
-		overrides["asymmetric_lease_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "asymmetric-lease-time "))
-	case strings.HasPrefix(itemTrim, "asymmetric-prefix-lease-time "):
-		overrides["asymmetric_prefix_lease_time"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "asymmetric-prefix-lease-time "))
+	case balt.CutPrefixInString(&itemTrim, "asymmetric-lease-time "):
+		overrides["asymmetric_lease_time"], err = strconv.Atoi(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "asymmetric-prefix-lease-time "):
+		overrides["asymmetric_prefix_lease_time"], err = strconv.Atoi(itemTrim)
 	case itemTrim == "client-negotiation-match incoming-interface":
 		overrides["client_negotiation_match_incoming_interface"] = true
-	case strings.HasPrefix(itemTrim, "delay-advertise based-on "):
-		itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "delay-advertise based-on "), " ")
-		if len(itemTrimSplit) < 4 {
-			return fmt.Errorf("can't read line delay-advertise based-on, not enough element")
+	case balt.CutPrefixInString(&itemTrim, "delay-advertise based-on "):
+		itemTrimFields := strings.Split(itemTrim, " ")
+		if len(itemTrimFields) < 4 { // <option> <compare> <value_type> <value>
+			return fmt.Errorf(cantReadValuesNotEnoughFields, "delay-advertise based-on", itemTrim)
 		}
 		overrides["delay_advertise_based_on"] = append(
 			overrides["delay_advertise_based_on"].([]map[string]interface{}),
 			map[string]interface{}{
-				"option":     itemTrimSplit[0],
-				"compare":    itemTrimSplit[1],
-				"value_type": itemTrimSplit[2],
-				"value": strings.Trim(strings.TrimPrefix(itemTrim,
-					"delay-advertise based-on "+itemTrimSplit[0]+" "+itemTrimSplit[1]+" "+itemTrimSplit[2]+" "), "\""),
+				"option":     itemTrimFields[0],
+				"compare":    itemTrimFields[1],
+				"value_type": itemTrimFields[2],
+				"value":      strings.Trim(strings.Join(itemTrimFields[3:], " "), "\""),
 			})
-	case strings.HasPrefix(itemTrim, "delay-advertise delay-time "):
-		overrides["delay_advertise_delay_time"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "delay-advertise delay-time "))
-	case strings.HasPrefix(itemTrim, "delegated-pool "):
-		overrides["delegated_pool"] = strings.Trim(strings.TrimPrefix(itemTrim, "delegated-pool "), "\"")
+	case balt.CutPrefixInString(&itemTrim, "delay-advertise delay-time "):
+		overrides["delay_advertise_delay_time"], err = strconv.Atoi(itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "delegated-pool "):
+		overrides["delegated_pool"] = strings.Trim(itemTrim, "\"")
 	case itemTrim == "delete-binding-on-renegotiation":
 		overrides["delete_binding_on_renegotiation"] = true
-	case strings.HasPrefix(itemTrim, "dual-stack "):
-		overrides["dual_stack"] = strings.Trim(strings.TrimPrefix(itemTrim, "dual-stack "), "\"")
-	case strings.HasPrefix(itemTrim, "interface-client-limit "):
-		overrides["interface_client_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "interface-client-limit "))
+	case balt.CutPrefixInString(&itemTrim, "dual-stack "):
+		overrides["dual_stack"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "interface-client-limit "):
+		overrides["interface_client_limit"], err = strconv.Atoi(itemTrim)
 	case itemTrim == "multi-address-embedded-option-response":
 		overrides["multi_address_embedded_option_response"] = true
-	case strings.HasPrefix(itemTrim, "process-inform pool "):
-		overrides["process_inform_pool"] = strings.Trim(strings.TrimPrefix(itemTrim, "process-inform pool "), "\"")
+	case balt.CutPrefixInString(&itemTrim, "process-inform pool "):
+		overrides["process_inform_pool"] = strings.Trim(itemTrim, "\"")
 		overrides["process_inform"] = true
 	case itemTrim == "process-inform":
 		overrides["process_inform"] = true
-	case strings.HasPrefix(itemTrim, "protocol-attributes "):
-		overrides["protocol_attributes"] = strings.Trim(strings.TrimPrefix(itemTrim, "protocol-attributes "), "\"")
+	case balt.CutPrefixInString(&itemTrim, "protocol-attributes "):
+		overrides["protocol_attributes"] = strings.Trim(itemTrim, "\"")
 	case itemTrim == "rapid-commit":
 		overrides["rapid_commit"] = true
 	case itemTrim == "top-level-status-code":

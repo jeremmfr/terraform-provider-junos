@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type lldpInterfaceOptions struct {
@@ -325,9 +326,7 @@ func setLldpInterface(d *schema.ResourceData, clt *Client, junSess *junosSession
 }
 
 func readLldpInterface(name string, clt *Client, junSess *junosSession,
-) (lldpInterfaceOptions, error) {
-	var confRead lldpInterfaceOptions
-
+) (confRead lldpInterfaceOptions, err error) {
 	showConfig, err := clt.command(
 		cmdShowConfig+"protocols lldp interface "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -348,7 +347,7 @@ func readLldpInterface(name string, clt *Client, junSess *junosSession,
 				confRead.disable = true
 			case itemTrim == "enable":
 				confRead.enable = true
-			case strings.HasPrefix(itemTrim, "power-negotiation"):
+			case balt.CutPrefixInString(&itemTrim, "power-negotiation"):
 				if len(confRead.powerNegotiation) == 0 {
 					confRead.powerNegotiation = append(confRead.powerNegotiation, map[string]interface{}{
 						"disable": false,
@@ -356,9 +355,9 @@ func readLldpInterface(name string, clt *Client, junSess *junosSession,
 					})
 				}
 				switch {
-				case itemTrim == "power-negotiation disable":
+				case itemTrim == " disable":
 					confRead.powerNegotiation[0]["disable"] = true
-				case itemTrim == "power-negotiation enable":
+				case itemTrim == " enable":
 					confRead.powerNegotiation[0]["enable"] = true
 				}
 			case itemTrim == "trap-notification disable":

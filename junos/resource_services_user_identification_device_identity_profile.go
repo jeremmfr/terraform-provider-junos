@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -305,9 +306,7 @@ func setServicesUserIdentDeviceIdentityProfile(d *schema.ResourceData, clt *Clie
 }
 
 func readServicesUserIdentDeviceIdentityProfile(profile string, clt *Client, junSess *junosSession,
-) (svcUserIdentDevIdentProfileOptions, error) {
-	var confRead svcUserIdentDevIdentProfileOptions
-
+) (confRead svcUserIdentDevIdentProfileOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"services user-identification device-information end-user-profile"+
 		" profile-name "+profile+pipeDisplaySetRelative, junSess)
@@ -325,17 +324,18 @@ func readServicesUserIdentDeviceIdentityProfile(profile string, clt *Client, jun
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "domain-name "):
-				confRead.domain = strings.TrimPrefix(itemTrim, "domain-name ")
-			case strings.HasPrefix(itemTrim, "attribute "):
-				itemTrimCut := strings.Split(itemTrim, " ")
+			case balt.CutPrefixInString(&itemTrim, "domain-name "):
+				confRead.domain = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "attribute "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				attribute := map[string]interface{}{
-					"name":  itemTrimCut[1],
+					"name":  itemTrimFields[0],
 					"value": make([]string, 0),
 				}
 				confRead.attribute = copyAndRemoveItemMapList("name", attribute, confRead.attribute)
-				attribute["value"] = append(attribute["value"].([]string), strings.Trim(strings.TrimPrefix(
-					itemTrim, "attribute "+itemTrimCut[1]+" string "), "\""))
+				if balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" string ") {
+					attribute["value"] = append(attribute["value"].([]string), strings.Trim(itemTrim, "\""))
+				}
 				confRead.attribute = append(confRead.attribute, attribute)
 			}
 		}

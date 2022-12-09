@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -433,9 +434,8 @@ func resourceStaticRouteImport(ctx context.Context, d *schema.ResourceData, m in
 	return result, nil
 }
 
-func checkStaticRouteExists(destination, instance string, clt *Client, junSess *junosSession) (bool, error) {
+func checkStaticRouteExists(destination, instance string, clt *Client, junSess *junosSession) (_ bool, err error) {
 	var showConfig string
-	var err error
 	if instance == defaultW {
 		if !strings.Contains(destination, ":") {
 			showConfig, err = clt.command(cmdShowConfig+
@@ -591,11 +591,9 @@ func setStaticRoute(d *schema.ResourceData, clt *Client, junSess *junosSession) 
 	return clt.configSet(configSet, junSess)
 }
 
-func readStaticRoute(destination, instance string, clt *Client, junSess *junosSession) (staticRouteOptions, error) {
-	var confRead staticRouteOptions
+func readStaticRoute(destination, instance string, clt *Client, junSess *junosSession,
+) (confRead staticRouteOptions, err error) {
 	var showConfig string
-	var err error
-
 	if instance == defaultW {
 		if !strings.Contains(destination, ":") {
 			showConfig, err = clt.command(cmdShowConfig+
@@ -631,65 +629,65 @@ func readStaticRoute(destination, instance string, clt *Client, junSess *junosSe
 			switch {
 			case itemTrim == "active":
 				confRead.active = true
-			case strings.HasPrefix(itemTrim, "as-path aggregator "):
-				itemTrimSplit := strings.Split(itemTrim, " ")
-				confRead.asPathAggregatorAsNumber = itemTrimSplit[2]
-				confRead.asPathAggregatorAddress = itemTrimSplit[3]
+			case balt.CutPrefixInString(&itemTrim, "as-path aggregator "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				if len(itemTrimFields) < 2 { // <as_number> <address>
+					return confRead, fmt.Errorf(cantReadValuesNotEnoughFields, "as-path aggregator", itemTrim)
+				}
+				confRead.asPathAggregatorAsNumber = itemTrimFields[0]
+				confRead.asPathAggregatorAddress = itemTrimFields[1]
 			case itemTrim == "as-path atomic-aggregate":
 				confRead.asPathAtomicAggregate = true
-			case strings.HasPrefix(itemTrim, "as-path origin "):
-				confRead.asPathOrigin = strings.TrimPrefix(itemTrim, "as-path origin ")
-			case strings.HasPrefix(itemTrim, "as-path path "):
-				confRead.asPathPath = strings.Trim(strings.TrimPrefix(itemTrim, "as-path path "), "\"")
-			case strings.HasPrefix(itemTrim, "community "):
-				confRead.community = append(confRead.community, strings.TrimPrefix(itemTrim, "community "))
+			case balt.CutPrefixInString(&itemTrim, "as-path origin "):
+				confRead.asPathOrigin = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "as-path path "):
+				confRead.asPathPath = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "community "):
+				confRead.community = append(confRead.community, itemTrim)
 			case itemTrim == discardW:
 				confRead.discard = true
 			case itemTrim == "install":
 				confRead.install = true
 			case itemTrim == "no-install":
 				confRead.noInstall = true
-			case strings.HasPrefix(itemTrim, "metric "):
-				confRead.metric, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "metric "))
+			case balt.CutPrefixInString(&itemTrim, "metric "):
+				confRead.metric, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "next-hop "):
-				confRead.nextHop = append(confRead.nextHop, strings.TrimPrefix(itemTrim, "next-hop "))
-			case strings.HasPrefix(itemTrim, "next-table "):
-				confRead.nextTable = strings.TrimPrefix(itemTrim, "next-table ")
+			case balt.CutPrefixInString(&itemTrim, "next-hop "):
+				confRead.nextHop = append(confRead.nextHop, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "next-table "):
+				confRead.nextTable = itemTrim
 			case itemTrim == "passive":
 				confRead.passive = true
-			case strings.HasPrefix(itemTrim, "preference "):
-				confRead.preference, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "preference "))
+			case balt.CutPrefixInString(&itemTrim, "preference "):
+				confRead.preference, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "qualified-next-hop "):
-				nextHop := strings.TrimPrefix(itemTrim, "qualified-next-hop ")
-				nextHopWords := strings.Split(nextHop, " ")
+			case balt.CutPrefixInString(&itemTrim, "qualified-next-hop "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				qualifiedNextHopOptions := map[string]interface{}{
-					"next_hop":   nextHopWords[0],
+					"next_hop":   itemTrimFields[0],
 					"interface":  "",
 					"metric":     0,
 					"preference": 0,
 				}
 				confRead.qualifiedNextHop = copyAndRemoveItemMapList("next_hop", qualifiedNextHopOptions, confRead.qualifiedNextHop)
-				itemTrimQnh := strings.TrimPrefix(itemTrim, "qualified-next-hop "+nextHopWords[0]+" ")
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				switch {
-				case strings.HasPrefix(itemTrimQnh, "interface "):
-					qualifiedNextHopOptions["interface"] = strings.TrimPrefix(itemTrimQnh, "interface ")
-				case strings.HasPrefix(itemTrimQnh, "metric "):
-					qualifiedNextHopOptions["metric"], err = strconv.Atoi(
-						strings.TrimPrefix(itemTrimQnh, "metric "))
+				case balt.CutPrefixInString(&itemTrim, "interface "):
+					qualifiedNextHopOptions["interface"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "metric "):
+					qualifiedNextHopOptions["metric"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimQnh, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrimQnh, "preference "):
-					qualifiedNextHopOptions["preference"], err = strconv.Atoi(
-						strings.TrimPrefix(itemTrimQnh, "preference "))
+				case balt.CutPrefixInString(&itemTrim, "preference "):
+					qualifiedNextHopOptions["preference"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimQnh, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 				confRead.qualifiedNextHop = append(confRead.qualifiedNextHop, qualifiedNextHopOptions)

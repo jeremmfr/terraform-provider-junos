@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type ribGroupOptions struct {
@@ -304,9 +305,7 @@ func setRibGroup(d *schema.ResourceData, clt *Client, junSess *junosSession) err
 	return clt.configSet(configSet, junSess)
 }
 
-func readRibGroup(group string, clt *Client, junSess *junosSession) (ribGroupOptions, error) {
-	var confRead ribGroupOptions
-
+func readRibGroup(group string, clt *Client, junSess *junosSession) (confRead ribGroupOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"routing-options rib-groups "+group+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -323,12 +322,12 @@ func readRibGroup(group string, clt *Client, junSess *junosSession) (ribGroupOpt
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "import-policy "):
-				confRead.importPolicy = append(confRead.importPolicy, strings.TrimPrefix(itemTrim, "import-policy "))
-			case strings.HasPrefix(itemTrim, "import-rib "):
-				confRead.importRib = append(confRead.importRib, strings.TrimPrefix(itemTrim, "import-rib "))
-			case strings.HasPrefix(itemTrim, "export-rib "):
-				confRead.exportRib = strings.TrimPrefix(itemTrim, "export-rib ")
+			case balt.CutPrefixInString(&itemTrim, "import-policy "):
+				confRead.importPolicy = append(confRead.importPolicy, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "import-rib "):
+				confRead.importRib = append(confRead.importRib, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "export-rib "):
+				confRead.exportRib = itemTrim
 			}
 		}
 	}

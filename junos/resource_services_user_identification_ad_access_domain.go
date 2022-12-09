@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
@@ -397,9 +398,7 @@ func setServicesUserIdentAdAccessDomain(d *schema.ResourceData, clt *Client, jun
 }
 
 func readServicesUserIdentAdAccessDomain(domain string, clt *Client, junSess *junosSession,
-) (svcUserIdentAdAccessDomainOptions, error) {
-	var confRead svcUserIdentAdAccessDomainOptions
-
+) (confRead svcUserIdentAdAccessDomainOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"services user-identification active-directory-access domain "+domain+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -416,22 +415,23 @@ func readServicesUserIdentAdAccessDomain(domain string, clt *Client, junSess *ju
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "user password "):
-				var err error
-				confRead.userPassword, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim, "user password "), "\""))
+			case balt.CutPrefixInString(&itemTrim, "user password "):
+				confRead.userPassword, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 				if err != nil {
 					return confRead, fmt.Errorf("failed to decode user password: %w", err)
 				}
-			case strings.HasPrefix(itemTrim, "user "):
-				confRead.userName = strings.TrimPrefix(itemTrim, "user ")
-			case strings.HasPrefix(itemTrim, "domain-controller ") &&
-				strings.Contains(itemTrim, " address "):
-				itemTrimSplit := strings.Split(itemTrim, " ")
+			case balt.CutPrefixInString(&itemTrim, "user "):
+				confRead.userName = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "domain-controller "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				if len(itemTrimFields) < 3 { // <name> address <address>
+					return confRead, fmt.Errorf(cantReadValuesNotEnoughFields, "domain-controller", itemTrim)
+				}
 				confRead.domainController = append(confRead.domainController, map[string]interface{}{
-					"name":    itemTrimSplit[1],
-					"address": itemTrimSplit[3],
+					"name":    itemTrimFields[0],
+					"address": itemTrimFields[2],
 				})
-			case strings.HasPrefix(itemTrim, "ip-user-mapping discovery-method wmi"):
+			case balt.CutPrefixInString(&itemTrim, "ip-user-mapping discovery-method wmi"):
 				if len(confRead.ipUserMappingDiscoveryWmi) == 0 {
 					confRead.ipUserMappingDiscoveryWmi = append(confRead.ipUserMappingDiscoveryWmi, map[string]interface{}{
 						"event_log_scanning_interval": 0,
@@ -439,22 +439,18 @@ func readServicesUserIdentAdAccessDomain(domain string, clt *Client, junSess *ju
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "ip-user-mapping discovery-method wmi event-log-scanning-interval "):
-					var err error
-					confRead.ipUserMappingDiscoveryWmi[0]["event_log_scanning_interval"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "ip-user-mapping discovery-method wmi event-log-scanning-interval "))
+				case balt.CutPrefixInString(&itemTrim, " event-log-scanning-interval "):
+					confRead.ipUserMappingDiscoveryWmi[0]["event_log_scanning_interval"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "ip-user-mapping discovery-method wmi initial-event-log-timespan "):
-					var err error
-					confRead.ipUserMappingDiscoveryWmi[0]["initial_event_log_timespan"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "ip-user-mapping discovery-method wmi initial-event-log-timespan "))
+				case balt.CutPrefixInString(&itemTrim, " initial-event-log-timespan "):
+					confRead.ipUserMappingDiscoveryWmi[0]["initial_event_log_timespan"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
-			case strings.HasPrefix(itemTrim, "user-group-mapping ldap "):
+			case balt.CutPrefixInString(&itemTrim, "user-group-mapping ldap "):
 				if len(confRead.userGroupMappingLdap) == 0 {
 					confRead.userGroupMappingLdap = append(confRead.userGroupMappingLdap, map[string]interface{}{
 						"base":             "",
@@ -466,25 +462,24 @@ func readServicesUserIdentAdAccessDomain(domain string, clt *Client, junSess *ju
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "user-group-mapping ldap base "):
-					confRead.userGroupMappingLdap[0]["base"] = strings.Trim(strings.TrimPrefix(
-						itemTrim, "user-group-mapping ldap base "), "\"")
-				case strings.HasPrefix(itemTrim, "user-group-mapping ldap address "):
-					confRead.userGroupMappingLdap[0]["address"] = append(confRead.userGroupMappingLdap[0]["address"].([]string),
-						strings.TrimPrefix(itemTrim, "user-group-mapping ldap address "))
-				case itemTrim == "user-group-mapping ldap authentication-algorithm simple":
+				case balt.CutPrefixInString(&itemTrim, "base "):
+					confRead.userGroupMappingLdap[0]["base"] = strings.Trim(itemTrim, "\"")
+				case balt.CutPrefixInString(&itemTrim, "address "):
+					confRead.userGroupMappingLdap[0]["address"] = append(
+						confRead.userGroupMappingLdap[0]["address"].([]string),
+						itemTrim,
+					)
+				case itemTrim == "authentication-algorithm simple":
 					confRead.userGroupMappingLdap[0]["auth_algo_simple"] = true
-				case itemTrim == "user-group-mapping ldap ssl":
+				case itemTrim == "ssl":
 					confRead.userGroupMappingLdap[0]["ssl"] = true
-				case strings.HasPrefix(itemTrim, "user-group-mapping ldap user password "):
-					var err error
-					confRead.userGroupMappingLdap[0]["user_password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
-						itemTrim, "user-group-mapping ldap user password "), "\""))
+				case balt.CutPrefixInString(&itemTrim, "user password "):
+					confRead.userGroupMappingLdap[0]["user_password"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to decode user password: %w", err)
 					}
-				case strings.HasPrefix(itemTrim, "user-group-mapping ldap user "):
-					confRead.userGroupMappingLdap[0]["user_name"] = strings.TrimPrefix(itemTrim, "user-group-mapping ldap user ")
+				case balt.CutPrefixInString(&itemTrim, "user "):
+					confRead.userGroupMappingLdap[0]["user_name"] = itemTrim
 				}
 			}
 		}

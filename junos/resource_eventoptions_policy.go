@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -874,9 +875,8 @@ func setEventoptionsPolicy(d *schema.ResourceData, clt *Client, junSess *junosSe
 	return clt.configSet(configSet, junSess)
 }
 
-func readEventoptionsPolicy(name string, clt *Client, junSess *junosSession) (eventoptionsPolicyOptions, error) {
-	var confRead eventoptionsPolicyOptions
-
+func readEventoptionsPolicy(name string, clt *Client, junSess *junosSession,
+) (confRead eventoptionsPolicyOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"event-options policy \""+name+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -893,9 +893,9 @@ func readEventoptionsPolicy(name string, clt *Client, junSess *junosSession) (ev
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "events "):
-				confRead.events = append(confRead.events, strings.Trim(strings.TrimPrefix(itemTrim, "events "), "\""))
-			case strings.HasPrefix(itemTrim, "then "):
+			case balt.CutPrefixInString(&itemTrim, "events "):
+				confRead.events = append(confRead.events, strings.Trim(itemTrim, "\""))
+			case balt.CutPrefixInString(&itemTrim, "then "):
 				if len(confRead.then) == 0 {
 					confRead.then = append(confRead.then, map[string]interface{}{
 						"change_configuration":       make([]map[string]interface{}, 0),
@@ -908,22 +908,22 @@ func readEventoptionsPolicy(name string, clt *Client, junSess *junosSession) (ev
 						"upload":                     make([]map[string]interface{}, 0),
 					})
 				}
-				if err := readEventoptionsPolicyThen(confRead.then[0], itemTrim); err != nil {
+				if err := readEventoptionsPolicyThen(itemTrim, confRead.then[0]); err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "attributes-match "):
-				itemTrimSplit := strings.Split(itemTrim, " ")
-				if len(itemTrimSplit) < 4 {
-					return confRead, fmt.Errorf("can't read all options for attributes_match")
+			case balt.CutPrefixInString(&itemTrim, "attributes-match "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				if len(itemTrimFields) < 3 { // <from> <compare> <to>
+					return confRead, fmt.Errorf(cantReadValuesNotEnoughFields, "attributes-match", itemTrim)
 				}
 				confRead.attributesMatch = append(confRead.attributesMatch, map[string]interface{}{
-					"from":    strings.Trim(itemTrimSplit[1], "\""),
-					"compare": itemTrimSplit[2],
-					"to":      strings.Trim(itemTrimSplit[3], "\""),
+					"from":    strings.Trim(itemTrimFields[0], "\""),
+					"compare": itemTrimFields[1],
+					"to":      strings.Trim(itemTrimFields[2], "\""),
 				})
-			case strings.HasPrefix(itemTrim, "within "):
-				itemTrimSplit := strings.Split(itemTrim, " ")
-				withinSeconds, err := strconv.Atoi(itemTrimSplit[1])
+			case balt.CutPrefixInString(&itemTrim, "within "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				withinSeconds, err := strconv.Atoi(itemTrimFields[0])
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
@@ -934,22 +934,19 @@ func readEventoptionsPolicy(name string, clt *Client, junSess *junosSession) (ev
 					"trigger_count": -1,
 					"trigger_when":  "",
 				}
-				itemTrimWithin := strings.TrimPrefix(itemTrim, "within "+itemTrimSplit[1]+" ")
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				confRead.within = copyAndRemoveItemMapList("time_interval", within, confRead.within)
 				switch {
-				case strings.HasPrefix(itemTrimWithin, "events "):
-					within["events"] = append(within["events"].([]string),
-						strings.Trim(strings.TrimPrefix(itemTrimWithin, "events "), "\""))
-				case strings.HasPrefix(itemTrimWithin, "not events "):
-					within["not_events"] = append(within["not_events"].([]string),
-						strings.Trim(strings.TrimPrefix(itemTrimWithin, "not events "), "\""))
-				case strings.HasPrefix(itemTrimWithin, "trigger "):
-					trigger := strings.TrimPrefix(itemTrimWithin, "trigger ")
-					switch trigger {
+				case balt.CutPrefixInString(&itemTrim, "events "):
+					within["events"] = append(within["events"].([]string), strings.Trim(itemTrim, "\""))
+				case balt.CutPrefixInString(&itemTrim, "not events "):
+					within["not_events"] = append(within["not_events"].([]string), strings.Trim(itemTrim, "\""))
+				case balt.CutPrefixInString(&itemTrim, "trigger "):
+					switch itemTrim {
 					case "after", "on", "until":
-						within["trigger_when"] = trigger
+						within["trigger_when"] = itemTrim
 					default:
-						within["trigger_count"], err = strconv.Atoi(trigger)
+						within["trigger_count"], err = strconv.Atoi(itemTrim)
 						if err != nil {
 							return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 						}
@@ -963,10 +960,9 @@ func readEventoptionsPolicy(name string, clt *Client, junSess *junosSession) (ev
 	return confRead, nil
 }
 
-func readEventoptionsPolicyThen(then map[string]interface{}, itemTrim string) error {
-	var err error
+func readEventoptionsPolicyThen(itemTrim string, then map[string]interface{}) (err error) {
 	switch {
-	case strings.HasPrefix(itemTrim, "then change-configuration "):
+	case balt.CutPrefixInString(&itemTrim, "change-configuration "):
 		if len(then["change_configuration"].([]map[string]interface{})) == 0 {
 			then["change_configuration"] = append(
 				then["change_configuration"].([]map[string]interface{}), map[string]interface{}{
@@ -983,40 +979,36 @@ func readEventoptionsPolicyThen(then map[string]interface{}, itemTrim string) er
 		}
 		changeConfiguration := then["change_configuration"].([]map[string]interface{})[0]
 		switch {
-		case strings.HasPrefix(itemTrim, "then change-configuration commands "):
-			changeConfiguration["commands"] = append(changeConfiguration["commands"].([]string),
-				strings.Trim(strings.TrimPrefix(itemTrim, "then change-configuration commands "), "\""))
-		case itemTrim == "then change-configuration commit-options check":
+		case balt.CutPrefixInString(&itemTrim, "commands "):
+			changeConfiguration["commands"] = append(changeConfiguration["commands"].([]string), strings.Trim(itemTrim, "\""))
+		case itemTrim == "commit-options check":
 			changeConfiguration["commit_options_check"] = true
-		case itemTrim == "then change-configuration commit-options check synchronize":
+		case itemTrim == "commit-options check synchronize":
 			changeConfiguration["commit_options_check"] = true
 			changeConfiguration["commit_options_check_synchronize"] = true
-		case itemTrim == "then change-configuration commit-options force":
+		case itemTrim == "commit-options force":
 			changeConfiguration["commit_options_force"] = true
-		case strings.HasPrefix(itemTrim, "then change-configuration commit-options log "):
-			changeConfiguration["commit_options_log"] = strings.Trim(strings.TrimPrefix(
-				itemTrim, "then change-configuration commit-options log "), "\"")
-		case itemTrim == "then change-configuration commit-options synchronize":
+		case balt.CutPrefixInString(&itemTrim, "commit-options log "):
+			changeConfiguration["commit_options_log"] = strings.Trim(itemTrim, "\"")
+		case itemTrim == "commit-options synchronize":
 			changeConfiguration["commit_options_synchronize"] = true
-		case strings.HasPrefix(itemTrim, "then change-configuration retry count "):
-			changeConfiguration["retry_count"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "then change-configuration retry count "))
+		case balt.CutPrefixInString(&itemTrim, "retry count "):
+			changeConfiguration["retry_count"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "then change-configuration retry interval "):
-			changeConfiguration["retry_interval"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "then change-configuration retry interval "))
+		case balt.CutPrefixInString(&itemTrim, "retry interval "):
+			changeConfiguration["retry_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "then change-configuration user-name "):
-			changeConfiguration["user_name"] = strings.TrimPrefix(itemTrim, "then change-configuration user-name ")
+		case balt.CutPrefixInString(&itemTrim, "user-name "):
+			changeConfiguration["user_name"] = itemTrim
 		}
-	case strings.HasPrefix(itemTrim, "then event-script "):
-		itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "then event-script "), " ")
+	case balt.CutPrefixInString(&itemTrim, "event-script "):
+		itemTrimFields := strings.Split(itemTrim, " ")
 		eventScript := map[string]interface{}{
-			"filename":        strings.Trim(itemTrimSplit[0], "\""),
+			"filename":        strings.Trim(itemTrimFields[0], "\""),
 			"arguments":       make([]map[string]interface{}, 0),
 			"destination":     make([]map[string]interface{}, 0),
 			"output_filename": "",
@@ -1025,55 +1017,55 @@ func readEventoptionsPolicyThen(then map[string]interface{}, itemTrim string) er
 		}
 		then["event_script"] = copyAndRemoveItemMapList(
 			"filename", eventScript, then["event_script"].([]map[string]interface{}))
-		itemTrimEventScript := strings.TrimPrefix(itemTrim, "then event-script "+itemTrimSplit[0]+" ")
-		itemTrimEventScriptSplit := strings.Split(itemTrimEventScript, " ")
+		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 		switch {
-		case strings.HasPrefix(itemTrimEventScript, "arguments "):
-			if len(itemTrimEventScriptSplit) < 3 {
-				return fmt.Errorf("can't read arguments for event-script %s", eventScript["filename"])
+		case balt.CutPrefixInString(&itemTrim, "arguments "):
+			itemTrimArgsFields := strings.Split(itemTrim, " ")
+			if len(itemTrimArgsFields) < 2 { // <name> <value>
+				return fmt.Errorf(cantReadValuesNotEnoughFields, "arguments", itemTrim)
 			}
 			eventScript["arguments"] = append(eventScript["arguments"].([]map[string]interface{}), map[string]interface{}{
-				"name":  strings.Trim(itemTrimEventScriptSplit[1], "\""),
-				"value": strings.Trim(itemTrimEventScriptSplit[2], "\""),
+				"name":  strings.Trim(itemTrimArgsFields[0], "\""),
+				"value": strings.Trim(itemTrimArgsFields[1], "\""),
 			})
-		case strings.HasPrefix(itemTrimEventScript, "destination "):
+		case balt.CutPrefixInString(&itemTrim, "destination "):
+			itemTrimDestFields := strings.Split(itemTrim, " ")
 			if len(eventScript["destination"].([]map[string]interface{})) == 0 {
 				eventScript["destination"] = append(eventScript["destination"].([]map[string]interface{}), map[string]interface{}{
-					"name":           strings.Trim(itemTrimEventScriptSplit[1], "\""),
+					"name":           strings.Trim(itemTrimDestFields[0], "\""),
 					"retry_count":    -1,
 					"retry_interval": -1,
 					"transfer_delay": -1,
 				})
 			}
 			destination := eventScript["destination"].([]map[string]interface{})[0]
-			itemTrimDestination := strings.TrimPrefix(itemTrimEventScript, "destination "+itemTrimEventScriptSplit[1]+" ")
+			balt.CutPrefixInString(&itemTrim, itemTrimDestFields[0]+" ")
 			switch {
-			case strings.HasPrefix(itemTrimDestination, "retry-count retry-interval "):
-				destination["retry_interval"], err = strconv.Atoi(strings.TrimPrefix(
-					itemTrimDestination, "retry-count retry-interval "))
+			case balt.CutPrefixInString(&itemTrim, "retry-count retry-interval "):
+				destination["retry_interval"], err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrimDestination, "retry-count "):
-				destination["retry_count"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDestination, "retry-count "))
+			case balt.CutPrefixInString(&itemTrim, "retry-count "):
+				destination["retry_count"], err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrimDestination, "transfer-delay "):
-				destination["transfer_delay"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDestination, "transfer-delay "))
+			case balt.CutPrefixInString(&itemTrim, "transfer-delay "):
+				destination["transfer_delay"], err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
-		case strings.HasPrefix(itemTrimEventScript, "output-filename "):
-			eventScript["output_filename"] = strings.Trim(strings.TrimPrefix(itemTrimEventScript, "output-filename "), "\"")
-		case strings.HasPrefix(itemTrimEventScript, "output-format "):
-			eventScript["output_format"] = strings.TrimPrefix(itemTrimEventScript, "output-format ")
-		case strings.HasPrefix(itemTrimEventScript, "user-name "):
-			eventScript["user_name"] = strings.TrimPrefix(itemTrimEventScript, "user-name ")
+		case balt.CutPrefixInString(&itemTrim, "output-filename "):
+			eventScript["output_filename"] = strings.Trim(itemTrim, "\"")
+		case balt.CutPrefixInString(&itemTrim, "output-format "):
+			eventScript["output_format"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "user-name "):
+			eventScript["user_name"] = itemTrim
 		}
 		then["event_script"] = append(then["event_script"].([]map[string]interface{}), eventScript)
-	case strings.HasPrefix(itemTrim, "then execute-commands "):
+	case balt.CutPrefixInString(&itemTrim, "execute-commands "):
 		if len(then["execute_commands"].([]map[string]interface{})) == 0 {
 			then["execute_commands"] = append(
 				then["execute_commands"].([]map[string]interface{}), map[string]interface{}{
@@ -1084,66 +1076,63 @@ func readEventoptionsPolicyThen(then map[string]interface{}, itemTrim string) er
 					"user_name":       "",
 				})
 		}
-		itemTrimExecCommands := strings.TrimPrefix(itemTrim, "then execute-commands ")
 		executeCommands := then["execute_commands"].([]map[string]interface{})[0]
 		switch {
-		case strings.HasPrefix(itemTrimExecCommands, "commands "):
-			executeCommands["commands"] = append(executeCommands["commands"].([]string),
-				strings.Trim(strings.TrimPrefix(itemTrimExecCommands, "commands "), "\""))
-		case strings.HasPrefix(itemTrimExecCommands, "destination "):
-			itemTrimExecCommandsSplit := strings.Split(strings.TrimPrefix(itemTrimExecCommands, "destination "), " ")
+		case balt.CutPrefixInString(&itemTrim, "commands "):
+			executeCommands["commands"] = append(executeCommands["commands"].([]string), strings.Trim(itemTrim, "\""))
+		case balt.CutPrefixInString(&itemTrim, "destination "):
+			itemTrimFields := strings.Split(itemTrim, " ")
 			if len(executeCommands["destination"].([]map[string]interface{})) == 0 {
 				executeCommands["destination"] = append(
 					executeCommands["destination"].([]map[string]interface{}), map[string]interface{}{
-						"name":           strings.Trim(itemTrimExecCommandsSplit[0], "\""),
+						"name":           strings.Trim(itemTrimFields[0], "\""),
 						"retry_count":    -1,
 						"retry_interval": -1,
 						"transfer_delay": -1,
 					})
 			}
 			destination := executeCommands["destination"].([]map[string]interface{})[0]
-			itemTrimDestination := strings.TrimPrefix(itemTrimExecCommands, "destination "+itemTrimExecCommandsSplit[0]+" ")
+			balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 			switch {
-			case strings.HasPrefix(itemTrimDestination, "retry-count retry-interval "):
-				destination["retry_interval"], err = strconv.Atoi(strings.TrimPrefix(
-					itemTrimDestination, "retry-count retry-interval "))
+			case balt.CutPrefixInString(&itemTrim, "retry-count retry-interval "):
+				destination["retry_interval"], err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrimDestination, "retry-count "):
-				destination["retry_count"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDestination, "retry-count "))
+			case balt.CutPrefixInString(&itemTrim, "retry-count "):
+				destination["retry_count"], err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrimDestination, "transfer-delay "):
-				destination["transfer_delay"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDestination, "transfer-delay "))
+			case balt.CutPrefixInString(&itemTrim, "transfer-delay "):
+				destination["transfer_delay"], err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
-		case strings.HasPrefix(itemTrimExecCommands, "output-filename "):
-			executeCommands["output_filename"] = strings.Trim(strings.TrimPrefix(itemTrimExecCommands, "output-filename "), "\"")
-		case strings.HasPrefix(itemTrimExecCommands, "output-format "):
-			executeCommands["output_format"] = strings.TrimPrefix(itemTrimExecCommands, "output-format ")
-		case strings.HasPrefix(itemTrimExecCommands, "user-name "):
-			executeCommands["user_name"] = strings.TrimPrefix(itemTrimExecCommands, "user-name ")
+		case balt.CutPrefixInString(&itemTrim, "output-filename "):
+			executeCommands["output_filename"] = strings.Trim(itemTrim, "\"")
+		case balt.CutPrefixInString(&itemTrim, "output-format "):
+			executeCommands["output_format"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "user-name "):
+			executeCommands["user_name"] = itemTrim
 		}
-	case itemTrim == "then ignore":
+	case itemTrim == "ignore":
 		then["ignore"] = true
-	case strings.HasPrefix(itemTrim, "then priority-override facility "):
-		then["priority_override_facility"] = strings.TrimPrefix(itemTrim, "then priority-override facility ")
-	case strings.HasPrefix(itemTrim, "then priority-override severity "):
-		then["priority_override_severity"] = strings.TrimPrefix(itemTrim, "then priority-override severity ")
-	case itemTrim == "then raise-trap":
+	case balt.CutPrefixInString(&itemTrim, "priority-override facility "):
+		then["priority_override_facility"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "priority-override severity "):
+		then["priority_override_severity"] = itemTrim
+	case itemTrim == "raise-trap":
 		then["raise_trap"] = true
-	case strings.HasPrefix(itemTrim, "then upload "):
-		itemTrimSplit := strings.Split(itemTrim, " ")
-		if len(itemTrimSplit) < 6 {
-			return fmt.Errorf("can't read then upload configuration")
+	case balt.CutPrefixInString(&itemTrim, "upload filename "):
+		itemTrimFields := strings.Split(itemTrim, " ")
+		if len(itemTrimFields) < 3 { // <filename> destination <destination>
+			return fmt.Errorf(cantReadValuesNotEnoughFields, "upload filename", itemTrim)
 		}
 		upload := map[string]interface{}{
-			"filename":       strings.Trim(itemTrimSplit[3], "\""),
-			"destination":    strings.Trim(itemTrimSplit[5], "\""),
+			"filename":       strings.Trim(itemTrimFields[0], "\""),
+			"destination":    strings.Trim(itemTrimFields[2], "\""),
 			"retry_count":    -1,
 			"retry_interval": -1,
 			"transfer_delay": -1,
@@ -1152,26 +1141,25 @@ func readEventoptionsPolicyThen(then map[string]interface{}, itemTrim string) er
 
 		then["upload"] = copyAndRemoveItemMapList2(
 			"filename", "destination", upload, then["upload"].([]map[string]interface{}))
-		itemTrimUpload := strings.TrimPrefix(
-			itemTrim, "then upload filename "+itemTrimSplit[3]+" destination "+itemTrimSplit[5]+" ")
+		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" destination "+itemTrimFields[2]+" ")
 		switch {
-		case strings.HasPrefix(itemTrimUpload, "retry-count retry-interval "):
-			upload["retry_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrimUpload, "retry-count retry-interval "))
+		case balt.CutPrefixInString(&itemTrim, "retry-count retry-interval "):
+			upload["retry_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimUpload, "retry-count "):
-			upload["retry_count"], err = strconv.Atoi(strings.TrimPrefix(itemTrimUpload, "retry-count "))
+		case balt.CutPrefixInString(&itemTrim, "retry-count "):
+			upload["retry_count"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimUpload, "transfer-delay "):
-			upload["transfer_delay"], err = strconv.Atoi(strings.TrimPrefix(itemTrimUpload, "transfer-delay "))
+		case balt.CutPrefixInString(&itemTrim, "transfer-delay "):
+			upload["transfer_delay"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimUpload, "user-name "):
-			upload["user_name"] = strings.TrimPrefix(itemTrimUpload, "user-name ")
+		case balt.CutPrefixInString(&itemTrim, "user-name "):
+			upload["user_name"] = itemTrim
 		}
 		then["upload"] = append(then["upload"].([]map[string]interface{}), upload)
 	}

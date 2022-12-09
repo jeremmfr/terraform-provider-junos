@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type vstpInterfaceOptions struct {
@@ -164,15 +165,15 @@ func resourceVstpInterfaceReadID(resourceID string) (vType vstpInterfaceVIdType,
 			ressIDSplit[1]
 	default:
 		switch {
-		case strings.HasPrefix(ressIDSplit[1], vstpInterfaceVIdTypeVlan.prefix()):
+		case balt.CutPrefixInString(&ressIDSplit[1], vstpInterfaceVIdTypeVlan.prefix()):
 			return vstpInterfaceVIdTypeVlan,
 				ressIDSplit[0],
-				strings.TrimPrefix(ressIDSplit[1], vstpInterfaceVIdTypeVlan.prefix()),
+				ressIDSplit[1],
 				ressIDSplit[2]
-		case strings.HasPrefix(ressIDSplit[1], vstpInterfaceVIdTypeVlanGroup.prefix()):
+		case balt.CutPrefixInString(&ressIDSplit[1], vstpInterfaceVIdTypeVlanGroup.prefix()):
 			return vstpInterfaceVIdTypeVlanGroup,
 				ressIDSplit[0],
-				strings.TrimPrefix(ressIDSplit[1], vstpInterfaceVIdTypeVlanGroup.prefix()),
+				ressIDSplit[1],
 				ressIDSplit[2]
 		default:
 			return vstpInterfaceVIdTypeNone,
@@ -538,9 +539,8 @@ func resourceVstpInterfaceImport(ctx context.Context, d *schema.ResourceData, m 
 }
 
 func checkVstpInterfaceExists(name, routingInstance, vlan, vlanGroup string, clt *Client, junSess *junosSession,
-) (bool, error) {
+) (_ bool, err error) {
 	var showConfig string
-	var err error
 	if vlan != "" && vlanGroup != "" {
 		return false, fmt.Errorf("internal error: checkVstpInterfaceExists called with vlan and vlanGroup")
 	}
@@ -628,14 +628,13 @@ func setVstpInterface(d *schema.ResourceData, clt *Client, junSess *junosSession
 }
 
 func readVstpInterface(name, routingInstance, vlan, vlanGroup string, clt *Client, junSess *junosSession,
-) (vstpInterfaceOptions, error) {
-	var confRead vstpInterfaceOptions
+) (confRead vstpInterfaceOptions, err error) {
+	// default -1
+	confRead.priority = -1
 	if vlan != "" && vlanGroup != "" {
 		return confRead, fmt.Errorf("internal error: readVstpInterface called with vlan and vlanGroup")
 	}
-	confRead.priority = -1 // default -1
 	var showConfig string
-	var err error
 	if routingInstance == defaultW {
 		switch {
 		case vlan != "":
@@ -684,21 +683,19 @@ func readVstpInterface(name, routingInstance, vlan, vlanGroup string, clt *Clien
 				confRead.bpduTimeoutActionAlarm = true
 			case itemTrim == "bpdu-timeout-action block":
 				confRead.bpduTimeoutActionBlock = true
-			case strings.HasPrefix(itemTrim, "cost "):
-				var err error
-				confRead.cost, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "cost "))
+			case balt.CutPrefixInString(&itemTrim, "cost "):
+				confRead.cost, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "edge":
 				confRead.edge = true
-			case strings.HasPrefix(itemTrim, "mode "):
-				confRead.mode = strings.TrimPrefix(itemTrim, "mode ")
+			case balt.CutPrefixInString(&itemTrim, "mode "):
+				confRead.mode = itemTrim
 			case itemTrim == "no-root-port":
 				confRead.noRootPort = true
-			case strings.HasPrefix(itemTrim, "priority "):
-				var err error
-				confRead.priority, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "priority "))
+			case balt.CutPrefixInString(&itemTrim, "priority "):
+				confRead.priority, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}

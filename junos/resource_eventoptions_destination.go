@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
@@ -294,10 +295,9 @@ func setEventoptionsDestination(d *schema.ResourceData, clt *Client, junSess *ju
 }
 
 func readEventoptionsDestination(name string, clt *Client, junSess *junosSession,
-) (eventoptionsDestinationOptions, error) {
-	var confRead eventoptionsDestinationOptions
-	confRead.transferDelay = -1 // default value
-
+) (confRead eventoptionsDestinationOptions, err error) {
+	// default -1
+	confRead.transferDelay = -1
 	showConfig, err := clt.command(cmdShowConfig+
 		"event-options destinations \""+name+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -314,26 +314,25 @@ func readEventoptionsDestination(name string, clt *Client, junSess *junosSession
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "archive-sites "):
-				itemTrimSplit := strings.Split(itemTrim, " ")
-				if len(itemTrimSplit) > 2 {
-					password, err := jdecode.Decode(strings.Trim(itemTrimSplit[3], "\""))
+			case balt.CutPrefixInString(&itemTrim, "archive-sites "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				if len(itemTrimFields) > 2 { // <url> password <password>
+					password, err := jdecode.Decode(strings.Trim(itemTrimFields[2], "\""))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to decode secret: %w", err)
 					}
 					confRead.archiveSite = append(confRead.archiveSite, map[string]interface{}{
-						"url":      strings.Trim(itemTrimSplit[1], "\""),
+						"url":      strings.Trim(itemTrimFields[0], "\""),
 						"password": password,
 					})
-				} else {
+				} else { // <url>
 					confRead.archiveSite = append(confRead.archiveSite, map[string]interface{}{
-						"url":      strings.Trim(itemTrimSplit[1], "\""),
+						"url":      strings.Trim(itemTrimFields[0], "\""),
 						"password": "",
 					})
 				}
-			case strings.HasPrefix(itemTrim, "transfer-delay "):
-				var err error
-				confRead.transferDelay, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "transfer-delay "))
+			case balt.CutPrefixInString(&itemTrim, "transfer-delay "):
+				confRead.transferDelay, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
