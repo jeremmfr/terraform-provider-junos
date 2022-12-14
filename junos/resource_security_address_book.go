@@ -116,6 +116,16 @@ func resourceSecurityAddressBook() *schema.Resource {
 							Optional: true,
 							Default:  "",
 						},
+						"ipv4_only": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"ipv6_only": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},
@@ -426,8 +436,8 @@ func setSecurityAddressBook(d *schema.ResourceData, clt *Client, junSess *junosS
 			return fmt.Errorf("multiple addresses with the same name %s", address["name"].(string))
 		}
 		addressNameList = append(addressNameList, address["name"].(string))
-		setPrefixAddr := setPrefix + " address " + address["name"].(string)
-		configSet = append(configSet, setPrefixAddr+" wildcard-address "+address["value"].(string))
+		setPrefixAddr := setPrefix + " address " + address["name"].(string) + " "
+		configSet = append(configSet, setPrefixAddr+"wildcard-address "+address["value"].(string))
 		if address["description"].(string) != "" {
 			configSet = append(configSet, setPrefixAddr+"description \""+address["description"].(string)+"\"")
 		}
@@ -438,8 +448,14 @@ func setSecurityAddressBook(d *schema.ResourceData, clt *Client, junSess *junosS
 			return fmt.Errorf("multiple addresses with the same name %s", address["name"].(string))
 		}
 		addressNameList = append(addressNameList, address["name"].(string))
-		setPrefixAddr := setPrefix + " address " + address["name"].(string)
-		configSet = append(configSet, setPrefixAddr+" dns-name "+address["value"].(string))
+		setPrefixAddr := setPrefix + " address " + address["name"].(string) + " "
+		configSet = append(configSet, setPrefixAddr+"dns-name "+address["value"].(string))
+		if address["ipv4_only"].(bool) {
+			configSet = append(configSet, setPrefixAddr+"dns-name "+address["value"].(string)+" ipv4-only")
+		}
+		if address["ipv6_only"].(bool) {
+			configSet = append(configSet, setPrefixAddr+"dns-name "+address["value"].(string)+" ipv6-only")
+		}
 		if address["description"].(string) != "" {
 			configSet = append(configSet, setPrefixAddr+"description \""+address["description"].(string)+"\"")
 		}
@@ -450,8 +466,8 @@ func setSecurityAddressBook(d *schema.ResourceData, clt *Client, junSess *junosS
 			return fmt.Errorf("multiple addresses with the same name %s", address["name"].(string))
 		}
 		addressNameList = append(addressNameList, address["name"].(string))
-		setPrefixAddr := setPrefix + " address " + address["name"].(string)
-		configSet = append(configSet, setPrefixAddr+" range-address "+address["from"].(string)+" to "+address["to"].(string))
+		setPrefixAddr := setPrefix + " address " + address["name"].(string) + " "
+		configSet = append(configSet, setPrefixAddr+"range-address "+address["from"].(string)+" to "+address["to"].(string))
 		if address["description"].(string) != "" {
 			configSet = append(configSet, setPrefixAddr+"description \""+address["description"].(string)+"\"")
 		}
@@ -462,17 +478,17 @@ func setSecurityAddressBook(d *schema.ResourceData, clt *Client, junSess *junosS
 			return fmt.Errorf("multiple addresses or address-sets with the same name %s", addressSet["name"].(string))
 		}
 		addressNameList = append(addressNameList, addressSet["name"].(string))
-		setPrefixAddrSet := setPrefix + " address-set " + addressSet["name"].(string)
+		setPrefixAddrSet := setPrefix + " address-set " + addressSet["name"].(string) + " "
 		if len(addressSet["address"].(*schema.Set).List()) == 0 &&
 			len(addressSet["address_set"].(*schema.Set).List()) == 0 {
 			return fmt.Errorf("at least one of address or address_set is required "+
 				"in address_set %s", addressSet["name"].(string))
 		}
 		for _, addr := range sortSetOfString(addressSet["address"].(*schema.Set).List()) {
-			configSet = append(configSet, setPrefixAddrSet+" address "+addr)
+			configSet = append(configSet, setPrefixAddrSet+"address "+addr)
 		}
 		for _, addrSet := range sortSetOfString(addressSet["address_set"].(*schema.Set).List()) {
-			configSet = append(configSet, setPrefixAddrSet+" address-set "+addrSet)
+			configSet = append(configSet, setPrefixAddrSet+"address-set "+addrSet)
 		}
 		if addressSet["description"].(string) != "" {
 			configSet = append(configSet, setPrefixAddrSet+"description \""+addressSet["description"].(string)+"\"")
@@ -527,11 +543,32 @@ func readSecurityAddressBook(addrBook string, clt *Client, junSess *junosSession
 						"description": descMap[itemTrimFields[0]],
 					})
 				case balt.CutPrefixInString(&itemTrim, "dns-name "):
-					confRead.dnsName = append(confRead.dnsName, map[string]interface{}{
-						"name":        itemTrimFields[0],
-						"value":       itemTrim,
-						"description": descMap[itemTrimFields[0]],
-					})
+					switch {
+					case balt.CutSuffixInString(&itemTrim, " ipv4-only"):
+						confRead.dnsName = append(confRead.dnsName, map[string]interface{}{
+							"name":        itemTrimFields[0],
+							"value":       itemTrim,
+							"description": descMap[itemTrimFields[0]],
+							"ipv4_only":   true,
+							"ipv6_only":   false,
+						})
+					case balt.CutSuffixInString(&itemTrim, " ipv6-only"):
+						confRead.dnsName = append(confRead.dnsName, map[string]interface{}{
+							"name":        itemTrimFields[0],
+							"value":       itemTrim,
+							"description": descMap[itemTrimFields[0]],
+							"ipv4_only":   false,
+							"ipv6_only":   true,
+						})
+					default:
+						confRead.dnsName = append(confRead.dnsName, map[string]interface{}{
+							"name":        itemTrimFields[0],
+							"value":       itemTrim,
+							"description": descMap[itemTrimFields[0]],
+							"ipv4_only":   false,
+							"ipv6_only":   false,
+						})
+					}
 				default:
 					confRead.networkAddress = append(confRead.networkAddress, map[string]interface{}{
 						"name":        itemTrimFields[0],
