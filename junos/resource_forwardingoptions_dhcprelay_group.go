@@ -3,6 +3,7 @@ package junos
 import (
 	"context"
 	"fmt"
+	"html"
 	"strconv"
 	"strings"
 
@@ -1558,7 +1559,7 @@ func readForwardingOptionsDhcpRelayGroup(name, instance, version string, clt *Cl
 				confRead.serverMatchDuid = append(confRead.serverMatchDuid, map[string]interface{}{
 					"compare":    itemTrimFields[0],
 					"value_type": itemTrimFields[1],
-					"value":      itemTrimFields[2],
+					"value":      html.UnescapeString(itemTrimFields[2]),
 					"action":     itemTrimFields[3],
 				})
 			case balt.CutPrefixInString(&itemTrim, "service-profile "):

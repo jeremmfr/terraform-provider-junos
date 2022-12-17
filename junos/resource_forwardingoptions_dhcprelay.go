@@ -3,6 +3,7 @@ package junos
 import (
 	"context"
 	"fmt"
+	"html"
 	"strconv"
 	"strings"
 
@@ -1506,7 +1507,7 @@ func readForwardingOptionsDhcpRelay( //nolint: gocognit, gocyclo
 				confRead.serverMatchDuid = append(confRead.serverMatchDuid, map[string]interface{}{
 					"compare":    itemTrimFields[0],
 					"value_type": itemTrimFields[1],
-					"value":      itemTrimFields[2],
+					"value":      html.UnescapeString(itemTrimFields[2]),
 					"action":     itemTrimFields[3],
 				})
 			case balt.CutPrefixInString(&itemTrim, "server-response-time "):

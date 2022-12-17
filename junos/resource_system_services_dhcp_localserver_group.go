@@ -3,6 +3,7 @@ package junos
 import (
 	"context"
 	"fmt"
+	"html"
 	"strconv"
 	"strings"
 
@@ -1984,7 +1985,7 @@ func readSystemServicesDhcpLocalServerGroupOverridesV4(itemTrim string, override
 				"option":     itemTrimFields[0],
 				"compare":    itemTrimFields[1],
 				"value_type": itemTrimFields[2],
-				"value":      strings.Trim(strings.Join(itemTrimFields[3:], " "), "\""),
+				"value":      html.UnescapeString(strings.Trim(strings.Join(itemTrimFields[3:], " "), "\"")),
 			})
 	case balt.CutPrefixInString(&itemTrim, "delay-offer delay-time "):
 		overrides["delay_offer_delay_time"], err = strconv.Atoi(itemTrim)
@@ -2036,7 +2037,7 @@ func readSystemServicesDhcpLocalServerGroupOverridesV6(itemTrim string, override
 				"option":     itemTrimFields[0],
 				"compare":    itemTrimFields[1],
 				"value_type": itemTrimFields[2],
-				"value":      strings.Trim(strings.Join(itemTrimFields[3:], " "), "\""),
+				"value":      html.UnescapeString(strings.Trim(strings.Join(itemTrimFields[3:], " "), "\"")),
 			})
 	case balt.CutPrefixInString(&itemTrim, "delay-advertise delay-time "):
 		overrides["delay_advertise_delay_time"], err = strconv.Atoi(itemTrim)

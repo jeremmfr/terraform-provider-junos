@@ -2,6 +2,7 @@ package junos
 
 import (
 	"fmt"
+	"html"
 	"strconv"
 	"strings"
 
@@ -1572,7 +1573,8 @@ func readForwardingOptionsDhcpRelayOption(itemTrim string, relayOption map[strin
 		}
 		value := itemTrimFields[2]
 		actionIndex := 3
-		if strings.Contains(itemTrimFields[2], "\"") {
+		if (strings.HasPrefix(itemTrimFields[2], "\"") && !strings.HasSuffix(itemTrimFields[2], "\"")) ||
+			itemTrimFields[2] == "\"" {
 			for k, v := range itemTrimFields[3:] {
 				value += " " + v
 				if strings.Contains(v, "\"") {
@@ -1582,7 +1584,7 @@ func readForwardingOptionsDhcpRelayOption(itemTrim string, relayOption map[strin
 				}
 			}
 		}
-		value = strings.Trim(value, "\"")
+		value = html.UnescapeString(strings.Trim(value, "\""))
 		action := itemTrimFields[actionIndex]
 		option15 := map[string]interface{}{
 			"compare":    itemTrimFields[0],
@@ -1618,7 +1620,8 @@ func readForwardingOptionsDhcpRelayOption(itemTrim string, relayOption map[strin
 		}
 		value := itemTrimFields[2]
 		actionIndex := 3
-		if strings.Contains(itemTrimFields[2], "\"") {
+		if (strings.HasPrefix(itemTrimFields[2], "\"") && !strings.HasSuffix(itemTrimFields[2], "\"")) ||
+			itemTrimFields[2] == "\"" {
 			for k, v := range itemTrimFields[3:] {
 				value += " " + v
 				if strings.Contains(v, "\"") {
@@ -1628,7 +1631,7 @@ func readForwardingOptionsDhcpRelayOption(itemTrim string, relayOption map[strin
 				}
 			}
 		}
-		value = strings.Trim(value, "\"")
+		value = html.UnescapeString(strings.Trim(value, "\""))
 		action := itemTrimFields[actionIndex]
 		option16 := map[string]interface{}{
 			"compare":    itemTrimFields[0],
@@ -1664,7 +1667,8 @@ func readForwardingOptionsDhcpRelayOption(itemTrim string, relayOption map[strin
 		}
 		value := itemTrimFields[2]
 		actionIndex := 3
-		if strings.Contains(itemTrimFields[2], "\"") {
+		if (strings.HasPrefix(itemTrimFields[2], "\"") && !strings.HasSuffix(itemTrimFields[2], "\"")) ||
+			itemTrimFields[2] == "\"" {
 			for k, v := range itemTrimFields[3:] {
 				value += " " + v
 				if strings.Contains(v, "\"") {
@@ -1674,7 +1678,7 @@ func readForwardingOptionsDhcpRelayOption(itemTrim string, relayOption map[strin
 				}
 			}
 		}
-		value = strings.Trim(value, "\"")
+		value = html.UnescapeString(strings.Trim(value, "\""))
 		action := itemTrimFields[actionIndex]
 		option60 := map[string]interface{}{
 			"compare":    itemTrimFields[0],
@@ -1710,7 +1714,8 @@ func readForwardingOptionsDhcpRelayOption(itemTrim string, relayOption map[strin
 		}
 		value := itemTrimFields[2]
 		actionIndex := 3
-		if strings.Contains(itemTrimFields[2], "\"") {
+		if (strings.HasPrefix(itemTrimFields[2], "\"") && !strings.HasSuffix(itemTrimFields[2], "\"")) ||
+			itemTrimFields[2] == "\"" {
 			for k, v := range itemTrimFields[3:] {
 				value += " " + v
 				if strings.Contains(v, "\"") {
@@ -1720,7 +1725,7 @@ func readForwardingOptionsDhcpRelayOption(itemTrim string, relayOption map[strin
 				}
 			}
 		}
-		value = strings.Trim(value, "\"")
+		value = html.UnescapeString(strings.Trim(value, "\""))
 		action := itemTrimFields[actionIndex]
 		option77 := map[string]interface{}{
 			"compare":    itemTrimFields[0],
