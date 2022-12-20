@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 var mutex = &sync.Mutex{} //nolint: gochecknoglobals
@@ -80,6 +81,12 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JUNOS_SSH_TIMEOUT_TO_ESTABLISH", 0),
+			},
+			"ssh_retry_to_establish": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				DefaultFunc:  schema.EnvDefaultFunc("JUNOS_SSH_RETRY_TO_ESTABLISH", 1),
+				ValidateFunc: validation.IntBetween(1, 10),
 			},
 			"file_permission": {
 				Type:             schema.TypeString,
@@ -262,6 +269,7 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		junosCmdSleepLock:        d.Get("cmd_sleep_lock").(int),
 		junosSSHSleepClosed:      d.Get("ssh_sleep_closed").(int),
 		junosSSHTimeoutToEstab:   d.Get("ssh_timeout_to_establish").(int),
+		junosSSHRetryToEstab:     d.Get("ssh_retry_to_establish").(int),
 		junosFilePermission:      d.Get("file_permission").(string),
 		junosDebugNetconfLogPath: d.Get("debug_netconf_log_path").(string),
 		junosFakeCreateSetFile:   d.Get("fake_create_with_setfile").(string),

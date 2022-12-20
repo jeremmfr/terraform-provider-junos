@@ -5,6 +5,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* provider: add `ssh_retry_to_establish` argument to retry when establishing SSH connections
+
 BUG FIXES:
 
 ## 1.31.2 (November 16, 2022)
