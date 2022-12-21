@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/jeremmfr/go-netconf/netconf"
 	"golang.org/x/crypto/ssh"
 )
@@ -255,13 +254,11 @@ func genSSHClientConfig(auth *sshAuthMethod) (*ssh.ClientConfig, error) {
 	return configs[0], nil
 }
 
-func defaultSSHCiphers() schema.SchemaDefaultFunc {
-	return func() (interface{}, error) {
-		return []interface{}{
-			"aes128-gcm@openssh.com", "chacha20-poly1305@openssh.com",
-			"aes128-ctr", "aes192-ctr", "aes256-ctr",
-			"aes128-cbc",
-		}, nil
+func defaultSSHCiphers() []string {
+	return []string{
+		"aes128-gcm@openssh.com", "chacha20-poly1305@openssh.com",
+		"aes128-ctr", "aes192-ctr", "aes256-ctr",
+		"aes128-cbc",
 	}
 }
 

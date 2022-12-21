@@ -72,10 +72,9 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("JUNOS_SLEEP_SSH_CLOSED", 0),
 			},
 			"ssh_ciphers": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				DefaultFunc: defaultSSHCiphers(),
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"ssh_timeout_to_establish": {
 				Type:        schema.TypeInt,
@@ -278,6 +277,9 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 	}
 	for _, v := range d.Get("ssh_ciphers").([]interface{}) {
 		c.junosSSHCiphers = append(c.junosSSHCiphers, v.(string))
+	}
+	if len(c.junosSSHCiphers) == 0 {
+		c.junosSSHCiphers = defaultSSHCiphers()
 	}
 
 	return c.newClient()
