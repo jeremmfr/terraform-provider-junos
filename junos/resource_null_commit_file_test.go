@@ -24,10 +24,16 @@ func TestAccJunosNullCommitFile_basic(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccJunosNullCommitFilePreCreate(testaccInterface),
+				Config: testAccJunosNullCommitFileFakeCreate(testaccInterface),
 			},
 			{
-				Config:             testAccJunosNullCommitFileCreate(testaccInterface),
+				Config: testAccJunosNullCommitFileFakeUpdate(testaccInterface),
+			},
+			{
+				Config: testAccJunosNullCommitFilePreCustom(testaccInterface),
+			},
+			{
+				Config:             testAccJunosNullCommitFileCustom(testaccInterface),
 				ExpectNonEmptyPlan: true,
 			},
 			{
@@ -45,17 +51,69 @@ func TestAccJunosNullCommitFile_basic(t *testing.T) {
 	})
 }
 
-func testAccJunosNullCommitFilePreCreate(interFace string) string {
+func testAccJunosNullCommitFileFakeCreate(interFace string) string {
 	return fmt.Sprintf(`
+provider "junos" {
+  alias                    = "fake"
+  fake_create_with_setfile = "%s"
+}
+resource "junos_interface_physical" "testacc_nullcommitfile" {
+  provider     = junos.fake
+  name         = "%s"
+  description  = "testacc_fakecreate"
+  vlan_tagging = true
+}
+resource "junos_null_commit_file" "setfile" {
+  provider = junos.fake
+  depends_on = [
+    junos_interface_physical.testacc_nullcommitfile
+  ]
+  filename                = "%s"
+  clear_file_after_commit = true
+}
+`, testaccNullCommitFile, interFace, testaccNullCommitFile)
+}
+
+func testAccJunosNullCommitFileFakeUpdate(interFace string) string {
+	return fmt.Sprintf(`
+provider "junos" {
+  alias                    = "fake"
+  fake_create_with_setfile = "%s"
+  fake_update_also         = true
+}
+resource "junos_interface_physical" "testacc_nullcommitfile" {
+  provider     = junos.fake
+  name         = "%s"
+  description  = "testacc_fakeupdate"
+  vlan_tagging = true
+}
+resource "junos_null_commit_file" "setfile2" {
+  provider = junos.fake
+  depends_on = [
+    junos_interface_physical.testacc_nullcommitfile
+  ]
+  filename                = "%s"
+  clear_file_after_commit = true
+}
+`, testaccNullCommitFile, interFace, testaccNullCommitFile)
+}
+
+func testAccJunosNullCommitFilePreCustom(interFace string) string {
+	return fmt.Sprintf(`
+provider "junos" {
+  alias                    = "fake"
+  fake_create_with_setfile = "%s"
+  fake_update_also         = true
+}
 resource "junos_interface_physical" "testacc_nullcommitfile" {
   name         = "%s"
   description  = "testacc_null"
   vlan_tagging = true
 }
-`, interFace)
+`, testaccNullCommitFile, interFace)
 }
 
-func testAccJunosNullCommitFileCreate(interFace string) string {
+func testAccJunosNullCommitFileCustom(interFace string) string {
 	return fmt.Sprintf(`
 resource "junos_interface_physical" "testacc_nullcommitfile" {
   name         = "%s"
