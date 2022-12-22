@@ -625,13 +625,13 @@ func searchInterfaceLogicalID(configInterface, match string, clt *Client, junSes
 		if !matched {
 			continue
 		}
-		itemTrimSplit := strings.Split(itemTrim, " ")
-		switch len(itemTrimSplit) {
+		itemTrimFields := strings.Split(itemTrim, " ")
+		switch len(itemTrimFields) {
 		case 0, 1, 2:
 			continue
 		default:
-			if itemTrimSplit[1] == "unit" && !bchk.InSlice("ethernet-switching", itemTrimSplit) {
-				intConfigList = append(intConfigList, itemTrimSplit[0]+"."+itemTrimSplit[2])
+			if itemTrimFields[1] == "unit" && !bchk.InSlice("ethernet-switching", itemTrimFields) {
+				intConfigList = append(intConfigList, itemTrimFields[0]+"."+itemTrimFields[2])
 			}
 		}
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -1244,9 +1245,7 @@ func setSecurityScreenUDP(udp map[string]interface{}, setPrefix string) []string
 	return configSet
 }
 
-func readSecurityScreen(name string, clt *Client, junSess *junosSession) (screenOptions, error) {
-	var confRead screenOptions
-
+func readSecurityScreen(name string, clt *Client, junSess *junosSession) (confRead screenOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security screen ids-option \""+name+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -1265,17 +1264,17 @@ func readSecurityScreen(name string, clt *Client, junSess *junosSession) (screen
 			switch {
 			case itemTrim == "alarm-without-drop":
 				confRead.alarmWithoutDrop = true
-			case strings.HasPrefix(itemTrim, "description "):
-				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
-			case strings.HasPrefix(itemTrim, "icmp "):
-				if err := readSecurityScreenIcmp(&confRead, itemTrim); err != nil {
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				confRead.description = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "icmp "):
+				if err := confRead.readSecurityScreenIcmp(itemTrim); err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "ip"):
-				if err := readSecurityScreenIP(&confRead, itemTrim); err != nil {
+			case balt.CutPrefixInString(&itemTrim, "ip"):
+				if err := confRead.readSecurityScreenIP(itemTrim); err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "limit-session "):
+			case balt.CutPrefixInString(&itemTrim, "limit-session "):
 				if len(confRead.limitSession) == 0 {
 					confRead.limitSession = append(confRead.limitSession, map[string]interface{}{
 						"destination_ip_based": 0,
@@ -1283,27 +1282,23 @@ func readSecurityScreen(name string, clt *Client, junSess *junosSession) (screen
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "limit-session destination-ip-based "):
-					var err error
-					confRead.limitSession[0]["destination_ip_based"], err = strconv.Atoi(
-						strings.TrimPrefix(itemTrim, "limit-session destination-ip-based "))
+				case balt.CutPrefixInString(&itemTrim, "destination-ip-based "):
+					confRead.limitSession[0]["destination_ip_based"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "limit-session source-ip-based "):
-					var err error
-					confRead.limitSession[0]["source_ip_based"], err = strconv.Atoi(
-						strings.TrimPrefix(itemTrim, "limit-session source-ip-based "))
+				case balt.CutPrefixInString(&itemTrim, "source-ip-based "):
+					confRead.limitSession[0]["source_ip_based"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
-			case strings.HasPrefix(itemTrim, "tcp"):
-				if err := readSecurityScreenTCP(&confRead, itemTrim); err != nil {
+			case balt.CutPrefixInString(&itemTrim, "tcp"):
+				if err := confRead.readSecurityScreenTCP(itemTrim); err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "udp"):
-				if err := readSecurityScreenUDP(&confRead, itemTrim); err != nil {
+			case balt.CutPrefixInString(&itemTrim, "udp"):
+				if err := confRead.readSecurityScreenUDP(itemTrim); err != nil {
 					return confRead, err
 				}
 			}
@@ -1313,7 +1308,7 @@ func readSecurityScreen(name string, clt *Client, junSess *junosSession) (screen
 	return confRead, nil
 }
 
-func readSecurityScreenIcmp(confRead *screenOptions, itemTrim string) error {
+func (confRead *screenOptions) readSecurityScreenIcmp(itemTrim string) (err error) {
 	if len(confRead.icmp) == 0 {
 		confRead.icmp = append(confRead.icmp, map[string]interface{}{
 			"flood":            make([]map[string]interface{}, 0),
@@ -1325,38 +1320,34 @@ func readSecurityScreenIcmp(confRead *screenOptions, itemTrim string) error {
 		})
 	}
 	switch {
-	case strings.HasPrefix(itemTrim, "icmp flood"):
+	case balt.CutPrefixInString(&itemTrim, "flood"):
 		if len(confRead.icmp[0]["flood"].([]map[string]interface{})) == 0 {
 			confRead.icmp[0]["flood"] = append(confRead.icmp[0]["flood"].([]map[string]interface{}), map[string]interface{}{
 				"threshold": 0,
 			})
 		}
-		if strings.HasPrefix(itemTrim, "icmp flood threshold ") {
-			var err error
-			confRead.icmp[0]["flood"].([]map[string]interface{})[0]["threshold"], err = strconv.Atoi(
-				strings.TrimPrefix(itemTrim, "icmp flood threshold "))
+		if balt.CutPrefixInString(&itemTrim, " threshold ") {
+			confRead.icmp[0]["flood"].([]map[string]interface{})[0]["threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
-	case itemTrim == "icmp fragment":
+	case itemTrim == "fragment":
 		confRead.icmp[0]["fragment"] = true
-	case itemTrim == "icmp icmpv6-malformed":
+	case itemTrim == "icmpv6-malformed":
 		confRead.icmp[0]["icmpv6_malformed"] = true
-	case itemTrim == "icmp large":
+	case itemTrim == "large":
 		confRead.icmp[0]["large"] = true
-	case itemTrim == "icmp ping-death":
+	case itemTrim == "ping-death":
 		confRead.icmp[0]["ping_death"] = true
-	case strings.HasPrefix(itemTrim, "icmp ip-sweep"):
+	case balt.CutPrefixInString(&itemTrim, "ip-sweep"):
 		if len(confRead.icmp[0]["sweep"].([]map[string]interface{})) == 0 {
 			confRead.icmp[0]["sweep"] = append(confRead.icmp[0]["sweep"].([]map[string]interface{}), map[string]interface{}{
 				"threshold": 0,
 			})
 		}
-		if strings.HasPrefix(itemTrim, "icmp ip-sweep threshold ") {
-			var err error
-			confRead.icmp[0]["sweep"].([]map[string]interface{})[0]["threshold"], err = strconv.Atoi(
-				strings.TrimPrefix(itemTrim, "icmp ip-sweep threshold "))
+		if balt.CutPrefixInString(&itemTrim, " threshold ") {
+			confRead.icmp[0]["sweep"].([]map[string]interface{})[0]["threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
@@ -1366,7 +1357,7 @@ func readSecurityScreenIcmp(confRead *screenOptions, itemTrim string) error {
 	return nil
 }
 
-func readSecurityScreenIP(confRead *screenOptions, itemTrim string) error {
+func (confRead *screenOptions) readSecurityScreenIP(itemTrim string) (err error) {
 	if len(confRead.ip) == 0 {
 		confRead.ip = append(confRead.ip, map[string]interface{}{
 			"bad_option":                  false,
@@ -1388,11 +1379,11 @@ func readSecurityScreenIP(confRead *screenOptions, itemTrim string) error {
 		})
 	}
 	switch {
-	case itemTrim == "ip bad-option":
+	case itemTrim == " bad-option":
 		confRead.ip[0]["bad_option"] = true
-	case itemTrim == "ip block-frag":
+	case itemTrim == " block-frag":
 		confRead.ip[0]["block_frag"] = true
-	case strings.HasPrefix(itemTrim, "ip ipv6-extension-header "):
+	case balt.CutPrefixInString(&itemTrim, " ipv6-extension-header "):
 		if len(confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})) == 0 {
 			confRead.ip[0]["ipv6_extension_header"] = append(
 				confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{}), map[string]interface{}{
@@ -1411,13 +1402,13 @@ func readSecurityScreenIP(confRead *screenOptions, itemTrim string) error {
 		}
 		ipIPv6ExtensionHeader := confRead.ip[0]["ipv6_extension_header"].([]map[string]interface{})[0]
 		switch {
-		case strings.HasPrefix(itemTrim, "ip ipv6-extension-header AH-header"):
+		case itemTrim == "AH-header":
 			ipIPv6ExtensionHeader["ah_header"] = true
-		case strings.HasPrefix(itemTrim, "ip ipv6-extension-header ESP-header"):
+		case itemTrim == "ESP-header":
 			ipIPv6ExtensionHeader["esp_header"] = true
-		case strings.HasPrefix(itemTrim, "ip ipv6-extension-header HIP-header"):
+		case itemTrim == "HIP-header":
 			ipIPv6ExtensionHeader["hip_header"] = true
-		case strings.HasPrefix(itemTrim, "ip ipv6-extension-header destination-header"):
+		case balt.CutPrefixInString(&itemTrim, "destination-header"):
 			if len(ipIPv6ExtensionHeader["destination_header"].([]map[string]interface{})) == 0 {
 				ipIPv6ExtensionHeader["destination_header"] = append(
 					ipIPv6ExtensionHeader["destination_header"].([]map[string]interface{}),
@@ -1431,22 +1422,23 @@ func readSecurityScreenIP(confRead *screenOptions, itemTrim string) error {
 			}
 			ipIPv6ExtensionHeaderDstHeader := ipIPv6ExtensionHeader["destination_header"].([]map[string]interface{})[0]
 			switch {
-			case itemTrim == "ip ipv6-extension-header destination-header ILNP-nonce-option":
+			case itemTrim == " ILNP-nonce-option":
 				ipIPv6ExtensionHeaderDstHeader["ilnp_nonce_option"] = true
-			case itemTrim == "ip ipv6-extension-header destination-header home-address-option":
+			case itemTrim == " home-address-option":
 				ipIPv6ExtensionHeaderDstHeader["home_address_option"] = true
-			case itemTrim == "ip ipv6-extension-header destination-header line-identification-option":
+			case itemTrim == " line-identification-option":
 				ipIPv6ExtensionHeaderDstHeader["line_identification_option"] = true
-			case itemTrim == "ip ipv6-extension-header destination-header tunnel-encapsulation-limit-option":
+			case itemTrim == " tunnel-encapsulation-limit-option":
 				ipIPv6ExtensionHeaderDstHeader["tunnel_encapsulation_limit_option"] = true
-			case strings.HasPrefix(itemTrim, "ip ipv6-extension-header destination-header user-defined-option-type "):
+			case balt.CutPrefixInString(&itemTrim, " user-defined-option-type "):
 				ipIPv6ExtensionHeaderDstHeader["user_defined_option_type"] = append(
 					ipIPv6ExtensionHeaderDstHeader["user_defined_option_type"].([]string),
-					strings.TrimPrefix(itemTrim, "ip ipv6-extension-header destination-header user-defined-option-type "))
+					itemTrim,
+				)
 			}
-		case strings.HasPrefix(itemTrim, "ip ipv6-extension-header fragment-header"):
+		case itemTrim == "fragment-header":
 			ipIPv6ExtensionHeader["fragment_header"] = true
-		case strings.HasPrefix(itemTrim, "ip ipv6-extension-header hop-by-hop-header"):
+		case balt.CutPrefixInString(&itemTrim, "hop-by-hop-header"):
 			if len(ipIPv6ExtensionHeader["hop_by_hop_header"].([]map[string]interface{})) == 0 {
 				ipIPv6ExtensionHeader["hop_by_hop_header"] = append(
 					ipIPv6ExtensionHeader["hop_by_hop_header"].([]map[string]interface{}),
@@ -1462,64 +1454,64 @@ func readSecurityScreenIP(confRead *screenOptions, itemTrim string) error {
 			}
 			ipIPv6ExtensionHeaderHopByHopHeader := ipIPv6ExtensionHeader["hop_by_hop_header"].([]map[string]interface{})[0]
 			switch {
-			case itemTrim == "ip ipv6-extension-header hop-by-hop-header CALIPSO-option":
+			case itemTrim == " CALIPSO-option":
 				ipIPv6ExtensionHeaderHopByHopHeader["calipso_option"] = true
-			case itemTrim == "ip ipv6-extension-header hop-by-hop-header RPL-option":
+			case itemTrim == " RPL-option":
 				ipIPv6ExtensionHeaderHopByHopHeader["rpl_option"] = true
-			case itemTrim == "ip ipv6-extension-header hop-by-hop-header SMF-DPD-option":
+			case itemTrim == " SMF-DPD-option":
 				ipIPv6ExtensionHeaderHopByHopHeader["smf_dpd_option"] = true
-			case itemTrim == "ip ipv6-extension-header hop-by-hop-header jumbo-payload-option":
+			case itemTrim == " jumbo-payload-option":
 				ipIPv6ExtensionHeaderHopByHopHeader["jumbo_payload_option"] = true
-			case itemTrim == "ip ipv6-extension-header hop-by-hop-header quick-start-option":
+			case itemTrim == " quick-start-option":
 				ipIPv6ExtensionHeaderHopByHopHeader["quick_start_option"] = true
-			case itemTrim == "ip ipv6-extension-header hop-by-hop-header router-alert-option":
+			case itemTrim == " router-alert-option":
 				ipIPv6ExtensionHeaderHopByHopHeader["router_alert_option"] = true
-			case strings.HasPrefix(itemTrim, "ip ipv6-extension-header hop-by-hop-header user-defined-option-type "):
+			case balt.CutPrefixInString(&itemTrim, " user-defined-option-type "):
 				ipIPv6ExtensionHeaderHopByHopHeader["user_defined_option_type"] = append(
 					ipIPv6ExtensionHeaderHopByHopHeader["user_defined_option_type"].([]string),
-					strings.TrimPrefix(itemTrim, "ip ipv6-extension-header hop-by-hop-header user-defined-option-type "))
+					itemTrim,
+				)
 			}
-		case itemTrim == "ip ipv6-extension-header mobility-header":
+		case itemTrim == "mobility-header":
 			ipIPv6ExtensionHeader["mobility_header"] = true
-		case itemTrim == "ip ipv6-extension-header no-next-header":
+		case itemTrim == "no-next-header":
 			ipIPv6ExtensionHeader["no_next_header"] = true
-		case itemTrim == "ip ipv6-extension-header routing-header":
+		case itemTrim == "routing-header":
 			ipIPv6ExtensionHeader["routing_header"] = true
-		case itemTrim == "ip ipv6-extension-header shim6-header":
+		case itemTrim == "shim6-header":
 			ipIPv6ExtensionHeader["shim6_header"] = true
-		case strings.HasPrefix(itemTrim, "ip ipv6-extension-header user-defined-header-type "):
+		case balt.CutPrefixInString(&itemTrim, "user-defined-header-type "):
 			ipIPv6ExtensionHeader["user_defined_header_type"] = append(
 				ipIPv6ExtensionHeader["user_defined_header_type"].([]string),
-				strings.TrimPrefix(itemTrim, "ip ipv6-extension-header user-defined-header-type "))
+				itemTrim,
+			)
 		}
-	case strings.HasPrefix(itemTrim, "ip ipv6-extension-header-limit "):
-		var err error
-		confRead.ip[0]["ipv6_extension_header_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
-			"ip ipv6-extension-header-limit "))
+	case balt.CutPrefixInString(&itemTrim, " ipv6-extension-header-limit "):
+		confRead.ip[0]["ipv6_extension_header_limit"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case itemTrim == "ip ipv6-malformed-header":
+	case itemTrim == " ipv6-malformed-header":
 		confRead.ip[0]["ipv6_malformed_header"] = true
-	case itemTrim == "ip loose-source-route-option":
+	case itemTrim == " loose-source-route-option":
 		confRead.ip[0]["loose_source_route_option"] = true
-	case itemTrim == "ip record-route-option":
+	case itemTrim == " record-route-option":
 		confRead.ip[0]["record_route_option"] = true
-	case itemTrim == "ip security-option":
+	case itemTrim == " security-option":
 		confRead.ip[0]["security_option"] = true
-	case itemTrim == "ip source-route-option":
+	case itemTrim == " source-route-option":
 		confRead.ip[0]["source_route_option"] = true
-	case itemTrim == "ip spoofing":
+	case itemTrim == " spoofing":
 		confRead.ip[0]["spoofing"] = true
-	case itemTrim == "ip stream-option":
+	case itemTrim == " stream-option":
 		confRead.ip[0]["stream_option"] = true
-	case itemTrim == "ip strict-source-route-option":
+	case itemTrim == " strict-source-route-option":
 		confRead.ip[0]["strict_source_route_option"] = true
-	case itemTrim == "ip tear-drop":
+	case itemTrim == " tear-drop":
 		confRead.ip[0]["tear_drop"] = true
-	case itemTrim == "ip timestamp-option":
+	case itemTrim == " timestamp-option":
 		confRead.ip[0]["timestamp_option"] = true
-	case strings.HasPrefix(itemTrim, "ip tunnel "):
+	case balt.CutPrefixInString(&itemTrim, " tunnel "):
 		if len(confRead.ip[0]["tunnel"].([]map[string]interface{})) == 0 {
 			confRead.ip[0]["tunnel"] = append(
 				confRead.ip[0]["tunnel"].([]map[string]interface{}), map[string]interface{}{
@@ -1530,9 +1522,9 @@ func readSecurityScreenIP(confRead *screenOptions, itemTrim string) error {
 				})
 		}
 		switch {
-		case itemTrim == "ip tunnel bad-inner-header":
+		case itemTrim == "bad-inner-header":
 			confRead.ip[0]["tunnel"].([]map[string]interface{})[0]["bad_inner_header"] = true
-		case strings.HasPrefix(itemTrim, "ip tunnel gre "):
+		case balt.CutPrefixInString(&itemTrim, "gre "):
 			if len(confRead.ip[0]["tunnel"].([]map[string]interface{})[0]["gre"].([]map[string]interface{})) == 0 {
 				confRead.ip[0]["tunnel"].([]map[string]interface{})[0]["gre"] = append(
 					confRead.ip[0]["tunnel"].([]map[string]interface{})[0]["gre"].([]map[string]interface{}),
@@ -1544,18 +1536,18 @@ func readSecurityScreenIP(confRead *screenOptions, itemTrim string) error {
 					})
 			}
 			switch {
-			case itemTrim == "ip tunnel gre gre-4in4":
+			case itemTrim == "gre-4in4":
 				confRead.ip[0]["tunnel"].([]map[string]interface{})[0]["gre"].([]map[string]interface{})[0]["gre_4in4"] = true
-			case itemTrim == "ip tunnel gre gre-4in6":
+			case itemTrim == "gre-4in6":
 				confRead.ip[0]["tunnel"].([]map[string]interface{})[0]["gre"].([]map[string]interface{})[0]["gre_4in6"] = true
-			case itemTrim == "ip tunnel gre gre-6in4":
+			case itemTrim == "gre-6in4":
 				confRead.ip[0]["tunnel"].([]map[string]interface{})[0]["gre"].([]map[string]interface{})[0]["gre_6in4"] = true
-			case itemTrim == "ip tunnel gre gre-6in6":
+			case itemTrim == "gre-6in6":
 				confRead.ip[0]["tunnel"].([]map[string]interface{})[0]["gre"].([]map[string]interface{})[0]["gre_6in6"] = true
 			}
-		case itemTrim == "ip tunnel ip-in-udp teredo":
+		case itemTrim == "ip-in-udp teredo":
 			confRead.ip[0]["tunnel"].([]map[string]interface{})[0]["ip_in_udp_teredo"] = true
-		case strings.HasPrefix(itemTrim, "ip tunnel ipip "):
+		case balt.CutPrefixInString(&itemTrim, "ipip "):
 			if len(confRead.ip[0]["tunnel"].([]map[string]interface{})[0]["ipip"].([]map[string]interface{})) == 0 {
 				confRead.ip[0]["tunnel"].([]map[string]interface{})[0]["ipip"] = append(
 					confRead.ip[0]["tunnel"].([]map[string]interface{})[0]["ipip"].([]map[string]interface{}),
@@ -1572,32 +1564,32 @@ func readSecurityScreenIP(confRead *screenOptions, itemTrim string) error {
 			}
 			ipTunnelIPIP := confRead.ip[0]["tunnel"].([]map[string]interface{})[0]["ipip"].([]map[string]interface{})[0]
 			switch {
-			case itemTrim == "ip tunnel ipip ipip-4in4":
+			case itemTrim == "ipip-4in4":
 				ipTunnelIPIP["ipip_4in4"] = true
-			case itemTrim == "ip tunnel ipip ipip-4in6":
+			case itemTrim == "ipip-4in6":
 				ipTunnelIPIP["ipip_4in6"] = true
-			case itemTrim == "ip tunnel ipip ipip-6in4":
+			case itemTrim == "ipip-6in4":
 				ipTunnelIPIP["ipip_6in4"] = true
-			case itemTrim == "ip tunnel ipip ipip-6in6":
+			case itemTrim == "ipip-6in6":
 				ipTunnelIPIP["ipip_6in6"] = true
-			case itemTrim == "ip tunnel ipip ipip-6over4":
+			case itemTrim == "ipip-6over4":
 				ipTunnelIPIP["ipip_6over4"] = true
-			case itemTrim == "ip tunnel ipip ipip-6to4relay":
+			case itemTrim == "ipip-6to4relay":
 				ipTunnelIPIP["ipip_6to4relay"] = true
-			case itemTrim == "ip tunnel ipip dslite":
+			case itemTrim == "dslite":
 				ipTunnelIPIP["dslite"] = true
-			case itemTrim == "ip tunnel ipip isatap":
+			case itemTrim == "isatap":
 				ipTunnelIPIP["isatap"] = true
 			}
 		}
-	case itemTrim == "ip unknown-protocol":
+	case itemTrim == " unknown-protocol":
 		confRead.ip[0]["unknown_protocol"] = true
 	}
 
 	return nil
 }
 
-func readSecurityScreenTCP(confRead *screenOptions, itemTrim string) error {
+func (confRead *screenOptions) readSecurityScreenTCP(itemTrim string) (err error) {
 	if len(confRead.tcp) == 0 {
 		confRead.tcp = append(confRead.tcp, map[string]interface{}{
 			"fin_no_ack":        false,
@@ -1613,43 +1605,39 @@ func readSecurityScreenTCP(confRead *screenOptions, itemTrim string) error {
 		})
 	}
 	switch {
-	case itemTrim == "tcp fin-no-ack":
+	case itemTrim == " fin-no-ack":
 		confRead.tcp[0]["fin_no_ack"] = true
-	case itemTrim == "tcp land":
+	case itemTrim == " land":
 		confRead.tcp[0]["land"] = true
-	case itemTrim == "tcp tcp-no-flag":
+	case itemTrim == " tcp-no-flag":
 		confRead.tcp[0]["no_flag"] = true
-	case strings.HasPrefix(itemTrim, "tcp port-scan"):
+	case balt.CutPrefixInString(&itemTrim, " port-scan"):
 		if len(confRead.tcp[0]["port_scan"].([]map[string]interface{})) == 0 {
 			confRead.tcp[0]["port_scan"] = append(confRead.tcp[0]["port_scan"].([]map[string]interface{}),
 				map[string]interface{}{
 					"threshold": 0,
 				})
 		}
-		if strings.HasPrefix(itemTrim, "tcp port-scan threshold ") {
-			var err error
-			confRead.tcp[0]["port_scan"].([]map[string]interface{})[0]["threshold"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "tcp port-scan threshold "))
+		if balt.CutPrefixInString(&itemTrim, " threshold ") {
+			confRead.tcp[0]["port_scan"].([]map[string]interface{})[0]["threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
-	case strings.HasPrefix(itemTrim, "tcp tcp-sweep"):
+	case balt.CutPrefixInString(&itemTrim, " tcp-sweep"):
 		if len(confRead.tcp[0]["sweep"].([]map[string]interface{})) == 0 {
 			confRead.tcp[0]["sweep"] = append(confRead.tcp[0]["sweep"].([]map[string]interface{}),
 				map[string]interface{}{
 					"threshold": 0,
 				})
 		}
-		if strings.HasPrefix(itemTrim, "tcp tcp-sweep threshold ") {
-			var err error
-			confRead.tcp[0]["sweep"].([]map[string]interface{})[0]["threshold"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "tcp tcp-sweep threshold "))
+		if balt.CutPrefixInString(&itemTrim, " threshold ") {
+			confRead.tcp[0]["sweep"].([]map[string]interface{})[0]["threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
-	case strings.HasPrefix(itemTrim, "tcp syn-ack-ack-proxy"):
+	case balt.CutPrefixInString(&itemTrim, " syn-ack-ack-proxy"):
 		if len(confRead.tcp[0]["syn_ack_ack_proxy"].([]map[string]interface{})) == 0 {
 			confRead.tcp[0]["syn_ack_ack_proxy"] = append(confRead.tcp[0]["syn_ack_ack_proxy"].([]map[string]interface{}),
 				map[string]interface{}{
@@ -1657,17 +1645,15 @@ func readSecurityScreenTCP(confRead *screenOptions, itemTrim string) error {
 				})
 		}
 		synAckAckProxy := confRead.tcp[0]["syn_ack_ack_proxy"].([]map[string]interface{})[0]
-		if strings.HasPrefix(itemTrim, "tcp syn-ack-ack-proxy threshold ") {
-			var err error
-			synAckAckProxy["threshold"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "tcp syn-ack-ack-proxy threshold "))
+		if balt.CutPrefixInString(&itemTrim, " threshold ") {
+			synAckAckProxy["threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
-	case itemTrim == "tcp syn-fin":
+	case itemTrim == " syn-fin":
 		confRead.tcp[0]["syn_fin"] = true
-	case strings.HasPrefix(itemTrim, "tcp syn-flood"):
+	case balt.CutPrefixInString(&itemTrim, " syn-flood"):
 		if len(confRead.tcp[0]["syn_flood"].([]map[string]interface{})) == 0 {
 			confRead.tcp[0]["syn_flood"] = append(
 				confRead.tcp[0]["syn_flood"].([]map[string]interface{}), map[string]interface{}{
@@ -1681,67 +1667,65 @@ func readSecurityScreenTCP(confRead *screenOptions, itemTrim string) error {
 		}
 		synFlood := confRead.tcp[0]["syn_flood"].([]map[string]interface{})[0]
 		switch {
-		case strings.HasPrefix(itemTrim, "tcp syn-flood alarm-threshold "):
-			var err error
-			synFlood["alarm_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "tcp syn-flood alarm-threshold "))
+		case balt.CutPrefixInString(&itemTrim, " alarm-threshold "):
+			synFlood["alarm_threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "tcp syn-flood attack-threshold "):
-			var err error
-			synFlood["attack_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "tcp syn-flood attack-threshold "))
+		case balt.CutPrefixInString(&itemTrim, " attack-threshold "):
+			synFlood["attack_threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "tcp syn-flood destination-threshold "):
-			var err error
-			synFlood["destination_threshold"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "tcp syn-flood destination-threshold "))
+		case balt.CutPrefixInString(&itemTrim, " destination-threshold "):
+			synFlood["destination_threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "tcp syn-flood source-threshold "):
-			var err error
-			synFlood["source_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "tcp syn-flood source-threshold "))
+		case balt.CutPrefixInString(&itemTrim, " source-threshold "):
+			synFlood["source_threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "tcp syn-flood timeout "):
-			var err error
-			synFlood["timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "tcp syn-flood timeout "))
+		case balt.CutPrefixInString(&itemTrim, " timeout "):
+			synFlood["timeout"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "tcp syn-flood white-list "):
-			whiteListLineCut := strings.Split(strings.TrimPrefix(itemTrim, "tcp syn-flood white-list "), " ")
+		case balt.CutPrefixInString(&itemTrim, " white-list "):
+			itemTrimFields := strings.Split(itemTrim, " ")
 			wList := map[string]interface{}{
-				"name":                whiteListLineCut[0],
+				"name":                itemTrimFields[0],
 				"destination_address": make([]string, 0),
 				"source_address":      make([]string, 0),
 			}
 			synFlood["whitelist"] = copyAndRemoveItemMapList(
 				"name", wList, synFlood["whitelist"].([]map[string]interface{}))
-			itemTrimWhiteList := strings.TrimPrefix(itemTrim, "tcp syn-flood white-list "+whiteListLineCut[0]+" ")
+			balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 			switch {
-			case strings.HasPrefix(itemTrimWhiteList, "destination-address "):
-				wList["destination_address"] = append(wList["destination_address"].([]string),
-					strings.TrimPrefix(itemTrimWhiteList, "destination-address "))
-			case strings.HasPrefix(itemTrimWhiteList, "source-address "):
-				wList["source_address"] = append(wList["source_address"].([]string),
-					strings.TrimPrefix(itemTrimWhiteList, "source-address "))
+			case balt.CutPrefixInString(&itemTrim, "destination-address "):
+				wList["destination_address"] = append(
+					wList["destination_address"].([]string),
+					itemTrim,
+				)
+			case balt.CutPrefixInString(&itemTrim, "source-address "):
+				wList["source_address"] = append(
+					wList["source_address"].([]string),
+					itemTrim,
+				)
 			}
 			synFlood["whitelist"] = append(synFlood["whitelist"].([]map[string]interface{}), wList)
 		}
-	case itemTrim == "tcp syn-frag":
+	case itemTrim == " syn-frag":
 		confRead.tcp[0]["syn_frag"] = true
-	case itemTrim == "tcp winnuke":
+	case itemTrim == " winnuke":
 		confRead.tcp[0]["winnuke"] = true
 	}
 
 	return nil
 }
 
-func readSecurityScreenUDP(confRead *screenOptions, itemTrim string) error {
+func (confRead *screenOptions) readSecurityScreenUDP(itemTrim string) (err error) {
 	if len(confRead.udp) == 0 {
 		confRead.udp = append(confRead.udp, map[string]interface{}{
 			"flood":     make([]map[string]interface{}, 0),
@@ -1750,7 +1734,7 @@ func readSecurityScreenUDP(confRead *screenOptions, itemTrim string) error {
 		})
 	}
 	switch {
-	case strings.HasPrefix(itemTrim, "udp flood"):
+	case balt.CutPrefixInString(&itemTrim, " flood"):
 		if len(confRead.udp[0]["flood"].([]map[string]interface{})) == 0 {
 			confRead.udp[0]["flood"] = append(confRead.udp[0]["flood"].([]map[string]interface{}), map[string]interface{}{
 				"threshold": 0,
@@ -1759,16 +1743,15 @@ func readSecurityScreenUDP(confRead *screenOptions, itemTrim string) error {
 		}
 		flood := confRead.udp[0]["flood"].([]map[string]interface{})[0]
 		switch {
-		case strings.HasPrefix(itemTrim, "udp flood threshold "):
-			var err error
-			flood["threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "udp flood threshold "))
+		case balt.CutPrefixInString(&itemTrim, " threshold "):
+			flood["threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "udp flood white-list "):
-			flood["whitelist"] = append(flood["whitelist"].([]string), strings.TrimPrefix(itemTrim, "udp flood white-list "))
+		case balt.CutPrefixInString(&itemTrim, " white-list "):
+			flood["whitelist"] = append(flood["whitelist"].([]string), itemTrim)
 		}
-	case strings.HasPrefix(itemTrim, "udp port-scan"):
+	case balt.CutPrefixInString(&itemTrim, " port-scan"):
 		if len(confRead.udp[0]["port_scan"].([]map[string]interface{})) == 0 {
 			confRead.udp[0]["port_scan"] = append(
 				confRead.udp[0]["port_scan"].([]map[string]interface{}), map[string]interface{}{
@@ -1776,14 +1759,13 @@ func readSecurityScreenUDP(confRead *screenOptions, itemTrim string) error {
 				})
 		}
 		portScan := confRead.udp[0]["port_scan"].([]map[string]interface{})[0]
-		if strings.HasPrefix(itemTrim, "udp port-scan threshold ") {
-			var err error
-			portScan["threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "udp port-scan threshold "))
+		if balt.CutPrefixInString(&itemTrim, " threshold ") {
+			portScan["threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
-	case strings.HasPrefix(itemTrim, "udp udp-sweep"):
+	case balt.CutPrefixInString(&itemTrim, " udp-sweep"):
 		if len(confRead.udp[0]["sweep"].([]map[string]interface{})) == 0 {
 			confRead.udp[0]["sweep"] = append(
 				confRead.udp[0]["sweep"].([]map[string]interface{}), map[string]interface{}{
@@ -1791,9 +1773,8 @@ func readSecurityScreenUDP(confRead *screenOptions, itemTrim string) error {
 				})
 		}
 		sweep := confRead.udp[0]["sweep"].([]map[string]interface{})[0]
-		if strings.HasPrefix(itemTrim, "udp udp-sweep threshold ") {
-			var err error
-			sweep["threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "udp udp-sweep threshold "))
+		if balt.CutPrefixInString(&itemTrim, " threshold ") {
+			sweep["threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}

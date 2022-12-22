@@ -308,9 +308,7 @@ func setSecurityPolicyTunnelPairPolicy(d *schema.ResourceData, clt *Client, junS
 }
 
 func readSecurityPolicyTunnelPairPolicy(zoneA, policyAtoB, zoneB, policyBtoA string, clt *Client, junSess *junosSession,
-) (policyPairPolicyOptions, error) {
-	var confRead policyPairPolicyOptions
-
+) (confRead policyPairPolicyOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security policies from-zone "+zoneA+" to-zone "+zoneB+" policy "+policyAtoB+
 		" then permit tunnel pair-policy"+pipeDisplaySet, junSess)

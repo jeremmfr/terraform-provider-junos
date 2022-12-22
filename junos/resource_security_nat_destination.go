@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -413,9 +414,8 @@ func setSecurityNatDestination(d *schema.ResourceData, clt *Client, junSess *jun
 	return clt.configSet(configSet, junSess)
 }
 
-func readSecurityNatDestination(name string, clt *Client, junSess *junosSession) (natDestinationOptions, error) {
-	var confRead natDestinationOptions
-
+func readSecurityNatDestination(name string, clt *Client, junSess *junosSession,
+) (confRead natDestinationOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security nat destination rule-set "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -432,19 +432,22 @@ func readSecurityNatDestination(name string, clt *Client, junSess *junosSession)
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "from "):
-				fromWords := strings.Split(strings.TrimPrefix(itemTrim, "from "), " ")
+			case balt.CutPrefixInString(&itemTrim, "from "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				if len(itemTrimFields) < 2 { // <type> <value>
+					return confRead, fmt.Errorf(cantReadValuesNotEnoughFields, "from", itemTrim)
+				}
 				if len(confRead.from) == 0 {
 					confRead.from = append(confRead.from, map[string]interface{}{
-						"type":  fromWords[0],
+						"type":  itemTrimFields[0],
 						"value": make([]string, 0),
 					})
 				}
-				confRead.from[0]["value"] = append(confRead.from[0]["value"].([]string), fromWords[1])
-			case strings.HasPrefix(itemTrim, "rule "):
-				ruleConfig := strings.Split(strings.TrimPrefix(itemTrim, "rule "), " ")
+				confRead.from[0]["value"] = append(confRead.from[0]["value"].([]string), itemTrimFields[1])
+			case balt.CutPrefixInString(&itemTrim, "rule "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				ruleOptions := map[string]interface{}{
-					"name":                     ruleConfig[0],
+					"name":                     itemTrimFields[0],
 					"destination_address":      "",
 					"destination_address_name": "",
 					"application":              make([]string, 0),
@@ -455,30 +458,38 @@ func readSecurityNatDestination(name string, clt *Client, junSess *junosSession)
 					"then":                     make([]map[string]interface{}, 0),
 				}
 				confRead.rule = copyAndRemoveItemMapList("name", ruleOptions, confRead.rule)
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				switch {
-				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-address "):
-					ruleOptions["destination_address"] = strings.TrimPrefix(itemTrim,
-						"rule "+ruleConfig[0]+" match destination-address ")
-				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-address-name "):
-					ruleOptions["destination_address_name"] = strings.Trim(strings.TrimPrefix(itemTrim,
-						"rule "+ruleConfig[0]+" match destination-address-name "), "\"")
-				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match application "):
-					ruleOptions["application"] = append(ruleOptions["application"].([]string),
-						strings.Trim(strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match application "), "\""))
-				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-port "):
-					ruleOptions["destination_port"] = append(ruleOptions["destination_port"].([]string),
-						strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match destination-port "))
-				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match protocol "):
-					ruleOptions["protocol"] = append(ruleOptions["protocol"].([]string), strings.TrimPrefix(itemTrim,
-						"rule "+ruleConfig[0]+" match protocol "))
-				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-address "):
-					ruleOptions["source_address"] = append(ruleOptions["source_address"].([]string),
-						strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-address "))
-				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-address-name "):
-					ruleOptions["source_address_name"] = append(ruleOptions["source_address_name"].([]string),
-						strings.Trim(strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" match source-address-name "), "\""))
-				case strings.HasPrefix(itemTrim, "rule "+ruleConfig[0]+" then destination-nat "):
-					itemTrimThen := strings.TrimPrefix(itemTrim, "rule "+ruleConfig[0]+" then destination-nat ")
+				case balt.CutPrefixInString(&itemTrim, "match destination-address "):
+					ruleOptions["destination_address"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "match destination-address-name "):
+					ruleOptions["destination_address_name"] = strings.Trim(itemTrim, "\"")
+				case balt.CutPrefixInString(&itemTrim, "match application "):
+					ruleOptions["application"] = append(
+						ruleOptions["application"].([]string),
+						strings.Trim(itemTrim, "\""),
+					)
+				case balt.CutPrefixInString(&itemTrim, "match destination-port "):
+					ruleOptions["destination_port"] = append(
+						ruleOptions["destination_port"].([]string),
+						itemTrim,
+					)
+				case balt.CutPrefixInString(&itemTrim, "match protocol "):
+					ruleOptions["protocol"] = append(
+						ruleOptions["protocol"].([]string),
+						itemTrim,
+					)
+				case balt.CutPrefixInString(&itemTrim, "match source-address "):
+					ruleOptions["source_address"] = append(
+						ruleOptions["source_address"].([]string),
+						itemTrim,
+					)
+				case balt.CutPrefixInString(&itemTrim, "match source-address-name "):
+					ruleOptions["source_address_name"] = append(
+						ruleOptions["source_address_name"].([]string),
+						strings.Trim(itemTrim, "\""),
+					)
+				case balt.CutPrefixInString(&itemTrim, "then destination-nat "):
 					if len(ruleOptions["then"].([]map[string]interface{})) == 0 {
 						ruleOptions["then"] = append(ruleOptions["then"].([]map[string]interface{}), map[string]interface{}{
 							"type": "",
@@ -486,17 +497,16 @@ func readSecurityNatDestination(name string, clt *Client, junSess *junosSession)
 						})
 					}
 					ruleThenOptions := ruleOptions["then"].([]map[string]interface{})[0]
-					if strings.HasPrefix(itemTrimThen, "pool ") {
-						thenSplit := strings.Split(itemTrimThen, " ")
-						ruleThenOptions["type"] = thenSplit[0]
-						ruleThenOptions["pool"] = thenSplit[1]
+					if balt.CutPrefixInString(&itemTrim, "pool ") {
+						ruleThenOptions["type"] = "pool"
+						ruleThenOptions["pool"] = itemTrim
 					} else {
-						ruleThenOptions["type"] = itemTrimThen
+						ruleThenOptions["type"] = itemTrim
 					}
 				}
 				confRead.rule = append(confRead.rule, ruleOptions)
-			case strings.HasPrefix(itemTrim, "description "):
-				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				confRead.description = strings.Trim(itemTrim, "\"")
 			}
 		}
 	}

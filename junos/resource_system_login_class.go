@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type systemLoginClassOptions struct {
@@ -468,9 +469,8 @@ func setSystemLoginClass(d *schema.ResourceData, clt *Client, junSess *junosSess
 	return clt.configSet(configSet, junSess)
 }
 
-func readSystemLoginClass(name string, clt *Client, junSess *junosSession) (systemLoginClassOptions, error) {
-	var confRead systemLoginClassOptions
-
+func readSystemLoginClass(name string, clt *Client, junSess *junosSession,
+) (confRead systemLoginClassOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"system login class "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -486,67 +486,57 @@ func readSystemLoginClass(name string, clt *Client, junSess *junosSession) (syst
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "access-end "):
-				accessSplit := strings.Split(strings.Trim(strings.TrimPrefix(itemTrim, "access-end "), "\""), " ")
-				confRead.accessEnd = accessSplit[0]
-			case strings.HasPrefix(itemTrim, "access-start "):
-				accessSplit := strings.Split(strings.Trim(strings.TrimPrefix(itemTrim, "access-start "), "\""), " ")
-				confRead.accessStart = accessSplit[0]
-			case strings.HasPrefix(itemTrim, "allow-commands "):
-				confRead.allowCommands = strings.Trim(strings.TrimPrefix(itemTrim, "allow-commands "), "\"")
-			case strings.HasPrefix(itemTrim, "allow-commands-regexps "):
-				confRead.allowCommandsRegexps = append(confRead.allowCommandsRegexps,
-					strings.Trim(strings.TrimPrefix(itemTrim, "allow-commands-regexps "), "\""))
-			case strings.HasPrefix(itemTrim, "allow-configuration "):
-				confRead.allowConfiguration = strings.Trim(strings.TrimPrefix(itemTrim, "allow-configuration "), "\"")
-			case strings.HasPrefix(itemTrim, "allow-configuration-regexps "):
-				confRead.allowConfigurationRegexps = append(confRead.allowConfigurationRegexps,
-					strings.Trim(strings.TrimPrefix(itemTrim, "allow-configuration-regexps "), "\""))
+			case balt.CutPrefixInString(&itemTrim, "access-end "):
+				confRead.accessEnd = strings.Split(strings.Trim(itemTrim, "\""), " ")[0]
+			case balt.CutPrefixInString(&itemTrim, "access-start "):
+				confRead.accessStart = strings.Split(strings.Trim(itemTrim, "\""), " ")[0]
+			case balt.CutPrefixInString(&itemTrim, "allow-commands "):
+				confRead.allowCommands = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "allow-commands-regexps "):
+				confRead.allowCommandsRegexps = append(confRead.allowCommandsRegexps, strings.Trim(itemTrim, "\""))
+			case balt.CutPrefixInString(&itemTrim, "allow-configuration "):
+				confRead.allowConfiguration = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "allow-configuration-regexps "):
+				confRead.allowConfigurationRegexps = append(confRead.allowConfigurationRegexps, strings.Trim(itemTrim, "\""))
 			case itemTrim == "allow-hidden-commands":
 				confRead.allowHiddenCommands = true
-			case strings.HasPrefix(itemTrim, "allowed-days "):
-				confRead.allowedDays = append(confRead.allowedDays, strings.TrimPrefix(itemTrim, "allowed-days "))
+			case balt.CutPrefixInString(&itemTrim, "allowed-days "):
+				confRead.allowedDays = append(confRead.allowedDays, itemTrim)
 			case itemTrim == "configuration-breadcrumbs":
 				confRead.configurationBreadcrumbs = true
-			case strings.HasPrefix(itemTrim, "cli prompt "):
-				confRead.cliPrompt = strings.Trim(strings.TrimPrefix(itemTrim, "cli prompt "), "\"")
-			case strings.HasPrefix(itemTrim, "confirm-commands "):
-				confRead.confirmCommands = append(confRead.confirmCommands,
-					strings.Trim(strings.TrimPrefix(itemTrim, "confirm-commands "), "\""))
-			case strings.HasPrefix(itemTrim, "deny-commands "):
-				confRead.denyCommands = strings.Trim(strings.TrimPrefix(itemTrim, "deny-commands "), "\"")
-			case strings.HasPrefix(itemTrim, "deny-commands-regexps "):
-				confRead.denyCommandsRegexps = append(confRead.denyCommandsRegexps,
-					strings.Trim(strings.TrimPrefix(itemTrim, "deny-commands-regexps "), "\""))
-			case strings.HasPrefix(itemTrim, "deny-configuration "):
-				confRead.denyConfiguration = strings.Trim(strings.TrimPrefix(itemTrim, "deny-configuration "), "\"")
-			case strings.HasPrefix(itemTrim, "deny-configuration-regexps "):
-				confRead.denyConfigurationRegexps = append(confRead.denyConfigurationRegexps,
-					strings.Trim(strings.TrimPrefix(itemTrim, "deny-configuration-regexps "), "\""))
-			case strings.HasPrefix(itemTrim, "idle-timeout "):
-				var err error
-				confRead.idleTimeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "idle-timeout "))
+			case balt.CutPrefixInString(&itemTrim, "cli prompt "):
+				confRead.cliPrompt = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "confirm-commands "):
+				confRead.confirmCommands = append(confRead.confirmCommands, strings.Trim(itemTrim, "\""))
+			case balt.CutPrefixInString(&itemTrim, "deny-commands "):
+				confRead.denyCommands = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "deny-commands-regexps "):
+				confRead.denyCommandsRegexps = append(confRead.denyCommandsRegexps, strings.Trim(itemTrim, "\""))
+			case balt.CutPrefixInString(&itemTrim, "deny-configuration "):
+				confRead.denyConfiguration = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "deny-configuration-regexps "):
+				confRead.denyConfigurationRegexps = append(confRead.denyConfigurationRegexps, strings.Trim(itemTrim, "\""))
+			case balt.CutPrefixInString(&itemTrim, "idle-timeout "):
+				confRead.idleTimeout, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "logical-system "):
-				confRead.logicalSystem = strings.Trim(strings.TrimPrefix(itemTrim, "logical-system "), "\"")
+			case balt.CutPrefixInString(&itemTrim, "logical-system "):
+				confRead.logicalSystem = strings.Trim(itemTrim, "\"")
 			case itemTrim == "login-alarms":
 				confRead.loginAlarms = true
-			case strings.HasPrefix(itemTrim, "login-script "):
-				confRead.loginScript = strings.TrimPrefix(itemTrim, "login-script ")
+			case balt.CutPrefixInString(&itemTrim, "login-script "):
+				confRead.loginScript = itemTrim
 			case itemTrim == "login-tip":
 				confRead.loginTip = true
-			case strings.HasPrefix(itemTrim, "no-hidden-commands except "):
-				confRead.noHiddenCommandsExcept = append(confRead.noHiddenCommandsExcept,
-					strings.Trim(strings.TrimPrefix(itemTrim, "no-hidden-commands except "), "\""))
-			case strings.HasPrefix(itemTrim, "permissions "):
-				confRead.permissions = append(confRead.permissions,
-					strings.TrimPrefix(itemTrim, "permissions "))
-			case strings.HasPrefix(itemTrim, "security-role "):
-				confRead.securityRole = strings.TrimPrefix(itemTrim, "security-role ")
-			case strings.HasPrefix(itemTrim, "tenant "):
-				confRead.tenant = strings.Trim(strings.TrimPrefix(itemTrim, "tenant "), "\"")
+			case balt.CutPrefixInString(&itemTrim, "no-hidden-commands except "):
+				confRead.noHiddenCommandsExcept = append(confRead.noHiddenCommandsExcept, strings.Trim(itemTrim, "\""))
+			case balt.CutPrefixInString(&itemTrim, "permissions "):
+				confRead.permissions = append(confRead.permissions, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "security-role "):
+				confRead.securityRole = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "tenant "):
+				confRead.tenant = strings.Trim(itemTrim, "\"")
 			}
 		}
 	}

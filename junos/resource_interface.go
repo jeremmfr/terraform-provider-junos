@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -900,10 +901,9 @@ func checkInterfaceNC(interFace string, clt *Client, junSess *junosSession) (ncI
 	return false, false, nil
 }
 
-func addInterfaceNC(interFace string, clt *Client, junSess *junosSession) error {
+func addInterfaceNC(interFace string, clt *Client, junSess *junosSession) (err error) {
 	intCut := make([]string, 0, 2)
 	var setName string
-	var err error
 	if strings.Contains(interFace, ".") {
 		intCut = strings.Split(interFace, ".")
 	} else {
@@ -949,7 +949,7 @@ func checkInterfaceExistsOld(interFace string, clt *Client, junSess *junosSessio
 	return true, nil
 }
 
-func setInterface(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
+func setInterface(d *schema.ResourceData, clt *Client, junSess *junosSession) (err error) {
 	var setName string
 	intCut := make([]string, 0, 2)
 	configSet := make([]string, 0)
@@ -989,14 +989,12 @@ func setInterface(d *schema.ResourceData, clt *Client, junSess *junosSession) er
 		configSet = append(configSet, setPrefix+"family inet6")
 	}
 	for _, address := range d.Get("inet_address").([]interface{}) {
-		var err error
 		configSet, err = setFamilyAddressOld(address, intCut, configSet, setName, inetW)
 		if err != nil {
 			return err
 		}
 	}
 	for _, address := range d.Get("inet6_address").([]interface{}) {
-		var err error
 		configSet, err = setFamilyAddressOld(address, intCut, configSet, setName, inet6W)
 		if err != nil {
 			return err
@@ -1119,16 +1117,11 @@ func setInterface(d *schema.ResourceData, clt *Client, junSess *junosSession) er
 	return clt.configSet(configSet, junSess)
 }
 
-func readInterface(interFace string, clt *Client, junSess *junosSession) (interfaceOptions, error) {
-	var confRead interfaceOptions
-
+func readInterface(interFace string, clt *Client, junSess *junosSession) (confRead interfaceOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"interfaces "+interFace+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
 	}
-	inetAddress := make([]map[string]interface{}, 0)
-	inet6Address := make([]map[string]interface{}, 0)
-
 	if showConfig != emptyW {
 		for _, item := range strings.Split(showConfig, "\n") {
 			if !strings.Contains(interFace, ".") && strings.Contains(item, " unit ") &&
@@ -1143,35 +1136,33 @@ func readInterface(interFace string, clt *Client, junSess *junosSession) (interf
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "description "):
-				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
-
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				confRead.description = strings.Trim(itemTrim, "\"")
 			case itemTrim == "vlan-tagging":
 				confRead.vlanTagging = true
-			case strings.HasPrefix(itemTrim, "vlan-id "):
-				var err error
-				confRead.vlanTaggingID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vlan-id "))
+			case balt.CutPrefixInString(&itemTrim, "vlan-id "):
+				confRead.vlanTaggingID, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "family inet6"):
+			case balt.CutPrefixInString(&itemTrim, "family inet6"):
 				confRead.inet6 = true
 				switch {
-				case strings.HasPrefix(itemTrim, "family inet6 address "):
-					inet6Address, err = readFamilyInetAddressOld(itemTrim, inet6Address, inet6W)
+				case balt.CutPrefixInString(&itemTrim, " address "):
+					confRead.inet6Address, err = readFamilyInetAddressOld(itemTrim, confRead.inet6Address, inet6W)
 					if err != nil {
 						return confRead, err
 					}
-				case strings.HasPrefix(itemTrim, "family inet6 mtu"):
-					confRead.inet6Mtu, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "family inet6 mtu "))
+				case balt.CutPrefixInString(&itemTrim, " mtu "):
+					confRead.inet6Mtu, err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "family inet6 filter input "):
-					confRead.inet6FilterInput = strings.TrimPrefix(itemTrim, "family inet6 filter input ")
-				case strings.HasPrefix(itemTrim, "family inet6 filter output "):
-					confRead.inet6FilterOutput = strings.TrimPrefix(itemTrim, "family inet6 filter output ")
-				case strings.HasPrefix(itemTrim, "family inet6 rpf-check"):
+				case balt.CutPrefixInString(&itemTrim, " filter input "):
+					confRead.inet6FilterInput = itemTrim
+				case balt.CutPrefixInString(&itemTrim, " filter output "):
+					confRead.inet6FilterOutput = itemTrim
+				case balt.CutPrefixInString(&itemTrim, " rpf-check"):
 					if len(confRead.inet6RpfCheck) == 0 {
 						confRead.inet6RpfCheck = append(confRead.inet6RpfCheck, map[string]interface{}{
 							"fail_filter": "",
@@ -1179,31 +1170,30 @@ func readInterface(interFace string, clt *Client, junSess *junosSession) (interf
 						})
 					}
 					switch {
-					case strings.HasPrefix(itemTrim, "family inet6 rpf-check fail-filter "):
-						confRead.inet6RpfCheck[0]["fail_filter"] = strings.Trim(
-							strings.TrimPrefix(itemTrim, "family inet6 rpf-check fail-filter "), "\"")
-					case itemTrim == "family inet6 rpf-check mode loose":
+					case balt.CutPrefixInString(&itemTrim, " fail-filter "):
+						confRead.inet6RpfCheck[0]["fail_filter"] = strings.Trim(itemTrim, "\"")
+					case itemTrim == " mode loose":
 						confRead.inet6RpfCheck[0]["mode_loose"] = true
 					}
 				}
-			case strings.HasPrefix(itemTrim, "family inet"):
+			case balt.CutPrefixInString(&itemTrim, "family inet"):
 				confRead.inet = true
 				switch {
-				case strings.HasPrefix(itemTrim, "family inet address "):
-					inetAddress, err = readFamilyInetAddressOld(itemTrim, inetAddress, inetW)
+				case balt.CutPrefixInString(&itemTrim, " address "):
+					confRead.inetAddress, err = readFamilyInetAddressOld(itemTrim, confRead.inetAddress, inetW)
 					if err != nil {
 						return confRead, err
 					}
-				case strings.HasPrefix(itemTrim, "family inet mtu "):
-					confRead.inetMtu, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "family inet mtu "))
+				case balt.CutPrefixInString(&itemTrim, " mtu "):
+					confRead.inetMtu, err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "family inet filter input "):
-					confRead.inetFilterInput = strings.TrimPrefix(itemTrim, "family inet filter input ")
-				case strings.HasPrefix(itemTrim, "family inet filter output "):
-					confRead.inetFilterOutput = strings.TrimPrefix(itemTrim, "family inet filter output ")
-				case strings.HasPrefix(itemTrim, "family inet rpf-check"):
+				case balt.CutPrefixInString(&itemTrim, " filter input "):
+					confRead.inetFilterInput = itemTrim
+				case balt.CutPrefixInString(&itemTrim, " filter output "):
+					confRead.inetFilterOutput = itemTrim
+				case balt.CutPrefixInString(&itemTrim, " rpf-check"):
 					if len(confRead.inetRpfCheck) == 0 {
 						confRead.inetRpfCheck = append(confRead.inetRpfCheck, map[string]interface{}{
 							"fail_filter": "",
@@ -1211,34 +1201,31 @@ func readInterface(interFace string, clt *Client, junSess *junosSession) (interf
 						})
 					}
 					switch {
-					case strings.HasPrefix(itemTrim, "family inet rpf-check fail-filter "):
-						confRead.inetRpfCheck[0]["fail_filter"] = strings.Trim(
-							strings.TrimPrefix(itemTrim, "family inet rpf-check fail-filter "), "\"")
-					case itemTrim == "family inet rpf-check mode loose":
+					case balt.CutPrefixInString(&itemTrim, " fail-filter "):
+						confRead.inetRpfCheck[0]["fail_filter"] = strings.Trim(itemTrim, "\"")
+					case itemTrim == " mode loose":
 						confRead.inetRpfCheck[0]["mode_loose"] = true
 					}
 				}
-			case strings.HasPrefix(itemTrim, "ether-options 802.3ad "):
-				confRead.v8023ad = strings.TrimPrefix(itemTrim, "ether-options 802.3ad ")
-			case strings.HasPrefix(itemTrim, "gigether-options 802.3ad "):
-				confRead.v8023ad = strings.TrimPrefix(itemTrim, "gigether-options 802.3ad ")
+			case balt.CutPrefixInString(&itemTrim, "ether-options 802.3ad "):
+				confRead.v8023ad = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "gigether-options 802.3ad "):
+				confRead.v8023ad = itemTrim
 			case itemTrim == "unit 0 family ethernet-switching interface-mode trunk":
 				confRead.trunk = true
-			case strings.HasPrefix(itemTrim, "unit 0 family ethernet-switching vlan members"):
-				confRead.vlanMembers = append(confRead.vlanMembers, strings.TrimPrefix(itemTrim,
-					"unit 0 family ethernet-switching vlan members "))
-			case strings.HasPrefix(itemTrim, "native-vlan-id"):
-				confRead.vlanNative, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "native-vlan-id "))
+			case balt.CutPrefixInString(&itemTrim, "unit 0 family ethernet-switching vlan members "):
+				confRead.vlanMembers = append(confRead.vlanMembers, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "native-vlan-id "):
+				confRead.vlanNative, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "aggregated-ether-options lacp "):
-				confRead.aeLacp = strings.TrimPrefix(itemTrim, "aggregated-ether-options lacp ")
-			case strings.HasPrefix(itemTrim, "aggregated-ether-options link-speed "):
-				confRead.aeLinkSpeed = strings.TrimPrefix(itemTrim, "aggregated-ether-options link-speed ")
-			case strings.HasPrefix(itemTrim, "aggregated-ether-options minimum-links "):
-				confRead.aeMinLink, err = strconv.Atoi(strings.TrimPrefix(itemTrim,
-					"aggregated-ether-options minimum-links "))
+			case balt.CutPrefixInString(&itemTrim, "aggregated-ether-options lacp "):
+				confRead.aeLacp = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "aggregated-ether-options link-speed "):
+				confRead.aeLinkSpeed = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "aggregated-ether-options minimum-links "):
+				confRead.aeMinLink, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
@@ -1246,8 +1233,6 @@ func readInterface(interFace string, clt *Client, junSess *junosSession) (interf
 				continue
 			}
 		}
-		confRead.inetAddress = inetAddress
-		confRead.inet6Address = inet6Address
 	}
 	if checkCompatibilitySecurity(junSess) {
 		showConfigSecurityZones, err := clt.command(cmdShowConfig+"security zones"+pipeDisplaySetRelative, junSess)
@@ -1549,104 +1534,94 @@ func fillInterfaceData(d *schema.ResourceData, interfaceOpt interfaceOptions) {
 	}
 }
 
-func readFamilyInetAddressOld(item string, inetAddress []map[string]interface{}, family string,
+func readFamilyInetAddressOld(itemTrim string, inetAddress []map[string]interface{}, family string,
 ) ([]map[string]interface{}, error) {
-	var addressConfig []string
-	var itemTrim string
-	switch family {
-	case inetW:
-		addressConfig = strings.Split(strings.TrimPrefix(item, "family inet address "), " ")
-		itemTrim = strings.TrimPrefix(item, "family inet address "+addressConfig[0]+" ")
-	case inet6W:
-		addressConfig = strings.Split(strings.TrimPrefix(item, "family inet6 address "), " ")
-		itemTrim = strings.TrimPrefix(item, "family inet6 address "+addressConfig[0]+" ")
-	}
-
-	mAddr := genFamilyInetAddressOld(addressConfig[0])
+	itemTrimFields := strings.Split(itemTrim, " ")
+	balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+	mAddr := genFamilyInetAddressOld(itemTrimFields[0])
 	inetAddress = copyAndRemoveItemMapList("address", mAddr, inetAddress)
 
-	if strings.HasPrefix(itemTrim, "vrrp-group ") || strings.HasPrefix(itemTrim, "vrrp-inet6-group ") {
+	if balt.CutPrefixInString(&itemTrim, "vrrp-group ") || balt.CutPrefixInString(&itemTrim, "vrrp-inet6-group ") {
+		if len(itemTrimFields) < 3 { // <address> (vrrp-group|vrrp-inet6-group) <vrrpID>
+			return inetAddress, fmt.Errorf(cantReadValuesNotEnoughFields, "vrrp-group|vrrp-inet6-group", itemTrim)
+		}
 		vrrpGroup := genVRRPGroupOld(family)
-		vrrpID, err := strconv.Atoi(addressConfig[2])
+		vrrpID, err := strconv.Atoi(itemTrimFields[2])
 		if err != nil {
 			return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-		itemTrimVrrp := strings.TrimPrefix(itemTrim, "vrrp-group "+strconv.Itoa(vrrpID)+" ")
-		if strings.HasPrefix(itemTrim, "vrrp-inet6-group ") {
-			itemTrimVrrp = strings.TrimPrefix(itemTrim, "vrrp-inet6-group "+strconv.Itoa(vrrpID)+" ")
-		}
+		balt.CutPrefixInString(&itemTrim, itemTrimFields[2]+" ")
 		vrrpGroup["identifier"] = vrrpID
 		mAddr["vrrp_group"] = copyAndRemoveItemMapList("identifier", vrrpGroup,
 			mAddr["vrrp_group"].([]map[string]interface{}))
 		switch {
-		case strings.HasPrefix(itemTrimVrrp, "virtual-address "):
-			vrrpGroup["virtual_address"] = append(vrrpGroup["virtual_address"].([]string),
-				strings.TrimPrefix(itemTrimVrrp, "virtual-address "))
-		case strings.HasPrefix(itemTrimVrrp, "virtual-inet6-address "):
-			vrrpGroup["virtual_address"] = append(vrrpGroup["virtual_address"].([]string),
-				strings.TrimPrefix(itemTrimVrrp, "virtual-inet6-address "))
-		case strings.HasPrefix(itemTrimVrrp, "virtual-link-local-address "):
-			vrrpGroup["virtual_link_local_address"] = strings.TrimPrefix(itemTrimVrrp,
-				"virtual-link-local-address ")
-		case itemTrimVrrp == "accept-data":
+		case balt.CutPrefixInString(&itemTrim, "virtual-address "):
+			vrrpGroup["virtual_address"] = append(vrrpGroup["virtual_address"].([]string), itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "virtual-inet6-address "):
+			vrrpGroup["virtual_address"] = append(vrrpGroup["virtual_address"].([]string), itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "virtual-link-local-address "):
+			vrrpGroup["virtual_link_local_address"] = itemTrim
+		case itemTrim == "accept-data":
 			vrrpGroup["accept_data"] = true
-		case strings.HasPrefix(itemTrimVrrp, "advertise-interval "):
-			vrrpGroup["advertise_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVrrp,
-				"advertise-interval "))
+		case balt.CutPrefixInString(&itemTrim, "advertise-interval "):
+			vrrpGroup["advertise_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrimVrrp, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimVrrp, "inet6-advertise-interval "):
-			vrrpGroup["advertise_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVrrp,
-				"inet6-advertise-interval "))
+		case balt.CutPrefixInString(&itemTrim, "inet6-advertise-interval "):
+			vrrpGroup["advertise_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrimVrrp, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimVrrp, "advertisements-threshold "):
-			vrrpGroup["advertisements_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVrrp,
-				"advertisements-threshold "))
+		case balt.CutPrefixInString(&itemTrim, "advertisements-threshold "):
+			vrrpGroup["advertisements_threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrimVrrp, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimVrrp, "authentication-key "):
-			vrrpGroup["authentication_key"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrimVrrp,
-				"authentication-key "), "\""))
+		case balt.CutPrefixInString(&itemTrim, "authentication-key "):
+			vrrpGroup["authentication_key"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 			if err != nil {
 				return inetAddress, fmt.Errorf("failed to decode authentication-key: %w", err)
 			}
-		case strings.HasPrefix(itemTrimVrrp, "authentication-type "):
-			vrrpGroup["authentication_type"] = strings.TrimPrefix(itemTrimVrrp, "authentication-type ")
-		case itemTrimVrrp == "no-accept-data":
+		case balt.CutPrefixInString(&itemTrim, "authentication-type "):
+			vrrpGroup["authentication_type"] = itemTrim
+		case itemTrim == "no-accept-data":
 			vrrpGroup["no_accept_data"] = true
-		case itemTrimVrrp == "no-preempt":
+		case itemTrim == "no-preempt":
 			vrrpGroup["no_preempt"] = true
-		case itemTrimVrrp == "preempt":
+		case itemTrim == "preempt":
 			vrrpGroup["preempt"] = true
-		case strings.HasPrefix(itemTrimVrrp, "priority"):
-			vrrpGroup["priority"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVrrp, "priority "))
+		case balt.CutPrefixInString(&itemTrim, "priority "):
+			vrrpGroup["priority"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrimVrrp, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimVrrp, "track interface "):
-			vrrpSlit := strings.Split(itemTrimVrrp, " ")
-			cost, err := strconv.Atoi(vrrpSlit[len(vrrpSlit)-1])
+		case balt.CutPrefixInString(&itemTrim, "track interface "):
+			itemTrackFields := strings.Split(itemTrim, " ")
+			if len(itemTrackFields) < 3 { // <interface> priority-cost <priority_cost>
+				return inetAddress, fmt.Errorf(cantReadValuesNotEnoughFields, "track interface", itemTrim)
+			}
+			cost, err := strconv.Atoi(itemTrackFields[2])
 			if err != nil {
-				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrimVrrp, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 			trackInt := map[string]interface{}{
-				"interface":     vrrpSlit[2],
+				"interface":     itemTrackFields[0],
 				"priority_cost": cost,
 			}
 			vrrpGroup["track_interface"] = append(vrrpGroup["track_interface"].([]map[string]interface{}), trackInt)
-		case strings.HasPrefix(itemTrimVrrp, "track route "):
-			vrrpSlit := strings.Split(itemTrimVrrp, " ")
-			cost, err := strconv.Atoi(vrrpSlit[len(vrrpSlit)-1])
+		case balt.CutPrefixInString(&itemTrim, "track route "):
+			itemTrackFields := strings.Split(itemTrim, " ")
+			if len(itemTrackFields) < 5 { // <route> routing-instance <routing_instance> priority-cost <priority_cost>
+				return inetAddress, fmt.Errorf(cantReadValuesNotEnoughFields, "track route", itemTrim)
+			}
+			cost, err := strconv.Atoi(itemTrackFields[4])
 			if err != nil {
-				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrimVrrp, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 			trackRoute := map[string]interface{}{
-				"route":            vrrpSlit[2],
-				"routing_instance": vrrpSlit[4],
+				"route":            itemTrackFields[0],
+				"routing_instance": itemTrackFields[2],
 				"priority_cost":    cost,
 			}
 			vrrpGroup["track_route"] = append(vrrpGroup["track_route"].([]map[string]interface{}), trackRoute)

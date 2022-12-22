@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type utmProfileWebFilteringWebsenseOptions struct {
@@ -379,9 +380,7 @@ func setUtmProfileWebFWebsense(d *schema.ResourceData, clt *Client, junSess *jun
 }
 
 func readUtmProfileWebFWebsense(profile string, clt *Client, junSess *junosSession,
-) (utmProfileWebFilteringWebsenseOptions, error) {
-	var confRead utmProfileWebFilteringWebsenseOptions
-
+) (confRead utmProfileWebFilteringWebsenseOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security utm feature-profile web-filtering websense-redirect"+
 		" profile \""+profile+"\""+pipeDisplaySetRelative, junSess)
@@ -399,11 +398,11 @@ func readUtmProfileWebFWebsense(profile string, clt *Client, junSess *junosSessi
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "account "):
-				confRead.customBlockMessage = strings.Trim(strings.TrimPrefix(itemTrim, "account "), "\"")
-			case strings.HasPrefix(itemTrim, "custom-block-message "):
-				confRead.customBlockMessage = strings.Trim(strings.TrimPrefix(itemTrim, "custom-block-message "), "\"")
-			case strings.HasPrefix(itemTrim, "fallback-settings"):
+			case balt.CutPrefixInString(&itemTrim, "account "):
+				confRead.customBlockMessage = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "custom-block-message "):
+				confRead.customBlockMessage = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "fallback-settings"):
 				if len(confRead.fallbackSettings) == 0 {
 					confRead.fallbackSettings = append(confRead.fallbackSettings, map[string]interface{}{
 						"default":             "",
@@ -412,18 +411,17 @@ func readUtmProfileWebFWebsense(profile string, clt *Client, junSess *junosSessi
 						"too_many_requests":   "",
 					})
 				}
-				itemTrimFallback := strings.TrimPrefix(itemTrim, "fallback-settings ")
 				switch {
-				case strings.HasPrefix(itemTrimFallback, "default "):
-					confRead.fallbackSettings[0]["default"] = strings.TrimPrefix(itemTrimFallback, "default ")
-				case strings.HasPrefix(itemTrimFallback, "server-connectivity "):
-					confRead.fallbackSettings[0]["server_connectivity"] = strings.TrimPrefix(itemTrimFallback, "server-connectivity ")
-				case strings.HasPrefix(itemTrimFallback, "timeout "):
-					confRead.fallbackSettings[0]["timeout"] = strings.TrimPrefix(itemTrimFallback, "timeout ")
-				case strings.HasPrefix(itemTrimFallback, "too-many-requests "):
-					confRead.fallbackSettings[0]["too_many_requests"] = strings.TrimPrefix(itemTrimFallback, "too-many-requests ")
+				case balt.CutPrefixInString(&itemTrim, " default "):
+					confRead.fallbackSettings[0]["default"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, " server-connectivity "):
+					confRead.fallbackSettings[0]["server_connectivity"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, " timeout "):
+					confRead.fallbackSettings[0]["timeout"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, " too-many-requests "):
+					confRead.fallbackSettings[0]["too_many_requests"] = itemTrim
 				}
-			case strings.HasPrefix(itemTrim, "server"):
+			case balt.CutPrefixInString(&itemTrim, "server"):
 				if len(confRead.server) == 0 {
 					confRead.server = append(confRead.server, map[string]interface{}{
 						"host": "",
@@ -431,24 +429,21 @@ func readUtmProfileWebFWebsense(profile string, clt *Client, junSess *junosSessi
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "server host "):
-					confRead.server[0]["host"] = strings.TrimPrefix(itemTrim, "server host ")
-				case strings.HasPrefix(itemTrim, "server port "):
-					var err error
-					confRead.server[0]["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "server port "))
+				case balt.CutPrefixInString(&itemTrim, " host "):
+					confRead.server[0]["host"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, " port "):
+					confRead.server[0]["port"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
-			case strings.HasPrefix(itemTrim, "sockets "):
-				var err error
-				confRead.sockets, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "sockets "))
+			case balt.CutPrefixInString(&itemTrim, "sockets "):
+				confRead.sockets, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "timeout "):
-				var err error
-				confRead.timeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "timeout "))
+			case balt.CutPrefixInString(&itemTrim, "timeout "):
+				confRead.timeout, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}

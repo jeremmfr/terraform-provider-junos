@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -520,9 +521,8 @@ func checkFirewallFilterExists(name, family string, clt *Client, junSess *junosS
 	return true, nil
 }
 
-func setFirewallFilter(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
+func setFirewallFilter(d *schema.ResourceData, clt *Client, junSess *junosSession) (err error) {
 	configSet := make([]string, 0)
-	var err error
 	setPrefix := "set firewall family " + d.Get("family").(string) + " filter " + d.Get("name").(string)
 
 	if d.Get("interface_specific").(bool) {
@@ -554,9 +554,7 @@ func setFirewallFilter(d *schema.ResourceData, clt *Client, junSess *junosSessio
 	return clt.configSet(configSet, junSess)
 }
 
-func readFirewallFilter(filter, family string, clt *Client, junSess *junosSession) (filterOptions, error) {
-	var confRead filterOptions
-
+func readFirewallFilter(filter, family string, clt *Client, junSess *junosSession) (confRead filterOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"firewall family "+family+" filter "+filter+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -576,35 +574,31 @@ func readFirewallFilter(filter, family string, clt *Client, junSess *junosSessio
 			switch {
 			case itemTrim == "interface-specific":
 				confRead.interfaceSpecific = true
-			case strings.HasPrefix(itemTrim, "term "):
-				termSplit := strings.Split(strings.TrimPrefix(itemTrim, "term "), " ")
+			case balt.CutPrefixInString(&itemTrim, "term "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				termOptions := map[string]interface{}{
-					"name":   termSplit[0],
+					"name":   itemTrimFields[0],
 					"filter": "",
 					"from":   make([]map[string]interface{}, 0),
 					"then":   make([]map[string]interface{}, 0),
 				}
-				itemTrimTerm := strings.TrimPrefix(itemTrim, "term "+termSplit[0]+" ")
-				if len(confRead.term) > 0 {
-					confRead.term = copyAndRemoveItemMapList("name", termOptions, confRead.term)
-				}
+				confRead.term = copyAndRemoveItemMapList("name", termOptions, confRead.term)
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				switch {
-				case strings.HasPrefix(itemTrimTerm, "filter "):
-					termOptions["filter"] = strings.TrimPrefix(itemTrimTerm, "filter ")
-				case strings.HasPrefix(itemTrimTerm, "from "):
+				case balt.CutPrefixInString(&itemTrim, "filter "):
+					termOptions["filter"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "from "):
 					if len(termOptions["from"].([]map[string]interface{})) == 0 {
 						termOptions["from"] = append(termOptions["from"].([]map[string]interface{}),
 							genMapFirewallFilterOptsFrom())
 					}
-					readFirewallFilterOptsFrom(strings.TrimPrefix(itemTrimTerm, "from "),
-						termOptions["from"].([]map[string]interface{})[0])
-				case strings.HasPrefix(itemTrimTerm, "then "):
+					readFirewallFilterOptsFrom(itemTrim, termOptions["from"].([]map[string]interface{})[0])
+				case balt.CutPrefixInString(&itemTrim, "then "):
 					if len(termOptions["then"].([]map[string]interface{})) == 0 {
 						termOptions["then"] = append(termOptions["then"].([]map[string]interface{}),
 							genMapFirewallFilterOptsThen())
 					}
-					readFirewallFilterOptsThen(strings.TrimPrefix(itemTrimTerm, "then "),
-						termOptions["then"].([]map[string]interface{})[0])
+					readFirewallFilterOptsThen(itemTrim, termOptions["then"].([]map[string]interface{})[0])
 				}
 				confRead.term = append(confRead.term, termOptions)
 			}
@@ -798,130 +792,116 @@ func setFirewallFilterOptsThen(setPrefixTermThen string, configSet []string, the
 	return configSet
 }
 
-func readFirewallFilterOptsFrom(item string, fromMap map[string]interface{}) {
+func readFirewallFilterOptsFrom(itemTrim string, fromMap map[string]interface{}) {
 	switch {
-	case strings.HasPrefix(item, "address "):
-		if strings.HasSuffix(item, " except") {
-			fromMap["address_except"] = append(fromMap["address_except"].([]string),
-				strings.TrimSuffix(strings.TrimPrefix(item, "address "), " except"))
+	case balt.CutPrefixInString(&itemTrim, "address "):
+		if balt.CutSuffixInString(&itemTrim, " except") {
+			fromMap["address_except"] = append(fromMap["address_except"].([]string), itemTrim)
 		} else {
-			fromMap["address"] = append(fromMap["address"].([]string),
-				strings.TrimPrefix(item, "address "))
+			fromMap["address"] = append(fromMap["address"].([]string), itemTrim)
 		}
-	case strings.HasPrefix(item, "destination-address "):
-		if strings.HasSuffix(item, " except") {
-			fromMap["destination_address_except"] = append(fromMap["destination_address_except"].([]string),
-				strings.TrimSuffix(strings.TrimPrefix(item, "destination-address "), " except"))
+	case balt.CutPrefixInString(&itemTrim, "destination-address "):
+		if balt.CutSuffixInString(&itemTrim, " except") {
+			fromMap["destination_address_except"] = append(fromMap["destination_address_except"].([]string), itemTrim)
 		} else {
-			fromMap["destination_address"] = append(fromMap["destination_address"].([]string),
-				strings.TrimPrefix(item, "destination-address "))
+			fromMap["destination_address"] = append(fromMap["destination_address"].([]string), itemTrim)
 		}
-	case strings.HasPrefix(item, "destination-port "):
-		fromMap["destination_port"] = append(fromMap["destination_port"].([]string),
-			strings.TrimPrefix(item, "destination-port "))
-	case strings.HasPrefix(item, "destination-port-except "):
-		fromMap["destination_port_except"] = append(fromMap["destination_port_except"].([]string),
-			strings.TrimPrefix(item, "destination-port-except "))
-	case strings.HasPrefix(item, "destination-prefix-list "):
-		if strings.HasSuffix(item, " except") {
-			fromMap["destination_prefix_list_except"] = append(fromMap["destination_prefix_list_except"].([]string),
-				strings.TrimSuffix(strings.TrimPrefix(item, "destination-prefix-list "), " except"))
+	case balt.CutPrefixInString(&itemTrim, "destination-port "):
+		fromMap["destination_port"] = append(fromMap["destination_port"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "destination-port-except "):
+		fromMap["destination_port_except"] = append(fromMap["destination_port_except"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "destination-prefix-list "):
+		if balt.CutSuffixInString(&itemTrim, " except") {
+			fromMap["destination_prefix_list_except"] = append(
+				fromMap["destination_prefix_list_except"].([]string),
+				itemTrim,
+			)
 		} else {
-			fromMap["destination_prefix_list"] = append(fromMap["destination_prefix_list"].([]string),
-				strings.TrimPrefix(item, "destination-prefix-list "))
+			fromMap["destination_prefix_list"] = append(fromMap["destination_prefix_list"].([]string), itemTrim)
 		}
-	case strings.HasPrefix(item, "icmp-code "):
-		fromMap["icmp_code"] = append(fromMap["icmp_code"].([]string), strings.TrimPrefix(item, "icmp-code "))
-	case strings.HasPrefix(item, "icmp-code-except "):
-		fromMap["icmp_code_except"] = append(fromMap["icmp_code_except"].([]string),
-			strings.TrimPrefix(item, "icmp-code-except "))
-	case strings.HasPrefix(item, "icmp-type "):
-		fromMap["icmp_type"] = append(fromMap["icmp_type"].([]string), strings.TrimPrefix(item, "icmp-type "))
-	case strings.HasPrefix(item, "icmp-type-except "):
-		fromMap["icmp_type_except"] = append(fromMap["icmp_type_except"].([]string),
-			strings.TrimPrefix(item, "icmp-type-except "))
-	case item == "is-fragment":
+	case balt.CutPrefixInString(&itemTrim, "icmp-code "):
+		fromMap["icmp_code"] = append(fromMap["icmp_code"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "icmp-code-except "):
+		fromMap["icmp_code_except"] = append(fromMap["icmp_code_except"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "icmp-type "):
+		fromMap["icmp_type"] = append(fromMap["icmp_type"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "icmp-type-except "):
+		fromMap["icmp_type_except"] = append(fromMap["icmp_type_except"].([]string), itemTrim)
+	case itemTrim == "is-fragment":
 		fromMap["is_fragment"] = true
-	case strings.HasPrefix(item, "next-header "):
-		fromMap["next_header"] = append(fromMap["next_header"].([]string),
-			strings.TrimPrefix(item, "next-header "))
-	case strings.HasPrefix(item, "next-header-except "):
-		fromMap["next_header_except"] = append(fromMap["next_header_except"].([]string),
-			strings.TrimPrefix(item, "next-header-except "))
-	case strings.HasPrefix(item, "port "):
-		fromMap["port"] = append(fromMap["port"].([]string),
-			strings.TrimPrefix(item, "port "))
-	case strings.HasPrefix(item, "port-except "):
-		fromMap["port_except"] = append(fromMap["port_except"].([]string),
-			strings.TrimPrefix(item, "port-except "))
-	case strings.HasPrefix(item, "protocol "):
-		fromMap["protocol"] = append(fromMap["protocol"].([]string), strings.TrimPrefix(item, "protocol "))
-	case strings.HasPrefix(item, "protocol-except "):
-		fromMap["protocol_except"] = append(fromMap["protocol_except"].([]string),
-			strings.TrimPrefix(item, "protocol-except "))
-	case strings.HasPrefix(item, "prefix-list "):
-		if strings.HasSuffix(item, " except") {
-			fromMap["prefix_list_except"] = append(fromMap["prefix_list_except"].([]string),
-				strings.TrimSuffix(strings.TrimPrefix(item, "prefix-list "), " except"))
+	case balt.CutPrefixInString(&itemTrim, "next-header "):
+		fromMap["next_header"] = append(fromMap["next_header"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "next-header-except "):
+		fromMap["next_header_except"] = append(fromMap["next_header_except"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "port "):
+		fromMap["port"] = append(fromMap["port"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "port-except "):
+		fromMap["port_except"] = append(fromMap["port_except"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "protocol "):
+		fromMap["protocol"] = append(fromMap["protocol"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "protocol-except "):
+		fromMap["protocol_except"] = append(fromMap["protocol_except"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "prefix-list "):
+		if balt.CutSuffixInString(&itemTrim, " except") {
+			fromMap["prefix_list_except"] = append(fromMap["prefix_list_except"].([]string), itemTrim)
 		} else {
-			fromMap["prefix_list"] = append(fromMap["prefix_list"].([]string),
-				strings.TrimPrefix(item, "prefix-list "))
+			fromMap["prefix_list"] = append(fromMap["prefix_list"].([]string), itemTrim)
 		}
-	case strings.HasPrefix(item, "source-address "):
-		if strings.HasSuffix(item, " except") {
-			fromMap["source_address_except"] = append(fromMap["source_address_except"].([]string),
-				strings.TrimSuffix(strings.TrimPrefix(item, "source-address "), " except"))
+	case balt.CutPrefixInString(&itemTrim, "source-address "):
+		if balt.CutSuffixInString(&itemTrim, " except") {
+			fromMap["source_address_except"] = append(
+				fromMap["source_address_except"].([]string),
+				itemTrim,
+			)
 		} else {
-			fromMap["source_address"] = append(fromMap["source_address"].([]string),
-				strings.TrimPrefix(item, "source-address "))
+			fromMap["source_address"] = append(fromMap["source_address"].([]string), itemTrim)
 		}
-	case strings.HasPrefix(item, "source-port "):
-		fromMap["source_port"] = append(fromMap["source_port"].([]string),
-			strings.TrimPrefix(item, "source-port "))
-	case strings.HasPrefix(item, "source-port-except "):
-		fromMap["source_port_except"] = append(fromMap["source_port_except"].([]string),
-			strings.TrimPrefix(item, "source-port-except "))
-	case strings.HasPrefix(item, "source-prefix-list "):
-		if strings.HasSuffix(item, " except") {
-			fromMap["source_prefix_list_except"] = append(fromMap["source_prefix_list_except"].([]string),
-				strings.TrimSuffix(strings.TrimPrefix(item, "source-prefix-list "), " except"))
+	case balt.CutPrefixInString(&itemTrim, "source-port "):
+		fromMap["source_port"] = append(fromMap["source_port"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "source-port-except "):
+		fromMap["source_port_except"] = append(fromMap["source_port_except"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "source-prefix-list "):
+		if balt.CutSuffixInString(&itemTrim, " except") {
+			fromMap["source_prefix_list_except"] = append(
+				fromMap["source_prefix_list_except"].([]string),
+				itemTrim,
+			)
 		} else {
-			fromMap["source_prefix_list"] = append(fromMap["source_prefix_list"].([]string),
-				strings.TrimPrefix(item, "source-prefix-list "))
+			fromMap["source_prefix_list"] = append(fromMap["source_prefix_list"].([]string), itemTrim)
 		}
-	case item == "tcp-established":
+	case itemTrim == "tcp-established":
 		fromMap["tcp_established"] = true
-	case strings.HasPrefix(item, "tcp-flags "):
-		fromMap["tcp_flags"] = strings.Trim(strings.TrimPrefix(item, "tcp-flags "), "\"")
-	case item == "tcp-initial":
+	case balt.CutPrefixInString(&itemTrim, "tcp-flags "):
+		fromMap["tcp_flags"] = strings.Trim(itemTrim, "\"")
+	case itemTrim == "tcp-initial":
 		fromMap["tcp_initial"] = true
 	}
 }
 
-func readFirewallFilterOptsThen(item string, thenMap map[string]interface{}) {
+func readFirewallFilterOptsThen(itemTrim string, thenMap map[string]interface{}) {
 	switch {
-	case item == "accept",
-		item == "reject",
-		item == discardW,
-		item == "next term":
-		thenMap["action"] = item
-	case strings.HasPrefix(item, "count "):
-		thenMap["count"] = strings.TrimPrefix(item, "count ")
-	case item == "log":
+	case itemTrim == "accept",
+		itemTrim == "reject",
+		itemTrim == discardW,
+		itemTrim == "next term":
+		thenMap["action"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "count "):
+		thenMap["count"] = itemTrim
+	case itemTrim == "log":
 		thenMap["log"] = true
-	case item == "packet-mode":
+	case itemTrim == "packet-mode":
 		thenMap["packet_mode"] = true
-	case strings.HasPrefix(item, "policer "):
-		thenMap["policer"] = strings.TrimPrefix(item, "policer ")
-	case item == "port-mirror":
+	case balt.CutPrefixInString(&itemTrim, "policer "):
+		thenMap["policer"] = itemTrim
+	case itemTrim == "port-mirror":
 		thenMap["port_mirror"] = true
-	case strings.HasPrefix(item, "routing-instance "):
-		thenMap["routing_instance"] = strings.TrimPrefix(item, "routing-instance ")
-	case item == "sample":
+	case balt.CutPrefixInString(&itemTrim, "routing-instance "):
+		thenMap["routing_instance"] = itemTrim
+	case itemTrim == "sample":
 		thenMap["sample"] = true
-	case item == "service-accounting":
+	case itemTrim == "service-accounting":
 		thenMap["service_accounting"] = true
-	case item == "syslog":
+	case itemTrim == "syslog":
 		thenMap["syslog"] = true
 	}
 }

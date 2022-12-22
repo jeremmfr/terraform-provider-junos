@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type zoneBookAddressSetOptions struct {
@@ -330,9 +331,7 @@ func setSecurityZoneBookAddressSet(d *schema.ResourceData, clt *Client, junSess 
 }
 
 func readSecurityZoneBookAddressSet(zone, addressSet string, clt *Client, junSess *junosSession,
-) (zoneBookAddressSetOptions, error) {
-	var confRead zoneBookAddressSetOptions
-
+) (confRead zoneBookAddressSetOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security zones security-zone "+zone+" address-book address-set "+addressSet+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -350,12 +349,12 @@ func readSecurityZoneBookAddressSet(zone, addressSet string, clt *Client, junSes
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "description "):
-				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
-			case strings.HasPrefix(itemTrim, "address "):
-				confRead.address = append(confRead.address, strings.TrimPrefix(itemTrim, "address "))
-			case strings.HasPrefix(itemTrim, "address-set "):
-				confRead.addressSet = append(confRead.addressSet, strings.TrimPrefix(itemTrim, "address-set "))
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				confRead.description = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "address "):
+				confRead.address = append(confRead.address, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "address-set "):
+				confRead.addressSet = append(confRead.addressSet, itemTrim)
 			}
 		}
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -1525,10 +1526,9 @@ func setSecurityIdpCustomAttackTypeSignatureProtoUDP(setPrefixOrigin string, pro
 }
 
 func readSecurityIdpCustomAttack(customAttack string, clt *Client, junSess *junosSession,
-) (idpCustomAttackOptions, error) {
-	var confRead idpCustomAttackOptions
-	confRead.timeBindingCount = -1 // default to -1
-
+) (confRead idpCustomAttackOptions, err error) {
+	// default -1
+	confRead.timeBindingCount = -1
 	showConfig, err := clt.command(cmdShowConfig+
 		"security idp custom-attack \""+customAttack+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -1545,17 +1545,16 @@ func readSecurityIdpCustomAttack(customAttack string, clt *Client, junSess *juno
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "recommended-action "):
-				confRead.recommendedAction = strings.TrimPrefix(itemTrim, "recommended-action ")
-			case strings.HasPrefix(itemTrim, "severity "):
-				confRead.severity = strings.TrimPrefix(itemTrim, "severity ")
-			case strings.HasPrefix(itemTrim, "attack-type anomaly "):
+			case balt.CutPrefixInString(&itemTrim, "recommended-action "):
+				confRead.recommendedAction = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "severity "):
+				confRead.severity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "attack-type anomaly "):
 				if len(confRead.attackTypeAnomaly) == 0 {
 					confRead.attackTypeAnomaly = append(confRead.attackTypeAnomaly, genSecurityIdpCustomAttackTypeAnomaly(false))
 				}
-				readSecurityIdpCustomAttackTypeAnomaly(
-					strings.TrimPrefix(itemTrim, "attack-type anomaly "), confRead.attackTypeAnomaly[0])
-			case strings.HasPrefix(itemTrim, "attack-type chain "):
+				readSecurityIdpCustomAttackTypeAnomaly(itemTrim, confRead.attackTypeAnomaly[0])
+			case balt.CutPrefixInString(&itemTrim, "attack-type chain "):
 				if len(confRead.attackTypeChain) == 0 {
 					confRead.attackTypeChain = append(confRead.attackTypeChain, map[string]interface{}{
 						"member":           make([]map[string]interface{}, 0),
@@ -1566,26 +1565,23 @@ func readSecurityIdpCustomAttack(customAttack string, clt *Client, junSess *juno
 						"scope":            "",
 					})
 				}
-				if err := readSecurityIdpCustomAttackTypeChain(
-					strings.TrimPrefix(itemTrim, "attack-type chain "), confRead.attackTypeChain[0]); err != nil {
+				if err := readSecurityIdpCustomAttackTypeChain(itemTrim, confRead.attackTypeChain[0]); err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "attack-type signature "):
+			case balt.CutPrefixInString(&itemTrim, "attack-type signature "):
 				if len(confRead.attackTypeSignature) == 0 {
 					confRead.attackTypeSignature = append(confRead.attackTypeSignature, genSecurityIdpCustomAttackTypeSignature(false))
 				}
-				if err := readSecurityIdpCustomAttackTypeSignature(
-					strings.TrimPrefix(itemTrim, "attack-type signature "), confRead.attackTypeSignature[0]); err != nil {
+				if err := readSecurityIdpCustomAttackTypeSignature(itemTrim, confRead.attackTypeSignature[0]); err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "time-binding count "):
-				var err error
-				confRead.timeBindingCount, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "time-binding count "))
+			case balt.CutPrefixInString(&itemTrim, "time-binding count "):
+				confRead.timeBindingCount, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "time-binding scope "):
-				confRead.timeBindingScope = strings.TrimPrefix(itemTrim, "time-binding scope ")
+			case balt.CutPrefixInString(&itemTrim, "time-binding scope "):
+				confRead.timeBindingScope = itemTrim
 			}
 		}
 	}
@@ -1633,62 +1629,63 @@ func genSecurityIdpCustomAttackTypeSignature(chain bool) map[string]interface{} 
 
 func readSecurityIdpCustomAttackTypeAnomaly(itemTrim string, attackTypeAnomaly map[string]interface{}) {
 	switch {
-	case strings.HasPrefix(itemTrim, "direction "):
-		attackTypeAnomaly["direction"] = strings.TrimPrefix(itemTrim, "direction ")
-	case strings.HasPrefix(itemTrim, "service "):
-		attackTypeAnomaly["service"] = strings.TrimPrefix(itemTrim, "service ")
-	case strings.HasPrefix(itemTrim, "test "):
-		attackTypeAnomaly["test"] = strings.TrimPrefix(itemTrim, "test ")
-	case strings.HasPrefix(itemTrim, "shellcode "):
-		attackTypeAnomaly["shellcode"] = strings.TrimPrefix(itemTrim, "shellcode ")
+	case balt.CutPrefixInString(&itemTrim, "direction "):
+		attackTypeAnomaly["direction"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "service "):
+		attackTypeAnomaly["service"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "test "):
+		attackTypeAnomaly["test"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "shellcode "):
+		attackTypeAnomaly["shellcode"] = itemTrim
 	}
 }
 
 func readSecurityIdpCustomAttackTypeChain(itemTrim string, attackTypeChain map[string]interface{}) error {
 	switch {
-	case strings.HasPrefix(itemTrim, "member "):
-		itemTrimSplit := strings.Split(itemTrim, " ")
+	case balt.CutPrefixInString(&itemTrim, "member "):
+		itemTrimFields := strings.Split(itemTrim, " ")
 		attack := map[string]interface{}{
-			"name":                  strings.Trim(itemTrimSplit[1], "\""),
+			"name":                  strings.Trim(itemTrimFields[0], "\""),
 			"attack_type_anomaly":   make([]map[string]interface{}, 0),
 			"attack_type_signature": make([]map[string]interface{}, 0),
 		}
-		itemTrimMember := strings.TrimPrefix(itemTrim, "member "+itemTrimSplit[1]+" ")
+		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 		attackTypeChain["member"] = copyAndRemoveItemMapList(
 			"name", attack, attackTypeChain["member"].([]map[string]interface{}))
 		switch {
-		case strings.HasPrefix(itemTrimMember, "attack-type anomaly "):
+		case balt.CutPrefixInString(&itemTrim, "attack-type anomaly "):
 			if len(attack["attack_type_anomaly"].([]map[string]interface{})) == 0 {
 				attack["attack_type_anomaly"] = append(
 					attack["attack_type_anomaly"].([]map[string]interface{}),
-					genSecurityIdpCustomAttackTypeAnomaly(true))
+					genSecurityIdpCustomAttackTypeAnomaly(true),
+				)
 			}
-			readSecurityIdpCustomAttackTypeAnomaly(
-				strings.TrimPrefix(itemTrimMember, "attack-type anomaly "),
-				attack["attack_type_anomaly"].([]map[string]interface{})[0])
-		case strings.HasPrefix(itemTrimMember, "attack-type signature "):
+			readSecurityIdpCustomAttackTypeAnomaly(itemTrim, attack["attack_type_anomaly"].([]map[string]interface{})[0])
+		case balt.CutPrefixInString(&itemTrim, "attack-type signature "):
 			if len(attack["attack_type_signature"].([]map[string]interface{})) == 0 {
 				attack["attack_type_signature"] = append(
 					attack["attack_type_signature"].([]map[string]interface{}),
-					genSecurityIdpCustomAttackTypeSignature(true))
+					genSecurityIdpCustomAttackTypeSignature(true),
+				)
 			}
 			if err := readSecurityIdpCustomAttackTypeSignature(
-				strings.TrimPrefix(itemTrimMember, "attack-type signature "),
-				attack["attack_type_signature"].([]map[string]interface{})[0]); err != nil {
+				itemTrim,
+				attack["attack_type_signature"].([]map[string]interface{})[0],
+			); err != nil {
 				return err
 			}
 		}
 		attackTypeChain["member"] = append(attackTypeChain["member"].([]map[string]interface{}), attack)
-	case strings.HasPrefix(itemTrim, "expression "):
-		attackTypeChain["expression"] = strings.Trim(strings.TrimPrefix(itemTrim, "expression "), "\"")
+	case balt.CutPrefixInString(&itemTrim, "expression "):
+		attackTypeChain["expression"] = strings.Trim(itemTrim, "\"")
 	case itemTrim == "order":
 		attackTypeChain["order"] = true
-	case strings.HasPrefix(itemTrim, "protocol-binding "):
-		attackTypeChain["protocol_binding"] = strings.TrimPrefix(itemTrim, "protocol-binding ")
+	case balt.CutPrefixInString(&itemTrim, "protocol-binding "):
+		attackTypeChain["protocol_binding"] = itemTrim
 	case itemTrim == "reset":
 		attackTypeChain["reset"] = true
-	case strings.HasPrefix(itemTrim, "scope "):
-		attackTypeChain["scope"] = strings.TrimPrefix(itemTrim, "scope ")
+	case balt.CutPrefixInString(&itemTrim, "scope "):
+		attackTypeChain["scope"] = itemTrim
 	}
 
 	return nil
@@ -1696,84 +1693,93 @@ func readSecurityIdpCustomAttackTypeChain(itemTrim string, attackTypeChain map[s
 
 func readSecurityIdpCustomAttackTypeSignature(itemTrim string, attackTypeSignature map[string]interface{}) error {
 	switch {
-	case strings.HasPrefix(itemTrim, "context "):
-		attackTypeSignature["context"] = strings.Trim(strings.TrimPrefix(itemTrim, "context "), "\"")
-	case strings.HasPrefix(itemTrim, "direction "):
-		attackTypeSignature["direction"] = strings.TrimPrefix(itemTrim, "direction ")
+	case balt.CutPrefixInString(&itemTrim, "context "):
+		attackTypeSignature["context"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "direction "):
+		attackTypeSignature["direction"] = itemTrim
 	case itemTrim == "negate":
 		attackTypeSignature["negate"] = true
-	case strings.HasPrefix(itemTrim, "pattern "):
-		attackTypeSignature["pattern"] = strings.Trim(strings.TrimPrefix(itemTrim, "pattern "), "\"")
-	case strings.HasPrefix(itemTrim, "pattern-pcre "):
-		attackTypeSignature["pattern_pcre"] = strings.Trim(strings.TrimPrefix(itemTrim, "pattern-pcre "), "\"")
-	case strings.HasPrefix(itemTrim, "protocol icmp "):
+	case balt.CutPrefixInString(&itemTrim, "pattern "):
+		attackTypeSignature["pattern"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "pattern-pcre "):
+		attackTypeSignature["pattern_pcre"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "protocol icmp "):
 		if len(attackTypeSignature["protocol_icmp"].([]map[string]interface{})) == 0 {
 			attackTypeSignature["protocol_icmp"] = append(
 				attackTypeSignature["protocol_icmp"].([]map[string]interface{}),
-				genSecurityIdpCustomAttackTypeSignatureProtoICMP())
+				genSecurityIdpCustomAttackTypeSignatureProtoICMP(),
+			)
 		}
 		if err := readSecurityIdpCustomAttackTypeSignatureProtoICMP(
-			strings.TrimPrefix(itemTrim, "protocol icmp "),
-			attackTypeSignature["protocol_icmp"].([]map[string]interface{})[0]); err != nil {
+			itemTrim,
+			attackTypeSignature["protocol_icmp"].([]map[string]interface{})[0],
+		); err != nil {
 			return err
 		}
-	case strings.HasPrefix(itemTrim, "protocol icmpv6 "):
+	case balt.CutPrefixInString(&itemTrim, "protocol icmpv6 "):
 		if len(attackTypeSignature["protocol_icmpv6"].([]map[string]interface{})) == 0 {
 			attackTypeSignature["protocol_icmpv6"] = append(
 				attackTypeSignature["protocol_icmpv6"].([]map[string]interface{}),
-				genSecurityIdpCustomAttackTypeSignatureProtoICMP())
+				genSecurityIdpCustomAttackTypeSignatureProtoICMP(),
+			)
 		}
 		if err := readSecurityIdpCustomAttackTypeSignatureProtoICMP(
-			strings.TrimPrefix(itemTrim, "protocol icmpv6 "),
+			itemTrim,
 			attackTypeSignature["protocol_icmpv6"].([]map[string]interface{})[0]); err != nil {
 			return err
 		}
-	case strings.HasPrefix(itemTrim, "protocol ipv4 "):
+	case balt.CutPrefixInString(&itemTrim, "protocol ipv4 "):
 		if len(attackTypeSignature["protocol_ipv4"].([]map[string]interface{})) == 0 {
 			attackTypeSignature["protocol_ipv4"] = append(
-				attackTypeSignature["protocol_ipv4"].([]map[string]interface{}), genSecurityIdpCustomAttackTypeSignatureProtoIPv4())
+				attackTypeSignature["protocol_ipv4"].([]map[string]interface{}),
+				genSecurityIdpCustomAttackTypeSignatureProtoIPv4(),
+			)
 		}
 		if err := readSecurityIdpCustomAttackTypeSignatureProtoIPv4(
-			strings.TrimPrefix(itemTrim, "protocol ipv4 "),
+			itemTrim,
 			attackTypeSignature["protocol_ipv4"].([]map[string]interface{})[0]); err != nil {
 			return err
 		}
-	case strings.HasPrefix(itemTrim, "protocol ipv6 "):
+	case balt.CutPrefixInString(&itemTrim, "protocol ipv6 "):
 		if len(attackTypeSignature["protocol_ipv6"].([]map[string]interface{})) == 0 {
 			attackTypeSignature["protocol_ipv6"] = append(
-				attackTypeSignature["protocol_ipv6"].([]map[string]interface{}), genSecurityIdpCustomAttackTypeSignatureProtoIPv6())
+				attackTypeSignature["protocol_ipv6"].([]map[string]interface{}),
+				genSecurityIdpCustomAttackTypeSignatureProtoIPv6(),
+			)
 		}
 		if err := readSecurityIdpCustomAttackTypeSignatureProtoIPv6(
-			strings.TrimPrefix(itemTrim, "protocol ipv6 "),
+			itemTrim,
 			attackTypeSignature["protocol_ipv6"].([]map[string]interface{})[0]); err != nil {
 			return err
 		}
-	case strings.HasPrefix(itemTrim, "protocol tcp "):
+	case balt.CutPrefixInString(&itemTrim, "protocol tcp "):
 		if len(attackTypeSignature["protocol_tcp"].([]map[string]interface{})) == 0 {
 			attackTypeSignature["protocol_tcp"] = append(
-				attackTypeSignature["protocol_tcp"].([]map[string]interface{}), genSecurityIdpCustomAttackTypeSignatureProtoTCP())
+				attackTypeSignature["protocol_tcp"].([]map[string]interface{}),
+				genSecurityIdpCustomAttackTypeSignatureProtoTCP(),
+			)
 		}
 		if err := readSecurityIdpCustomAttackTypeSignatureProtoTCP(
-			strings.TrimPrefix(itemTrim, "protocol tcp "),
+			itemTrim,
 			attackTypeSignature["protocol_tcp"].([]map[string]interface{})[0]); err != nil {
 			return err
 		}
-	case strings.HasPrefix(itemTrim, "protocol udp "):
+	case balt.CutPrefixInString(&itemTrim, "protocol udp "):
 		if len(attackTypeSignature["protocol_udp"].([]map[string]interface{})) == 0 {
 			attackTypeSignature["protocol_udp"] = append(
 				attackTypeSignature["protocol_udp"].([]map[string]interface{}), genSecurityIdpCustomAttackTypeSignatureProtoUDP())
 		}
 		if err := readSecurityIdpCustomAttackTypeSignatureProtoUDP(
-			strings.TrimPrefix(itemTrim, "protocol udp "),
+			itemTrim,
 			attackTypeSignature["protocol_udp"].([]map[string]interface{})[0]); err != nil {
 			return err
 		}
-	case strings.HasPrefix(itemTrim, "protocol-binding "):
-		attackTypeSignature["protocol_binding"] = strings.TrimPrefix(itemTrim, "protocol-binding ")
-	case strings.HasPrefix(itemTrim, "regexp "):
-		attackTypeSignature["regexp"] = strings.Trim(strings.TrimPrefix(itemTrim, "regexp "), "\"")
-	case strings.HasPrefix(itemTrim, "shellcode "):
-		attackTypeSignature["shellcode"] = strings.TrimPrefix(itemTrim, "shellcode ")
+	case balt.CutPrefixInString(&itemTrim, "protocol-binding "):
+		attackTypeSignature["protocol_binding"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "regexp "):
+		attackTypeSignature["regexp"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "shellcode "):
+		attackTypeSignature["shellcode"] = itemTrim
 	}
 
 	return nil
@@ -1890,53 +1896,47 @@ func genSecurityIdpCustomAttackTypeSignatureProtoUDP() map[string]interface{} {
 	}
 }
 
-func readSecurityIdpCustomAttackTypeSignatureProtoICMP(itemTrim string, protoICMP map[string]interface{}) error {
+func readSecurityIdpCustomAttackTypeSignatureProtoICMP(itemTrim string, protoICMP map[string]interface{}) (err error) {
 	switch {
-	case strings.HasPrefix(itemTrim, "checksum-validate match "):
-		protoICMP["checksum_validate_match"] = strings.TrimPrefix(itemTrim, "checksum-validate match ")
-	case strings.HasPrefix(itemTrim, "checksum-validate value "):
-		var err error
-		protoICMP["checksum_validate_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "checksum-validate value "))
+	case balt.CutPrefixInString(&itemTrim, "checksum-validate match "):
+		protoICMP["checksum_validate_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "checksum-validate value "):
+		protoICMP["checksum_validate_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "code match "):
-		protoICMP["code_match"] = strings.TrimPrefix(itemTrim, "code match ")
-	case strings.HasPrefix(itemTrim, "code value "):
-		var err error
-		protoICMP["code_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "code value "))
+	case balt.CutPrefixInString(&itemTrim, "code match "):
+		protoICMP["code_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "code value "):
+		protoICMP["code_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "data-length match "):
-		protoICMP["data_length_match"] = strings.TrimPrefix(itemTrim, "data-length match ")
-	case strings.HasPrefix(itemTrim, "data-length value "):
-		var err error
-		protoICMP["data_length_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "data-length value "))
+	case balt.CutPrefixInString(&itemTrim, "data-length match "):
+		protoICMP["data_length_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "data-length value "):
+		protoICMP["data_length_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "identification match "):
-		protoICMP["identification_match"] = strings.TrimPrefix(itemTrim, "identification match ")
-	case strings.HasPrefix(itemTrim, "identification value "):
-		var err error
-		protoICMP["identification_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "identification value "))
+	case balt.CutPrefixInString(&itemTrim, "identification match "):
+		protoICMP["identification_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "identification value "):
+		protoICMP["identification_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "sequence-number match "):
-		protoICMP["sequence_number_match"] = strings.TrimPrefix(itemTrim, "sequence-number match ")
-	case strings.HasPrefix(itemTrim, "sequence-number value "):
-		var err error
-		protoICMP["sequence_number_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "sequence-number value "))
+	case balt.CutPrefixInString(&itemTrim, "sequence-number match "):
+		protoICMP["sequence_number_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "sequence-number value "):
+		protoICMP["sequence_number_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "type match "):
-		protoICMP["type_match"] = strings.TrimPrefix(itemTrim, "type match ")
-	case strings.HasPrefix(itemTrim, "type value "):
-		var err error
-		protoICMP["type_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "type value "))
+	case balt.CutPrefixInString(&itemTrim, "type match "):
+		protoICMP["type_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "type value "):
+		protoICMP["type_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
@@ -1945,71 +1945,64 @@ func readSecurityIdpCustomAttackTypeSignatureProtoICMP(itemTrim string, protoICM
 	return nil
 }
 
-func readSecurityIdpCustomAttackTypeSignatureProtoIPv4(itemTrim string, protoIPv4 map[string]interface{}) error {
+func readSecurityIdpCustomAttackTypeSignatureProtoIPv4(itemTrim string, protoIPv4 map[string]interface{}) (err error) {
 	switch {
-	case strings.HasPrefix(itemTrim, "checksum-validate match "):
-		protoIPv4["checksum_validate_match"] = strings.TrimPrefix(itemTrim, "checksum-validate match ")
-	case strings.HasPrefix(itemTrim, "checksum-validate value "):
-		var err error
-		protoIPv4["checksum_validate_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "checksum-validate value "))
+	case balt.CutPrefixInString(&itemTrim, "checksum-validate match "):
+		protoIPv4["checksum_validate_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "checksum-validate value "):
+		protoIPv4["checksum_validate_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "destination match "):
-		protoIPv4["destination_match"] = strings.TrimPrefix(itemTrim, "destination match ")
-	case strings.HasPrefix(itemTrim, "destination value "):
-		protoIPv4["destination_value"] = strings.TrimPrefix(itemTrim, "destination value ")
-	case strings.HasPrefix(itemTrim, "identification match "):
-		protoIPv4["identification_match"] = strings.TrimPrefix(itemTrim, "identification match ")
-	case strings.HasPrefix(itemTrim, "identification value "):
-		var err error
-		protoIPv4["identification_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "identification value "))
+	case balt.CutPrefixInString(&itemTrim, "destination match "):
+		protoIPv4["destination_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "destination value "):
+		protoIPv4["destination_value"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "identification match "):
+		protoIPv4["identification_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "identification value "):
+		protoIPv4["identification_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "ihl match "):
-		protoIPv4["ihl_match"] = strings.TrimPrefix(itemTrim, "ihl match ")
-	case strings.HasPrefix(itemTrim, "ihl value "):
-		var err error
-		protoIPv4["ihl_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "ihl value "))
+	case balt.CutPrefixInString(&itemTrim, "ihl match "):
+		protoIPv4["ihl_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "ihl value "):
+		protoIPv4["ihl_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "ip-flags "):
-		protoIPv4["ip_flags"] = append(protoIPv4["ip_flags"].([]string), strings.TrimPrefix(itemTrim, "ip-flags "))
-	case strings.HasPrefix(itemTrim, "protocol match "):
-		protoIPv4["protocol_match"] = strings.TrimPrefix(itemTrim, "protocol match ")
-	case strings.HasPrefix(itemTrim, "protocol value "):
-		var err error
-		protoIPv4["protocol_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "protocol value "))
+	case balt.CutPrefixInString(&itemTrim, "ip-flags "):
+		protoIPv4["ip_flags"] = append(protoIPv4["ip_flags"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "protocol match "):
+		protoIPv4["protocol_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "protocol value "):
+		protoIPv4["protocol_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "source match "):
-		protoIPv4["source_match"] = strings.TrimPrefix(itemTrim, "source match ")
-	case strings.HasPrefix(itemTrim, "source value "):
-		protoIPv4["source_value"] = strings.TrimPrefix(itemTrim, "source value ")
-	case strings.HasPrefix(itemTrim, "tos match "):
-		protoIPv4["tos_match"] = strings.TrimPrefix(itemTrim, "tos match ")
-	case strings.HasPrefix(itemTrim, "tos value "):
-		var err error
-		protoIPv4["tos_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "tos value "))
+	case balt.CutPrefixInString(&itemTrim, "source match "):
+		protoIPv4["source_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "source value "):
+		protoIPv4["source_value"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "tos match "):
+		protoIPv4["tos_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "tos value "):
+		protoIPv4["tos_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "total-length match "):
-		protoIPv4["total_length_match"] = strings.TrimPrefix(itemTrim, "total-length match ")
-	case strings.HasPrefix(itemTrim, "total-length value "):
-		var err error
-		protoIPv4["total_length_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "total-length value "))
+	case balt.CutPrefixInString(&itemTrim, "total-length match "):
+		protoIPv4["total_length_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "total-length value "):
+		protoIPv4["total_length_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "ttl match "):
-		protoIPv4["ttl_match"] = strings.TrimPrefix(itemTrim, "ttl match ")
-	case strings.HasPrefix(itemTrim, "ttl value "):
-		var err error
-		protoIPv4["ttl_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "ttl value "))
+	case balt.CutPrefixInString(&itemTrim, "ttl match "):
+		protoIPv4["ttl_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "ttl value "):
+		protoIPv4["ttl_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
@@ -2018,79 +2011,66 @@ func readSecurityIdpCustomAttackTypeSignatureProtoIPv4(itemTrim string, protoIPv
 	return nil
 }
 
-func readSecurityIdpCustomAttackTypeSignatureProtoIPv6(itemTrim string, protoIPv6 map[string]interface{}) error {
+func readSecurityIdpCustomAttackTypeSignatureProtoIPv6(itemTrim string, protoIPv6 map[string]interface{}) (err error) {
 	switch {
-	case strings.HasPrefix(itemTrim, "destination match "):
-		protoIPv6["destination_match"] = strings.TrimPrefix(itemTrim, "destination match ")
-	case strings.HasPrefix(itemTrim, "destination value "):
-		protoIPv6["destination_value"] = strings.TrimPrefix(itemTrim, "destination value ")
-	case strings.HasPrefix(itemTrim, "extension-header destination-option home-address match "):
-		protoIPv6["extension_header_destination_option_home_address_match"] = strings.TrimPrefix(
-			itemTrim, "extension-header destination-option home-address match ")
-	case strings.HasPrefix(itemTrim, "extension-header destination-option home-address value "):
-		protoIPv6["extension_header_destination_option_home_address_value"] = strings.TrimPrefix(
-			itemTrim, "extension-header destination-option home-address value ")
-	case strings.HasPrefix(itemTrim, "extension-header destination-option option-type match "):
-		protoIPv6["extension_header_destination_option_type_match"] = strings.TrimPrefix(
-			itemTrim, "extension-header destination-option option-type match ")
-	case strings.HasPrefix(itemTrim, "extension-header destination-option option-type value "):
-		var err error
-		protoIPv6["extension_header_destination_option_type_value"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "extension-header destination-option option-type value "))
+	case balt.CutPrefixInString(&itemTrim, "destination match "):
+		protoIPv6["destination_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "destination value "):
+		protoIPv6["destination_value"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "extension-header destination-option home-address match "):
+		protoIPv6["extension_header_destination_option_home_address_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "extension-header destination-option home-address value "):
+		protoIPv6["extension_header_destination_option_home_address_value"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "extension-header destination-option option-type match "):
+		protoIPv6["extension_header_destination_option_type_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "extension-header destination-option option-type value "):
+		protoIPv6["extension_header_destination_option_type_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "extension-header routing-header header-type match "):
-		protoIPv6["extension_header_routing_header_type_match"] = strings.TrimPrefix(
-			itemTrim, "extension-header routing-header header-type match ")
-	case strings.HasPrefix(itemTrim, "extension-header routing-header header-type value "):
-		var err error
-		protoIPv6["extension_header_routing_header_type_value"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "extension-header routing-header header-type value "))
+	case balt.CutPrefixInString(&itemTrim, "extension-header routing-header header-type match "):
+		protoIPv6["extension_header_routing_header_type_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "extension-header routing-header header-type value "):
+		protoIPv6["extension_header_routing_header_type_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "flow-label match "):
-		protoIPv6["flow_label_match"] = strings.TrimPrefix(itemTrim, "flow-label match ")
-	case strings.HasPrefix(itemTrim, "flow-label value "):
-		var err error
-		protoIPv6["flow_label_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "flow-label value "))
+	case balt.CutPrefixInString(&itemTrim, "flow-label match "):
+		protoIPv6["flow_label_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "flow-label value "):
+		protoIPv6["flow_label_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "hop-limit match "):
-		protoIPv6["hop_limit_match"] = strings.TrimPrefix(itemTrim, "hop-limit match ")
-	case strings.HasPrefix(itemTrim, "hop-limit value "):
-		var err error
-		protoIPv6["hop_limit_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "hop-limit value "))
+	case balt.CutPrefixInString(&itemTrim, "hop-limit match "):
+		protoIPv6["hop_limit_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "hop-limit value "):
+		protoIPv6["hop_limit_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "next-header match "):
-		protoIPv6["next_header_match"] = strings.TrimPrefix(itemTrim, "next-header match ")
-	case strings.HasPrefix(itemTrim, "next-header value "):
-		var err error
-		protoIPv6["next_header_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "next-header value "))
+	case balt.CutPrefixInString(&itemTrim, "next-header match "):
+		protoIPv6["next_header_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "next-header value "):
+		protoIPv6["next_header_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "payload-length match "):
-		protoIPv6["payload_length_match"] = strings.TrimPrefix(itemTrim, "payload-length match ")
-	case strings.HasPrefix(itemTrim, "payload-length value "):
-		var err error
-		protoIPv6["payload_length_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "payload-length value "))
+	case balt.CutPrefixInString(&itemTrim, "payload-length match "):
+		protoIPv6["payload_length_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "payload-length value "):
+		protoIPv6["payload_length_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "source match "):
-		protoIPv6["source_match"] = strings.TrimPrefix(itemTrim, "source match ")
-	case strings.HasPrefix(itemTrim, "source value "):
-		protoIPv6["source_value"] = strings.TrimPrefix(itemTrim, "source value ")
-	case strings.HasPrefix(itemTrim, "traffic-class match "):
-		protoIPv6["traffic_class_match"] = strings.TrimPrefix(itemTrim, "traffic-class match ")
-	case strings.HasPrefix(itemTrim, "traffic-class value "):
-		var err error
-		protoIPv6["traffic_class_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "traffic-class value "))
+	case balt.CutPrefixInString(&itemTrim, "source match "):
+		protoIPv6["source_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "source value "):
+		protoIPv6["source_value"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "traffic-class match "):
+		protoIPv6["traffic_class_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "traffic-class value "):
+		protoIPv6["traffic_class_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
@@ -2099,111 +2079,98 @@ func readSecurityIdpCustomAttackTypeSignatureProtoIPv6(itemTrim string, protoIPv
 	return nil
 }
 
-func readSecurityIdpCustomAttackTypeSignatureProtoTCP(itemTrim string, protoTCP map[string]interface{}) error {
+func readSecurityIdpCustomAttackTypeSignatureProtoTCP(itemTrim string, protoTCP map[string]interface{}) (err error) {
 	switch {
-	case strings.HasPrefix(itemTrim, "ack-number match "):
-		protoTCP["ack_number_match"] = strings.TrimPrefix(itemTrim, "ack-number match ")
-	case strings.HasPrefix(itemTrim, "ack-number value "):
-		var err error
-		protoTCP["ack_number_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "ack-number value "))
+	case balt.CutPrefixInString(&itemTrim, "ack-number match "):
+		protoTCP["ack_number_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "ack-number value "):
+		protoTCP["ack_number_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "checksum-validate match "):
-		protoTCP["checksum_validate_match"] = strings.TrimPrefix(itemTrim, "checksum-validate match ")
-	case strings.HasPrefix(itemTrim, "checksum-validate value "):
-		var err error
-		protoTCP["checksum_validate_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "checksum-validate value "))
+	case balt.CutPrefixInString(&itemTrim, "checksum-validate match "):
+		protoTCP["checksum_validate_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "checksum-validate value "):
+		protoTCP["checksum_validate_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "data-length match "):
-		protoTCP["data_length_match"] = strings.TrimPrefix(itemTrim, "data-length match ")
-	case strings.HasPrefix(itemTrim, "data-length value "):
-		var err error
-		protoTCP["data_length_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "data-length value "))
+	case balt.CutPrefixInString(&itemTrim, "data-length match "):
+		protoTCP["data_length_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "data-length value "):
+		protoTCP["data_length_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "destination-port match "):
-		protoTCP["destination_port_match"] = strings.TrimPrefix(itemTrim, "destination-port match ")
-	case strings.HasPrefix(itemTrim, "destination-port value "):
-		var err error
-		protoTCP["destination_port_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "destination-port value "))
+	case balt.CutPrefixInString(&itemTrim, "destination-port match "):
+		protoTCP["destination_port_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "destination-port value "):
+		protoTCP["destination_port_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "header-length match "):
-		protoTCP["header_length_match"] = strings.TrimPrefix(itemTrim, "header-length match ")
-	case strings.HasPrefix(itemTrim, "header-length value "):
-		var err error
-		protoTCP["header_length_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "header-length value "))
+	case balt.CutPrefixInString(&itemTrim, "header-length match "):
+		protoTCP["header_length_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "header-length value "):
+		protoTCP["header_length_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "mss match "):
-		protoTCP["mss_match"] = strings.TrimPrefix(itemTrim, "mss match ")
-	case strings.HasPrefix(itemTrim, "mss value "):
-		var err error
-		protoTCP["mss_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "mss value "))
+	case balt.CutPrefixInString(&itemTrim, "mss match "):
+		protoTCP["mss_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "mss value "):
+		protoTCP["mss_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "option match "):
-		protoTCP["option_match"] = strings.TrimPrefix(itemTrim, "option match ")
-	case strings.HasPrefix(itemTrim, "option value "):
-		var err error
-		protoTCP["option_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "option value "))
+	case balt.CutPrefixInString(&itemTrim, "option match "):
+		protoTCP["option_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "option value "):
+		protoTCP["option_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "reserved match "):
-		protoTCP["reserved_match"] = strings.TrimPrefix(itemTrim, "reserved match ")
-	case strings.HasPrefix(itemTrim, "reserved value "):
-		var err error
-		protoTCP["reserved_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "reserved value "))
+	case balt.CutPrefixInString(&itemTrim, "reserved match "):
+		protoTCP["reserved_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "reserved value "):
+		protoTCP["reserved_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "sequence-number match "):
-		protoTCP["sequence_number_match"] = strings.TrimPrefix(itemTrim, "sequence-number match ")
-	case strings.HasPrefix(itemTrim, "sequence-number value "):
-		var err error
-		protoTCP["sequence_number_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "sequence-number value "))
+	case balt.CutPrefixInString(&itemTrim, "sequence-number match "):
+		protoTCP["sequence_number_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "sequence-number value "):
+		protoTCP["sequence_number_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "source-port match "):
-		protoTCP["source_port_match"] = strings.TrimPrefix(itemTrim, "source-port match ")
-	case strings.HasPrefix(itemTrim, "source-port value "):
-		var err error
-		protoTCP["source_port_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "source-port value "))
+	case balt.CutPrefixInString(&itemTrim, "source-port match "):
+		protoTCP["source_port_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "source-port value "):
+		protoTCP["source_port_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "tcp-flags "):
-		protoTCP["tcp_flags"] = append(protoTCP["tcp_flags"].([]string), strings.TrimPrefix(itemTrim, "tcp-flags "))
-	case strings.HasPrefix(itemTrim, "urgent-pointer match "):
-		protoTCP["urgent_pointer_match"] = strings.TrimPrefix(itemTrim, "urgent-pointer match ")
-	case strings.HasPrefix(itemTrim, "urgent-pointer value "):
-		var err error
-		protoTCP["urgent_pointer_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "urgent-pointer value "))
+	case balt.CutPrefixInString(&itemTrim, "tcp-flags "):
+		protoTCP["tcp_flags"] = append(protoTCP["tcp_flags"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "urgent-pointer match "):
+		protoTCP["urgent_pointer_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "urgent-pointer value "):
+		protoTCP["urgent_pointer_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "window-scale match "):
-		protoTCP["window_scale_match"] = strings.TrimPrefix(itemTrim, "window-scale match ")
-	case strings.HasPrefix(itemTrim, "window-scale value "):
-		var err error
-		protoTCP["window_scale_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "window-scale value "))
+	case balt.CutPrefixInString(&itemTrim, "window-scale match "):
+		protoTCP["window_scale_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "window-scale value "):
+		protoTCP["window_scale_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "window-size match "):
-		protoTCP["window_size_match"] = strings.TrimPrefix(itemTrim, "window-size match ")
-	case strings.HasPrefix(itemTrim, "window-size value "):
-		var err error
-		protoTCP["window_size_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "window-size value "))
+	case balt.CutPrefixInString(&itemTrim, "window-size match "):
+		protoTCP["window_size_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "window-size value "):
+		protoTCP["window_size_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
@@ -2212,37 +2179,33 @@ func readSecurityIdpCustomAttackTypeSignatureProtoTCP(itemTrim string, protoTCP 
 	return nil
 }
 
-func readSecurityIdpCustomAttackTypeSignatureProtoUDP(itemTrim string, protoUDP map[string]interface{}) error {
+func readSecurityIdpCustomAttackTypeSignatureProtoUDP(itemTrim string, protoUDP map[string]interface{}) (err error) {
 	switch {
-	case strings.HasPrefix(itemTrim, "checksum-validate match "):
-		protoUDP["checksum_validate_match"] = strings.TrimPrefix(itemTrim, "checksum-validate match ")
-	case strings.HasPrefix(itemTrim, "checksum-validate value "):
-		var err error
-		protoUDP["checksum_validate_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "checksum-validate value "))
+	case balt.CutPrefixInString(&itemTrim, "checksum-validate match "):
+		protoUDP["checksum_validate_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "checksum-validate value "):
+		protoUDP["checksum_validate_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "data-length match "):
-		protoUDP["data_length_match"] = strings.TrimPrefix(itemTrim, "data-length match ")
-	case strings.HasPrefix(itemTrim, "data-length value "):
-		var err error
-		protoUDP["data_length_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "data-length value "))
+	case balt.CutPrefixInString(&itemTrim, "data-length match "):
+		protoUDP["data_length_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "data-length value "):
+		protoUDP["data_length_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "destination-port match "):
-		protoUDP["destination_port_match"] = strings.TrimPrefix(itemTrim, "destination-port match ")
-	case strings.HasPrefix(itemTrim, "destination-port value "):
-		var err error
-		protoUDP["destination_port_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "destination-port value "))
+	case balt.CutPrefixInString(&itemTrim, "destination-port match "):
+		protoUDP["destination_port_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "destination-port value "):
+		protoUDP["destination_port_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "source-port match "):
-		protoUDP["source_port_match"] = strings.TrimPrefix(itemTrim, "source-port match ")
-	case strings.HasPrefix(itemTrim, "source-port value "):
-		var err error
-		protoUDP["source_port_value"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "source-port value "))
+	case balt.CutPrefixInString(&itemTrim, "source-port match "):
+		protoUDP["source_port_match"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "source-port value "):
+		protoUDP["source_port_value"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}

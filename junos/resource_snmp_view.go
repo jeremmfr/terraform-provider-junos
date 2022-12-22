@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type snmpViewOptions struct {
@@ -264,9 +265,7 @@ func setSnmpView(d *schema.ResourceData, clt *Client, junSess *junosSession) err
 	return clt.configSet(configSet, junSess)
 }
 
-func readSnmpView(name string, clt *Client, junSess *junosSession) (snmpViewOptions, error) {
-	var confRead snmpViewOptions
-
+func readSnmpView(name string, clt *Client, junSess *junosSession) (confRead snmpViewOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"snmp view \""+name+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -281,14 +280,13 @@ func readSnmpView(name string, clt *Client, junSess *junosSession) (snmpViewOpti
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
-			itemTrimSplit := strings.Split(itemTrim, " ")
 			switch {
-			case strings.HasPrefix(itemTrim, "oid ") && strings.HasSuffix(itemTrim, " include"):
-				confRead.oidInclude = append(confRead.oidInclude, itemTrimSplit[1])
-			case strings.HasPrefix(itemTrim, "oid ") && strings.HasSuffix(itemTrim, " exclude"):
-				confRead.oidExclude = append(confRead.oidExclude, itemTrimSplit[1])
-			case strings.HasPrefix(itemTrim, "oid "):
-				confRead.oidInclude = append(confRead.oidInclude, itemTrimSplit[1])
+			case balt.CutSuffixInString(&itemTrim, " include") && balt.CutPrefixInString(&itemTrim, "oid "):
+				confRead.oidInclude = append(confRead.oidInclude, itemTrim)
+			case balt.CutSuffixInString(&itemTrim, " exclude") && balt.CutPrefixInString(&itemTrim, "oid "):
+				confRead.oidExclude = append(confRead.oidExclude, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "oid "):
+				confRead.oidInclude = append(confRead.oidInclude, itemTrim)
 			}
 		}
 	}

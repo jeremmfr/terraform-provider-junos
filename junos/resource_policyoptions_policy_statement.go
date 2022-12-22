@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -926,9 +927,7 @@ func setPolicyStatementFwTableExport(policyName string, clt *Client, junSess *ju
 	return clt.configSet(configSet, junSess)
 }
 
-func readPolicyStatement(name string, clt *Client, junSess *junosSession) (policyStatementOptions, error) {
-	var confRead policyStatementOptions
-
+func readPolicyStatement(name string, clt *Client, junSess *junosSession) (confRead policyStatementOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"policy-options policy-statement "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -945,65 +944,65 @@ func readPolicyStatement(name string, clt *Client, junSess *junosSession) (polic
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "term "):
-				itemTermList := strings.Split(strings.TrimPrefix(itemTrim, "term "), " ")
+			case balt.CutPrefixInString(&itemTrim, "term "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				termOptions := map[string]interface{}{
-					"name": itemTermList[0],
+					"name": itemTrimFields[0],
 					"from": make([]map[string]interface{}, 0),
 					"then": make([]map[string]interface{}, 0),
 					"to":   make([]map[string]interface{}, 0),
 				}
-				itemTrimTerm := strings.TrimPrefix(itemTrim, "term "+itemTermList[0]+" ")
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				confRead.term = copyAndRemoveItemMapList("name", termOptions, confRead.term)
 				switch {
-				case strings.HasPrefix(itemTrimTerm, "from "):
+				case balt.CutPrefixInString(&itemTrim, "from "):
 					if len(termOptions["from"].([]map[string]interface{})) == 0 {
 						termOptions["from"] = append(termOptions["from"].([]map[string]interface{}),
 							genMapPolicyStatementOptsFrom())
 					}
-					if err := readPolicyStatementOptsFrom(strings.TrimPrefix(itemTrimTerm, "from "),
+					if err := readPolicyStatementOptsFrom(itemTrim,
 						termOptions["from"].([]map[string]interface{})[0]); err != nil {
 						return confRead, err
 					}
-				case strings.HasPrefix(itemTrimTerm, "then "):
+				case balt.CutPrefixInString(&itemTrim, "then "):
 					if len(termOptions["then"].([]map[string]interface{})) == 0 {
 						termOptions["then"] = append(termOptions["then"].([]map[string]interface{}),
 							genMapPolicyStatementOptsThen())
 					}
-					if err := readPolicyStatementOptsThen(strings.TrimPrefix(itemTrimTerm, "then "),
+					if err := readPolicyStatementOptsThen(itemTrim,
 						termOptions["then"].([]map[string]interface{})[0]); err != nil {
 						return confRead, err
 					}
-				case strings.HasPrefix(itemTrimTerm, "to "):
+				case balt.CutPrefixInString(&itemTrim, "to "):
 					if len(termOptions["to"].([]map[string]interface{})) == 0 {
 						termOptions["to"] = append(termOptions["to"].([]map[string]interface{}),
 							genMapPolicyStatementOptsTo())
 					}
-					if err := readPolicyStatementOptsTo(strings.TrimPrefix(itemTrimTerm, "to "),
+					if err := readPolicyStatementOptsTo(itemTrim,
 						termOptions["to"].([]map[string]interface{})[0]); err != nil {
 						return confRead, err
 					}
 				}
 				confRead.term = append(confRead.term, termOptions)
-			case strings.HasPrefix(itemTrim, "from "):
+			case balt.CutPrefixInString(&itemTrim, "from "):
 				if len(confRead.from) == 0 {
 					confRead.from = append(confRead.from, genMapPolicyStatementOptsFrom())
 				}
-				if err := readPolicyStatementOptsFrom(strings.TrimPrefix(itemTrim, "from "), confRead.from[0]); err != nil {
+				if err := readPolicyStatementOptsFrom(itemTrim, confRead.from[0]); err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "then "):
+			case balt.CutPrefixInString(&itemTrim, "then "):
 				if len(confRead.then) == 0 {
 					confRead.then = append(confRead.then, genMapPolicyStatementOptsThen())
 				}
-				if err := readPolicyStatementOptsThen(strings.TrimPrefix(itemTrim, "then "), confRead.then[0]); err != nil {
+				if err := readPolicyStatementOptsThen(itemTrim, confRead.then[0]); err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "to "):
+			case balt.CutPrefixInString(&itemTrim, "to "):
 				if len(confRead.to) == 0 {
 					confRead.to = append(confRead.to, genMapPolicyStatementOptsTo())
 				}
-				if err := readPolicyStatementOptsTo(strings.TrimPrefix(itemTrim, "to "), confRead.to[0]); err != nil {
+				if err := readPolicyStatementOptsTo(itemTrim, confRead.to[0]); err != nil {
 					return confRead, err
 				}
 			}
@@ -1341,255 +1340,246 @@ func setPolicyStatementOptsTo(setPrefix string, opts map[string]interface{}) []s
 	return configSet
 }
 
-func readPolicyStatementOptsFrom(item string, fromMap map[string]interface{}) error {
+func readPolicyStatementOptsFrom(itemTrim string, fromMap map[string]interface{}) (err error) {
 	switch {
-	case item == "aggregate-contributor":
+	case itemTrim == "aggregate-contributor":
 		fromMap["aggregate_contributor"] = true
-	case strings.HasPrefix(item, "as-path "):
-		fromMap["bgp_as_path"] = append(fromMap["bgp_as_path"].([]string), strings.TrimPrefix(item, "as-path "))
-	case strings.HasPrefix(item, "as-path-calc-length "):
-		countStr := strings.Split(strings.TrimPrefix(item, "as-path-calc-length "), " ")[0]
-		count, err := strconv.Atoi(countStr)
+	case balt.CutPrefixInString(&itemTrim, "as-path "):
+		fromMap["bgp_as_path"] = append(fromMap["bgp_as_path"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "as-path-calc-length "):
+		itemTrimFields := strings.Split(itemTrim, " ")
+		count, err := strconv.Atoi(itemTrimFields[0])
 		if err != nil {
-			return fmt.Errorf(failedConvAtoiError, item, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 		fromMap["bgp_as_path_calc_length"] = append(
 			fromMap["bgp_as_path_calc_length"].([]map[string]interface{}),
 			map[string]interface{}{
 				"count": count,
-				"match": strings.TrimPrefix(item, "as-path-calc-length "+countStr+" "),
+				"match": strings.TrimPrefix(itemTrim, itemTrimFields[0]+" "),
 			},
 		)
-	case strings.HasPrefix(item, "as-path-group "):
-		fromMap["bgp_as_path_group"] = append(fromMap["bgp_as_path_group"].([]string),
-			strings.TrimPrefix(item, "as-path-group "))
-	case strings.HasPrefix(item, "as-path-unique-count "):
-		countStr := strings.Split(strings.TrimPrefix(item, "as-path-unique-count "), " ")[0]
-		count, err := strconv.Atoi(countStr)
+	case balt.CutPrefixInString(&itemTrim, "as-path-group "):
+		fromMap["bgp_as_path_group"] = append(fromMap["bgp_as_path_group"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "as-path-unique-count "):
+		itemTrimFields := strings.Split(itemTrim, " ")
+		count, err := strconv.Atoi(itemTrimFields[0])
 		if err != nil {
-			return fmt.Errorf(failedConvAtoiError, item, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 		fromMap["bgp_as_path_unique_count"] = append(
 			fromMap["bgp_as_path_unique_count"].([]map[string]interface{}),
 			map[string]interface{}{
 				"count": count,
-				"match": strings.TrimPrefix(item, "as-path-unique-count "+countStr+" "),
+				"match": strings.TrimPrefix(itemTrim, itemTrimFields[0]+" "),
 			},
 		)
-	case strings.HasPrefix(item, "community "):
-		fromMap["bgp_community"] = append(fromMap["bgp_community"].([]string), strings.TrimPrefix(item, "community "))
-	case strings.HasPrefix(item, "community-count "):
-		countStr := strings.Split(strings.TrimPrefix(item, "community-count "), " ")[0]
-		count, err := strconv.Atoi(countStr)
+	case balt.CutPrefixInString(&itemTrim, "community "):
+		fromMap["bgp_community"] = append(fromMap["bgp_community"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "community-count "):
+		itemTrimFields := strings.Split(itemTrim, " ")
+		count, err := strconv.Atoi(itemTrimFields[0])
 		if err != nil {
-			return fmt.Errorf(failedConvAtoiError, item, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 		fromMap["bgp_community_count"] = append(
 			fromMap["bgp_community_count"].([]map[string]interface{}),
 			map[string]interface{}{
 				"count": count,
-				"match": strings.TrimPrefix(item, "community-count "+countStr+" "),
+				"match": strings.TrimPrefix(itemTrim, itemTrimFields[0]+" "),
 			},
 		)
-	case strings.HasPrefix(item, "origin "):
-		fromMap["bgp_origin"] = strings.TrimPrefix(item, "origin ")
-	case strings.HasPrefix(item, "bgp-srte-discriminator "):
-		var err error
-		fromMap["bgp_srte_discriminator"], err = strconv.Atoi(strings.TrimPrefix(item, "bgp-srte-discriminator "))
+	case balt.CutPrefixInString(&itemTrim, "origin "):
+		fromMap["bgp_origin"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "bgp-srte-discriminator "):
+		fromMap["bgp_srte_discriminator"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(failedConvAtoiError, item, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(item, "color "):
-		var err error
-		fromMap["color"], err = strconv.Atoi(strings.TrimPrefix(item, "color "))
+	case balt.CutPrefixInString(&itemTrim, "color "):
+		fromMap["color"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(failedConvAtoiError, item, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(item, "evpn-esi "):
-		fromMap["evpn_esi"] = append(fromMap["evpn_esi"].([]string), strings.TrimPrefix(item, "evpn-esi "))
-	case strings.HasPrefix(item, "evpn-mac-route "):
-		fromMap["evpn_mac_route"] = strings.TrimPrefix(item, "evpn-mac-route ")
-	case strings.HasPrefix(item, "evpn-tag "):
-		tag, err := strconv.Atoi(strings.TrimPrefix(item, "evpn-tag "))
+	case balt.CutPrefixInString(&itemTrim, "evpn-esi "):
+		fromMap["evpn_esi"] = append(fromMap["evpn_esi"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "evpn-mac-route "):
+		fromMap["evpn_mac_route"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "evpn-tag "):
+		tag, err := strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(failedConvAtoiError, item, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 		fromMap["evpn_tag"] = append(fromMap["evpn_tag"].([]int), tag)
-	case strings.HasPrefix(item, "family "):
-		fromMap["family"] = strings.TrimPrefix(item, "family ")
-	case strings.HasPrefix(item, "local-preference "):
-		var err error
-		fromMap["local_preference"], err = strconv.Atoi(strings.TrimPrefix(item, "local-preference "))
+	case balt.CutPrefixInString(&itemTrim, "family "):
+		fromMap["family"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "local-preference "):
+		fromMap["local_preference"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(failedConvAtoiError, item, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(item, "instance "):
-		fromMap["routing_instance"] = strings.TrimPrefix(item, "instance ")
-	case strings.HasPrefix(item, "interface "):
-		fromMap["interface"] = append(fromMap["interface"].([]string), strings.TrimPrefix(item, "interface "))
-	case strings.HasPrefix(item, "metric "):
-		var err error
-		fromMap["metric"], err = strconv.Atoi(strings.TrimPrefix(item, "metric "))
+	case balt.CutPrefixInString(&itemTrim, "instance "):
+		fromMap["routing_instance"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "interface "):
+		fromMap["interface"] = append(fromMap["interface"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "metric "):
+		fromMap["metric"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(failedConvAtoiError, item, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(item, "neighbor "):
-		fromMap["neighbor"] = append(fromMap["neighbor"].([]string), strings.TrimPrefix(item, "neighbor "))
-	case strings.HasPrefix(item, "next-hop "):
-		fromMap["next_hop"] = append(fromMap["next_hop"].([]string), strings.TrimPrefix(item, "next-hop "))
-	case item == "next-hop-type merged":
+	case balt.CutPrefixInString(&itemTrim, "neighbor "):
+		fromMap["neighbor"] = append(fromMap["neighbor"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "next-hop "):
+		fromMap["next_hop"] = append(fromMap["next_hop"].([]string), itemTrim)
+	case itemTrim == "next-hop-type merged":
 		fromMap["next_hop_type_merged"] = true
-	case strings.HasPrefix(item, "nexthop-weight "):
-		itemSplit := strings.Split(strings.TrimPrefix(item, "nexthop-weight "), " ")
-		if len(itemSplit) < 2 {
-			return fmt.Errorf("can't read value for weight in %s", item)
+	case balt.CutPrefixInString(&itemTrim, "nexthop-weight "):
+		itemTrimFields := strings.Split(itemTrim, " ")
+		if len(itemTrimFields) < 2 { // <match> <weight>
+			return fmt.Errorf(cantReadValuesNotEnoughFields, "nexthop-weight", itemTrim)
 		}
-		weight, err := strconv.Atoi(itemSplit[1])
+		weight, err := strconv.Atoi(itemTrimFields[1])
 		if err != nil {
-			return fmt.Errorf(failedConvAtoiError, item, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 		fromMap["next_hop_weight"] = append(
 			fromMap["next_hop_weight"].([]map[string]interface{}),
 			map[string]interface{}{
-				"match":  itemSplit[0],
+				"match":  itemTrimFields[0],
 				"weight": weight,
 			},
 		)
-	case strings.HasPrefix(item, "area "):
-		fromMap["ospf_area"] = strings.TrimPrefix(item, "area ")
-	case strings.HasPrefix(item, "policy "):
-		fromMap["policy"] = append(fromMap["policy"].([]string), strings.TrimPrefix(item, "policy "))
-	case strings.HasPrefix(item, "preference "):
-		var err error
-		fromMap["preference"], err = strconv.Atoi(strings.TrimPrefix(item, "preference "))
+	case balt.CutPrefixInString(&itemTrim, "area "):
+		fromMap["ospf_area"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "policy "):
+		fromMap["policy"] = append(fromMap["policy"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "preference "):
+		fromMap["preference"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(failedConvAtoiError, item, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(item, "prefix-list "):
-		fromMap["prefix_list"] = append(fromMap["prefix_list"].([]string), strings.TrimPrefix(item, "prefix-list "))
-	case strings.HasPrefix(item, "protocol "):
-		fromMap["protocol"] = append(fromMap["protocol"].([]string), strings.TrimPrefix(item, "protocol "))
-	case strings.HasPrefix(item, "route-filter "):
+	case balt.CutPrefixInString(&itemTrim, "prefix-list "):
+		fromMap["prefix_list"] = append(fromMap["prefix_list"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "protocol "):
+		fromMap["protocol"] = append(fromMap["protocol"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "route-filter "):
+		itemTrimFields := strings.Split(itemTrim, " ")
+		if len(itemTrimFields) < 2 { // <route> <option> <option_value>?
+			return fmt.Errorf(cantReadValuesNotEnoughFields, "route-filter", itemTrim)
+		}
 		routeFilterMap := map[string]interface{}{
-			"route":        "",
-			"option":       "",
+			"route":        itemTrimFields[0],
+			"option":       itemTrimFields[1],
 			"option_value": "",
 		}
-		itemSplit := strings.Split(item, " ")
-		routeFilterMap["route"] = itemSplit[1]
-		routeFilterMap["option"] = itemSplit[2]
-		if len(itemSplit) > 3 {
-			routeFilterMap["option_value"] = itemSplit[3]
+		if len(itemTrimFields) > 2 {
+			routeFilterMap["option_value"] = itemTrimFields[2]
 		}
 		fromMap["route_filter"] = append(fromMap["route_filter"].([]map[string]interface{}), routeFilterMap)
-	case strings.HasPrefix(item, "route-type "):
-		fromMap["route_type"] = strings.TrimPrefix(item, "route-type ")
-	case strings.HasPrefix(item, "srte-color "):
-		var err error
-		fromMap["srte_color"], err = strconv.Atoi(strings.TrimPrefix(item, "srte-color "))
+	case balt.CutPrefixInString(&itemTrim, "route-type "):
+		fromMap["route_type"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "srte-color "):
+		fromMap["srte_color"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(failedConvAtoiError, item, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(item, "state "):
-		fromMap["state"] = strings.TrimPrefix(item, "state ")
-	case strings.HasPrefix(item, "tunnel-type "):
-		fromMap["tunnel_type"] = append(fromMap["tunnel_type"].([]string), strings.TrimPrefix(item, "tunnel-type "))
-	case strings.HasPrefix(item, "validation-database "):
-		fromMap["validation_database"] = strings.TrimPrefix(item, "validation-database ")
+	case balt.CutPrefixInString(&itemTrim, "state "):
+		fromMap["state"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "tunnel-type "):
+		fromMap["tunnel_type"] = append(fromMap["tunnel_type"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "validation-database "):
+		fromMap["validation_database"] = itemTrim
 	}
 
 	return nil
 }
 
-func readPolicyStatementOptsThen(item string, thenMap map[string]interface{}) error {
+func readPolicyStatementOptsThen(itemTrim string, thenMap map[string]interface{}) (err error) {
 	switch {
-	case strings.HasPrefix(item, "accept"),
-		strings.HasPrefix(item, "reject"):
-		thenMap["action"] = item
-	case strings.HasPrefix(item, "as-path-expand "):
-		thenMap["as_path_expand"] = strings.Trim(strings.TrimPrefix(item, "as-path-expand "), "\"")
-	case strings.HasPrefix(item, "as-path-prepend "):
-		thenMap["as_path_prepend"] = strings.Trim(strings.TrimPrefix(item, "as-path-prepend "), "\"")
-	case strings.HasPrefix(item, "community "):
-		communityMap := map[string]interface{}{
-			"action": "",
-			"value":  "",
+	case itemTrim == "accept", itemTrim == "reject":
+		thenMap["action"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "as-path-expand "):
+		thenMap["as_path_expand"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "as-path-prepend "):
+		thenMap["as_path_prepend"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "community "):
+		itemTrimFields := strings.Split(itemTrim, " ")
+		if len(itemTrimFields) < 2 { // <action> <value>
+			return fmt.Errorf(cantReadValuesNotEnoughFields, "community", itemTrim)
 		}
-		itemSplit := strings.Split(item, " ")
-		communityMap["action"] = itemSplit[1]
-		communityMap["value"] = itemSplit[2]
+		communityMap := map[string]interface{}{
+			"action": itemTrimFields[0],
+			"value":  itemTrimFields[1],
+		}
 		thenMap["community"] = append(thenMap["community"].([]map[string]interface{}), communityMap)
-	case strings.HasPrefix(item, "default-action "):
-		thenMap["default_action"] = strings.TrimPrefix(item, "default-action ")
-	case strings.HasPrefix(item, "load-balance "):
-		thenMap["load_balance"] = strings.TrimPrefix(item, "load-balance ")
-	case strings.HasPrefix(item, "local-preference "):
+	case balt.CutPrefixInString(&itemTrim, "default-action "):
+		thenMap["default_action"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "load-balance "):
+		thenMap["load_balance"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "local-preference "):
 		localPreferenceMap := map[string]interface{}{
 			"action": "",
 			"value":  0,
 		}
-		itemSplit := strings.Split(item, " ")
-		var err error
-		if len(itemSplit) == 2 {
+		itemTrimFields := strings.Split(itemTrim, " ")
+		if len(itemTrimFields) == 1 { // <value>
 			localPreferenceMap["action"] = "none"
-			localPreferenceMap["value"], err = strconv.Atoi(itemSplit[1])
+			localPreferenceMap["value"], err = strconv.Atoi(itemTrimFields[0])
 			if err != nil {
-				return fmt.Errorf(failedConvAtoiError, item, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		} else {
-			localPreferenceMap["action"] = itemSplit[1]
-			localPreferenceMap["value"], err = strconv.Atoi(itemSplit[2])
+		} else { // <action> <value>
+			localPreferenceMap["action"] = itemTrimFields[0]
+			localPreferenceMap["value"], err = strconv.Atoi(itemTrimFields[1])
 			if err != nil {
-				return fmt.Errorf(failedConvAtoiError, item, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 
 		thenMap["local_preference"] = append(thenMap["local_preference"].([]map[string]interface{}), localPreferenceMap)
-	case strings.HasPrefix(item, "next "):
-		thenMap["next"] = strings.TrimPrefix(item, "next ")
-	case strings.HasPrefix(item, "next-hop "):
-		thenMap["next_hop"] = strings.TrimPrefix(item, "next-hop ")
-	case strings.HasPrefix(item, "metric "):
+	case balt.CutPrefixInString(&itemTrim, "next "):
+		thenMap["next"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "next-hop "):
+		thenMap["next_hop"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "metric "):
 		metricMap := map[string]interface{}{
 			"action": "",
 			"value":  0,
 		}
-		itemSplit := strings.Split(item, " ")
-		var err error
-		if len(itemSplit) == 2 {
+		itemTrimFields := strings.Split(itemTrim, " ")
+		if len(itemTrimFields) == 1 { // <value>
 			metricMap["action"] = "none"
-			metricMap["value"], err = strconv.Atoi(itemSplit[1])
+			metricMap["value"], err = strconv.Atoi(itemTrimFields[0])
 			if err != nil {
-				return fmt.Errorf(failedConvAtoiError, item, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		} else {
-			metricMap["action"] = itemSplit[1]
-			metricMap["value"], err = strconv.Atoi(itemSplit[2])
+		} else { // <action> <value>
+			metricMap["action"] = itemTrimFields[0]
+			metricMap["value"], err = strconv.Atoi(itemTrimFields[1])
 			if err != nil {
-				return fmt.Errorf(failedConvAtoiError, item, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 		thenMap["metric"] = append(thenMap["metric"].([]map[string]interface{}), metricMap)
-	case strings.HasPrefix(item, "origin "):
-		thenMap["origin"] = strings.TrimPrefix(item, "origin ")
-	case strings.HasPrefix(item, "preference "):
+	case balt.CutPrefixInString(&itemTrim, "origin "):
+		thenMap["origin"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "preference "):
 		preferenceMap := map[string]interface{}{
 			"action": "",
 			"value":  0,
 		}
-		itemSplit := strings.Split(item, " ")
-		var err error
-		if len(itemSplit) == 2 {
+		itemTrimFields := strings.Split(itemTrim, " ")
+		if len(itemTrimFields) == 1 { // <value>
 			preferenceMap["action"] = "none"
-			preferenceMap["value"], err = strconv.Atoi(itemSplit[1])
+			preferenceMap["value"], err = strconv.Atoi(itemTrimFields[0])
 			if err != nil {
-				return fmt.Errorf(failedConvAtoiError, item, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		} else {
-			preferenceMap["action"] = itemSplit[1]
-			preferenceMap["value"], err = strconv.Atoi(itemSplit[2])
+		} else { // <action> <value>
+			preferenceMap["action"] = itemTrimFields[0]
+			preferenceMap["value"], err = strconv.Atoi(itemTrimFields[1])
 			if err != nil {
-				return fmt.Errorf(failedConvAtoiError, item, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
 		thenMap["preference"] = append(thenMap["preference"].([]map[string]interface{}), preferenceMap)
@@ -1598,50 +1588,47 @@ func readPolicyStatementOptsThen(item string, thenMap map[string]interface{}) er
 	return nil
 }
 
-func readPolicyStatementOptsTo(item string, toMap map[string]interface{}) error {
+func readPolicyStatementOptsTo(itemTrim string, toMap map[string]interface{}) (err error) {
 	switch {
-	case strings.HasPrefix(item, "as-path "):
-		toMap["bgp_as_path"] = append(toMap["bgp_as_path"].([]string), strings.TrimPrefix(item, "as-path "))
-	case strings.HasPrefix(item, "as-path-group "):
-		toMap["bgp_as_path_group"] = append(toMap["bgp_as_path_group"].([]string), strings.TrimPrefix(item, "as-path-group "))
-	case strings.HasPrefix(item, "community "):
-		toMap["bgp_community"] = append(toMap["bgp_community"].([]string), strings.TrimPrefix(item, "community "))
-	case strings.HasPrefix(item, "origin "):
-		toMap["bgp_origin"] = strings.TrimPrefix(item, "origin ")
-	case strings.HasPrefix(item, "family "):
-		toMap["family"] = strings.TrimPrefix(item, "family ")
-	case strings.HasPrefix(item, "local-preference "):
-		var err error
-		toMap["local_preference"], err = strconv.Atoi(strings.TrimPrefix(item, "local-preference "))
+	case balt.CutPrefixInString(&itemTrim, "as-path "):
+		toMap["bgp_as_path"] = append(toMap["bgp_as_path"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "as-path-group "):
+		toMap["bgp_as_path_group"] = append(toMap["bgp_as_path_group"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "community "):
+		toMap["bgp_community"] = append(toMap["bgp_community"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "origin "):
+		toMap["bgp_origin"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "family "):
+		toMap["family"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "local-preference "):
+		toMap["local_preference"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(failedConvAtoiError, item, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(item, "instance "):
-		toMap["routing_instance"] = strings.TrimPrefix(item, "instance ")
-	case strings.HasPrefix(item, "interface "):
-		toMap["interface"] = append(toMap["interface"].([]string), strings.TrimPrefix(item, "interface "))
-	case strings.HasPrefix(item, "metric "):
-		var err error
-		toMap["metric"], err = strconv.Atoi(strings.TrimPrefix(item, "metric "))
+	case balt.CutPrefixInString(&itemTrim, "instance "):
+		toMap["routing_instance"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "interface "):
+		toMap["interface"] = append(toMap["interface"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "metric "):
+		toMap["metric"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(failedConvAtoiError, item, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(item, "neighbor "):
-		toMap["neighbor"] = append(toMap["neighbor"].([]string), strings.TrimPrefix(item, "neighbor "))
-	case strings.HasPrefix(item, "next-hop "):
-		toMap["next_hop"] = append(toMap["next_hop"].([]string), strings.TrimPrefix(item, "next-hop "))
-	case strings.HasPrefix(item, "area "):
-		toMap["ospf_area"] = strings.TrimPrefix(item, "area ")
-	case strings.HasPrefix(item, "policy "):
-		toMap["policy"] = append(toMap["policy"].([]string), strings.TrimPrefix(item, "policy "))
-	case strings.HasPrefix(item, "preference "):
-		var err error
-		toMap["preference"], err = strconv.Atoi(strings.TrimPrefix(item, "preference "))
+	case balt.CutPrefixInString(&itemTrim, "neighbor "):
+		toMap["neighbor"] = append(toMap["neighbor"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "next-hop "):
+		toMap["next_hop"] = append(toMap["next_hop"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "area "):
+		toMap["ospf_area"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "policy "):
+		toMap["policy"] = append(toMap["policy"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "preference "):
+		toMap["preference"], err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(failedConvAtoiError, item, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(item, "protocol "):
-		toMap["protocol"] = append(toMap["protocol"].([]string), strings.TrimPrefix(item, "protocol "))
+	case balt.CutPrefixInString(&itemTrim, "protocol "):
+		toMap["protocol"] = append(toMap["protocol"].([]string), itemTrim)
 	}
 
 	return nil

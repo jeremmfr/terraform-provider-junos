@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -363,9 +364,7 @@ func readSystemLoginUserReadDataPlainTextPassword(d *schema.ResourceData) string
 }
 
 func readSystemLoginUser(name, plainTextPassword string, clt *Client, junSess *junosSession,
-) (systemLoginUserOptions, error) {
-	var confRead systemLoginUserOptions
-
+) (confRead systemLoginUserOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"system login user "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -381,15 +380,14 @@ func readSystemLoginUser(name, plainTextPassword string, clt *Client, junSess *j
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "class "):
-				confRead.class = strings.TrimPrefix(itemTrim, "class ")
-			case strings.HasPrefix(itemTrim, "uid "):
-				var err error
-				confRead.uid, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "uid "))
+			case balt.CutPrefixInString(&itemTrim, "class "):
+				confRead.class = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "uid "):
+				confRead.uid, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "authentication "):
+			case balt.CutPrefixInString(&itemTrim, "authentication "):
 				if len(confRead.authentication) == 0 {
 					confRead.authentication = append(confRead.authentication, map[string]interface{}{
 						"encrypted_password":  "",
@@ -399,32 +397,27 @@ func readSystemLoginUser(name, plainTextPassword string, clt *Client, junSess *j
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "authentication encrypted-password "):
+				case balt.CutPrefixInString(&itemTrim, "encrypted-password "):
 					if plainTextPassword != "" {
 						confRead.authentication[0]["plain_text_password"] = plainTextPassword
 					} else {
-						confRead.authentication[0]["encrypted_password"] = strings.Trim(strings.TrimPrefix(
-							itemTrim, "authentication encrypted-password "), "\"")
+						confRead.authentication[0]["encrypted_password"] = strings.Trim(itemTrim, "\"")
 					}
-				case itemTrim == "authentication no-public-keys":
+				case itemTrim == "no-public-keys":
 					confRead.authentication[0]["no_public_keys"] = true
-				case strings.HasPrefix(itemTrim, "authentication ssh-dsa "):
-					confRead.authentication[0]["ssh_public_keys"] = append(confRead.authentication[0]["ssh_public_keys"].([]string),
-						strings.Trim(strings.TrimPrefix(itemTrim, "authentication ssh-dsa "), "\""))
-				case strings.HasPrefix(itemTrim, "authentication ssh-ecdsa "):
-					confRead.authentication[0]["ssh_public_keys"] = append(confRead.authentication[0]["ssh_public_keys"].([]string),
-						strings.Trim(strings.TrimPrefix(itemTrim, "authentication ssh-ecdsa "), "\""))
-				case strings.HasPrefix(itemTrim, "authentication ssh-ed25519 "):
-					confRead.authentication[0]["ssh_public_keys"] = append(confRead.authentication[0]["ssh_public_keys"].([]string),
-						strings.Trim(strings.TrimPrefix(itemTrim, "authentication ssh-ed25519 "), "\""))
-				case strings.HasPrefix(itemTrim, "authentication ssh-rsa "):
-					confRead.authentication[0]["ssh_public_keys"] = append(confRead.authentication[0]["ssh_public_keys"].([]string),
-						strings.Trim(strings.TrimPrefix(itemTrim, "authentication ssh-rsa "), "\""))
+				case balt.CutPrefixInString(&itemTrim, "ssh-dsa "),
+					balt.CutPrefixInString(&itemTrim, "ssh-ecdsa "),
+					balt.CutPrefixInString(&itemTrim, "ssh-ed25519 "),
+					balt.CutPrefixInString(&itemTrim, "ssh-rsa "):
+					confRead.authentication[0]["ssh_public_keys"] = append(
+						confRead.authentication[0]["ssh_public_keys"].([]string),
+						strings.Trim(itemTrim, "\""),
+					)
 				}
-			case strings.HasPrefix(itemTrim, "cli prompt "):
-				confRead.cliPrompt = strings.Trim(strings.TrimPrefix(itemTrim, "cli prompt "), "\"")
-			case strings.HasPrefix(itemTrim, "full-name "):
-				confRead.fullName = strings.Trim(strings.TrimPrefix(itemTrim, "full-name "), "\"")
+			case balt.CutPrefixInString(&itemTrim, "cli prompt "):
+				confRead.cliPrompt = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "full-name "):
+				confRead.fullName = strings.Trim(itemTrim, "\"")
 			}
 		}
 	}

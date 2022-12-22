@@ -16,6 +16,7 @@ type configProvider struct {
 	junosCmdSleepLock        int
 	junosSSHSleepClosed      int
 	junosSSHTimeoutToEstab   int
+	junosSSHRetryToEstab     int
 	junosIP                  string
 	junosUserName            string
 	junosPassword            string
@@ -44,6 +45,7 @@ func (c *configProvider) newClient() (*Client, diag.Diagnostics) {
 		sleepSSHClosed:         c.junosSSHSleepClosed,
 		junosSSHCiphers:        c.junosSSHCiphers,
 		junosSSHTimeoutToEstab: c.junosSSHTimeoutToEstab,
+		junosSSHRetryToEstab:   c.junosSSHRetryToEstab,
 		fakeUpdateAlso:         c.junosFakeUpdateAlso,
 		fakeDeleteAlso:         c.junosFakeDeleteAlso,
 	}

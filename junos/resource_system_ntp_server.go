@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type ntpServerOptions struct {
@@ -284,9 +285,7 @@ func setSystemNtpServer(d *schema.ResourceData, clt *Client, junSess *junosSessi
 	return clt.configSet(configSet, junSess)
 }
 
-func readSystemNtpServer(address string, clt *Client, junSess *junosSession) (ntpServerOptions, error) {
-	var confRead ntpServerOptions
-
+func readSystemNtpServer(address string, clt *Client, junSess *junosSession) (confRead ntpServerOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"system ntp server "+address+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -302,19 +301,17 @@ func readSystemNtpServer(address string, clt *Client, junSess *junosSession) (nt
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "key "):
-				var err error
-				confRead.key, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "key "))
+			case balt.CutPrefixInString(&itemTrim, "key "):
+				confRead.key, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "prefer":
 				confRead.prefer = true
-			case strings.HasPrefix(itemTrim, "routing-instance "):
-				confRead.routingInstance = strings.TrimPrefix(itemTrim, "routing-instance ")
-			case strings.HasPrefix(itemTrim, "version "):
-				var err error
-				confRead.version, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "version "))
+			case balt.CutPrefixInString(&itemTrim, "routing-instance "):
+				confRead.routingInstance = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "version "):
+				confRead.version, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}

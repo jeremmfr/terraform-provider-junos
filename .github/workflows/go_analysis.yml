@@ -19,7 +19,7 @@ jobs:
           go-version: 1.19
           vulncheck-version: latest
           package: ./...
-          fail-on-vuln: true
+          fail-on-vuln: false
 
   CodeQL-Analyse:
     runs-on: ubuntu-latest

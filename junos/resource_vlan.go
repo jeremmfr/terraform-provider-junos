@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -434,9 +435,7 @@ func setVlan(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	return clt.configSet(configSet, junSess)
 }
 
-func readVlan(vlan string, clt *Client, junSess *junosSession) (vlanOptions, error) {
-	var confRead vlanOptions
-
+func readVlan(vlan string, clt *Client, junSess *junosSession) (confRead vlanOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"vlans "+vlan+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -452,42 +451,42 @@ func readVlan(vlan string, clt *Client, junSess *junosSession) (vlanOptions, err
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "community-vlans "):
-				commVlan, err := strconv.Atoi(strings.TrimPrefix(itemTrim, "community-vlans "))
+			case balt.CutPrefixInString(&itemTrim, "community-vlans "):
+				commVlan, err := strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 				confRead.communityVlans = append(confRead.communityVlans, commVlan)
-			case strings.HasPrefix(itemTrim, "description "):
-				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
-			case strings.HasPrefix(itemTrim, "forwarding-options filter input "):
-				confRead.forwardFilterInput = strings.TrimPrefix(itemTrim, "forwarding-options filter input ")
-			case strings.HasPrefix(itemTrim, "forwarding-options filter output "):
-				confRead.forwardFilterOutput = strings.TrimPrefix(itemTrim, "forwarding-options filter output ")
-			case strings.HasPrefix(itemTrim, "forwarding-options flood input "):
-				confRead.forwardFloodInput = strings.TrimPrefix(itemTrim, "forwarding-options flood input ")
-			case strings.HasPrefix(itemTrim, "isolated-vlan "):
-				confRead.isolatedVlan, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "isolated-vlan "))
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				confRead.description = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "forwarding-options filter input "):
+				confRead.forwardFilterInput = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "forwarding-options filter output "):
+				confRead.forwardFilterOutput = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "forwarding-options flood input "):
+				confRead.forwardFloodInput = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "isolated-vlan "):
+				confRead.isolatedVlan, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "l3-interface "):
-				confRead.l3Interface = strings.TrimPrefix(itemTrim, "l3-interface ")
-			case strings.HasPrefix(itemTrim, "private-vlan "):
-				confRead.privateVlan = strings.TrimPrefix(itemTrim, "private-vlan ")
-			case strings.HasPrefix(itemTrim, "service-id "):
-				confRead.serviceID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "service-id "))
+			case balt.CutPrefixInString(&itemTrim, "l3-interface "):
+				confRead.l3Interface = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "private-vlan "):
+				confRead.privateVlan = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "service-id "):
+				confRead.serviceID, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "vlan-id "):
-				confRead.vlanID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vlan-id "))
+			case balt.CutPrefixInString(&itemTrim, "vlan-id "):
+				confRead.vlanID, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "vlan-id-list "):
-				confRead.vlanIDList = append(confRead.vlanIDList, strings.TrimPrefix(itemTrim, "vlan-id-list "))
-			case strings.HasPrefix(itemTrim, "vxlan "):
+			case balt.CutPrefixInString(&itemTrim, "vlan-id-list "):
+				confRead.vlanIDList = append(confRead.vlanIDList, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "vxlan "):
 				if len(confRead.vxlan) == 0 {
 					confRead.vxlan = append(confRead.vxlan, map[string]interface{}{
 						"vni":                          -1,
@@ -501,42 +500,38 @@ func readVlan(vlan string, clt *Client, junSess *junosSession) (vlanOptions, err
 				}
 				vxlan := confRead.vxlan[0]
 				switch {
-				case strings.HasPrefix(itemTrim, "vxlan vni "):
-					vxlan["vni"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vxlan vni "))
+				case balt.CutPrefixInString(&itemTrim, "vni "):
+					vxlan["vni"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-					if vxlan["vni"] != -1 {
-						showConfigEvpn, err := clt.command(cmdShowConfig+"protocols evpn"+pipeDisplaySetRelative, junSess)
-						if err != nil {
-							return confRead, err
-						}
-						if showConfigEvpn != emptyW {
-							for _, item := range strings.Split(showConfigEvpn, "\n") {
-								if strings.Contains(item, xmlStartTagConfigOut) {
-									continue
-								}
-								if strings.Contains(item, xmlEndTagConfigOut) {
-									break
-								}
-								itemTrim := strings.TrimPrefix(item, setLS)
-								if strings.HasPrefix(itemTrim, "extended-vni-list "+strconv.Itoa(vxlan["vni"].(int))) {
-									vxlan["vni_extend_evpn"] = true
-								}
+					showConfigEvpn, err := clt.command(cmdShowConfig+"protocols evpn"+pipeDisplaySetRelative, junSess)
+					if err != nil {
+						return confRead, err
+					}
+					if showConfigEvpn != emptyW {
+						for _, itemEvpn := range strings.Split(showConfigEvpn, "\n") {
+							if strings.Contains(itemEvpn, xmlStartTagConfigOut) {
+								continue
+							}
+							if strings.Contains(itemEvpn, xmlEndTagConfigOut) {
+								break
+							}
+							if strings.HasPrefix(itemEvpn, setLS+"extended-vni-list "+strconv.Itoa(vxlan["vni"].(int))) {
+								vxlan["vni_extend_evpn"] = true
 							}
 						}
 					}
-				case itemTrim == "vxlan encapsulate-inner-vlan":
+				case itemTrim == "encapsulate-inner-vlan":
 					vxlan["encapsulate_inner_vlan"] = true
-				case itemTrim == "vxlan ingress-node-replication":
+				case itemTrim == "ingress-node-replication":
 					vxlan["ingress_node_replication"] = true
-				case strings.HasPrefix(itemTrim, "vxlan multicast-group "):
-					vxlan["multicast_group"] = strings.TrimPrefix(itemTrim, "vxlan multicast-group ")
-				case itemTrim == "vxlan ovsdb-managed":
+				case balt.CutPrefixInString(&itemTrim, "multicast-group "):
+					vxlan["multicast_group"] = itemTrim
+				case itemTrim == "ovsdb-managed":
 					vxlan["ovsdb_managed"] = true
-				case strings.HasPrefix(itemTrim, "vxlan unreachable-vtep-aging-timer "):
-					vxlan["unreachable_vtep_aging_timer"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
-						"vxlan unreachable-vtep-aging-timer "))
+				case balt.CutPrefixInString(&itemTrim, "unreachable-vtep-aging-timer "):
+					vxlan["unreachable_vtep_aging_timer"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}

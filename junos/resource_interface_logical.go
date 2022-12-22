@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
@@ -1266,9 +1267,8 @@ func setInterfaceLogical(d *schema.ResourceData, clt *Client, junSess *junosSess
 	return clt.configSet(configSet, junSess)
 }
 
-func readInterfaceLogical(interFace string, clt *Client, junSess *junosSession) (interfaceLogicalOptions, error) {
-	var confRead interfaceLogicalOptions
-
+func readInterfaceLogical(interFace string, clt *Client, junSess *junosSession,
+) (confRead interfaceLogicalOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"interfaces "+interFace+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -1288,11 +1288,11 @@ func readInterfaceLogical(interFace string, clt *Client, junSess *junosSession) 
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "description "):
-				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				confRead.description = strings.Trim(itemTrim, "\"")
 			case itemTrim == "disable":
 				confRead.disable = true
-			case strings.HasPrefix(itemTrim, "family inet6"):
+			case balt.CutPrefixInString(&itemTrim, "family inet6"):
 				if len(confRead.familyInet6) == 0 {
 					confRead.familyInet6 = append(confRead.familyInet6, map[string]interface{}{
 						"address":         make([]map[string]interface{}, 0),
@@ -1307,14 +1307,13 @@ func readInterfaceLogical(interFace string, clt *Client, junSess *junosSession) 
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "family inet6 address "):
-					var err error
+				case balt.CutPrefixInString(&itemTrim, " address "):
 					confRead.familyInet6[0]["address"], err = readFamilyInetAddress(
 						itemTrim, confRead.familyInet6[0]["address"].([]map[string]interface{}), inet6W)
 					if err != nil {
 						return confRead, err
 					}
-				case strings.HasPrefix(itemTrim, "family inet6 dhcpv6-client "):
+				case balt.CutPrefixInString(&itemTrim, " dhcpv6-client "):
 					if len(confRead.familyInet6[0]["dhcpv6_client"].([]map[string]interface{})) == 0 {
 						confRead.familyInet6[0]["dhcpv6_client"] = append(
 							confRead.familyInet6[0]["dhcpv6_client"].([]map[string]interface{}), map[string]interface{}{
@@ -1336,19 +1335,18 @@ func readInterfaceLogical(interFace string, clt *Client, junSess *junosSession) 
 						itemTrim, confRead.familyInet6[0]["dhcpv6_client"].([]map[string]interface{})[0]); err != nil {
 						return confRead, err
 					}
-				case itemTrim == "family inet6 dad-disable":
+				case itemTrim == " dad-disable":
 					confRead.familyInet6[0]["dad_disable"] = true
-				case strings.HasPrefix(itemTrim, "family inet6 filter input "):
-					confRead.familyInet6[0]["filter_input"] = strings.TrimPrefix(itemTrim, "family inet6 filter input ")
-				case strings.HasPrefix(itemTrim, "family inet6 filter output "):
-					confRead.familyInet6[0]["filter_output"] = strings.TrimPrefix(itemTrim, "family inet6 filter output ")
-				case strings.HasPrefix(itemTrim, "family inet6 mtu"):
-					var err error
-					confRead.familyInet6[0]["mtu"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "family inet6 mtu "))
+				case balt.CutPrefixInString(&itemTrim, " filter input "):
+					confRead.familyInet6[0]["filter_input"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, " filter output "):
+					confRead.familyInet6[0]["filter_output"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, " mtu "):
+					confRead.familyInet6[0]["mtu"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "family inet6 rpf-check"):
+				case balt.CutPrefixInString(&itemTrim, " rpf-check"):
 					if len(confRead.familyInet6[0]["rpf_check"].([]map[string]interface{})) == 0 {
 						confRead.familyInet6[0]["rpf_check"] = append(
 							confRead.familyInet6[0]["rpf_check"].([]map[string]interface{}), map[string]interface{}{
@@ -1357,18 +1355,18 @@ func readInterfaceLogical(interFace string, clt *Client, junSess *junosSession) 
 							})
 					}
 					switch {
-					case strings.HasPrefix(itemTrim, "family inet6 rpf-check fail-filter "):
+					case balt.CutPrefixInString(&itemTrim, " fail-filter "):
 						confRead.familyInet6[0]["rpf_check"].([]map[string]interface{})[0]["fail_filter"] = strings.Trim(
-							strings.TrimPrefix(itemTrim, "family inet6 rpf-check fail-filter "), "\"")
-					case itemTrim == "family inet6 rpf-check mode loose":
+							itemTrim, "\"")
+					case itemTrim == " mode loose":
 						confRead.familyInet6[0]["rpf_check"].([]map[string]interface{})[0]["mode_loose"] = true
 					}
-				case itemTrim == "family inet6 sampling input":
+				case itemTrim == " sampling input":
 					confRead.familyInet6[0]["sampling_input"] = true
-				case itemTrim == "family inet6 sampling output":
+				case itemTrim == " sampling output":
 					confRead.familyInet6[0]["sampling_output"] = true
 				}
-			case strings.HasPrefix(itemTrim, "family inet"):
+			case balt.CutPrefixInString(&itemTrim, "family inet"):
 				if len(confRead.familyInet) == 0 {
 					confRead.familyInet = append(confRead.familyInet, map[string]interface{}{
 						"address":         make([]map[string]interface{}, 0),
@@ -1382,18 +1380,17 @@ func readInterfaceLogical(interFace string, clt *Client, junSess *junosSession) 
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "family inet address "):
-					var err error
+				case balt.CutPrefixInString(&itemTrim, " address "):
 					confRead.familyInet[0]["address"], err = readFamilyInetAddress(
 						itemTrim, confRead.familyInet[0]["address"].([]map[string]interface{}), inetW)
 					if err != nil {
 						return confRead, err
 					}
-				case strings.HasPrefix(itemTrim, "family inet dhcp"), strings.HasPrefix(itemTrim, "family inet dhcp-client"):
+				case strings.HasPrefix(itemTrim, " dhcp"):
 					if len(confRead.familyInet[0]["dhcp"].([]map[string]interface{})) == 0 {
 						confRead.familyInet[0]["dhcp"] = append(
 							confRead.familyInet[0]["dhcp"].([]map[string]interface{}), map[string]interface{}{
-								"srx_old_option_name":                            false,
+								"srx_old_option_name":                            strings.HasPrefix(itemTrim, " dhcp-client"),
 								"client_identifier_ascii":                        "",
 								"client_identifier_hexadecimal":                  "",
 								"client_identifier_prefix_hostname":              false,
@@ -1414,26 +1411,22 @@ func readInterfaceLogical(interFace string, clt *Client, junSess *junosSession) 
 								"vendor_id":                                      "",
 							})
 					}
-					if strings.HasPrefix(itemTrim, "family inet dhcp-client") {
-						confRead.familyInet[0]["dhcp"].([]map[string]interface{})[0]["srx_old_option_name"] = true
-					}
-					if strings.HasPrefix(itemTrim, "family inet dhcp ") || strings.HasPrefix(itemTrim, "family inet dhcp-client ") {
+					if balt.CutPrefixInString(&itemTrim, " dhcp ") || balt.CutPrefixInString(&itemTrim, " dhcp-client ") {
 						if err := readFamilyInetDhcp(
 							itemTrim, confRead.familyInet[0]["dhcp"].([]map[string]interface{})[0]); err != nil {
 							return confRead, err
 						}
 					}
-				case strings.HasPrefix(itemTrim, "family inet filter input "):
-					confRead.familyInet[0]["filter_input"] = strings.TrimPrefix(itemTrim, "family inet filter input ")
-				case strings.HasPrefix(itemTrim, "family inet filter output "):
-					confRead.familyInet[0]["filter_output"] = strings.TrimPrefix(itemTrim, "family inet filter output ")
-				case strings.HasPrefix(itemTrim, "family inet mtu"):
-					var err error
-					confRead.familyInet[0]["mtu"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "family inet mtu "))
+				case balt.CutPrefixInString(&itemTrim, " filter input "):
+					confRead.familyInet[0]["filter_input"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, " filter output "):
+					confRead.familyInet[0]["filter_output"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, " mtu "):
+					confRead.familyInet[0]["mtu"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "family inet rpf-check"):
+				case balt.CutPrefixInString(&itemTrim, " rpf-check"):
 					if len(confRead.familyInet[0]["rpf_check"].([]map[string]interface{})) == 0 {
 						confRead.familyInet[0]["rpf_check"] = append(
 							confRead.familyInet[0]["rpf_check"].([]map[string]interface{}), map[string]interface{}{
@@ -1442,18 +1435,18 @@ func readInterfaceLogical(interFace string, clt *Client, junSess *junosSession) 
 							})
 					}
 					switch {
-					case strings.HasPrefix(itemTrim, "family inet rpf-check fail-filter "):
+					case balt.CutPrefixInString(&itemTrim, " fail-filter "):
 						confRead.familyInet[0]["rpf_check"].([]map[string]interface{})[0]["fail_filter"] = strings.Trim(
-							strings.TrimPrefix(itemTrim, "family inet rpf-check fail-filter "), "\"")
-					case itemTrim == "family inet rpf-check mode loose":
+							itemTrim, "\"")
+					case itemTrim == " mode loose":
 						confRead.familyInet[0]["rpf_check"].([]map[string]interface{})[0]["mode_loose"] = true
 					}
-				case itemTrim == "family inet sampling input":
+				case itemTrim == " sampling input":
 					confRead.familyInet[0]["sampling_input"] = true
-				case itemTrim == "family inet sampling output":
+				case itemTrim == " sampling output":
 					confRead.familyInet[0]["sampling_output"] = true
 				}
-			case strings.HasPrefix(itemTrim, "tunnel "):
+			case balt.CutPrefixInString(&itemTrim, "tunnel "):
 				if len(confRead.tunnel) == 0 {
 					confRead.tunnel = append(confRead.tunnel, map[string]interface{}{
 						"destination":                  "",
@@ -1469,43 +1462,38 @@ func readInterfaceLogical(interFace string, clt *Client, junSess *junosSession) 
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "tunnel destination "):
-					confRead.tunnel[0]["destination"] = strings.TrimPrefix(itemTrim, "tunnel destination ")
-				case strings.HasPrefix(itemTrim, "tunnel source "):
-					confRead.tunnel[0]["source"] = strings.TrimPrefix(itemTrim, "tunnel source ")
-				case itemTrim == "tunnel allow-fragmentation":
+				case balt.CutPrefixInString(&itemTrim, "destination "):
+					confRead.tunnel[0]["destination"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "source "):
+					confRead.tunnel[0]["source"] = itemTrim
+				case itemTrim == "allow-fragmentation":
 					confRead.tunnel[0]["allow_fragmentation"] = true
-				case itemTrim == "tunnel do-not-fragment":
+				case itemTrim == "do-not-fragment":
 					confRead.tunnel[0]["do_not_fragment"] = true
-				case strings.HasPrefix(itemTrim, "tunnel flow-label "):
-					var err error
-					confRead.tunnel[0]["flow_label"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "tunnel flow-label "))
+				case balt.CutPrefixInString(&itemTrim, "flow-label "):
+					confRead.tunnel[0]["flow_label"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case itemTrim == "tunnel no-path-mtu-discovery":
+				case itemTrim == "no-path-mtu-discovery":
 					confRead.tunnel[0]["no_path_mtu_discovery"] = true
-				case itemTrim == "tunnel path-mtu-discovery":
+				case itemTrim == "path-mtu-discovery":
 					confRead.tunnel[0]["path_mtu_discovery"] = true
-				case strings.HasPrefix(itemTrim, "tunnel routing-instance destination "):
-					confRead.tunnel[0]["routing_instance_destination"] = strings.TrimPrefix(
-						itemTrim, "tunnel routing-instance destination ")
-				case strings.HasPrefix(itemTrim, "tunnel traffic-class "):
-					var err error
-					confRead.tunnel[0]["traffic_class"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "tunnel traffic-class "))
+				case balt.CutPrefixInString(&itemTrim, "routing-instance destination "):
+					confRead.tunnel[0]["routing_instance_destination"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "traffic-class "):
+					confRead.tunnel[0]["traffic_class"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "tunnel ttl "):
-					var err error
-					confRead.tunnel[0]["ttl"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "tunnel ttl "))
+				case balt.CutPrefixInString(&itemTrim, "ttl "):
+					confRead.tunnel[0]["ttl"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
-			case strings.HasPrefix(itemTrim, "vlan-id "):
-				var err error
-				confRead.vlanID, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "vlan-id "))
+			case balt.CutPrefixInString(&itemTrim, "vlan-id "):
+				confRead.vlanID, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
@@ -1536,9 +1524,9 @@ func readInterfaceLogical(interFace string, clt *Client, junSess *junosSession) 
 		for _, item := range strings.Split(showConfigSecurityZones, "\n") {
 			intMatch := regexpInts.MatchString(item)
 			if intMatch {
-				itemTrimSplit := strings.Split(strings.TrimPrefix(item, "set security-zone "), " ")
-				confRead.securityZone = itemTrimSplit[0]
-				if err := readInterfaceLogicalSecurityInboundTraffic(interFace, &confRead, clt, junSess); err != nil {
+				itemTrimFields := strings.Split(strings.TrimPrefix(item, "set security-zone "), " ")
+				confRead.securityZone = itemTrimFields[0]
+				if err := confRead.readInterfaceLogicalSecurityInboundTraffic(interFace, clt, junSess); err != nil {
 					return confRead, err
 				}
 
@@ -1550,8 +1538,8 @@ func readInterfaceLogical(interFace string, clt *Client, junSess *junosSession) 
 	return confRead, nil
 }
 
-func readInterfaceLogicalSecurityInboundTraffic(
-	interFace string, confRead *interfaceLogicalOptions, clt *Client, junSess *junosSession,
+func (confRead *interfaceLogicalOptions) readInterfaceLogicalSecurityInboundTraffic(
+	interFace string, clt *Client, junSess *junosSession,
 ) error {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security zones security-zone "+confRead.securityZone+" interfaces "+interFace+pipeDisplaySetRelative, junSess)
@@ -1569,12 +1557,10 @@ func readInterfaceLogicalSecurityInboundTraffic(
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "host-inbound-traffic protocols "):
-				confRead.securityInboundProtocols = append(confRead.securityInboundProtocols,
-					strings.TrimPrefix(itemTrim, "host-inbound-traffic protocols "))
-			case strings.HasPrefix(itemTrim, "host-inbound-traffic system-services "):
-				confRead.securityInboundServices = append(confRead.securityInboundServices,
-					strings.TrimPrefix(itemTrim, "host-inbound-traffic system-services "))
+			case balt.CutPrefixInString(&itemTrim, "host-inbound-traffic protocols "):
+				confRead.securityInboundProtocols = append(confRead.securityInboundProtocols, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "host-inbound-traffic system-services "):
+				confRead.securityInboundServices = append(confRead.securityInboundServices, itemTrim)
 			}
 		}
 	}
@@ -1673,20 +1659,12 @@ func fillInterfaceLogicalData(d *schema.ResourceData, interfaceLogicalOpt interf
 	}
 }
 
-func readFamilyInetAddress(item string, inetAddress []map[string]interface{}, family string,
+func readFamilyInetAddress(itemTrim string, inetAddress []map[string]interface{}, family string,
 ) ([]map[string]interface{}, error) {
-	var addressConfig []string
-	var itemTrim string
-	switch family {
-	case inetW:
-		addressConfig = strings.Split(strings.TrimPrefix(item, "family inet address "), " ")
-		itemTrim = strings.TrimPrefix(item, "family inet address "+addressConfig[0]+" ")
-	case inet6W:
-		addressConfig = strings.Split(strings.TrimPrefix(item, "family inet6 address "), " ")
-		itemTrim = strings.TrimPrefix(item, "family inet6 address "+addressConfig[0]+" ")
-	}
+	itemTrimFields := strings.Split(itemTrim, " ")
+	balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 
-	mAddr := genFamilyInetAddress(addressConfig[0])
+	mAddr := genFamilyInetAddress(itemTrimFields[0])
 	inetAddress = copyAndRemoveItemMapList("cidr_ip", mAddr, inetAddress)
 
 	switch {
@@ -1694,88 +1672,87 @@ func readFamilyInetAddress(item string, inetAddress []map[string]interface{}, fa
 		mAddr["primary"] = true
 	case itemTrim == "preferred":
 		mAddr["preferred"] = true
-	case strings.HasPrefix(itemTrim, "vrrp-group ") || strings.HasPrefix(itemTrim, "vrrp-inet6-group "):
+	case balt.CutPrefixInString(&itemTrim, "vrrp-group "), balt.CutPrefixInString(&itemTrim, "vrrp-inet6-group "):
+		if len(itemTrimFields) < 3 { // <address> (vrrp-group|vrrp-inet6-group) <vrrpID>
+			return inetAddress, fmt.Errorf(cantReadValuesNotEnoughFields, "vrrp-group|vrrp-inet6-group", itemTrim)
+		}
 		vrrpGroup := genVRRPGroup(family)
-		vrrpID, err := strconv.Atoi(addressConfig[2])
+		vrrpID, err := strconv.Atoi(itemTrimFields[2])
 		if err != nil {
 			return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
-		}
-		itemTrimVrrp := strings.TrimPrefix(itemTrim, "vrrp-group "+strconv.Itoa(vrrpID)+" ")
-		if strings.HasPrefix(itemTrim, "vrrp-inet6-group ") {
-			itemTrimVrrp = strings.TrimPrefix(itemTrim, "vrrp-inet6-group "+strconv.Itoa(vrrpID)+" ")
 		}
 		vrrpGroup["identifier"] = vrrpID
 		mAddr["vrrp_group"] = copyAndRemoveItemMapList("identifier", vrrpGroup,
 			mAddr["vrrp_group"].([]map[string]interface{}))
+		balt.CutPrefixInString(&itemTrim, itemTrimFields[2]+" ")
 		switch {
-		case strings.HasPrefix(itemTrimVrrp, "virtual-address "):
-			vrrpGroup["virtual_address"] = append(vrrpGroup["virtual_address"].([]string),
-				strings.TrimPrefix(itemTrimVrrp, "virtual-address "))
-		case strings.HasPrefix(itemTrimVrrp, "virtual-inet6-address "):
-			vrrpGroup["virtual_address"] = append(vrrpGroup["virtual_address"].([]string),
-				strings.TrimPrefix(itemTrimVrrp, "virtual-inet6-address "))
-		case strings.HasPrefix(itemTrimVrrp, "virtual-link-local-address "):
-			vrrpGroup["virtual_link_local_address"] = strings.TrimPrefix(itemTrimVrrp,
-				"virtual-link-local-address ")
-		case itemTrimVrrp == "accept-data":
+		case balt.CutPrefixInString(&itemTrim, "virtual-address "):
+			vrrpGroup["virtual_address"] = append(vrrpGroup["virtual_address"].([]string), itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "virtual-inet6-address "):
+			vrrpGroup["virtual_address"] = append(vrrpGroup["virtual_address"].([]string), itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "virtual-link-local-address "):
+			vrrpGroup["virtual_link_local_address"] = itemTrim
+		case itemTrim == "accept-data":
 			vrrpGroup["accept_data"] = true
-		case strings.HasPrefix(itemTrimVrrp, "advertise-interval "):
-			vrrpGroup["advertise_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVrrp,
-				"advertise-interval "))
+		case balt.CutPrefixInString(&itemTrim, "advertise-interval "):
+			vrrpGroup["advertise_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrimVrrp, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimVrrp, "inet6-advertise-interval "):
-			vrrpGroup["advertise_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVrrp,
-				"inet6-advertise-interval "))
+		case balt.CutPrefixInString(&itemTrim, "inet6-advertise-interval "):
+			vrrpGroup["advertise_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrimVrrp, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimVrrp, "advertisements-threshold "):
-			vrrpGroup["advertisements_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVrrp,
-				"advertisements-threshold "))
+		case balt.CutPrefixInString(&itemTrim, "advertisements-threshold "):
+			vrrpGroup["advertisements_threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrimVrrp, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimVrrp, "authentication-key "):
-			vrrpGroup["authentication_key"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrimVrrp,
-				"authentication-key "), "\""))
+		case balt.CutPrefixInString(&itemTrim, "authentication-key "):
+			vrrpGroup["authentication_key"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 			if err != nil {
 				return inetAddress, fmt.Errorf("failed to decode authentication-key: %w", err)
 			}
-		case strings.HasPrefix(itemTrimVrrp, "authentication-type "):
-			vrrpGroup["authentication_type"] = strings.TrimPrefix(itemTrimVrrp, "authentication-type ")
-		case itemTrimVrrp == "no-accept-data":
+		case balt.CutPrefixInString(&itemTrim, "authentication-type "):
+			vrrpGroup["authentication_type"] = itemTrim
+		case itemTrim == "no-accept-data":
 			vrrpGroup["no_accept_data"] = true
-		case itemTrimVrrp == "no-preempt":
+		case itemTrim == "no-preempt":
 			vrrpGroup["no_preempt"] = true
-		case itemTrimVrrp == "preempt":
+		case itemTrim == "preempt":
 			vrrpGroup["preempt"] = true
-		case strings.HasPrefix(itemTrimVrrp, "priority"):
-			vrrpGroup["priority"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVrrp, "priority "))
+		case balt.CutPrefixInString(&itemTrim, "priority "):
+			vrrpGroup["priority"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrimVrrp, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimVrrp, "track interface "):
-			vrrpSlit := strings.Split(itemTrimVrrp, " ")
-			cost, err := strconv.Atoi(vrrpSlit[len(vrrpSlit)-1])
+		case balt.CutPrefixInString(&itemTrim, "track interface "):
+			itemTrackFields := strings.Split(itemTrim, " ")
+			if len(itemTrackFields) < 3 { // <interface> priority-cost <priority_cost>
+				return inetAddress, fmt.Errorf(cantReadValuesNotEnoughFields, "track interface", itemTrim)
+			}
+			cost, err := strconv.Atoi(itemTrackFields[2])
 			if err != nil {
-				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrimVrrp, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 			trackInt := map[string]interface{}{
-				"interface":     vrrpSlit[2],
+				"interface":     itemTrackFields[0],
 				"priority_cost": cost,
 			}
 			vrrpGroup["track_interface"] = append(vrrpGroup["track_interface"].([]map[string]interface{}), trackInt)
-		case strings.HasPrefix(itemTrimVrrp, "track route "):
-			vrrpSlit := strings.Split(itemTrimVrrp, " ")
-			cost, err := strconv.Atoi(vrrpSlit[len(vrrpSlit)-1])
+		case balt.CutPrefixInString(&itemTrim, "track route "):
+			itemTrackFields := strings.Split(itemTrim, " ")
+			if len(itemTrackFields) < 5 { // <route> routing-instance <routing_instance> priority-cost <priority_cost>
+				return inetAddress, fmt.Errorf(cantReadValuesNotEnoughFields, "track route", itemTrim)
+			}
+			cost, err := strconv.Atoi(itemTrackFields[4])
 			if err != nil {
-				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrimVrrp, err)
+				return inetAddress, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 			trackRoute := map[string]interface{}{
-				"route":            vrrpSlit[2],
-				"routing_instance": vrrpSlit[4],
+				"route":            itemTrackFields[0],
+				"routing_instance": itemTrackFields[2],
 				"priority_cost":    cost,
 			}
 			vrrpGroup["track_route"] = append(vrrpGroup["track_route"].([]map[string]interface{}), trackRoute)
@@ -1787,41 +1764,33 @@ func readFamilyInetAddress(item string, inetAddress []map[string]interface{}, fa
 	return inetAddress, nil
 }
 
-func readFamilyInetDhcp(item string, dhcp map[string]interface{}) error {
-	itemTrim := strings.TrimPrefix(item, "family inet dhcp ")
-	if strings.HasPrefix(item, "family inet dhcp-client ") {
-		itemTrim = strings.TrimPrefix(item, "family inet dhcp-client ")
-	}
+func readFamilyInetDhcp(itemTrim string, dhcp map[string]interface{}) (err error) {
 	switch {
-	case strings.HasPrefix(itemTrim, "client-identifier ascii "):
-		dhcp["client_identifier_ascii"] = strings.Trim(strings.TrimPrefix(itemTrim, "client-identifier ascii "), "\"")
-	case strings.HasPrefix(itemTrim, "client-identifier hexadecimal "):
-		dhcp["client_identifier_hexadecimal"] = strings.TrimPrefix(itemTrim, "client-identifier hexadecimal ")
+	case balt.CutPrefixInString(&itemTrim, "client-identifier ascii "):
+		dhcp["client_identifier_ascii"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "client-identifier hexadecimal "):
+		dhcp["client_identifier_hexadecimal"] = itemTrim
 	case itemTrim == "client-identifier prefix host-name":
 		dhcp["client_identifier_prefix_hostname"] = true
 	case itemTrim == "client-identifier prefix routing-instance-name":
 		dhcp["client_identifier_prefix_routing_instance_name"] = true
-	case strings.HasPrefix(itemTrim, "client-identifier use-interface-description "):
-		dhcp["client_identifier_use_interface_description"] = strings.TrimPrefix(
-			itemTrim, "client-identifier use-interface-description ")
-	case strings.HasPrefix(itemTrim, "client-identifier user-id ascii "):
-		dhcp["client_identifier_userid_ascii"] = strings.Trim(strings.TrimPrefix(
-			itemTrim, "client-identifier user-id ascii "), "\"")
-	case strings.HasPrefix(itemTrim, "client-identifier user-id hexadecimal "):
-		dhcp["client_identifier_userid_hexadecimal"] = strings.TrimPrefix(itemTrim, "client-identifier user-id hexadecimal ")
+	case balt.CutPrefixInString(&itemTrim, "client-identifier use-interface-description "):
+		dhcp["client_identifier_use_interface_description"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "client-identifier user-id ascii "):
+		dhcp["client_identifier_userid_ascii"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "client-identifier user-id hexadecimal "):
+		dhcp["client_identifier_userid_hexadecimal"] = itemTrim
 	case itemTrim == "force-discover":
 		dhcp["force_discover"] = true
 	case itemTrim == "lease-time infinite":
 		dhcp["lease_time_infinite"] = true
-	case strings.HasPrefix(itemTrim, "lease-time "):
-		var err error
-		dhcp["lease_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "lease-time "))
+	case balt.CutPrefixInString(&itemTrim, "lease-time "):
+		dhcp["lease_time"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "metric "):
-		var err error
-		dhcp["metric"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "metric "))
+	case balt.CutPrefixInString(&itemTrim, "metric "):
+		dhcp["metric"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
@@ -1829,69 +1798,63 @@ func readFamilyInetDhcp(item string, dhcp map[string]interface{}) error {
 		dhcp["no_dns_install"] = true
 	case itemTrim == "options no-hostname":
 		dhcp["options_no_hostname"] = true
-	case strings.HasPrefix(itemTrim, "retransmission-attempt "):
-		var err error
-		dhcp["retransmission_attempt"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "retransmission-attempt "))
+	case balt.CutPrefixInString(&itemTrim, "retransmission-attempt "):
+		dhcp["retransmission_attempt"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "retransmission-interval "):
-		var err error
-		dhcp["retransmission_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "retransmission-interval "))
+	case balt.CutPrefixInString(&itemTrim, "retransmission-interval "):
+		dhcp["retransmission_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "server-address "):
-		dhcp["server_address"] = strings.TrimPrefix(itemTrim, "server-address ")
+	case balt.CutPrefixInString(&itemTrim, "server-address "):
+		dhcp["server_address"] = itemTrim
 	case itemTrim == "update-server":
 		dhcp["update_server"] = true
-	case strings.HasPrefix(itemTrim, "vendor-id "):
-		dhcp["vendor_id"] = strings.Trim(strings.TrimPrefix(itemTrim, "vendor-id "), "\"")
+	case balt.CutPrefixInString(&itemTrim, "vendor-id "):
+		dhcp["vendor_id"] = strings.Trim(itemTrim, "\"")
 	}
 
 	return nil
 }
 
-func readFamilyInet6Dhcpv6Client(item string, dhcp map[string]interface{}) error {
-	itemTrim := strings.TrimPrefix(item, "family inet6 dhcpv6-client ")
+func readFamilyInet6Dhcpv6Client(itemTrim string, dhcp map[string]interface{}) (err error) {
 	switch {
-	case strings.HasPrefix(itemTrim, "client-identifier duid-type "):
-		dhcp["client_identifier_duid_type"] = strings.TrimPrefix(itemTrim, "client-identifier duid-type ")
-	case strings.HasPrefix(itemTrim, "client-type "):
-		dhcp["client_type"] = strings.TrimPrefix(itemTrim, "client-type ")
+	case balt.CutPrefixInString(&itemTrim, "client-identifier duid-type "):
+		dhcp["client_identifier_duid_type"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "client-type "):
+		dhcp["client_type"] = itemTrim
 	case itemTrim == "client-ia-type ia-na":
 		dhcp["client_ia_type_na"] = true
 	case itemTrim == "client-ia-type ia-pd":
 		dhcp["client_ia_type_pd"] = true
 	case itemTrim == "no-dns-install":
 		dhcp["no_dns_install"] = true
-	case strings.HasPrefix(itemTrim, "prefix-delegating preferred-prefix-length "):
-		var err error
-		dhcp["prefix_delegating_preferred_prefix_length"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "prefix-delegating preferred-prefix-length "))
+	case balt.CutPrefixInString(&itemTrim, "prefix-delegating preferred-prefix-length "):
+		dhcp["prefix_delegating_preferred_prefix_length"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "prefix-delegating sub-prefix-length "):
-		var err error
-		dhcp["prefix_delegating_sub_prefix_length"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "prefix-delegating sub-prefix-length "))
+	case balt.CutPrefixInString(&itemTrim, "prefix-delegating sub-prefix-length "):
+		dhcp["prefix_delegating_sub_prefix_length"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "rapid-commit":
 		dhcp["rapid_commit"] = true
-	case strings.HasPrefix(itemTrim, "req-option "):
-		dhcp["req_option"] = append(dhcp["req_option"].([]string), strings.TrimPrefix(itemTrim, "req-option "))
-	case strings.HasPrefix(itemTrim, "retransmission-attempt "):
-		var err error
-		dhcp["retransmission_attempt"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "retransmission-attempt "))
+	case balt.CutPrefixInString(&itemTrim, "req-option "):
+		dhcp["req_option"] = append(dhcp["req_option"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "retransmission-attempt "):
+		dhcp["retransmission_attempt"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "update-router-advertisement interface "):
-		dhcp["update_router_advertisement_interface"] = append(dhcp["update_router_advertisement_interface"].([]string),
-			strings.TrimPrefix(itemTrim, "update-router-advertisement interface "))
+	case balt.CutPrefixInString(&itemTrim, "update-router-advertisement interface "):
+		dhcp["update_router_advertisement_interface"] = append(
+			dhcp["update_router_advertisement_interface"].([]string),
+			itemTrim,
+		)
 	case itemTrim == "update-server":
 		dhcp["update_server"] = true
 	}

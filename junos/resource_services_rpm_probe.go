@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -695,9 +696,7 @@ func setServicesRpmProbe(d *schema.ResourceData, clt *Client, junSess *junosSess
 }
 
 func readServicesRpmProbe(probe string, clt *Client, junSess *junosSession,
-) (rpmProbeOptions, error) {
-	var confRead rpmProbeOptions
-
+) (confRead rpmProbeOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"services rpm probe \""+probe+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -715,10 +714,10 @@ func readServicesRpmProbe(probe string, clt *Client, junSess *junosSession,
 			switch {
 			case itemTrim == "delegate-probes":
 				confRead.delegateProbes = true
-			case strings.HasPrefix(itemTrim, "test "):
-				lineCut := strings.Split(itemTrim, " ")
+			case balt.CutPrefixInString(&itemTrim, "test "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				test := map[string]interface{}{
-					"name":                       strings.Trim(lineCut[1], "\""),
+					"name":                       strings.Trim(itemTrimFields[0], "\""),
 					"target_type":                "",
 					"target_value":               "",
 					"data_fill":                  "",
@@ -743,8 +742,8 @@ func readServicesRpmProbe(probe string, clt *Client, junSess *junosSession,
 					"ttl":                        0,
 				}
 				confRead.test = copyAndRemoveItemMapList("name", test, confRead.test)
-				itemTrimTest := strings.TrimPrefix(itemTrim, "test "+lineCut[1]+" ")
-				if err := readServicesRpmProbeTest(itemTrimTest, test); err != nil {
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+				if err := readServicesRpmProbeTest(itemTrim, test); err != nil {
 					return confRead, err
 				}
 				confRead.test = append(confRead.test, test)
@@ -755,63 +754,62 @@ func readServicesRpmProbe(probe string, clt *Client, junSess *junosSession,
 	return confRead, nil
 }
 
-func readServicesRpmProbeTest(itemTrim string, test map[string]interface{}) error {
-	var err error
+func readServicesRpmProbeTest(itemTrim string, test map[string]interface{}) (err error) {
 	switch {
-	case strings.HasPrefix(itemTrim, "target "):
-		itemTrimSplit := strings.Split(itemTrim, " ")
-		if len(itemTrimSplit) != 3 {
-			return fmt.Errorf("can't read words in line for target : %s", itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "target "):
+		itemTrimFields := strings.Split(itemTrim, " ")
+		if len(itemTrimFields) < 2 { // <type> <value>
+			return fmt.Errorf(cantReadValuesNotEnoughFields, "target", itemTrim)
 		}
-		test["target_type"] = itemTrimSplit[1]
-		test["target_value"] = strings.Trim(itemTrimSplit[2], "\"")
-	case strings.HasPrefix(itemTrim, "data-fill "):
-		test["data_fill"] = strings.TrimPrefix(itemTrim, "data-fill ")
-	case strings.HasPrefix(itemTrim, "data-size "):
-		test["data_size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "data-size "))
+		test["target_type"] = itemTrimFields[0]
+		test["target_value"] = strings.Trim(itemTrimFields[1], "\"")
+	case balt.CutPrefixInString(&itemTrim, "data-fill "):
+		test["data_fill"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "data-size "):
+		test["data_size"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "destination-interface "):
-		test["destination_interface"] = strings.TrimPrefix(itemTrim, "destination-interface ")
-	case strings.HasPrefix(itemTrim, "destination-port "):
-		test["destination_port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "destination-port "))
+	case balt.CutPrefixInString(&itemTrim, "destination-interface "):
+		test["destination_interface"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "destination-port "):
+		test["destination_port"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "dscp-code-points "):
-		test["dscp_code_points"] = strings.TrimPrefix(itemTrim, "dscp-code-points ")
+	case balt.CutPrefixInString(&itemTrim, "dscp-code-points "):
+		test["dscp_code_points"] = itemTrim
 	case itemTrim == "hardware-timestamp":
 		test["hardware_timestamp"] = true
-	case strings.HasPrefix(itemTrim, "history-size "):
-		test["history_size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "history-size "))
+	case balt.CutPrefixInString(&itemTrim, "history-size "):
+		test["history_size"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "inet6-options source-address "):
-		test["inet6_source_address"] = strings.TrimPrefix(itemTrim, "inet6-options source-address ")
-	case strings.HasPrefix(itemTrim, "moving-average-size "):
-		test["moving_average_size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "moving-average-size "))
+	case balt.CutPrefixInString(&itemTrim, "inet6-options source-address "):
+		test["inet6_source_address"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "moving-average-size "):
+		test["moving_average_size"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "one-way-hardware-timestamp":
 		test["one_way_hardware_timestamp"] = true
-	case strings.HasPrefix(itemTrim, "probe-count "):
-		test["probe_count"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "probe-count "))
+	case balt.CutPrefixInString(&itemTrim, "probe-count "):
+		test["probe_count"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "probe-interval "):
-		test["probe_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "probe-interval "))
+	case balt.CutPrefixInString(&itemTrim, "probe-interval "):
+		test["probe_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "probe-type "):
-		test["probe_type"] = strings.TrimPrefix(itemTrim, "probe-type ")
-	case strings.HasPrefix(itemTrim, "routing-instance "):
-		test["routing_instance"] = strings.TrimPrefix(itemTrim, "routing-instance ")
-	case strings.HasPrefix(itemTrim, "rpm-scale "):
+	case balt.CutPrefixInString(&itemTrim, "probe-type "):
+		test["probe_type"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "routing-instance "):
+		test["routing_instance"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "rpm-scale "):
 		if len(test["rpm_scale"].([]map[string]interface{})) == 0 {
 			test["rpm_scale"] = append(test["rpm_scale"].([]map[string]interface{}), map[string]interface{}{
 				"tests_count":               0,
@@ -832,66 +830,64 @@ func readServicesRpmProbeTest(itemTrim string, test map[string]interface{}) erro
 			})
 		}
 		rpmScale := test["rpm_scale"].([]map[string]interface{})[0]
-		itemTrimRpmScale := strings.TrimPrefix(itemTrim, "rpm-scale ")
 		switch {
-		case strings.HasPrefix(itemTrimRpmScale, "tests-count "):
-			rpmScale["tests_count"], err = strconv.Atoi(strings.TrimPrefix(itemTrimRpmScale, "tests-count "))
+		case balt.CutPrefixInString(&itemTrim, "tests-count "):
+			rpmScale["tests_count"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimRpmScale, "destination interface "):
-			rpmScale["destination_interface"] = strings.TrimPrefix(itemTrimRpmScale, "destination interface ")
-		case strings.HasPrefix(itemTrimRpmScale, "destination subunit-cnt "):
-			rpmScale["destination_subunit_cnt"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrimRpmScale, "destination subunit-cnt "))
+		case balt.CutPrefixInString(&itemTrim, "destination interface "):
+			rpmScale["destination_interface"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "destination subunit-cnt "):
+			rpmScale["destination_subunit_cnt"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimRpmScale, "source address-base "):
-			rpmScale["source_address_base"] = strings.TrimPrefix(itemTrimRpmScale, "source address-base ")
-		case strings.HasPrefix(itemTrimRpmScale, "source count "):
-			rpmScale["source_count"], err = strconv.Atoi(strings.TrimPrefix(itemTrimRpmScale, "source count "))
+		case balt.CutPrefixInString(&itemTrim, "source address-base "):
+			rpmScale["source_address_base"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "source count "):
+			rpmScale["source_count"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimRpmScale, "source step "):
-			rpmScale["source_step"] = strings.TrimPrefix(itemTrimRpmScale, "source step ")
-		case strings.HasPrefix(itemTrimRpmScale, "source-inet6 address-base "):
-			rpmScale["source_inet6_address_base"] = strings.TrimPrefix(itemTrimRpmScale, "source-inet6 address-base ")
-		case strings.HasPrefix(itemTrimRpmScale, "source-inet6 count "):
-			rpmScale["source_inet6_count"], err = strconv.Atoi(strings.TrimPrefix(itemTrimRpmScale, "source-inet6 count "))
+		case balt.CutPrefixInString(&itemTrim, "source step "):
+			rpmScale["source_step"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "source-inet6 address-base "):
+			rpmScale["source_inet6_address_base"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "source-inet6 count "):
+			rpmScale["source_inet6_count"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimRpmScale, "source-inet6 step "):
-			rpmScale["source_inet6_step"] = strings.TrimPrefix(itemTrimRpmScale, "source-inet6 step ")
-		case strings.HasPrefix(itemTrimRpmScale, "target address-base "):
-			rpmScale["target_address_base"] = strings.TrimPrefix(itemTrimRpmScale, "target address-base ")
-		case strings.HasPrefix(itemTrimRpmScale, "target count "):
-			rpmScale["target_count"], err = strconv.Atoi(strings.TrimPrefix(itemTrimRpmScale, "target count "))
+		case balt.CutPrefixInString(&itemTrim, "source-inet6 step "):
+			rpmScale["source_inet6_step"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "target address-base "):
+			rpmScale["target_address_base"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "target count "):
+			rpmScale["target_count"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimRpmScale, "target step "):
-			rpmScale["target_step"] = strings.TrimPrefix(itemTrimRpmScale, "target step ")
-		case strings.HasPrefix(itemTrimRpmScale, "target-inet6 address-base "):
-			rpmScale["target_inet6_address_base"] = strings.TrimPrefix(itemTrimRpmScale, "target-inet6 address-base ")
-		case strings.HasPrefix(itemTrimRpmScale, "target-inet6 count "):
-			rpmScale["target_inet6_count"], err = strconv.Atoi(strings.TrimPrefix(itemTrimRpmScale, "target-inet6 count "))
+		case balt.CutPrefixInString(&itemTrim, "target step "):
+			rpmScale["target_step"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "target-inet6 address-base "):
+			rpmScale["target_inet6_address_base"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "target-inet6 count "):
+			rpmScale["target_inet6_count"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimRpmScale, "target-inet6 step "):
-			rpmScale["target_inet6_step"] = strings.TrimPrefix(itemTrimRpmScale, "target-inet6 step ")
+		case balt.CutPrefixInString(&itemTrim, "target-inet6 step "):
+			rpmScale["target_inet6_step"] = itemTrim
 		}
-	case strings.HasPrefix(itemTrim, "source-address "):
-		test["source_address"] = strings.TrimPrefix(itemTrim, "source-address ")
-	case strings.HasPrefix(itemTrim, "test-interval "):
-		test["test_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "test-interval "))
+	case balt.CutPrefixInString(&itemTrim, "source-address "):
+		test["source_address"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "test-interval "):
+		test["test_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "thresholds"):
+	case balt.CutPrefixInString(&itemTrim, "thresholds"):
 		if len(test["thresholds"].([]map[string]interface{})) == 0 {
 			test["thresholds"] = append(test["thresholds"].([]map[string]interface{}), map[string]interface{}{
 				"egress_time":     -1,
@@ -909,66 +905,66 @@ func readServicesRpmProbeTest(itemTrim string, test map[string]interface{}) erro
 		}
 		thresholds := test["thresholds"].([]map[string]interface{})[0]
 		switch {
-		case strings.HasPrefix(itemTrim, "thresholds egress-time "):
-			thresholds["egress_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds egress-time "))
+		case balt.CutPrefixInString(&itemTrim, " egress-time "):
+			thresholds["egress_time"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "thresholds ingress-time "):
-			thresholds["ingress_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds ingress-time "))
+		case balt.CutPrefixInString(&itemTrim, " ingress-time "):
+			thresholds["ingress_time"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "thresholds jitter-egress "):
-			thresholds["jitter_egress"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds jitter-egress "))
+		case balt.CutPrefixInString(&itemTrim, " jitter-egress "):
+			thresholds["jitter_egress"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "thresholds jitter-ingress "):
-			thresholds["jitter_ingress"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds jitter-ingress "))
+		case balt.CutPrefixInString(&itemTrim, " jitter-ingress "):
+			thresholds["jitter_ingress"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "thresholds jitter-rtt "):
-			thresholds["jitter_rtt"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds jitter-rtt "))
+		case balt.CutPrefixInString(&itemTrim, " jitter-rtt "):
+			thresholds["jitter_rtt"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "thresholds rtt "):
-			thresholds["rtt"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds rtt "))
+		case balt.CutPrefixInString(&itemTrim, " rtt "):
+			thresholds["rtt"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "thresholds std-dev-egress "):
-			thresholds["std_dev_egress"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds std-dev-egress "))
+		case balt.CutPrefixInString(&itemTrim, " std-dev-egress "):
+			thresholds["std_dev_egress"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "thresholds std-dev-ingress "):
-			thresholds["std_dev_ingress"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds std-dev-ingress "))
+		case balt.CutPrefixInString(&itemTrim, " std-dev-ingress "):
+			thresholds["std_dev_ingress"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "thresholds std-dev-rtt "):
-			thresholds["std_dev_rtt"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds std-dev-rtt "))
+		case balt.CutPrefixInString(&itemTrim, " std-dev-rtt "):
+			thresholds["std_dev_rtt"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "thresholds successive-loss "):
-			thresholds["successive_loss"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds successive-loss "))
+		case balt.CutPrefixInString(&itemTrim, " successive-loss "):
+			thresholds["successive_loss"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "thresholds total-loss "):
-			thresholds["total_loss"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "thresholds total-loss "))
+		case balt.CutPrefixInString(&itemTrim, " total-loss "):
+			thresholds["total_loss"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
-	case strings.HasPrefix(itemTrim, "traps "):
-		test["traps"] = append(test["traps"].([]string), strings.TrimPrefix(itemTrim, "traps "))
-	case strings.HasPrefix(itemTrim, "ttl "):
-		test["ttl"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "ttl "))
+	case balt.CutPrefixInString(&itemTrim, "traps "):
+		test["traps"] = append(test["traps"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "ttl "):
+		test["ttl"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}

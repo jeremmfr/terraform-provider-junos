@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -383,12 +384,12 @@ func setSystemRadiusServer(d *schema.ResourceData, clt *Client, junSess *junosSe
 	return clt.configSet(configSet, junSess)
 }
 
-func readSystemRadiusServer(address string, clt *Client, junSess *junosSession) (radiusServerOptions, error) {
-	var confRead radiusServerOptions
+func readSystemRadiusServer(address string, clt *Client, junSess *junosSession,
+) (confRead radiusServerOptions, err error) {
+	// default -1
 	confRead.accountingRetry = -1
 	confRead.accountingTimeout = -1
 	confRead.maxOutstandingRequests = -1
-
 	showConfig, err := clt.command(cmdShowConfig+"system radius-server "+address+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -404,75 +405,62 @@ func readSystemRadiusServer(address string, clt *Client, junSess *junosSession) 
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "accounting-port "):
-				var err error
-				confRead.accountingPort, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "accounting-port "))
+			case balt.CutPrefixInString(&itemTrim, "accounting-port "):
+				confRead.accountingPort, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "accounting-retry "):
-				var err error
-				confRead.accountingRetry, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "accounting-retry "))
+			case balt.CutPrefixInString(&itemTrim, "accounting-retry "):
+				confRead.accountingRetry, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "accounting-timeout "):
-				var err error
-				confRead.accountingTimeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "accounting-timeout "))
+			case balt.CutPrefixInString(&itemTrim, "accounting-timeout "):
+				confRead.accountingTimeout, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "dynamic-request-port "):
-				var err error
-				confRead.dynamicRequestPort, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "dynamic-request-port "))
+			case balt.CutPrefixInString(&itemTrim, "dynamic-request-port "):
+				confRead.dynamicRequestPort, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "max-outstanding-requests "):
-				var err error
-				confRead.maxOutstandingRequests, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-outstanding-requests "))
+			case balt.CutPrefixInString(&itemTrim, "max-outstanding-requests "):
+				confRead.maxOutstandingRequests, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "port "):
-				var err error
-				confRead.port, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "port "))
+			case balt.CutPrefixInString(&itemTrim, "port "):
+				confRead.port, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "preauthentication-port "):
-				var err error
-				confRead.preauthenticationPort, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "preauthentication-port "))
+			case balt.CutPrefixInString(&itemTrim, "preauthentication-port "):
+				confRead.preauthenticationPort, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "preauthentication-secret "):
-				var err error
-				confRead.preauthenticationSecret, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
-					"preauthentication-secret "), "\""))
+			case balt.CutPrefixInString(&itemTrim, "preauthentication-secret "):
+				confRead.preauthenticationSecret, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 				if err != nil {
 					return confRead, fmt.Errorf("failed to decode preauthentication-secret: %w", err)
 				}
-			case strings.HasPrefix(itemTrim, "retry "):
-				var err error
-				confRead.retry, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "retry "))
+			case balt.CutPrefixInString(&itemTrim, "retry "):
+				confRead.retry, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "routing-instance "):
-				confRead.routingInstance = strings.TrimPrefix(itemTrim, "routing-instance ")
-			case strings.HasPrefix(itemTrim, "secret "):
-				var err error
-				confRead.secret, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
-					"secret "), "\""))
+			case balt.CutPrefixInString(&itemTrim, "routing-instance "):
+				confRead.routingInstance = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "secret "):
+				confRead.secret, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 				if err != nil {
 					return confRead, fmt.Errorf("failed to decode secret: %w", err)
 				}
-			case strings.HasPrefix(itemTrim, "source-address "):
-				confRead.sourceAddress = strings.TrimPrefix(itemTrim, "source-address ")
-			case strings.HasPrefix(itemTrim, "timeout "):
-				var err error
-				confRead.timeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "timeout "))
+			case balt.CutPrefixInString(&itemTrim, "source-address "):
+				confRead.sourceAddress = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "timeout "):
+				confRead.timeout, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}

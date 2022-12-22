@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -293,9 +294,7 @@ func delChassisRedundancy(clt *Client, junSess *junosSession) error {
 	return clt.configSet(configSet, junSess)
 }
 
-func readChassisRedundancy(clt *Client, junSess *junosSession) (chassisRedundancyOptions, error) {
-	var confRead chassisRedundancyOptions
-
+func readChassisRedundancy(clt *Client, junSess *junosSession) (confRead chassisRedundancyOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"chassis redundancy"+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -310,17 +309,13 @@ func readChassisRedundancy(clt *Client, junSess *junosSession) (chassisRedundanc
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "failover disk-read-threshold "):
-				var err error
-				confRead.failoverDiskReadThreshold, err = strconv.Atoi(strings.TrimPrefix(
-					itemTrim, "failover disk-read-threshold "))
+			case balt.CutPrefixInString(&itemTrim, "failover disk-read-threshold "):
+				confRead.failoverDiskReadThreshold, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "failover disk-write-threshold "):
-				var err error
-				confRead.failoverDiskWriteThreshold, err = strconv.Atoi(strings.TrimPrefix(
-					itemTrim, "failover disk-write-threshold "))
+			case balt.CutPrefixInString(&itemTrim, "failover disk-write-threshold "):
+				confRead.failoverDiskWriteThreshold, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
@@ -332,24 +327,23 @@ func readChassisRedundancy(clt *Client, junSess *junosSession) (chassisRedundanc
 				confRead.failoverOnLossOfKeepalives = true
 			case itemTrim == "graceful-switchover":
 				confRead.gracefulSwitchover = true
-			case strings.HasPrefix(itemTrim, "keepalive-time "):
-				var err error
-				confRead.keepaliveTime, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "keepalive-time "))
+			case balt.CutPrefixInString(&itemTrim, "keepalive-time "):
+				confRead.keepaliveTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "routing-engine "):
-				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "routing-engine "), " ")
-				if len(itemTrimSplit) < 2 {
-					return confRead, fmt.Errorf("can't find slot and role in %s", itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "routing-engine "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				if len(itemTrimFields) < 2 { // <slot> <role>
+					return confRead, fmt.Errorf(cantReadValuesNotEnoughFields, "routing-engine", itemTrim)
 				}
-				slot, err := strconv.Atoi(itemTrimSplit[0])
+				slot, err := strconv.Atoi(itemTrimFields[0])
 				if err != nil {
-					return confRead, fmt.Errorf(failedConvAtoiError, itemTrimSplit[0], err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrimFields[0], err)
 				}
 				confRead.routingEngine = append(confRead.routingEngine, map[string]interface{}{
 					"slot": slot,
-					"role": itemTrimSplit[1],
+					"role": itemTrimFields[1],
 				})
 			}
 		}

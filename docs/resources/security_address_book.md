@@ -79,6 +79,10 @@ The following arguments are supported:
     DNS name string value (`juniper.net`).
   - **description** (Optional, String)  
     Description of dns name address.
+  - **ipv4_only** (Optional, Boolean)  
+    IPv4 dns address.
+  - **ipv6_only** (Optional, Boolean)  
+    IPv6 dns address.
 - **range_address** (Optional, Block Set)  
    For each name of range address.
   - **name** (Required, String)  

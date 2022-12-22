@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
@@ -587,9 +588,8 @@ func checkRipNeighborExists(
 	routingInstance string,
 	clt *Client,
 	junSess *junosSession,
-) (bool, error) {
+) (_ bool, err error) {
 	var showConfig string
-	var err error
 	protoRipNeighbor := "protocols rip group \"" + group + "\" neighbor " + name
 	if ripNg {
 		protoRipNeighbor = "protocols ripng group \"" + group + "\" neighbor " + name
@@ -742,10 +742,8 @@ func setRipNeighbor(d *schema.ResourceData, clt *Client, junSess *junosSession) 
 }
 
 func readRipNeighbor(name, group string, ripNg bool, routingInstance string, clt *Client, junSess *junosSession,
-) (ripNeighborOptions, error) {
-	var confRead ripNeighborOptions
+) (confRead ripNeighborOptions, err error) {
 	var showConfig string
-	var err error
 	protoRipNeighbor := "protocols rip group \"" + group + "\" neighbor " + name
 	if ripNg {
 		protoRipNeighbor = "protocols ripng group \"" + group + "\" neighbor " + name
@@ -776,17 +774,16 @@ func readRipNeighbor(name, group string, ripNg bool, routingInstance string, clt
 			switch {
 			case itemTrim == "any-sender":
 				confRead.anySender = true
-			case strings.HasPrefix(itemTrim, "authentication-key "):
-				confRead.authenticationKey, err = jdecode.Decode(
-					strings.Trim(strings.TrimPrefix(itemTrim, "authentication-key "), "\""))
+			case balt.CutPrefixInString(&itemTrim, "authentication-key "):
+				confRead.authenticationKey, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 				if err != nil {
 					return confRead, fmt.Errorf("failed to decode authentication-key: %w", err)
 				}
-			case strings.HasPrefix(itemTrim, "authentication-selective-md5 "):
-				itemTrimplit := strings.Split(strings.TrimPrefix(itemTrim, "authentication-selective-md5 "), " ")
-				keyID, err := strconv.Atoi(itemTrimplit[0])
+			case balt.CutPrefixInString(&itemTrim, "authentication-selective-md5 "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				keyID, err := strconv.Atoi(itemTrimFields[0])
 				if err != nil {
-					return confRead, fmt.Errorf(failedConvAtoiError, itemTrimplit[0], err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrimFields[0], err)
 				}
 				authSelectMD5 := map[string]interface{}{
 					"key_id":     keyID,
@@ -795,23 +792,20 @@ func readRipNeighbor(name, group string, ripNg bool, routingInstance string, clt
 				}
 				confRead.authenticationSelectiveMD5 = copyAndRemoveItemMapList(
 					"key_id", authSelectMD5, confRead.authenticationSelectiveMD5)
-				itemTrimAuthSelectMD5 := strings.TrimPrefix(itemTrim, "authentication-selective-md5 "+itemTrimplit[0]+" ")
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				switch {
-				case strings.HasPrefix(itemTrimAuthSelectMD5, "key "):
-					var err error
-					authSelectMD5["key"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
-						itemTrimAuthSelectMD5, "key "), "\""))
+				case balt.CutPrefixInString(&itemTrim, "key "):
+					authSelectMD5["key"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to decode authentication-selective-md5 key: %w", err)
 					}
-				case strings.HasPrefix(itemTrimAuthSelectMD5, "start-time "):
-					authSelectMD5["start_time"] = strings.Split(strings.Trim(strings.TrimPrefix(
-						itemTrimAuthSelectMD5, "start-time "), "\""), " ")[0]
+				case balt.CutPrefixInString(&itemTrim, "start-time "):
+					authSelectMD5["start_time"] = strings.Split(strings.Trim(itemTrim, "\""), " ")[0]
 				}
 				confRead.authenticationSelectiveMD5 = append(confRead.authenticationSelectiveMD5, authSelectMD5)
-			case strings.HasPrefix(itemTrim, "authentication-type "):
-				confRead.authenticationType = strings.TrimPrefix(itemTrim, "authentication-type ")
-			case strings.HasPrefix(itemTrim, "bfd-liveness-detection "):
+			case balt.CutPrefixInString(&itemTrim, "authentication-type "):
+				confRead.authenticationType = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "bfd-liveness-detection "):
 				if len(confRead.bfdLivenessDetection) == 0 {
 					confRead.bfdLivenessDetection = append(confRead.bfdLivenessDetection, map[string]interface{}{
 						"authentication_algorithm":           "",
@@ -827,10 +821,7 @@ func readRipNeighbor(name, group string, ripNg bool, routingInstance string, clt
 						"version":                            "",
 					})
 				}
-				if err := readRipNeighborBfd(
-					strings.TrimPrefix(itemTrim, "bfd-liveness-detection "),
-					confRead.bfdLivenessDetection[0],
-				); err != nil {
+				if err := readRipNeighborBfd(itemTrim, confRead.bfdLivenessDetection[0]); err != nil {
 					return confRead, err
 				}
 			case itemTrim == "check-zero":
@@ -839,40 +830,40 @@ func readRipNeighbor(name, group string, ripNg bool, routingInstance string, clt
 				confRead.demandCircuit = true
 			case itemTrim == "dynamic-peers":
 				confRead.dynamicPeers = true
-			case strings.HasPrefix(itemTrim, "import "):
-				confRead.importPolicy = append(confRead.importPolicy, strings.TrimPrefix(itemTrim, "import "))
+			case balt.CutPrefixInString(&itemTrim, "import "):
+				confRead.importPolicy = append(confRead.importPolicy, itemTrim)
 			case itemTrim == "interface-type p2mp":
 				confRead.interfaceTypeP2mp = true
-			case strings.HasPrefix(itemTrim, "max-retrans-time "):
-				confRead.maxRetransTime, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-retrans-time "))
+			case balt.CutPrefixInString(&itemTrim, "max-retrans-time "):
+				confRead.maxRetransTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "message-size "):
-				confRead.messageSize, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "message-size "))
+			case balt.CutPrefixInString(&itemTrim, "message-size "):
+				confRead.messageSize, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "metric-in "):
-				confRead.metricIn, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "metric-in "))
+			case balt.CutPrefixInString(&itemTrim, "metric-in "):
+				confRead.metricIn, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "no-check-zero":
 				confRead.noCheckZero = true
-			case strings.HasPrefix(itemTrim, "peer "):
-				confRead.peer = append(confRead.peer, strings.TrimPrefix(itemTrim, "peer "))
-			case strings.HasPrefix(itemTrim, "receive "):
-				confRead.receive = strings.TrimPrefix(itemTrim, "receive ")
-			case strings.HasPrefix(itemTrim, "route-timeout "):
-				confRead.routeTimeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "route-timeout "))
+			case balt.CutPrefixInString(&itemTrim, "peer "):
+				confRead.peer = append(confRead.peer, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "receive "):
+				confRead.receive = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "route-timeout "):
+				confRead.routeTimeout, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "send "):
-				confRead.send = strings.TrimPrefix(itemTrim, "send ")
-			case strings.HasPrefix(itemTrim, "update-interval "):
-				confRead.updateInterval, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "update-interval "))
+			case balt.CutPrefixInString(&itemTrim, "send "):
+				confRead.send = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "update-interval "):
+				confRead.updateInterval, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
@@ -883,56 +874,48 @@ func readRipNeighbor(name, group string, ripNg bool, routingInstance string, clt
 	return confRead, nil
 }
 
-func readRipNeighborBfd(itemTrim string, bfd map[string]interface{}) error {
+func readRipNeighborBfd(itemTrim string, bfd map[string]interface{}) (err error) {
 	switch {
-	case strings.HasPrefix(itemTrim, "authentication algorithm "):
-		bfd["authentication_algorithm"] = strings.TrimPrefix(itemTrim, "authentication algorithm ")
-	case strings.HasPrefix(itemTrim, "authentication key-chain "):
-		bfd["authentication_key_chain"] = strings.Trim(strings.TrimPrefix(itemTrim, "authentication key-chain "), "\"")
+	case balt.CutPrefixInString(&itemTrim, "authentication algorithm "):
+		bfd["authentication_algorithm"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "authentication key-chain "):
+		bfd["authentication_key_chain"] = strings.Trim(itemTrim, "\"")
 	case itemTrim == "authentication loose-check":
 		bfd["authentication_loose_check"] = true
-	case strings.HasPrefix(itemTrim, "detection-time threshold "):
-		var err error
-		bfd["detection_time_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "detection-time threshold "))
+	case balt.CutPrefixInString(&itemTrim, "detection-time threshold "):
+		bfd["detection_time_threshold"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "minimum-interval "):
-		var err error
-		bfd["minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-interval "))
+	case balt.CutPrefixInString(&itemTrim, "minimum-interval "):
+		bfd["minimum_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "minimum-receive-interval "):
-		var err error
-		bfd["minimum_receive_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-receive-interval "))
+	case balt.CutPrefixInString(&itemTrim, "minimum-receive-interval "):
+		bfd["minimum_receive_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "multiplier "):
-		var err error
-		bfd["multiplier"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "multiplier "))
+	case balt.CutPrefixInString(&itemTrim, "multiplier "):
+		bfd["multiplier"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "no-adaptation":
 		bfd["no_adaptation"] = true
-	case strings.HasPrefix(itemTrim, "transmit-interval minimum-interval "):
-		var err error
-		bfd["transmit_interval_minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "transmit-interval minimum-interval "))
+	case balt.CutPrefixInString(&itemTrim, "transmit-interval minimum-interval "):
+		bfd["transmit_interval_minimum_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "transmit-interval threshold "):
-		var err error
-		bfd["transmit_interval_threshold"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "transmit-interval threshold "))
+	case balt.CutPrefixInString(&itemTrim, "transmit-interval threshold "):
+		bfd["transmit_interval_threshold"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "version "):
-		bfd["version"] = strings.TrimPrefix(itemTrim, "version ")
+	case balt.CutPrefixInString(&itemTrim, "version "):
+		bfd["version"] = itemTrim
 	}
 
 	return nil

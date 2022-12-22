@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type svcSSLInitiationProfileOptions struct {
@@ -361,9 +362,7 @@ func setServicesSSLInitiationProfile(d *schema.ResourceData, clt *Client, junSes
 }
 
 func readServicesSSLInitiationProfile(profile string, clt *Client, junSess *junosSession,
-) (svcSSLInitiationProfileOptions, error) {
-	var confRead svcSSLInitiationProfileOptions
-
+) (confRead svcSSLInitiationProfileOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"services ssl initiation profile \""+profile+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -380,7 +379,7 @@ func readServicesSSLInitiationProfile(profile string, clt *Client, junSess *juno
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "actions "):
+			case balt.CutPrefixInString(&itemTrim, "actions "):
 				if len(confRead.actions) == 0 {
 					confRead.actions = append(confRead.actions, map[string]interface{}{
 						"crl_disable":                      false,
@@ -390,30 +389,29 @@ func readServicesSSLInitiationProfile(profile string, clt *Client, junSess *juno
 					})
 				}
 				switch {
-				case itemTrim == "actions crl disable":
+				case itemTrim == "crl disable":
 					confRead.actions[0]["crl_disable"] = true
-				case strings.HasPrefix(itemTrim, "actions crl if-not-present "):
-					confRead.actions[0]["crl_if_not_present"] = strings.TrimPrefix(itemTrim, "actions crl if-not-present ")
-				case itemTrim == "actions crl ignore-hold-instruction-code":
+				case balt.CutPrefixInString(&itemTrim, "crl if-not-present "):
+					confRead.actions[0]["crl_if_not_present"] = itemTrim
+				case itemTrim == "crl ignore-hold-instruction-code":
 					confRead.actions[0]["crl_ignore_hold_instruction_code"] = true
-				case itemTrim == "actions ignore-server-auth-failure":
+				case itemTrim == "ignore-server-auth-failure":
 					confRead.actions[0]["ignore_server_auth_failure"] = true
 				}
-			case strings.HasPrefix(itemTrim, "client-certificate "):
-				confRead.clientCertificate = strings.Trim(strings.TrimPrefix(itemTrim, "client-certificate "), "\"")
-			case strings.HasPrefix(itemTrim, "custom-ciphers "):
-				confRead.customCiphers = append(confRead.customCiphers, strings.TrimPrefix(itemTrim, "custom-ciphers "))
+			case balt.CutPrefixInString(&itemTrim, "client-certificate "):
+				confRead.clientCertificate = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "custom-ciphers "):
+				confRead.customCiphers = append(confRead.customCiphers, itemTrim)
 			case itemTrim == "enable-flow-tracing":
 				confRead.enableFlowTracing = true
 			case itemTrim == "enable-session-cache":
 				confRead.enableSessionCache = true
-			case strings.HasPrefix(itemTrim, "preferred-ciphers "):
-				confRead.preferredCiphers = strings.TrimPrefix(itemTrim, "preferred-ciphers ")
-			case strings.HasPrefix(itemTrim, "protocol-version "):
-				confRead.protocolVersion = strings.TrimPrefix(itemTrim, "protocol-version ")
-			case strings.HasPrefix(itemTrim, "trusted-ca "):
-				confRead.trustedCA = append(confRead.trustedCA,
-					strings.Trim(strings.TrimPrefix(itemTrim, "trusted-ca "), "\""))
+			case balt.CutPrefixInString(&itemTrim, "preferred-ciphers "):
+				confRead.preferredCiphers = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "protocol-version "):
+				confRead.protocolVersion = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "trusted-ca "):
+				confRead.trustedCA = append(confRead.trustedCA, strings.Trim(itemTrim, "\""))
 			}
 		}
 	}

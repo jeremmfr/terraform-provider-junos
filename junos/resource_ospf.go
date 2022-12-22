@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type ospfOptions struct {
@@ -634,27 +635,24 @@ func setOspf(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 }
 
 func readOspf(version, routingInstance string, clt *Client, junSess *junosSession,
-) (ospfOptions, error) {
-	var confRead ospfOptions
+) (confRead ospfOptions, err error) {
+	// default -1
 	confRead.externalPreference = -1
 	confRead.labeledPreference = -1
 	confRead.preference = -1
 	confRead.prefixExportLimit = -1
-
 	var showConfig string
 	ospfVersion := ospfV2
 	if version == "v3" {
 		ospfVersion = ospfV3
 	}
 	if routingInstance == defaultW {
-		var err error
 		showConfig, err = clt.command(cmdShowConfig+
 			"protocols "+ospfVersion+pipeDisplaySetRelative, junSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
-		var err error
 		showConfig, err = clt.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
 			"protocols "+ospfVersion+pipeDisplaySetRelative, junSess)
 		if err != nil {
@@ -674,7 +672,7 @@ func readOspf(version, routingInstance string, clt *Client, junSess *junosSessio
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "database-protection"):
+			case balt.CutPrefixInString(&itemTrim, "database-protection"):
 				if len(confRead.databaseProtection) == 0 {
 					confRead.databaseProtection = append(confRead.databaseProtection, map[string]interface{}{
 						"ignore_count":      0,
@@ -686,56 +684,49 @@ func readOspf(version, routingInstance string, clt *Client, junSess *junosSessio
 					})
 				}
 				dbPro := confRead.databaseProtection[0]
-				itemTrimDP := strings.TrimPrefix(itemTrim, "database-protection ")
 				switch {
-				case strings.HasPrefix(itemTrimDP, "ignore-count "):
-					var err error
-					dbPro["ignore_count"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDP, "ignore-count "))
+				case balt.CutPrefixInString(&itemTrim, " ignore-count "):
+					dbPro["ignore_count"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrimDP, "ignore-time "):
-					var err error
-					dbPro["ignore_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDP, "ignore-time "))
+				case balt.CutPrefixInString(&itemTrim, " ignore-time "):
+					dbPro["ignore_time"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrimDP, "maximum-lsa "):
-					var err error
-					dbPro["maximum_lsa"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDP, "maximum-lsa "))
+				case balt.CutPrefixInString(&itemTrim, " maximum-lsa "):
+					dbPro["maximum_lsa"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrimDP, "reset-time "):
-					var err error
-					dbPro["reset_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDP, "reset-time "))
+				case balt.CutPrefixInString(&itemTrim, " reset-time "):
+					dbPro["reset_time"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case itemTrimDP == "warning-only":
+				case itemTrim == " warning-only":
 					dbPro["warning_only"] = true
-				case strings.HasPrefix(itemTrimDP, "warning-threshold "):
-					var err error
-					dbPro["warning_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrimDP, "warning-threshold "))
+				case balt.CutPrefixInString(&itemTrim, " warning-threshold "):
+					dbPro["warning_threshold"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case itemTrim == "disable":
 				confRead.disable = true
-			case strings.HasPrefix(itemTrim, "domain-id "):
-				confRead.domainID = strings.Trim(strings.TrimPrefix(itemTrim, "domain-id "), "\"")
-			case strings.HasPrefix(itemTrim, "export "):
-				confRead.export = append(confRead.export, strings.Trim(strings.TrimPrefix(itemTrim, "export "), "\""))
-			case strings.HasPrefix(itemTrim, "external-preference "):
-				var err error
-				confRead.externalPreference, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "external-preference "))
+			case balt.CutPrefixInString(&itemTrim, "domain-id "):
+				confRead.domainID = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "export "):
+				confRead.export = append(confRead.export, strings.Trim(itemTrim, "\""))
+			case balt.CutPrefixInString(&itemTrim, "external-preference "):
+				confRead.externalPreference, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "forwarding-address-to-broadcast":
 				confRead.forwardingAddressToBroadcast = true
-			case strings.HasPrefix(itemTrim, "graceful-restart "):
+			case balt.CutPrefixInString(&itemTrim, "graceful-restart "):
 				if len(confRead.gracefulRestart) == 0 {
 					confRead.gracefulRestart = append(confRead.gracefulRestart, map[string]interface{}{
 						"disable":                false,
@@ -748,39 +739,35 @@ func readOspf(version, routingInstance string, clt *Client, junSess *junosSessio
 				}
 				grR := confRead.gracefulRestart[0]
 				switch {
-				case itemTrim == "graceful-restart disable":
+				case itemTrim == "disable":
 					grR["disable"] = true
-				case strings.HasPrefix(itemTrim, "graceful-restart helper-disable"):
+				case balt.CutPrefixInString(&itemTrim, "helper-disable"):
 					grR["helper_disable"] = true
-					if strings.HasPrefix(itemTrim, "graceful-restart helper-disable ") {
-						grR["helper_disable_type"] = strings.TrimPrefix(itemTrim, "graceful-restart helper-disable ")
+					if balt.CutPrefixInString(&itemTrim, " ") {
+						grR["helper_disable_type"] = itemTrim
 					}
-				case itemTrim == "graceful-restart no-strict-lsa-checking":
+				case itemTrim == "no-strict-lsa-checking":
 					grR["no_strict_lsa_checking"] = true
-				case strings.HasPrefix(itemTrim, "graceful-restart notify-duration "):
-					var err error
-					grR["notify_duration"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "graceful-restart notify-duration "))
+				case balt.CutPrefixInString(&itemTrim, "notify-duration "):
+					grR["notify_duration"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "graceful-restart restart-duration "):
-					var err error
-					grR["restart_duration"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "graceful-restart restart-duration "))
+				case balt.CutPrefixInString(&itemTrim, "restart-duration "):
+					grR["restart_duration"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
-			case strings.HasPrefix(itemTrim, "import "):
-				confRead.importL = append(confRead.importL, strings.Trim(strings.TrimPrefix(itemTrim, "import "), "\""))
-			case strings.HasPrefix(itemTrim, "labeled-preference "):
-				var err error
-				confRead.labeledPreference, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "labeled-preference "))
+			case balt.CutPrefixInString(&itemTrim, "import "):
+				confRead.importL = append(confRead.importL, strings.Trim(itemTrim, "\""))
+			case balt.CutPrefixInString(&itemTrim, "labeled-preference "):
+				confRead.labeledPreference, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "lsa-refresh-interval "):
-				var err error
-				confRead.lsaRefreshInterval, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "lsa-refresh-interval "))
+			case balt.CutPrefixInString(&itemTrim, "lsa-refresh-interval "):
+				confRead.lsaRefreshInterval, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
@@ -788,7 +775,7 @@ func readOspf(version, routingInstance string, clt *Client, junSess *junosSessio
 				confRead.noNssaAbr = true
 			case itemTrim == "no-rfc-1583":
 				confRead.noRfc1583 = true
-			case strings.HasPrefix(itemTrim, "overload"):
+			case balt.CutPrefixInString(&itemTrim, "overload"):
 				if len(confRead.overload) == 0 {
 					confRead.overload = append(confRead.overload, map[string]interface{}{
 						"allow_route_leaking": false,
@@ -798,41 +785,38 @@ func readOspf(version, routingInstance string, clt *Client, junSess *junosSessio
 					})
 				}
 				switch {
-				case itemTrim == "overload allow-route-leaking":
+				case itemTrim == " allow-route-leaking":
 					confRead.overload[0]["allow_route_leaking"] = true
-				case itemTrim == "overload as-external":
+				case itemTrim == " as-external":
 					confRead.overload[0]["as_external"] = true
-				case itemTrim == "overload stub-network":
+				case itemTrim == " stub-network":
 					confRead.overload[0]["stub_network"] = true
-				case strings.HasPrefix(itemTrim, "overload timeout "):
-					var err error
-					confRead.overload[0]["timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "overload timeout "))
+				case balt.CutPrefixInString(&itemTrim, " timeout "):
+					confRead.overload[0]["timeout"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
-			case strings.HasPrefix(itemTrim, "preference "):
-				var err error
-				confRead.preference, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "preference "))
+			case balt.CutPrefixInString(&itemTrim, "preference "):
+				confRead.preference, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "prefix-export-limit "):
-				var err error
-				confRead.prefixExportLimit, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "prefix-export-limit "))
+			case balt.CutPrefixInString(&itemTrim, "prefix-export-limit "):
+				confRead.prefixExportLimit, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "reference-bandwidth "):
-				confRead.referenceBandwidth = strings.TrimPrefix(itemTrim, "reference-bandwidth ")
-			case strings.HasPrefix(itemTrim, "rib-group "):
-				confRead.ribGroup = strings.TrimPrefix(itemTrim, "rib-group ")
-			case strings.HasPrefix(itemTrim, "sham-link"):
+			case balt.CutPrefixInString(&itemTrim, "reference-bandwidth "):
+				confRead.referenceBandwidth = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "rib-group "):
+				confRead.ribGroup = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "sham-link"):
 				confRead.shamLink = true
-				if strings.HasPrefix(itemTrim, "sham-link local ") {
-					confRead.shamLinkLocal = strings.TrimPrefix(itemTrim, "sham-link local ")
+				if balt.CutPrefixInString(&itemTrim, " local ") {
+					confRead.shamLinkLocal = itemTrim
 				}
-			case strings.HasPrefix(itemTrim, "spf-options "):
+			case balt.CutPrefixInString(&itemTrim, "spf-options "):
 				if len(confRead.spfOptions) == 0 {
 					confRead.spfOptions = append(confRead.spfOptions, map[string]interface{}{
 						"delay":                   0,
@@ -842,23 +826,20 @@ func readOspf(version, routingInstance string, clt *Client, junSess *junosSessio
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "spf-options delay "):
-					var err error
-					confRead.spfOptions[0]["delay"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "spf-options delay "))
+				case balt.CutPrefixInString(&itemTrim, "delay "):
+					confRead.spfOptions[0]["delay"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "spf-options holddown "):
-					var err error
-					confRead.spfOptions[0]["holddown"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "spf-options holddown "))
+				case balt.CutPrefixInString(&itemTrim, "holddown "):
+					confRead.spfOptions[0]["holddown"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case itemTrim == "spf-options no-ignore-our-externals":
+				case itemTrim == "no-ignore-our-externals":
 					confRead.spfOptions[0]["no_ignore_our_externals"] = true
-				case strings.HasPrefix(itemTrim, "spf-options rapid-runs "):
-					var err error
-					confRead.spfOptions[0]["rapid_runs"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "spf-options rapid-runs "))
+				case balt.CutPrefixInString(&itemTrim, "rapid-runs "):
+					confRead.spfOptions[0]["rapid_runs"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}

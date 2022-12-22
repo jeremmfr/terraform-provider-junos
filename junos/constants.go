@@ -31,5 +31,6 @@ const (
 	ospfV2 = "ospf"
 	ospfV3 = "ospf3"
 
-	failedConvAtoiError = "failed to convert value from '%s' to integer: %w"
+	failedConvAtoiError           = "failed to convert value from '%s' to integer: %w"
+	cantReadValuesNotEnoughFields = "can't read values for %s in '%s': not enough fields"
 )

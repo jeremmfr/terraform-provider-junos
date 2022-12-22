@@ -120,8 +120,9 @@ resource "junos_security_address_book" "testacc_securityGlobalAddressBook" {
     value       = "10.0.0.0/24"
   }
   wildcard_address {
-    name  = "testacc_wildcard"
-    value = "10.0.0.0/255.255.0.255"
+    name        = "testacc_wildcard"
+    description = "testacc_wildcard description"
+    value       = "10.0.0.0/255.255.0.255"
   }
   network_address {
     name        = "testacc_network2"
@@ -129,9 +130,10 @@ resource "junos_security_address_book" "testacc_securityGlobalAddressBook" {
     value       = "10.1.0.0/24"
   }
   range_address {
-    name = "testacc_range"
-    from = "10.1.1.1"
-    to   = "10.1.1.5"
+    name        = "testacc_range"
+    description = "testacc_range description"
+    from        = "10.1.1.1"
+    to          = "10.1.1.5"
   }
   dns_name {
     name  = "testacc_dns"
@@ -164,12 +166,20 @@ resource "junos_security_address_book" "testacc_securityGlobalAddressBook" {
     value       = "10.1.0.0/24"
   }
   dns_name {
-    name  = "testacc_dns"
-    value = "google.com"
+    name        = "testacc_dns"
+    description = "testacc_dns description"
+    value       = "google.com"
+    ipv4_only   = true
+  }
+  dns_name {
+    name      = "testacc_dns6"
+    value     = "google.com"
+    ipv6_only = true
   }
   address_set {
-    name    = "testacc_addressSet"
-    address = ["testacc_network", "testacc_dns"]
+    name        = "testacc_addressSet"
+    description = "testacc_addressSet description"
+    address     = ["testacc_network", "testacc_dns"]
   }
   address_set {
     name        = "testacc_addressSet2"

@@ -260,7 +260,7 @@ resource "junos_forwardingoptions_dhcprelay" "testacc_dhcprelay_v6_default" {
     option_15 {
       compare    = "equals"
       value_type = "ascii"
-      value      = " equals ascii "
+      value      = "&equals-ascii "
       action     = "drop"
     }
     option_15 {
