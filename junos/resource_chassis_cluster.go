@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -496,9 +497,7 @@ func delChassisCluster(clt *Client, junSess *junosSession) error {
 	return clt.configSet(configSet, junSess)
 }
 
-func readChassisCluster(clt *Client, junSess *junosSession) (chassisClusterOptions, error) {
-	var confRead chassisClusterOptions
-
+func readChassisCluster(clt *Client, junSess *junosSession) (confRead chassisClusterOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"chassis cluster"+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -513,12 +512,11 @@ func readChassisCluster(clt *Client, junSess *junosSession) (chassisClusterOptio
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "redundancy-group "):
-				itemRGTrim := strings.TrimPrefix(itemTrim, "redundancy-group ")
-				itemRGTrimSplit := strings.Split(itemRGTrim, " ")
-				number, err := strconv.Atoi(itemRGTrimSplit[0])
+			case balt.CutPrefixInString(&itemTrim, "redundancy-group "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				number, err := strconv.Atoi(itemTrimFields[0])
 				if err != nil {
-					return confRead, fmt.Errorf(failedConvAtoiError, itemRGTrimSplit[0], err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrimFields[0], err)
 				}
 				if len(confRead.redundancyGroup) < number+1 {
 					for i := len(confRead.redundancyGroup); i < number+1; i++ {
@@ -535,109 +533,94 @@ func readChassisCluster(clt *Client, junSess *junosSession) (chassisClusterOptio
 						})
 					}
 				}
-				itemRGNbTrim := strings.TrimPrefix(itemRGTrim, strconv.Itoa(number)+" ")
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				switch {
-				case strings.HasPrefix(itemRGNbTrim, "node 0 priority "):
-					var err error
-					confRead.redundancyGroup[number]["node0_priority"], err = strconv.Atoi(strings.TrimPrefix(
-						itemRGNbTrim, "node 0 priority "))
+				case balt.CutPrefixInString(&itemTrim, "node 0 priority "):
+					confRead.redundancyGroup[number]["node0_priority"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(failedConvAtoiError, itemRGNbTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemRGNbTrim, "node 1 priority "):
-					var err error
-					confRead.redundancyGroup[number]["node1_priority"], err = strconv.Atoi(strings.TrimPrefix(
-						itemRGNbTrim, "node 1 priority "))
+				case balt.CutPrefixInString(&itemTrim, "node 1 priority "):
+					confRead.redundancyGroup[number]["node1_priority"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(failedConvAtoiError, itemRGNbTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemRGNbTrim, "gratuitous-arp-count "):
-					var err error
-					confRead.redundancyGroup[number]["gratuitous_arp_count"], err = strconv.Atoi(strings.TrimPrefix(
-						itemRGNbTrim, "gratuitous-arp-count "))
+				case balt.CutPrefixInString(&itemTrim, "gratuitous-arp-count "):
+					confRead.redundancyGroup[number]["gratuitous_arp_count"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(failedConvAtoiError, itemRGNbTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemRGNbTrim, "hold-down-interval "):
-					var err error
-					confRead.redundancyGroup[number]["hold_down_interval"], err = strconv.Atoi(strings.TrimPrefix(
-						itemRGNbTrim, "hold-down-interval "))
+				case balt.CutPrefixInString(&itemTrim, "hold-down-interval "):
+					confRead.redundancyGroup[number]["hold_down_interval"], err = strconv.Atoi(itemTrim)
 					if err != nil {
-						return confRead, fmt.Errorf(failedConvAtoiError, itemRGNbTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemRGNbTrim, "interface-monitor "):
-					name := strings.Split(strings.TrimPrefix(itemRGNbTrim, "interface-monitor "), " ")[0]
-					weight, err := strconv.Atoi(strings.TrimPrefix(itemRGNbTrim, "interface-monitor "+name+" weight "))
+				case balt.CutPrefixInString(&itemTrim, "interface-monitor "):
+					ifaceMonitorFields := strings.Split(itemTrim, " ")
+					if len(ifaceMonitorFields) < 3 { // <name> weight <weight>
+						return confRead, fmt.Errorf(cantReadValuesNotEnoughFields, "interface-monitor", itemTrim)
+					}
+					weight, err := strconv.Atoi(ifaceMonitorFields[2])
 					if err != nil {
-						return confRead, fmt.Errorf(failedConvAtoiError, itemRGNbTrim, err)
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 					confRead.redundancyGroup[number]["interface_monitor"] = append(
 						confRead.redundancyGroup[number]["interface_monitor"].([]map[string]interface{}),
 						map[string]interface{}{
-							"name":   name,
+							"name":   ifaceMonitorFields[0],
 							"weight": weight,
 						})
-				case strings.HasPrefix(itemRGNbTrim, "preempt"):
+				case balt.CutPrefixInString(&itemTrim, "preempt"):
 					confRead.redundancyGroup[number]["preempt"] = true
 					switch {
-					case strings.HasPrefix(itemRGNbTrim, "preempt delay "):
-						var err error
-						confRead.redundancyGroup[number]["preempt_delay"], err = strconv.Atoi(strings.TrimPrefix(
-							itemRGNbTrim, "preempt delay "))
+					case balt.CutPrefixInString(&itemTrim, " delay "):
+						confRead.redundancyGroup[number]["preempt_delay"], err = strconv.Atoi(itemTrim)
 						if err != nil {
-							return confRead, fmt.Errorf(failedConvAtoiError, itemRGNbTrim, err)
+							return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 						}
-					case strings.HasPrefix(itemRGNbTrim, "preempt limit "):
-						var err error
-						confRead.redundancyGroup[number]["preempt_limit"], err = strconv.Atoi(strings.TrimPrefix(
-							itemRGNbTrim, "preempt limit "))
+					case balt.CutPrefixInString(&itemTrim, " limit "):
+						confRead.redundancyGroup[number]["preempt_limit"], err = strconv.Atoi(itemTrim)
 						if err != nil {
-							return confRead, fmt.Errorf(failedConvAtoiError, itemRGNbTrim, err)
+							return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 						}
-					case strings.HasPrefix(itemRGNbTrim, "preempt period "):
-						var err error
-						confRead.redundancyGroup[number]["preempt_period"], err = strconv.Atoi(strings.TrimPrefix(
-							itemRGNbTrim, "preempt period "))
+					case balt.CutPrefixInString(&itemTrim, " period "):
+						confRead.redundancyGroup[number]["preempt_period"], err = strconv.Atoi(itemTrim)
 						if err != nil {
-							return confRead, fmt.Errorf(failedConvAtoiError, itemRGNbTrim, err)
+							return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 						}
 					}
 				}
-			case strings.HasPrefix(itemTrim, "reth-count "):
-				var err error
-				confRead.rethCount, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "reth-count "))
+			case balt.CutPrefixInString(&itemTrim, "reth-count "):
+				confRead.rethCount, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "configuration-synchronize no-secondary-bootup-auto":
 				confRead.configSyncNoSecBootAuto = true
-			case strings.HasPrefix(itemTrim, "control-ports fpc "):
-				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "control-ports fpc "), " ")
-				if len(itemTrimSplit) < 3 {
-					return confRead, fmt.Errorf("can't read values for control-ports fpc in '%s'", itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "control-ports fpc "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				if len(itemTrimFields) < 3 { // <fpc> port <port>
+					return confRead, fmt.Errorf(cantReadValuesNotEnoughFields, "control-ports fpc", itemTrim)
 				}
 				controlPort := make(map[string]interface{})
-				var err error
-				controlPort["fpc"], err = strconv.Atoi(itemTrimSplit[0])
+				controlPort["fpc"], err = strconv.Atoi(itemTrimFields[0])
 				if err != nil {
-					return confRead, fmt.Errorf(failedConvAtoiError, itemTrimSplit[0], err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrimFields[0], err)
 				}
-				controlPort["port"], err = strconv.Atoi(itemTrimSplit[2])
+				controlPort["port"], err = strconv.Atoi(itemTrimFields[2])
 				if err != nil {
-					return confRead, fmt.Errorf(failedConvAtoiError, itemTrimSplit[2], err)
+					return confRead, fmt.Errorf(failedConvAtoiError, itemTrimFields[2], err)
 				}
 				confRead.controlPorts = append(confRead.controlPorts, controlPort)
 			case itemTrim == "control-link-recovery":
 				confRead.controlLinkRecovery = true
-			case strings.HasPrefix(itemTrim, "heartbeat-interval "):
-				var err error
-				confRead.heartbeatInterval, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "heartbeat-interval "))
+			case balt.CutPrefixInString(&itemTrim, "heartbeat-interval "):
+				confRead.heartbeatInterval, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "heartbeat-threshold "):
-				var err error
-				confRead.heartbeatThreshold, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "heartbeat-threshold "))
+			case balt.CutPrefixInString(&itemTrim, "heartbeat-threshold "):
+				confRead.heartbeatThreshold, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
@@ -664,11 +647,10 @@ func readChassisCluster(clt *Client, junSess *junosSession) (chassisClusterOptio
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "description "):
-				confRead.fab0[0]["description"] = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
-			case strings.HasPrefix(itemTrim, "fabric-options member-interfaces "):
-				confRead.fab0[0]["member_interfaces"] = append(confRead.fab0[0]["member_interfaces"].([]string),
-					strings.TrimPrefix(itemTrim, "fabric-options member-interfaces "))
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				confRead.fab0[0]["description"] = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "fabric-options member-interfaces "):
+				confRead.fab0[0]["member_interfaces"] = append(confRead.fab0[0]["member_interfaces"].([]string), itemTrim)
 			}
 		}
 	}
@@ -692,11 +674,10 @@ func readChassisCluster(clt *Client, junSess *junosSession) (chassisClusterOptio
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "description "):
-				confRead.fab1[0]["description"] = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
-			case strings.HasPrefix(itemTrim, "fabric-options member-interfaces "):
-				confRead.fab1[0]["member_interfaces"] = append(confRead.fab1[0]["member_interfaces"].([]string),
-					strings.TrimPrefix(itemTrim, "fabric-options member-interfaces "))
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				confRead.fab1[0]["description"] = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "fabric-options member-interfaces "):
+				confRead.fab1[0]["member_interfaces"] = append(confRead.fab1[0]["member_interfaces"].([]string), itemTrim)
 			}
 		}
 	}

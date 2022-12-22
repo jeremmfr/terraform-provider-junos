@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -738,9 +739,7 @@ func setSecurityIdpPolicyIpsRule(setPrefix string, rule map[string]interface{}) 
 }
 
 func readSecurityIdpPolicy(policy string, clt *Client, junSess *junosSession,
-) (idpPolicyOptions, error) {
-	var confRead idpPolicyOptions
-
+) (confRead idpPolicyOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security idp idp-policy \""+policy+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -757,17 +756,17 @@ func readSecurityIdpPolicy(policy string, clt *Client, junSess *junosSession,
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "rulebase-exempt rule "):
-				policyLineCut := strings.Split(strings.TrimPrefix(itemTrim, "rulebase-exempt rule "), " ")
+			case balt.CutPrefixInString(&itemTrim, "rulebase-exempt rule "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				rule := map[string]interface{}{
-					"name":        strings.Trim(policyLineCut[0], "\""),
+					"name":        strings.Trim(itemTrimFields[0], "\""),
 					"match":       make([]map[string]interface{}, 0),
 					"description": "",
 				}
 				confRead.exemptRule = copyAndRemoveItemMapList("name", rule, confRead.exemptRule)
-				itemTrimRule := strings.TrimPrefix(itemTrim, "rulebase-exempt rule "+policyLineCut[0]+" ")
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				switch {
-				case strings.HasPrefix(itemTrimRule, "match "):
+				case balt.CutPrefixInString(&itemTrim, "match "):
 					if len(rule["match"].([]map[string]interface{})) == 0 {
 						rule["match"] = append(rule["match"].([]map[string]interface{}), map[string]interface{}{
 							"custom_attack_group":        make([]string, 0),
@@ -785,55 +784,72 @@ func readSecurityIdpPolicy(policy string, clt *Client, junSess *junosSession,
 					}
 					match := rule["match"].([]map[string]interface{})[0]
 					switch {
-					case strings.HasPrefix(itemTrimRule, "match attacks custom-attack-groups "):
-						match["custom_attack_group"] = append(match["custom_attack_group"].([]string),
-							strings.Trim(strings.TrimPrefix(itemTrimRule, "match attacks custom-attack-groups "), "\""))
-					case strings.HasPrefix(itemTrimRule, "match attacks custom-attacks "):
+					case balt.CutPrefixInString(&itemTrim, "attacks custom-attack-groups "):
+						match["custom_attack_group"] = append(
+							match["custom_attack_group"].([]string),
+							strings.Trim(itemTrim, "\""),
+						)
+					case balt.CutPrefixInString(&itemTrim, "attacks custom-attacks "):
 						match["custom_attack"] = append(match["custom_attack"].([]string),
-							strings.Trim(strings.TrimPrefix(itemTrimRule, "match attacks custom-attacks "), "\""))
-					case strings.HasPrefix(itemTrimRule, "match destination-address "):
-						match["destination_address"] = append(match["destination_address"].([]string),
-							strings.Trim(strings.TrimPrefix(itemTrimRule, "match destination-address "), "\""))
-					case strings.HasPrefix(itemTrimRule, "match destination-except "):
-						match["destination_address_except"] = append(match["destination_address_except"].([]string),
-							strings.Trim(strings.TrimPrefix(itemTrimRule, "match destination-except "), "\""))
-					case strings.HasPrefix(itemTrimRule, "match attacks dynamic-attack-groups "):
-						match["dynamic_attack_group"] = append(match["dynamic_attack_group"].([]string),
-							strings.Trim(strings.TrimPrefix(itemTrimRule, "match attacks dynamic-attack-groups "), "\""))
-					case strings.HasPrefix(itemTrimRule, "match from-zone "):
-						match["from_zone"] = strings.Trim(strings.TrimPrefix(itemTrimRule, "match from-zone "), "\"")
-					case strings.HasPrefix(itemTrimRule, "match attacks predefined-attack-groups "):
-						match["predefined_attack_group"] = append(match["predefined_attack_group"].([]string),
-							strings.Trim(strings.TrimPrefix(itemTrimRule, "match attacks predefined-attack-groups "), "\""))
-					case strings.HasPrefix(itemTrimRule, "match attacks predefined-attacks "):
-						match["predefined_attack"] = append(match["predefined_attack"].([]string),
-							strings.Trim(strings.TrimPrefix(itemTrimRule, "match attacks predefined-attacks "), "\""))
-					case strings.HasPrefix(itemTrimRule, "match source-address "):
-						match["source_address"] = append(match["source_address"].([]string),
-							strings.Trim(strings.TrimPrefix(itemTrimRule, "match source-address "), "\""))
-					case strings.HasPrefix(itemTrimRule, "match source-except "):
-						match["source_address_except"] = append(match["source_address_except"].([]string),
-							strings.Trim(strings.TrimPrefix(itemTrimRule, "match source-except "), "\""))
-					case strings.HasPrefix(itemTrimRule, "match to-zone "):
-						match["to_zone"] = strings.Trim(strings.TrimPrefix(itemTrimRule, "match to-zone "), "\"")
+							strings.Trim(itemTrim, "\""),
+						)
+					case balt.CutPrefixInString(&itemTrim, "destination-address "):
+						match["destination_address"] = append(
+							match["destination_address"].([]string),
+							strings.Trim(itemTrim, "\""),
+						)
+					case balt.CutPrefixInString(&itemTrim, "destination-except "):
+						match["destination_address_except"] = append(
+							match["destination_address_except"].([]string),
+							strings.Trim(itemTrim, "\""),
+						)
+					case balt.CutPrefixInString(&itemTrim, "attacks dynamic-attack-groups "):
+						match["dynamic_attack_group"] = append(
+							match["dynamic_attack_group"].([]string),
+							strings.Trim(itemTrim, "\""),
+						)
+					case balt.CutPrefixInString(&itemTrim, "from-zone "):
+						match["from_zone"] = strings.Trim(itemTrim, "\"")
+					case balt.CutPrefixInString(&itemTrim, "attacks predefined-attack-groups "):
+						match["predefined_attack_group"] = append(
+							match["predefined_attack_group"].([]string),
+							strings.Trim(itemTrim, "\""),
+						)
+					case balt.CutPrefixInString(&itemTrim, "attacks predefined-attacks "):
+						match["predefined_attack"] = append(
+							match["predefined_attack"].([]string),
+							strings.Trim(itemTrim, "\""),
+						)
+					case balt.CutPrefixInString(&itemTrim, "source-address "):
+						match["source_address"] = append(
+							match["source_address"].([]string),
+							strings.Trim(itemTrim, "\""),
+						)
+					case balt.CutPrefixInString(&itemTrim, "source-except "):
+						match["source_address_except"] = append(
+							match["source_address_except"].([]string),
+							strings.Trim(itemTrim, "\""),
+						)
+					case balt.CutPrefixInString(&itemTrim, "to-zone "):
+						match["to_zone"] = strings.Trim(itemTrim, "\"")
 					}
-				case strings.HasPrefix(itemTrimRule, "description "):
-					rule["description"] = strings.Trim(strings.TrimPrefix(itemTrimRule, "description "), "\"")
+				case balt.CutPrefixInString(&itemTrim, "description "):
+					rule["description"] = strings.Trim(itemTrim, "\"")
 				}
 				confRead.exemptRule = append(confRead.exemptRule, rule)
-			case strings.HasPrefix(itemTrim, "rulebase-ips rule "):
-				policyLineCut := strings.Split(strings.TrimPrefix(itemTrim, "rulebase-ips rule "), " ")
+			case balt.CutPrefixInString(&itemTrim, "rulebase-ips rule "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				rule := map[string]interface{}{
-					"name":        strings.Trim(policyLineCut[0], "\""),
+					"name":        strings.Trim(itemTrimFields[0], "\""),
 					"match":       make([]map[string]interface{}, 0),
 					"then":        make([]map[string]interface{}, 0),
 					"description": "",
 					"terminal":    false,
 				}
 				confRead.ipsRule = copyAndRemoveItemMapList("name", rule, confRead.ipsRule)
-				itemTrimRule := strings.TrimPrefix(itemTrim, "rulebase-ips rule "+policyLineCut[0]+" ")
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				switch {
-				case strings.HasPrefix(itemTrimRule, "match "):
+				case balt.CutPrefixInString(&itemTrim, "match "):
 					if len(rule["match"].([]map[string]interface{})) == 0 {
 						rule["match"] = append(rule["match"].([]map[string]interface{}), map[string]interface{}{
 							"application":                "",
@@ -852,41 +868,59 @@ func readSecurityIdpPolicy(policy string, clt *Client, junSess *junosSession,
 					}
 					match := rule["match"].([]map[string]interface{})[0]
 					switch {
-					case strings.HasPrefix(itemTrimRule, "match application "):
-						match["application"] = strings.Trim(strings.TrimPrefix(itemTrimRule, "match application "), "\"")
-					case strings.HasPrefix(itemTrimRule, "match attacks custom-attack-groups "):
-						match["custom_attack_group"] = append(match["custom_attack_group"].([]string),
-							strings.Trim(strings.TrimPrefix(itemTrimRule, "match attacks custom-attack-groups "), "\""))
-					case strings.HasPrefix(itemTrimRule, "match attacks custom-attacks "):
-						match["custom_attack"] = append(match["custom_attack"].([]string),
-							strings.Trim(strings.TrimPrefix(itemTrimRule, "match attacks custom-attacks "), "\""))
-					case strings.HasPrefix(itemTrimRule, "match destination-address "):
-						match["destination_address"] = append(match["destination_address"].([]string),
-							strings.Trim(strings.TrimPrefix(itemTrimRule, "match destination-address "), "\""))
-					case strings.HasPrefix(itemTrimRule, "match destination-except "):
-						match["destination_address_except"] = append(match["destination_address_except"].([]string),
-							strings.Trim(strings.TrimPrefix(itemTrimRule, "match destination-except "), "\""))
-					case strings.HasPrefix(itemTrimRule, "match attacks dynamic-attack-groups "):
-						match["dynamic_attack_group"] = append(match["dynamic_attack_group"].([]string),
-							strings.Trim(strings.TrimPrefix(itemTrimRule, "match attacks dynamic-attack-groups "), "\""))
-					case strings.HasPrefix(itemTrimRule, "match from-zone "):
-						match["from_zone"] = strings.Trim(strings.TrimPrefix(itemTrimRule, "match from-zone "), "\"")
-					case strings.HasPrefix(itemTrimRule, "match attacks predefined-attack-groups "):
-						match["predefined_attack_group"] = append(match["predefined_attack_group"].([]string),
-							strings.Trim(strings.TrimPrefix(itemTrimRule, "match attacks predefined-attack-groups "), "\""))
-					case strings.HasPrefix(itemTrimRule, "match attacks predefined-attacks "):
-						match["predefined_attack"] = append(match["predefined_attack"].([]string),
-							strings.Trim(strings.TrimPrefix(itemTrimRule, "match attacks predefined-attacks "), "\""))
-					case strings.HasPrefix(itemTrimRule, "match source-address "):
-						match["source_address"] = append(match["source_address"].([]string),
-							strings.Trim(strings.TrimPrefix(itemTrimRule, "match source-address "), "\""))
-					case strings.HasPrefix(itemTrimRule, "match source-except "):
-						match["source_address_except"] = append(match["source_address_except"].([]string),
-							strings.Trim(strings.TrimPrefix(itemTrimRule, "match source-except "), "\""))
-					case strings.HasPrefix(itemTrimRule, "match to-zone "):
-						match["to_zone"] = strings.Trim(strings.TrimPrefix(itemTrimRule, "match to-zone "), "\"")
+					case balt.CutPrefixInString(&itemTrim, "application "):
+						match["application"] = strings.Trim(itemTrim, "\"")
+					case balt.CutPrefixInString(&itemTrim, "attacks custom-attack-groups "):
+						match["custom_attack_group"] = append(
+							match["custom_attack_group"].([]string),
+							strings.Trim(itemTrim, "\""),
+						)
+					case balt.CutPrefixInString(&itemTrim, "attacks custom-attacks "):
+						match["custom_attack"] = append(
+							match["custom_attack"].([]string),
+							strings.Trim(itemTrim, "\""),
+						)
+					case balt.CutPrefixInString(&itemTrim, "destination-address "):
+						match["destination_address"] = append(
+							match["destination_address"].([]string),
+							strings.Trim(itemTrim, "\""),
+						)
+					case balt.CutPrefixInString(&itemTrim, "destination-except "):
+						match["destination_address_except"] = append(
+							match["destination_address_except"].([]string),
+							strings.Trim(itemTrim, "\""),
+						)
+					case balt.CutPrefixInString(&itemTrim, "attacks dynamic-attack-groups "):
+						match["dynamic_attack_group"] = append(
+							match["dynamic_attack_group"].([]string),
+							strings.Trim(itemTrim, "\""),
+						)
+					case balt.CutPrefixInString(&itemTrim, "from-zone "):
+						match["from_zone"] = strings.Trim(itemTrim, "\"")
+					case balt.CutPrefixInString(&itemTrim, "attacks predefined-attack-groups "):
+						match["predefined_attack_group"] = append(
+							match["predefined_attack_group"].([]string),
+							strings.Trim(itemTrim, "\""),
+						)
+					case balt.CutPrefixInString(&itemTrim, "attacks predefined-attacks "):
+						match["predefined_attack"] = append(
+							match["predefined_attack"].([]string),
+							strings.Trim(itemTrim, "\""),
+						)
+					case balt.CutPrefixInString(&itemTrim, "source-address "):
+						match["source_address"] = append(
+							match["source_address"].([]string),
+							strings.Trim(itemTrim, "\""),
+						)
+					case balt.CutPrefixInString(&itemTrim, "source-except "):
+						match["source_address_except"] = append(
+							match["source_address_except"].([]string),
+							strings.Trim(itemTrim, "\""),
+						)
+					case balt.CutPrefixInString(&itemTrim, "to-zone "):
+						match["to_zone"] = strings.Trim(itemTrim, "\"")
 					}
-				case strings.HasPrefix(itemTrimRule, "then "):
+				case balt.CutPrefixInString(&itemTrim, "then "):
 					if len(rule["then"].([]map[string]interface{})) == 0 {
 						rule["then"] = append(rule["then"].([]map[string]interface{}), map[string]interface{}{
 							"action":                                      "",
@@ -910,85 +944,74 @@ func readSecurityIdpPolicy(policy string, clt *Client, junSess *junosSession,
 					}
 					then := rule["then"].([]map[string]interface{})[0]
 					switch {
-					case strings.HasPrefix(itemTrimRule, "then action "):
-						itemTrimRuleAction := strings.TrimPrefix(itemTrimRule, "then action ")
+					case balt.CutPrefixInString(&itemTrim, "action "):
 						switch {
-						case strings.HasPrefix(itemTrimRuleAction, "class-of-service "):
+						case balt.CutPrefixInString(&itemTrim, "class-of-service "):
 							then["action"] = "class-of-service"
 							switch {
-							case strings.HasPrefix(itemTrimRuleAction, "class-of-service forwarding-class "):
-								then["action_cos_forwarding_class"] = strings.Trim(strings.TrimPrefix(
-									itemTrimRuleAction, "class-of-service forwarding-class "), "\"")
-							case strings.HasPrefix(itemTrimRuleAction, "class-of-service dscp-code-point "):
-								var err error
-								then["action_dscp_code_point"], err = strconv.Atoi(strings.TrimPrefix(
-									itemTrimRuleAction, "class-of-service dscp-code-point "))
+							case balt.CutPrefixInString(&itemTrim, "forwarding-class "):
+								then["action_cos_forwarding_class"] = strings.Trim(itemTrim, "\"")
+							case balt.CutPrefixInString(&itemTrim, "dscp-code-point "):
+								then["action_dscp_code_point"], err = strconv.Atoi(itemTrim)
 								if err != nil {
 									return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 								}
 							}
-						case strings.HasPrefix(itemTrimRuleAction, "mark-diffserv "):
+						case balt.CutPrefixInString(&itemTrim, "mark-diffserv "):
 							then["action"] = "mark-diffserv"
-							var err error
-							then["action_dscp_code_point"], err = strconv.Atoi(strings.TrimPrefix(
-								itemTrimRuleAction, "mark-diffserv "))
+							then["action_dscp_code_point"], err = strconv.Atoi(itemTrim)
 							if err != nil {
 								return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 							}
 						default:
-							then["action"] = itemTrimRuleAction
+							then["action"] = itemTrim
 						}
-					case strings.HasPrefix(itemTrimRule, "then ip-action "):
+					case balt.CutPrefixInString(&itemTrim, "ip-action "):
 						switch {
-						case itemTrimRule == "then ip-action log":
+						case itemTrim == "log":
 							then["ip_action_log"] = true
-						case itemTrimRule == "then ip-action log-create":
+						case itemTrim == "log-create":
 							then["ip_action_log_create"] = true
-						case itemTrimRule == "then ip-action refresh-timeout":
+						case itemTrim == "refresh-timeout":
 							then["ip_action_refresh_timeout"] = true
-						case strings.HasPrefix(itemTrimRule, "then ip-action target "):
-							then["ip_action_target"] = strings.TrimPrefix(itemTrimRule, "then ip-action target ")
-						case strings.HasPrefix(itemTrimRule, "then ip-action timeout "):
-							var err error
-							then["ip_action_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrimRule, "then ip-action timeout "))
+						case balt.CutPrefixInString(&itemTrim, "target "):
+							then["ip_action_target"] = itemTrim
+						case balt.CutPrefixInString(&itemTrim, "timeout "):
+							then["ip_action_timeout"], err = strconv.Atoi(itemTrim)
 							if err != nil {
 								return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 							}
 						default:
-							then["ip_action"] = strings.TrimPrefix(itemTrimRule, "then ip-action ")
+							then["ip_action"] = itemTrim
 						}
-					case strings.HasPrefix(itemTrimRule, "then notification"):
+					case balt.CutPrefixInString(&itemTrim, "notification"):
 						then["notification"] = true
 						switch {
-						case strings.HasPrefix(itemTrimRule, "then notification log-attacks"):
+						case balt.CutPrefixInString(&itemTrim, " log-attacks"):
 							then["notification_log_attacks"] = true
-							if itemTrimRule == "then notification log-attacks alert" {
+							if itemTrim == " alert" {
 								then["notification_log_attacks_alert"] = true
 							}
-						case strings.HasPrefix(itemTrimRule, "then notification packet-log"):
+						case balt.CutPrefixInString(&itemTrim, " packet-log"):
 							then["notification_packet_log"] = true
-							var err error
 							switch {
-							case strings.HasPrefix(itemTrimRule, "then notification packet-log post-attack "):
-								then["notification_packet_log_post_attack"], err = strconv.Atoi(strings.TrimPrefix(
-									itemTrimRule, "then notification packet-log post-attack "))
-							case strings.HasPrefix(itemTrimRule, "then notification packet-log post-attack-timeout "):
-								then["notification_packet_log_post_attack_timeout"], err = strconv.Atoi(strings.TrimPrefix(
-									itemTrimRule, "then notification packet-log post-attack-timeout "))
-							case strings.HasPrefix(itemTrimRule, "then notification packet-log pre-attack "):
-								then["notification_packet_log_pre_attack"], err = strconv.Atoi(strings.TrimPrefix(
-									itemTrimRule, "then notification packet-log pre-attack "))
+							case balt.CutPrefixInString(&itemTrim, " post-attack "):
+								then["notification_packet_log_post_attack"], err = strconv.Atoi(itemTrim)
+							case balt.CutPrefixInString(&itemTrim, " post-attack-timeout "):
+								then["notification_packet_log_post_attack_timeout"], err = strconv.Atoi(itemTrim)
+							case balt.CutPrefixInString(&itemTrim, " pre-attack "):
+								then["notification_packet_log_pre_attack"], err = strconv.Atoi(itemTrim)
 							}
 							if err != nil {
 								return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 							}
 						}
-					case strings.HasPrefix(itemTrimRule, "then severity "):
-						then["severity"] = strings.TrimPrefix(itemTrimRule, "then severity ")
+					case balt.CutPrefixInString(&itemTrim, "severity "):
+						then["severity"] = itemTrim
 					}
-				case strings.HasPrefix(itemTrimRule, "description "):
-					rule["description"] = strings.Trim(strings.TrimPrefix(itemTrimRule, "description "), "\"")
-				case itemTrimRule == "terminal":
+				case balt.CutPrefixInString(&itemTrim, "description "):
+					rule["description"] = strings.Trim(itemTrim, "\"")
+				case itemTrim == "terminal":
 					rule["terminal"] = true
 				}
 				confRead.ipsRule = append(confRead.ipsRule, rule)

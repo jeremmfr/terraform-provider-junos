@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -389,9 +390,7 @@ func setLldpMedInterface(d *schema.ResourceData, clt *Client, junSess *junosSess
 }
 
 func readLldpMedInterface(name string, clt *Client, junSess *junosSession,
-) (lldpMedInterfaceOptions, error) {
-	var confRead lldpMedInterfaceOptions
-
+) (confRead lldpMedInterfaceOptions, err error) {
 	showConfig, err := clt.command(
 		cmdShowConfig+"protocols lldp-med interface "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -412,7 +411,7 @@ func readLldpMedInterface(name string, clt *Client, junSess *junosSession,
 				confRead.disable = true
 			case itemTrim == "enable":
 				confRead.enable = true
-			case strings.HasPrefix(itemTrim, "location"):
+			case balt.CutPrefixInString(&itemTrim, "location"):
 				if len(confRead.location) == 0 {
 					confRead.location = append(confRead.location, map[string]interface{}{
 						"civic_based_ca_type":      make([]map[string]interface{}, 0),
@@ -423,69 +422,55 @@ func readLldpMedInterface(name string, clt *Client, junSess *junosSession,
 						"elin":                     "",
 					})
 				}
-				itemTrimLocation := strings.TrimPrefix(itemTrim, "location ")
 				switch {
-				case strings.HasPrefix(itemTrimLocation, "civic-based ca-type "):
-					itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrimLocation, "civic-based ca-type "), " ")
-					if len(itemTrimSplit) > 0 {
-						caType, err := strconv.Atoi(itemTrimSplit[0])
-						if err != nil {
-							return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
-						}
-						switch {
-						case len(itemTrimSplit) == 1:
-							confRead.location[0]["civic_based_ca_type"] = append(
-								confRead.location[0]["civic_based_ca_type"].([]map[string]interface{}),
-								map[string]interface{}{
-									"ca_type":  caType,
-									"ca_value": "",
-								})
-						case len(itemTrimSplit) == 3:
-							confRead.location[0]["civic_based_ca_type"] = append(
-								confRead.location[0]["civic_based_ca_type"].([]map[string]interface{}),
-								map[string]interface{}{
-									"ca_type":  caType,
-									"ca_value": itemTrimSplit[2],
-								})
-						default:
-							return confRead, fmt.Errorf("can't find ca-type and ca-value in %s", itemTrim)
-						}
-					} else {
-						return confRead, fmt.Errorf("can't find ca-type and ca-value in %s", itemTrim)
-					}
-				case strings.HasPrefix(itemTrimLocation, "civic-based country-code "):
-					confRead.location[0]["civic_based_country_code"] = strings.TrimPrefix(
-						itemTrimLocation, "civic-based country-code ")
-				case strings.HasPrefix(itemTrimLocation, "civic-based what "):
-					var err error
-					confRead.location[0]["civic_based_what"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrimLocation, "civic-based what "))
+				case balt.CutPrefixInString(&itemTrim, " civic-based ca-type "):
+					itemTrimFields := strings.Split(itemTrim, " ")
+					caType, err := strconv.Atoi(itemTrimFields[0])
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrimLocation, "co-ordinate lattitude "): //nolint: misspell
-					var err error
-					confRead.location[0]["co_ordinate_latitude"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrimLocation, "co-ordinate lattitude ")) //nolint: misspell
+					switch len(itemTrimFields) {
+					case 1: // <ca_type>
+						confRead.location[0]["civic_based_ca_type"] = append(
+							confRead.location[0]["civic_based_ca_type"].([]map[string]interface{}),
+							map[string]interface{}{
+								"ca_type":  caType,
+								"ca_value": "",
+							})
+					case 3: // <ca_type> ca-value <ca_value>
+						confRead.location[0]["civic_based_ca_type"] = append(
+							confRead.location[0]["civic_based_ca_type"].([]map[string]interface{}),
+							map[string]interface{}{
+								"ca_type":  caType,
+								"ca_value": itemTrimFields[2],
+							})
+					default:
+						return confRead, fmt.Errorf(cantReadValuesNotEnoughFields, "civic-based ca-type", itemTrim)
+					}
+				case balt.CutPrefixInString(&itemTrim, " civic-based country-code "):
+					confRead.location[0]["civic_based_country_code"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, " civic-based what "):
+					confRead.location[0]["civic_based_what"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrimLocation, "co-ordinate latitude "):
-					var err error
-					confRead.location[0]["co_ordinate_latitude"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrimLocation, "co-ordinate latitude "))
+				case balt.CutPrefixInString(&itemTrim, " co-ordinate lattitude "): //nolint: misspell
+					confRead.location[0]["co_ordinate_latitude"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrimLocation, "co-ordinate longitude "):
-					var err error
-					confRead.location[0]["co_ordinate_longitude"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrimLocation, "co-ordinate longitude "))
+				case balt.CutPrefixInString(&itemTrim, " co-ordinate latitude "):
+					confRead.location[0]["co_ordinate_latitude"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrimLocation, "elin "):
-					confRead.location[0]["elin"] = strings.Trim(strings.TrimPrefix(itemTrimLocation, "elin "), "\"")
+				case balt.CutPrefixInString(&itemTrim, " co-ordinate longitude "):
+					confRead.location[0]["co_ordinate_longitude"], err = strconv.Atoi(itemTrim)
+					if err != nil {
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
+					}
+				case balt.CutPrefixInString(&itemTrim, " elin "):
+					confRead.location[0]["elin"] = strings.Trim(itemTrim, "\"")
 				}
 			}
 		}

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -604,9 +605,7 @@ func setIkeGateway(d *schema.ResourceData, clt *Client, junSess *junosSession) e
 	return clt.configSet(configSet, junSess)
 }
 
-func readIkeGateway(ikeGateway string, clt *Client, junSess *junosSession) (ikeGatewayOptions, error) {
-	var confRead ikeGatewayOptions
-
+func readIkeGateway(ikeGateway string, clt *Client, junSess *junosSession) (confRead ikeGatewayOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security ike gateway "+ikeGateway+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -623,13 +622,13 @@ func readIkeGateway(ikeGateway string, clt *Client, junSess *junosSession) (ikeG
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "external-interface "):
-				confRead.externalInterface = strings.TrimPrefix(itemTrim, "external-interface ")
-			case strings.HasPrefix(itemTrim, "ike-policy "):
-				confRead.policy = strings.TrimPrefix(itemTrim, "ike-policy ")
-			case strings.HasPrefix(itemTrim, "address "):
-				confRead.address = append(confRead.address, strings.TrimPrefix(itemTrim, "address "))
-			case strings.HasPrefix(itemTrim, "dynamic "):
+			case balt.CutPrefixInString(&itemTrim, "external-interface "):
+				confRead.externalInterface = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "ike-policy "):
+				confRead.policy = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "address "):
+				confRead.address = append(confRead.address, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "dynamic "):
 				if len(confRead.dynamicRemote) == 0 {
 					confRead.dynamicRemote = append(confRead.dynamicRemote, map[string]interface{}{
 						"connections_limit":           0,
@@ -643,13 +642,12 @@ func readIkeGateway(ikeGateway string, clt *Client, junSess *junosSession) (ikeG
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "dynamic connections-limit "):
-					confRead.dynamicRemote[0]["connections_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
-						"dynamic connections-limit "))
+				case balt.CutPrefixInString(&itemTrim, "connections-limit "):
+					confRead.dynamicRemote[0]["connections_limit"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "dynamic distinguished-name"):
+				case balt.CutPrefixInString(&itemTrim, "distinguished-name"):
 					if len(confRead.dynamicRemote[0]["distinguished_name"].([]map[string]interface{})) == 0 {
 						confRead.dynamicRemote[0]["distinguished_name"] = append(
 							confRead.dynamicRemote[0]["distinguished_name"].([]map[string]interface{}), map[string]interface{}{
@@ -659,28 +657,25 @@ func readIkeGateway(ikeGateway string, clt *Client, junSess *junosSession) (ikeG
 					}
 					distName := confRead.dynamicRemote[0]["distinguished_name"].([]map[string]interface{})[0]
 					switch {
-					case strings.HasPrefix(itemTrim, "dynamic distinguished-name container "):
-						distName["container"] = strings.Trim(strings.TrimPrefix(
-							itemTrim, "dynamic distinguished-name container "), "\"")
-					case strings.HasPrefix(itemTrim, "dynamic distinguished-name wildcard "):
-						distName["wildcard"] = strings.Trim(strings.TrimPrefix(
-							itemTrim, "dynamic distinguished-name wildcard "), "\"")
+					case balt.CutPrefixInString(&itemTrim, " container "):
+						distName["container"] = strings.Trim(itemTrim, "\"")
+					case balt.CutPrefixInString(&itemTrim, " wildcard "):
+						distName["wildcard"] = strings.Trim(itemTrim, "\"")
 					}
-				case strings.HasPrefix(itemTrim, "dynamic hostname "):
-					confRead.dynamicRemote[0]["hostname"] = strings.TrimPrefix(itemTrim, "dynamic hostname ")
-				case strings.HasPrefix(itemTrim, "dynamic ike-user-type "):
-					confRead.dynamicRemote[0]["ike_user_type"] = strings.TrimPrefix(itemTrim, "dynamic ike-user-type ")
-				case strings.HasPrefix(itemTrim, "dynamic inet "):
-					confRead.dynamicRemote[0]["inet"] = strings.TrimPrefix(itemTrim, "dynamic inet ")
-				case strings.HasPrefix(itemTrim, "dynamic inet6 "):
-					confRead.dynamicRemote[0]["inet6"] = strings.TrimPrefix(itemTrim, "dynamic inet6 ")
-				case itemTrim == "dynamic reject-duplicate-connection":
+				case balt.CutPrefixInString(&itemTrim, "hostname "):
+					confRead.dynamicRemote[0]["hostname"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "ike-user-type "):
+					confRead.dynamicRemote[0]["ike_user_type"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "inet "):
+					confRead.dynamicRemote[0]["inet"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "inet6 "):
+					confRead.dynamicRemote[0]["inet6"] = itemTrim
+				case itemTrim == "reject-duplicate-connection":
 					confRead.dynamicRemote[0]["reject_duplicate_connection"] = true
-				case strings.HasPrefix(itemTrim, "dynamic user-at-hostname "):
-					confRead.dynamicRemote[0]["user_at_hostname"] = strings.Trim(strings.TrimPrefix(
-						itemTrim, "dynamic user-at-hostname "), "\"")
+				case balt.CutPrefixInString(&itemTrim, "user-at-hostname "):
+					confRead.dynamicRemote[0]["user_at_hostname"] = strings.Trim(itemTrim, "\"")
 				}
-			case strings.HasPrefix(itemTrim, "aaa "):
+			case balt.CutPrefixInString(&itemTrim, "aaa "):
 				if len(confRead.aaa) == 0 {
 					confRead.aaa = append(confRead.aaa, map[string]interface{}{
 						"access_profile":  "",
@@ -689,18 +684,17 @@ func readIkeGateway(ikeGateway string, clt *Client, junSess *junosSession) (ikeG
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "aaa access-profile "):
-					confRead.aaa[0]["access_profile"] = strings.TrimPrefix(itemTrim, "aaa access-profile ")
-				case strings.HasPrefix(itemTrim, "aaa client password "):
-					confRead.aaa[0]["client_password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim,
-						"aaa client password "), "\""))
+				case balt.CutPrefixInString(&itemTrim, "access-profile "):
+					confRead.aaa[0]["access_profile"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "client password "):
+					confRead.aaa[0]["client_password"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 					if err != nil {
 						return confRead, fmt.Errorf("failed to decode aaa client password: %w", err)
 					}
-				case strings.HasPrefix(itemTrim, "aaa client username "):
-					confRead.aaa[0]["client_username"] = strings.TrimPrefix(itemTrim, "aaa client username ")
+				case balt.CutPrefixInString(&itemTrim, "client username "):
+					confRead.aaa[0]["client_username"] = itemTrim
 				}
-			case strings.HasPrefix(itemTrim, "dead-peer-detection"):
+			case balt.CutPrefixInString(&itemTrim, "dead-peer-detection"):
 				if len(confRead.deadPeerDetection) == 0 {
 					confRead.deadPeerDetection = append(confRead.deadPeerDetection, map[string]interface{}{
 						"interval":  0,
@@ -709,45 +703,49 @@ func readIkeGateway(ikeGateway string, clt *Client, junSess *junosSession) (ikeG
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "dead-peer-detection interval "):
-					confRead.deadPeerDetection[0]["interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
-						"dead-peer-detection interval "))
+				case balt.CutPrefixInString(&itemTrim, " interval "):
+					confRead.deadPeerDetection[0]["interval"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasSuffix(itemTrim, " always-send"):
+				case itemTrim == " always-send":
 					confRead.deadPeerDetection[0]["send_mode"] = "always-send"
-				case strings.HasSuffix(itemTrim, " optimized"):
+				case itemTrim == " optimized":
 					confRead.deadPeerDetection[0]["send_mode"] = "optimized"
-				case strings.HasSuffix(itemTrim, " probe-idle-tunnel"):
+				case itemTrim == " probe-idle-tunnel":
 					confRead.deadPeerDetection[0]["send_mode"] = "probe-idle-tunnel"
-				case strings.HasPrefix(itemTrim, "dead-peer-detection threshold "):
-					confRead.deadPeerDetection[0]["threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim,
-						"dead-peer-detection threshold "))
+				case balt.CutPrefixInString(&itemTrim, " threshold "):
+					confRead.deadPeerDetection[0]["threshold"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case itemTrim == "general-ikeid":
 				confRead.generalIkeid = true
-			case strings.HasPrefix(itemTrim, "local-address "):
-				confRead.localAddress = strings.TrimPrefix(itemTrim, "local-address ")
-			case strings.HasPrefix(itemTrim, "local-identity "):
-				readLocalIdentityList := strings.Split(strings.TrimPrefix(itemTrim, "local-identity "), " ")
+			case balt.CutPrefixInString(&itemTrim, "local-address "):
+				confRead.localAddress = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "local-identity "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				if len(itemTrimFields) < 2 { // <type> <value>
+					return confRead, fmt.Errorf(cantReadValuesNotEnoughFields, "local-identity", itemTrim)
+				}
 				confRead.localIdentity = append(confRead.localIdentity, map[string]interface{}{
-					"type":  readLocalIdentityList[0],
-					"value": readLocalIdentityList[1],
+					"type":  itemTrimFields[0],
+					"value": itemTrimFields[1],
 				})
 			case itemTrim == "no-nat-traversal":
 				confRead.noNatTraversal = true
-			case strings.HasPrefix(itemTrim, "remote-identity "):
-				readRemoteIdentityList := strings.Split(strings.TrimPrefix(itemTrim, "remote-identity "), " ")
+			case balt.CutPrefixInString(&itemTrim, "remote-identity "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				if len(itemTrimFields) < 2 { // <type> <value>
+					return confRead, fmt.Errorf(cantReadValuesNotEnoughFields, "remote-identity", itemTrim)
+				}
 				confRead.remoteIdentity = append(confRead.remoteIdentity, map[string]interface{}{
-					"type":  readRemoteIdentityList[0],
-					"value": readRemoteIdentityList[1],
+					"type":  itemTrimFields[0],
+					"value": itemTrimFields[1],
 				})
-			case strings.HasPrefix(itemTrim, "version "):
-				confRead.version = strings.TrimPrefix(itemTrim, "version ")
+			case balt.CutPrefixInString(&itemTrim, "version "):
+				confRead.version = itemTrim
 			}
 		}
 	}

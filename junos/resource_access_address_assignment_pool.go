@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -713,9 +714,8 @@ func resourceAccessAddressAssignPoolImport(ctx context.Context, d *schema.Resour
 	return result, nil
 }
 
-func checkAccessAddressAssignPoolExists(name, instance string, clt *Client, junSess *junosSession) (bool, error) {
+func checkAccessAddressAssignPoolExists(name, instance string, clt *Client, junSess *junosSession) (_ bool, err error) {
 	var showConfig string
-	var err error
 	if instance == defaultW {
 		showConfig, err = clt.command(cmdShowConfig+
 			"access address-assignment pool "+name+pipeDisplaySet, junSess)
@@ -1067,11 +1067,8 @@ func setAccessAddressAssignPoolFamilyDhcpAttributes(dhcpAttr map[string]interfac
 }
 
 func readAccessAddressAssignPool(name, instance string, clt *Client, junSess *junosSession,
-) (accessAddressAssignPoolOptions, error) {
-	var confRead accessAddressAssignPoolOptions
+) (confRead accessAddressAssignPoolOptions, err error) {
 	var showConfig string
-	var err error
-
 	if instance == defaultW {
 		showConfig, err = clt.command(cmdShowConfig+
 			"access address-assignment pool "+name+pipeDisplaySetRelative, junSess)
@@ -1095,11 +1092,11 @@ func readAccessAddressAssignPool(name, instance string, clt *Client, junSess *ju
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "family "):
-				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "family "), " ")
+			case balt.CutPrefixInString(&itemTrim, "family "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				if len(confRead.family) == 0 {
 					confRead.family = append(confRead.family, map[string]interface{}{
-						"type":                            itemTrimSplit[0],
+						"type":                            itemTrimFields[0],
 						"network":                         "",
 						"dhcp_attributes":                 make([]map[string]interface{}, 0),
 						"excluded_address":                make([]string, 0),
@@ -1114,7 +1111,7 @@ func readAccessAddressAssignPool(name, instance string, clt *Client, junSess *ju
 					})
 				}
 				if err := readAccessAddressAssignPoolFamily(
-					strings.TrimPrefix(itemTrim, "family "+itemTrimSplit[0]+" "),
+					strings.TrimPrefix(itemTrim, itemTrimFields[0]+" "),
 					confRead.family[0],
 				); err != nil {
 					return confRead, err
@@ -1123,8 +1120,8 @@ func readAccessAddressAssignPool(name, instance string, clt *Client, junSess *ju
 				confRead.activeDrain = true
 			case itemTrim == "hold-down":
 				confRead.holdDown = true
-			case strings.HasPrefix(itemTrim, "link "):
-				confRead.link = strings.TrimPrefix(itemTrim, "link ")
+			case balt.CutPrefixInString(&itemTrim, "link "):
+				confRead.link = itemTrim
 			}
 		}
 	}
@@ -1132,14 +1129,13 @@ func readAccessAddressAssignPool(name, instance string, clt *Client, junSess *ju
 	return confRead, nil
 }
 
-func readAccessAddressAssignPoolFamily(itemTrim string, family map[string]interface{}) error {
-	var err error
+func readAccessAddressAssignPoolFamily(itemTrim string, family map[string]interface{}) (err error) {
 	switch {
-	case strings.HasPrefix(itemTrim, "network "):
-		family["network"] = strings.TrimPrefix(itemTrim, "network ")
-	case strings.HasPrefix(itemTrim, "prefix "):
-		family["network"] = strings.TrimPrefix(itemTrim, "prefix ")
-	case strings.HasPrefix(itemTrim, "dhcp-attributes "):
+	case balt.CutPrefixInString(&itemTrim, "network "):
+		family["network"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "prefix "):
+		family["network"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "dhcp-attributes "):
 		if len(family["dhcp_attributes"].([]map[string]interface{})) == 0 {
 			family["dhcp_attributes"] = append(family["dhcp_attributes"].([]map[string]interface{}), map[string]interface{}{
 				"boot_file":                    "",
@@ -1176,185 +1172,177 @@ func readAccessAddressAssignPoolFamily(itemTrim string, family map[string]interf
 				"wins_server":                  make([]string, 0),
 			})
 		}
-		itemTrimAttr := strings.TrimPrefix(itemTrim, "dhcp-attributes ")
 		dhcpAttr := family["dhcp_attributes"].([]map[string]interface{})[0]
 		switch {
-		case strings.HasPrefix(itemTrimAttr, "boot-file "):
-			dhcpAttr["boot_file"] = strings.Trim(strings.TrimPrefix(itemTrimAttr, "boot-file "), "\"")
-		case strings.HasPrefix(itemTrimAttr, "boot-server "):
-			dhcpAttr["boot_server"] = strings.TrimPrefix(itemTrimAttr, "boot-server ")
-		case strings.HasPrefix(itemTrimAttr, "dns-server "):
-			dhcpAttr["dns_server"] = append(dhcpAttr["dns_server"].([]string), strings.TrimPrefix(itemTrimAttr, "dns-server "))
-		case strings.HasPrefix(itemTrimAttr, "domain-name "):
-			dhcpAttr["domain_name"] = strings.TrimPrefix(itemTrimAttr, "domain-name ")
-		case strings.HasPrefix(itemTrimAttr, "exclude-prefix-len "):
-			dhcpAttr["exclude_prefix_len"], err = strconv.Atoi(strings.TrimPrefix(itemTrimAttr, "exclude-prefix-len "))
-		case strings.HasPrefix(itemTrimAttr, "grace-period "):
-			dhcpAttr["grace_period"], err = strconv.Atoi(strings.TrimPrefix(itemTrimAttr, "grace-period "))
-		case itemTrimAttr == "maximum-lease-time infinite":
+		case balt.CutPrefixInString(&itemTrim, "boot-file "):
+			dhcpAttr["boot_file"] = strings.Trim(itemTrim, "\"")
+		case balt.CutPrefixInString(&itemTrim, "boot-server "):
+			dhcpAttr["boot_server"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "dns-server "):
+			dhcpAttr["dns_server"] = append(dhcpAttr["dns_server"].([]string), itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "domain-name "):
+			dhcpAttr["domain_name"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "exclude-prefix-len "):
+			dhcpAttr["exclude_prefix_len"], err = strconv.Atoi(itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "grace-period "):
+			dhcpAttr["grace_period"], err = strconv.Atoi(itemTrim)
+		case itemTrim == "maximum-lease-time infinite":
 			dhcpAttr["maximum_lease_time_infinite"] = true
-		case strings.HasPrefix(itemTrimAttr, "maximum-lease-time "):
-			dhcpAttr["maximum_lease_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrimAttr, "maximum-lease-time "))
-		case strings.HasPrefix(itemTrimAttr, "name-server "):
-			dhcpAttr["name_server"] = append(dhcpAttr["name_server"].([]string),
-				strings.TrimPrefix(itemTrimAttr, "name-server "))
-		case strings.HasPrefix(itemTrimAttr, "netbios-node-type "):
-			dhcpAttr["netbios_node_type"] = strings.TrimPrefix(itemTrimAttr, "netbios-node-type ")
-		case strings.HasPrefix(itemTrimAttr, "next-server "):
-			dhcpAttr["next_server"] = strings.TrimPrefix(itemTrimAttr, "next-server ")
-		case strings.HasPrefix(itemTrimAttr, "option "):
-			dhcpAttr["option"] = append(dhcpAttr["option"].([]string), strings.TrimPrefix(itemTrimAttr, "option "))
-		case strings.HasPrefix(itemTrimAttr, "option-match option-82 circuit-id "):
-			itemTrimAttrSplit := strings.Split(strings.TrimPrefix(itemTrimAttr, "option-match option-82 circuit-id "), " ")
-			if len(itemTrimAttrSplit) < 3 {
-				return fmt.Errorf("can't find range from '%s'", itemTrimAttr)
+		case balt.CutPrefixInString(&itemTrim, "maximum-lease-time "):
+			dhcpAttr["maximum_lease_time"], err = strconv.Atoi(itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "name-server "):
+			dhcpAttr["name_server"] = append(dhcpAttr["name_server"].([]string), itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "netbios-node-type "):
+			dhcpAttr["netbios_node_type"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "next-server "):
+			dhcpAttr["next_server"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "option "):
+			dhcpAttr["option"] = append(dhcpAttr["option"].([]string), itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "option-match option-82 circuit-id "):
+			itemTrimFields := strings.Split(itemTrim, " ")
+			if len(itemTrimFields) < 3 { // <value> range <range>
+				return fmt.Errorf(cantReadValuesNotEnoughFields, "option-match option-82 circuit-id", itemTrim)
 			}
 			dhcpAttr["option_match_82_circuit_id"] = append(
 				dhcpAttr["option_match_82_circuit_id"].([]map[string]interface{}),
 				map[string]interface{}{
-					"value": itemTrimAttrSplit[0],
-					"range": itemTrimAttrSplit[2],
+					"value": itemTrimFields[0],
+					"range": itemTrimFields[2],
 				},
 			)
-		case strings.HasPrefix(itemTrimAttr, "option-match option-82 remote-id "):
-			itemTrimAttrSplit := strings.Split(strings.TrimPrefix(itemTrimAttr, "option-match option-82 remote-id "), " ")
-			if len(itemTrimAttrSplit) < 3 {
-				return fmt.Errorf("can't find range from '%s'", itemTrimAttr)
+		case balt.CutPrefixInString(&itemTrim, "option-match option-82 remote-id "):
+			itemTrimFields := strings.Split(itemTrim, " ")
+			if len(itemTrimFields) < 3 { // <value> range <range>
+				return fmt.Errorf(cantReadValuesNotEnoughFields, "option-match option-82 remote-id", itemTrim)
 			}
 			dhcpAttr["option_match_82_remote_id"] = append(
 				dhcpAttr["option_match_82_remote_id"].([]map[string]interface{}),
 				map[string]interface{}{
-					"value": itemTrimAttrSplit[0],
-					"range": itemTrimAttrSplit[2],
+					"value": itemTrimFields[0],
+					"range": itemTrimFields[2],
 				},
 			)
-		case itemTrimAttr == "preferred-lifetime infinite":
+		case itemTrim == "preferred-lifetime infinite":
 			dhcpAttr["preferred_lifetime_infinite"] = true
-		case strings.HasPrefix(itemTrimAttr, "preferred-lifetime "):
-			dhcpAttr["preferred_lifetime"], err = strconv.Atoi(strings.TrimPrefix(itemTrimAttr, "preferred-lifetime "))
-		case strings.HasPrefix(itemTrimAttr, "propagate-ppp-settings "):
-			dhcpAttr["propagate_ppp_settings"] = append(dhcpAttr["propagate_ppp_settings"].([]string),
-				strings.TrimPrefix(itemTrimAttr, "propagate-ppp-settings "))
-		case strings.HasPrefix(itemTrimAttr, "propagate-settings "):
-			dhcpAttr["propagate_settings"] = strings.TrimPrefix(itemTrimAttr, "propagate-settings ")
-		case strings.HasPrefix(itemTrimAttr, "router "):
-			dhcpAttr["router"] = append(dhcpAttr["router"].([]string), strings.TrimPrefix(itemTrimAttr, "router "))
-		case strings.HasPrefix(itemTrimAttr, "server-identifier "):
-			dhcpAttr["server_identifier"] = strings.TrimPrefix(itemTrimAttr, "server-identifier ")
-		case strings.HasPrefix(itemTrimAttr, "sip-server ip-address "):
-			dhcpAttr["sip_server_inet_address"] = append(dhcpAttr["sip_server_inet_address"].([]string),
-				strings.TrimPrefix(itemTrimAttr, "sip-server ip-address "))
-		case strings.HasPrefix(itemTrimAttr, "sip-server-address "):
-			dhcpAttr["sip_server_inet6_address"] = append(dhcpAttr["sip_server_inet6_address"].([]string),
-				strings.TrimPrefix(itemTrimAttr, "sip-server-address "))
-		case strings.HasPrefix(itemTrimAttr, "sip-server name "):
+		case balt.CutPrefixInString(&itemTrim, "preferred-lifetime "):
+			dhcpAttr["preferred_lifetime"], err = strconv.Atoi(itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "propagate-ppp-settings "):
+			dhcpAttr["propagate_ppp_settings"] = append(dhcpAttr["propagate_ppp_settings"].([]string), itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "propagate-settings "):
+			dhcpAttr["propagate_settings"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "router "):
+			dhcpAttr["router"] = append(dhcpAttr["router"].([]string), itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "server-identifier "):
+			dhcpAttr["server_identifier"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "sip-server ip-address "):
+			dhcpAttr["sip_server_inet_address"] = append(dhcpAttr["sip_server_inet_address"].([]string), itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "sip-server-address "):
+			dhcpAttr["sip_server_inet6_address"] = append(dhcpAttr["sip_server_inet6_address"].([]string), itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "sip-server name "):
 			dhcpAttr["sip_server_inet_domain_name"] = append(dhcpAttr["sip_server_inet_domain_name"].([]string),
-				strings.Trim(strings.TrimPrefix(itemTrimAttr, "sip-server name "), "\""))
-		case strings.HasPrefix(itemTrimAttr, "sip-server-domain-name "):
-			dhcpAttr["sip_server_inet6_domain_name"] = strings.Trim(strings.TrimPrefix(
-				itemTrimAttr, "sip-server-domain-name "), "\"")
-		case strings.HasPrefix(itemTrimAttr, "t1-percentage "):
-			dhcpAttr["t1_percentage"], err = strconv.Atoi(strings.TrimPrefix(itemTrimAttr, "t1-percentage "))
-		case strings.HasPrefix(itemTrimAttr, "t1-renewal-time "):
-			dhcpAttr["t1_renewal_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrimAttr, "t1-renewal-time "))
-		case strings.HasPrefix(itemTrimAttr, "t2-percentage "):
-			dhcpAttr["t2_percentage"], err = strconv.Atoi(strings.TrimPrefix(itemTrimAttr, "t2-percentage "))
-		case strings.HasPrefix(itemTrimAttr, "t2-rebinding-time "):
-			dhcpAttr["t2_rebinding_time"], err = strconv.Atoi(strings.TrimPrefix(itemTrimAttr, "t2-rebinding-time "))
-		case strings.HasPrefix(itemTrimAttr, "tftp-server "):
-			dhcpAttr["tftp_server"] = strings.TrimPrefix(itemTrimAttr, "tftp-server ")
-		case itemTrimAttr == "valid-lifetime infinite":
+				strings.Trim(itemTrim, "\""))
+		case balt.CutPrefixInString(&itemTrim, "sip-server-domain-name "):
+			dhcpAttr["sip_server_inet6_domain_name"] = strings.Trim(itemTrim, "\"")
+		case balt.CutPrefixInString(&itemTrim, "t1-percentage "):
+			dhcpAttr["t1_percentage"], err = strconv.Atoi(itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "t1-renewal-time "):
+			dhcpAttr["t1_renewal_time"], err = strconv.Atoi(itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "t2-percentage "):
+			dhcpAttr["t2_percentage"], err = strconv.Atoi(itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "t2-rebinding-time "):
+			dhcpAttr["t2_rebinding_time"], err = strconv.Atoi(itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "tftp-server "):
+			dhcpAttr["tftp_server"] = itemTrim
+		case itemTrim == "valid-lifetime infinite":
 			dhcpAttr["valid_lifetime_infinite"] = true
-		case strings.HasPrefix(itemTrimAttr, "valid-lifetime "):
-			dhcpAttr["valid_lifetime"], err = strconv.Atoi(strings.TrimPrefix(itemTrimAttr, "valid-lifetime "))
-		case strings.HasPrefix(itemTrimAttr, "wins-server "):
-			dhcpAttr["wins_server"] = append(dhcpAttr["wins_server"].([]string),
-				strings.TrimPrefix(itemTrimAttr, "wins-server "))
+		case balt.CutPrefixInString(&itemTrim, "valid-lifetime "):
+			dhcpAttr["valid_lifetime"], err = strconv.Atoi(itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "wins-server "):
+			dhcpAttr["wins_server"] = append(dhcpAttr["wins_server"].([]string), itemTrim)
 		}
-	case strings.HasPrefix(itemTrim, "excluded-address "):
-		family["excluded_address"] = append(family["excluded_address"].([]string),
-			strings.TrimPrefix(itemTrim, "excluded-address "))
-	case strings.HasPrefix(itemTrim, "excluded-range "):
-		itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "excluded-range "), " ")
+	case balt.CutPrefixInString(&itemTrim, "excluded-address "):
+		family["excluded_address"] = append(family["excluded_address"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "excluded-range "):
+		itemTrimFields := strings.Split(itemTrim, " ")
 		familyExcludedRange := map[string]interface{}{
-			"name": itemTrimSplit[0],
+			"name": itemTrimFields[0],
 			"low":  "",
 			"high": "",
 		}
 		family["excluded_range"] = copyAndRemoveItemMapList(
 			"name", familyExcludedRange, family["excluded_range"].([]map[string]interface{}))
-		itemTrimExcludedRange := strings.TrimPrefix(itemTrim, "excluded-range "+itemTrimSplit[0]+" ")
+		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 		switch {
-		case strings.HasPrefix(itemTrimExcludedRange, "low "):
-			familyExcludedRange["low"] = strings.TrimPrefix(itemTrimExcludedRange, "low ")
-		case strings.HasPrefix(itemTrimExcludedRange, "high "):
-			familyExcludedRange["high"] = strings.TrimPrefix(itemTrimExcludedRange, "high ")
+		case balt.CutPrefixInString(&itemTrim, "low "):
+			familyExcludedRange["low"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "high "):
+			familyExcludedRange["high"] = itemTrim
 		}
 		family["excluded_range"] = append(family["excluded_range"].([]map[string]interface{}), familyExcludedRange)
-	case strings.HasPrefix(itemTrim, "host "):
-		itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "host "), " ")
+	case balt.CutPrefixInString(&itemTrim, "host "):
+		itemTrimFields := strings.Split(itemTrim, " ")
 		familyHost := map[string]interface{}{
-			"name":             itemTrimSplit[0],
+			"name":             itemTrimFields[0],
 			"hardware_address": "",
 			"ip_address":       "",
 		}
 		family["host"] = copyAndRemoveItemMapList(
 			"name", familyHost, family["host"].([]map[string]interface{}))
-		itemTrimHost := strings.TrimPrefix(itemTrim, "host "+itemTrimSplit[0]+" ")
+		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 		switch {
-		case strings.HasPrefix(itemTrimHost, "hardware-address "):
-			familyHost["hardware_address"] = strings.TrimPrefix(itemTrimHost, "hardware-address ")
-		case strings.HasPrefix(itemTrimHost, "ip-address "):
-			familyHost["ip_address"] = strings.TrimPrefix(itemTrimHost, "ip-address ")
+		case balt.CutPrefixInString(&itemTrim, "hardware-address "):
+			familyHost["hardware_address"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "ip-address "):
+			familyHost["ip_address"] = itemTrim
 		}
 		family["host"] = append(family["host"].([]map[string]interface{}), familyHost)
-	case strings.HasPrefix(itemTrim, "range "):
+	case balt.CutPrefixInString(&itemTrim, "range "):
 		if family["type"] == inetW {
-			itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "range "), " ")
+			itemTrimFields := strings.Split(itemTrim, " ")
 			familyInetRange := map[string]interface{}{
-				"name": itemTrimSplit[0],
+				"name": itemTrimFields[0],
 				"low":  "",
 				"high": "",
 			}
 			family["inet_range"] = copyAndRemoveItemMapList(
 				"name", familyInetRange, family["inet_range"].([]map[string]interface{}))
-			itemTrimRange := strings.TrimPrefix(itemTrim, "range "+itemTrimSplit[0]+" ")
+			balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 			switch {
-			case strings.HasPrefix(itemTrimRange, "low "):
-				familyInetRange["low"] = strings.TrimPrefix(itemTrimRange, "low ")
-			case strings.HasPrefix(itemTrimRange, "high "):
-				familyInetRange["high"] = strings.TrimPrefix(itemTrimRange, "high ")
+			case balt.CutPrefixInString(&itemTrim, "low "):
+				familyInetRange["low"] = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "high "):
+				familyInetRange["high"] = itemTrim
 			}
 			family["inet_range"] = append(family["inet_range"].([]map[string]interface{}), familyInetRange)
 		} else if family["type"] == inet6W {
-			itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "range "), " ")
+			itemTrimFields := strings.Split(itemTrim, " ")
 			familyInet6Range := map[string]interface{}{
-				"name":          itemTrimSplit[0],
+				"name":          itemTrimFields[0],
 				"low":           "",
 				"high":          "",
 				"prefix_length": 0,
 			}
 			family["inet6_range"] = copyAndRemoveItemMapList(
 				"name", familyInet6Range, family["inet6_range"].([]map[string]interface{}))
-			itemTrimRange := strings.TrimPrefix(itemTrim, "range "+itemTrimSplit[0]+" ")
+			balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 			switch {
-			case strings.HasPrefix(itemTrimRange, "low "):
-				familyInet6Range["low"] = strings.TrimPrefix(itemTrimRange, "low ")
-			case strings.HasPrefix(itemTrimRange, "high "):
-				familyInet6Range["high"] = strings.TrimPrefix(itemTrimRange, "high ")
-			case strings.HasPrefix(itemTrimRange, "prefix-length "):
-				familyInet6Range["prefix_length"], err = strconv.Atoi(strings.TrimPrefix(itemTrimRange, "prefix-length "))
+			case balt.CutPrefixInString(&itemTrim, "low "):
+				familyInet6Range["low"] = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "high "):
+				familyInet6Range["high"] = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "prefix-length "):
+				familyInet6Range["prefix_length"], err = strconv.Atoi(itemTrim)
 			}
 			family["inet6_range"] = append(family["inet6_range"].([]map[string]interface{}), familyInet6Range)
 		}
-	case strings.HasPrefix(itemTrim, "xauth-attributes primary-dns "):
-		family["xauth_attributes_primary_dns"] = strings.TrimPrefix(itemTrim, "xauth-attributes primary-dns ")
-	case strings.HasPrefix(itemTrim, "xauth-attributes primary-wins "):
-		family["xauth_attributes_primary_wins"] = strings.TrimPrefix(itemTrim, "xauth-attributes primary-wins ")
-	case strings.HasPrefix(itemTrim, "xauth-attributes secondary-dns "):
-		family["xauth_attributes_secondary_dns"] = strings.TrimPrefix(itemTrim, "xauth-attributes secondary-dns ")
-	case strings.HasPrefix(itemTrim, "xauth-attributes secondary-wins "):
-		family["xauth_attributes_secondary_wins"] = strings.TrimPrefix(itemTrim, "xauth-attributes secondary-wins ")
+	case balt.CutPrefixInString(&itemTrim, "xauth-attributes primary-dns "):
+		family["xauth_attributes_primary_dns"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "xauth-attributes primary-wins "):
+		family["xauth_attributes_primary_wins"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "xauth-attributes secondary-dns "):
+		family["xauth_attributes_secondary_dns"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "xauth-attributes secondary-wins "):
+		family["xauth_attributes_secondary_wins"] = itemTrim
 	}
 	if err != nil {
 		return fmt.Errorf(failedConvAtoiError, itemTrim, err)

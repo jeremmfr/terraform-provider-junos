@@ -468,7 +468,27 @@ func TestAccJunosPolicyOptions_basic(t *testing.T) {
 					),
 				},
 				{
+					ResourceName:      "junos_policyoptions_as_path.testacc_policyOptions",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				{
+					ResourceName:      "junos_policyoptions_as_path_group.testacc_policyOptions",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				{
+					ResourceName:      "junos_policyoptions_community.testacc_policyOptions",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				{
 					ResourceName:      "junos_policyoptions_policy_statement.testacc_policyOptions",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				{
+					ResourceName:      "junos_policyoptions_prefix_list.testacc_policyOptions",
 					ImportState:       true,
 					ImportStateVerify: true,
 				},

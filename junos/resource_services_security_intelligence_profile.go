@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -372,9 +373,7 @@ func setServicesSecurityIntellProfile(d *schema.ResourceData, clt *Client, junSe
 }
 
 func readServicesSecurityIntellProfile(profile string, clt *Client, junSess *junosSession,
-) (securityIntellProfileOptions, error) {
-	var confRead securityIntellProfileOptions
-
+) (confRead securityIntellProfileOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"services security-intelligence profile \""+profile+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -391,23 +390,23 @@ func readServicesSecurityIntellProfile(profile string, clt *Client, junSess *jun
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "category "):
-				confRead.category = strings.TrimPrefix(itemTrim, "category ")
-			case strings.HasPrefix(itemTrim, "rule "):
-				ruleLineCut := strings.Split(itemTrim, " ")
+			case balt.CutPrefixInString(&itemTrim, "category "):
+				confRead.category = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "rule "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				rule := map[string]interface{}{
-					"name":        strings.Trim(ruleLineCut[1], "\""),
+					"name":        strings.Trim(itemTrimFields[0], "\""),
 					"match":       make([]map[string]interface{}, 0),
 					"then_action": "",
 					"then_log":    false,
 				}
 				confRead.rule = copyAndRemoveItemMapList("name", rule, confRead.rule)
-				itemTrimRule := strings.TrimPrefix(itemTrim, "rule "+ruleLineCut[1]+" ")
-				if err := readServicesSecurityIntellProfileRule(itemTrimRule, rule); err != nil {
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+				if err := readServicesSecurityIntellProfileRule(itemTrim, rule); err != nil {
 					return confRead, err
 				}
 				confRead.rule = append(confRead.rule, rule)
-			case strings.HasPrefix(itemTrim, "default-rule then "):
+			case balt.CutPrefixInString(&itemTrim, "default-rule then "):
 				if len(confRead.defaultRuleThen) == 0 {
 					confRead.defaultRuleThen = append(confRead.defaultRuleThen, map[string]interface{}{
 						"action": "",
@@ -416,15 +415,15 @@ func readServicesSecurityIntellProfile(profile string, clt *Client, junSess *jun
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "default-rule then action "):
-					confRead.defaultRuleThen[0]["action"] = strings.TrimPrefix(itemTrim, "default-rule then action ")
-				case itemTrim == "default-rule then log":
+				case balt.CutPrefixInString(&itemTrim, "action "):
+					confRead.defaultRuleThen[0]["action"] = itemTrim
+				case itemTrim == "log":
 					confRead.defaultRuleThen[0]["log"] = true
-				case itemTrim == "default-rule then no-log":
+				case itemTrim == "no-log":
 					confRead.defaultRuleThen[0]["no_log"] = true
 				}
-			case strings.HasPrefix(itemTrim, "description "):
-				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				confRead.description = strings.Trim(itemTrim, "\"")
 			}
 		}
 	}
@@ -432,9 +431,9 @@ func readServicesSecurityIntellProfile(profile string, clt *Client, junSess *jun
 	return confRead, nil
 }
 
-func readServicesSecurityIntellProfileRule(itemTrimPolicyRule string, ruleMap map[string]interface{}) error {
+func readServicesSecurityIntellProfileRule(itemTrim string, ruleMap map[string]interface{}) error {
 	switch {
-	case strings.HasPrefix(itemTrimPolicyRule, "match "):
+	case balt.CutPrefixInString(&itemTrim, "match "):
 		if len(ruleMap["match"].([]map[string]interface{})) == 0 {
 			ruleMap["match"] = append(ruleMap["match"].([]map[string]interface{}), map[string]interface{}{
 				"threat_level": make([]int, 0),
@@ -442,21 +441,24 @@ func readServicesSecurityIntellProfileRule(itemTrimPolicyRule string, ruleMap ma
 			})
 		}
 		switch {
-		case strings.HasPrefix(itemTrimPolicyRule, "match threat-level "):
-			threatLevel, err := strconv.Atoi(strings.TrimPrefix(itemTrimPolicyRule, "match threat-level "))
+		case balt.CutPrefixInString(&itemTrim, "threat-level "):
+			threatLevel, err := strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(failedConvAtoiError, itemTrimPolicyRule, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 			ruleMap["match"].([]map[string]interface{})[0]["threat_level"] = append(
-				ruleMap["match"].([]map[string]interface{})[0]["threat_level"].([]int), threatLevel)
-		case strings.HasPrefix(itemTrimPolicyRule, "match feed-name "):
+				ruleMap["match"].([]map[string]interface{})[0]["threat_level"].([]int),
+				threatLevel,
+			)
+		case balt.CutPrefixInString(&itemTrim, "feed-name "):
 			ruleMap["match"].([]map[string]interface{})[0]["feed_name"] = append(
 				ruleMap["match"].([]map[string]interface{})[0]["feed_name"].([]string),
-				strings.TrimPrefix(itemTrimPolicyRule, "match feed-name "))
+				itemTrim,
+			)
 		}
-	case strings.HasPrefix(itemTrimPolicyRule, "then action "):
-		ruleMap["then_action"] = strings.TrimPrefix(itemTrimPolicyRule, "then action ")
-	case itemTrimPolicyRule == "then log":
+	case balt.CutPrefixInString(&itemTrim, "then action "):
+		ruleMap["then_action"] = itemTrim
+	case itemTrim == "then log":
 		ruleMap["then_log"] = true
 	}
 

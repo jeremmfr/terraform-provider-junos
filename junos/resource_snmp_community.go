@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -334,9 +335,7 @@ func setSnmpCommunity(d *schema.ResourceData, clt *Client, junSess *junosSession
 	return clt.configSet(configSet, junSess)
 }
 
-func readSnmpCommunity(name string, clt *Client, junSess *junosSession) (snmpCommunityOptions, error) {
-	var confRead snmpCommunityOptions
-
+func readSnmpCommunity(name string, clt *Client, junSess *junosSession) (confRead snmpCommunityOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"snmp community \""+name+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -356,30 +355,28 @@ func readSnmpCommunity(name string, clt *Client, junSess *junosSession) (snmpCom
 				confRead.authReadOnly = true
 			case itemTrim == "authorization read-write":
 				confRead.authReadWrite = true
-			case strings.HasPrefix(itemTrim, "client-list-name "):
-				confRead.clientListName = strings.Trim(strings.TrimPrefix(itemTrim, "client-list-name "), "\"")
-			case strings.HasPrefix(itemTrim, "clients "):
-				confRead.clients = append(confRead.clients, strings.TrimPrefix(itemTrim, "clients "))
-			case strings.HasPrefix(itemTrim, "routing-instance "):
-				routingInstanceLineCut := strings.Split(itemTrim, " ")
+			case balt.CutPrefixInString(&itemTrim, "client-list-name "):
+				confRead.clientListName = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "clients "):
+				confRead.clients = append(confRead.clients, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "routing-instance "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				mRoutingInstance := map[string]interface{}{
-					"name":             routingInstanceLineCut[1],
+					"name":             itemTrimFields[0],
 					"client_list_name": "",
 					"clients":          make([]string, 0),
 				}
 				confRead.routingInstance = copyAndRemoveItemMapList("name", mRoutingInstance, confRead.routingInstance)
-				itemTrimRoutingInstance := strings.TrimPrefix(itemTrim, "routing-instance "+routingInstanceLineCut[1]+" ")
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				switch {
-				case strings.HasPrefix(itemTrimRoutingInstance, "client-list-name "):
-					mRoutingInstance["client_list_name"] = strings.Trim(strings.TrimPrefix(
-						itemTrimRoutingInstance, "client-list-name "), "\"")
-				case strings.HasPrefix(itemTrimRoutingInstance, "clients "):
-					mRoutingInstance["clients"] = append(mRoutingInstance["clients"].([]string),
-						strings.TrimPrefix(itemTrimRoutingInstance, "clients "))
+				case balt.CutPrefixInString(&itemTrim, "client-list-name "):
+					mRoutingInstance["client_list_name"] = strings.Trim(itemTrim, "\"")
+				case balt.CutPrefixInString(&itemTrim, "clients "):
+					mRoutingInstance["clients"] = append(mRoutingInstance["clients"].([]string), itemTrim)
 				}
 				confRead.routingInstance = append(confRead.routingInstance, mRoutingInstance)
-			case strings.HasPrefix(itemTrim, "view "):
-				confRead.view = strings.Trim(strings.TrimPrefix(itemTrim, "view "), "\"")
+			case balt.CutPrefixInString(&itemTrim, "view "):
+				confRead.view = strings.Trim(itemTrim, "\"")
 			}
 		}
 	}

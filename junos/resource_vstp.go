@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -316,19 +317,15 @@ func setVstp(d *schema.ResourceData, clt *Client, junSess *junosSession) error {
 	return clt.configSet(configSet, junSess)
 }
 
-func readVstp(routingInstance string, clt *Client, junSess *junosSession) (vstpOptions, error) {
-	var confRead vstpOptions
-
+func readVstp(routingInstance string, clt *Client, junSess *junosSession) (confRead vstpOptions, err error) {
 	var showConfig string
 	if routingInstance == defaultW {
-		var err error
 		showConfig, err = clt.command(cmdShowConfig+
 			"protocols vstp"+pipeDisplaySetRelative, junSess)
 		if err != nil {
 			return confRead, err
 		}
 	} else {
-		var err error
 		showConfig, err = clt.command(cmdShowConfig+routingInstancesWS+routingInstance+" "+
 			"protocols vstp"+pipeDisplaySetRelative, junSess)
 		if err != nil {
@@ -352,27 +349,26 @@ func readVstp(routingInstance string, clt *Client, junSess *junosSession) (vstpO
 				confRead.disable = true
 			case itemTrim == "force-version stp":
 				confRead.forceVersionStp = true
-			case strings.HasPrefix(itemTrim, "priority-hold-time "):
-				var err error
-				confRead.priorityHoldTime, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "priority-hold-time "))
+			case balt.CutPrefixInString(&itemTrim, "priority-hold-time "):
+				confRead.priorityHoldTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "system-id "):
-				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "system-id "), " ")
-				switch len(itemTrimSplit) {
+			case balt.CutPrefixInString(&itemTrim, "system-id "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				switch len(itemTrimFields) { // <id> (ip-address <ip_address>)?
 				case 1:
 					confRead.systemID = append(confRead.systemID, map[string]interface{}{
-						"id":         itemTrimSplit[0],
+						"id":         itemTrimFields[0],
 						"ip_address": "",
 					})
 				case 3:
 					confRead.systemID = append(confRead.systemID, map[string]interface{}{
-						"id":         itemTrimSplit[0],
-						"ip_address": itemTrimSplit[2],
+						"id":         itemTrimFields[0],
+						"ip_address": itemTrimFields[2],
 					})
 				default:
-					return confRead, fmt.Errorf("can't read value for system_id in '%s'", itemTrim)
+					return confRead, fmt.Errorf(cantReadValuesNotEnoughFields, "system-id", itemTrim)
 				}
 			case itemTrim == "vpls-flush-on-topology-change":
 				confRead.vplsFlushOnTopologyChange = true

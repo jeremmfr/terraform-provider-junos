@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type syslogHostOptions struct {
@@ -482,9 +483,7 @@ func setSystemSyslogHost(d *schema.ResourceData, clt *Client, junSess *junosSess
 	return clt.configSet(configSet, junSess)
 }
 
-func readSystemSyslogHost(host string, clt *Client, junSess *junosSession) (syslogHostOptions, error) {
-	var confRead syslogHostOptions
-
+func readSystemSyslogHost(host string, clt *Client, junSess *junosSession) (confRead syslogHostOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"system syslog host "+host+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -506,62 +505,60 @@ func readSystemSyslogHost(host string, clt *Client, junSess *junosSession) (sysl
 				confRead.excludeHostname = true
 			case itemTrim == "explicit-priority":
 				confRead.explicitPriority = true
-			case strings.HasPrefix(itemTrim, "facility-override "):
-				confRead.facilityOverride = strings.TrimPrefix(itemTrim, "facility-override ")
-			case strings.HasPrefix(itemTrim, "log-prefix "):
-				confRead.logPrefix = strings.TrimPrefix(itemTrim, "log-prefix ")
-			case strings.HasPrefix(itemTrim, "match "):
-				confRead.match = strings.Trim(strings.TrimPrefix(itemTrim, "match "), "\"")
-			case strings.HasPrefix(itemTrim, "match-strings "):
-				confRead.matchStrings = append(confRead.matchStrings,
-					strings.Trim(strings.TrimPrefix(itemTrim, "match-strings "), "\""))
-			case strings.HasPrefix(itemTrim, "port "):
-				var err error
-				confRead.port, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "port "))
+			case balt.CutPrefixInString(&itemTrim, "facility-override "):
+				confRead.facilityOverride = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "log-prefix "):
+				confRead.logPrefix = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "match "):
+				confRead.match = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "match-strings "):
+				confRead.matchStrings = append(confRead.matchStrings, strings.Trim(itemTrim, "\""))
+			case balt.CutPrefixInString(&itemTrim, "port "):
+				confRead.port, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "source-address "):
-				confRead.sourceAddress = strings.TrimPrefix(itemTrim, "source-address ")
-			case strings.HasPrefix(itemTrim, "structured-data"):
+			case balt.CutPrefixInString(&itemTrim, "source-address "):
+				confRead.sourceAddress = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "structured-data"):
 				if len(confRead.structuredData) == 0 {
 					confRead.structuredData = append(confRead.structuredData, map[string]interface{}{
 						"brief": false,
 					})
 				}
-				if itemTrim == "structured-data brief" {
+				if itemTrim == " brief" {
 					confRead.structuredData[0]["brief"] = true
 				}
-			case strings.HasPrefix(itemTrim, "any "):
-				confRead.anySeverity = strings.TrimPrefix(itemTrim, "any ")
-			case strings.HasPrefix(itemTrim, "authorization "):
-				confRead.authorizationSeverity = strings.TrimPrefix(itemTrim, "authorization ")
-			case strings.HasPrefix(itemTrim, "change-log "):
-				confRead.changelogSeverity = strings.TrimPrefix(itemTrim, "change-log ")
-			case strings.HasPrefix(itemTrim, "conflict-log "):
-				confRead.conflictlogSeverity = strings.TrimPrefix(itemTrim, "conflict-log ")
-			case strings.HasPrefix(itemTrim, "daemon "):
-				confRead.daemonSeverity = strings.TrimPrefix(itemTrim, "daemon ")
-			case strings.HasPrefix(itemTrim, "dfc "):
-				confRead.dfcSeverity = strings.TrimPrefix(itemTrim, "dfc ")
-			case strings.HasPrefix(itemTrim, "external "):
-				confRead.externalSeverity = strings.TrimPrefix(itemTrim, "external ")
-			case strings.HasPrefix(itemTrim, "firewall "):
-				confRead.firewallSeverity = strings.TrimPrefix(itemTrim, "firewall ")
-			case strings.HasPrefix(itemTrim, "ftp "):
-				confRead.ftpSeverity = strings.TrimPrefix(itemTrim, "ftp ")
-			case strings.HasPrefix(itemTrim, "interactive-commands "):
-				confRead.interactivecommandsSeverity = strings.TrimPrefix(itemTrim, "interactive-commands ")
-			case strings.HasPrefix(itemTrim, "kernel "):
-				confRead.kernelSeverity = strings.TrimPrefix(itemTrim, "kernel ")
-			case strings.HasPrefix(itemTrim, "ntp "):
-				confRead.ntpSeverity = strings.TrimPrefix(itemTrim, "ntp ")
-			case strings.HasPrefix(itemTrim, "pfe "):
-				confRead.pfeSeverity = strings.TrimPrefix(itemTrim, "pfe ")
-			case strings.HasPrefix(itemTrim, "security "):
-				confRead.securitySeverity = strings.TrimPrefix(itemTrim, "security ")
-			case strings.HasPrefix(itemTrim, "user "):
-				confRead.userSeverity = strings.TrimPrefix(itemTrim, "user ")
+			case balt.CutPrefixInString(&itemTrim, "any "):
+				confRead.anySeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "authorization "):
+				confRead.authorizationSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "change-log "):
+				confRead.changelogSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "conflict-log "):
+				confRead.conflictlogSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "daemon "):
+				confRead.daemonSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "dfc "):
+				confRead.dfcSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "external "):
+				confRead.externalSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "firewall "):
+				confRead.firewallSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "ftp "):
+				confRead.ftpSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "interactive-commands "):
+				confRead.interactivecommandsSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "kernel "):
+				confRead.kernelSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "ntp "):
+				confRead.ntpSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "pfe "):
+				confRead.pfeSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "security "):
+				confRead.securitySeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "user "):
+				confRead.userSeverity = itemTrim
 			}
 		}
 	}

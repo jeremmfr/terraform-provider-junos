@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -383,9 +384,8 @@ func resourceIgmpSnoopingVlanImport(ctx context.Context, d *schema.ResourceData,
 	return result, nil
 }
 
-func checkIgmpSnoopingVlanExists(name, routingInstance string, clt *Client, junSess *junosSession) (bool, error) {
+func checkIgmpSnoopingVlanExists(name, routingInstance string, clt *Client, junSess *junosSession) (_ bool, err error) {
 	var showConfig string
-	var err error
 	if routingInstance == defaultW {
 		showConfig, err = clt.command(cmdShowConfig+
 			"protocols igmp-snooping vlan "+name+pipeDisplaySet, junSess)
@@ -478,10 +478,8 @@ func setIgmpSnoopingVlan(d *schema.ResourceData, clt *Client, junSess *junosSess
 }
 
 func readIgmpSnoopingVlan(name, routingInstance string, clt *Client, junSess *junosSession,
-) (igmpSnoopingVlanOptions, error) {
-	var confRead igmpSnoopingVlanOptions
+) (confRead igmpSnoopingVlanOptions, err error) {
 	var showConfig string
-	var err error
 	if routingInstance == defaultW {
 		showConfig, err = clt.command(cmdShowConfig+
 			"protocols igmp-snooping vlan "+name+pipeDisplaySetRelative, junSess)
@@ -506,10 +504,10 @@ func readIgmpSnoopingVlan(name, routingInstance string, clt *Client, junSess *ju
 			switch {
 			case itemTrim == "immediate-leave":
 				confRead.immediateLeave = true
-			case strings.HasPrefix(itemTrim, "interface "):
-				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "interface "), " ")
+			case balt.CutPrefixInString(&itemTrim, "interface "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				intFace := map[string]interface{}{
-					"name":                       itemTrimSplit[0],
+					"name":                       itemTrimFields[0],
 					"group_limit":                -1,
 					"host_only_interface":        false,
 					"immediate_leave":            false,
@@ -517,54 +515,51 @@ func readIgmpSnoopingVlan(name, routingInstance string, clt *Client, junSess *ju
 					"static_group":               make([]map[string]interface{}, 0),
 				}
 				confRead.interFace = copyAndRemoveItemMapList("name", intFace, confRead.interFace)
-				itemTrimIntface := strings.TrimPrefix(itemTrim, "interface "+itemTrimSplit[0]+" ")
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				switch {
-				case strings.HasPrefix(itemTrimIntface, "group-limit "):
-					var err error
-					intFace["group_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrimIntface, "group-limit "))
+				case balt.CutPrefixInString(&itemTrim, "group-limit "):
+					intFace["group_limit"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case itemTrimIntface == "host-only-interface":
+				case itemTrim == "host-only-interface":
 					intFace["host_only_interface"] = true
-				case itemTrimIntface == "immediate-leave":
+				case itemTrim == "immediate-leave":
 					intFace["immediate_leave"] = true
-				case itemTrimIntface == "multicast-router-interface":
+				case itemTrim == "multicast-router-interface":
 					intFace["multicast_router_interface"] = true
-				case strings.HasPrefix(itemTrimIntface, "static group "):
-					itemTrimIntfaceSplit := strings.Split(strings.TrimPrefix(itemTrimIntface, "static group "), " ")
+				case balt.CutPrefixInString(&itemTrim, "static group "):
+					itemTrimStaticGrpFields := strings.Split(itemTrim, " ")
 					staticGrp := map[string]interface{}{
-						"address": itemTrimIntfaceSplit[0],
+						"address": itemTrimStaticGrpFields[0],
 						"source":  "",
 					}
 					intFace["static_group"] = copyAndRemoveItemMapList("address", staticGrp,
 						intFace["static_group"].([]map[string]interface{}))
-					if strings.HasPrefix(itemTrimIntface, "static group "+itemTrimIntfaceSplit[0]+" source ") {
-						staticGrp["source"] = strings.TrimPrefix(itemTrimIntface, "static group "+itemTrimIntfaceSplit[0]+" source ")
+					if balt.CutPrefixInString(&itemTrim, itemTrimStaticGrpFields[0]+" source ") {
+						staticGrp["source"] = itemTrim
 					}
 					intFace["static_group"] = append(intFace["static_group"].([]map[string]interface{}), staticGrp)
 				}
 				confRead.interFace = append(confRead.interFace, intFace)
-			case strings.HasPrefix(itemTrim, "l2-querier source-address "):
-				confRead.l2QuerierSrcAddress = strings.TrimPrefix(itemTrim, "l2-querier source-address ")
-			case strings.HasPrefix(itemTrim, "proxy"):
+			case balt.CutPrefixInString(&itemTrim, "l2-querier source-address "):
+				confRead.l2QuerierSrcAddress = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "proxy"):
 				confRead.proxy = true
-				if strings.HasPrefix(itemTrim, "proxy source-address ") {
-					confRead.proxySrcAddress = strings.TrimPrefix(itemTrim, "proxy source-address ")
+				if balt.CutPrefixInString(&itemTrim, " source-address ") {
+					confRead.proxySrcAddress = itemTrim
 				}
-			case strings.HasPrefix(itemTrim, "query-interval "):
-				var err error
-				confRead.queryInterval, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "query-interval "))
+			case balt.CutPrefixInString(&itemTrim, "query-interval "):
+				confRead.queryInterval, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "query-last-member-interval "):
-				confRead.queryLastMemberInterval = strings.TrimPrefix(itemTrim, "query-last-member-interval ")
-			case strings.HasPrefix(itemTrim, "query-response-interval "):
-				confRead.queryResponseInterval = strings.TrimPrefix(itemTrim, "query-response-interval ")
-			case strings.HasPrefix(itemTrim, "robust-count "):
-				var err error
-				confRead.robustCount, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "robust-count "))
+			case balt.CutPrefixInString(&itemTrim, "query-last-member-interval "):
+				confRead.queryLastMemberInterval = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "query-response-interval "):
+				confRead.queryResponseInterval = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "robust-count "):
+				confRead.robustCount, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}

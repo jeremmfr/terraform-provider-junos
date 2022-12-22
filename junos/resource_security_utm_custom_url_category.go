@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type utmCustomURLCategoryOptions struct {
@@ -266,9 +267,7 @@ func setUtmCustomURLCategory(d *schema.ResourceData, clt *Client, junSess *junos
 }
 
 func readUtmCustomURLCategory(urlCategory string, clt *Client, junSess *junosSession,
-) (utmCustomURLCategoryOptions, error) {
-	var confRead utmCustomURLCategoryOptions
-
+) (confRead utmCustomURLCategoryOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security utm custom-objects custom-url-category "+urlCategory+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -284,8 +283,8 @@ func readUtmCustomURLCategory(urlCategory string, clt *Client, junSess *junosSes
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
-			if strings.HasPrefix(itemTrim, "value ") {
-				confRead.value = append(confRead.value, strings.TrimPrefix(itemTrim, "value "))
+			if balt.CutPrefixInString(&itemTrim, "value ") {
+				confRead.value = append(confRead.value, itemTrim)
 			}
 		}
 	}

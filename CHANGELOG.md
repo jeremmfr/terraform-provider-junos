@@ -6,10 +6,14 @@ FEATURES:
 ENHANCEMENTS:
 
 * provider: add `ssh_retry_to_establish` argument to retry when establishing SSH connections
+* resource/`junos_security_address_book`: add `ipv4_only` and `ipv6_only` arguments inside `dns_name` block argument
+* refactor the code of most resource reading functions to make it more readable and maintainable
 
 BUG FIXES:
 
 * provider: fix default `ssh_ciphers` value not set correctly when not set in config
+* resource/`junos_security_address_book`: fix `description` not set correctly in `wildcard_address`, `dns_name`, `range_address` and `address_set` block arguments
+* resource/`junos_forwardingoptions_dhcprelay`, `junos_forwardingoptions_dhcprelay_group`, `junos_system_services_dhcp_localserver_group`: fix reading `value` argument with special chars
 
 ## 1.31.2 (November 16, 2022)
 

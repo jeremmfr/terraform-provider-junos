@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type utmCustomURLPatternOptions struct {
@@ -264,9 +265,7 @@ func setUtmCustomURLPattern(d *schema.ResourceData, clt *Client, junSess *junosS
 }
 
 func readUtmCustomURLPattern(urlPattern string, clt *Client, junSess *junosSession,
-) (utmCustomURLPatternOptions, error) {
-	var confRead utmCustomURLPatternOptions
-
+) (confRead utmCustomURLPatternOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security utm custom-objects url-pattern "+urlPattern+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -282,8 +281,8 @@ func readUtmCustomURLPattern(urlPattern string, clt *Client, junSess *junosSessi
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
-			if strings.HasPrefix(itemTrim, "value ") {
-				confRead.value = append(confRead.value, strings.Trim(strings.TrimPrefix(itemTrim, "value "), "\""))
+			if balt.CutPrefixInString(&itemTrim, "value ") {
+				confRead.value = append(confRead.value, strings.Trim(itemTrim, "\""))
 			}
 		}
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -288,9 +289,7 @@ func setServicesSecurityIntellPolicy(d *schema.ResourceData, clt *Client, junSes
 }
 
 func readServicesSecurityIntellPolicy(policy string, clt *Client, junSess *junosSession,
-) (securityIntellPolicyOptions, error) {
-	var confRead securityIntellPolicyOptions
-
+) (confRead securityIntellPolicyOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"services security-intelligence policy \""+policy+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -307,13 +306,13 @@ func readServicesSecurityIntellPolicy(policy string, clt *Client, junSess *junos
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "description "):
-				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				confRead.description = strings.Trim(itemTrim, "\"")
 			case len(strings.Split(itemTrim, " ")) == 2:
-				lineCut := strings.Split(itemTrim, " ")
+				itemTrimFields := strings.Split(itemTrim, " ") // <name> <profile_name>
 				confRead.category = append(confRead.category, map[string]interface{}{
-					"name":         lineCut[0],
-					"profile_name": strings.Trim(lineCut[1], "\""),
+					"name":         itemTrimFields[0],
+					"profile_name": strings.Trim(itemTrimFields[1], "\""),
 				})
 			}
 		}

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -236,9 +237,7 @@ func setSystemRootAuthentication(d *schema.ResourceData, clt *Client, junSess *j
 	return clt.configSet(configSet, junSess)
 }
 
-func readSystemRootAuthentication(clt *Client, junSess *junosSession) (systemRootAuthOptions, error) {
-	var confRead systemRootAuthOptions
-
+func readSystemRootAuthentication(clt *Client, junSess *junosSession) (confRead systemRootAuthOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"system root-authentication"+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -253,22 +252,15 @@ func readSystemRootAuthentication(clt *Client, junSess *junosSession) (systemRoo
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "encrypted-password "):
-				confRead.encryptedPassword = strings.Trim(strings.TrimPrefix(itemTrim, "encrypted-password "), "\"")
+			case balt.CutPrefixInString(&itemTrim, "encrypted-password "):
+				confRead.encryptedPassword = strings.Trim(itemTrim, "\"")
 			case itemTrim == "no-public-keys":
 				confRead.noPublicKeys = true
-			case strings.HasPrefix(itemTrim, "ssh-dsa "):
-				confRead.sshPublicKeys = append(confRead.sshPublicKeys,
-					strings.Trim(strings.TrimPrefix(itemTrim, "ssh-dsa "), "\""))
-			case strings.HasPrefix(itemTrim, "ssh-ecdsa "):
-				confRead.sshPublicKeys = append(confRead.sshPublicKeys,
-					strings.Trim(strings.TrimPrefix(itemTrim, "ssh-ecdsa "), "\""))
-			case strings.HasPrefix(itemTrim, "ssh-ed25519 "):
-				confRead.sshPublicKeys = append(confRead.sshPublicKeys,
-					strings.Trim(strings.TrimPrefix(itemTrim, "ssh-ed25519 "), "\""))
-			case strings.HasPrefix(itemTrim, "ssh-rsa "):
-				confRead.sshPublicKeys = append(confRead.sshPublicKeys,
-					strings.Trim(strings.TrimPrefix(itemTrim, "ssh-rsa "), "\""))
+			case balt.CutPrefixInString(&itemTrim, "ssh-dsa "),
+				balt.CutPrefixInString(&itemTrim, "ssh-ecdsa "),
+				balt.CutPrefixInString(&itemTrim, "ssh-ed25519 "),
+				balt.CutPrefixInString(&itemTrim, "ssh-rsa "):
+				confRead.sshPublicKeys = append(confRead.sshPublicKeys, strings.Trim(itemTrim, "\""))
 			}
 		}
 	}

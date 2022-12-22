@@ -263,9 +263,7 @@ func setPolicyoptionsAsPath(d *schema.ResourceData, clt *Client, junSess *junosS
 	return clt.configSet(configSet, junSess)
 }
 
-func readPolicyoptionsAsPath(name string, clt *Client, junSess *junosSession) (asPathOptions, error) {
-	var confRead asPathOptions
-
+func readPolicyoptionsAsPath(name string, clt *Client, junSess *junosSession) (confRead asPathOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"policy-options as-path "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err

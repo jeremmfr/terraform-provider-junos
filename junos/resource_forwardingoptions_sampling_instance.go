@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -1070,9 +1071,7 @@ func setForwardingOptionsSamplingInstanceOutput(
 }
 
 func readForwardingOptionsSamplingInstance(name string, clt *Client, junSess *junosSession,
-) (samplingInstanceOptions, error) {
-	var confRead samplingInstanceOptions
-
+) (confRead samplingInstanceOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"forwarding-options sampling instance \""+name+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -1091,7 +1090,7 @@ func readForwardingOptionsSamplingInstance(name string, clt *Client, junSess *ju
 			switch {
 			case itemTrim == disableW:
 				confRead.disable = true
-			case strings.HasPrefix(itemTrim, "family inet input "):
+			case balt.CutPrefixInString(&itemTrim, "family inet input "):
 				if len(confRead.familyInetInput) == 0 {
 					confRead.familyInetInput = append(confRead.familyInetInput, map[string]interface{}{
 						"max_packets_per_second": -1,
@@ -1100,11 +1099,10 @@ func readForwardingOptionsSamplingInstance(name string, clt *Client, junSess *ju
 						"run_length":             -1,
 					})
 				}
-				if err := readForwardingOptionsSamplingInstanceInput(confRead.familyInetInput[0],
-					strings.TrimPrefix(itemTrim, "family inet input ")); err != nil {
+				if err := readForwardingOptionsSamplingInstanceInput(itemTrim, confRead.familyInetInput[0]); err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "family inet6 input "):
+			case balt.CutPrefixInString(&itemTrim, "family inet6 input "):
 				if len(confRead.familyInet6Input) == 0 {
 					confRead.familyInet6Input = append(confRead.familyInet6Input, map[string]interface{}{
 						"max_packets_per_second": -1,
@@ -1113,11 +1111,10 @@ func readForwardingOptionsSamplingInstance(name string, clt *Client, junSess *ju
 						"run_length":             -1,
 					})
 				}
-				if err := readForwardingOptionsSamplingInstanceInput(confRead.familyInet6Input[0],
-					strings.TrimPrefix(itemTrim, "family inet6 input ")); err != nil {
+				if err := readForwardingOptionsSamplingInstanceInput(itemTrim, confRead.familyInet6Input[0]); err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "family mpls input "):
+			case balt.CutPrefixInString(&itemTrim, "family mpls input "):
 				if len(confRead.familyMplsInput) == 0 {
 					confRead.familyMplsInput = append(confRead.familyMplsInput, map[string]interface{}{
 						"max_packets_per_second": -1,
@@ -1126,11 +1123,10 @@ func readForwardingOptionsSamplingInstance(name string, clt *Client, junSess *ju
 						"run_length":             -1,
 					})
 				}
-				if err := readForwardingOptionsSamplingInstanceInput(confRead.familyMplsInput[0],
-					strings.TrimPrefix(itemTrim, "family mpls input ")); err != nil {
+				if err := readForwardingOptionsSamplingInstanceInput(itemTrim, confRead.familyMplsInput[0]); err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "input "):
+			case balt.CutPrefixInString(&itemTrim, "input "):
 				if len(confRead.input) == 0 {
 					confRead.input = append(confRead.input, map[string]interface{}{
 						"max_packets_per_second": -1,
@@ -1139,11 +1135,10 @@ func readForwardingOptionsSamplingInstance(name string, clt *Client, junSess *ju
 						"run_length":             -1,
 					})
 				}
-				if err := readForwardingOptionsSamplingInstanceInput(confRead.input[0],
-					strings.TrimPrefix(itemTrim, "input ")); err != nil {
+				if err := readForwardingOptionsSamplingInstanceInput(itemTrim, confRead.input[0]); err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "family inet output "):
+			case balt.CutPrefixInString(&itemTrim, "family inet output "):
 				if len(confRead.familyInetOutput) == 0 {
 					confRead.familyInetOutput = append(confRead.familyInetOutput, map[string]interface{}{
 						"aggregate_export_interval":   0,
@@ -1156,11 +1151,10 @@ func readForwardingOptionsSamplingInstance(name string, clt *Client, junSess *ju
 						"interface":                   make([]map[string]interface{}, 0),
 					})
 				}
-				if err := readForwardingOptionsSamplingInstanceOutput(confRead.familyInetOutput[0],
-					strings.TrimPrefix(itemTrim, "family inet output "), inetW); err != nil {
+				if err := readForwardingOptionsSamplingInstanceOutput(itemTrim, confRead.familyInetOutput[0], inetW); err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "family inet6 output "):
+			case balt.CutPrefixInString(&itemTrim, "family inet6 output "):
 				if len(confRead.familyInet6Output) == 0 {
 					confRead.familyInet6Output = append(confRead.familyInet6Output, map[string]interface{}{
 						"aggregate_export_interval":   0,
@@ -1173,11 +1167,10 @@ func readForwardingOptionsSamplingInstance(name string, clt *Client, junSess *ju
 						"interface":                   make([]map[string]interface{}, 0),
 					})
 				}
-				if err := readForwardingOptionsSamplingInstanceOutput(confRead.familyInet6Output[0],
-					strings.TrimPrefix(itemTrim, "family inet6 output "), inet6W); err != nil {
+				if err := readForwardingOptionsSamplingInstanceOutput(itemTrim, confRead.familyInet6Output[0], inet6W); err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "family mpls output "):
+			case balt.CutPrefixInString(&itemTrim, "family mpls output "):
 				if len(confRead.familyMplsOutput) == 0 {
 					confRead.familyMplsOutput = append(confRead.familyMplsOutput, map[string]interface{}{
 						"aggregate_export_interval":   0,
@@ -1189,8 +1182,7 @@ func readForwardingOptionsSamplingInstance(name string, clt *Client, junSess *ju
 						"interface":                   make([]map[string]interface{}, 0),
 					})
 				}
-				if err := readForwardingOptionsSamplingInstanceOutput(confRead.familyMplsOutput[0],
-					strings.TrimPrefix(itemTrim, "family mpls output "), mplsW); err != nil {
+				if err := readForwardingOptionsSamplingInstanceOutput(itemTrim, confRead.familyMplsOutput[0], mplsW); err != nil {
 					return confRead, err
 				}
 			}
@@ -1200,29 +1192,25 @@ func readForwardingOptionsSamplingInstance(name string, clt *Client, junSess *ju
 	return confRead, nil
 }
 
-func readForwardingOptionsSamplingInstanceInput(inputRead map[string]interface{}, itemTrim string) error {
+func readForwardingOptionsSamplingInstanceInput(itemTrim string, inputRead map[string]interface{}) (err error) {
 	switch {
-	case strings.HasPrefix(itemTrim, "max-packets-per-second "):
-		var err error
-		inputRead["max_packets_per_second"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-packets-per-second "))
+	case balt.CutPrefixInString(&itemTrim, "max-packets-per-second "):
+		inputRead["max_packets_per_second"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "maximum-packet-length "):
-		var err error
-		inputRead["maximum_packet_length"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "maximum-packet-length "))
+	case balt.CutPrefixInString(&itemTrim, "maximum-packet-length "):
+		inputRead["maximum_packet_length"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "rate "):
-		var err error
-		inputRead["rate"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "rate "))
+	case balt.CutPrefixInString(&itemTrim, "rate "):
+		inputRead["rate"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "run-length "):
-		var err error
-		inputRead["run_length"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "run-length "))
+	case balt.CutPrefixInString(&itemTrim, "run-length "):
+		inputRead["run_length"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
@@ -1231,34 +1219,30 @@ func readForwardingOptionsSamplingInstanceInput(inputRead map[string]interface{}
 	return nil
 }
 
-func readForwardingOptionsSamplingInstanceOutput(outputRead map[string]interface{}, itemTrim, family string) error {
+func readForwardingOptionsSamplingInstanceOutput(itemTrim string, outputRead map[string]interface{}, family string,
+) (err error) {
 	switch {
-	case strings.HasPrefix(itemTrim, "aggregate-export-interval "):
-		var err error
-		outputRead["aggregate_export_interval"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "aggregate-export-interval "))
+	case balt.CutPrefixInString(&itemTrim, "aggregate-export-interval "):
+		outputRead["aggregate_export_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "extension-service "):
-		outputRead["extension_service"] = append(outputRead["extension_service"].([]string),
-			strings.Trim(strings.TrimPrefix(itemTrim, "extension-service "), "\""))
-	case strings.HasPrefix(itemTrim, "flow-active-timeout "):
-		var err error
-		outputRead["flow_active_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "flow-active-timeout "))
+	case balt.CutPrefixInString(&itemTrim, "extension-service "):
+		outputRead["extension_service"] = append(outputRead["extension_service"].([]string), strings.Trim(itemTrim, "\""))
+	case balt.CutPrefixInString(&itemTrim, "flow-active-timeout "):
+		outputRead["flow_active_timeout"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "flow-inactive-timeout "):
-		var err error
-		outputRead["flow_inactive_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "flow-inactive-timeout "))
+	case balt.CutPrefixInString(&itemTrim, "flow-inactive-timeout "):
+		outputRead["flow_inactive_timeout"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "flow-server "):
-		flowServerLineCut := strings.Split(itemTrim, " ")
+	case balt.CutPrefixInString(&itemTrim, "flow-server "):
+		itemTrimFields := strings.Split(itemTrim, " ")
 		flowServer := map[string]interface{}{
-			"hostname":                              flowServerLineCut[1],
+			"hostname":                              itemTrimFields[0],
 			"port":                                  0,
 			"aggregation_autonomous_system":         false,
 			"aggregation_destination_prefix":        false,
@@ -1281,93 +1265,85 @@ func readForwardingOptionsSamplingInstanceOutput(outputRead map[string]interface
 		}
 		outputRead["flow_server"] = copyAndRemoveItemMapList(
 			"hostname", flowServer, outputRead["flow_server"].([]map[string]interface{}))
-		itemTrimFlowServer := strings.TrimPrefix(itemTrim, "flow-server "+flowServerLineCut[1]+" ")
+		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 		switch {
-		case strings.HasPrefix(itemTrimFlowServer, "port "):
-			var err error
-			flowServer["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrimFlowServer, "port "))
+		case balt.CutPrefixInString(&itemTrim, "port "):
+			flowServer["port"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(failedConvAtoiError, itemTrimFlowServer, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case itemTrimFlowServer == "aggregation autonomous-system":
+		case itemTrim == "aggregation autonomous-system":
 			flowServer["aggregation_autonomous_system"] = true
-		case itemTrimFlowServer == "aggregation destination-prefix":
+		case itemTrim == "aggregation destination-prefix":
 			flowServer["aggregation_destination_prefix"] = true
-		case itemTrimFlowServer == "aggregation protocol-port":
+		case itemTrim == "aggregation protocol-port":
 			flowServer["aggregation_protocol_port"] = true
-		case strings.HasPrefix(itemTrimFlowServer, "aggregation source-destination-prefix"):
+		case balt.CutPrefixInString(&itemTrim, "aggregation source-destination-prefix"):
 			flowServer["aggregation_source_destination_prefix"] = true
-			if itemTrimFlowServer == "aggregation source-destination-prefix caida-compliant" {
+			if itemTrim == " caida-compliant" {
 				flowServer["aggregation_source_destination_prefix_caida_compliant"] = true
 			}
-		case itemTrimFlowServer == "aggregation source-prefix":
+		case itemTrim == "aggregation source-prefix":
 			flowServer["aggregation_source_prefix"] = true
-		case strings.HasPrefix(itemTrimFlowServer, "autonomous-system-type "):
-			flowServer["autonomous_system_type"] = strings.TrimPrefix(itemTrimFlowServer, "autonomous-system-type ")
-		case strings.HasPrefix(itemTrimFlowServer, "dscp "):
-			var err error
-			flowServer["dscp"], err = strconv.Atoi(strings.TrimPrefix(itemTrimFlowServer, "dscp "))
+		case balt.CutPrefixInString(&itemTrim, "autonomous-system-type "):
+			flowServer["autonomous_system_type"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "dscp "):
+			flowServer["dscp"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(failedConvAtoiError, itemTrimFlowServer, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimFlowServer, "forwarding-class "):
-			flowServer["forwarding_class"] = strings.TrimPrefix(itemTrimFlowServer, "forwarding-class ")
-		case itemTrimFlowServer == "local-dump":
+		case balt.CutPrefixInString(&itemTrim, "forwarding-class "):
+			flowServer["forwarding_class"] = itemTrim
+		case itemTrim == "local-dump":
 			flowServer["local_dump"] = true
-		case itemTrimFlowServer == "no-local-dump":
+		case itemTrim == "no-local-dump":
 			flowServer["no_local_dump"] = true
-		case strings.HasPrefix(itemTrimFlowServer, "routing-instance "):
-			flowServer["routing_instance"] = strings.TrimPrefix(itemTrimFlowServer, "routing-instance ")
-		case strings.HasPrefix(itemTrimFlowServer, "source-address "):
-			flowServer["source_address"] = strings.TrimPrefix(itemTrimFlowServer, "source-address ")
-		case strings.HasPrefix(itemTrimFlowServer, "version "):
-			var err error
-			flowServer["version"], err = strconv.Atoi(strings.TrimPrefix(itemTrimFlowServer, "version "))
+		case balt.CutPrefixInString(&itemTrim, "routing-instance "):
+			flowServer["routing_instance"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "source-address "):
+			flowServer["source_address"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "version "):
+			flowServer["version"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(failedConvAtoiError, itemTrimFlowServer, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimFlowServer, "version-ipfix template "):
-			flowServer["version_ipfix_template"] = strings.Trim(strings.TrimPrefix(
-				itemTrimFlowServer, "version-ipfix template "), "\"")
-		case strings.HasPrefix(itemTrimFlowServer, "version9 template "):
-			flowServer["version9_template"] = strings.Trim(strings.TrimPrefix(itemTrimFlowServer, "version9 template "), "\"")
+		case balt.CutPrefixInString(&itemTrim, "version-ipfix template "):
+			flowServer["version_ipfix_template"] = strings.Trim(itemTrim, "\"")
+		case balt.CutPrefixInString(&itemTrim, "version9 template "):
+			flowServer["version9_template"] = strings.Trim(itemTrim, "\"")
 		}
 		outputRead["flow_server"] = append(outputRead["flow_server"].([]map[string]interface{}), flowServer)
-	case strings.HasPrefix(itemTrim, "inline-jflow flow-export-rate "):
-		var err error
-		outputRead["inline_jflow_export_rate"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "inline-jflow flow-export-rate "))
+	case balt.CutPrefixInString(&itemTrim, "inline-jflow flow-export-rate "):
+		outputRead["inline_jflow_export_rate"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "inline-jflow source-address "):
-		outputRead["inline_jflow_source_address"] = strings.TrimPrefix(itemTrim, "inline-jflow source-address ")
-	case strings.HasPrefix(itemTrim, "interface "):
-		interfaceLineCut := strings.Split(itemTrim, " ")
+	case balt.CutPrefixInString(&itemTrim, "inline-jflow source-address "):
+		outputRead["inline_jflow_source_address"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "interface "):
+		itemTrimFields := strings.Split(itemTrim, " ")
 		iFace := map[string]interface{}{
-			"name":           interfaceLineCut[1],
+			"name":           itemTrimFields[0],
 			"engine_id":      -1,
 			"engine_type":    -1,
 			"source_address": "",
 		}
 		outputRead["interface"] = copyAndRemoveItemMapList(
 			"name", iFace, outputRead["interface"].([]map[string]interface{}))
-		itemTrimInterface := strings.TrimPrefix(itemTrim, "interface "+interfaceLineCut[1]+" ")
+		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 		switch {
-		case strings.HasPrefix(itemTrimInterface, "engine-id "):
-			var err error
-			iFace["engine_id"], err = strconv.Atoi(strings.TrimPrefix(itemTrimInterface, "engine-id "))
+		case balt.CutPrefixInString(&itemTrim, "engine-id "):
+			iFace["engine_id"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimInterface, "engine-type "):
-			var err error
-			iFace["engine_type"], err = strconv.Atoi(strings.TrimPrefix(itemTrimInterface, "engine-type "))
+		case balt.CutPrefixInString(&itemTrim, "engine-type "):
+			iFace["engine_type"], err = strconv.Atoi(itemTrim)
 			if err != nil {
-				return fmt.Errorf(failedConvAtoiError, itemTrimInterface, err)
+				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimInterface, "source-address "):
-			iFace["source_address"] = strings.TrimPrefix(itemTrimInterface, "source-address ")
+		case balt.CutPrefixInString(&itemTrim, "source-address "):
+			iFace["source_address"] = itemTrim
 		}
 		outputRead["interface"] = append(outputRead["interface"].([]map[string]interface{}), iFace)
 	}

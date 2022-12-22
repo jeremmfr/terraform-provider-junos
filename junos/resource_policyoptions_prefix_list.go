@@ -3,10 +3,12 @@ package junos
 import (
 	"context"
 	"fmt"
+	"html"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type prefixListOptions struct {
@@ -280,9 +282,8 @@ func setPolicyoptionsPrefixList(d *schema.ResourceData, clt *Client, junSess *ju
 	return clt.configSet(configSet, junSess)
 }
 
-func readPolicyoptionsPrefixList(name string, clt *Client, junSess *junosSession) (prefixListOptions, error) {
-	var confRead prefixListOptions
-
+func readPolicyoptionsPrefixList(name string, clt *Client, junSess *junosSession,
+) (confRead prefixListOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"policy-options prefix-list "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -299,10 +300,8 @@ func readPolicyoptionsPrefixList(name string, clt *Client, junSess *junosSession
 				break
 			}
 			switch {
-			case strings.HasPrefix(itemTrim, "apply-path "):
-				replaceSign := strings.ReplaceAll(strings.Trim(strings.TrimPrefix(itemTrim, "apply-path "), "\""), "&lt;", "<")
-				replaceSign = strings.ReplaceAll(replaceSign, "&gt;", ">")
-				confRead.applyPath = replaceSign
+			case balt.CutPrefixInString(&itemTrim, "apply-path "):
+				confRead.applyPath = html.UnescapeString(strings.Trim(itemTrim, "\""))
 			case itemTrim == "dynamic-db":
 				confRead.dynamicDB = true
 			case strings.Contains(itemTrim, "/"):

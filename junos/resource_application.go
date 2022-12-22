@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -470,9 +471,7 @@ func setApplicationTerm(setApp string, term map[string]interface{}, clt *Client,
 	return clt.configSet(configSet, junSess)
 }
 
-func readApplication(application string, clt *Client, junSess *junosSession) (applicationOptions, error) {
-	var confRead applicationOptions
-
+func readApplication(application string, clt *Client, junSess *junosSession) (confRead applicationOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"applications application "+application+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -497,35 +496,34 @@ func readApplication(application string, clt *Client, junSess *junosSession) (ap
 	return confRead, nil
 }
 
-func (app *applicationOptions) readLine(line string) error {
-	line = strings.TrimPrefix(line, setLS)
+func (confRead *applicationOptions) readLine(itemTrim string) (err error) {
+	balt.CutPrefixInString(&itemTrim, setLS)
 	switch {
-	case strings.HasPrefix(line, "application-protocol "):
-		app.applicationProtocol = strings.TrimPrefix(line, "application-protocol ")
-	case strings.HasPrefix(line, "description "):
-		app.description = strings.Trim(strings.TrimPrefix(line, "description "), "\"")
-	case strings.HasPrefix(line, "destination-port "):
-		app.destinationPort = strings.TrimPrefix(line, "destination-port ")
-	case strings.HasPrefix(line, "ether-type "):
-		app.etherType = strings.TrimPrefix(line, "ether-type ")
-	case line == "inactivity-timeout never":
-		app.inactivityTimeoutNever = true
-	case strings.HasPrefix(line, "inactivity-timeout "):
-		var err error
-		app.inactivityTimeout, err = strconv.Atoi(strings.TrimPrefix(line, "inactivity-timeout "))
+	case balt.CutPrefixInString(&itemTrim, "application-protocol "):
+		confRead.applicationProtocol = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "description "):
+		confRead.description = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "destination-port "):
+		confRead.destinationPort = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "ether-type "):
+		confRead.etherType = itemTrim
+	case itemTrim == "inactivity-timeout never":
+		confRead.inactivityTimeoutNever = true
+	case balt.CutPrefixInString(&itemTrim, "inactivity-timeout "):
+		confRead.inactivityTimeout, err = strconv.Atoi(itemTrim)
 		if err != nil {
-			return fmt.Errorf(failedConvAtoiError, line, err)
+			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(line, "protocol "):
-		app.protocol = strings.TrimPrefix(line, "protocol ")
-	case strings.HasPrefix(line, "rpc-program-number "):
-		app.rpcProgramNumber = strings.TrimPrefix(line, "rpc-program-number ")
-	case strings.HasPrefix(line, "source-port "):
-		app.sourcePort = strings.TrimPrefix(line, "source-port ")
-	case strings.HasPrefix(line, "term "):
-		itemTermList := strings.Split(strings.TrimPrefix(line, "term "), " ")
+	case balt.CutPrefixInString(&itemTrim, "protocol "):
+		confRead.protocol = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "rpc-program-number "):
+		confRead.rpcProgramNumber = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "source-port "):
+		confRead.sourcePort = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "term "):
+		itemTrimFields := strings.Split(itemTrim, " ")
 		termOpts := map[string]interface{}{
-			"name":                     itemTermList[0],
+			"name":                     itemTrimFields[0],
 			"protocol":                 "",
 			"alg":                      "",
 			"destination_port":         "",
@@ -539,48 +537,47 @@ func (app *applicationOptions) readLine(line string) error {
 			"source_port":              "",
 			"uuid":                     "",
 		}
-		app.term = copyAndRemoveItemMapList("name", termOpts, app.term)
-		if err := readApplicationTerm(strings.TrimPrefix(line, "term "+itemTermList[0]+" "), termOpts); err != nil {
+		confRead.term = copyAndRemoveItemMapList("name", termOpts, confRead.term)
+		if err := readApplicationTerm(strings.TrimPrefix(itemTrim, itemTrimFields[0]+" "), termOpts); err != nil {
 			return err
 		}
-		app.term = append(app.term, termOpts)
-	case strings.HasPrefix(line, "uuid "):
-		app.uuid = strings.TrimPrefix(line, "uuid ")
+		confRead.term = append(confRead.term, termOpts)
+	case balt.CutPrefixInString(&itemTrim, "uuid "):
+		confRead.uuid = itemTrim
 	}
 
 	return nil
 }
 
-func readApplicationTerm(itemTrim string, term map[string]interface{}) error {
+func readApplicationTerm(itemTrim string, term map[string]interface{}) (err error) {
 	switch {
-	case strings.HasPrefix(itemTrim, "protocol "):
-		term["protocol"] = strings.TrimPrefix(itemTrim, "protocol ")
-	case strings.HasPrefix(itemTrim, "alg "):
-		term["alg"] = strings.TrimPrefix(itemTrim, "alg ")
-	case strings.HasPrefix(itemTrim, "destination-port "):
-		term["destination_port"] = strings.TrimPrefix(itemTrim, "destination-port ")
-	case strings.HasPrefix(itemTrim, "icmp-code "):
-		term["icmp_code"] = strings.TrimPrefix(itemTrim, "icmp-code ")
-	case strings.HasPrefix(itemTrim, "icmp-type "):
-		term["icmp_type"] = strings.TrimPrefix(itemTrim, "icmp-type ")
-	case strings.HasPrefix(itemTrim, "icmp6-code "):
-		term["icmp6_code"] = strings.TrimPrefix(itemTrim, "icmp6-code ")
-	case strings.HasPrefix(itemTrim, "icmp6-type "):
-		term["icmp6_type"] = strings.TrimPrefix(itemTrim, "icmp6-type ")
+	case balt.CutPrefixInString(&itemTrim, "protocol "):
+		term["protocol"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "alg "):
+		term["alg"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "destination-port "):
+		term["destination_port"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "icmp-code "):
+		term["icmp_code"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "icmp-type "):
+		term["icmp_type"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "icmp6-code "):
+		term["icmp6_code"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "icmp6-type "):
+		term["icmp6_type"] = itemTrim
 	case itemTrim == "inactivity-timeout never":
 		term["inactivity_timeout_never"] = true
-	case strings.HasPrefix(itemTrim, "inactivity-timeout "):
-		var err error
-		term["inactivity_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "inactivity-timeout "))
+	case balt.CutPrefixInString(&itemTrim, "inactivity-timeout "):
+		term["inactivity_timeout"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "rpc-program-number "):
-		term["rpc_program_number"] = strings.TrimPrefix(itemTrim, "rpc-program-number ")
-	case strings.HasPrefix(itemTrim, "source-port "):
-		term["source_port"] = strings.TrimPrefix(itemTrim, "source-port ")
-	case strings.HasPrefix(itemTrim, "uuid "):
-		term["uuid"] = strings.TrimPrefix(itemTrim, "uuid ")
+	case balt.CutPrefixInString(&itemTrim, "rpc-program-number "):
+		term["rpc_program_number"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "source-port "):
+		term["source_port"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "uuid "):
+		term["uuid"] = itemTrim
 	}
 
 	return nil

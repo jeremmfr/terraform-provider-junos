@@ -409,17 +409,17 @@ func searchInterfaceID(configInterface, match string, clt *Client, junSess *juno
 		if !matched {
 			continue
 		}
-		itemTrimSplit := strings.Split(itemTrim, " ")
-		switch len(itemTrimSplit) {
+		itemTrimFields := strings.Split(itemTrim, " ")
+		switch len(itemTrimFields) {
 		case 0:
 			continue
 		case 1, 2:
-			intConfigList = append(intConfigList, itemTrimSplit[0])
+			intConfigList = append(intConfigList, itemTrimFields[0])
 		default:
-			if itemTrimSplit[1] == "unit" {
-				intConfigList = append(intConfigList, itemTrimSplit[0]+"."+itemTrimSplit[2])
+			if itemTrimFields[1] == "unit" {
+				intConfigList = append(intConfigList, itemTrimFields[0]+"."+itemTrimFields[2])
 			} else {
-				intConfigList = append(intConfigList, itemTrimSplit[0])
+				intConfigList = append(intConfigList, itemTrimFields[0])
 			}
 		}
 	}

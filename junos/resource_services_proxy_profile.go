@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type proxyProfileOptions struct {
@@ -266,9 +267,8 @@ func setServicesProxyProfile(d *schema.ResourceData, clt *Client, junSess *junos
 	return clt.configSet(configSet, junSess)
 }
 
-func readServicesProxyProfile(profile string, clt *Client, junSess *junosSession) (proxyProfileOptions, error) {
-	var confRead proxyProfileOptions
-
+func readServicesProxyProfile(profile string, clt *Client, junSess *junosSession,
+) (confRead proxyProfileOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"services proxy profile \""+profile+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -285,11 +285,10 @@ func readServicesProxyProfile(profile string, clt *Client, junSess *junosSession
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "protocol http host "):
-				confRead.protocolHTTPHost = strings.TrimPrefix(itemTrim, "protocol http host ")
-			case strings.HasPrefix(itemTrim, "protocol http port "):
-				var err error
-				confRead.protocolHTTPPort, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "protocol http port "))
+			case balt.CutPrefixInString(&itemTrim, "protocol http host "):
+				confRead.protocolHTTPHost = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "protocol http port "):
+				confRead.protocolHTTPPort, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}

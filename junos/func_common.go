@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -382,12 +383,12 @@ func listOfSyslogFacility() []string {
 }
 
 func replaceTildeToHomeDir(path *string) error {
-	if strings.HasPrefix(*path, "~") {
+	if balt.CutPrefixInString(path, "~") {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
 			return fmt.Errorf("failed to read user home directory: %w", err)
 		}
-		*path = homeDir + strings.TrimPrefix(*path, "~")
+		*path = homeDir + *path
 	}
 
 	return nil

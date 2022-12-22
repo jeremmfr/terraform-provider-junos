@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -510,9 +511,7 @@ func setUtmProfileWebFEnhanced(d *schema.ResourceData, clt *Client, junSess *jun
 }
 
 func readUtmProfileWebFEnhanced(profile string, clt *Client, junSess *junosSession,
-) (utmProfileWebFilteringEnhancedOptions, error) {
-	var confRead utmProfileWebFilteringEnhancedOptions
-
+) (confRead utmProfileWebFilteringEnhancedOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security utm feature-profile web-filtering juniper-enhanced"+
 		" profile \""+profile+"\""+pipeDisplaySetRelative, junSess)
@@ -521,7 +520,6 @@ func readUtmProfileWebFEnhanced(profile string, clt *Client, junSess *junosSessi
 	}
 	if showConfig != emptyW {
 		confRead.name = profile
-		categoryList := make([]map[string]interface{}, 0)
 		for _, item := range strings.Split(showConfig, "\n") {
 			if strings.Contains(item, xmlStartTagConfigOut) {
 				continue
@@ -531,7 +529,7 @@ func readUtmProfileWebFEnhanced(profile string, clt *Client, junSess *junosSessi
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "block-message"):
+			case balt.CutPrefixInString(&itemTrim, "block-message"):
 				if len(confRead.blockMessage) == 0 {
 					confRead.blockMessage = append(confRead.blockMessage, map[string]interface{}{
 						"url":                      "",
@@ -539,36 +537,40 @@ func readUtmProfileWebFEnhanced(profile string, clt *Client, junSess *junosSessi
 					})
 				}
 				switch {
-				case itemTrim == "block-message type custom-redirect-url":
+				case itemTrim == " type custom-redirect-url":
 					confRead.blockMessage[0]["type_custom_redirect_url"] = true
-				case strings.HasPrefix(itemTrim, "block-message url "):
-					confRead.blockMessage[0]["url"] = strings.Trim(strings.TrimPrefix(itemTrim, "block-message url "), "\"")
+				case balt.CutPrefixInString(&itemTrim, " url "):
+					confRead.blockMessage[0]["url"] = strings.Trim(itemTrim, "\"")
 				}
-			case strings.HasPrefix(itemTrim, "category "):
-				catergoryLineCut := strings.Split(itemTrim, " ")
-				c := map[string]interface{}{
-					"name":              catergoryLineCut[1],
+			case balt.CutPrefixInString(&itemTrim, "category "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				category := map[string]interface{}{
+					"name":              itemTrimFields[0],
 					"action":            "",
 					"reputation_action": make([]map[string]interface{}, 0),
 				}
-				categoryList = copyAndRemoveItemMapList("name", c, categoryList)
-				itemTrimCategory := strings.TrimPrefix(itemTrim, "category "+catergoryLineCut[1]+" ")
+				confRead.category = copyAndRemoveItemMapList("name", category, confRead.category)
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				switch {
-				case strings.HasPrefix(itemTrimCategory, "action "):
-					c["action"] = strings.TrimPrefix(itemTrimCategory, "action ")
-				case strings.HasPrefix(itemTrimCategory, "reputation-action "):
-					cutReputationAction := strings.Split(strings.TrimPrefix(itemTrimCategory, "reputation-action "), " ")
-					c["reputation_action"] = append(c["reputation_action"].([]map[string]interface{}), map[string]interface{}{
-						"site_reputation": cutReputationAction[0],
-						"action":          cutReputationAction[1],
-					})
+				case balt.CutPrefixInString(&itemTrim, "action "):
+					category["action"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "reputation-action "):
+					itemTrimReputFields := strings.Split(itemTrim, " ")
+					if len(itemTrimReputFields) < 2 { // <site_reputation> <action>
+						return confRead, fmt.Errorf(cantReadValuesNotEnoughFields, "reputation-action", itemTrim)
+					}
+					category["reputation_action"] = append(category["reputation_action"].([]map[string]interface{}),
+						map[string]interface{}{
+							"site_reputation": itemTrimReputFields[0],
+							"action":          itemTrimReputFields[1],
+						})
 				}
-				categoryList = append(categoryList, c)
-			case strings.HasPrefix(itemTrim, "custom-block-message "):
-				confRead.customBlockMessage = strings.Trim(strings.TrimPrefix(itemTrim, "custom-block-message "), "\"")
-			case strings.HasPrefix(itemTrim, "default "):
-				confRead.defaultAction = strings.TrimPrefix(itemTrim, "default ")
-			case strings.HasPrefix(itemTrim, "fallback-settings"):
+				confRead.category = append(confRead.category, category)
+			case balt.CutPrefixInString(&itemTrim, "custom-block-message "):
+				confRead.customBlockMessage = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "default "):
+				confRead.defaultAction = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "fallback-settings"):
 				if len(confRead.fallbackSettings) == 0 {
 					confRead.fallbackSettings = append(confRead.fallbackSettings, map[string]interface{}{
 						"default":             "",
@@ -577,22 +579,21 @@ func readUtmProfileWebFEnhanced(profile string, clt *Client, junSess *junosSessi
 						"too_many_requests":   "",
 					})
 				}
-				itemTrimFallback := strings.TrimPrefix(itemTrim, "fallback-settings ")
 				switch {
-				case strings.HasPrefix(itemTrimFallback, "default "):
-					confRead.fallbackSettings[0]["default"] = strings.TrimPrefix(itemTrimFallback, "default ")
-				case strings.HasPrefix(itemTrimFallback, "server-connectivity "):
-					confRead.fallbackSettings[0]["server_connectivity"] = strings.TrimPrefix(itemTrimFallback, "server-connectivity ")
-				case strings.HasPrefix(itemTrimFallback, "timeout "):
-					confRead.fallbackSettings[0]["timeout"] = strings.TrimPrefix(itemTrimFallback, "timeout ")
-				case strings.HasPrefix(itemTrimFallback, "too-many-requests "):
-					confRead.fallbackSettings[0]["too_many_requests"] = strings.TrimPrefix(itemTrimFallback, "too-many-requests ")
+				case balt.CutPrefixInString(&itemTrim, " default "):
+					confRead.fallbackSettings[0]["default"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, " server-connectivity "):
+					confRead.fallbackSettings[0]["server_connectivity"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, " timeout "):
+					confRead.fallbackSettings[0]["timeout"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, " too-many-requests "):
+					confRead.fallbackSettings[0]["too_many_requests"] = itemTrim
 				}
 			case itemTrim == "no-safe-search":
 				confRead.noSafeSearch = true
-			case strings.HasPrefix(itemTrim, "quarantine-custom-message "):
-				confRead.quarantineCustomMessage = strings.Trim(strings.TrimPrefix(itemTrim, "quarantine-custom-message "), "\"")
-			case strings.HasPrefix(itemTrim, "quarantine-message"):
+			case balt.CutPrefixInString(&itemTrim, "quarantine-custom-message "):
+				confRead.quarantineCustomMessage = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "quarantine-message"):
 				if len(confRead.quarantineMessage) == 0 {
 					confRead.quarantineMessage = append(confRead.quarantineMessage, map[string]interface{}{
 						"url":                      "",
@@ -600,26 +601,27 @@ func readUtmProfileWebFEnhanced(profile string, clt *Client, junSess *junosSessi
 					})
 				}
 				switch {
-				case itemTrim == "quarantine-message type custom-redirect-url":
+				case itemTrim == " type custom-redirect-url":
 					confRead.quarantineMessage[0]["type_custom_redirect_url"] = true
-				case strings.HasPrefix(itemTrim, "quarantine-message url "):
-					confRead.quarantineMessage[0]["url"] = strings.Trim(strings.TrimPrefix(itemTrim, "quarantine-message url "), "\"")
+				case balt.CutPrefixInString(&itemTrim, " url "):
+					confRead.quarantineMessage[0]["url"] = strings.Trim(itemTrim, "\"")
 				}
-			case strings.HasPrefix(itemTrim, "site-reputation-action "):
-				itemTrimSiteReput := strings.Split(strings.TrimPrefix(itemTrim, "site-reputation-action "), " ")
+			case balt.CutPrefixInString(&itemTrim, "site-reputation-action "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				if len(itemTrimFields) < 2 { // <site_reputation> <action>
+					return confRead, fmt.Errorf(cantReadValuesNotEnoughFields, "site-reputation-action", itemTrim)
+				}
 				confRead.siteReputationAction = append(confRead.siteReputationAction, map[string]interface{}{
-					"site_reputation": itemTrimSiteReput[0],
-					"action":          itemTrimSiteReput[1],
+					"site_reputation": itemTrimFields[0],
+					"action":          itemTrimFields[1],
 				})
-			case strings.HasPrefix(itemTrim, "timeout "):
-				var err error
-				confRead.timeout, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "timeout "))
+			case balt.CutPrefixInString(&itemTrim, "timeout "):
+				confRead.timeout, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			}
 		}
-		confRead.category = categoryList
 	}
 
 	return confRead, nil

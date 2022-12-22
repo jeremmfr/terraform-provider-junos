@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type utmPolicyOptions struct {
@@ -436,9 +437,7 @@ func setUtmPolicy(d *schema.ResourceData, clt *Client, junSess *junosSession) er
 }
 
 func readUtmPolicy(policy string, clt *Client, junSess *junosSession,
-) (utmPolicyOptions, error) {
-	var confRead utmPolicyOptions
-
+) (confRead utmPolicyOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security utm utm-policy \""+policy+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -455,39 +454,36 @@ func readUtmPolicy(policy string, clt *Client, junSess *junosSession,
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "anti-spam smtp-profile "):
-				confRead.antiSpamSMTPProfile = strings.Trim(strings.TrimPrefix(itemTrim, "anti-spam smtp-profile "), "\"")
-			case strings.HasPrefix(itemTrim, "anti-virus "):
+			case balt.CutPrefixInString(&itemTrim, "anti-spam smtp-profile "):
+				confRead.antiSpamSMTPProfile = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "anti-virus "):
 				if len(confRead.antiVirus) == 0 {
 					confRead.antiVirus = append(confRead.antiVirus, genMapUtmPolicyProfile())
 				}
-				readUtmPolicyProfile(strings.TrimPrefix(itemTrim, "anti-virus "), confRead.antiVirus[0])
-			case strings.HasPrefix(itemTrim, "content-filtering "):
+				readUtmPolicyProfile(itemTrim, confRead.antiVirus[0])
+			case balt.CutPrefixInString(&itemTrim, "content-filtering "):
 				if len(confRead.contentFiltering) == 0 {
 					confRead.contentFiltering = append(confRead.contentFiltering, genMapUtmPolicyProfile())
 				}
-				readUtmPolicyProfile(strings.TrimPrefix(itemTrim, "content-filtering "), confRead.contentFiltering[0])
-			case strings.HasPrefix(itemTrim, "traffic-options sessions-per-client "):
+				readUtmPolicyProfile(itemTrim, confRead.contentFiltering[0])
+			case balt.CutPrefixInString(&itemTrim, "traffic-options sessions-per-client "):
 				if len(confRead.trafficSessionsPerClient) == 0 {
 					confRead.trafficSessionsPerClient = append(confRead.trafficSessionsPerClient, map[string]interface{}{
 						"limit":      -1,
 						"over_limit": "",
 					})
 				}
-				if strings.HasPrefix(itemTrim, "traffic-options sessions-per-client limit ") {
-					var err error
-					confRead.trafficSessionsPerClient[0]["limit"], err = strconv.Atoi(
-						strings.TrimPrefix(itemTrim, "traffic-options sessions-per-client limit "))
+				switch {
+				case balt.CutPrefixInString(&itemTrim, "limit "):
+					confRead.trafficSessionsPerClient[0]["limit"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
+				case balt.CutPrefixInString(&itemTrim, "over-limit "):
+					confRead.trafficSessionsPerClient[0]["over_limit"] = itemTrim
 				}
-				if strings.HasPrefix(itemTrim, "traffic-options sessions-per-client over-limit ") {
-					confRead.trafficSessionsPerClient[0]["over_limit"] = strings.TrimPrefix(
-						itemTrim, "traffic-options sessions-per-client over-limit ")
-				}
-			case strings.HasPrefix(itemTrim, "web-filtering http-profile "):
-				confRead.webFilteringProfile = strings.Trim(strings.TrimPrefix(itemTrim, "web-filtering http-profile "), "\"")
+			case balt.CutPrefixInString(&itemTrim, "web-filtering http-profile "):
+				confRead.webFilteringProfile = strings.Trim(itemTrim, "\"")
 			}
 		}
 	}
@@ -506,26 +502,20 @@ func genMapUtmPolicyProfile() map[string]interface{} {
 	}
 }
 
-func readUtmPolicyProfile(itemTrimPolicyProfile string, profileMap map[string]interface{}) {
+func readUtmPolicyProfile(itemTrim string, profileMap map[string]interface{}) {
 	switch {
-	case strings.HasPrefix(itemTrimPolicyProfile, "ftp download-profile "):
-		profileMap["ftp_download_profile"] = strings.Trim(
-			strings.TrimPrefix(itemTrimPolicyProfile, "ftp download-profile "), "\"")
-	case strings.HasPrefix(itemTrimPolicyProfile, "ftp upload-profile "):
-		profileMap["ftp_upload_profile"] = strings.Trim(
-			strings.TrimPrefix(itemTrimPolicyProfile, "ftp upload-profile "), "\"")
-	case strings.HasPrefix(itemTrimPolicyProfile, "http-profile "):
-		profileMap["http_profile"] = strings.Trim(
-			strings.TrimPrefix(itemTrimPolicyProfile, "http-profile "), "\"")
-	case strings.HasPrefix(itemTrimPolicyProfile, "imap-profile "):
-		profileMap["imap_profile"] = strings.Trim(
-			strings.TrimPrefix(itemTrimPolicyProfile, "imap-profile "), "\"")
-	case strings.HasPrefix(itemTrimPolicyProfile, "pop3-profile "):
-		profileMap["pop3_profile"] = strings.Trim(
-			strings.TrimPrefix(itemTrimPolicyProfile, "pop3-profile "), "\"")
-	case strings.HasPrefix(itemTrimPolicyProfile, "smtp-profile "):
-		profileMap["smtp_profile"] = strings.Trim(
-			strings.TrimPrefix(itemTrimPolicyProfile, "smtp-profile "), "\"")
+	case balt.CutPrefixInString(&itemTrim, "ftp download-profile "):
+		profileMap["ftp_download_profile"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "ftp upload-profile "):
+		profileMap["ftp_upload_profile"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "http-profile "):
+		profileMap["http_profile"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "imap-profile "):
+		profileMap["imap_profile"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "pop3-profile "):
+		profileMap["pop3_profile"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "smtp-profile "):
+		profileMap["smtp_profile"] = strings.Trim(itemTrim, "\"")
 	}
 }
 
