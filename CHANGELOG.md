@@ -9,6 +9,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* provider: fix default `ssh_ciphers` value not set correctly when not set in config
+
 ## 1.31.2 (November 16, 2022)
 
 BUG FIXES:
