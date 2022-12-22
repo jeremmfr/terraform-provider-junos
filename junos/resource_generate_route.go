@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type generateRouteOptions struct {
@@ -369,9 +370,8 @@ func resourceGenerateRouteImport(ctx context.Context, d *schema.ResourceData, m 
 	return result, nil
 }
 
-func checkGenerateRouteExists(destination, instance string, clt *Client, junSess *junosSession) (bool, error) {
+func checkGenerateRouteExists(destination, instance string, clt *Client, junSess *junosSession) (_ bool, err error) {
 	var showConfig string
-	var err error
 	if instance == defaultW {
 		if !strings.Contains(destination, ":") {
 			showConfig, err = clt.command(cmdShowConfig+
@@ -479,11 +479,8 @@ func setGenerateRoute(d *schema.ResourceData, clt *Client, junSess *junosSession
 }
 
 func readGenerateRoute(destination, instance string, clt *Client, junSess *junosSession,
-) (generateRouteOptions, error) {
-	var confRead generateRouteOptions
+) (confRead generateRouteOptions, err error) {
 	var showConfig string
-	var err error
-
 	if instance == defaultW {
 		if !strings.Contains(destination, ":") {
 			showConfig, err = clt.command(cmdShowConfig+
@@ -519,37 +516,40 @@ func readGenerateRoute(destination, instance string, clt *Client, junSess *junos
 			switch {
 			case itemTrim == "active":
 				confRead.active = true
-			case strings.HasPrefix(itemTrim, "as-path aggregator "):
-				itemTrimSplit := strings.Split(itemTrim, " ")
-				confRead.asPathAggregatorAsNumber = itemTrimSplit[2]
-				confRead.asPathAggregatorAddress = itemTrimSplit[3]
+			case balt.CutPrefixInString(&itemTrim, "as-path aggregator "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				if len(itemTrimFields) < 2 { // <as_number> <address>
+					return confRead, fmt.Errorf(cantReadValuesNotEnoughFields, "as-path aggregator", itemTrim)
+				}
+				confRead.asPathAggregatorAsNumber = itemTrimFields[0]
+				confRead.asPathAggregatorAddress = itemTrimFields[1]
 			case itemTrim == "as-path atomic-aggregate":
 				confRead.asPathAtomicAggregate = true
-			case strings.HasPrefix(itemTrim, "as-path origin "):
-				confRead.asPathOrigin = strings.TrimPrefix(itemTrim, "as-path origin ")
-			case strings.HasPrefix(itemTrim, "as-path path "):
-				confRead.asPathPath = strings.Trim(strings.TrimPrefix(itemTrim, "as-path path "), "\"")
+			case balt.CutPrefixInString(&itemTrim, "as-path origin "):
+				confRead.asPathOrigin = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "as-path path "):
+				confRead.asPathPath = strings.Trim(itemTrim, "\"")
 			case itemTrim == "brief":
 				confRead.brief = true
-			case strings.HasPrefix(itemTrim, "community "):
-				confRead.community = append(confRead.community, strings.TrimPrefix(itemTrim, "community "))
+			case balt.CutPrefixInString(&itemTrim, "community "):
+				confRead.community = append(confRead.community, itemTrim)
 			case itemTrim == discardW:
 				confRead.discard = true
 			case itemTrim == "full":
 				confRead.full = true
-			case strings.HasPrefix(itemTrim, "metric "):
-				confRead.metric, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "metric "))
+			case balt.CutPrefixInString(&itemTrim, "metric "):
+				confRead.metric, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "next-table "):
-				confRead.nextTable = strings.TrimPrefix(itemTrim, "next-table ")
+			case balt.CutPrefixInString(&itemTrim, "next-table "):
+				confRead.nextTable = itemTrim
 			case itemTrim == "passive":
 				confRead.passive = true
-			case strings.HasPrefix(itemTrim, "policy "):
-				confRead.policy = append(confRead.policy, strings.TrimPrefix(itemTrim, "policy "))
-			case strings.HasPrefix(itemTrim, "preference "):
-				confRead.preference, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "preference "))
+			case balt.CutPrefixInString(&itemTrim, "policy "):
+				confRead.policy = append(confRead.policy, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "preference "):
+				confRead.preference, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}

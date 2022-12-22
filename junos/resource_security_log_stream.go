@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type securityLogStreamOptions struct {
@@ -381,9 +382,7 @@ func setSecurityLogStream(d *schema.ResourceData, clt *Client, junSess *junosSes
 }
 
 func readSecurityLogStream(securityLogStream string, clt *Client, junSess *junosSession,
-) (securityLogStreamOptions, error) {
-	var confRead securityLogStreamOptions
-
+) (confRead securityLogStreamOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security log stream \""+securityLogStream+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -400,9 +399,9 @@ func readSecurityLogStream(securityLogStream string, clt *Client, junSess *junos
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "category "):
-				confRead.category = append(confRead.category, strings.TrimPrefix(itemTrim, "category "))
-			case strings.HasPrefix(itemTrim, "file "):
+			case balt.CutPrefixInString(&itemTrim, "category "):
+				confRead.category = append(confRead.category, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "file "):
 				if len(confRead.file) == 0 {
 					confRead.file = append(confRead.file, map[string]interface{}{
 						"name":             "",
@@ -412,28 +411,26 @@ func readSecurityLogStream(securityLogStream string, clt *Client, junSess *junos
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "file name "):
-					confRead.file[0]["name"] = strings.TrimPrefix(itemTrim, "file name ")
-				case itemTrim == "file allow-duplicates":
+				case balt.CutPrefixInString(&itemTrim, "name "):
+					confRead.file[0]["name"] = itemTrim
+				case itemTrim == "allow-duplicates":
 					confRead.file[0]["allow_duplicates"] = true
-				case strings.HasPrefix(itemTrim, "file rotation "):
-					var err error
-					confRead.file[0]["rotation"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file rotation "))
+				case balt.CutPrefixInString(&itemTrim, "rotation "):
+					confRead.file[0]["rotation"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "file size "):
-					var err error
-					confRead.file[0]["size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "file size "))
+				case balt.CutPrefixInString(&itemTrim, "size "):
+					confRead.file[0]["size"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case itemTrim == "filter threat-attack":
 				confRead.filterThreatAttack = true
-			case strings.HasPrefix(itemTrim, "format "):
-				confRead.format = strings.TrimPrefix(itemTrim, "format ")
-			case strings.HasPrefix(itemTrim, "host "):
+			case balt.CutPrefixInString(&itemTrim, "format "):
+				confRead.format = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "host "):
 				if len(confRead.host) == 0 {
 					confRead.host = append(confRead.host, map[string]interface{}{
 						"ip_address":       "",
@@ -442,25 +439,23 @@ func readSecurityLogStream(securityLogStream string, clt *Client, junSess *junos
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "host port "):
-					var err error
-					confRead.host[0]["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "host port "))
+				case balt.CutPrefixInString(&itemTrim, "port "):
+					confRead.host[0]["port"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "host routing-instance "):
-					confRead.host[0]["routing_instance"] = strings.TrimPrefix(itemTrim, "host routing-instance ")
+				case balt.CutPrefixInString(&itemTrim, "routing-instance "):
+					confRead.host[0]["routing_instance"] = itemTrim
 				default:
-					confRead.host[0]["ip_address"] = strings.TrimPrefix(itemTrim, "host ")
+					confRead.host[0]["ip_address"] = itemTrim
 				}
-			case strings.HasPrefix(itemTrim, "rate-limit "):
-				var err error
-				confRead.rateLimit, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "rate-limit "))
+			case balt.CutPrefixInString(&itemTrim, "rate-limit "):
+				confRead.rateLimit, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "severity "):
-				confRead.severity = strings.TrimPrefix(itemTrim, "severity ")
+			case balt.CutPrefixInString(&itemTrim, "severity "):
+				confRead.severity = itemTrim
 			}
 		}
 	}

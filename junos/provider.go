@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 var mutex = &sync.Mutex{} //nolint: gochecknoglobals
@@ -71,15 +72,20 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("JUNOS_SLEEP_SSH_CLOSED", 0),
 			},
 			"ssh_ciphers": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				DefaultFunc: defaultSSHCiphers(),
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"ssh_timeout_to_establish": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("JUNOS_SSH_TIMEOUT_TO_ESTABLISH", 0),
+			},
+			"ssh_retry_to_establish": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				DefaultFunc:  schema.EnvDefaultFunc("JUNOS_SSH_RETRY_TO_ESTABLISH", 1),
+				ValidateFunc: validation.IntBetween(1, 10),
 			},
 			"file_permission": {
 				Type:             schema.TypeString,
@@ -262,6 +268,7 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		junosCmdSleepLock:        d.Get("cmd_sleep_lock").(int),
 		junosSSHSleepClosed:      d.Get("ssh_sleep_closed").(int),
 		junosSSHTimeoutToEstab:   d.Get("ssh_timeout_to_establish").(int),
+		junosSSHRetryToEstab:     d.Get("ssh_retry_to_establish").(int),
 		junosFilePermission:      d.Get("file_permission").(string),
 		junosDebugNetconfLogPath: d.Get("debug_netconf_log_path").(string),
 		junosFakeCreateSetFile:   d.Get("fake_create_with_setfile").(string),
@@ -270,6 +277,9 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 	}
 	for _, v := range d.Get("ssh_ciphers").([]interface{}) {
 		c.junosSSHCiphers = append(c.junosSSHCiphers, v.(string))
+	}
+	if len(c.junosSSHCiphers) == 0 {
+		c.junosSSHCiphers = defaultSSHCiphers()
 	}
 
 	return c.newClient()

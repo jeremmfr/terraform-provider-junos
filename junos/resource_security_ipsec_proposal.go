@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type ipsecProposalOptions struct {
@@ -293,9 +294,8 @@ func setIpsecProposal(d *schema.ResourceData, clt *Client, junSess *junosSession
 	return clt.configSet(configSet, junSess)
 }
 
-func readIpsecProposal(ipsecProposal string, clt *Client, junSess *junosSession) (ipsecProposalOptions, error) {
-	var confRead ipsecProposalOptions
-
+func readIpsecProposal(ipsecProposal string, clt *Client, junSess *junosSession,
+) (confRead ipsecProposalOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security ipsec proposal "+ipsecProposal+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -312,22 +312,22 @@ func readIpsecProposal(ipsecProposal string, clt *Client, junSess *junosSession)
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "authentication-algorithm "):
-				confRead.authenticatioAlgorithm = strings.TrimPrefix(itemTrim, "authentication-algorithm ")
-			case strings.HasPrefix(itemTrim, "encryption-algorithm "):
-				confRead.encryptionAlgorithm = strings.TrimPrefix(itemTrim, "encryption-algorithm ")
-			case strings.HasPrefix(itemTrim, "lifetime-kilobytes "):
-				confRead.lifetimeKilobytes, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "lifetime-kilobytes "))
+			case balt.CutPrefixInString(&itemTrim, "authentication-algorithm "):
+				confRead.authenticatioAlgorithm = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "encryption-algorithm "):
+				confRead.encryptionAlgorithm = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "lifetime-kilobytes "):
+				confRead.lifetimeKilobytes, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "lifetime-seconds "):
-				confRead.lifetimeSeconds, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "lifetime-seconds "))
+			case balt.CutPrefixInString(&itemTrim, "lifetime-seconds "):
+				confRead.lifetimeSeconds, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "protocol "):
-				confRead.protocol = strings.TrimPrefix(itemTrim, "protocol ")
+			case balt.CutPrefixInString(&itemTrim, "protocol "):
+				confRead.protocol = itemTrim
 			}
 		}
 	}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 func dataSourceApplicationSets() *schema.Resource {
@@ -106,16 +107,16 @@ func dataSourceApplicationSetsSearch(clt *Client, junSess *junosSession) (map[st
 				continue
 			}
 			itemTrim := strings.TrimPrefix(item, "set application-set ")
-			itemTrimSplit := strings.Split(itemTrim, " ")
-			if _, ok := results[itemTrimSplit[0]]; !ok {
-				results[itemTrimSplit[0]] = applicationSetOptions{name: itemTrimSplit[0]}
+			itemTrimFields := strings.Split(itemTrim, " ")
+			if _, ok := results[itemTrimFields[0]]; !ok {
+				results[itemTrimFields[0]] = applicationSetOptions{name: itemTrimFields[0]}
 			}
-			appSetOpts := results[itemTrimSplit[0]]
-			itemTrim = strings.TrimPrefix(itemTrim, itemTrimSplit[0]+" ")
-			if strings.HasPrefix(itemTrim, "application ") {
-				appSetOpts.applications = append(appSetOpts.applications, strings.TrimPrefix(itemTrim, "application "))
+			appSetOpts := results[itemTrimFields[0]]
+			balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
+			if balt.CutPrefixInString(&itemTrim, "application ") {
+				appSetOpts.applications = append(appSetOpts.applications, itemTrim)
 			}
-			results[itemTrimSplit[0]] = appSetOpts
+			results[itemTrimFields[0]] = appSetOpts
 		}
 	}
 

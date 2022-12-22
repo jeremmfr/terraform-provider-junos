@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
 
@@ -278,9 +279,7 @@ func setSnmpV3Community(d *schema.ResourceData, clt *Client, junSess *junosSessi
 }
 
 func readSnmpV3Community(communityIndex string, clt *Client, junSess *junosSession,
-) (snmpV3CommunityOptions, error) {
-	var confRead snmpV3CommunityOptions
-
+) (confRead snmpV3CommunityOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"snmp v3 snmp-community \""+communityIndex+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -297,18 +296,17 @@ func readSnmpV3Community(communityIndex string, clt *Client, junSess *junosSessi
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "security-name "):
-				confRead.securityName = strings.Trim(strings.TrimPrefix(itemTrim, "security-name "), "\"")
-			case strings.HasPrefix(itemTrim, "community-name "):
-				var err error
-				confRead.communityName, err = jdecode.Decode(strings.Trim(strings.TrimPrefix(itemTrim, "community-name "), "\""))
+			case balt.CutPrefixInString(&itemTrim, "security-name "):
+				confRead.securityName = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "community-name "):
+				confRead.communityName, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 				if err != nil {
 					return confRead, fmt.Errorf("failed to decode community-name: %w", err)
 				}
-			case strings.HasPrefix(itemTrim, "context "):
-				confRead.context = strings.Trim(strings.TrimPrefix(itemTrim, "context "), "\"")
-			case strings.HasPrefix(itemTrim, "tag "):
-				confRead.tag = strings.Trim(strings.TrimPrefix(itemTrim, "tag "), "\"")
+			case balt.CutPrefixInString(&itemTrim, "context "):
+				confRead.context = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "tag "):
+				confRead.tag = strings.Trim(itemTrim, "\"")
 			}
 		}
 	}

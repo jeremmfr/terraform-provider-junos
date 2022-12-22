@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type routingOptionsOptions struct {
@@ -496,9 +497,7 @@ func delRoutingOptions(fwTableExportConfigSingly bool, clt *Client, junSess *jun
 	return clt.configSet(configSet, junSess)
 }
 
-func readRoutingOptions(clt *Client, junSess *junosSession) (routingOptionsOptions, error) {
-	var confRead routingOptionsOptions
-
+func readRoutingOptions(clt *Client, junSess *junosSession) (confRead routingOptionsOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"routing-options"+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -514,7 +513,7 @@ func readRoutingOptions(clt *Client, junSess *junosSession) (routingOptionsOptio
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "autonomous-system "):
+			case balt.CutPrefixInString(&itemTrim, "autonomous-system "):
 				if len(confRead.autonomousSystem) == 0 {
 					confRead.autonomousSystem = append(confRead.autonomousSystem, map[string]interface{}{
 						"number":         "",
@@ -523,19 +522,17 @@ func readRoutingOptions(clt *Client, junSess *junosSession) (routingOptionsOptio
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "autonomous-system loops "):
-					var err error
-					confRead.autonomousSystem[0]["loops"], err = strconv.Atoi(
-						strings.TrimPrefix(itemTrim, "autonomous-system loops "))
+				case balt.CutPrefixInString(&itemTrim, "loops "):
+					confRead.autonomousSystem[0]["loops"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case itemTrim == "autonomous-system asdot-notation":
+				case itemTrim == "asdot-notation":
 					confRead.autonomousSystem[0]["asdot_notation"] = true
 				default:
-					confRead.autonomousSystem[0]["number"] = strings.TrimPrefix(itemTrim, "autonomous-system ")
+					confRead.autonomousSystem[0]["number"] = itemTrim
 				}
-			case strings.HasPrefix(itemTrim, "forwarding-table "):
+			case balt.CutPrefixInString(&itemTrim, "forwarding-table "):
 				if len(confRead.forwardingTable) == 0 {
 					confRead.forwardingTable = append(confRead.forwardingTable, map[string]interface{}{
 						"chain_composite_max_label_count":              0,
@@ -555,57 +552,54 @@ func readRoutingOptions(clt *Client, junSess *junosSession) (routingOptionsOptio
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "forwarding-table chain-composite-max-label-count "):
-					var err error
-					confRead.forwardingTable[0]["chain_composite_max_label_count"], err = strconv.Atoi(
-						strings.TrimPrefix(itemTrim, "forwarding-table chain-composite-max-label-count "))
+				case balt.CutPrefixInString(&itemTrim, "chain-composite-max-label-count "):
+					confRead.forwardingTable[0]["chain_composite_max_label_count"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "forwarding-table chained-composite-next-hop ingress "):
+				case balt.CutPrefixInString(&itemTrim, "chained-composite-next-hop ingress "):
 					confRead.forwardingTable[0]["chained_composite_next_hop_ingress"] = append(
 						confRead.forwardingTable[0]["chained_composite_next_hop_ingress"].([]string),
-						strings.TrimPrefix(itemTrim, "forwarding-table chained-composite-next-hop ingress "))
-				case strings.HasPrefix(itemTrim, "forwarding-table chained-composite-next-hop transit "):
+						itemTrim,
+					)
+				case balt.CutPrefixInString(&itemTrim, "chained-composite-next-hop transit "):
 					confRead.forwardingTable[0]["chained_composite_next_hop_transit"] = append(
 						confRead.forwardingTable[0]["chained_composite_next_hop_transit"].([]string),
-						strings.TrimPrefix(itemTrim, "forwarding-table chained-composite-next-hop transit "))
-				case itemTrim == "forwarding-table dynamic-list-next-hop":
+						itemTrim,
+					)
+				case itemTrim == "dynamic-list-next-hop":
 					confRead.forwardingTable[0]["dynamic_list_next_hop"] = true
-				case itemTrim == "forwarding-table ecmp-fast-reroute":
+				case itemTrim == "ecmp-fast-reroute":
 					confRead.forwardingTable[0]["ecmp_fast_reroute"] = true
-				case itemTrim == "forwarding-table no-ecmp-fast-reroute":
+				case itemTrim == "no-ecmp-fast-reroute":
 					confRead.forwardingTable[0]["no_ecmp_fast_reroute"] = true
-				case strings.HasPrefix(itemTrim, "forwarding-table export "):
-					confRead.forwardingTable[0]["export"] = append(confRead.forwardingTable[0]["export"].([]string),
-						strings.Trim(strings.TrimPrefix(itemTrim, "forwarding-table export "), "\""))
-				case itemTrim == "forwarding-table indirect-next-hop":
+				case balt.CutPrefixInString(&itemTrim, "export "):
+					confRead.forwardingTable[0]["export"] = append(
+						confRead.forwardingTable[0]["export"].([]string),
+						strings.Trim(itemTrim, "\""),
+					)
+				case itemTrim == "indirect-next-hop":
 					confRead.forwardingTable[0]["indirect_next_hop"] = true
-				case itemTrim == "forwarding-table no-indirect-next-hop":
+				case itemTrim == "no-indirect-next-hop":
 					confRead.forwardingTable[0]["no_indirect_next_hop"] = true
-				case itemTrim == "forwarding-table indirect-next-hop-change-acknowledgements":
+				case itemTrim == "indirect-next-hop-change-acknowledgements":
 					confRead.forwardingTable[0]["indirect_next_hop_change_acknowledgements"] = true
-				case itemTrim == "forwarding-table no-indirect-next-hop-change-acknowledgements":
+				case itemTrim == "no-indirect-next-hop-change-acknowledgements":
 					confRead.forwardingTable[0]["no_indirect_next_hop_change_acknowledgements"] = true
-				case strings.HasPrefix(itemTrim, "forwarding-table krt-nexthop-ack-timeout "):
-					var err error
-					confRead.forwardingTable[0]["krt_nexthop_ack_timeout"], err = strconv.Atoi(
-						strings.TrimPrefix(itemTrim, "forwarding-table krt-nexthop-ack-timeout "))
+				case balt.CutPrefixInString(&itemTrim, "krt-nexthop-ack-timeout "):
+					confRead.forwardingTable[0]["krt_nexthop_ack_timeout"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "forwarding-table remnant-holdtime "):
-					var err error
-					confRead.forwardingTable[0]["remnant_holdtime"], err = strconv.Atoi(
-						strings.TrimPrefix(itemTrim, "forwarding-table remnant-holdtime "))
+				case balt.CutPrefixInString(&itemTrim, "remnant-holdtime "):
+					confRead.forwardingTable[0]["remnant_holdtime"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "forwarding-table unicast-reverse-path "):
-					confRead.forwardingTable[0]["unicast_reverse_path"] = strings.TrimPrefix(
-						itemTrim, "forwarding-table unicast-reverse-path ")
+				case balt.CutPrefixInString(&itemTrim, "unicast-reverse-path "):
+					confRead.forwardingTable[0]["unicast_reverse_path"] = itemTrim
 				}
-			case strings.HasPrefix(itemTrim, "graceful-restart"):
+			case balt.CutPrefixInString(&itemTrim, "graceful-restart"):
 				if len(confRead.gracefulRestart) == 0 {
 					confRead.gracefulRestart = append(confRead.gracefulRestart, map[string]interface{}{
 						"disable":          false,
@@ -613,22 +607,20 @@ func readRoutingOptions(clt *Client, junSess *junosSession) (routingOptionsOptio
 					})
 				}
 				switch {
-				case itemTrim == "graceful-restart disable":
+				case itemTrim == " disable":
 					confRead.gracefulRestart[0]["disable"] = true
-				case strings.HasPrefix(itemTrim, "graceful-restart restart-duration "):
-					var err error
-					confRead.gracefulRestart[0]["restart_duration"], err = strconv.Atoi(
-						strings.TrimPrefix(itemTrim, "graceful-restart restart-duration "))
+				case balt.CutPrefixInString(&itemTrim, " restart-duration "):
+					confRead.gracefulRestart[0]["restart_duration"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
-			case strings.HasPrefix(itemTrim, "instance-export "):
-				confRead.instanceExport = append(confRead.instanceExport, strings.TrimPrefix(itemTrim, "instance-export "))
-			case strings.HasPrefix(itemTrim, "instance-import "):
-				confRead.instanceImport = append(confRead.instanceImport, strings.TrimPrefix(itemTrim, "instance-import "))
-			case strings.HasPrefix(itemTrim, "router-id "):
-				confRead.routerID = strings.TrimPrefix(itemTrim, "router-id ")
+			case balt.CutPrefixInString(&itemTrim, "instance-export "):
+				confRead.instanceExport = append(confRead.instanceExport, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "instance-import "):
+				confRead.instanceImport = append(confRead.instanceImport, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "router-id "):
+				confRead.routerID = itemTrim
 			}
 		}
 	}

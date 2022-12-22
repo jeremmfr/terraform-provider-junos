@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type snmpOptions struct {
@@ -415,9 +416,7 @@ func delSnmp(clt *Client, junSess *junosSession) error {
 	return clt.configSet(configSet, junSess)
 }
 
-func readSnmp(clt *Client, junSess *junosSession) (snmpOptions, error) {
-	var confRead snmpOptions
-
+func readSnmp(clt *Client, junSess *junosSession) (confRead snmpOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"snmp"+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -437,20 +436,19 @@ func readSnmp(clt *Client, junSess *junosSession) (snmpOptions, error) {
 			case itemTrim == "arp host-name-resolution":
 				confRead.arp = true
 				confRead.arpHostNameResolution = true
-			case strings.HasPrefix(itemTrim, "contact "):
-				confRead.contact = strings.Trim(strings.TrimPrefix(itemTrim, "contact "), "\"")
-			case strings.HasPrefix(itemTrim, "description "):
-				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
-			case strings.HasPrefix(itemTrim, "engine-id "):
-				confRead.engineID = strings.TrimPrefix(itemTrim, "engine-id ")
+			case balt.CutPrefixInString(&itemTrim, "contact "):
+				confRead.contact = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				confRead.description = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "engine-id "):
+				confRead.engineID = itemTrim
 			case itemTrim == "filter-duplicates":
 				confRead.filterDuplicates = true
-			case strings.HasPrefix(itemTrim, "filter-interfaces interfaces "):
-				confRead.filterInterfaces = append(confRead.filterInterfaces,
-					strings.Trim(strings.TrimPrefix(itemTrim, "filter-interfaces interfaces "), "\""))
+			case balt.CutPrefixInString(&itemTrim, "filter-interfaces interfaces "):
+				confRead.filterInterfaces = append(confRead.filterInterfaces, strings.Trim(itemTrim, "\""))
 			case itemTrim == "filter-interfaces all-internal-interfaces":
 				confRead.filterInternalInterfaces = true
-			case strings.HasPrefix(itemTrim, "health-monitor"):
+			case balt.CutPrefixInString(&itemTrim, "health-monitor"):
 				if len(confRead.healthMonitor) == 0 {
 					confRead.healthMonitor = append(confRead.healthMonitor, map[string]interface{}{
 						"falling_threshold":     -1,
@@ -463,65 +461,53 @@ func readSnmp(clt *Client, junSess *junosSession) (snmpOptions, error) {
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "health-monitor falling-threshold "):
-					var err error
-					confRead.healthMonitor[0]["falling_threshold"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "health-monitor falling-threshold "))
+				case balt.CutPrefixInString(&itemTrim, " falling-threshold "):
+					confRead.healthMonitor[0]["falling_threshold"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case itemTrim == "health-monitor idp":
+				case itemTrim == " idp":
 					confRead.healthMonitor[0]["idp"] = true
-				case strings.HasPrefix(itemTrim, "health-monitor idp falling-threshold "):
+				case balt.CutPrefixInString(&itemTrim, " idp falling-threshold "):
 					confRead.healthMonitor[0]["idp"] = true
-					var err error
-					confRead.healthMonitor[0]["idp_falling_threshold"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "health-monitor idp falling-threshold "))
+					confRead.healthMonitor[0]["idp_falling_threshold"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "health-monitor idp interval "):
+				case balt.CutPrefixInString(&itemTrim, " idp interval "):
 					confRead.healthMonitor[0]["idp"] = true
-					var err error
-					confRead.healthMonitor[0]["idp_interval"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "health-monitor idp interval "))
+					confRead.healthMonitor[0]["idp_interval"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "health-monitor idp rising-threshold "):
+				case balt.CutPrefixInString(&itemTrim, " idp rising-threshold "):
 					confRead.healthMonitor[0]["idp"] = true
-					var err error
-					confRead.healthMonitor[0]["idp_rising_threshold"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "health-monitor idp rising-threshold "))
+					confRead.healthMonitor[0]["idp_rising_threshold"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "health-monitor interval "):
-					var err error
-					confRead.healthMonitor[0]["interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "health-monitor interval "))
+				case balt.CutPrefixInString(&itemTrim, " interval "):
+					confRead.healthMonitor[0]["interval"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "health-monitor rising-threshold "):
-					var err error
-					confRead.healthMonitor[0]["rising_threshold"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "health-monitor rising-threshold "))
+				case balt.CutPrefixInString(&itemTrim, " rising-threshold "):
+					confRead.healthMonitor[0]["rising_threshold"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
 				}
 			case itemTrim == "if-count-with-filter-interfaces":
 				confRead.ifCountWithFilterInterfaces = true
-			case strings.HasPrefix(itemTrim, "interface "):
-				confRead.interFace = append(confRead.interFace, strings.TrimPrefix(itemTrim, "interface "))
-			case strings.HasPrefix(itemTrim, "location "):
-				confRead.location = strings.Trim(strings.TrimPrefix(itemTrim, "location "), "\"")
+			case balt.CutPrefixInString(&itemTrim, "interface "):
+				confRead.interFace = append(confRead.interFace, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "location "):
+				confRead.location = strings.Trim(itemTrim, "\"")
 			case itemTrim == "routing-instance-access":
 				confRead.routingInstanceAccess = true
-			case strings.HasPrefix(itemTrim, "routing-instance-access access-list "):
+			case balt.CutPrefixInString(&itemTrim, "routing-instance-access access-list "):
 				confRead.routingInstanceAccess = true
-				confRead.routingInstanceAccessList = append(confRead.routingInstanceAccessList,
-					strings.Trim(strings.TrimPrefix(itemTrim, "routing-instance-access access-list "), "\""))
+				confRead.routingInstanceAccessList = append(confRead.routingInstanceAccessList, strings.Trim(itemTrim, "\""))
 			}
 		}
 	}

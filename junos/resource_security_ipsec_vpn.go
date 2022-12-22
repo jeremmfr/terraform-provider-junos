@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -466,9 +467,7 @@ func setIpsecVpn(d *schema.ResourceData, clt *Client, junSess *junosSession) err
 	return clt.configSet(configSet, junSess)
 }
 
-func readIpsecVpn(ipsecVpn string, clt *Client, junSess *junosSession) (ipsecVpnOptions, error) {
-	var confRead ipsecVpnOptions
-
+func readIpsecVpn(ipsecVpn string, clt *Client, junSess *junosSession) (confRead ipsecVpnOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security ipsec vpn "+ipsecVpn+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -485,13 +484,13 @@ func readIpsecVpn(ipsecVpn string, clt *Client, junSess *junosSession) (ipsecVpn
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "bind-interface "):
-				confRead.bindInterface = strings.TrimPrefix(itemTrim, "bind-interface ")
-			case strings.HasPrefix(itemTrim, "df-bit "):
-				confRead.dfBit = strings.TrimPrefix(itemTrim, "df-bit ")
-			case strings.HasPrefix(itemTrim, "establish-tunnels "):
-				confRead.establishTunnels = strings.TrimPrefix(itemTrim, "establish-tunnels ")
-			case strings.HasPrefix(itemTrim, "ike "):
+			case balt.CutPrefixInString(&itemTrim, "bind-interface "):
+				confRead.bindInterface = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "df-bit "):
+				confRead.dfBit = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "establish-tunnels "):
+				confRead.establishTunnels = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "ike "):
 				if len(confRead.ike) == 0 {
 					confRead.ike = append(confRead.ike, map[string]interface{}{
 						"gateway":          "",
@@ -502,36 +501,36 @@ func readIpsecVpn(ipsecVpn string, clt *Client, junSess *junosSession) (ipsecVpn
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "ike gateway "):
-					confRead.ike[0]["gateway"] = strings.TrimPrefix(itemTrim, "ike gateway ")
-				case strings.HasPrefix(itemTrim, "ike ipsec-policy "):
-					confRead.ike[0]["policy"] = strings.TrimPrefix(itemTrim, "ike ipsec-policy ")
-				case strings.HasPrefix(itemTrim, "ike proxy-identity local "):
-					confRead.ike[0]["identity_local"] = strings.TrimPrefix(itemTrim, "ike proxy-identity local ")
-				case strings.HasPrefix(itemTrim, "ike proxy-identity remote "):
-					confRead.ike[0]["identity_remote"] = strings.TrimPrefix(itemTrim, "ike proxy-identity remote ")
-				case strings.HasPrefix(itemTrim, "ike proxy-identity service "):
-					confRead.ike[0]["identity_service"] = strings.TrimPrefix(itemTrim, "ike proxy-identity service ")
+				case balt.CutPrefixInString(&itemTrim, "gateway "):
+					confRead.ike[0]["gateway"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "ipsec-policy "):
+					confRead.ike[0]["policy"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "proxy-identity local "):
+					confRead.ike[0]["identity_local"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "proxy-identity remote "):
+					confRead.ike[0]["identity_remote"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "proxy-identity service "):
+					confRead.ike[0]["identity_service"] = itemTrim
 				}
-			case strings.HasPrefix(itemTrim, "traffic-selector "):
-				tsSplit := strings.Split(strings.TrimPrefix(itemTrim, "traffic-selector "), " ")
+			case balt.CutPrefixInString(&itemTrim, "traffic-selector "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				tsOptions := map[string]interface{}{
-					"name":      tsSplit[0],
+					"name":      itemTrimFields[0],
 					"local_ip":  "",
 					"remote_ip": "",
 				}
-				itemTrimTS := strings.TrimPrefix(itemTrim, "traffic-selector "+tsSplit[0]+" ")
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				if len(confRead.trafficSelector) > 0 {
 					confRead.trafficSelector = copyAndRemoveItemMapList("name", tsOptions, confRead.trafficSelector)
 				}
 				switch {
-				case strings.HasPrefix(itemTrimTS, "local-ip "):
-					tsOptions["local_ip"] = strings.TrimPrefix(itemTrimTS, "local-ip ")
-				case strings.HasPrefix(itemTrimTS, "remote-ip "):
-					tsOptions["remote_ip"] = strings.TrimPrefix(itemTrimTS, "remote-ip ")
+				case balt.CutPrefixInString(&itemTrim, "local-ip "):
+					tsOptions["local_ip"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "remote-ip "):
+					tsOptions["remote_ip"] = itemTrim
 				}
 				confRead.trafficSelector = append(confRead.trafficSelector, tsOptions)
-			case strings.HasPrefix(itemTrim, "vpn-monitor "):
+			case balt.CutPrefixInString(&itemTrim, "vpn-monitor "):
 				if len(confRead.vpnMonitor) == 0 {
 					confRead.vpnMonitor = append(confRead.vpnMonitor, map[string]interface{}{
 						"destination_ip":   "",
@@ -540,12 +539,12 @@ func readIpsecVpn(ipsecVpn string, clt *Client, junSess *junosSession) (ipsecVpn
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "vpn-monitor destination-ip "):
-					confRead.vpnMonitor[0]["destination_ip"] = strings.TrimPrefix(itemTrim, "vpn-monitor destination-ip ")
-				case itemTrim == "vpn-monitor optimized":
+				case balt.CutPrefixInString(&itemTrim, "destination-ip "):
+					confRead.vpnMonitor[0]["destination_ip"] = itemTrim
+				case itemTrim == "optimized":
 					confRead.vpnMonitor[0]["optimized"] = true
-				case strings.HasPrefix(itemTrim, "vpn-monitor source-interface "):
-					confRead.vpnMonitor[0]["source_interface"] = strings.TrimPrefix(itemTrim, "vpn-monitor source-interface ")
+				case balt.CutPrefixInString(&itemTrim, "source-interface "):
+					confRead.vpnMonitor[0]["source_interface"] = itemTrim
 				}
 			}
 		}

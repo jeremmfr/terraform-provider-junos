@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type ipsecPolicyOptions struct {
@@ -277,9 +278,7 @@ func setIpsecPolicy(d *schema.ResourceData, clt *Client, junSess *junosSession) 
 	return clt.configSet(configSet, junSess)
 }
 
-func readIpsecPolicy(ipsecPolicy string, clt *Client, junSess *junosSession) (ipsecPolicyOptions, error) {
-	var confRead ipsecPolicyOptions
-
+func readIpsecPolicy(ipsecPolicy string, clt *Client, junSess *junosSession) (confRead ipsecPolicyOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security ipsec policy "+ipsecPolicy+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -296,12 +295,12 @@ func readIpsecPolicy(ipsecPolicy string, clt *Client, junSess *junosSession) (ip
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "perfect-forward-secrecy keys "):
-				confRead.pfsKeys = strings.TrimPrefix(itemTrim, "perfect-forward-secrecy keys ")
-			case strings.HasPrefix(itemTrim, "proposals "):
-				confRead.proposals = append(confRead.proposals, strings.TrimPrefix(itemTrim, "proposals "))
-			case strings.HasPrefix(itemTrim, "proposal-set "):
-				confRead.proposalSet = strings.TrimPrefix(itemTrim, "proposal-set ")
+			case balt.CutPrefixInString(&itemTrim, "perfect-forward-secrecy keys "):
+				confRead.pfsKeys = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "proposals "):
+				confRead.proposals = append(confRead.proposals, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "proposal-set "):
+				confRead.proposalSet = itemTrim
 			}
 		}
 	}

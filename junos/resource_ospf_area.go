@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
@@ -858,9 +859,8 @@ func resourceOspfAreaImport(ctx context.Context, d *schema.ResourceData, m inter
 }
 
 func checkOspfAreaExists(idArea, version, realm, routingInstance string, clt *Client, junSess *junosSession,
-) (bool, error) {
+) (_ bool, err error) {
 	var showConfig string
-	var err error
 	ospfVersion := ospfV2
 	if version == "v3" {
 		ospfVersion = ospfV3
@@ -1303,10 +1303,8 @@ func setOspfAreaInterface(setPrefix string, ospfInterface map[string]interface{}
 }
 
 func readOspfArea(idArea, version, realm, routingInstance string, clt *Client, junSess *junosSession,
-) (ospfAreaOptions, error) {
-	var confRead ospfAreaOptions
+) (confRead ospfAreaOptions, err error) {
 	var showConfig string
-	var err error
 	ospfVersion := ospfV2
 	if version == "v3" {
 		ospfVersion = ospfV3
@@ -1354,10 +1352,10 @@ func readOspfArea(idArea, version, realm, routingInstance string, clt *Client, j
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "interface "):
-				itemInterfaceList := strings.Split(strings.TrimPrefix(itemTrim, "interface "), " ")
+			case balt.CutPrefixInString(&itemTrim, "interface "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				interfaceOptions := map[string]interface{}{
-					"name":                                       itemInterfaceList[0],
+					"name":                                       itemTrimFields[0],
 					"authentication_simple_password":             "",
 					"authentication_md5":                         make([]map[string]interface{}, 0),
 					"bandwidth_based_metrics":                    make([]map[string]interface{}, 0),
@@ -1395,52 +1393,47 @@ func readOspfArea(idArea, version, realm, routingInstance string, clt *Client, j
 					"te_metric":           0,
 					"transit_delay":       0,
 				}
-				itemTrimInterface := strings.TrimPrefix(itemTrim, "interface "+itemInterfaceList[0]+" ")
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				confRead.interFace = copyAndRemoveItemMapList("name", interfaceOptions, confRead.interFace)
-				if err := readOspfAreaInterface(itemTrimInterface, interfaceOptions); err != nil {
+				if err := readOspfAreaInterface(itemTrim, interfaceOptions); err != nil {
 					return confRead, err
 				}
 				confRead.interFace = append(confRead.interFace, interfaceOptions)
-			case strings.HasPrefix(itemTrim, "area-range "):
-				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "area-range "), " ")
+			case balt.CutPrefixInString(&itemTrim, "area-range "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				areaRange := map[string]interface{}{
-					"range":           itemTrimSplit[0],
+					"range":           itemTrimFields[0],
 					"exact":           false,
 					"override_metric": 0,
 					"restrict":        false,
 				}
 				confRead.areaRange = copyAndRemoveItemMapList("range", areaRange, confRead.areaRange)
-				itemTrimAreaRange := strings.TrimPrefix(itemTrim, "area-range "+itemTrimSplit[0]+" ")
+				balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 				switch {
-				case itemTrimAreaRange == "exact":
+				case itemTrim == "exact":
 					areaRange["exact"] = true
-				case strings.HasPrefix(itemTrimAreaRange, "override-metric "):
-					var err error
-					areaRange["override_metric"], err = strconv.Atoi(strings.TrimPrefix(itemTrimAreaRange, "override-metric "))
+				case balt.CutPrefixInString(&itemTrim, "override-metric "):
+					areaRange["override_metric"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case itemTrimAreaRange == "restrict":
+				case itemTrim == "restrict":
 					areaRange["restrict"] = true
 				}
 				confRead.areaRange = append(confRead.areaRange, areaRange)
-			case strings.HasPrefix(itemTrim, "context-identifier "):
-				confRead.contextIdentifier = append(confRead.contextIdentifier, strings.TrimPrefix(itemTrim, "context-identifier "))
-			case strings.HasPrefix(itemTrim, "inter-area-prefix-export "):
-				confRead.interAreaPrefixExport = append(
-					confRead.interAreaPrefixExport, strings.TrimPrefix(itemTrim, "inter-area-prefix-export "))
-			case strings.HasPrefix(itemTrim, "inter-area-prefix-import "):
-				confRead.interAreaPrefixImport = append(
-					confRead.interAreaPrefixImport, strings.TrimPrefix(itemTrim, "inter-area-prefix-import "))
-			case strings.HasPrefix(itemTrim, "network-summary-export "):
-				confRead.networkSummaryExport = append(
-					confRead.networkSummaryExport, strings.TrimPrefix(itemTrim, "network-summary-export "))
-			case strings.HasPrefix(itemTrim, "network-summary-import "):
-				confRead.networkSummaryImport = append(
-					confRead.networkSummaryImport, strings.TrimPrefix(itemTrim, "network-summary-import "))
+			case balt.CutPrefixInString(&itemTrim, "context-identifier "):
+				confRead.contextIdentifier = append(confRead.contextIdentifier, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "inter-area-prefix-export "):
+				confRead.interAreaPrefixExport = append(confRead.interAreaPrefixExport, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "inter-area-prefix-import "):
+				confRead.interAreaPrefixImport = append(confRead.interAreaPrefixImport, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "network-summary-export "):
+				confRead.networkSummaryExport = append(confRead.networkSummaryExport, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "network-summary-import "):
+				confRead.networkSummaryImport = append(confRead.networkSummaryImport, itemTrim)
 			case itemTrim == "no-context-identifier-advertisement":
 				confRead.noContextIdentifierAdvertisement = true
-			case strings.HasPrefix(itemTrim, "nssa"):
+			case balt.CutPrefixInString(&itemTrim, "nssa"):
 				if len(confRead.nssa) == 0 {
 					confRead.nssa = append(confRead.nssa, map[string]interface{}{
 						"area_range":   make([]map[string]interface{}, 0),
@@ -1450,10 +1443,10 @@ func readOspfArea(idArea, version, realm, routingInstance string, clt *Client, j
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "nssa area-range "):
-					itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "nssa area-range "), " ")
+				case balt.CutPrefixInString(&itemTrim, " area-range "):
+					itemTrimFields := strings.Split(itemTrim, " ")
 					areaRange := map[string]interface{}{
-						"range":           itemTrimSplit[0],
+						"range":           itemTrimFields[0],
 						"exact":           false,
 						"override_metric": 0,
 						"restrict":        false,
@@ -1463,21 +1456,20 @@ func readOspfArea(idArea, version, realm, routingInstance string, clt *Client, j
 						areaRange,
 						confRead.nssa[0]["area_range"].([]map[string]interface{}),
 					)
-					itemTrimAreaRange := strings.TrimPrefix(itemTrim, "nssa area-range "+itemTrimSplit[0]+" ")
+					balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 					switch {
-					case itemTrimAreaRange == "exact":
+					case itemTrim == "exact":
 						areaRange["exact"] = true
-					case strings.HasPrefix(itemTrimAreaRange, "override-metric "):
-						var err error
-						areaRange["override_metric"], err = strconv.Atoi(strings.TrimPrefix(itemTrimAreaRange, "override-metric "))
+					case balt.CutPrefixInString(&itemTrim, "override-metric "):
+						areaRange["override_metric"], err = strconv.Atoi(itemTrim)
 						if err != nil {
 							return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 						}
-					case itemTrimAreaRange == "restrict":
+					case itemTrim == "restrict":
 						areaRange["restrict"] = true
 					}
 					confRead.nssa[0]["area_range"] = append(confRead.nssa[0]["area_range"].([]map[string]interface{}), areaRange)
-				case strings.HasPrefix(itemTrim, "nssa default-lsa"):
+				case balt.CutPrefixInString(&itemTrim, " default-lsa"):
 					if len(confRead.nssa[0]["default_lsa"].([]map[string]interface{})) == 0 {
 						confRead.nssa[0]["default_lsa"] = append(
 							confRead.nssa[0]["default_lsa"].([]map[string]interface{}),
@@ -1489,27 +1481,25 @@ func readOspfArea(idArea, version, realm, routingInstance string, clt *Client, j
 					}
 					defaultLsa := confRead.nssa[0]["default_lsa"].([]map[string]interface{})[0]
 					switch {
-					case strings.HasPrefix(itemTrim, "nssa default-lsa default-metric "):
-						var err error
-						defaultLsa["default_metric"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "nssa default-lsa default-metric "))
+					case balt.CutPrefixInString(&itemTrim, " default-metric "):
+						defaultLsa["default_metric"], err = strconv.Atoi(itemTrim)
 						if err != nil {
 							return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 						}
-					case strings.HasPrefix(itemTrim, "nssa default-lsa metric-type "):
-						var err error
-						defaultLsa["metric_type"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "nssa default-lsa metric-type "))
+					case balt.CutPrefixInString(&itemTrim, " metric-type "):
+						defaultLsa["metric_type"], err = strconv.Atoi(itemTrim)
 						if err != nil {
 							return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 						}
-					case itemTrim == "nssa default-lsa type-7":
+					case itemTrim == " type-7":
 						defaultLsa["type_7"] = true
 					}
-				case itemTrim == "nssa no-summaries":
+				case itemTrim == " no-summaries":
 					confRead.nssa[0]["no_summaries"] = true
-				case itemTrim == "nssa summaries":
+				case itemTrim == " summaries":
 					confRead.nssa[0]["summaries"] = true
 				}
-			case strings.HasPrefix(itemTrim, "stub"):
+			case balt.CutPrefixInString(&itemTrim, "stub"):
 				if len(confRead.stub) == 0 {
 					confRead.stub = append(confRead.stub, map[string]interface{}{
 						"default_metric": 0,
@@ -1518,25 +1508,24 @@ func readOspfArea(idArea, version, realm, routingInstance string, clt *Client, j
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "stub default-metric "):
-					var err error
-					confRead.stub[0]["default_metric"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "stub default-metric "))
+				case balt.CutPrefixInString(&itemTrim, " default-metric "):
+					confRead.stub[0]["default_metric"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case itemTrim == "stub no-summaries":
+				case itemTrim == " no-summaries":
 					confRead.stub[0]["no_summaries"] = true
-				case itemTrim == "stub summaries":
+				case itemTrim == " summaries":
 					confRead.stub[0]["summaries"] = true
 				}
-			case strings.HasPrefix(itemTrim, "virtual-link "):
-				itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "virtual-link "), " ")
-				if len(itemTrimSplit) < 4 {
-					return confRead, fmt.Errorf("can't find neighbor_id and transit_area in %s", itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "virtual-link "):
+				itemTrimFields := strings.Split(itemTrim, " ")
+				if len(itemTrimFields) < 4 { // neighbor-id <neighbor_id> transit-area <transit_area>
+					return confRead, fmt.Errorf(cantReadValuesNotEnoughFields, "virtual-link", itemTrim)
 				}
 				virtualLink := map[string]interface{}{
-					"neighbor_id":         itemTrimSplit[1],
-					"transit_area":        itemTrimSplit[3],
+					"neighbor_id":         itemTrimFields[1],
+					"transit_area":        itemTrimFields[3],
 					"dead_interval":       0,
 					"demand_circuit":      false,
 					"disable":             false,
@@ -1548,30 +1537,26 @@ func readOspfArea(idArea, version, realm, routingInstance string, clt *Client, j
 					"transit_delay":       0,
 				}
 				confRead.virtualLink = copyAndRemoveItemMapList2("neighbor_id", "transit_area", virtualLink, confRead.virtualLink)
-				itemTrimVirtualLink := strings.TrimPrefix(itemTrim,
-					"virtual-link neighbor-id "+itemTrimSplit[1]+" transit-area "+itemTrimSplit[3]+" ")
-				var err error
+				balt.CutPrefixInString(&itemTrim, "neighbor-id "+itemTrimFields[1]+" transit-area "+itemTrimFields[3]+" ")
 				switch {
-				case strings.HasPrefix(itemTrimVirtualLink, "dead-interval "):
-					virtualLink["dead_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVirtualLink, "dead-interval "))
-				case itemTrimVirtualLink == "demand-circuit":
+				case balt.CutPrefixInString(&itemTrim, "dead-interval "):
+					virtualLink["dead_interval"], err = strconv.Atoi(itemTrim)
+				case itemTrim == "demand-circuit":
 					virtualLink["demand_circuit"] = true
-				case itemTrimVirtualLink == "disable":
+				case itemTrim == "disable":
 					virtualLink["disable"] = true
-				case itemTrimVirtualLink == "flood-reduction":
+				case itemTrim == "flood-reduction":
 					virtualLink["flood_reduction"] = true
-				case strings.HasPrefix(itemTrimVirtualLink, "hello-interval "):
-					virtualLink["hello_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVirtualLink, "hello-interval "))
-				case strings.HasPrefix(itemTrimVirtualLink, "ipsec-sa "):
-					virtualLink["ipsec_sa"] = strings.Trim(strings.TrimPrefix(itemTrimVirtualLink, "ipsec-sa "), "\"")
-				case strings.HasPrefix(itemTrimVirtualLink, "mtu "):
-					virtualLink["mtu"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVirtualLink, "mtu "))
-				case strings.HasPrefix(itemTrimVirtualLink, "retransmit-interval "):
-					virtualLink["retransmit_interval"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrimVirtualLink, "retransmit-interval ",
-					))
-				case strings.HasPrefix(itemTrimVirtualLink, "transit-delay "):
-					virtualLink["transit_delay"], err = strconv.Atoi(strings.TrimPrefix(itemTrimVirtualLink, "transit-delay "))
+				case balt.CutPrefixInString(&itemTrim, "hello-interval "):
+					virtualLink["hello_interval"], err = strconv.Atoi(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, "ipsec-sa "):
+					virtualLink["ipsec_sa"] = strings.Trim(itemTrim, "\"")
+				case balt.CutPrefixInString(&itemTrim, "mtu "):
+					virtualLink["mtu"], err = strconv.Atoi(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, "retransmit-interval "):
+					virtualLink["retransmit_interval"], err = strconv.Atoi(itemTrim)
+				case balt.CutPrefixInString(&itemTrim, "transit-delay "):
+					virtualLink["transit_delay"], err = strconv.Atoi(itemTrim)
 				}
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
@@ -1584,21 +1569,18 @@ func readOspfArea(idArea, version, realm, routingInstance string, clt *Client, j
 	return confRead, nil
 }
 
-func readOspfAreaInterface(itemTrim string, interfaceOptions map[string]interface{}) error {
-	var err error
+func readOspfAreaInterface(itemTrim string, interfaceOptions map[string]interface{}) (err error) {
 	switch {
-	case strings.HasPrefix(itemTrim, "authentication simple-password "):
-		var err error
-		interfaceOptions["authentication_simple_password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
-			itemTrim, "authentication simple-password "), "\""))
+	case balt.CutPrefixInString(&itemTrim, "authentication simple-password "):
+		interfaceOptions["authentication_simple_password"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 		if err != nil {
 			return fmt.Errorf("failed to decode authentication simple-password: %w", err)
 		}
-	case strings.HasPrefix(itemTrim, "authentication md5 "):
-		itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "authentication md5 "), " ")
-		keyID, err := strconv.Atoi(itemTrimSplit[0])
+	case balt.CutPrefixInString(&itemTrim, "authentication md5 "):
+		itemTrimFields := strings.Split(itemTrim, " ")
+		keyID, err := strconv.Atoi(itemTrimFields[0])
 		if err != nil {
-			return fmt.Errorf(failedConvAtoiError, itemTrimSplit[0], err)
+			return fmt.Errorf(failedConvAtoiError, itemTrimFields[0], err)
 		}
 		authMD5 := map[string]interface{}{
 			"key_id":     keyID,
@@ -1607,37 +1589,33 @@ func readOspfAreaInterface(itemTrim string, interfaceOptions map[string]interfac
 		}
 		interfaceOptions["authentication_md5"] = copyAndRemoveItemMapList("key_id", authMD5,
 			interfaceOptions["authentication_md5"].([]map[string]interface{}))
-		itemTrimAuthMD5 := strings.TrimPrefix(itemTrim, "authentication md5 "+itemTrimSplit[0]+" ")
+		balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 		switch {
-		case strings.HasPrefix(itemTrimAuthMD5, "key "):
-			var err error
-			authMD5["key"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
-				itemTrimAuthMD5, "key "), "\""))
+		case balt.CutPrefixInString(&itemTrim, "key "):
+			authMD5["key"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 			if err != nil {
 				return fmt.Errorf("failed to decode authentication md5 key: %w", err)
 			}
-		case strings.HasPrefix(itemTrimAuthMD5, "start-time "):
-			authMD5["start_time"] = strings.Split(strings.Trim(strings.TrimPrefix(
-				itemTrimAuthMD5, "start-time "), "\""), " ")[0]
+		case balt.CutPrefixInString(&itemTrim, "start-time "):
+			authMD5["start_time"] = strings.Split(strings.Trim(itemTrim, "\""), " ")[0]
 		}
 		interfaceOptions["authentication_md5"] = append(
 			interfaceOptions["authentication_md5"].([]map[string]interface{}), authMD5)
-	case strings.HasPrefix(itemTrim, "bandwidth-based-metrics bandwidth "):
-		itemTrimSplit := strings.Split(strings.TrimPrefix(
-			itemTrim, "bandwidth-based-metrics bandwidth "), " ")
-		if len(itemTrimSplit) < 3 {
-			return fmt.Errorf("can't read values for bandwidth_based_metrics in %s", itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "bandwidth-based-metrics bandwidth "):
+		itemTrimFields := strings.Split(itemTrim, " ")
+		if len(itemTrimFields) < 3 { // <bandwidth> metric <metric>
+			return fmt.Errorf(cantReadValuesNotEnoughFields, "bandwidth-based-metrics bandwidth", itemTrim)
 		}
-		metric, err := strconv.Atoi(itemTrimSplit[2])
+		metric, err := strconv.Atoi(itemTrimFields[2])
 		if err != nil {
-			return fmt.Errorf(failedConvAtoiError, itemTrimSplit[2], err)
+			return fmt.Errorf(failedConvAtoiError, itemTrimFields[2], err)
 		}
 		interfaceOptions["bandwidth_based_metrics"] = append(
 			interfaceOptions["bandwidth_based_metrics"].([]map[string]interface{}), map[string]interface{}{
-				"bandwidth": itemTrimSplit[0],
+				"bandwidth": itemTrimFields[0],
 				"metric":    metric,
 			})
-	case strings.HasPrefix(itemTrim, "bfd-liveness-detection "):
+	case balt.CutPrefixInString(&itemTrim, "bfd-liveness-detection "):
 		if len(interfaceOptions["bfd_liveness_detection"].([]map[string]interface{})) == 0 {
 			interfaceOptions["bfd_liveness_detection"] = append(
 				interfaceOptions["bfd_liveness_detection"].([]map[string]interface{}), map[string]interface{}{
@@ -1656,13 +1634,12 @@ func readOspfAreaInterface(itemTrim string, interfaceOptions map[string]interfac
 					"version":                            "",
 				})
 		}
-		if err := readOspfAreaInterfaceBfd(strings.TrimPrefix(itemTrim, "bfd-liveness-detection "),
+		if err := readOspfAreaInterfaceBfd(itemTrim,
 			interfaceOptions["bfd_liveness_detection"].([]map[string]interface{})[0]); err != nil {
 			return err
 		}
-	case strings.HasPrefix(itemTrim, "dead-interval "):
-		interfaceOptions["dead_interval"], err = strconv.Atoi(
-			strings.TrimPrefix(itemTrim, "dead-interval "))
+	case balt.CutPrefixInString(&itemTrim, "dead-interval "):
+		interfaceOptions["dead_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
@@ -1674,48 +1651,43 @@ func readOspfAreaInterface(itemTrim string, interfaceOptions map[string]interfac
 		interfaceOptions["dynamic_neighbors"] = true
 	case itemTrim == "flood-reduction":
 		interfaceOptions["flood_reduction"] = true
-	case strings.HasPrefix(itemTrim, "hello-interval "):
-		interfaceOptions["hello_interval"], err = strconv.Atoi(
-			strings.TrimPrefix(itemTrim, "hello-interval "))
+	case balt.CutPrefixInString(&itemTrim, "hello-interval "):
+		interfaceOptions["hello_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "interface-type "):
-		interfaceOptions["interface_type"] = strings.TrimPrefix(itemTrim, "interface-type ")
-	case strings.HasPrefix(itemTrim, "ipsec-sa "):
-		interfaceOptions["ipsec_sa"] = strings.Trim(strings.TrimPrefix(itemTrim, "ipsec-sa "), "\"")
-	case strings.HasPrefix(itemTrim, "ipv4-adjacency-segment protected "):
-		itemTrimSplit := strings.Split(strings.TrimPrefix(
-			itemTrim, "ipv4-adjacency-segment protected "), " ")
-		interfaceOptions["ipv4_adjacency_segment_protected_type"] = itemTrimSplit[0]
-		if len(itemTrimSplit) > 1 {
-			interfaceOptions["ipv4_adjacency_segment_protected_value"] = itemTrimSplit[1]
+	case balt.CutPrefixInString(&itemTrim, "interface-type "):
+		interfaceOptions["interface_type"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "ipsec-sa "):
+		interfaceOptions["ipsec_sa"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "ipv4-adjacency-segment protected "):
+		itemTrimFields := strings.Split(itemTrim, " ")
+		interfaceOptions["ipv4_adjacency_segment_protected_type"] = itemTrimFields[0]
+		if len(itemTrimFields) > 1 { // <type> <value>
+			interfaceOptions["ipv4_adjacency_segment_protected_value"] = itemTrimFields[1]
 		}
-	case strings.HasPrefix(itemTrim, "ipv4-adjacency-segment unprotected "):
-		itemTrimSplit := strings.Split(strings.TrimPrefix(
-			itemTrim, "ipv4-adjacency-segment unprotected "), " ")
-		interfaceOptions["ipv4_adjacency_segment_unprotected_type"] = itemTrimSplit[0]
-		if len(itemTrimSplit) > 1 {
-			interfaceOptions["ipv4_adjacency_segment_unprotected_value"] = itemTrimSplit[1]
+	case balt.CutPrefixInString(&itemTrim, "ipv4-adjacency-segment unprotected "):
+		itemTrimFields := strings.Split(itemTrim, " ")
+		interfaceOptions["ipv4_adjacency_segment_unprotected_type"] = itemTrimFields[0]
+		if len(itemTrimFields) > 1 { // <type> <value>
+			interfaceOptions["ipv4_adjacency_segment_unprotected_value"] = itemTrimFields[1]
 		}
 	case itemTrim == "link-protection":
 		interfaceOptions["link_protection"] = true
-	case strings.HasPrefix(itemTrim, "metric "):
-		interfaceOptions["metric"], err = strconv.Atoi(
-			strings.TrimPrefix(itemTrim, "metric "))
+	case balt.CutPrefixInString(&itemTrim, "metric "):
+		interfaceOptions["metric"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "mtu "):
-		interfaceOptions["mtu"], err = strconv.Atoi(
-			strings.TrimPrefix(itemTrim, "mtu "))
+	case balt.CutPrefixInString(&itemTrim, "mtu "):
+		interfaceOptions["mtu"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "neighbor "):
-		itemTrimSplit := strings.Split(strings.TrimPrefix(itemTrim, "neighbor "), " ")
-		address := itemTrimSplit[0]
-		if len(itemTrimSplit) > 1 && itemTrimSplit[1] == "eligible" {
+	case balt.CutPrefixInString(&itemTrim, "neighbor "):
+		itemTrimFields := strings.Split(itemTrim, " ") // <address> (eligible)?
+		address := itemTrimFields[0]
+		if len(itemTrimFields) > 1 && itemTrimFields[1] == "eligible" {
 			interfaceOptions["neighbor"] = append(
 				interfaceOptions["neighbor"].([]map[string]interface{}), map[string]interface{}{
 					"address":  address,
@@ -1740,31 +1712,26 @@ func readOspfAreaInterface(itemTrim string, interfaceOptions map[string]interfac
 		interfaceOptions["no_neighbor_down_notification"] = true
 	case itemTrim == "node-link-protection":
 		interfaceOptions["node_link_protection"] = true
-	case strings.HasPrefix(itemTrim, "passive"):
+	case balt.CutPrefixInString(&itemTrim, "passive"):
 		interfaceOptions["passive"] = true
 		switch {
-		case strings.HasPrefix(itemTrim, "passive traffic-engineering remote-node-id "):
-			interfaceOptions["passive_traffic_engineering_remote_node_id"] = strings.TrimPrefix(
-				itemTrim, "passive traffic-engineering remote-node-id ")
-		case strings.HasPrefix(itemTrim, "passive traffic-engineering remote-node-router-id "):
-			interfaceOptions["passive_traffic_engineering_remote_node_router_id"] = strings.TrimPrefix(
-				itemTrim, "passive traffic-engineering remote-node-router-id ")
+		case balt.CutPrefixInString(&itemTrim, " traffic-engineering remote-node-id "):
+			interfaceOptions["passive_traffic_engineering_remote_node_id"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, " traffic-engineering remote-node-router-id "):
+			interfaceOptions["passive_traffic_engineering_remote_node_router_id"] = itemTrim
 		}
-	case strings.HasPrefix(itemTrim, "poll-interval "):
-		interfaceOptions["poll_interval"], err = strconv.Atoi(
-			strings.TrimPrefix(itemTrim, "poll-interval "))
+	case balt.CutPrefixInString(&itemTrim, "poll-interval "):
+		interfaceOptions["poll_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "priority "):
-		interfaceOptions["priority"], err = strconv.Atoi(
-			strings.TrimPrefix(itemTrim, "priority "))
+	case balt.CutPrefixInString(&itemTrim, "priority "):
+		interfaceOptions["priority"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "retransmit-interval "):
-		interfaceOptions["retransmit_interval"], err = strconv.Atoi(
-			strings.TrimPrefix(itemTrim, "retransmit-interval "))
+	case balt.CutPrefixInString(&itemTrim, "retransmit-interval "):
+		interfaceOptions["retransmit_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
@@ -1772,15 +1739,13 @@ func readOspfAreaInterface(itemTrim string, interfaceOptions map[string]interfac
 		interfaceOptions["secondary"] = true
 	case itemTrim == "strict-bfd":
 		interfaceOptions["strict_bfd"] = true
-	case strings.HasPrefix(itemTrim, "te-metric "):
-		interfaceOptions["te_metric"], err = strconv.Atoi(
-			strings.TrimPrefix(itemTrim, "te-metric "))
+	case balt.CutPrefixInString(&itemTrim, "te-metric "):
+		interfaceOptions["te_metric"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "transit-delay "):
-		interfaceOptions["transit_delay"], err = strconv.Atoi(
-			strings.TrimPrefix(itemTrim, "transit-delay "))
+	case balt.CutPrefixInString(&itemTrim, "transit-delay "):
+		interfaceOptions["transit_delay"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
@@ -1789,64 +1754,55 @@ func readOspfAreaInterface(itemTrim string, interfaceOptions map[string]interfac
 	return nil
 }
 
-func readOspfAreaInterfaceBfd(itemTrim string, bfd map[string]interface{}) error {
+func readOspfAreaInterfaceBfd(itemTrim string, bfd map[string]interface{}) (err error) {
 	switch {
-	case strings.HasPrefix(itemTrim, "authentication algorithm "):
-		bfd["authentication_algorithm"] = strings.TrimPrefix(itemTrim, "authentication algorithm ")
-	case strings.HasPrefix(itemTrim, "authentication key-chain "):
-		bfd["authentication_key_chain"] = strings.Trim(strings.TrimPrefix(itemTrim, "authentication key-chain "), "\"")
+	case balt.CutPrefixInString(&itemTrim, "authentication algorithm "):
+		bfd["authentication_algorithm"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "authentication key-chain "):
+		bfd["authentication_key_chain"] = strings.Trim(itemTrim, "\"")
 	case itemTrim == "authentication loose-check":
 		bfd["authentication_loose_check"] = true
-	case strings.HasPrefix(itemTrim, "detection-time threshold "):
-		var err error
-		bfd["detection_time_threshold"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "detection-time threshold "))
+	case balt.CutPrefixInString(&itemTrim, "detection-time threshold "):
+		bfd["detection_time_threshold"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "full-neighbors-only":
 		bfd["full_neighbors_only"] = true
-	case strings.HasPrefix(itemTrim, "holddown-interval "):
-		var err error
-		bfd["holddown_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "holddown-interval "))
+	case balt.CutPrefixInString(&itemTrim, "holddown-interval "):
+		bfd["holddown_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "minimum-interval "):
-		var err error
-		bfd["minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-interval "))
+	case balt.CutPrefixInString(&itemTrim, "minimum-interval "):
+		bfd["minimum_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "minimum-receive-interval "):
-		var err error
-		bfd["minimum_receive_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-receive-interval "))
+	case balt.CutPrefixInString(&itemTrim, "minimum-receive-interval "):
+		bfd["minimum_receive_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "multiplier "):
-		var err error
-		bfd["multiplier"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "multiplier "))
+	case balt.CutPrefixInString(&itemTrim, "multiplier "):
+		bfd["multiplier"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
 	case itemTrim == "no-adaptation":
 		bfd["no_adaptation"] = true
-	case strings.HasPrefix(itemTrim, "transmit-interval minimum-interval "):
-		var err error
-		bfd["transmit_interval_minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "transmit-interval minimum-interval "))
+	case balt.CutPrefixInString(&itemTrim, "transmit-interval minimum-interval "):
+		bfd["transmit_interval_minimum_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "transmit-interval threshold "):
-		var err error
-		bfd["transmit_interval_threshold"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "transmit-interval threshold "))
+	case balt.CutPrefixInString(&itemTrim, "transmit-interval threshold "):
+		bfd["transmit_interval_threshold"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "version "):
-		bfd["version"] = strings.TrimPrefix(itemTrim, "version ")
+	case balt.CutPrefixInString(&itemTrim, "version "):
+		bfd["version"] = itemTrim
 	}
 
 	return nil

@@ -170,8 +170,8 @@ func searchInterfaceSt0UnitToCreate(clt *Client, junSess *junosSession) (string,
 	st0int := make([]string, 0)
 	for _, line := range st0Line {
 		if strings.HasPrefix(line, "st0.") {
-			lineSplit := strings.Split(line, " ")
-			st0int = append(st0int, lineSplit[0])
+			lineFields := strings.Split(line, " ")
+			st0int = append(st0int, lineFields[0])
 		}
 	}
 	for i := 0; i <= 1073741823; i++ {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type communityOptions struct {
@@ -264,9 +265,8 @@ func setPolicyoptionsCommunity(d *schema.ResourceData, clt *Client, junSess *jun
 	return clt.configSet(configSet, junSess)
 }
 
-func readPolicyoptionsCommunity(name string, clt *Client, junSess *junosSession) (communityOptions, error) {
-	var confRead communityOptions
-
+func readPolicyoptionsCommunity(name string, clt *Client, junSess *junosSession,
+) (confRead communityOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"policy-options community "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -283,8 +283,8 @@ func readPolicyoptionsCommunity(name string, clt *Client, junSess *junosSession)
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "members "):
-				confRead.members = append(confRead.members, strings.TrimPrefix(itemTrim, "members "))
+			case balt.CutPrefixInString(&itemTrim, "members "):
+				confRead.members = append(confRead.members, itemTrim)
 			case itemTrim == "invert-match":
 				confRead.invertMatch = true
 			}

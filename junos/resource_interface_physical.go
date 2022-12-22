@@ -806,8 +806,7 @@ func checkInterfacePhysicalNCEmpty(interFace string, clt *Client, junSess *junos
 	return false, false, nil
 }
 
-func addInterfacePhysicalNC(interFace string, clt *Client, junSess *junosSession) error {
-	var err error
+func addInterfacePhysicalNC(interFace string, clt *Client, junSess *junosSession) (err error) {
 	if clt.groupIntDel == "" {
 		err = clt.configSet([]string{"set interfaces " + interFace + " disable description NC"}, junSess)
 	} else {
@@ -1212,9 +1211,8 @@ func setInterfacePhysicalParentEtherOpts(
 	return clt.configSet(configSet, junSess)
 }
 
-func readInterfacePhysical(interFace string, clt *Client, junSess *junosSession) (interfacePhysicalOptions, error) {
-	var confRead interfacePhysicalOptions
-
+func readInterfacePhysical(interFace string, clt *Client, junSess *junosSession,
+) (confRead interfacePhysicalOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"interfaces "+interFace+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -1232,60 +1230,47 @@ func readInterfacePhysical(interFace string, clt *Client, junSess *junosSession)
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "aggregated-ether-options lacp "):
-				confRead.aeLacp = strings.TrimPrefix(itemTrim, "aggregated-ether-options lacp ")
-				if err := readInterfacePhysicalParentEtherOpts(&confRead,
-					strings.TrimPrefix(itemTrim, "aggregated-ether-options ")); err != nil {
+			case balt.CutPrefixInString(&itemTrim, "aggregated-ether-options "):
+				itemTrimToLegacy := itemTrim
+				switch {
+				case balt.CutPrefixInString(&itemTrimToLegacy, "lacp "):
+					confRead.aeLacp = itemTrimToLegacy
+				case balt.CutPrefixInString(&itemTrimToLegacy, "link-speed "):
+					confRead.aeLinkSpeed = itemTrimToLegacy
+				case balt.CutPrefixInString(&itemTrimToLegacy, "minimum-links "):
+					confRead.aeMinLink, err = strconv.Atoi(itemTrimToLegacy)
+					if err != nil {
+						return confRead, fmt.Errorf(failedConvAtoiError, itemTrimToLegacy, err)
+					}
+				}
+				if err := confRead.readInterfacePhysicalParentEtherOpts(itemTrim); err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "aggregated-ether-options link-speed "):
-				confRead.aeLinkSpeed = strings.TrimPrefix(itemTrim, "aggregated-ether-options link-speed ")
-				if err := readInterfacePhysicalParentEtherOpts(&confRead,
-					strings.TrimPrefix(itemTrim, "aggregated-ether-options ")); err != nil {
+			case balt.CutPrefixInString(&itemTrim, "redundant-ether-options "):
+				if err := confRead.readInterfacePhysicalParentEtherOpts(itemTrim); err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "aggregated-ether-options minimum-links "):
-				confRead.aeMinLink, err = strconv.Atoi(strings.TrimPrefix(itemTrim,
-					"aggregated-ether-options minimum-links "))
-				if err != nil {
-					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
-				}
-				if err := readInterfacePhysicalParentEtherOpts(&confRead,
-					strings.TrimPrefix(itemTrim, "aggregated-ether-options ")); err != nil {
-					return confRead, err
-				}
-			case strings.HasPrefix(itemTrim, "aggregated-ether-options "):
-				if err := readInterfacePhysicalParentEtherOpts(&confRead,
-					strings.TrimPrefix(itemTrim, "aggregated-ether-options ")); err != nil {
-					return confRead, err
-				}
-			case strings.HasPrefix(itemTrim, "redundant-ether-options "):
-				if err := readInterfacePhysicalParentEtherOpts(&confRead,
-					strings.TrimPrefix(itemTrim, "redundant-ether-options ")); err != nil {
-					return confRead, err
-				}
-			case strings.HasPrefix(itemTrim, "description "):
-				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				confRead.description = strings.Trim(itemTrim, "\"")
 			case itemTrim == "disable":
 				confRead.disable = true
-			case strings.HasPrefix(itemTrim, "esi "):
-				if err := readInterfacePhysicalEsi(&confRead, itemTrim); err != nil {
+			case balt.CutPrefixInString(&itemTrim, "esi "):
+				if err := confRead.readInterfacePhysicalEsi(itemTrim); err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "ether-options "):
-				readInterfacePhysicalEtherOpts(&confRead, strings.TrimPrefix(itemTrim, "ether-options "))
-			case strings.HasPrefix(itemTrim, "gigether-options "):
-				readInterfacePhysicalGigetherOpts(&confRead, strings.TrimPrefix(itemTrim, "gigether-options "))
-			case strings.HasPrefix(itemTrim, "native-vlan-id"):
-				confRead.vlanNative, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "native-vlan-id "))
+			case balt.CutPrefixInString(&itemTrim, "ether-options "):
+				confRead.readInterfacePhysicalEtherOpts(itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "gigether-options "):
+				confRead.readInterfacePhysicalGigetherOpts(itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "native-vlan-id "):
+				confRead.vlanNative, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "unit 0 family ethernet-switching interface-mode trunk":
 				confRead.trunk = true
-			case strings.HasPrefix(itemTrim, "unit 0 family ethernet-switching vlan members"):
-				confRead.vlanMembers = append(confRead.vlanMembers, strings.TrimPrefix(itemTrim,
-					"unit 0 family ethernet-switching vlan members "))
+			case balt.CutPrefixInString(&itemTrim, "unit 0 family ethernet-switching vlan members "):
+				confRead.vlanMembers = append(confRead.vlanMembers, itemTrim)
 			case itemTrim == "vlan-tagging":
 				confRead.vlanTagging = true
 			default:
@@ -1297,8 +1282,7 @@ func readInterfacePhysical(interFace string, clt *Client, junSess *junosSession)
 	return confRead, nil
 }
 
-func readInterfacePhysicalEsi(confRead *interfacePhysicalOptions, item string) error {
-	itemTrim := strings.TrimPrefix(item, "esi ")
+func (confRead *interfacePhysicalOptions) readInterfacePhysicalEsi(itemTrim string) error {
 	if len(confRead.esi) == 0 {
 		confRead.esi = append(confRead.esi, map[string]interface{}{
 			"mode":             "",
@@ -1308,7 +1292,6 @@ func readInterfacePhysicalEsi(confRead *interfacePhysicalOptions, item string) e
 			"source_bmac":      "",
 		})
 	}
-	var err error
 	identifier, err := regexp.MatchString(`^([\d\w]{2}:){9}[\d\w]{2}`, itemTrim)
 	if err != nil {
 		return fmt.Errorf("esi_identifier regexp error: %w", err)
@@ -1316,12 +1299,12 @@ func readInterfacePhysicalEsi(confRead *interfacePhysicalOptions, item string) e
 	switch {
 	case identifier:
 		confRead.esi[0]["identifier"] = itemTrim
-	case itemTrim == "all-active" || itemTrim == "single-active":
+	case itemTrim == "all-active", itemTrim == "single-active":
 		confRead.esi[0]["mode"] = itemTrim
-	case strings.HasPrefix(itemTrim, "df-election-type "):
-		confRead.esi[0]["df_election_type"] = strings.TrimPrefix(itemTrim, "df-election-type ")
-	case strings.HasPrefix(itemTrim, "source-bmac "):
-		confRead.esi[0]["source_bmac"] = strings.TrimPrefix(itemTrim, "source-bmac ")
+	case balt.CutPrefixInString(&itemTrim, "df-election-type "):
+		confRead.esi[0]["df_election_type"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "source-bmac "):
+		confRead.esi[0]["source_bmac"] = itemTrim
 	case itemTrim == "auto-derive lacp":
 		confRead.esi[0]["auto_derive_lacp"] = true
 	}
@@ -1329,7 +1312,7 @@ func readInterfacePhysicalEsi(confRead *interfacePhysicalOptions, item string) e
 	return nil
 }
 
-func readInterfacePhysicalEtherOpts(confRead *interfacePhysicalOptions, itemTrim string) {
+func (confRead *interfacePhysicalOptions) readInterfacePhysicalEtherOpts(itemTrim string) {
 	if len(confRead.etherOpts) == 0 {
 		confRead.etherOpts = append(confRead.etherOpts, map[string]interface{}{
 			"ae_8023ad":           "",
@@ -1343,9 +1326,9 @@ func readInterfacePhysicalEtherOpts(confRead *interfacePhysicalOptions, itemTrim
 		})
 	}
 	switch {
-	case strings.HasPrefix(itemTrim, "802.3ad "):
-		confRead.v8023ad = strings.TrimPrefix(itemTrim, "802.3ad ")
-		confRead.etherOpts[0]["ae_8023ad"] = strings.TrimPrefix(itemTrim, "802.3ad ")
+	case balt.CutPrefixInString(&itemTrim, "802.3ad "):
+		confRead.v8023ad = itemTrim
+		confRead.etherOpts[0]["ae_8023ad"] = itemTrim
 	case itemTrim == "auto-negotiation":
 		confRead.etherOpts[0]["auto_negotiation"] = true
 	case itemTrim == "no-auto-negotiation":
@@ -1358,12 +1341,12 @@ func readInterfacePhysicalEtherOpts(confRead *interfacePhysicalOptions, itemTrim
 		confRead.etherOpts[0]["loopback"] = true
 	case itemTrim == "no-loopback":
 		confRead.etherOpts[0]["no_loopback"] = true
-	case strings.HasPrefix(itemTrim, "redundant-parent "):
-		confRead.etherOpts[0]["redundant_parent"] = strings.TrimPrefix(itemTrim, "redundant-parent ")
+	case balt.CutPrefixInString(&itemTrim, "redundant-parent "):
+		confRead.etherOpts[0]["redundant_parent"] = itemTrim
 	}
 }
 
-func readInterfacePhysicalGigetherOpts(confRead *interfacePhysicalOptions, itemTrim string) {
+func (confRead *interfacePhysicalOptions) readInterfacePhysicalGigetherOpts(itemTrim string) {
 	if len(confRead.gigetherOpts) == 0 {
 		confRead.gigetherOpts = append(confRead.gigetherOpts, map[string]interface{}{
 			"ae_8023ad":           "",
@@ -1377,9 +1360,9 @@ func readInterfacePhysicalGigetherOpts(confRead *interfacePhysicalOptions, itemT
 		})
 	}
 	switch {
-	case strings.HasPrefix(itemTrim, "802.3ad "):
-		confRead.v8023ad = strings.TrimPrefix(itemTrim, "802.3ad ")
-		confRead.gigetherOpts[0]["ae_8023ad"] = strings.TrimPrefix(itemTrim, "802.3ad ")
+	case balt.CutPrefixInString(&itemTrim, "802.3ad "):
+		confRead.v8023ad = itemTrim
+		confRead.gigetherOpts[0]["ae_8023ad"] = itemTrim
 	case itemTrim == "auto-negotiation":
 		confRead.gigetherOpts[0]["auto_negotiation"] = true
 	case itemTrim == "no-auto-negotiation":
@@ -1392,12 +1375,12 @@ func readInterfacePhysicalGigetherOpts(confRead *interfacePhysicalOptions, itemT
 		confRead.gigetherOpts[0]["loopback"] = true
 	case itemTrim == "no-loopback":
 		confRead.gigetherOpts[0]["no_loopback"] = true
-	case strings.HasPrefix(itemTrim, "redundant-parent "):
-		confRead.gigetherOpts[0]["redundant_parent"] = strings.TrimPrefix(itemTrim, "redundant-parent ")
+	case balt.CutPrefixInString(&itemTrim, "redundant-parent "):
+		confRead.gigetherOpts[0]["redundant_parent"] = itemTrim
 	}
 }
 
-func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, itemTrim string) error {
+func (confRead *interfacePhysicalOptions) readInterfacePhysicalParentEtherOpts(itemTrim string) (err error) {
 	if len(confRead.parentEtherOpts) == 0 {
 		confRead.parentEtherOpts = append(confRead.parentEtherOpts, map[string]interface{}{
 			"bfd_liveness_detection": make([]map[string]interface{}, 0),
@@ -1415,7 +1398,7 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 		})
 	}
 	switch {
-	case strings.HasPrefix(itemTrim, "bfd-liveness-detection "):
+	case balt.CutPrefixInString(&itemTrim, "bfd-liveness-detection "):
 		if len(confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})) == 0 {
 			confRead.parentEtherOpts[0]["bfd_liveness_detection"] = append(
 				confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{}),
@@ -1437,78 +1420,62 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 				})
 		}
 		parentEtherOptsBFDLiveDetect := confRead.parentEtherOpts[0]["bfd_liveness_detection"].([]map[string]interface{})[0]
-		itemTrimBfdLiveDet := strings.TrimPrefix(itemTrim, "bfd-liveness-detection ")
 		switch {
-		case strings.HasPrefix(itemTrimBfdLiveDet, "local-address "):
-			parentEtherOptsBFDLiveDetect["local_address"] = strings.TrimPrefix(itemTrimBfdLiveDet, "local-address ")
-		case strings.HasPrefix(itemTrimBfdLiveDet, "authentication algorithm "):
-			parentEtherOptsBFDLiveDetect["authentication_algorithm"] = strings.TrimPrefix(
-				itemTrimBfdLiveDet, "authentication algorithm ")
-		case strings.HasPrefix(itemTrimBfdLiveDet, "authentication key-chain "):
-			parentEtherOptsBFDLiveDetect["authentication_key_chain"] = strings.TrimPrefix(
-				itemTrimBfdLiveDet, "authentication key-chain ")
-		case itemTrimBfdLiveDet == "authentication loose-check":
+		case balt.CutPrefixInString(&itemTrim, "local-address "):
+			parentEtherOptsBFDLiveDetect["local_address"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "authentication algorithm "):
+			parentEtherOptsBFDLiveDetect["authentication_algorithm"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "authentication key-chain "):
+			parentEtherOptsBFDLiveDetect["authentication_key_chain"] = itemTrim
+		case itemTrim == "authentication loose-check":
 			parentEtherOptsBFDLiveDetect["authentication_loose_check"] = true
-		case strings.HasPrefix(itemTrimBfdLiveDet, "detection-time threshold "):
-			var err error
-			parentEtherOptsBFDLiveDetect["detection_time_threshold"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrimBfdLiveDet, "detection-time threshold "))
+		case balt.CutPrefixInString(&itemTrim, "detection-time threshold "):
+			parentEtherOptsBFDLiveDetect["detection_time_threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimBfdLiveDet, "holddown-interval "):
-			var err error
-			parentEtherOptsBFDLiveDetect["holddown_interval"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrimBfdLiveDet, "holddown-interval "))
+		case balt.CutPrefixInString(&itemTrim, "holddown-interval "):
+			parentEtherOptsBFDLiveDetect["holddown_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimBfdLiveDet, "minimum-interval "):
-			var err error
-			parentEtherOptsBFDLiveDetect["minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrimBfdLiveDet, "minimum-interval "))
+		case balt.CutPrefixInString(&itemTrim, "minimum-interval "):
+			parentEtherOptsBFDLiveDetect["minimum_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimBfdLiveDet, "minimum-receive-interval "):
-			var err error
-			parentEtherOptsBFDLiveDetect["minimum_receive_interval"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrimBfdLiveDet, "minimum-receive-interval "))
+		case balt.CutPrefixInString(&itemTrim, "minimum-receive-interval "):
+			parentEtherOptsBFDLiveDetect["minimum_receive_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimBfdLiveDet, "multiplier "):
-			var err error
-			parentEtherOptsBFDLiveDetect["multiplier"], err = strconv.Atoi(strings.TrimPrefix(itemTrimBfdLiveDet, "multiplier "))
+		case balt.CutPrefixInString(&itemTrim, "multiplier "):
+			parentEtherOptsBFDLiveDetect["multiplier"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimBfdLiveDet, "neighbor "):
-			parentEtherOptsBFDLiveDetect["neighbor"] = strings.TrimPrefix(itemTrimBfdLiveDet, "neighbor ")
-		case itemTrimBfdLiveDet == "no-adaptation":
+		case balt.CutPrefixInString(&itemTrim, "neighbor "):
+			parentEtherOptsBFDLiveDetect["neighbor"] = itemTrim
+		case itemTrim == "no-adaptation":
 			parentEtherOptsBFDLiveDetect["no_adaptation"] = true
-		case strings.HasPrefix(itemTrimBfdLiveDet, "transmit-interval minimum-interval "):
-			var err error
-			parentEtherOptsBFDLiveDetect["transmit_interval_minimum_interval"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrimBfdLiveDet, "transmit-interval minimum-interval "))
+		case balt.CutPrefixInString(&itemTrim, "transmit-interval minimum-interval "):
+			parentEtherOptsBFDLiveDetect["transmit_interval_minimum_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimBfdLiveDet, "transmit-interval threshold "):
-			var err error
-			parentEtherOptsBFDLiveDetect["transmit_interval_threshold"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrimBfdLiveDet, "transmit-interval threshold "))
+		case balt.CutPrefixInString(&itemTrim, "transmit-interval threshold "):
+			parentEtherOptsBFDLiveDetect["transmit_interval_threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimBfdLiveDet, "version "):
-			parentEtherOptsBFDLiveDetect["version"] = strings.TrimPrefix(itemTrimBfdLiveDet, "version ")
+		case balt.CutPrefixInString(&itemTrim, "version "):
+			parentEtherOptsBFDLiveDetect["version"] = itemTrim
 		}
 	case itemTrim == "flow-control":
 		confRead.parentEtherOpts[0]["flow_control"] = true
 	case itemTrim == "no-flow-control":
 		confRead.parentEtherOpts[0]["no_flow_control"] = true
-	case strings.HasPrefix(itemTrim, "lacp "):
+	case balt.CutPrefixInString(&itemTrim, "lacp "):
 		if len(confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})) == 0 {
 			confRead.parentEtherOpts[0]["lacp"] = append(confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{}),
 				map[string]interface{}{
@@ -1520,26 +1487,23 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 					"system_priority": -1,
 				})
 		}
-		itemTrimLacp := strings.TrimPrefix(itemTrim, "lacp ")
 		lacp := confRead.parentEtherOpts[0]["lacp"].([]map[string]interface{})[0]
 		switch {
-		case itemTrimLacp == "active" || itemTrimLacp == "passive":
-			lacp["mode"] = itemTrimLacp
-		case strings.HasPrefix(itemTrimLacp, "admin-key "):
-			var err error
-			lacp["admin_key"], err = strconv.Atoi(strings.TrimPrefix(itemTrimLacp, "admin-key "))
+		case itemTrim == "active", itemTrim == "passive":
+			lacp["mode"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "admin-key "):
+			lacp["admin_key"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimLacp, "periodic "):
-			lacp["periodic"] = strings.TrimPrefix(itemTrimLacp, "periodic ")
-		case strings.HasPrefix(itemTrimLacp, "sync-reset "):
-			lacp["sync_reset"] = strings.TrimPrefix(itemTrimLacp, "sync-reset ")
-		case strings.HasPrefix(itemTrimLacp, "system-id "):
-			lacp["system_id"] = strings.TrimPrefix(itemTrimLacp, "system-id ")
-		case strings.HasPrefix(itemTrimLacp, "system-priority "):
-			var err error
-			lacp["system_priority"], err = strconv.Atoi(strings.TrimPrefix(itemTrimLacp, "system-priority "))
+		case balt.CutPrefixInString(&itemTrim, "periodic "):
+			lacp["periodic"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "sync-reset "):
+			lacp["sync_reset"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "system-id "):
+			lacp["system_id"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, "system-priority "):
+			lacp["system_priority"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
@@ -1548,30 +1512,29 @@ func readInterfacePhysicalParentEtherOpts(confRead *interfacePhysicalOptions, it
 		confRead.parentEtherOpts[0]["loopback"] = true
 	case itemTrim == "no-loopback":
 		confRead.parentEtherOpts[0]["no_loopback"] = true
-	case strings.HasPrefix(itemTrim, "link-speed "):
-		confRead.parentEtherOpts[0]["link_speed"] = strings.TrimPrefix(itemTrim, "link-speed ")
-	case strings.HasPrefix(itemTrim, "minimum-bandwidth bw-value "):
-		confRead.parentEtherOpts[0]["minimum_bandwidth"] = strings.TrimPrefix(itemTrim, "minimum-bandwidth bw-value ") +
+	case balt.CutPrefixInString(&itemTrim, "link-speed "):
+		confRead.parentEtherOpts[0]["link_speed"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "minimum-bandwidth bw-value "):
+		confRead.parentEtherOpts[0]["minimum_bandwidth"] = itemTrim +
 			confRead.parentEtherOpts[0]["minimum_bandwidth"].(string)
-	case strings.HasPrefix(itemTrim, "minimum-bandwidth bw-unit "):
+	case balt.CutPrefixInString(&itemTrim, "minimum-bandwidth bw-unit "):
 		confRead.parentEtherOpts[0]["minimum_bandwidth"] = confRead.parentEtherOpts[0]["minimum_bandwidth"].(string) +
-			" " + strings.TrimPrefix(itemTrim, "minimum-bandwidth bw-unit ")
-	case strings.HasPrefix(itemTrim, "minimum-links "):
-		var err error
-		confRead.parentEtherOpts[0]["minimum_links"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "minimum-links "))
+			" " + itemTrim
+	case balt.CutPrefixInString(&itemTrim, "minimum-links "):
+		confRead.parentEtherOpts[0]["minimum_links"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "redundancy-group "):
-		var err error
-		confRead.parentEtherOpts[0]["redundancy_group"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "redundancy-group "))
+	case balt.CutPrefixInString(&itemTrim, "redundancy-group "):
+		confRead.parentEtherOpts[0]["redundancy_group"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "source-address-filter "):
+	case balt.CutPrefixInString(&itemTrim, "source-address-filter "):
 		confRead.parentEtherOpts[0]["source_address_filter"] = append(
 			confRead.parentEtherOpts[0]["source_address_filter"].([]string),
-			strings.TrimPrefix(itemTrim, "source-address-filter "))
+			itemTrim,
+		)
 	case itemTrim == "source-filtering":
 		confRead.parentEtherOpts[0]["source_filtering"] = true
 	}

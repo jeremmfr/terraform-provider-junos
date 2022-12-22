@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type natSourcePoolOptions struct {
@@ -350,9 +351,8 @@ func setSecurityNatSourcePool(d *schema.ResourceData, clt *Client, junSess *juno
 	return clt.configSet(configSet, junSess)
 }
 
-func readSecurityNatSourcePool(name string, clt *Client, junSess *junosSession) (natSourcePoolOptions, error) {
-	var confRead natSourcePoolOptions
-
+func readSecurityNatSourcePool(name string, clt *Client, junSess *junosSession,
+) (confRead natSourcePoolOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security nat source pool "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -370,38 +370,35 @@ func readSecurityNatSourcePool(name string, clt *Client, junSess *junosSession) 
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "address "):
-				confRead.address = append(confRead.address, strings.TrimPrefix(itemTrim, "address "))
-			case strings.HasPrefix(itemTrim, "address-pooling "):
-				confRead.addressPooling = strings.TrimPrefix(itemTrim, "address-pooling ")
-			case strings.HasPrefix(itemTrim, "description "):
-				confRead.description = strings.Trim(strings.TrimPrefix(itemTrim, "description "), "\"")
-			case strings.HasPrefix(itemTrim, "pool-utilization-alarm clear-threshold "):
-				confRead.poolUtilizationAlarmClearThreshold, err = strconv.Atoi(
-					strings.TrimPrefix(itemTrim, "pool-utilization-alarm clear-threshold "))
+			case balt.CutPrefixInString(&itemTrim, "address "):
+				confRead.address = append(confRead.address, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "address-pooling "):
+				confRead.addressPooling = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "description "):
+				confRead.description = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "pool-utilization-alarm clear-threshold "):
+				confRead.poolUtilizationAlarmClearThreshold, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "pool-utilization-alarm raise-threshold "):
-				confRead.poolUtilizationAlarmRaiseThreshold, err = strconv.Atoi(
-					strings.TrimPrefix(itemTrim, "pool-utilization-alarm raise-threshold "))
+			case balt.CutPrefixInString(&itemTrim, "pool-utilization-alarm raise-threshold "):
+				confRead.poolUtilizationAlarmRaiseThreshold, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
 			case itemTrim == "port no-translation":
 				confRead.portNoTranslation = true
-			case strings.HasPrefix(itemTrim, "port port-overloading-factor"):
-				confRead.portOverloadingFactor, err = strconv.Atoi(strings.TrimPrefix(itemTrim,
-					"port port-overloading-factor "))
+			case balt.CutPrefixInString(&itemTrim, "port port-overloading-factor "):
+				confRead.portOverloadingFactor, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "port range to"):
-				portRange += "-" + strings.TrimPrefix(itemTrim, "port range to ")
-			case strings.HasPrefix(itemTrim, "port range "):
-				portRange = strings.TrimPrefix(itemTrim, "port range ")
-			case strings.HasPrefix(itemTrim, "routing-instance"):
-				confRead.routingInstance = strings.TrimPrefix(itemTrim, "routing-instance ")
+			case balt.CutPrefixInString(&itemTrim, "port range to "):
+				portRange += "-" + itemTrim
+			case balt.CutPrefixInString(&itemTrim, "port range "):
+				portRange = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "routing-instance "):
+				confRead.routingInstance = itemTrim
 			}
 		}
 		confRead.portRange = portRange
@@ -478,7 +475,6 @@ func validateSourcePoolPortRange() schema.SchemaValidateDiagFunc {
 		}
 		high := low
 		if len(vSplit) > 1 {
-			var err error
 			high, err = strconv.Atoi(vSplit[1])
 			if err != nil {
 				diags = append(diags, diag.Diagnostic{

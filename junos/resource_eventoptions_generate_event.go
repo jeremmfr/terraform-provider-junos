@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type eventoptionsGenerateEventOptions struct {
@@ -282,9 +283,7 @@ func setEventoptionsGenerateEvent(d *schema.ResourceData, clt *Client, junSess *
 }
 
 func readEventoptionsGenerateEvent(name string, clt *Client, junSess *junosSession,
-) (eventoptionsGenerateEventOptions, error) {
-	var confRead eventoptionsGenerateEventOptions
-
+) (confRead eventoptionsGenerateEventOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"event-options generate-event \""+name+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -301,14 +300,13 @@ func readEventoptionsGenerateEvent(name string, clt *Client, junSess *junosSessi
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "time-interval "):
-				var err error
-				confRead.timeInterval, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "time-interval "))
+			case balt.CutPrefixInString(&itemTrim, "time-interval "):
+				confRead.timeInterval, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "time-of-day "):
-				confRead.timeOfDay = strings.Split(strings.Trim(strings.TrimPrefix(itemTrim, "time-of-day "), "\""), " ")[0]
+			case balt.CutPrefixInString(&itemTrim, "time-of-day "):
+				confRead.timeOfDay = strings.Split(strings.Trim(itemTrim, "\""), " ")[0]
 			case itemTrim == "no-drift":
 				confRead.noDrift = true
 			}

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
@@ -1269,9 +1270,7 @@ func delServices(d *schema.ResourceData, cleanAll bool, clt *Client, junSess *ju
 	return clt.configSet(configSet, junSess)
 }
 
-func readServices(clt *Client, junSess *junosSession) (servicesOptions, error) {
-	var confRead servicesOptions
-
+func readServices(clt *Client, junSess *junosSession) (confRead servicesOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"services"+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -1286,22 +1285,22 @@ func readServices(clt *Client, junSess *junosSession) (servicesOptions, error) {
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesServicesAdvancedAntiMalware()) ||
+			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesServicesAdvancedAntiMalware()),
 				strings.HasPrefix(itemTrim, "advanced-anti-malware connection"):
-				readServicesAdvancedAntiMalware(&confRead, itemTrim)
-			case strings.HasPrefix(itemTrim, "application-identification"):
-				if err := readServicesApplicationIdentification(&confRead, itemTrim); err != nil {
+				confRead.readServicesAdvancedAntiMalware(itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "application-identification"):
+				if err := confRead.readServicesApplicationIdentification(itemTrim); err != nil {
 					return confRead, err
 				}
-			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesServicesSecurityIntel()) ||
-				strings.HasPrefix(itemTrim, "security-intelligence authentication ") ||
+			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesServicesSecurityIntel()),
+				strings.HasPrefix(itemTrim, "security-intelligence authentication "),
 				strings.HasPrefix(itemTrim, "security-intelligence url "):
-				if err := readServicesSecurityIntel(&confRead, itemTrim); err != nil {
+				if err := confRead.readServicesSecurityIntel(itemTrim); err != nil {
 					return confRead, err
 				}
-			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesServicesUserIdentification()) ||
+			case bchk.StringHasOneOfPrefixes(itemTrim, listLinesServicesUserIdentification()),
 				strings.HasPrefix(itemTrim, "user-identification active-directory-access"):
-				if err := readServicesUserIdentification(&confRead, itemTrim); err != nil {
+				if err := confRead.readServicesUserIdentification(itemTrim); err != nil {
 					return confRead, err
 				}
 			}
@@ -1311,8 +1310,8 @@ func readServices(clt *Client, junSess *junosSession) (servicesOptions, error) {
 	return confRead, nil
 }
 
-func readServicesAdvancedAntiMalware(confRead *servicesOptions, itemTrimAdvAntiMalware string) {
-	itemTrim := strings.TrimPrefix(itemTrimAdvAntiMalware, "advanced-anti-malware ")
+func (confRead *servicesOptions) readServicesAdvancedAntiMalware(itemTrim string) {
+	balt.CutPrefixInString(&itemTrim, "advanced-anti-malware ")
 	if len(confRead.advAntiMalware) == 0 {
 		confRead.advAntiMalware = append(confRead.advAntiMalware, map[string]interface{}{
 			"connection":     make([]map[string]interface{}, 0),
@@ -1320,7 +1319,7 @@ func readServicesAdvancedAntiMalware(confRead *servicesOptions, itemTrimAdvAntiM
 		})
 	}
 	switch {
-	case strings.HasPrefix(itemTrim, "connection"):
+	case balt.CutPrefixInString(&itemTrim, "connection"):
 		if len(confRead.advAntiMalware[0]["connection"].([]map[string]interface{})) == 0 {
 			confRead.advAntiMalware[0]["connection"] = append(
 				confRead.advAntiMalware[0]["connection"].([]map[string]interface{}),
@@ -1334,23 +1333,18 @@ func readServicesAdvancedAntiMalware(confRead *servicesOptions, itemTrimAdvAntiM
 		}
 		connection := confRead.advAntiMalware[0]["connection"].([]map[string]interface{})[0]
 		switch {
-		case strings.HasPrefix(itemTrim, "connection authentication tls-profile "):
-			connection["auth_tls_profile"] = strings.Trim(strings.TrimPrefix(
-				itemTrim, "connection authentication tls-profile "), "\"")
-		case strings.HasPrefix(itemTrim, "connection proxy-profile "):
-			connection["proxy_profile"] = strings.Trim(strings.TrimPrefix(
-				itemTrim, "connection proxy-profile "), "\"")
-		case strings.HasPrefix(itemTrim, "connection source-address "):
-			connection["source_address"] = strings.Trim(strings.TrimPrefix(
-				itemTrim, "connection source-address "), "\"")
-		case strings.HasPrefix(itemTrim, "connection source-interface "):
-			connection["source_interface"] = strings.Trim(strings.TrimPrefix(
-				itemTrim, "connection source-interface "), "\"")
-		case strings.HasPrefix(itemTrim, "connection url "):
-			connection["url"] = strings.Trim(strings.TrimPrefix(
-				itemTrim, "connection url "), "\"")
+		case balt.CutPrefixInString(&itemTrim, " authentication tls-profile "):
+			connection["auth_tls_profile"] = strings.Trim(itemTrim, "\"")
+		case balt.CutPrefixInString(&itemTrim, " proxy-profile "):
+			connection["proxy_profile"] = strings.Trim(itemTrim, "\"")
+		case balt.CutPrefixInString(&itemTrim, " source-address "):
+			connection["source_address"] = strings.Trim(itemTrim, "\"")
+		case balt.CutPrefixInString(&itemTrim, " source-interface "):
+			connection["source_interface"] = strings.Trim(itemTrim, "\"")
+		case balt.CutPrefixInString(&itemTrim, " url "):
+			connection["url"] = strings.Trim(itemTrim, "\"")
 		}
-	case strings.HasPrefix(itemTrim, "default-policy"):
+	case balt.CutPrefixInString(&itemTrim, "default-policy"):
 		if len(confRead.advAntiMalware[0]["default_policy"].([]map[string]interface{})) == 0 {
 			confRead.advAntiMalware[0]["default_policy"] = append(
 				confRead.advAntiMalware[0]["default_policy"].([]map[string]interface{}),
@@ -1376,53 +1370,46 @@ func readServicesAdvancedAntiMalware(confRead *servicesOptions, itemTrimAdvAntiM
 		}
 		defaultPolicy := confRead.advAntiMalware[0]["default_policy"].([]map[string]interface{})[0]
 		switch {
-		case itemTrim == "default-policy blacklist-notification log":
+		case itemTrim == " blacklist-notification log":
 			defaultPolicy["blacklist_notification_log"] = true
-		case itemTrim == "default-policy default-notification log":
+		case itemTrim == " default-notification log":
 			defaultPolicy["default_notification_log"] = true
-		case strings.HasPrefix(itemTrim, "default-policy fallback-options action "):
-			defaultPolicy["fallback_options_action"] = strings.TrimPrefix(itemTrim, "default-policy fallback-options action ")
-		case itemTrim == "default-policy fallback-options notification log":
+		case balt.CutPrefixInString(&itemTrim, " fallback-options action "):
+			defaultPolicy["fallback_options_action"] = itemTrim
+		case itemTrim == " fallback-options notification log":
 			defaultPolicy["fallback_options_notification_log"] = true
-		case strings.HasPrefix(itemTrim, "default-policy http action "):
-			defaultPolicy["http_action"] = strings.TrimPrefix(itemTrim, "default-policy http action ")
-		case strings.HasPrefix(itemTrim, "default-policy http client-notify file "):
-			defaultPolicy["http_client_notify_file"] = strings.Trim(strings.TrimPrefix(
-				itemTrim, "default-policy http client-notify file "), "\"")
-		case strings.HasPrefix(itemTrim, "default-policy http client-notify message "):
-			defaultPolicy["http_client_notify_message"] = strings.Trim(strings.TrimPrefix(
-				itemTrim, "default-policy http client-notify message "), "\"")
-		case strings.HasPrefix(itemTrim, "default-policy http client-notify redirect-url "):
-			defaultPolicy["http_client_notify_redirect_url"] = strings.Trim(strings.TrimPrefix(
-				itemTrim, "default-policy http client-notify redirect-url "), "\"")
-		case strings.HasPrefix(itemTrim, "default-policy http file-verdict-unknown "):
-			defaultPolicy["http_file_verdict_unknown"] = strings.TrimPrefix(
-				itemTrim, "default-policy http file-verdict-unknown ")
-		case strings.HasPrefix(itemTrim, "default-policy http inspection-profile "):
-			defaultPolicy["http_inspection_profile"] = strings.TrimPrefix(strings.TrimPrefix(
-				itemTrim, "default-policy http inspection-profile "), "\"")
-		case itemTrim == "default-policy http notification log":
+		case balt.CutPrefixInString(&itemTrim, " http action "):
+			defaultPolicy["http_action"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, " http client-notify file "):
+			defaultPolicy["http_client_notify_file"] = strings.Trim(itemTrim, "\"")
+		case balt.CutPrefixInString(&itemTrim, " http client-notify message "):
+			defaultPolicy["http_client_notify_message"] = strings.Trim(itemTrim, "\"")
+		case balt.CutPrefixInString(&itemTrim, " http client-notify redirect-url "):
+			defaultPolicy["http_client_notify_redirect_url"] = strings.Trim(itemTrim, "\"")
+		case balt.CutPrefixInString(&itemTrim, " http file-verdict-unknown "):
+			defaultPolicy["http_file_verdict_unknown"] = itemTrim
+		case balt.CutPrefixInString(&itemTrim, " http inspection-profile "):
+			defaultPolicy["http_inspection_profile"] = strings.Trim(itemTrim, "\"")
+		case itemTrim == " http notification log":
 			defaultPolicy["http_notification_log"] = true
-		case strings.HasPrefix(itemTrim, "default-policy imap inspection-profile "):
-			defaultPolicy["imap_inspection_profile"] = strings.TrimPrefix(strings.TrimPrefix(
-				itemTrim, "default-policy imap inspection-profile "), "\"")
-		case itemTrim == "default-policy imap notification log":
+		case balt.CutPrefixInString(&itemTrim, " imap inspection-profile "):
+			defaultPolicy["imap_inspection_profile"] = strings.Trim(itemTrim, "\"")
+		case itemTrim == " imap notification log":
 			defaultPolicy["imap_notification_log"] = true
-		case strings.HasPrefix(itemTrim, "default-policy smtp inspection-profile "):
-			defaultPolicy["smtp_inspection_profile"] = strings.TrimPrefix(strings.TrimPrefix(
-				itemTrim, "default-policy smtp inspection-profile "), "\"")
-		case itemTrim == "default-policy smtp notification log":
+		case balt.CutPrefixInString(&itemTrim, " smtp inspection-profile "):
+			defaultPolicy["smtp_inspection_profile"] = strings.Trim(itemTrim, "\"")
+		case itemTrim == " smtp notification log":
 			defaultPolicy["smtp_notification_log"] = true
-		case strings.HasPrefix(itemTrim, "default-policy verdict-threshold "):
-			defaultPolicy["verdict_threshold"] = strings.TrimPrefix(itemTrim, "default-policy verdict-threshold ")
-		case itemTrim == "default-policy whitelist-notification log":
+		case balt.CutPrefixInString(&itemTrim, " verdict-threshold "):
+			defaultPolicy["verdict_threshold"] = itemTrim
+		case itemTrim == " whitelist-notification log":
 			defaultPolicy["whitelist_notification_log"] = true
 		}
 	}
 }
 
-func readServicesSecurityIntel(confRead *servicesOptions, itemTrimSecurityIntel string) error {
-	itemTrim := strings.TrimPrefix(itemTrimSecurityIntel, "security-intelligence ")
+func (confRead *servicesOptions) readServicesSecurityIntel(itemTrim string) (err error) {
+	balt.CutPrefixInString(&itemTrim, "security-intelligence ")
 	if len(confRead.securityIntelligence) == 0 {
 		confRead.securityIntelligence = append(confRead.securityIntelligence, map[string]interface{}{
 			"authentication_token":       "",
@@ -1435,38 +1422,31 @@ func readServicesSecurityIntel(confRead *servicesOptions, itemTrimSecurityIntel 
 		})
 	}
 	switch {
-	case strings.HasPrefix(itemTrim, "authentication auth-token "):
-		confRead.securityIntelligence[0]["authentication_token"] = strings.TrimPrefix(itemTrim, "authentication auth-token ")
-	case strings.HasPrefix(itemTrim, "authentication tls-profile "):
-		confRead.securityIntelligence[0]["authentication_tls_profile"] = strings.Trim(strings.TrimPrefix(itemTrim,
-			"authentication tls-profile "), "\"")
-	case strings.HasPrefix(itemTrim, "category "):
-		if itemTrim == "category all disable" {
-			confRead.securityIntelligence[0]["category_disable"] = append(
-				confRead.securityIntelligence[0]["category_disable"].([]string), "all")
-		} else {
-			confRead.securityIntelligence[0]["category_disable"] = append(
-				confRead.securityIntelligence[0]["category_disable"].([]string),
-				strings.TrimSuffix(strings.TrimPrefix(itemTrim, "category category-name "), " disable"))
-		}
-	case strings.HasPrefix(itemTrim, "default-policy "):
-		if itemTrimSplit := strings.Split(itemTrim, " "); len(itemTrimSplit) == 3 {
+	case balt.CutPrefixInString(&itemTrim, "authentication auth-token "):
+		confRead.securityIntelligence[0]["authentication_token"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "authentication tls-profile "):
+		confRead.securityIntelligence[0]["authentication_tls_profile"] = strings.Trim(itemTrim, "\"")
+	case itemTrim == "category all disable":
+		confRead.securityIntelligence[0]["category_disable"] = append(
+			confRead.securityIntelligence[0]["category_disable"].([]string), "all")
+	case balt.CutPrefixInString(&itemTrim, "category category-name ") &&
+		balt.CutSuffixInString(&itemTrim, " disable"):
+		confRead.securityIntelligence[0]["category_disable"] = append(
+			confRead.securityIntelligence[0]["category_disable"].([]string), itemTrim)
+	case balt.CutPrefixInString(&itemTrim, "default-policy "):
+		if itemTrimFields := strings.Split(itemTrim, " "); len(itemTrimFields) == 2 { // <category_name> <profile_name>
 			confRead.securityIntelligence[0]["default_policy"] = append(
 				confRead.securityIntelligence[0]["default_policy"].([]map[string]interface{}), map[string]interface{}{
-					"category_name": itemTrimSplit[1],
-					"profile_name":  itemTrimSplit[2],
+					"category_name": itemTrimFields[0],
+					"profile_name":  itemTrimFields[1],
 				})
 		}
-	case strings.HasPrefix(itemTrim, "proxy-profile "):
-		confRead.securityIntelligence[0]["proxy_profile"] = strings.Trim(strings.TrimPrefix(itemTrim,
-			"proxy-profile "), "\"")
-	case strings.HasPrefix(itemTrim, "url "):
-		confRead.securityIntelligence[0]["url"] = strings.Trim(strings.TrimPrefix(itemTrim,
-			"url "), "\"")
-	case strings.HasPrefix(itemTrim, "url-parameter "):
-		var err error
-		confRead.securityIntelligence[0]["url_parameter"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
-			itemTrim, "url-parameter "), "\""))
+	case balt.CutPrefixInString(&itemTrim, "proxy-profile "):
+		confRead.securityIntelligence[0]["proxy_profile"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "url "):
+		confRead.securityIntelligence[0]["url"] = strings.Trim(itemTrim, "\"")
+	case balt.CutPrefixInString(&itemTrim, "url-parameter "):
+		confRead.securityIntelligence[0]["url_parameter"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 		if err != nil {
 			return fmt.Errorf("failed to decode url-parameter: %w", err)
 		}
@@ -1475,8 +1455,7 @@ func readServicesSecurityIntel(confRead *servicesOptions, itemTrimSecurityIntel 
 	return nil
 }
 
-func readServicesApplicationIdentification(confRead *servicesOptions, itemTrimAppID string) error {
-	itemTrim := strings.TrimPrefix(itemTrimAppID, "application-identification ")
+func (confRead *servicesOptions) readServicesApplicationIdentification(itemTrim string) (err error) {
 	if len(confRead.appIdent) == 0 {
 		confRead.appIdent = append(confRead.appIdent, map[string]interface{}{
 			"application_system_cache":         make([]map[string]interface{}, 0),
@@ -1496,14 +1475,12 @@ func readServicesApplicationIdentification(confRead *servicesOptions, itemTrimAp
 		})
 	}
 	switch {
-	case strings.HasPrefix(itemTrim, "application-system-cache-timeout "):
-		var err error
-		confRead.appIdent[0]["application_system_cache_timeout"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "application-system-cache-timeout "))
+	case balt.CutPrefixInString(&itemTrim, " application-system-cache-timeout "):
+		confRead.appIdent[0]["application_system_cache_timeout"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "application-system-cache"):
+	case balt.CutPrefixInString(&itemTrim, " application-system-cache"):
 		if len(confRead.appIdent[0]["application_system_cache"].([]map[string]interface{})) == 0 {
 			confRead.appIdent[0]["application_system_cache"] = append(
 				confRead.appIdent[0]["application_system_cache"].([]map[string]interface{}),
@@ -1514,14 +1491,14 @@ func readServicesApplicationIdentification(confRead *servicesOptions, itemTrimAp
 		}
 		applicationSystemCache := confRead.appIdent[0]["application_system_cache"].([]map[string]interface{})[0]
 		switch {
-		case itemTrim == "application-system-cache no-miscellaneous-services":
+		case itemTrim == " no-miscellaneous-services":
 			applicationSystemCache["no_miscellaneous_services"] = true
-		case itemTrim == "application-system-cache security-services":
+		case itemTrim == " security-services":
 			applicationSystemCache["security_services"] = true
 		}
-	case itemTrim == "no-application-system-cache":
+	case itemTrim == " no-application-system-cache":
 		confRead.appIdent[0]["no_application_system_cache"] = true
-	case strings.HasPrefix(itemTrim, "download "):
+	case balt.CutPrefixInString(&itemTrim, " download "):
 		if len(confRead.appIdent[0]["download"].([]map[string]interface{})) == 0 {
 			confRead.appIdent[0]["download"] = append(
 				confRead.appIdent[0]["download"].([]map[string]interface{}), map[string]interface{}{
@@ -1534,22 +1511,21 @@ func readServicesApplicationIdentification(confRead *servicesOptions, itemTrimAp
 		}
 		download := confRead.appIdent[0]["download"].([]map[string]interface{})[0]
 		switch {
-		case strings.HasPrefix(itemTrim, "download automatic interval "):
-			var err error
-			download["automatic_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "download automatic interval "))
+		case balt.CutPrefixInString(&itemTrim, "automatic interval "):
+			download["automatic_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "download automatic start-time "):
-			download["automatic_start_time"] = strings.TrimPrefix(itemTrim, "download automatic start-time ")
-		case itemTrim == "download ignore-server-validation":
+		case balt.CutPrefixInString(&itemTrim, "automatic start-time "):
+			download["automatic_start_time"] = itemTrim
+		case itemTrim == "ignore-server-validation":
 			download["ignore_server_validation"] = true
-		case strings.HasPrefix(itemTrim, "download proxy-profile "):
-			download["proxy_profile"] = strings.Trim(strings.TrimPrefix(itemTrim, "download proxy-profile "), "\"")
-		case strings.HasPrefix(itemTrim, "download url "):
-			download["url"] = strings.Trim(strings.TrimPrefix(itemTrim, "download url "), "\"")
+		case balt.CutPrefixInString(&itemTrim, "proxy-profile "):
+			download["proxy_profile"] = strings.Trim(itemTrim, "\"")
+		case balt.CutPrefixInString(&itemTrim, "url "):
+			download["url"] = strings.Trim(itemTrim, "\"")
 		}
-	case strings.HasPrefix(itemTrim, "enable-performance-mode"):
+	case balt.CutPrefixInString(&itemTrim, " enable-performance-mode"):
 		if len(confRead.appIdent[0]["enable_performance_mode"].([]map[string]interface{})) == 0 {
 			confRead.appIdent[0]["enable_performance_mode"] = append(
 				confRead.appIdent[0]["enable_performance_mode"].([]map[string]interface{}), map[string]interface{}{
@@ -1557,34 +1533,28 @@ func readServicesApplicationIdentification(confRead *servicesOptions, itemTrimAp
 				})
 		}
 		enablePerfMode := confRead.appIdent[0]["enable_performance_mode"].([]map[string]interface{})[0]
-		if strings.HasPrefix(itemTrim, "enable-performance-mode max-packet-threshold ") {
-			var err error
-			enablePerfMode["max_packet_threshold"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "enable-performance-mode max-packet-threshold "))
+		if balt.CutPrefixInString(&itemTrim, " max-packet-threshold ") {
+			enablePerfMode["max_packet_threshold"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
-	case strings.HasPrefix(itemTrim, "global-offload-byte-limit "):
-		var err error
-		confRead.appIdent[0]["global_offload_byte_limit"], err = strconv.Atoi(strings.TrimPrefix(
-			itemTrim, "global-offload-byte-limit "))
+	case balt.CutPrefixInString(&itemTrim, " global-offload-byte-limit "):
+		confRead.appIdent[0]["global_offload_byte_limit"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "imap-cache-size "):
-		var err error
-		confRead.appIdent[0]["imap_cache_size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "imap-cache-size "))
+	case balt.CutPrefixInString(&itemTrim, " imap-cache-size "):
+		confRead.appIdent[0]["imap_cache_size"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "imap-cache-timeout "):
-		var err error
-		confRead.appIdent[0]["imap_cache_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "imap-cache-timeout "))
+	case balt.CutPrefixInString(&itemTrim, " imap-cache-timeout "):
+		confRead.appIdent[0]["imap_cache_timeout"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "inspection-limit tcp"):
+	case balt.CutPrefixInString(&itemTrim, " inspection-limit tcp"):
 		if len(confRead.appIdent[0]["inspection_limit_tcp"].([]map[string]interface{})) == 0 {
 			confRead.appIdent[0]["inspection_limit_tcp"] = append(
 				confRead.appIdent[0]["inspection_limit_tcp"].([]map[string]interface{}), map[string]interface{}{
@@ -1594,20 +1564,18 @@ func readServicesApplicationIdentification(confRead *servicesOptions, itemTrimAp
 		}
 		inspLimitTCP := confRead.appIdent[0]["inspection_limit_tcp"].([]map[string]interface{})[0]
 		switch {
-		case strings.HasPrefix(itemTrim, "inspection-limit tcp byte-limit "):
-			var err error
-			inspLimitTCP["byte_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "inspection-limit tcp byte-limit "))
+		case balt.CutPrefixInString(&itemTrim, " byte-limit "):
+			inspLimitTCP["byte_limit"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "inspection-limit tcp packet-limit "):
-			var err error
-			inspLimitTCP["packet_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "inspection-limit tcp packet-limit "))
+		case balt.CutPrefixInString(&itemTrim, " packet-limit "):
+			inspLimitTCP["packet_limit"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
-	case strings.HasPrefix(itemTrim, "inspection-limit udp"):
+	case balt.CutPrefixInString(&itemTrim, " inspection-limit udp"):
 		if len(confRead.appIdent[0]["inspection_limit_udp"].([]map[string]interface{})) == 0 {
 			confRead.appIdent[0]["inspection_limit_udp"] = append(
 				confRead.appIdent[0]["inspection_limit_udp"].([]map[string]interface{}), map[string]interface{}{
@@ -1617,36 +1585,31 @@ func readServicesApplicationIdentification(confRead *servicesOptions, itemTrimAp
 		}
 		inspLimitUDP := confRead.appIdent[0]["inspection_limit_udp"].([]map[string]interface{})[0]
 		switch {
-		case strings.HasPrefix(itemTrim, "inspection-limit udp byte-limit "):
-			var err error
-			inspLimitUDP["byte_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "inspection-limit udp byte-limit "))
+		case balt.CutPrefixInString(&itemTrim, " byte-limit "):
+			inspLimitUDP["byte_limit"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "inspection-limit udp packet-limit "):
-			var err error
-			inspLimitUDP["packet_limit"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "inspection-limit udp packet-limit "))
+		case balt.CutPrefixInString(&itemTrim, " packet-limit "):
+			inspLimitUDP["packet_limit"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
-	case strings.HasPrefix(itemTrim, "max-memory "):
-		var err error
-		confRead.appIdent[0]["max_memory"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-memory "))
+	case balt.CutPrefixInString(&itemTrim, " max-memory "):
+		confRead.appIdent[0]["max_memory"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case strings.HasPrefix(itemTrim, "max-transactions "):
-		var err error
-		confRead.appIdent[0]["max_transactions"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-transactions "))
+	case balt.CutPrefixInString(&itemTrim, " max-transactions "):
+		confRead.appIdent[0]["max_transactions"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
-	case itemTrim == "micro-apps":
+	case itemTrim == " micro-apps":
 		confRead.appIdent[0]["micro_apps"] = true
-	case strings.HasPrefix(itemTrim, "statistics interval "):
-		var err error
-		confRead.appIdent[0]["statistics_interval"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "statistics interval "))
+	case balt.CutPrefixInString(&itemTrim, " statistics interval "):
+		confRead.appIdent[0]["statistics_interval"], err = strconv.Atoi(itemTrim)
 		if err != nil {
 			return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 		}
@@ -1655,8 +1618,8 @@ func readServicesApplicationIdentification(confRead *servicesOptions, itemTrimAp
 	return nil
 }
 
-func readServicesUserIdentification(confRead *servicesOptions, itemTrimUserIdentification string) error {
-	itemTrim := strings.TrimPrefix(itemTrimUserIdentification, "user-identification ")
+func (confRead *servicesOptions) readServicesUserIdentification(itemTrim string) (err error) {
+	balt.CutPrefixInString(&itemTrim, "user-identification ")
 	if len(confRead.userIdentification) == 0 {
 		confRead.userIdentification = append(confRead.userIdentification, map[string]interface{}{
 			"ad_access":               make([]map[string]interface{}, 0),
@@ -1665,7 +1628,7 @@ func readServicesUserIdentification(confRead *servicesOptions, itemTrimUserIdent
 		})
 	}
 	switch {
-	case strings.HasPrefix(itemTrim, "active-directory-access"):
+	case balt.CutPrefixInString(&itemTrim, "active-directory-access"):
 		if len(confRead.userIdentification[0]["ad_access"].([]map[string]interface{})) == 0 {
 			confRead.userIdentification[0]["ad_access"] = append(
 				confRead.userIdentification[0]["ad_access"].([]map[string]interface{}),
@@ -1681,46 +1644,36 @@ func readServicesUserIdentification(confRead *servicesOptions, itemTrimUserIdent
 		}
 		adAccess := confRead.userIdentification[0]["ad_access"].([]map[string]interface{})[0]
 		switch {
-		case strings.HasPrefix(itemTrim, "active-directory-access authentication-entry-timeout "):
-			var err error
-			adAccess["auth_entry_timeout"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "active-directory-access authentication-entry-timeout "))
+		case balt.CutPrefixInString(&itemTrim, " authentication-entry-timeout "):
+			adAccess["auth_entry_timeout"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "active-directory-access filter exclude "):
-			adAccess["filter_exclude"] = append(adAccess["filter_exclude"].([]string), strings.TrimPrefix(
-				itemTrim, "active-directory-access filter exclude "))
-		case strings.HasPrefix(itemTrim, "active-directory-access filter include "):
-			adAccess["filter_include"] = append(adAccess["filter_include"].([]string), strings.TrimPrefix(
-				itemTrim, "active-directory-access filter include "))
-		case strings.HasPrefix(itemTrim, "active-directory-access firewall-authentication-forced-timeout "):
-			var err error
-			adAccess["firewall_auth_forced_timeout"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "active-directory-access firewall-authentication-forced-timeout "))
+		case balt.CutPrefixInString(&itemTrim, " filter exclude "):
+			adAccess["filter_exclude"] = append(adAccess["filter_exclude"].([]string), itemTrim)
+		case balt.CutPrefixInString(&itemTrim, " filter include "):
+			adAccess["filter_include"] = append(adAccess["filter_include"].([]string), itemTrim)
+		case balt.CutPrefixInString(&itemTrim, " firewall-authentication-forced-timeout "):
+			adAccess["firewall_auth_forced_timeout"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrim, "active-directory-access invalid-authentication-entry-timeout "):
-			var err error
-			adAccess["invalid_auth_entry_timeout"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrim, "active-directory-access invalid-authentication-entry-timeout "))
+		case balt.CutPrefixInString(&itemTrim, " invalid-authentication-entry-timeout "):
+			adAccess["invalid_auth_entry_timeout"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case itemTrim == "active-directory-access no-on-demand-probe":
+		case itemTrim == " no-on-demand-probe":
 			adAccess["no_on_demand_probe"] = true
-		case strings.HasPrefix(itemTrim, "active-directory-access wmi-timeout "):
-			var err error
-			adAccess["wmi_timeout"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "active-directory-access wmi-timeout "))
+		case balt.CutPrefixInString(&itemTrim, " wmi-timeout "):
+			adAccess["wmi_timeout"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
 		}
-	case strings.HasPrefix(itemTrim, "device-information authentication-source "):
-		confRead.userIdentification[0]["device_info_auth_source"] = strings.TrimPrefix(
-			itemTrim, "device-information authentication-source ")
-	case strings.HasPrefix(itemTrim, "identity-management "):
+	case balt.CutPrefixInString(&itemTrim, "device-information authentication-source "):
+		confRead.userIdentification[0]["device_info_auth_source"] = itemTrim
+	case balt.CutPrefixInString(&itemTrim, "identity-management "):
 		if len(confRead.userIdentification[0]["identity_management"].([]map[string]interface{})) == 0 {
 			confRead.userIdentification[0]["identity_management"] = append(
 				confRead.userIdentification[0]["identity_management"].([]map[string]interface{}),
@@ -1740,30 +1693,23 @@ func readServicesUserIdentification(confRead *servicesOptions, itemTrimUserIdent
 				})
 		}
 		userIdentIdentityMgmt := confRead.userIdentification[0]["identity_management"].([]map[string]interface{})[0]
-		itemTrimIdentMgmt := strings.TrimPrefix(itemTrim, "identity-management ")
 		switch {
-		case strings.HasPrefix(itemTrimIdentMgmt, "authentication-entry-timeout "):
-			var err error
-			userIdentIdentityMgmt["authentication_entry_timeout"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrimIdentMgmt, "authentication-entry-timeout "))
+		case balt.CutPrefixInString(&itemTrim, "authentication-entry-timeout "):
+			userIdentIdentityMgmt["authentication_entry_timeout"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimIdentMgmt, "batch-query items-per-batch "):
-			var err error
-			userIdentIdentityMgmt["batch_query_items_per_batch"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrimIdentMgmt, "batch-query items-per-batch "))
+		case balt.CutPrefixInString(&itemTrim, "batch-query items-per-batch "):
+			userIdentIdentityMgmt["batch_query_items_per_batch"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimIdentMgmt, "batch-query query-interval "):
-			var err error
-			userIdentIdentityMgmt["batch_query_interval"], err = strconv.Atoi(strings.TrimPrefix(
-				itemTrimIdentMgmt, "batch-query query-interval "))
+		case balt.CutPrefixInString(&itemTrim, "batch-query query-interval "):
+			userIdentIdentityMgmt["batch_query_interval"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case strings.HasPrefix(itemTrimIdentMgmt, "connection "):
+		case balt.CutPrefixInString(&itemTrim, "connection "):
 			if len(userIdentIdentityMgmt["connection"].([]map[string]interface{})) == 0 {
 				userIdentIdentityMgmt["connection"] = append(
 					userIdentIdentityMgmt["connection"].([]map[string]interface{}), map[string]interface{}{
@@ -1783,81 +1729,59 @@ func readServicesUserIdentification(confRead *servicesOptions, itemTrimUserIdent
 			}
 			userIdentIdentityMgmtConnect := userIdentIdentityMgmt["connection"].([]map[string]interface{})[0]
 			switch {
-			case strings.HasPrefix(itemTrimIdentMgmt, "connection primary address "):
-				userIdentIdentityMgmtConnect["primary_address"] = strings.TrimPrefix(
-					itemTrimIdentMgmt, "connection primary address ")
-			case strings.HasPrefix(itemTrimIdentMgmt, "connection primary client-id "):
-				userIdentIdentityMgmtConnect["primary_client_id"] = strings.Trim(strings.TrimPrefix(
-					itemTrimIdentMgmt, "connection primary client-id "), "\"")
-			case strings.HasPrefix(itemTrimIdentMgmt, "connection primary client-secret "):
-				var err error
-				userIdentIdentityMgmtConnect["primary_client_secret"], err = jdecode.Decode(
-					strings.Trim(strings.TrimPrefix(itemTrimIdentMgmt, "connection primary client-secret "), "\""))
+			case balt.CutPrefixInString(&itemTrim, "primary address "):
+				userIdentIdentityMgmtConnect["primary_address"] = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "primary client-id "):
+				userIdentIdentityMgmtConnect["primary_client_id"] = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "primary client-secret "):
+				userIdentIdentityMgmtConnect["primary_client_secret"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 				if err != nil {
 					return fmt.Errorf("failed to decode primary client-secret: %w", err)
 				}
-			case strings.HasPrefix(itemTrimIdentMgmt, "connection connect-method "):
-				userIdentIdentityMgmtConnect["connect_method"] = strings.TrimPrefix(itemTrimIdentMgmt, "connection connect-method ")
-			case strings.HasPrefix(itemTrimIdentMgmt, "connection port "):
-				var err error
-				userIdentIdentityMgmtConnect["port"], err = strconv.Atoi(strings.TrimPrefix(itemTrimIdentMgmt, "connection port "))
+			case balt.CutPrefixInString(&itemTrim, "connect-method "):
+				userIdentIdentityMgmtConnect["connect_method"] = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "port "):
+				userIdentIdentityMgmtConnect["port"], err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrimIdentMgmt, "connection primary ca-certificate "):
-				userIdentIdentityMgmtConnect["primary_ca_certificate"] = strings.Trim(strings.TrimPrefix(
-					itemTrimIdentMgmt, "connection primary ca-certificate "), "\"")
-			case strings.HasPrefix(itemTrimIdentMgmt, "connection query-api "):
-				userIdentIdentityMgmtConnect["query_api"] = strings.Trim(strings.TrimPrefix(
-					itemTrimIdentMgmt, "connection query-api "), "\"")
-			case strings.HasPrefix(itemTrimIdentMgmt, "connection secondary address "):
-				userIdentIdentityMgmtConnect["secondary_address"] = strings.TrimPrefix(
-					itemTrimIdentMgmt, "connection secondary address ")
-			case strings.HasPrefix(itemTrimIdentMgmt, "connection secondary ca-certificate "):
-				userIdentIdentityMgmtConnect["secondary_ca_certificate"] = strings.Trim(strings.TrimPrefix(
-					itemTrimIdentMgmt, "connection secondary ca-certificate "), "\"")
-			case strings.HasPrefix(itemTrimIdentMgmt, "connection secondary client-id "):
-				userIdentIdentityMgmtConnect["secondary_client_id"] = strings.Trim(strings.TrimPrefix(
-					itemTrimIdentMgmt, "connection secondary client-id "), "\"")
-			case strings.HasPrefix(itemTrimIdentMgmt, "connection secondary client-secret "):
-				var err error
-				userIdentIdentityMgmtConnect["secondary_client_secret"], err = jdecode.Decode(
-					strings.Trim(strings.TrimPrefix(itemTrimIdentMgmt, "connection secondary client-secret "), "\""))
+			case balt.CutPrefixInString(&itemTrim, "primary ca-certificate "):
+				userIdentIdentityMgmtConnect["primary_ca_certificate"] = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "query-api "):
+				userIdentIdentityMgmtConnect["query_api"] = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "secondary address "):
+				userIdentIdentityMgmtConnect["secondary_address"] = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "secondary ca-certificate "):
+				userIdentIdentityMgmtConnect["secondary_ca_certificate"] = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "secondary client-id "):
+				userIdentIdentityMgmtConnect["secondary_client_id"] = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "secondary client-secret "):
+				userIdentIdentityMgmtConnect["secondary_client_secret"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 				if err != nil {
 					return fmt.Errorf("failed to decode secondary client-secret: %w", err)
 				}
-			case strings.HasPrefix(itemTrimIdentMgmt, "connection token-api "):
-				userIdentIdentityMgmtConnect["token_api"] = strings.Trim(strings.TrimPrefix(
-					itemTrimIdentMgmt, "connection token-api "), "\"")
+			case balt.CutPrefixInString(&itemTrim, "token-api "):
+				userIdentIdentityMgmtConnect["token_api"] = strings.Trim(itemTrim, "\"")
 			}
-		case strings.HasPrefix(itemTrimIdentMgmt, "filter domain "):
-			userIdentIdentityMgmt["filter_domain"] = append(userIdentIdentityMgmt["filter_domain"].([]string),
-				strings.TrimPrefix(itemTrimIdentMgmt, "filter domain "))
-		case strings.HasPrefix(itemTrimIdentMgmt, "filter exclude-ip address-book "):
-			userIdentIdentityMgmt["filter_exclude_ip_address_book"] = strings.Trim(strings.TrimPrefix(
-				itemTrimIdentMgmt, "filter exclude-ip address-book "), "\"")
-		case strings.HasPrefix(itemTrimIdentMgmt, "filter exclude-ip address-set "):
-			userIdentIdentityMgmt["filter_exclude_ip_address_set"] = strings.Trim(strings.TrimPrefix(
-				itemTrimIdentMgmt, "filter exclude-ip address-set "), "\"")
-		case strings.HasPrefix(itemTrimIdentMgmt, "filter include-ip address-book "):
-			userIdentIdentityMgmt["filter_include_ip_address_book"] = strings.Trim(strings.TrimPrefix(
-				itemTrimIdentMgmt, "filter include-ip address-book "), "\"")
-		case strings.HasPrefix(itemTrimIdentMgmt, "filter include-ip address-set "):
-			userIdentIdentityMgmt["filter_include_ip_address_set"] = strings.Trim(strings.TrimPrefix(
-				itemTrimIdentMgmt, "filter include-ip address-set "), "\"")
-		case strings.HasPrefix(itemTrimIdentMgmt, "invalid-authentication-entry-timeout "):
-			var err error
-			userIdentIdentityMgmt["invalid_authentication_entry_timeout"], err = strconv.Atoi(
-				strings.TrimPrefix(itemTrimIdentMgmt, "invalid-authentication-entry-timeout "))
+		case balt.CutPrefixInString(&itemTrim, "filter domain "):
+			userIdentIdentityMgmt["filter_domain"] = append(userIdentIdentityMgmt["filter_domain"].([]string), itemTrim)
+		case balt.CutPrefixInString(&itemTrim, "filter exclude-ip address-book "):
+			userIdentIdentityMgmt["filter_exclude_ip_address_book"] = strings.Trim(itemTrim, "\"")
+		case balt.CutPrefixInString(&itemTrim, "filter exclude-ip address-set "):
+			userIdentIdentityMgmt["filter_exclude_ip_address_set"] = strings.Trim(itemTrim, "\"")
+		case balt.CutPrefixInString(&itemTrim, "filter include-ip address-book "):
+			userIdentIdentityMgmt["filter_include_ip_address_book"] = strings.Trim(itemTrim, "\"")
+		case balt.CutPrefixInString(&itemTrim, "filter include-ip address-set "):
+			userIdentIdentityMgmt["filter_include_ip_address_set"] = strings.Trim(itemTrim, "\"")
+		case balt.CutPrefixInString(&itemTrim, "invalid-authentication-entry-timeout "):
+			userIdentIdentityMgmt["invalid_authentication_entry_timeout"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}
-		case itemTrimIdentMgmt == "ip-query no-ip-query":
+		case itemTrim == "ip-query no-ip-query":
 			userIdentIdentityMgmt["ip_query_disable"] = true
-		case strings.HasPrefix(itemTrimIdentMgmt, "ip-query query-delay-time "):
-			var err error
-			userIdentIdentityMgmt["ip_query_delay_time"], err = strconv.Atoi(
-				strings.TrimPrefix(itemTrimIdentMgmt, "ip-query query-delay-time "))
+		case balt.CutPrefixInString(&itemTrim, "ip-query query-delay-time "):
+			userIdentIdentityMgmt["ip_query_delay_time"], err = strconv.Atoi(itemTrim)
 			if err != nil {
 				return fmt.Errorf(failedConvAtoiError, itemTrim, err)
 			}

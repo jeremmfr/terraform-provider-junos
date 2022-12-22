@@ -256,15 +256,15 @@ func dataSourceApplicationsSearch(clt *Client, junSess *junosSession) (map[strin
 				continue
 			}
 			itemTrim := strings.TrimPrefix(item, "set application ")
-			itemTrimSplit := strings.Split(itemTrim, " ")
-			if _, ok := results[itemTrimSplit[0]]; !ok {
-				results[itemTrimSplit[0]] = applicationOptions{name: itemTrimSplit[0]}
+			itemTrimFields := strings.Split(itemTrim, " ")
+			if _, ok := results[itemTrimFields[0]]; !ok {
+				results[itemTrimFields[0]] = applicationOptions{name: itemTrimFields[0]}
 			}
-			appOpts := results[itemTrimSplit[0]]
-			if err := appOpts.readLine(strings.TrimPrefix(itemTrim, itemTrimSplit[0]+" ")); err != nil {
+			appOpts := results[itemTrimFields[0]]
+			if err := appOpts.readLine(strings.TrimPrefix(itemTrim, itemTrimFields[0]+" ")); err != nil {
 				return results, err
 			}
-			results[itemTrimSplit[0]] = appOpts
+			results[itemTrimFields[0]] = appOpts
 		}
 	}
 

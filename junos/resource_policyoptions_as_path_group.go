@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -288,9 +289,8 @@ func setPolicyoptionsAsPathGroup(d *schema.ResourceData, clt *Client, junSess *j
 	return clt.configSet(configSet, junSess)
 }
 
-func readPolicyoptionsAsPathGroup(name string, clt *Client, junSess *junosSession) (asPathGroupOptions, error) {
-	var confRead asPathGroupOptions
-
+func readPolicyoptionsAsPathGroup(name string, clt *Client, junSess *junosSession,
+) (confRead asPathGroupOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"policy-options as-path-group "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -309,15 +309,12 @@ func readPolicyoptionsAsPathGroup(name string, clt *Client, junSess *junosSessio
 			switch {
 			case itemTrim == "dynamic-db":
 				confRead.dynamicDB = true
-			case strings.HasPrefix(itemTrim, "as-path "):
+			case balt.CutPrefixInString(&itemTrim, "as-path "):
+				itemTrimFields := strings.Split(itemTrim, " ")
 				asPath := map[string]interface{}{
-					"name": "",
-					"path": "",
+					"name": itemTrimFields[0],
+					"path": strings.Trim(strings.TrimPrefix(itemTrim, itemTrimFields[0]+" "), "\""),
 				}
-				itemSplit := strings.Split(strings.TrimPrefix(itemTrim, "as-path "), " ")
-				asPath["name"] = itemSplit[0]
-				asPath["path"] = strings.Trim(strings.TrimPrefix(itemTrim,
-					"as-path "+asPath["name"].(string)+" "), "\"")
 				confRead.asPath = append(confRead.asPath, asPath)
 			}
 		}

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type ikeProposalOptions struct {
@@ -291,9 +292,7 @@ func setIkeProposal(d *schema.ResourceData, clt *Client, junSess *junosSession) 
 	return clt.configSet(configSet, junSess)
 }
 
-func readIkeProposal(ikeProposal string, clt *Client, junSess *junosSession) (ikeProposalOptions, error) {
-	var confRead ikeProposalOptions
-
+func readIkeProposal(ikeProposal string, clt *Client, junSess *junosSession) (confRead ikeProposalOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security ike proposal "+ikeProposal+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -310,16 +309,16 @@ func readIkeProposal(ikeProposal string, clt *Client, junSess *junosSession) (ik
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "authentication-algorithm "):
-				confRead.authenticationAlgorithm = strings.TrimPrefix(itemTrim, "authentication-algorithm ")
-			case strings.HasPrefix(itemTrim, "authentication-method "):
-				confRead.authenticationMethod = strings.TrimPrefix(itemTrim, "authentication-method ")
-			case strings.HasPrefix(itemTrim, "dh-group "):
-				confRead.dhGroup = strings.TrimPrefix(itemTrim, "dh-group ")
-			case strings.HasPrefix(itemTrim, "encryption-algorithm"):
-				confRead.encryptionAlgorithm = strings.TrimPrefix(itemTrim, "encryption-algorithm ")
-			case strings.HasPrefix(itemTrim, "lifetime-seconds"):
-				confRead.lifetimeSeconds, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "lifetime-seconds "))
+			case balt.CutPrefixInString(&itemTrim, "authentication-algorithm "):
+				confRead.authenticationAlgorithm = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "authentication-method "):
+				confRead.authenticationMethod = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "dh-group "):
+				confRead.dhGroup = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "encryption-algorithm "):
+				confRead.encryptionAlgorithm = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "lifetime-seconds "):
+				confRead.lifetimeSeconds, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}

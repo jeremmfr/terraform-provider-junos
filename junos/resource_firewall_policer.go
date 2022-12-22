@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type policerOptions struct {
@@ -344,9 +345,7 @@ func setFirewallPolicer(d *schema.ResourceData, clt *Client, junSess *junosSessi
 	return clt.configSet(configSet, junSess)
 }
 
-func readFirewallPolicer(name string, clt *Client, junSess *junosSession) (policerOptions, error) {
-	var confRead policerOptions
-
+func readFirewallPolicer(name string, clt *Client, junSess *junosSession) (confRead policerOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"firewall policer "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -364,7 +363,7 @@ func readFirewallPolicer(name string, clt *Client, junSess *junosSession) (polic
 			switch {
 			case itemTrim == "filter-specific":
 				confRead.filterSpecific = true
-			case strings.HasPrefix(itemTrim, "if-exceeding "):
+			case balt.CutPrefixInString(&itemTrim, "if-exceeding "):
 				if len(confRead.ifExceeding) == 0 {
 					confRead.ifExceeding = append(confRead.ifExceeding, map[string]interface{}{
 						"burst_size_limit":  "",
@@ -373,18 +372,17 @@ func readFirewallPolicer(name string, clt *Client, junSess *junosSession) (polic
 					})
 				}
 				switch {
-				case strings.HasPrefix(itemTrim, "if-exceeding burst-size-limit "):
-					confRead.ifExceeding[0]["burst_size_limit"] = strings.TrimPrefix(itemTrim, "if-exceeding burst-size-limit ")
-				case strings.HasPrefix(itemTrim, "if-exceeding bandwidth-percent "):
-					confRead.ifExceeding[0]["bandwidth_percent"], err = strconv.Atoi(
-						strings.TrimPrefix(itemTrim, "if-exceeding bandwidth-percent "))
+				case balt.CutPrefixInString(&itemTrim, "burst-size-limit "):
+					confRead.ifExceeding[0]["burst_size_limit"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "bandwidth-percent "):
+					confRead.ifExceeding[0]["bandwidth_percent"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "if-exceeding bandwidth-limit "):
-					confRead.ifExceeding[0]["bandwidth_limit"] = strings.TrimPrefix(itemTrim, "if-exceeding bandwidth-limit ")
+				case balt.CutPrefixInString(&itemTrim, "bandwidth-limit "):
+					confRead.ifExceeding[0]["bandwidth_limit"] = itemTrim
 				}
-			case strings.HasPrefix(itemTrim, "then "):
+			case balt.CutPrefixInString(&itemTrim, "then "):
 				if len(confRead.then) == 0 {
 					confRead.then = append(confRead.then, map[string]interface{}{
 						"discard":          false,
@@ -394,13 +392,13 @@ func readFirewallPolicer(name string, clt *Client, junSess *junosSession) (polic
 					})
 				}
 				switch {
-				case itemTrim == "then discard":
+				case itemTrim == "discard":
 					confRead.then[0]["discard"] = true
-				case strings.HasPrefix(itemTrim, "then forwarding-class "):
-					confRead.then[0]["forwarding_class"] = strings.TrimPrefix(itemTrim, "then forwarding-class ")
-				case strings.HasPrefix(itemTrim, "then loss-priority "):
-					confRead.then[0]["loss_priority"] = strings.TrimPrefix(itemTrim, "then loss-priority ")
-				case itemTrim == "then out-of-profile":
+				case balt.CutPrefixInString(&itemTrim, "forwarding-class "):
+					confRead.then[0]["forwarding_class"] = itemTrim
+				case balt.CutPrefixInString(&itemTrim, "loss-priority "):
+					confRead.then[0]["loss_priority"] = itemTrim
+				case itemTrim == "out-of-profile":
 					confRead.then[0]["out_of_profile"] = true
 				}
 			}

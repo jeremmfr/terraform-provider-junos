@@ -401,11 +401,11 @@ func searchInterfacePhysicalID(configInterface, match string, clt *Client, junSe
 		if !matched {
 			continue
 		}
-		itemTrimSplit := strings.Split(itemTrim, " ")
-		if len(itemTrimSplit) == 0 {
+		itemTrimFields := strings.Split(itemTrim, " ")
+		if len(itemTrimFields) == 0 {
 			continue
 		}
-		intConfigList = append(intConfigList, itemTrimSplit[0])
+		intConfigList = append(intConfigList, itemTrimFields[0])
 	}
 	intConfigList = balt.UniqueInSlice(intConfigList)
 	if len(intConfigList) == 0 {

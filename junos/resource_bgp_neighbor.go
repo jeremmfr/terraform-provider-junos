@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 func resourceBgpNeighbor() *schema.Resource {
@@ -831,9 +832,8 @@ func resourceBgpNeighborImport(ctx context.Context, d *schema.ResourceData, m in
 	return result, nil
 }
 
-func checkBgpNeighborExists(ip, instance, group string, clt *Client, junSess *junosSession) (bool, error) {
+func checkBgpNeighborExists(ip, instance, group string, clt *Client, junSess *junosSession) (_ bool, err error) {
 	var showConfig string
-	var err error
 	if instance == defaultW {
 		showConfig, err = clt.command(cmdShowConfig+
 			"protocols bgp group "+group+" neighbor "+ip+pipeDisplaySet, junSess)
@@ -880,15 +880,12 @@ func setBgpNeighbor(d *schema.ResourceData, clt *Client, junSess *junosSession) 
 	return setBgpOptsGrafefulRestart(setPrefix, d.Get("graceful_restart").([]interface{}), clt, junSess)
 }
 
-func readBgpNeighbor(ip, instance, group string, clt *Client, junSess *junosSession) (bgpOptions, error) {
-	var confRead bgpOptions
-	var showConfig string
-	var err error
+func readBgpNeighbor(ip, instance, group string, clt *Client, junSess *junosSession) (confRead bgpOptions, err error) {
 	// default -1
 	confRead.localPreference = -1
 	confRead.metricOut = -1
 	confRead.preference = -1
-
+	var showConfig string
 	if instance == defaultW {
 		showConfig, err = clt.command(cmdShowConfig+
 			"protocols bgp group "+group+" neighbor "+ip+pipeDisplaySetRelative, junSess)
@@ -915,22 +912,22 @@ func readBgpNeighbor(ip, instance, group string, clt *Client, junSess *junosSess
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "family evpn "):
-				confRead.familyEvpn, err = readBgpOptsFamily(itemTrim, "evpn", confRead.familyEvpn)
+			case balt.CutPrefixInString(&itemTrim, "family evpn "):
+				confRead.familyEvpn, err = readBgpOptsFamily(itemTrim, confRead.familyEvpn)
 				if err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "family inet "):
-				confRead.familyInet, err = readBgpOptsFamily(itemTrim, inetW, confRead.familyInet)
+			case balt.CutPrefixInString(&itemTrim, "family inet "):
+				confRead.familyInet, err = readBgpOptsFamily(itemTrim, confRead.familyInet)
 				if err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "family inet6 "):
-				confRead.familyInet6, err = readBgpOptsFamily(itemTrim, inet6W, confRead.familyInet6)
+			case balt.CutPrefixInString(&itemTrim, "family inet6 "):
+				confRead.familyInet6, err = readBgpOptsFamily(itemTrim, confRead.familyInet6)
 				if err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "bfd-liveness-detection "):
+			case balt.CutPrefixInString(&itemTrim, "bfd-liveness-detection "):
 				if len(confRead.bfdLivenessDetection) == 0 {
 					confRead.bfdLivenessDetection = append(confRead.bfdLivenessDetection,
 						map[string]interface{}{
@@ -951,7 +948,7 @@ func readBgpNeighbor(ip, instance, group string, clt *Client, junSess *junosSess
 				if err := readBgpOptsBfd(itemTrim, confRead.bfdLivenessDetection[0]); err != nil {
 					return confRead, err
 				}
-			case strings.HasPrefix(itemTrim, "graceful-restart "):
+			case balt.CutPrefixInString(&itemTrim, "graceful-restart "):
 				if len(confRead.gracefulRestart) == 0 {
 					confRead.gracefulRestart = append(confRead.gracefulRestart, map[string]interface{}{
 						"disable":          false,
@@ -963,7 +960,7 @@ func readBgpNeighbor(ip, instance, group string, clt *Client, junSess *junosSess
 					return confRead, err
 				}
 			default:
-				err = readBgpOptsSimple(itemTrim, &confRead)
+				err = confRead.readBgpOptsSimple(itemTrim)
 				if err != nil {
 					return confRead, err
 				}

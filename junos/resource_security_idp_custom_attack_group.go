@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type idpCustomAttackGroupOptions struct {
@@ -266,9 +267,7 @@ func setSecurityIdpCustomAttackGroup(d *schema.ResourceData, clt *Client, junSes
 }
 
 func readSecurityIdpCustomAttackGroup(customAttackGroup string, clt *Client, junSess *junosSession,
-) (idpCustomAttackGroupOptions, error) {
-	var confRead idpCustomAttackGroupOptions
-
+) (confRead idpCustomAttackGroupOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security idp custom-attack-group \""+customAttackGroup+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -284,8 +283,8 @@ func readSecurityIdpCustomAttackGroup(customAttackGroup string, clt *Client, jun
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
-			if strings.HasPrefix(itemTrim, "group-members ") {
-				confRead.member = append(confRead.member, strings.Trim(strings.TrimPrefix(itemTrim, "group-members "), "\""))
+			if balt.CutPrefixInString(&itemTrim, "group-members ") {
+				confRead.member = append(confRead.member, strings.Trim(itemTrim, "\""))
 			}
 		}
 	}

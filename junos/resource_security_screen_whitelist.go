@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type screenWhiteListOptions struct {
@@ -267,9 +268,8 @@ func setSecurityScreenWhiteList(d *schema.ResourceData, clt *Client, junSess *ju
 	return clt.configSet(configSet, junSess)
 }
 
-func readSecurityScreenWhiteList(name string, clt *Client, junSess *junosSession) (screenWhiteListOptions, error) {
-	var confRead screenWhiteListOptions
-
+func readSecurityScreenWhiteList(name string, clt *Client, junSess *junosSession,
+) (confRead screenWhiteListOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"security screen white-list "+name+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -285,8 +285,8 @@ func readSecurityScreenWhiteList(name string, clt *Client, junSess *junosSession
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
-			if strings.HasPrefix(itemTrim, "address ") {
-				confRead.address = append(confRead.address, strings.TrimPrefix(itemTrim, "address "))
+			if balt.CutPrefixInString(&itemTrim, "address ") {
+				confRead.address = append(confRead.address, itemTrim)
 			}
 		}
 	}

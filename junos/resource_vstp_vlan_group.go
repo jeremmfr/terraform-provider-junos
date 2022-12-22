@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type vstpVlanGroupOptions struct {
@@ -335,9 +336,8 @@ func resourceVstpVlanGroupImport(ctx context.Context, d *schema.ResourceData, m 
 }
 
 func checkVstpVlanGroupExists(name, routingInstance string, clt *Client, junSess *junosSession,
-) (bool, error) {
+) (_ bool, err error) {
 	var showConfig string
-	var err error
 	if routingInstance == defaultW {
 		showConfig, err = clt.command(cmdShowConfig+
 			"protocols vstp vlan-group group "+name+pipeDisplaySet, junSess)
@@ -390,10 +390,8 @@ func setVstpVlanGroup(d *schema.ResourceData, clt *Client, junSess *junosSession
 }
 
 func readVstpVlanGroup(name, routingInstance string, clt *Client, junSess *junosSession,
-) (vstpVlanGroupOptions, error) {
-	var confRead vstpVlanGroupOptions
+) (confRead vstpVlanGroupOptions, err error) {
 	var showConfig string
-	var err error
 	if routingInstance == defaultW {
 		showConfig, err = clt.command(cmdShowConfig+
 			"protocols vstp vlan-group group "+name+pipeDisplaySetRelative, junSess)
@@ -416,32 +414,29 @@ func readVstpVlanGroup(name, routingInstance string, clt *Client, junSess *junos
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
 			switch {
-			case strings.HasPrefix(itemTrim, "vlan "):
-				confRead.vlan = append(confRead.vlan, strings.TrimPrefix(itemTrim, "vlan "))
-			case strings.HasPrefix(itemTrim, "backup-bridge-priority "):
-				confRead.backupBridgePriority = strings.TrimPrefix(itemTrim, "backup-bridge-priority ")
-			case strings.HasPrefix(itemTrim, "bridge-priority "):
-				confRead.bridgePriority = strings.TrimPrefix(itemTrim, "bridge-priority ")
-			case strings.HasPrefix(itemTrim, "forward-delay "):
-				var err error
-				confRead.forwardDelay, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "forward-delay "))
+			case balt.CutPrefixInString(&itemTrim, "vlan "):
+				confRead.vlan = append(confRead.vlan, itemTrim)
+			case balt.CutPrefixInString(&itemTrim, "backup-bridge-priority "):
+				confRead.backupBridgePriority = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "bridge-priority "):
+				confRead.bridgePriority = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "forward-delay "):
+				confRead.forwardDelay, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "hello-time "):
-				var err error
-				confRead.helloTime, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "hello-time "))
+			case balt.CutPrefixInString(&itemTrim, "hello-time "):
+				confRead.helloTime, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "max-age "):
-				var err error
-				confRead.maxAge, err = strconv.Atoi(strings.TrimPrefix(itemTrim, "max-age "))
+			case balt.CutPrefixInString(&itemTrim, "max-age "):
+				confRead.maxAge, err = strconv.Atoi(itemTrim)
 				if err != nil {
 					return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 				}
-			case strings.HasPrefix(itemTrim, "system-identifier "):
-				confRead.systemIdentifier = strings.TrimPrefix(itemTrim, "system-identifier ")
+			case balt.CutPrefixInString(&itemTrim, "system-identifier "):
+				confRead.systemIdentifier = itemTrim
 			}
 		}
 	}

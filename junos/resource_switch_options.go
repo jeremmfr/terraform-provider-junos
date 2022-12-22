@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type switchOptionsOptions struct {
@@ -229,9 +230,7 @@ func delSwitchOptions(clt *Client, junSess *junosSession) error {
 	return clt.configSet(configSet, junSess)
 }
 
-func readSwitchOptions(clt *Client, junSess *junosSession) (switchOptionsOptions, error) {
-	var confRead switchOptionsOptions
-
+func readSwitchOptions(clt *Client, junSess *junosSession) (confRead switchOptionsOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"switch-options"+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -245,8 +244,8 @@ func readSwitchOptions(clt *Client, junSess *junosSession) (switchOptionsOptions
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
-			if strings.HasPrefix(itemTrim, "vtep-source-interface ") {
-				confRead.vtepSourceIf = strings.TrimPrefix(itemTrim, "vtep-source-interface ")
+			if balt.CutPrefixInString(&itemTrim, "vtep-source-interface ") {
+				confRead.vtepSourceIf = itemTrim
 			}
 		}
 	}

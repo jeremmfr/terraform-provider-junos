@@ -159,6 +159,12 @@ The following arguments are supported in the `provider` block:
   It can also be sourced from the `JUNOS_SSH_TIMEOUT_TO_ESTABLISH` environment variable.  
   Defaults to `0` (no timeout).
 
+- **ssh_retry_to_establish** (Optional, Number)  
+  Number of retries to establish SSH connections.  
+  The provider waits after each try, with the sleep time increasing by 1 second each time.  
+  It can also be sourced from the `JUNOS_SSH_RETRY_TO_ESTABLISH` environment variable.  
+  Defaults to `1` (1..10).
+
 ---
 
 ### Debug & workaround options

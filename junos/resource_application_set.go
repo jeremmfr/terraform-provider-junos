@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 )
 
 type applicationSetOptions struct {
@@ -256,9 +257,8 @@ func setApplicationSet(d *schema.ResourceData, clt *Client, junSess *junosSessio
 	return clt.configSet(configSet, junSess)
 }
 
-func readApplicationSet(applicationSet string, clt *Client, junSess *junosSession) (applicationSetOptions, error) {
-	var confRead applicationSetOptions
-
+func readApplicationSet(applicationSet string, clt *Client, junSess *junosSession,
+) (confRead applicationSetOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+
 		"applications application-set "+applicationSet+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -274,8 +274,8 @@ func readApplicationSet(applicationSet string, clt *Client, junSess *junosSessio
 				break
 			}
 			itemTrim := strings.TrimPrefix(item, setLS)
-			if strings.HasPrefix(itemTrim, "application ") {
-				confRead.applications = append(confRead.applications, strings.TrimPrefix(itemTrim, "application "))
+			if balt.CutPrefixInString(&itemTrim, "application ") {
+				confRead.applications = append(confRead.applications, itemTrim)
 			}
 		}
 	}

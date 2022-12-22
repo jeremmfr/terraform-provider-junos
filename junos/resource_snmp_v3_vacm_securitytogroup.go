@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 )
 
@@ -291,9 +292,7 @@ func setSnmpV3VacmSecurityToGroup(d *schema.ResourceData, clt *Client, junSess *
 }
 
 func readSnmpV3VacmSecurityToGroup(model, name string, clt *Client, junSess *junosSession,
-) (snmpV3VacmSecurityToGroupOptions, error) {
-	var confRead snmpV3VacmSecurityToGroupOptions
-
+) (confRead snmpV3VacmSecurityToGroupOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"snmp v3 vacm security-to-group "+
 		"security-model "+model+" security-name \""+name+"\""+pipeDisplaySetRelative, junSess)
 	if err != nil {
@@ -309,8 +308,9 @@ func readSnmpV3VacmSecurityToGroup(model, name string, clt *Client, junSess *jun
 			if strings.Contains(item, xmlEndTagConfigOut) {
 				break
 			}
-			if strings.HasPrefix(item, setLS+"group ") {
-				confRead.group = strings.Trim(strings.TrimPrefix(item, setLS+"group "), "\"")
+			itemTrim := strings.TrimPrefix(item, setLS)
+			if balt.CutPrefixInString(&itemTrim, "group ") {
+				confRead.group = strings.Trim(itemTrim, "\"")
 			}
 		}
 	}

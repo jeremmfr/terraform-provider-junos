@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	balt "github.com/jeremmfr/go-utils/basicalter"
 	bchk "github.com/jeremmfr/go-utils/basiccheck"
 	jdecode "github.com/jeremmfr/junosdecode"
 )
@@ -564,9 +565,7 @@ func setSystemSyslogFile(d *schema.ResourceData, clt *Client, junSess *junosSess
 	return clt.configSet(configSet, junSess)
 }
 
-func readSystemSyslogFile(filename string, clt *Client, junSess *junosSession) (syslogFileOptions, error) {
-	var confRead syslogFileOptions
-
+func readSystemSyslogFile(filename string, clt *Client, junSess *junosSession) (confRead syslogFileOptions, err error) {
 	showConfig, err := clt.command(cmdShowConfig+"system syslog file "+filename+pipeDisplaySetRelative, junSess)
 	if err != nil {
 		return confRead, err
@@ -586,51 +585,50 @@ func readSystemSyslogFile(filename string, clt *Client, junSess *junosSession) (
 				confRead.allowDuplicates = true
 			case itemTrim == "explicit-priority":
 				confRead.explicitPriority = true
-			case strings.HasPrefix(itemTrim, "match "):
-				confRead.match = strings.Trim(strings.TrimPrefix(itemTrim, "match "), "\"")
-			case strings.HasPrefix(itemTrim, "match-strings "):
-				confRead.matchStrings = append(confRead.matchStrings,
-					strings.Trim(strings.TrimPrefix(itemTrim, "match-strings "), "\""))
-			case strings.HasPrefix(itemTrim, "structured-data"):
+			case balt.CutPrefixInString(&itemTrim, "match "):
+				confRead.match = strings.Trim(itemTrim, "\"")
+			case balt.CutPrefixInString(&itemTrim, "match-strings "):
+				confRead.matchStrings = append(confRead.matchStrings, strings.Trim(itemTrim, "\""))
+			case balt.CutPrefixInString(&itemTrim, "structured-data"):
 				if len(confRead.structuredData) == 0 {
 					confRead.structuredData = append(confRead.structuredData, map[string]interface{}{
 						"brief": false,
 					})
 				}
-				if itemTrim == "structured-data brief" {
+				if itemTrim == " brief" {
 					confRead.structuredData[0]["brief"] = true
 				}
-			case strings.HasPrefix(itemTrim, "any "):
-				confRead.anySeverity = strings.TrimPrefix(itemTrim, "any ")
-			case strings.HasPrefix(itemTrim, "authorization "):
-				confRead.authorizationSeverity = strings.TrimPrefix(itemTrim, "authorization ")
-			case strings.HasPrefix(itemTrim, "change-log "):
-				confRead.changelogSeverity = strings.TrimPrefix(itemTrim, "change-log ")
-			case strings.HasPrefix(itemTrim, "conflict-log "):
-				confRead.conflictlogSeverity = strings.TrimPrefix(itemTrim, "conflict-log ")
-			case strings.HasPrefix(itemTrim, "daemon "):
-				confRead.daemonSeverity = strings.TrimPrefix(itemTrim, "daemon ")
-			case strings.HasPrefix(itemTrim, "dfc "):
-				confRead.dfcSeverity = strings.TrimPrefix(itemTrim, "dfc ")
-			case strings.HasPrefix(itemTrim, "external "):
-				confRead.externalSeverity = strings.TrimPrefix(itemTrim, "external ")
-			case strings.HasPrefix(itemTrim, "firewall "):
-				confRead.firewallSeverity = strings.TrimPrefix(itemTrim, "firewall ")
-			case strings.HasPrefix(itemTrim, "ftp "):
-				confRead.ftpSeverity = strings.TrimPrefix(itemTrim, "ftp ")
-			case strings.HasPrefix(itemTrim, "interactive-commands "):
-				confRead.interactivecommandsSeverity = strings.TrimPrefix(itemTrim, "interactive-commands ")
-			case strings.HasPrefix(itemTrim, "kernel "):
-				confRead.kernelSeverity = strings.TrimPrefix(itemTrim, "kernel ")
-			case strings.HasPrefix(itemTrim, "ntp "):
-				confRead.ntpSeverity = strings.TrimPrefix(itemTrim, "ntp ")
-			case strings.HasPrefix(itemTrim, "pfe "):
-				confRead.pfeSeverity = strings.TrimPrefix(itemTrim, "pfe ")
-			case strings.HasPrefix(itemTrim, "security "):
-				confRead.securitySeverity = strings.TrimPrefix(itemTrim, "security ")
-			case strings.HasPrefix(itemTrim, "user "):
-				confRead.userSeverity = strings.TrimPrefix(itemTrim, "user ")
-			case strings.HasPrefix(itemTrim, "archive"):
+			case balt.CutPrefixInString(&itemTrim, "any "):
+				confRead.anySeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "authorization "):
+				confRead.authorizationSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "change-log "):
+				confRead.changelogSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "conflict-log "):
+				confRead.conflictlogSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "daemon "):
+				confRead.daemonSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "dfc "):
+				confRead.dfcSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "external "):
+				confRead.externalSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "firewall "):
+				confRead.firewallSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "ftp "):
+				confRead.ftpSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "interactive-commands "):
+				confRead.interactivecommandsSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "kernel "):
+				confRead.kernelSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "ntp "):
+				confRead.ntpSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "pfe "):
+				confRead.pfeSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "security "):
+				confRead.securitySeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "user "):
+				confRead.userSeverity = itemTrim
+			case balt.CutPrefixInString(&itemTrim, "archive"):
 				if len(confRead.archive) == 0 {
 					confRead.archive = append(confRead.archive, map[string]interface{}{
 						"sites":             make([]map[string]interface{}, 0),
@@ -645,57 +643,49 @@ func readSystemSyslogFile(filename string, clt *Client, junSess *junosSession) (
 					})
 				}
 				switch {
-				case itemTrim == "archive binary-data":
+				case itemTrim == " binary-data":
 					confRead.archive[0]["binary_data"] = true
-				case itemTrim == "archive no-binary-data":
+				case itemTrim == " no-binary-data":
 					confRead.archive[0]["no_binary_data"] = true
-				case itemTrim == "archive world-readable":
+				case itemTrim == " world-readable":
 					confRead.archive[0]["world_readable"] = true
-				case itemTrim == "archive no-world-readable":
+				case itemTrim == " no-world-readable":
 					confRead.archive[0]["no_world_readable"] = true
-				case strings.HasPrefix(itemTrim, "archive files "):
-					var err error
-					confRead.archive[0]["files"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "archive files "))
+				case balt.CutPrefixInString(&itemTrim, " files "):
+					confRead.archive[0]["files"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "archive size "):
-					var err error
-					confRead.archive[0]["size"], err = strconv.Atoi(strings.TrimPrefix(itemTrim, "archive size "))
+				case balt.CutPrefixInString(&itemTrim, " size "):
+					confRead.archive[0]["size"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "archive transfer-interval "):
-					var err error
-					confRead.archive[0]["transfer_interval"], err = strconv.Atoi(strings.TrimPrefix(
-						itemTrim, "archive transfer-interval "))
+				case balt.CutPrefixInString(&itemTrim, " transfer-interval "):
+					confRead.archive[0]["transfer_interval"], err = strconv.Atoi(itemTrim)
 					if err != nil {
 						return confRead, fmt.Errorf(failedConvAtoiError, itemTrim, err)
 					}
-				case strings.HasPrefix(itemTrim, "archive start-time "):
-					confRead.archive[0]["start_time"] = strings.Split(strings.Trim(strings.TrimPrefix(
-						itemTrim, "archive start-time "), "\""), " ")[0]
-				case strings.HasPrefix(itemTrim, "archive archive-sites "):
-					itemTrimArchSitesSplit := strings.Split(
-						strings.TrimPrefix(itemTrim, "archive archive-sites "), " ")
-					itemTrimArchSites := strings.TrimPrefix(itemTrim, "archive archive-sites "+itemTrimArchSitesSplit[0]+" ")
+				case balt.CutPrefixInString(&itemTrim, " start-time "):
+					confRead.archive[0]["start_time"] = strings.Split(strings.Trim(itemTrim, "\""), " ")[0]
+				case balt.CutPrefixInString(&itemTrim, " archive-sites "):
+					itemTrimFields := strings.Split(itemTrim, " ")
 					sitesOptions := map[string]interface{}{
-						"url":              itemTrimArchSitesSplit[0],
+						"url":              itemTrimFields[0],
 						"password":         "",
 						"routing_instance": "",
 					}
 					confRead.archive[0]["sites"] = copyAndRemoveItemMapList("url", sitesOptions,
 						confRead.archive[0]["sites"].([]map[string]interface{}))
+					balt.CutPrefixInString(&itemTrim, itemTrimFields[0]+" ")
 					switch {
-					case strings.HasPrefix(itemTrimArchSites, "password "):
-						var err error
-						sitesOptions["password"], err = jdecode.Decode(strings.Trim(strings.TrimPrefix(
-							itemTrimArchSites, "password "), "\""))
+					case balt.CutPrefixInString(&itemTrim, "password "):
+						sitesOptions["password"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 						if err != nil {
 							return confRead, fmt.Errorf("failed to decode password: %w", err)
 						}
-					case strings.HasPrefix(itemTrimArchSites, "routing-instance "):
-						sitesOptions["routing_instance"] = strings.TrimPrefix(itemTrimArchSites, "routing-instance ")
+					case balt.CutPrefixInString(&itemTrim, "routing-instance "):
+						sitesOptions["routing_instance"] = itemTrim
 					}
 					confRead.archive[0]["sites"] = append(confRead.archive[0]["sites"].([]map[string]interface{}), sitesOptions)
 				}
