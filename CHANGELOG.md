@@ -5,6 +5,12 @@ FEATURES:
 
 ENHANCEMENTS:
 
+BUG FIXES:
+
+## 1.32.0 (December 22, 2022)
+
+ENHANCEMENTS:
+
 * provider: add `ssh_retry_to_establish` argument to retry when establishing SSH connections
 * resource/`junos_security_address_book`: add `ipv4_only` and `ipv6_only` arguments inside `dns_name` block argument
 * refactor the code of most resource reading functions to make it more readable and maintainable
