@@ -70,7 +70,7 @@ The following arguments are supported:
   - **value** (Required, String)  
     Network and mask of wildcard address (`192.0.0.0/255.255.0.255`).
   - **description** (Optional, String)  
-    Description of network address.
+    Description of wildcard address.
 - **dns_name** (Optional, Block Set)  
   For each name of dns name address.
   - **name** (Required, String)  
