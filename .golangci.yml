@@ -55,4 +55,11 @@ issues:
     - text: "Use of ssh InsecureIgnoreHostKey"
       linters:
         - gosec
+    - text: "github.com/jeremmfr/terraform-provider-junos/internal"
+      linters:
+        - wrapcheck
+    - text: "github.com/hashicorp/terraform-plugin-framework/provider"
+      linters:
+        - ireturn
+
    

@@ -32,7 +32,7 @@ for provider and resources documentation.
 
 - [Go](https://golang.org/doc/install) `v1.19` or `v1.20`
 
-## Automatic install (Terraform 0.13 and later)
+## Automatic install
 
 Add source information inside the Terraform configuration block for automatic provider installation:
 
@@ -48,11 +48,11 @@ terraform {
 
 ## Manual install
 
-Download latest version in [releases](https://github.com/jeremmfr/terraform-provider-junos/releases)
+- Download latest version in [releases](https://github.com/jeremmfr/terraform-provider-junos/releases)
 
-### Terraform 0.13 and later
-
-Extract provider binary in [local mirror directory](https://www.terraform.io/cli/config/config-file#implied-local-mirror-directories) with a fake registry (`registry.local`):
+- Extract provider binary in
+[local mirror directory](https://www.terraform.io/cli/config/config-file#implied-local-mirror-directories)
+with a fake registry (`registry.local`):
 
 ```bash
 for archive in $(ls terraform-provider-junos*.zip) ; do
@@ -64,7 +64,7 @@ for archive in $(ls terraform-provider-junos*.zip) ; do
 done
 ```
 
-and add inside the terraform configuration block:
+- Add inside the terraform configuration block:
 
 ```hcl
 terraform {
@@ -76,20 +76,11 @@ terraform {
 }
 ```
 
----
-
-### Terraform 0.12 and earlier
-
-Extract provider binary beside terraform binary:
-
-```bash
-tfPath=$(which terraform | rev | cut -d'/' -f2- | rev)
-unzip terraform-provider-junos*.zip -d ${tfPath}
-```
-
 ## Missing Junos parameters
 
-Some Junos parameters are not included in provider for various reasons (time, utility, understanding, ...) but you can create a issue to request the potential addition of missing features.
+Some Junos parameters are not included in provider for various reasons
+(time, utility, understanding, ...) but you can create a issue
+to request the potential addition of missing features.
 
 ## Contributing
 
@@ -99,8 +90,11 @@ To contribute, please read the [contribution guideline](.github/CONTRIBUTING.md)
 
 ### Build to override automatic install version (Terraform 0.14 and later)
 
-Since Terraform 0.14, [development overrides for provider developers](https://www.terraform.io/cli/config/config-file#development-overrides-for-provider-developers) allow to use the provider built from source.  
-Use a Terraform [cli configuration file](https://www.terraform.io/cli/config/config-file) (`~/.terraformrc` by default) with at least the following options:
+Since Terraform 0.14,
+[development overrides for provider developers](https://www.terraform.io/cli/config/config-file#development-overrides-for-provider-developers)
+allow to use the provider built from source.  
+Use a Terraform [cli configuration file](https://www.terraform.io/cli/config/config-file)
+(`~/.terraformrc` by default) with at least the following options:
 
 ```hcl
 provider_installation {
@@ -121,7 +115,7 @@ go install
 
 ---
 
-### Build to use with a fake registry (Terraform 0.13 and later)
+### Build to use with a fake registry (Terraform 0.13)
 
 ```bash
 git clone https://github.com/jeremmfr/terraform-provider-junos.git
@@ -144,18 +138,4 @@ terraform {
     }
   }
 }
-```
-
----
-
-### Build with output beside terraform binary (Terraform 0.12 and earlier)
-
-```bash
-git clone https://github.com/jeremmfr/terraform-provider-junos.git
-cd terraform-provider-junos && git fetch --tags
-latestTag=$(git describe --tags `git rev-list --tags --max-count=1`)
-git checkout ${latestTag}
-tfPath=$(which terraform | rev | cut -d'/' -f2- | rev)
-go build -o ${tfPath}/terraform-provider-junos_${latestTag}
-unset latestTag tfPath
 ```

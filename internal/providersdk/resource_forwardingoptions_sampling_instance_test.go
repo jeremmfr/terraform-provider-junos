@@ -1,0 +1,234 @@
+package providersdk_test
+
+import (
+	"os"
+	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+)
+
+func TestAccJunosForwardingOptionsSamplingInstance_basic(t *testing.T) {
+	if os.Getenv("TESTACC_ROUTER") != "" {
+		resource.Test(t, resource.TestCase{
+			PreCheck:  func() { testAccPreCheck(t) },
+			Providers: testAccProviders,
+			Steps: []resource.TestStep{
+				{
+					Config: testAccJunosForwardingOptionsSamplingInstanceConfigCreate(),
+				},
+				{
+					Config: testAccJunosForwardingOptionsSamplingInstanceConfigUpdate(),
+				},
+				{
+					ResourceName:      "junos_forwardingoptions_sampling_instance.testacc_sampInstance",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				{
+					ResourceName:      "junos_forwardingoptions_sampling_instance.testacc_sampInstance2",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+				{
+					ResourceName:      "junos_forwardingoptions_sampling_instance.testacc_sampInstance3",
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+			},
+		})
+	}
+}
+
+func testAccJunosForwardingOptionsSamplingInstanceConfigCreate() string {
+	return `
+resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance" {
+  depends_on = [
+    junos_interface_logical.testacc_sampInstance,
+    junos_system_ntp_server.testacc_sampInstance,
+  ]
+
+  name = "testacc_instance@1"
+  input {
+    rate = 1
+  }
+  family_inet_output {
+    flow_server {
+      hostname = "192.0.2.1"
+      port     = 3000
+    }
+    interface {
+      name           = "si-0/1/0"
+      source_address = "192.0.2.2"
+    }
+  }
+}
+resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance2" {
+  name = "testacc_instance@2"
+  family_inet_input {
+    rate = 2
+  }
+  family_inet_output {
+    inline_jflow_source_address = "192.0.2.2"
+    flow_server {
+      hostname               = "192.0.2.1"
+      port                   = 3000
+      version_ipfix_template = junos_services_flowmonitoring_vipfix_template.testacc_sampInstance2.name
+    }
+  }
+}
+resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance3" {
+  name = "testacc_instance@3"
+  family_inet6_input {
+    rate = 2
+  }
+  family_inet6_output {
+    inline_jflow_source_address = "192.0.2.2"
+    flow_server {
+      hostname               = "192.0.2.1"
+      port                   = 3000
+      version_ipfix_template = junos_services_flowmonitoring_vipfix_template.testacc_sampInstance3.name
+    }
+  }
+}
+resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance4" {
+  name = "testacc_instance@4"
+  family_mpls_input {
+    rate = 2
+  }
+  family_mpls_output {
+    inline_jflow_source_address = "192.0.2.2"
+    flow_server {
+      hostname               = "192.0.2.1"
+      port                   = 3000
+      version_ipfix_template = junos_services_flowmonitoring_vipfix_template.testacc_sampInstance4.name
+    }
+  }
+}
+
+resource "junos_system_ntp_server" "testacc_sampInstance" {
+  address = "192.0.2.3"
+}
+resource "junos_interface_logical" "testacc_sampInstance" {
+  name = "si-0/1/0.0"
+  family_inet {}
+}
+resource "junos_services_flowmonitoring_vipfix_template" "testacc_sampInstance2" {
+  name = "testacc_sampInstance@2"
+  type = "ipv4-template"
+}
+resource "junos_services_flowmonitoring_vipfix_template" "testacc_sampInstance3" {
+  name = "testacc_sampInstance@3"
+  type = "ipv6-template"
+}
+resource "junos_services_flowmonitoring_vipfix_template" "testacc_sampInstance4" {
+  name = "testacc_sampInstance@4"
+  type = "mpls-template"
+}
+`
+}
+
+func testAccJunosForwardingOptionsSamplingInstanceConfigUpdate() string {
+	return `
+resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance" {
+  depends_on = [
+    junos_interface_logical.testacc_sampInstance,
+    junos_system_ntp_server.testacc_sampInstance,
+  ]
+
+  name    = "testacc_instance@1"
+  disable = true
+  input {
+    rate                   = 1
+    max_packets_per_second = 1000
+    maximum_packet_length  = 1500
+    run_length             = 10
+  }
+  family_inet_output {
+    flow_active_timeout = 60
+    flow_server {
+      hostname                                              = "192.0.2.1"
+      port                                                  = 3000
+      version                                               = 8
+      aggregation_autonomous_system                         = true
+      aggregation_destination_prefix                        = true
+      aggregation_protocol_port                             = true
+      aggregation_source_destination_prefix                 = true
+      aggregation_source_destination_prefix_caida_compliant = true
+      aggregation_source_prefix                             = true
+      autonomous_system_type                                = "origin"
+      source_address                                        = "192.0.2.2"
+    }
+    interface {
+      name           = "si-0/1/0"
+      source_address = "192.0.2.2"
+      engine_id      = 100
+      engine_type    = 100
+    }
+  }
+}
+resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance2" {
+  name = "testacc_instance@2"
+  family_inet_input {
+    rate                   = 3
+    max_packets_per_second = 1000
+  }
+  family_inet_output {
+    inline_jflow_export_rate    = 2
+    inline_jflow_source_address = "192.0.2.2"
+    flow_inactive_timeout       = 60
+    flow_server {
+      hostname               = "192.0.2.1"
+      port                   = 3000
+      version_ipfix_template = junos_services_flowmonitoring_vipfix_template.testacc_sampInstance2.name
+      autonomous_system_type = "peer"
+    }
+    flow_server {
+      hostname               = "192.0.2.10"
+      port                   = 3003
+      version_ipfix_template = junos_services_flowmonitoring_vipfix_template.testacc_sampInstance2.name
+      dscp                   = 10
+    }
+  }
+}
+resource "junos_forwardingoptions_sampling_instance" "testacc_sampInstance3" {
+  name = "testacc_instance@3"
+  family_inet6_input {
+    rate                   = 3
+    max_packets_per_second = 1000
+  }
+  family_inet6_output {
+    inline_jflow_export_rate    = 4
+    inline_jflow_source_address = "192.0.2.2"
+    flow_server {
+      hostname               = "192.0.2.1"
+      port                   = 3001
+      version_ipfix_template = junos_services_flowmonitoring_vipfix_template.testacc_sampInstance3.name
+      local_dump             = true
+    }
+    flow_server {
+      hostname               = "192.0.2.10"
+      port                   = 3001
+      version_ipfix_template = junos_services_flowmonitoring_vipfix_template.testacc_sampInstance3.name
+      no_local_dump          = true
+    }
+  }
+}
+
+resource "junos_system_ntp_server" "testacc_sampInstance" {
+  address = "192.0.2.3"
+}
+resource "junos_interface_logical" "testacc_sampInstance" {
+  name = "si-0/1/0.0"
+  family_inet {}
+}
+resource "junos_services_flowmonitoring_vipfix_template" "testacc_sampInstance2" {
+  name = "testacc_sampInstance@2"
+  type = "ipv4-template"
+}
+
+resource "junos_services_flowmonitoring_vipfix_template" "testacc_sampInstance3" {
+  name = "testacc_sampInstance@3"
+  type = "ipv6-template"
+}
+`
+}

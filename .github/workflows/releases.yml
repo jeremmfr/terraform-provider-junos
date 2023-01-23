@@ -62,6 +62,8 @@ jobs:
             sudo apt install -y gcc-aarch64-linux-gnu
             echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
           fi
+      - name: Define version in build
+        run: echo ${RELEASE_VERSION} > version/version.txt
       - name: Build
         run: go build -o ${REPO_NAME}_v${RELEASE_VERSION}
       - name: Rename binary for windows
@@ -114,8 +116,10 @@ jobs:
           done
       - name: List files
         run: ls -la
+      - name: Rename registry manifest json file
+        run: cp terraform-registry-manifest.json ${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_manifest.json
       - name: Generate SHA256SUMS
-        run: shasum -a 256 ${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_*.zip > ${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_SHA256SUMS
+        run: shasum -a 256 ${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_*.zip ${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_manifest.json > ${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_SHA256SUMS
       - name: Upload shasum result
         uses: ncipollo/release-action@v1
         with:
@@ -126,4 +130,4 @@ jobs:
           omitDraftDuringUpdate: true
           omitPrereleaseDuringUpdate: true
           artifactContentType: application/octet-stream
-          artifacts: ${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_SHA256SUMS
+          artifacts: ${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_SHA256SUMS,${{ env.REPO_NAME }}_${{ env.RELEASE_VERSION }}_manifest.json

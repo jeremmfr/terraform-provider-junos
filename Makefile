@@ -6,14 +6,22 @@ install:
 	go install
 # Run acceptance tests
 testacc:
-	cd junos ; TF_ACC=1 go test -v --timeout 0 -coverprofile=../coverage.out $(TESTARGS)
-	go tool cover -html=coverage.out
+	cd internal/providersdk ; TF_ACC=1 go test -v --timeout 0 -coverprofile=../../coverage_sdk.out $(TESTARGS)
+	cd internal/providerfwk ; TF_ACC=1 go test -v --timeout 0 -coverprofile=../../coverage_fwk.out $(TESTARGS)
+	go tool cover -html=coverage_sdk.out
+	go tool cover -html=coverage_fwk.out
 testacc/srx:
-	cd junos ; TESTACC_SRX=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../coverage_srx.out $(TESTARGS)
-	go tool cover -html=coverage_srx.out
+	cd internal/providersdk ; TESTACC_SRX=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../../coverage_sdk_srx.out $(TESTARGS)
+	cd internal/providerfwk ; TESTACC_SRX=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../../coverage_fwk_srx.out $(TESTARGS)
+	go tool cover -html=coverage_sdk_srx.out
+	go tool cover -html=coverage_fwk_srx.out
 testacc/router:
-	cd junos ; TESTACC_ROUTER=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../coverage_router.out $(TESTARGS)
-	go tool cover -html=coverage_router.out
+	cd internal/providersdk ; TESTACC_ROUTER=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../../coverage_sdk_router.out $(TESTARGS)
+	cd internal/providerfwk ; TESTACC_ROUTER=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../../coverage_fwk_router.out $(TESTARGS)
+	go tool cover -html=coverage_sdk_router.out
+	go tool cover -html=coverage_fwk_router.out
 testacc/switch:
-	cd junos ; TESTACC_SWITCH=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../coverage_switch.out $(TESTARGS)
-	go tool cover -html=coverage_switch.out
+	cd internal/providersdk ; TESTACC_SWITCH=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../../coverage_sdk_switch.out $(TESTARGS)
+	cd internal/providerfwk ; TESTACC_SWITCH=1 TF_ACC=1 go test -v --timeout 0 -coverprofile=../../coverage_fwk_switch.out $(TESTARGS)
+	go tool cover -html=coverage_sdk_switch.out
+	go tool cover -html=coverage_fwk_switch.out

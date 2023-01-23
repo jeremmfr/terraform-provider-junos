@@ -10,7 +10,7 @@ jobs:
       - name: List resource files and Test Website Files exists
         run: |
           missing=""
-          for resource in $(ls junos/resource_*.go | grep -v "_test.go$" | cut -d'/' -f2 | cut -d'.' -f1 | sed 's/^resource_//' ) ; do \
+          for resource in $(ls internal/*/resource_*.go | grep -v "_test.go$" | cut -d'/' -f3 | cut -d'.' -f1 | sed 's/^resource_//' ) ; do \
           if [[ ! -f docs/resources/${resource}.md ]] ; then \
           missing+="${resource} " ; \
           fi ; \
@@ -21,7 +21,7 @@ jobs:
       - name: List data_source files and Test Website Files exists
         run: |
           missing=""
-          for datasource in $(ls junos/data_source_*.go | grep -v "_test.go$" | cut -d'/' -f2 | cut -d'.' -f1 | sed 's/^data_source_//' ) ; do \
+          for datasource in $(ls internal/*/data_source_*.go | grep -v "_test.go$" | cut -d'/' -f3 | cut -d'.' -f1 | sed 's/^data_source_//' ) ; do \
           if [[ ! -f docs/data-sources/${datasource}.md ]] ; then \
           missing+="${datasource} " ; \
           fi ; \
@@ -31,6 +31,6 @@ jobs:
           fi
       - name: Check if too many level in list of arguments for resource or data_source
         run: |
-          if [[ $(grep -r "^ \{3,\}\(\*\|-\) " website/docs/* | wc -l) -gt 0 ]] ; then \
-          echo "Too many level of arugments in docs" ; grep -nr "^ \{3,\}\(\*\|-\)" website/docs/* ; exit 1 ; \
+          if [[ $(grep -r "^ \{3,\}\(\*\|-\) " docs/* | wc -l) -gt 0 ]] ; then \
+          echo "Too many level of arugments in docs" ; grep -nr "^ \{3,\}\(\*\|-\)" docs/* ; exit 1 ; \
           fi

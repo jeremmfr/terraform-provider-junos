@@ -58,11 +58,11 @@ jobs:
         run: cd terrafmt && go install ./... && cd ${GITHUB_WORKSPACE}
       - name: Detect resource/data-source blocks without double quote on type and name (blocks not detected by terrafmt)
         run: |
-          ! egrep -i '((resource|data)\s+[-a-z0-9_"]+)\s+[-a-z0-9_"]+\s+\{' junos/*_test.go docs/*.md docs/*/*.md | egrep -i -v '((resource|data)\s+"[-a-z0-9_]+")\s+"[-a-z0-9_]+"\s+\{'
+          ! egrep -i '((resource|data)\s+[-a-z0-9_"]+)\s+[-a-z0-9_"]+\s+\{' internal/*/*_test.go docs/*.md docs/*/*.md | egrep -i -v '((resource|data)\s+"[-a-z0-9_]+")\s+"[-a-z0-9_]+"\s+\{'
       - name: Terrafmt diff on docs markdown
         run: find docs | egrep "md$" | sort | while read f; do terrafmt diff $f; done >> /tmp/results.md
       - name: Terrafmt diff on _test.go
-        run: find junos | egrep "_test.go" | sort | while read f; do terrafmt diff $f; done >> /tmp/results.test.go
+        run: find internal | egrep "_test.go" | sort | while read f; do terrafmt diff $f; done >> /tmp/results.test.go
       - name: Generate error if results not empty
         run: |
           if [[ -s /tmp/results.md || -s /tmp/results.test.go ]] ; then 
