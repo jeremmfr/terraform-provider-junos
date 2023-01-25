@@ -18,13 +18,9 @@ type interfacePhysicalOptions struct {
 	disable         bool
 	trunk           bool
 	vlanTagging     bool
-	aeMinLink       int
 	mtu             int
 	vlanNative      int
-	aeLacp          string
-	aeLinkSpeed     string
 	description     string
-	v8023ad         string
 	vlanMembers     []string
 	esi             []map[string]interface{}
 	etherOpts       []map[string]interface{}
@@ -59,26 +55,6 @@ func resourceInterfacePhysical() *schema.Resource {
 			"no_disable_on_destroy": {
 				Type:     schema.TypeBool,
 				Optional: true,
-			},
-			"ae_lacp": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ValidateFunc:  validation.StringInSlice([]string{"active", "passive"}, false),
-				ConflictsWith: []string{"parent_ether_opts"},
-				Deprecated:    "use parent_ether_opts { lacp } instead",
-			},
-			"ae_link_speed": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ValidateFunc:  validation.StringInSlice([]string{"100m", "1g", "8g", "10g", "40g", "50g", "80g", "100g"}, false),
-				ConflictsWith: []string{"parent_ether_opts"},
-				Deprecated:    "use parent_ether_opts { link_speed } instead",
-			},
-			"ae_minimum_links": {
-				Type:          schema.TypeInt,
-				Optional:      true,
-				ConflictsWith: []string{"parent_ether_opts"},
-				Deprecated:    "use parent_ether_opts { minimum_links } instead",
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -128,7 +104,6 @@ func resourceInterfacePhysical() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				ConflictsWith: []string{
-					"ae_lacp", "ae_link_speed", "ae_minimum_links",
 					"gigether_opts", "parent_ether_opts",
 				},
 				MaxItems: 1,
@@ -195,30 +170,11 @@ func resourceInterfacePhysical() *schema.Resource {
 					},
 				},
 			},
-			"ether802_3ad": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Deprecated: "use ether_opts { ae_8023ad } or gigether_opts { ae_8023ad } instead",
-				ConflictsWith: []string{
-					"ae_lacp", "ae_link_speed", "ae_minimum_links",
-					"ether_opts", "gigether_opts",
-				},
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					if !strings.HasPrefix(value, "ae") {
-						errors = append(errors, fmt.Errorf(
-							"%q in %q isn't an ae interface", value, k))
-					}
-
-					return
-				},
-			},
 			"gigether_opts": {
 				Type:     schema.TypeList,
 				Optional: true,
 				ConflictsWith: []string{
-					"ae_lacp", "ae_link_speed", "ae_minimum_links",
-					"ether_opts", "ether802_3ad", "parent_ether_opts",
+					"ether_opts", "parent_ether_opts",
 				},
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -293,8 +249,7 @@ func resourceInterfacePhysical() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				ConflictsWith: []string{
-					"ae_lacp", "ae_link_speed", "ae_minimum_links",
-					"ether_opts", "ether802_3ad", "gigether_opts",
+					"ether_opts", "gigether_opts",
 				},
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -849,11 +804,6 @@ func checkInterfaceExists(interFace string, clt *junos.Client, junSess *junos.Se
 func unsetInterfacePhysicalAE(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
 	var oldAE string
 	switch {
-	case d.HasChange("ether802_3ad"):
-		oldAEtf, _ := d.GetChange("ether802_3ad")
-		if oldAEtf.(string) != "" {
-			oldAE = oldAEtf.(string)
-		}
 	case d.HasChange("ether_opts"):
 		oldEthOpts, _ := d.GetChange("ether_opts")
 		if len(oldEthOpts.([]interface{})) != 0 {
@@ -890,27 +840,6 @@ func setInterfacePhysical(d *schema.ResourceData, clt *junos.Client, junSess *ju
 	configSet := make([]string, 0)
 	setPrefix := "set interfaces " + d.Get("name").(string) + " "
 	configSet = append(configSet, setPrefix)
-	if d.Get("ae_lacp").(string) != "" {
-		if !strings.HasPrefix(d.Get("name").(string), "ae") {
-			return fmt.Errorf("ae_lacp invalid for this interface")
-		}
-		configSet = append(configSet, setPrefix+
-			"aggregated-ether-options lacp "+d.Get("ae_lacp").(string))
-	}
-	if d.Get("ae_link_speed").(string) != "" {
-		if !strings.HasPrefix(d.Get("name").(string), "ae") {
-			return fmt.Errorf("ae_link_speed invalid for this interface")
-		}
-		configSet = append(configSet, setPrefix+
-			"aggregated-ether-options link-speed "+d.Get("ae_link_speed").(string))
-	}
-	if d.Get("ae_minimum_links").(int) > 0 {
-		if !strings.HasPrefix(d.Get("name").(string), "ae") {
-			return fmt.Errorf("ae_minimum_links invalid for this interface")
-		}
-		configSet = append(configSet, setPrefix+
-			"aggregated-ether-options minimum-links "+strconv.Itoa(d.Get("ae_minimum_links").(int)))
-	}
 	if d.Get("description").(string) != "" {
 		configSet = append(configSet, setPrefix+"description \""+d.Get("description").(string)+"\"")
 	}
@@ -930,18 +859,11 @@ func setInterfacePhysical(d *schema.ResourceData, clt *junos.Client, junSess *ju
 			return err
 		}
 		configSet = append(configSet, "set chassis aggregated-devices ethernet device-count "+aggregatedCount)
-	} else if d.Get("ether802_3ad").(string) != "" ||
-		len(d.Get("ether_opts").([]interface{})) != 0 ||
+	} else if len(d.Get("ether_opts").([]interface{})) != 0 ||
 		len(d.Get("gigether_opts").([]interface{})) != 0 {
 		oldAE := "ae-1"
 		var newAE string
 		switch {
-		case d.Get("ether802_3ad").(string) != "":
-			newAE = d.Get("ether802_3ad").(string)
-			configSet = append(configSet, setPrefix+"ether-options 802.3ad "+
-				d.Get("ether802_3ad").(string))
-			configSet = append(configSet, setPrefix+"gigether-options 802.3ad "+
-				d.Get("ether802_3ad").(string))
 		case len(d.Get("ether_opts").([]interface{})) != 0:
 			for _, v := range d.Get("ether_opts").([]interface{}) {
 				if v == nil {
@@ -1012,11 +934,6 @@ func setInterfacePhysical(d *schema.ResourceData, clt *junos.Client, junSess *ju
 			}
 		}
 		switch {
-		case d.HasChange("ether802_3ad"):
-			oldAEtf, _ := d.GetChange("ether802_3ad")
-			if oldAEtf.(string) != "" {
-				oldAE = oldAEtf.(string)
-			}
 		case d.HasChange("ether_opts"):
 			oldEthOpts, _ := d.GetChange("ether_opts")
 			if len(oldEthOpts.([]interface{})) != 0 {
@@ -1241,18 +1158,6 @@ func readInterfacePhysical(interFace string, clt *junos.Client, junSess *junos.S
 			itemTrim := strings.TrimPrefix(item, junos.SetLS)
 			switch {
 			case balt.CutPrefixInString(&itemTrim, "aggregated-ether-options "):
-				itemTrimToLegacy := itemTrim
-				switch {
-				case balt.CutPrefixInString(&itemTrimToLegacy, "lacp "):
-					confRead.aeLacp = itemTrimToLegacy
-				case balt.CutPrefixInString(&itemTrimToLegacy, "link-speed "):
-					confRead.aeLinkSpeed = itemTrimToLegacy
-				case balt.CutPrefixInString(&itemTrimToLegacy, "minimum-links "):
-					confRead.aeMinLink, err = strconv.Atoi(itemTrimToLegacy)
-					if err != nil {
-						return confRead, fmt.Errorf(junos.FailedConvAtoiError, itemTrimToLegacy, err)
-					}
-				}
 				if err := confRead.readInterfacePhysicalParentEtherOpts(itemTrim); err != nil {
 					return confRead, err
 				}
@@ -1342,7 +1247,6 @@ func (confRead *interfacePhysicalOptions) readInterfacePhysicalEtherOpts(itemTri
 	}
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "802.3ad "):
-		confRead.v8023ad = itemTrim
 		confRead.etherOpts[0]["ae_8023ad"] = itemTrim
 	case itemTrim == "auto-negotiation":
 		confRead.etherOpts[0]["auto_negotiation"] = true
@@ -1376,7 +1280,6 @@ func (confRead *interfacePhysicalOptions) readInterfacePhysicalGigetherOpts(item
 	}
 	switch {
 	case balt.CutPrefixInString(&itemTrim, "802.3ad "):
-		confRead.v8023ad = itemTrim
 		confRead.gigetherOpts[0]["ae_8023ad"] = itemTrim
 	case itemTrim == "auto-negotiation":
 		confRead.gigetherOpts[0]["auto_negotiation"] = true
@@ -1587,13 +1490,10 @@ func delInterfacePhysical(d *schema.ResourceData, clt *junos.Client, junSess *ju
 				return err
 			}
 		}
-	} else if d.Get("ether802_3ad").(string) != "" ||
-		len(d.Get("ether_opts").([]interface{})) != 0 ||
+	} else if len(d.Get("ether_opts").([]interface{})) != 0 ||
 		len(d.Get("gigether_opts").([]interface{})) != 0 {
 		var aeDel string
 		switch {
-		case d.Get("ether802_3ad").(string) != "":
-			aeDel = d.Get("ether802_3ad").(string)
 		case len(d.Get("ether_opts").([]interface{})) != 0 && d.Get("ether_opts").([]interface{})[0] != nil:
 			v := d.Get("ether_opts").([]interface{})[0].(map[string]interface{})
 			aeDel = v["ae_8023ad"].(string)
@@ -1690,24 +1590,6 @@ func delInterfacePhysicalOpts(d *schema.ResourceData, clt *junos.Client, junSess
 }
 
 func fillInterfacePhysicalData(d *schema.ResourceData, interfaceOpt interfacePhysicalOptions) {
-	_, okAeLacp := d.GetOk("ae_lacp")
-	if okAeLacp {
-		if tfErr := d.Set("ae_lacp", interfaceOpt.aeLacp); tfErr != nil {
-			panic(tfErr)
-		}
-	}
-	_, okAeLinkSpeed := d.GetOk("ae_link_speed")
-	if okAeLinkSpeed {
-		if tfErr := d.Set("ae_link_speed", interfaceOpt.aeLinkSpeed); tfErr != nil {
-			panic(tfErr)
-		}
-	}
-	_, okAeMinLinks := d.GetOk("ae_minimum_links")
-	if okAeMinLinks {
-		if tfErr := d.Set("ae_minimum_links", interfaceOpt.aeMinLink); tfErr != nil {
-			panic(tfErr)
-		}
-	}
 	if tfErr := d.Set("esi", interfaceOpt.esi); tfErr != nil {
 		panic(tfErr)
 	}
@@ -1717,25 +1599,17 @@ func fillInterfacePhysicalData(d *schema.ResourceData, interfaceOpt interfacePhy
 	if tfErr := d.Set("disable", interfaceOpt.disable); tfErr != nil {
 		panic(tfErr)
 	}
-	if _, ok := d.GetOk("ether802_3ad"); ok {
-		if tfErr := d.Set("ether802_3ad", interfaceOpt.v8023ad); tfErr != nil {
-			panic(tfErr)
-		}
-	} else {
-		if tfErr := d.Set("ether_opts", interfaceOpt.etherOpts); tfErr != nil {
-			panic(tfErr)
-		}
-		if tfErr := d.Set("gigether_opts", interfaceOpt.gigetherOpts); tfErr != nil {
-			panic(tfErr)
-		}
+	if tfErr := d.Set("ether_opts", interfaceOpt.etherOpts); tfErr != nil {
+		panic(tfErr)
+	}
+	if tfErr := d.Set("gigether_opts", interfaceOpt.gigetherOpts); tfErr != nil {
+		panic(tfErr)
 	}
 	if tfErr := d.Set("mtu", interfaceOpt.mtu); tfErr != nil {
 		panic(tfErr)
 	}
-	if !okAeLacp && !okAeLinkSpeed && !okAeMinLinks {
-		if tfErr := d.Set("parent_ether_opts", interfaceOpt.parentEtherOpts); tfErr != nil {
-			panic(tfErr)
-		}
+	if tfErr := d.Set("parent_ether_opts", interfaceOpt.parentEtherOpts); tfErr != nil {
+		panic(tfErr)
 	}
 	if tfErr := d.Set("trunk", interfaceOpt.trunk); tfErr != nil {
 		panic(tfErr)

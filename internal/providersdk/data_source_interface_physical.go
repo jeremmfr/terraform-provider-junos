@@ -45,21 +45,6 @@ func dataSourceInterfacePhysical() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-			"ae_lacp": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "use parent_ether_opts { lacp } instead",
-			},
-			"ae_link_speed": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "use parent_ether_opts { link_speed } instead",
-			},
-			"ae_minimum_links": {
-				Type:       schema.TypeInt,
-				Computed:   true,
-				Deprecated: "use parent_ether_opts { minimum_links } instead",
-			},
 			"esi": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -127,11 +112,6 @@ func dataSourceInterfacePhysical() *schema.Resource {
 						},
 					},
 				},
-			},
-			"ether802_3ad": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "use ether_opts { ae_8023ad } or gigether_opts { ae_8023ad } instead",
 			},
 			"gigether_opts": {
 				Type:     schema.TypeList,

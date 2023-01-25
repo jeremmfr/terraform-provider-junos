@@ -36,12 +36,6 @@ The following attributes are exported:
   An identifier for the data source with format `<name>`.
 - **name** (String)  
   Name of physical interface (without dot).
-- **ae_lacp** (String, **Deprecated**)  
-  LACP option in aggregated-ether-options.
-- **ae_link_speed** (String, **Deprecated**)  
-  Link speed of individual interface that joins the AE.
-- **ae_minimum_links** (Number, **Deprecated**)  
-  Minimum number of aggregated links.
 - **description** (String)  
   Description for interface.
 - **disable** (Boolean)  
@@ -67,8 +61,6 @@ The following attributes are exported:
     Don't enable loopback.
   - **redundant_parent** (String)  
     Name of a redundant ethernet interface to join.
-- **ether802_3ad** (String, **Deprecated**)  
-  Link of 802.3ad interface.
 - **gigether_opts** (Block)  
   The `gigether-options` configuration.
   - **ae_8023ad** (String)  
