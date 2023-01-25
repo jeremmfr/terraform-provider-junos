@@ -47,9 +47,8 @@ The following arguments are supported:
   When destroy this resource, delete all configurations => do not add
   `disable` + `descrition NC` or `apply-groups` with `group_interface_delete` provider argument on
   **physical** or **st0.x** interfaces.  
-  Usually, `st0.x` interfaces are completely deleted with `bind_interface_auto` argument in
-  `junos_security_ipsec_vpn` resource or by `junos_interface_st0_unit` resource because of the
-  dependency, but only if st0.x interface is empty or disable.
+  Usually, `st0.x` interfaces are completely deleted by `junos_interface_st0_unit` resource because
+  of the dependency, but only if st0.x interface is empty or disable.
 - **vlan_tagging** (Optional, Boolean)  
   Add 802.1q VLAN tagging support.
 - **vlan_tagging_id** (Optional, Computed, Number)  

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -43,13 +42,6 @@ func resourceIpsecVpn() *schema.Resource {
 			"bind_interface": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
-			},
-			"bind_interface_auto": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				ConflictsWith: []string{"traffic_selector"},
-				Deprecated:    "Use the junos_interface_st0_unit resource instead",
 			},
 			"df_bit": {
 				Type:         schema.TypeString,
@@ -95,9 +87,8 @@ func resourceIpsecVpn() *schema.Resource {
 				},
 			},
 			"traffic_selector": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				ConflictsWith: []string{"bind_interface_auto"},
+				Type:     schema.TypeList,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -151,7 +142,7 @@ func resourceIpsecVpn() *schema.Resource {
 
 func resourceIpsecVpnCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clt := m.(*junos.Client)
-	if clt.FakeCreateSetFile() && !d.Get("bind_interface_auto").(bool) {
+	if clt.FakeCreateSetFile() {
 		if err := setIpsecVpn(d, clt, nil); err != nil {
 			return diag.FromErr(err)
 		}
@@ -182,18 +173,6 @@ func resourceIpsecVpnCreate(ctx context.Context, d *schema.ResourceData, m inter
 		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
 
 		return append(diagWarns, diag.FromErr(fmt.Errorf("security ipsec vpn %v already exists", d.Get("name").(string)))...)
-	}
-	if d.Get("bind_interface_auto").(bool) {
-		newSt0, err := searchInterfaceSt0UnitToCreate(clt, junSess)
-		if err != nil {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
-
-			return append(diagWarns, diag.FromErr(fmt.Errorf("error to find new bind interface: %w", err))...)
-		}
-		tfErr := d.Set("bind_interface", newSt0)
-		if tfErr != nil {
-			panic(tfErr)
-		}
 	}
 	if err := setIpsecVpn(d, clt, junSess); err != nil {
 		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
@@ -259,31 +238,18 @@ func resourceIpsecVpnReadWJunSess(d *schema.ResourceData, clt *junos.Client, jun
 
 func resourceIpsecVpnUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.Partial(true)
-	var diagWarns diag.Diagnostics
-	if d.HasChanges("bind_interface_auto") {
-		diagWarns = append(diagWarns, diag.Diagnostic{
-			Severity:      diag.Warning,
-			Summary:       "Modifying bind_interface_auto on resource already created has no effect",
-			AttributePath: cty.Path{cty.GetAttrStep{Name: "bind_interface_auto"}},
-		})
-	}
+
 	clt := m.(*junos.Client)
 	if clt.FakeUpdateAlso() {
 		if err := delIpsecVpnConf(d, clt, nil); err != nil {
-			return append(diagWarns, diag.FromErr(err)...)
-		}
-		if d.HasChanges("bind_interface") && d.Get("bind_interface_auto").(bool) {
-			oldInt, _ := d.GetChange("bind_interface")
-			if err := clt.ConfigSet([]string{"delete interfaces " + oldInt.(string)}, nil); err != nil {
-				return append(diagWarns, diag.FromErr(err)...)
-			}
+			return diag.FromErr(err)
 		}
 		if err := setIpsecVpn(d, clt, nil); err != nil {
-			return append(diagWarns, diag.FromErr(err)...)
+			return diag.FromErr(err)
 		}
 		d.Partial(false)
 
-		return diagWarns
+		return nil
 	}
 	junSess, err := clt.StartNewSession(ctx)
 	if err != nil {
@@ -293,26 +259,11 @@ func resourceIpsecVpnUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	if err := clt.ConfigLock(ctx, junSess); err != nil {
 		return diag.FromErr(err)
 	}
+	var diagWarns diag.Diagnostics
 	if err := delIpsecVpnConf(d, clt, junSess); err != nil {
 		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
 
 		return append(diagWarns, diag.FromErr(err)...)
-	}
-	if d.HasChanges("bind_interface") && d.Get("bind_interface_auto").(bool) {
-		oldInt, _ := d.GetChange("bind_interface")
-		st0NC, st0Emtpy, _, err := checkInterfaceLogicalNCEmpty(oldInt.(string), clt, junSess)
-		if err != nil {
-			appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
-
-			return append(diagWarns, diag.FromErr(err)...)
-		}
-		if st0NC || st0Emtpy {
-			if err := clt.ConfigSet([]string{"delete interfaces " + oldInt.(string)}, junSess); err != nil {
-				appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
-
-				return append(diagWarns, diag.FromErr(err)...)
-			}
-		}
 	}
 	if err := setIpsecVpn(d, clt, junSess); err != nil {
 		appendDiagWarns(&diagWarns, clt.ConfigClear(junSess))
@@ -406,9 +357,6 @@ func checkIpsecVpnExists(ipsecVpn string, clt *junos.Client, junSess *junos.Sess
 func setIpsecVpn(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
 	configSet := make([]string, 0)
 
-	if d.Get("bind_interface").(string) != "" {
-		configSet = append(configSet, "set interfaces "+d.Get("bind_interface").(string))
-	}
 	setPrefix := "set security ipsec vpn " + d.Get("name").(string)
 	if d.Get("bind_interface").(string) != "" {
 		configSet = append(configSet, setPrefix+" bind-interface "+d.Get("bind_interface").(string))
@@ -564,19 +512,6 @@ func delIpsecVpnConf(d *schema.ResourceData, clt *junos.Client, junSess *junos.S
 func delIpsecVpn(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session) error {
 	configSet := make([]string, 0, 1)
 	configSet = append(configSet, "delete security ipsec vpn "+d.Get("name").(string))
-	if d.Get("bind_interface_auto").(bool) {
-		if junSess == nil {
-			configSet = append(configSet, "delete interfaces "+d.Get("bind_interface").(string))
-		} else {
-			st0NC, st0Emtpy, _, err := checkInterfaceLogicalNCEmpty(d.Get("bind_interface").(string), clt, junSess)
-			if err != nil {
-				return err
-			}
-			if st0NC || st0Emtpy {
-				configSet = append(configSet, "delete interfaces "+d.Get("bind_interface").(string))
-			}
-		}
-	}
 
 	return clt.ConfigSet(configSet, junSess)
 }

@@ -28,12 +28,8 @@ The following arguments are supported:
 
 - **name** (Required, String, Forces new resource)  
   The name of vpn.
-- **bind_interface** (Optional, Computed, String)  
+- **bind_interface** (Optional, String)  
   Interface st0 to bind vpn for route-based vpn.  
-  Computed when `bind_interface_auto` = true.
-- **bind_interface_auto** (Optional, Boolean, **Deprecated**)  
-  Find st0 available for compute bind_interface automatically.  
-  Deprecated argument, use the `junos_interface_st0_unit` resource to find st0 unit available instead.
 - **df_bit** (Optional, String)  
   Specifies how to handle the Don't Fragment bit.  
   Need to be `clear`, `copy` or `set`.

@@ -205,8 +205,6 @@ The following arguments are supported in the `provider` block:
   - **junos_interface_st0_unit** cannot take into account the option and run still
     normal process.
   - **junos_null_commit_file**, the skip doesn’t of course concern this resource.
-  - **junos_security_ipsec_vpn** with `bind_interface_auto`=`true` cannot take into account the
-    option and run still normal process.
 
   It can also be sourced from the `JUNOS_FAKECREATE_SETFILE` environment
   variable.  

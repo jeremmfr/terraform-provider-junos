@@ -174,10 +174,9 @@ func TestAccJunosSecurityIkeIpsec_basic(t *testing.T) {
 					ImportStateVerify: true,
 				},
 				{
-					ResourceName:            "junos_security_ipsec_vpn.testacc_ipsecvpn2",
-					ImportState:             true,
-					ImportStateVerify:       true,
-					ImportStateVerifyIgnore: []string{"bind_interface_auto"},
+					ResourceName:      "junos_security_ipsec_vpn.testacc_ipsecvpn2",
+					ImportState:       true,
+					ImportStateVerify: true,
 				},
 				{
 					Config: testAccJunosSecurityIkeIpsecConfigUpdate2(testaccIkeIpsec),

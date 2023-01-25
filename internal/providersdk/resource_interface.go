@@ -1300,10 +1300,7 @@ func delInterface(d *schema.ResourceData, clt *junos.Client, junSess *junos.Sess
 		return err
 	}
 	if strings.Contains(d.Get("name").(string), "st0.") && !d.Get("complete_destroy").(bool) {
-		// interface totally delete by
-		// - junos_security_ipsec_vpn resource with the bind_interface_auto argument (deprecated)
-		// or by
-		// - junos_interface_st0_unit resource
+		// interface totally delete by junos_interface_st0_unit resource
 		// else there is an interface st0.x empty
 		err := clt.ConfigSet([]string{"set interfaces " + setName}, junSess)
 		if err != nil {
