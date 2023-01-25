@@ -69,11 +69,6 @@ func resourceSystemRadiusServer() *schema.Resource {
 				Default:      -1,
 				ValidateFunc: validation.IntBetween(0, 1000),
 			},
-			"accouting_timeout": { // old version (typo) of accounting_timeout
-				Type:       schema.TypeInt,
-				Computed:   true,
-				Deprecated: "use accounting_timeout instead",
-			},
 			"dynamic_request_port": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -493,9 +488,6 @@ func fillSystemRadiusServerData(d *schema.ResourceData, radiusServerOptions radi
 		panic(tfErr)
 	}
 	if tfErr := d.Set("accounting_timeout", radiusServerOptions.accountingTimeout); tfErr != nil {
-		panic(tfErr)
-	}
-	if tfErr := d.Set("accouting_timeout", radiusServerOptions.accountingTimeout); tfErr != nil {
 		panic(tfErr)
 	}
 	if tfErr := d.Set("dynamic_request_port", radiusServerOptions.dynamicRequestPort); tfErr != nil {
