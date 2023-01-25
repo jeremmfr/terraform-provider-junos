@@ -31,7 +31,6 @@ type bgpOptions struct {
 	metricOutMinimumIgp          bool
 	mtuDiscovery                 bool
 	multihop                     bool
-	multipath                    bool
 	noAdvertisePeerAs            bool
 	removePrivate                bool
 	passive                      bool
@@ -248,9 +247,6 @@ func setBgpOptsSimple(setPrefix string, d *schema.ResourceData, clt *junos.Clien
 	if d.Get("multihop").(bool) {
 		configSet = append(configSet, setPrefix+"multihop")
 	}
-	if d.Get("multipath").(bool) {
-		configSet = append(configSet, setPrefix+"multipath")
-	}
 	if d.Get("no_advertise_peer_as").(bool) {
 		configSet = append(configSet, setPrefix+"no-advertise-peer-as")
 	}
@@ -372,7 +368,6 @@ func (confRead *bgpOptions) readBgpOptsSimple(itemTrim string) (err error) {
 	case itemTrim == "multihop":
 		confRead.multihop = true
 	case balt.CutPrefixInString(&itemTrim, "multipath"):
-		confRead.multipath = true
 		if len(confRead.bgpMultipath) == 0 {
 			confRead.bgpMultipath = append(confRead.bgpMultipath, map[string]interface{}{
 				"allow_protection": false,
