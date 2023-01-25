@@ -223,7 +223,6 @@ The following arguments are supported in the `provider` block:
   in tfstate. A `terraform refresh` will be able to detect parts of errors but
   **be careful with this option**.  
   There are exceptions for resources :
-  - **junos_interface**, it's a deprecated resource
   - **junos_interface_physical** don’t generate `chassis aggregated-devices ethernet device-count`
     line when it should be necessary.
   - **junos_null_commit_file**, the skip doesn’t of course concern this resource.
@@ -240,7 +239,6 @@ The following arguments are supported in the `provider` block:
   As with `fake_create_with_setfile`, this option may leave extra config (not managed by Terraform)
   on Junos device. **Be careful with this option**.  
   There are exceptions for resources :
-  - **junos_interface**, it's a deprecated resource
   - **junos_interface_physical** don’t generate `chassis aggregated-devices ethernet device-count`
     line when it should be necessary.
   - **junos_null_commit_file**, the skip doesn’t of course concern this resource.
