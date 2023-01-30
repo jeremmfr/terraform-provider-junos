@@ -113,13 +113,13 @@ func searchInterfacesPhysicalPresent(d *schema.ResourceData, junSess *junos.Sess
 	var iface junos.GetPhysicalInterfaceTerseReply
 	err = xml.Unmarshal([]byte(replyData), &iface.InterfaceInfo)
 	if err != nil {
-		return result, fmt.Errorf("failed to xml unmarshal reply data '%s': %w", replyData, err)
+		return result, fmt.Errorf("unmarshaling xml reply '%s': %w", replyData, err)
 	}
 	for _, iFace := range iface.InterfaceInfo.PhysicalInterface {
 		if mName := d.Get("match_name").(string); mName != "" {
 			matched, err := regexp.MatchString(mName, strings.TrimSpace(iFace.Name))
 			if err != nil {
-				return result, fmt.Errorf("failed to regexp with '%s': %w", mName, err)
+				return result, fmt.Errorf("matching with regexp '%s': %w", mName, err)
 			}
 			if !matched {
 				continue

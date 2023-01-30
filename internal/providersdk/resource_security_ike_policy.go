@@ -346,12 +346,12 @@ func readIkePolicy(ikePolicy string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "pre-shared-key hexadecimal "):
 				confRead.preSharedKeyHexa, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to decode pre-shared-key hexadecimal: %w", err)
+					return confRead, fmt.Errorf("decoding pre-shared-key hexadecimal: %w", err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "pre-shared-key ascii-text "):
 				confRead.preSharedKeyText, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to decode pre-shared-key ascii-text: %w", err)
+					return confRead, fmt.Errorf("decoding pre-shared-key ascii-text: %w", err)
 				}
 			}
 		}

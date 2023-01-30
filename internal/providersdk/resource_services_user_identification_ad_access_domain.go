@@ -424,7 +424,7 @@ func readServicesUserIdentAdAccessDomain(domain string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "user password "):
 				confRead.userPassword, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to decode user password: %w", err)
+					return confRead, fmt.Errorf("decoding user password: %w", err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "user "):
 				confRead.userName = itemTrim
@@ -482,7 +482,7 @@ func readServicesUserIdentAdAccessDomain(domain string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "user password "):
 					confRead.userGroupMappingLdap[0]["user_password"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode user password: %w", err)
+						return confRead, fmt.Errorf("decoding user password: %w", err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "user "):
 					confRead.userGroupMappingLdap[0]["user_name"] = itemTrim

@@ -132,7 +132,7 @@ func dataSourceApplicationSetsFilter(
 		for appSetKey, appSet := range results {
 			matched, err := regexp.MatchString(mName, appSet.name)
 			if err != nil {
-				return fmt.Errorf("failed to regexp with '%s': %w", mName, err)
+				return fmt.Errorf("matching with regexp '%s': %w", mName, err)
 			}
 			if !matched {
 				delete(results, appSetKey)

@@ -1589,7 +1589,7 @@ func readOspfAreaInterface(itemTrim string, interfaceOptions map[string]interfac
 	case balt.CutPrefixInString(&itemTrim, "authentication simple-password "):
 		interfaceOptions["authentication_simple_password"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 		if err != nil {
-			return fmt.Errorf("failed to decode authentication simple-password: %w", err)
+			return fmt.Errorf("decoding authentication simple-password: %w", err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "authentication md5 "):
 		itemTrimFields := strings.Split(itemTrim, " ")
@@ -1609,7 +1609,7 @@ func readOspfAreaInterface(itemTrim string, interfaceOptions map[string]interfac
 		case balt.CutPrefixInString(&itemTrim, "key "):
 			authMD5["key"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 			if err != nil {
-				return fmt.Errorf("failed to decode authentication md5 key: %w", err)
+				return fmt.Errorf("decoding authentication md5 key: %w", err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "start-time "):
 			authMD5["start_time"] = strings.Split(strings.Trim(itemTrim, "\""), " ")[0]

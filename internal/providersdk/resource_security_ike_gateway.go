@@ -695,7 +695,7 @@ func readIkeGateway(ikeGateway string, junSess *junos.Session,
 				case balt.CutPrefixInString(&itemTrim, "client password "):
 					confRead.aaa[0]["client_password"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode aaa client password: %w", err)
+						return confRead, fmt.Errorf("decoding aaa client password: %w", err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "client username "):
 					confRead.aaa[0]["client_username"] = itemTrim

@@ -279,7 +279,7 @@ func dataSourceApplicationsFilter( //nolint: gocognit
 		for appKey, app := range results {
 			matched, err := regexp.MatchString(mName, app.name)
 			if err != nil {
-				return fmt.Errorf("failed to regexp with '%s': %w", mName, err)
+				return fmt.Errorf("matching with regexp '%s': %w", mName, err)
 			}
 			if !matched {
 				delete(results, appKey)

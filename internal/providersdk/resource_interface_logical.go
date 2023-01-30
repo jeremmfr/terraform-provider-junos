@@ -1726,7 +1726,7 @@ func readFamilyInetAddress(itemTrim string, inetAddress []map[string]interface{}
 		case balt.CutPrefixInString(&itemTrim, "authentication-key "):
 			vrrpGroup["authentication_key"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 			if err != nil {
-				return inetAddress, fmt.Errorf("failed to decode authentication-key: %w", err)
+				return inetAddress, fmt.Errorf("decoding authentication-key: %w", err)
 			}
 		case balt.CutPrefixInString(&itemTrim, "authentication-type "):
 			vrrpGroup["authentication_type"] = itemTrim

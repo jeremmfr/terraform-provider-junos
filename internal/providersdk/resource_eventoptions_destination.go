@@ -324,7 +324,7 @@ func readEventoptionsDestination(name string, junSess *junos.Session,
 				if len(itemTrimFields) > 2 { // <url> password <password>
 					password, err := jdecode.Decode(strings.Trim(itemTrimFields[2], "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode secret: %w", err)
+						return confRead, fmt.Errorf("decoding secret: %w", err)
 					}
 					confRead.archiveSite = append(confRead.archiveSite, map[string]interface{}{
 						"url":      strings.Trim(itemTrimFields[0], "\""),

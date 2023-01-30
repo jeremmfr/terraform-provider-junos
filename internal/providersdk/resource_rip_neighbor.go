@@ -781,7 +781,7 @@ func readRipNeighbor(name, group string, ripNg bool, routingInstance string, jun
 			case balt.CutPrefixInString(&itemTrim, "authentication-key "):
 				confRead.authenticationKey, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to decode authentication-key: %w", err)
+					return confRead, fmt.Errorf("decoding authentication-key: %w", err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "authentication-selective-md5 "):
 				itemTrimFields := strings.Split(itemTrim, " ")
@@ -801,7 +801,7 @@ func readRipNeighbor(name, group string, ripNg bool, routingInstance string, jun
 				case balt.CutPrefixInString(&itemTrim, "key "):
 					authSelectMD5["key"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 					if err != nil {
-						return confRead, fmt.Errorf("failed to decode authentication-selective-md5 key: %w", err)
+						return confRead, fmt.Errorf("decoding authentication-selective-md5 key: %w", err)
 					}
 				case balt.CutPrefixInString(&itemTrim, "start-time "):
 					authSelectMD5["start_time"] = strings.Split(strings.Trim(itemTrim, "\""), " ")[0]

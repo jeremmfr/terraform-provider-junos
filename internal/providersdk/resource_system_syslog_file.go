@@ -688,7 +688,7 @@ func readSystemSyslogFile(filename string, junSess *junos.Session,
 					case balt.CutPrefixInString(&itemTrim, "password "):
 						sitesOptions["password"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 						if err != nil {
-							return confRead, fmt.Errorf("failed to decode password: %w", err)
+							return confRead, fmt.Errorf("decoding password: %w", err)
 						}
 					case balt.CutPrefixInString(&itemTrim, "routing-instance "):
 						sitesOptions["routing_instance"] = itemTrim

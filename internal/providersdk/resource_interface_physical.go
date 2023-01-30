@@ -1650,7 +1650,7 @@ func interfaceAggregatedCountSearchMax(newAE, oldAE, interFace string, junSess *
 	newAENum := strings.TrimPrefix(newAE, "ae")
 	newAENumInt, err := strconv.Atoi(newAENum)
 	if err != nil {
-		return "", fmt.Errorf("failed to convert ae interaface '%v' to integer: %w", newAE, err)
+		return "", fmt.Errorf("converting ae interaface '%v' to integer: %w", newAE, err)
 	}
 	showConfig, err := junSess.Command(junos.CmdShowConfig + "interfaces" + junos.PipeDisplaySetRelative)
 	if err != nil {
@@ -1692,7 +1692,7 @@ func interfaceAggregatedCountSearchMax(newAE, oldAE, interFace string, junSess *
 		balt.SortStringsByLengthInc(listAEFound)
 		lastAeInt, err := strconv.Atoi(strings.TrimPrefix(listAEFound[len(listAEFound)-1], "ae"))
 		if err != nil {
-			return "", fmt.Errorf("failed to convert internal variable lastAeInt to integer: %w", err)
+			return "", fmt.Errorf("converting internal variable lastAeInt to integer: %w", err)
 		}
 		if lastAeInt > newAENumInt {
 			return strconv.Itoa(lastAeInt + 1), nil

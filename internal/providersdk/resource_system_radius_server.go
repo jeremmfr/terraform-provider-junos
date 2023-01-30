@@ -443,7 +443,7 @@ func readSystemRadiusServer(address string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "preauthentication-secret "):
 				confRead.preauthenticationSecret, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to decode preauthentication-secret: %w", err)
+					return confRead, fmt.Errorf("decoding preauthentication-secret: %w", err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "retry "):
 				confRead.retry, err = strconv.Atoi(itemTrim)
@@ -455,7 +455,7 @@ func readSystemRadiusServer(address string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "secret "):
 				confRead.secret, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to decode secret: %w", err)
+					return confRead, fmt.Errorf("decoding secret: %w", err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "source-address "):
 				confRead.sourceAddress = itemTrim

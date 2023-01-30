@@ -2014,7 +2014,7 @@ func readSystem(junSess *junos.Session,
 					if len(itemTrimFields) > 2 { // <url> password <password>
 						passWord, err := jdecode.Decode(strings.Trim(itemTrimFields[2], "\""))
 						if err != nil {
-							return confRead, fmt.Errorf("failed to decode archive-site password: %w", err)
+							return confRead, fmt.Errorf("decoding archive-site password: %w", err)
 						}
 						confRead.archivalConfiguration[0]["archive_site"] = append(
 							confRead.archivalConfiguration[0]["archive_site"].([]map[string]interface{}), map[string]interface{}{
@@ -2519,7 +2519,7 @@ func (confRead *systemOptions) readSystemLicense(itemTrim string) (err error) {
 		if balt.CutPrefixInString(&itemTrim, "password ") {
 			confRead.license[0]["autoupdate_password"], err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 			if err != nil {
-				return fmt.Errorf("failed to decode password: %w", err)
+				return fmt.Errorf("decoding password: %w", err)
 			}
 		}
 	case balt.CutPrefixInString(&itemTrim, "license renew before-expiration "):

@@ -289,7 +289,7 @@ func (confRead *bgpOptions) readBgpOptsSimple(itemTrim string) (err error) {
 	case balt.CutPrefixInString(&itemTrim, "authentication-key "):
 		confRead.authenticationKey, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 		if err != nil {
-			return fmt.Errorf("failed to decode authentication-key: %w", err)
+			return fmt.Errorf("decoding authentication-key: %w", err)
 		}
 	case balt.CutPrefixInString(&itemTrim, "authentication-key-chain "):
 		confRead.authenticationKeyChain = itemTrim

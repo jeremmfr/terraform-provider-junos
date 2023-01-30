@@ -305,7 +305,7 @@ func readSnmpV3Community(communityIndex string, junSess *junos.Session,
 			case balt.CutPrefixInString(&itemTrim, "community-name "):
 				confRead.communityName, err = jdecode.Decode(strings.Trim(itemTrim, "\""))
 				if err != nil {
-					return confRead, fmt.Errorf("failed to decode community-name: %w", err)
+					return confRead, fmt.Errorf("decoding community-name: %w", err)
 				}
 			case balt.CutPrefixInString(&itemTrim, "context "):
 				confRead.context = strings.Trim(itemTrim, "\"")

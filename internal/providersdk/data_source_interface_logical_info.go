@@ -104,7 +104,7 @@ func readInterfaceLogicalInfo(d *schema.ResourceData, junSess *junos.Session,
 	var iface junos.GetLogicalInterfaceTerseReply
 	err = xml.Unmarshal([]byte(replyData), &iface.InterfaceInfo)
 	if err != nil {
-		return result, fmt.Errorf("failed to xml unmarshal reply data '%s': %w", replyData, err)
+		return result, fmt.Errorf("unmarshaling xml reply '%s': %w", replyData, err)
 	}
 	if len(iface.InterfaceInfo.LogicalInterface) == 0 {
 		return result, fmt.Errorf("logical-interface not found in xml: %v", replyData)

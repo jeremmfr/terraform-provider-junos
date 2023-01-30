@@ -621,7 +621,7 @@ func searchInterfaceLogicalID(configInterface, match string, junSess *junos.Sess
 		itemTrim := strings.TrimPrefix(item, "set interfaces ")
 		matched, err := regexp.MatchString(match, itemTrim)
 		if err != nil {
-			return "", fmt.Errorf("failed to regexp with '%s': %w", match, err)
+			return "", fmt.Errorf("matching with regexp '%s': %w", match, err)
 		}
 		if !matched {
 			continue

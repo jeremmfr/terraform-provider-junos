@@ -151,7 +151,7 @@ func searchRoutes(d *schema.ResourceData, junSess *junos.Session,
 	var routeTable junos.GetRouteInformationReply
 	err = xml.Unmarshal([]byte(replyData), &routeTable.RouteInfo)
 	if err != nil {
-		return result, fmt.Errorf("failed to xml unmarshal reply data '%s': %w", replyData, err)
+		return result, fmt.Errorf("unmarshaling xml reply '%s': %w", replyData, err)
 	}
 	for _, tableInfo := range routeTable.RouteInfo.RouteTable {
 		table := map[string]interface{}{
