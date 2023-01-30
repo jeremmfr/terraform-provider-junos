@@ -159,9 +159,9 @@ func resourceLldpInterfaceRead(ctx context.Context, d *schema.ResourceData, m in
 
 func resourceLldpInterfaceReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	lldpInterfaceOptions, err := readLldpInterface(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

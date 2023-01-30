@@ -891,9 +891,9 @@ func resourceSecurityRead(ctx context.Context, d *schema.ResourceData, m interfa
 }
 
 func resourceSecurityReadWJunSess(d *schema.ResourceData, junSess *junos.Session) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	securityOptions, err := readSecurity(junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

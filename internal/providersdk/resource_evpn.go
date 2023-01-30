@@ -181,16 +181,16 @@ func resourceEvpnRead(ctx context.Context, d *schema.ResourceData, m interface{}
 }
 
 func resourceEvpnReadWJunSess(d *schema.ResourceData, junSess *junos.Session) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	if d.Get("routing_instance").(string) != junos.DefaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), junSess)
 		if err != nil {
-			mutex.Unlock()
+			junos.MutexUnlock()
 
 			return diag.FromErr(err)
 		}
 		if !instanceExists {
-			mutex.Unlock()
+			junos.MutexUnlock()
 
 			d.SetId("")
 
@@ -198,7 +198,7 @@ func resourceEvpnReadWJunSess(d *schema.ResourceData, junSess *junos.Session) di
 		}
 	}
 	evpnOptions, err := readEvpn(d.Get("routing_instance").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

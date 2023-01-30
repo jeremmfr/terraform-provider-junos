@@ -188,13 +188,13 @@ func resourceVstpVlanGroupRead(ctx context.Context, d *schema.ResourceData, m in
 
 func resourceVstpVlanGroupReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	vstpVlanGroupOptions, err := readVstpVlanGroup(
 		d.Get("name").(string),
 		d.Get("routing_instance").(string),
 		junSess,
 	)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -195,9 +195,9 @@ func resourceServicesSecurityIntellProfileRead(ctx context.Context, d *schema.Re
 func resourceServicesSecurityIntellProfileReadWJunSess(
 	d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	securityIntellProfileOptions, err := readServicesSecurityIntellProfile(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

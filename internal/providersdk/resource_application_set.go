@@ -115,9 +115,9 @@ func resourceApplicationSetRead(ctx context.Context, d *schema.ResourceData, m i
 
 func resourceApplicationSetReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	applicationSetOptions, err := readApplicationSet(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

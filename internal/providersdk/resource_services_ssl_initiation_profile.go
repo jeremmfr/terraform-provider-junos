@@ -178,9 +178,9 @@ func resourceServicesSSLInitiationProfileRead(ctx context.Context, d *schema.Res
 
 func resourceServicesSSLInitiationProfileReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	svcSSLInitiationProfileOptions, err := readServicesSSLInitiationProfile(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

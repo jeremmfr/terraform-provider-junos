@@ -257,9 +257,9 @@ func resourceSystemLoginClassRead(ctx context.Context, d *schema.ResourceData, m
 
 func resourceSystemLoginClassReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	systemLoginClassOptions, err := readSystemLoginClass(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

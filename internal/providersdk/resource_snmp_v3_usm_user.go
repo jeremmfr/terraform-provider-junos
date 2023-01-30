@@ -212,9 +212,9 @@ func resourceSnmpV3UsmUserReadWJunSess(d *schema.ResourceData, junSess *junos.Se
 		privacyPassword:        d.Get("privacy_password").(string),
 		privacyType:            d.Get("privacy_type").(string),
 	}
-	mutex.Lock()
+	junos.MutexLock()
 	snmpV3UsmUserOptions, err := readSnmpV3UsmUser(configSrc, junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

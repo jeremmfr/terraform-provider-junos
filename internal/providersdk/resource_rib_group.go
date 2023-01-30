@@ -127,9 +127,9 @@ func resourceRibGroupRead(ctx context.Context, d *schema.ResourceData, m interfa
 }
 
 func resourceRibGroupReadWJunSess(d *schema.ResourceData, junSess *junos.Session) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	ribGroupOptions, err := readRibGroup(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

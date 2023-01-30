@@ -139,9 +139,9 @@ func resourceChassisRedundancyRead(ctx context.Context, d *schema.ResourceData, 
 
 func resourceChassisRedundancyReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	redundancyOptions, err := readChassisRedundancy(junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

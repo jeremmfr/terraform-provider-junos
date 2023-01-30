@@ -176,14 +176,14 @@ func resourceForwardingOptionsDhcpRelayServerGroupRead(ctx context.Context, d *s
 func resourceForwardingOptionsDhcpRelayServerGroupReadWJunSess(
 	d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	fwdOptsDhcpRelSrvGrpOptions, err := readForwardingOptionsDhcpRelayServerGroup(
 		d.Get("name").(string),
 		d.Get("routing_instance").(string),
 		d.Get("version").(string),
 		junSess,
 	)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

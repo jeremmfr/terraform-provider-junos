@@ -232,9 +232,9 @@ func resourceRoutingInstanceRead(ctx context.Context, d *schema.ResourceData, m 
 
 func resourceRoutingInstanceReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	instanceOptions, err := readRoutingInstance(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -139,9 +139,9 @@ func resourceIkeProposalRead(ctx context.Context, d *schema.ResourceData, m inte
 
 func resourceIkeProposalReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	ikeProposalOptions, err := readIkeProposal(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

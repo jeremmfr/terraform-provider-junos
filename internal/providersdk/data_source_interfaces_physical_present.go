@@ -79,9 +79,9 @@ func dataSourceInterfacesPhysicalPresentRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(err)
 	}
 	defer junSess.Close()
-	mutex.Lock()
+	junos.MutexLock()
 	iPresent, err := searchInterfacesPhysicalPresent(d, junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

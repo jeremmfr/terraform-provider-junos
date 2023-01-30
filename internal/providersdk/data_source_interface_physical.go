@@ -333,24 +333,24 @@ func dataSourceInterfacePhysicalRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	defer junSess.Close()
-	mutex.Lock()
+	junos.MutexLock()
 	nameFound, err := searchInterfacePhysicalID(
 		d.Get("config_interface").(string),
 		d.Get("match").(string),
 		junSess,
 	)
 	if err != nil {
-		mutex.Unlock()
+		junos.MutexUnlock()
 
 		return diag.FromErr(err)
 	}
 	if nameFound == "" {
-		mutex.Unlock()
+		junos.MutexUnlock()
 
 		return diag.FromErr(fmt.Errorf("no physical interface found with arguments provided"))
 	}
 	interfaceOpt, err := readInterfacePhysical(nameFound, junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

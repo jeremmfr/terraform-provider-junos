@@ -228,13 +228,13 @@ func resourceGenerateRouteRead(ctx context.Context, d *schema.ResourceData, m in
 
 func resourceGenerateRouteReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	generateRouteOptions, err := readGenerateRoute(
 		d.Get("destination").(string),
 		d.Get("routing_instance").(string),
 		junSess,
 	)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

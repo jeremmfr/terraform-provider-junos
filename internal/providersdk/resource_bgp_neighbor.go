@@ -701,14 +701,14 @@ func resourceBgpNeighborRead(ctx context.Context, d *schema.ResourceData, m inte
 
 func resourceBgpNeighborReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	bgpNeighborOptions, err := readBgpNeighbor(
 		d.Get("ip").(string),
 		d.Get("routing_instance").(string),
 		d.Get("group").(string),
 		junSess,
 	)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

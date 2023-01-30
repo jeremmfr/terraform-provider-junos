@@ -167,13 +167,13 @@ func resourceSecurityZoneBookAddressSetRead(ctx context.Context, d *schema.Resou
 
 func resourceSecurityZoneBookAddressSetReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	zoneBookAddressSetOptions, err := readSecurityZoneBookAddressSet(
 		d.Get("zone").(string),
 		d.Get("name").(string),
 		junSess,
 	)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

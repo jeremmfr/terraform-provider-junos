@@ -119,9 +119,9 @@ func dataSourceRoutesRead(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(err)
 	}
 	defer junSess.Close()
-	mutex.Lock()
+	junos.MutexLock()
 	routesTable, err := searchRoutes(d, junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

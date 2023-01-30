@@ -186,9 +186,9 @@ func resourceSecurityUtmProfileWebFilteringWebsenseRead(ctx context.Context, d *
 func resourceSecurityUtmProfileWebFilteringWebsenseReadWJunSess(
 	d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	utmProfileWebFWebsenseOptions, err := readUtmProfileWebFWebsense(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

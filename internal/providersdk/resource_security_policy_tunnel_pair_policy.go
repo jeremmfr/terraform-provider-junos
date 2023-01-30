@@ -179,7 +179,7 @@ func resourceSecurityPolicyTunnelPairPolicyRead(ctx context.Context, d *schema.R
 func resourceSecurityPolicyTunnelPairPolicyReadWJunSess(
 	d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	policyPairPolicyOptions, err := readSecurityPolicyTunnelPairPolicy(
 		d.Get("zone_a").(string),
 		d.Get("policy_a_to_b").(string),
@@ -187,7 +187,7 @@ func resourceSecurityPolicyTunnelPairPolicyReadWJunSess(
 		d.Get("policy_b_to_a").(string),
 		junSess,
 	)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

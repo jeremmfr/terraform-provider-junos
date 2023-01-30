@@ -893,9 +893,9 @@ func resourceSecurityIdpCustomAttackRead(ctx context.Context, d *schema.Resource
 
 func resourceSecurityIdpCustomAttackReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	idpCustomAttackOptions, err := readSecurityIdpCustomAttack(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

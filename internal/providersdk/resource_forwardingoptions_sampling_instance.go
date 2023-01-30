@@ -711,9 +711,9 @@ func resourceForwardingOptionsSamplingInstanceRead(ctx context.Context, d *schem
 func resourceForwardingOptionsSamplingInstanceReadWJunSess(
 	d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	samplingInstanceOptions, err := readForwardingOptionsSamplingInstance(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -306,9 +306,9 @@ func resourceSystemSyslogFileRead(ctx context.Context, d *schema.ResourceData, m
 
 func resourceSystemSyslogFileReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	syslogFileOptions, err := readSystemSyslogFile(d.Get("filename").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

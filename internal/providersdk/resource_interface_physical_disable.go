@@ -118,9 +118,9 @@ func resourceInterfacePhysicalDisableRead(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(err)
 	}
 	defer junSess.Close()
-	mutex.Lock()
+	junos.MutexLock()
 	ncInt, _, err := checkInterfacePhysicalNCEmpty(d.Get("name").(string), clt.GroupInterfaceDelete(), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

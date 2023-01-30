@@ -82,9 +82,9 @@ func dataSourceInterfaceLogicalInfoRead(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(err)
 	}
 	defer junSess.Close()
-	mutex.Lock()
+	junos.MutexLock()
 	ifaceInfo, err := readInterfaceLogicalInfo(d, junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

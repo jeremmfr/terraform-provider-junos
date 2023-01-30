@@ -2,4 +2,12 @@ package junos
 
 import "sync"
 
-var Mutex = &sync.Mutex{} //nolint: gochecknoglobals
+var mutex = &sync.Mutex{} //nolint: gochecknoglobals
+
+func MutexLock() {
+	mutex.Lock()
+}
+
+func MutexUnlock() {
+	mutex.Unlock()
+}

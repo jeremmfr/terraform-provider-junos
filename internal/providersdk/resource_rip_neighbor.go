@@ -402,7 +402,7 @@ func resourceRipNeighborRead(ctx context.Context, d *schema.ResourceData, m inte
 
 func resourceRipNeighborReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	ripNeighborOptions, err := readRipNeighbor(
 		d.Get("name").(string),
 		d.Get("group").(string),
@@ -410,7 +410,7 @@ func resourceRipNeighborReadWJunSess(d *schema.ResourceData, junSess *junos.Sess
 		d.Get("routing_instance").(string),
 		junSess,
 	)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

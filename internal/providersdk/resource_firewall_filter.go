@@ -386,9 +386,9 @@ func resourceFirewallFilterRead(ctx context.Context, d *schema.ResourceData, m i
 
 func resourceFirewallFilterReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	filterOptions, err := readFirewallFilter(d.Get("name").(string), d.Get("family").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

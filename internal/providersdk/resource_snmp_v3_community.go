@@ -127,9 +127,9 @@ func resourceSnmpV3CommunityRead(ctx context.Context, d *schema.ResourceData, m 
 
 func resourceSnmpV3CommunityReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	snmpV3CommunityOptions, err := readSnmpV3Community(d.Get("community_index").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

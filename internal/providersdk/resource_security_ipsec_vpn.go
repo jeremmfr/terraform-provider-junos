@@ -213,9 +213,9 @@ func resourceIpsecVpnRead(ctx context.Context, d *schema.ResourceData, m interfa
 }
 
 func resourceIpsecVpnReadWJunSess(d *schema.ResourceData, junSess *junos.Session) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	ipsecVpnOptions, err := readIpsecVpn(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	// copy state vpn_monitor.0.source_interface_auto to struct
 	if len(ipsecVpnOptions.vpnMonitor) > 0 {
 		for _, v := range d.Get("vpn_monitor").([]interface{}) {

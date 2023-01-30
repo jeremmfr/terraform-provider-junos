@@ -624,16 +624,16 @@ func resourceForwardingOptionsDhcpRelayRead(ctx context.Context, d *schema.Resou
 func resourceForwardingOptionsDhcpRelayReadWJunSess(
 	d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	if d.Get("routing_instance").(string) != junos.DefaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), junSess)
 		if err != nil {
-			mutex.Unlock()
+			junos.MutexUnlock()
 
 			return diag.FromErr(err)
 		}
 		if !instanceExists {
-			mutex.Unlock()
+			junos.MutexUnlock()
 			d.SetId("")
 
 			return nil
@@ -644,7 +644,7 @@ func resourceForwardingOptionsDhcpRelayReadWJunSess(
 		d.Get("version").(string),
 		junSess,
 	)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

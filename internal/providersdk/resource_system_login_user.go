@@ -167,9 +167,9 @@ func resourceSystemLoginUserRead(ctx context.Context, d *schema.ResourceData, m 
 func resourceSystemLoginUserReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
 	plainTextPassword := readSystemLoginUserReadDataPlainTextPassword(d)
-	mutex.Lock()
+	junos.MutexLock()
 	systemLoginUserOptions, err := readSystemLoginUser(d.Get("name").(string), plainTextPassword, junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

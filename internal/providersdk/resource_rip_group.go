@@ -281,14 +281,14 @@ func resourceRipGroupRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 func resourceRipGroupReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	ripGroupOptions, err := readRipGroup(
 		d.Get("name").(string),
 		d.Get("ng").(bool),
 		d.Get("routing_instance").(string),
 		junSess,
 	)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

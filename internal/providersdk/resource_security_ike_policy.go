@@ -158,9 +158,9 @@ func resourceIkePolicyRead(ctx context.Context, d *schema.ResourceData, m interf
 }
 
 func resourceIkePolicyReadWJunSess(d *schema.ResourceData, junSess *junos.Session) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	ikePolicyOptions, err := readIkePolicy(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

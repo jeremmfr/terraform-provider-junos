@@ -665,9 +665,9 @@ func resourceServicesRead(ctx context.Context, d *schema.ResourceData, m interfa
 }
 
 func resourceServicesReadWJunSess(d *schema.ResourceData, junSess *junos.Session) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	servicesOptions, err := readServices(junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

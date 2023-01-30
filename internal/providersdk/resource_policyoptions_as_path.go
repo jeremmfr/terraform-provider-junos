@@ -116,9 +116,9 @@ func resourcePolicyoptionsAsPathRead(ctx context.Context, d *schema.ResourceData
 
 func resourcePolicyoptionsAsPathReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	asPathOptions, err := readPolicyoptionsAsPath(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

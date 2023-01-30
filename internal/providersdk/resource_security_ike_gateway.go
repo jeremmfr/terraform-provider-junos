@@ -353,9 +353,9 @@ func resourceIkeGatewayRead(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceIkeGatewayReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	ikeGatewayOptions, err := readIkeGateway(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -207,9 +207,9 @@ func resourceSnmpRead(ctx context.Context, d *schema.ResourceData, m interface{}
 }
 
 func resourceSnmpReadWJunSess(d *schema.ResourceData, junSess *junos.Session) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	snmpOptions, err := readSnmp(junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -222,13 +222,13 @@ func resourceAggregateRouteRead(ctx context.Context, d *schema.ResourceData, m i
 
 func resourceAggregateRouteReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	aggregateRouteOptions, err := readAggregateRoute(
 		d.Get("destination").(string),
 		d.Get("routing_instance").(string),
 		junSess,
 	)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

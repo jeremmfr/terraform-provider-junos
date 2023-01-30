@@ -164,9 +164,9 @@ func resourceLayer2ControlRead(ctx context.Context, d *schema.ResourceData, m in
 
 func resourceLayer2ControlReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	layer2ControlOptions, err := readLayer2Control(junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -162,9 +162,9 @@ func resourceSecurityUtmProfileWebFilteringLocalRead(ctx context.Context, d *sch
 func resourceSecurityUtmProfileWebFilteringLocalReadWJunSess(
 	d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	utmProfileWebFLocalOptions, err := readUtmProfileWebFLocal(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -66,9 +66,9 @@ func dataSourceApplicationSetsRead(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 	defer junSess.Close()
-	mutex.Lock()
+	junos.MutexLock()
 	applicationSets, err := dataSourceApplicationSetsSearch(junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

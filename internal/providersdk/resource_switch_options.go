@@ -96,9 +96,9 @@ func resourceSwitchOptionsRead(ctx context.Context, d *schema.ResourceData, m in
 
 func resourceSwitchOptionsReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	switchOptionsOptions, err := readSwitchOptions(junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

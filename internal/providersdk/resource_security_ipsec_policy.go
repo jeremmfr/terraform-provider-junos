@@ -131,9 +131,9 @@ func resourceIpsecPolicyRead(ctx context.Context, d *schema.ResourceData, m inte
 
 func resourceIpsecPolicyReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	ipsecPolicyOptions, err := readIpsecPolicy(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -121,9 +121,9 @@ func resourceServicesProxyProfileRead(ctx context.Context, d *schema.ResourceDat
 
 func resourceServicesProxyProfileReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	proxyProfileOptions, err := readServicesProxyProfile(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

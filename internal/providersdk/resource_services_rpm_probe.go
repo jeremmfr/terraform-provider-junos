@@ -394,9 +394,9 @@ func resourceServicesRpmProbeRead(ctx context.Context, d *schema.ResourceData, m
 
 func resourceServicesRpmProbeReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	rpmProbeOptions, err := readServicesRpmProbe(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

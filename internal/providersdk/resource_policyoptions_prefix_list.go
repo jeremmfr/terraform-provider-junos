@@ -128,9 +128,9 @@ func resourcePolicyoptionsPrefixListRead(ctx context.Context, d *schema.Resource
 
 func resourcePolicyoptionsPrefixListReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	prefixListOptions, err := readPolicyoptionsPrefixList(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

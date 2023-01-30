@@ -146,9 +146,9 @@ func resourceSecurityNatDestinationPoolRead(ctx context.Context, d *schema.Resou
 
 func resourceSecurityNatDestinationPoolReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	natDestinationPoolOptions, err := readSecurityNatDestinationPool(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

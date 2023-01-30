@@ -76,9 +76,9 @@ func resourceInterfaceSt0UnitRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	defer junSess.Close()
-	mutex.Lock()
+	junos.MutexLock()
 	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(d.Id(), clt.GroupInterfaceDelete(), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

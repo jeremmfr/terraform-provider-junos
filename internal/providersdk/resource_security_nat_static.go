@@ -231,9 +231,9 @@ func resourceSecurityNatStaticRead(ctx context.Context, d *schema.ResourceData, 
 
 func resourceSecurityNatStaticReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	natStaticOptions, err := readSecurityNatStatic(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -814,39 +814,39 @@ func resourceInterfaceLogicalRead(ctx context.Context, d *schema.ResourceData, m
 
 func resourceInterfaceLogicalReadWJunSess(d *schema.ResourceData, clt *junos.Client, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	ncInt, emptyInt, setInt, err := checkInterfaceLogicalNCEmpty(
 		d.Get("name").(string),
 		clt.GroupInterfaceDelete(),
 		junSess,
 	)
 	if err != nil {
-		mutex.Unlock()
+		junos.MutexUnlock()
 
 		return diag.FromErr(err)
 	}
 	if ncInt {
 		d.SetId("")
-		mutex.Unlock()
+		junos.MutexUnlock()
 
 		return nil
 	}
 	if emptyInt && !setInt {
 		intExists, err := checkInterfaceExists(d.Get("name").(string), junSess)
 		if err != nil {
-			mutex.Unlock()
+			junos.MutexUnlock()
 
 			return diag.FromErr(err)
 		}
 		if !intExists {
 			d.SetId("")
-			mutex.Unlock()
+			junos.MutexUnlock()
 
 			return nil
 		}
 	}
 	interfaceLogicalOpt, err := readInterfaceLogical(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

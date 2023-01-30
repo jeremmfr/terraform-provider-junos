@@ -259,13 +259,13 @@ func resourceIgmpSnoopingVlanRead(ctx context.Context, d *schema.ResourceData, m
 
 func resourceIgmpSnoopingVlanReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	igmpSnoopingVlanOptions, err := readIgmpSnoopingVlan(
 		d.Get("name").(string),
 		d.Get("routing_instance").(string),
 		junSess,
 	)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

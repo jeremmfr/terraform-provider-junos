@@ -254,9 +254,9 @@ func resourceGroupDualSystemRead(ctx context.Context, d *schema.ResourceData, m 
 
 func resourceGroupDualSystemReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	groupDualSystemOpts, err := readGroupDualSystem(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -665,17 +665,17 @@ func resourcePolicyoptionsPolicyStatementRead(ctx context.Context, d *schema.Res
 
 func resourcePolicyoptionsPolicyStatementReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	policyStatementOptions, err := readPolicyStatement(d.Get("name").(string), junSess)
 	if err != nil {
-		mutex.Unlock()
+		junos.MutexUnlock()
 
 		return diag.FromErr(err)
 	}
 	if d.Get("add_it_to_forwarding_table_export").(bool) {
 		export, err := readPolicyStatementFwTableExport(d.Get("name").(string), junSess)
 		if err != nil {
-			mutex.Unlock()
+			junos.MutexUnlock()
 
 			return diag.FromErr(err)
 		}
@@ -685,7 +685,7 @@ func resourcePolicyoptionsPolicyStatementReadWJunSess(d *schema.ResourceData, ju
 			}
 		}
 	}
-	mutex.Unlock()
+	junos.MutexUnlock()
 
 	if policyStatementOptions.name == "" {
 		d.SetId("")

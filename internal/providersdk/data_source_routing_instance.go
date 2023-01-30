@@ -94,9 +94,9 @@ func dataSourceRoutingInstanceRead(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 	defer junSess.Close()
-	mutex.Lock()
+	junos.MutexLock()
 	instanceOptions, err := readRoutingInstance(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

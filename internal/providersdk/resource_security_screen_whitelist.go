@@ -123,9 +123,9 @@ func resourceSecurityScreenWhiteListRead(ctx context.Context, d *schema.Resource
 
 func resourceSecurityScreenWhiteListReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	whiteListOptions, err := readSecurityScreenWhiteList(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -118,9 +118,9 @@ func resourceSecurityIdpCustomAttackGroupRead(ctx context.Context, d *schema.Res
 
 func resourceSecurityIdpCustomAttackGroupReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	idpCustomAttackGroupOptions, err := readSecurityIdpCustomAttackGroup(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

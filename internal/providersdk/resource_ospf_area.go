@@ -709,7 +709,7 @@ func resourceOspfAreaRead(ctx context.Context, d *schema.ResourceData, m interfa
 }
 
 func resourceOspfAreaReadWJunSess(d *schema.ResourceData, junSess *junos.Session) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	ospfAreaOptions, err := readOspfArea(
 		d.Get("area_id").(string),
 		d.Get("version").(string),
@@ -717,7 +717,7 @@ func resourceOspfAreaReadWJunSess(d *schema.ResourceData, junSess *junos.Session
 		d.Get("routing_instance").(string),
 		junSess,
 	)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

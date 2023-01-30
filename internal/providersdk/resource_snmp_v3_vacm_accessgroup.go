@@ -202,9 +202,9 @@ func resourceSnmpV3VacmAccessGroupRead(ctx context.Context, d *schema.ResourceDa
 
 func resourceSnmpV3VacmAccessGroupReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	snmpV3VacmAccessGroupOptions, err := readSnmpV3VacmAccessGroup(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

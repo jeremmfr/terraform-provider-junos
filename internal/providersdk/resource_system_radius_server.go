@@ -191,9 +191,9 @@ func resourceSystemRadiusServerRead(ctx context.Context, d *schema.ResourceData,
 
 func resourceSystemRadiusServerReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	radiusServerOptions, err := readSystemRadiusServer(d.Get("address").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

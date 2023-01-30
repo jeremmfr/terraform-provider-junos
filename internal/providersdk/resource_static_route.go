@@ -301,13 +301,13 @@ func resourceStaticRouteRead(ctx context.Context, d *schema.ResourceData, m inte
 
 func resourceStaticRouteReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	staticRouteOptions, err := readStaticRoute(
 		d.Get("destination").(string),
 		d.Get("routing_instance").(string),
 		junSess,
 	)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

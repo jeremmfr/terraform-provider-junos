@@ -110,9 +110,9 @@ func resourceSnmpClientlistRead(ctx context.Context, d *schema.ResourceData, m i
 
 func resourceSnmpClientlistReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	snmpClientlistOptions, err := readSnmpClientlist(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

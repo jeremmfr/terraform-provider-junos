@@ -346,23 +346,23 @@ func resourceOspfRead(ctx context.Context, d *schema.ResourceData, m interface{}
 }
 
 func resourceOspfReadWJunSess(d *schema.ResourceData, junSess *junos.Session) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	if d.Get("routing_instance").(string) != junos.DefaultW {
 		instanceExists, err := checkRoutingInstanceExists(d.Get("routing_instance").(string), junSess)
 		if err != nil {
-			mutex.Unlock()
+			junos.MutexUnlock()
 
 			return diag.FromErr(err)
 		}
 		if !instanceExists {
-			mutex.Unlock()
+			junos.MutexUnlock()
 			d.SetId("")
 
 			return nil
 		}
 	}
 	ospfOptions, err := readOspf(d.Get("version").(string), d.Get("routing_instance").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}

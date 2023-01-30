@@ -140,9 +140,9 @@ func resourceIpsecProposalRead(ctx context.Context, d *schema.ResourceData, m in
 
 func resourceIpsecProposalReadWJunSess(d *schema.ResourceData, junSess *junos.Session,
 ) diag.Diagnostics {
-	mutex.Lock()
+	junos.MutexLock()
 	ipsecProposalOptions, err := readIpsecProposal(d.Get("name").(string), junSess)
-	mutex.Unlock()
+	junos.MutexUnlock()
 	if err != nil {
 		return diag.FromErr(err)
 	}
